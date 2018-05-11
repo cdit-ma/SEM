@@ -10,7 +10,6 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
 {
     setSortOrdered(true);
     setResizeEnabled(false);
-    setGridEnabled(false);
 
     removeRequiredData("width");
     removeRequiredData("height");

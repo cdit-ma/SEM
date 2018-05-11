@@ -35,11 +35,18 @@ public:
 
     QSet<EDGE_KIND> getVisualEdgeKinds();
     QSet<EDGE_DIRECTION> getVisualEdgeKindDirections(EDGE_KIND kind);
-    
+
+    QSet<EDGE_KIND> getNestedVisualEdgeKinds();
+    QSet<EDGE_DIRECTION> getNestedVisualEdgeKindDirections(EDGE_KIND kind);
+
+protected:
+    void childAdded(ViewItem* child);
+    void childRemoved(ViewItem* child);
 signals:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void visualEdgeKindsChanged();
+    void nestedVisualEdgeKindsChanged();
 private:
     QMultiMap<EDGE_KIND, EDGE_DIRECTION> visual_edge_kinds;
     QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;

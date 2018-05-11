@@ -55,6 +55,8 @@ public:
 
 
     void addChild(ViewItem* child);
+
+    
     void removeChild(ViewItem* child);
     QList<ViewItem *> getDirectChildren() const;
     QList<ViewItem* > getNestedChildren();
@@ -86,6 +88,9 @@ signals:
 protected:
     void changeData(QString keyName, QVariant data, bool is_protected = false);
     void removeData(QString keyName);
+    virtual void childAdded(ViewItem* child);
+    virtual void childRemoved(ViewItem* child);
+    
 
     ViewController* getController();
 private:

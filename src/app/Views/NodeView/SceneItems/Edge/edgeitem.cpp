@@ -793,27 +793,10 @@ void EdgeItem::setCentered(bool centered)
 }
 
 /**
- * @brief EdgeItem::setMoveStarted Called when the EdgeItem starts moving.
- */
-void EdgeItem::setMoveStarted()
-{
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, true);
-    }
-    EntityItem::setMoveStarted();
-}
-
-/**
  * @brief EdgeItem::setMoveFinished Called when the EdgeItem finishes moving.
  */
 bool EdgeItem::setMoveFinished()
 {
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, false);
-    }
-
     if(!isCentered()){
         setPos(getNearestGridPoint());
     }

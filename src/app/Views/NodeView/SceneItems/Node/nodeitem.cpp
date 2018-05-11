@@ -23,8 +23,6 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     modelHeight = 0;
     modelWidth = 0;
     
-    gridVisible = false;
-    gridEnabled = false;
     hoveredConnect = false;
     resizeEnabled = false;
     ignorePosition = false;
@@ -41,17 +39,14 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     nodeItemKind = kind;
 
     setMoveEnabled(true);
-    setGridEnabled(true);
     setSelectionEnabled(true);
     setResizeEnabled(true);
     setExpandEnabled(true);
 
-    //setDefaultPen(Qt::NoPen);
 
     setUpColors();
 
     addRequiredData("isExpanded");
-
     addRequiredData("readOnlyDefinition");
     addRequiredData("snippetID");
 
@@ -59,6 +54,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
         connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
         connect(nodeViewItem, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+        connect(nodeViewItem, &NodeViewItem::nestedVisualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+        
         connect(nodeViewItem, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
         connect(nodeViewItem, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
     }
@@ -75,47 +72,44 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     connect(this, &NodeItem::childPositionChanged, this, &NodeItem::childPosChanged);
 
 
-    gridLinePen.setColor(getBaseBodyColor().darker(150));
-    gridLinePen.setStyle(Qt::DotLine);
-    gridLinePen.setWidthF(.5);
-
     updateVisualEdgeKinds();
     updateNotifications();
 }
 
 void NodeItem::updateVisualEdgeKinds(){
-    visual_edge_kinds.clear();
+    my_visual_edge_kinds.clear();
+    all_visual_edge_kinds.clear();
 
     QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
 
     auto node_view_item = getNodeViewItem();
 
     if(node_view_item){
+
         for(auto edge_kind : valid_edge_kinds){
             for(auto edge_direction : node_view_item->getVisualEdgeKindDirections(edge_kind)){
-                addVisualEdgeKind(edge_direction, edge_kind, false);
+                my_visual_edge_kinds.insert(edge_direction, edge_kind);
+            }
+            for(auto edge_direction : node_view_item->getNestedVisualEdgeKindDirections(edge_kind)){
+                all_visual_edge_kinds.insert(edge_direction, edge_kind);
             }
         }
     }
     update();
 }
+
 void NodeItem::updateNestedNotifications(){
     if(!isExpanded()){
         updateNotifications();
     }
 }
 
-
-
 void NodeItem::updateNotifications(){
     notification_counts_.clear();
-
     auto notifications = isExpanded() ? getViewItem()->getNotifications() : getViewItem()->getNestedNotifications();
-
     for(auto notification : notifications){
         notification_counts_[notification->getSeverity()] ++;
     }
-
     update();
 }
 
@@ -299,36 +293,6 @@ QList<EdgeItem *> NodeItem::getChildEdges() const
     return childEdges.values();
 }
 
-
-
-void NodeItem::setGridEnabled(bool enabled)
-{
-    if(gridEnabled != enabled){
-        gridEnabled = enabled;
-        if(gridEnabled){
-            updateGridLines();
-        }
-    }
-}
-
-bool NodeItem::isGridEnabled() const
-{
-    return gridEnabled;
-}
-
-void NodeItem::setGridVisible(bool visible)
-{
-    if(gridVisible != visible){
-        gridVisible = visible;
-        update();
-    }
-}
-
-bool NodeItem::isGridVisible() const
-{
-    return isGridEnabled() && gridVisible;
-}
-
 void NodeItem::setResizeEnabled(bool enabled)
 {
     if(resizeEnabled != enabled){
@@ -341,28 +305,8 @@ bool NodeItem::isResizeEnabled()
     return resizeEnabled;
 }
 
-void NodeItem::setChildMoving(EntityItem *child, bool moving)
-{
-    if(child){
-        setGridVisible(moving);
-    }
-}
-
-void NodeItem::setMoveStarted()
-{
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, true);
-    }
-    EntityItem::setMoveStarted();
-}
-
 bool NodeItem::setMoveFinished()
 {
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, false);
-    }
     setPos(getNearestGridPoint());
     return EntityItem::setMoveFinished();
 }
@@ -371,19 +315,10 @@ void NodeItem::setResizeStarted()
 {
     sizePreResize = getExpandedSize();
     _isResizing = true;
-
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, true);
-    }
 }
 
 bool NodeItem::setResizeFinished()
 {
-    NodeItem* parentNodeItem = getParentNodeItem();
-    if(parentNodeItem){
-        parentNodeItem->setChildMoving(this, false);
-    }
     _isResizing = false;
     return getExpandedSize() != sizePreResize;
 }
@@ -509,7 +444,6 @@ void NodeItem::setExpandedWidth(qreal width)
             prepareGeometryChange();
             update();
             emit sizeChanged();
-            updateGridLines();
         }
     }
 }
@@ -549,7 +483,6 @@ void NodeItem::setExpandedHeight(qreal height)
             prepareGeometryChange();
             update();
             emit sizeChanged();
-            updateGridLines();
         }
     }
 }
@@ -600,7 +533,6 @@ void NodeItem::setBodyPadding(QMarginsF padding)
 {
     if(this->bodyPadding != padding){
         this->bodyPadding = padding;
-        updateGridLines();
     }
 }
 
@@ -637,26 +569,12 @@ qreal NodeItem::getHeight() const
     }
 }
 
-QMultiMap<EDGE_DIRECTION, EDGE_KIND> NodeItem::getAllVisualEdgeKinds() const{
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> map = getVisualEdgeKinds();
-
-    if(!isExpanded()){
-        for(auto child : getChildNodes()){
-            auto child_map = child->getAllVisualEdgeKinds();
-            for(auto direction : child_map.uniqueKeys()){
-                for(auto edge_kind : child_map.values(direction)){
-                    if(!map.contains(direction, edge_kind)){
-                        map.insert(direction, edge_kind);
-                    }
-                }
-            }
-        }
-    }
-    return map;
+const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getAllVisualEdgeKinds() const{
+    return all_visual_edge_kinds;
 }
 
-QMultiMap<EDGE_DIRECTION, EDGE_KIND> NodeItem::getVisualEdgeKinds() const{
-    return visual_edge_kinds;
+const  QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getVisualEdgeKinds() const{
+    return my_visual_edge_kinds;
 }
 
 
@@ -734,6 +652,7 @@ void NodeItem::setExpanded(bool expand)
         update();
         emit sizeChanged();
         updateNotifications();
+        updateVisualEdgeKinds();
     }
 }
 
@@ -756,16 +675,6 @@ void NodeItem::setSecondaryTextKey(QString key)
 }
 
 
-
-void NodeItem::addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind, bool update_)
-{
-    if(!visual_edge_kinds.contains(direction, kind)){
-        visual_edge_kinds.insert(direction, kind);
-        if(update_){
-            update();
-        }
-    }
-}
 
 QString NodeItem::getPrimaryTextKey() const
 {
@@ -1014,54 +923,6 @@ QPainterPath NodeItem::getChildNodePath()
     return path;
 }
 
-
-void NodeItem::updateGridLines()
-{
-    if(isGridEnabled()){
-        QRectF grid = gridRect();
-        QRectF drawnGrid = gridLines.boundingRect();
-
-        if(grid.width() > drawnGrid.width() || grid.height() > drawnGrid.height()){
-            //Go to double the width of the grid.
-            grid.setWidth(grid.width() * 2);
-            grid.setHeight(grid.height() * 2);
-
-            QPainterPath path;
-
-
-            int gridSize = getGridSize();
-
-            QPointF gridOffset =  grid.topLeft();
-
-            qreal modX = fmod(gridOffset.x(), gridSize);
-            qreal modY = fmod(gridOffset.y(), gridSize);
-
-            if(modX != 0){
-                gridOffset.rx() += (gridSize - modX);
-            }
-
-            if(modY != 0){
-                gridOffset.ry() += (gridSize - modY);
-            }
-
-            for(qreal x = gridOffset.x(); x <= grid.right(); x += gridSize){
-                path.moveTo(x, grid.top());
-                path.lineTo(x, grid.bottom());
-            }
-
-            for(qreal y = gridOffset.y(); y <= grid.bottom(); y += gridSize){
-                path.moveTo(grid.left(), y);
-                path.lineTo(grid.right(), y);
-            }
-
-            if(path != gridLines){
-                gridLines = path;
-                update();
-            }
-        }
-    }
-}
-
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
@@ -1130,45 +991,44 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state >= RENDER_STATE::REDUCED){
         painter->save();
-        auto my_edges = getVisualEdgeKinds();
-        auto map = isExpanded() ? my_edges : getAllVisualEdgeKinds();
-        for(auto edge_direction : map.uniqueKeys()){
-            for(auto edge_kind : map.values(edge_direction)){
-                if(edge_kind != EDGE_KIND::NONE){
-                    auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-                    auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
-                    bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
-                    bool got_edge = attached_edges.contains({edge_direction, edge_kind});
-                    bool my_edge = my_edges.contains(edge_direction, edge_kind);
-                    
-                    QColor brush_color;
-                    if(is_hovered){
-                        brush_color = getPen().color();
-                    }else{
-                        brush_color = getHeaderColor();
-                    }
-
-                    painter->setBrush(brush_color);
-                    painter->drawEllipse(icon_rect);
-
-                    painter->setBrush(getBodyColor());
-                    painter->drawEllipse(inner_rect);
-
-                    if(got_edge || is_hovered){
-                        painter->setOpacity(1);
-                    }else{
-                        painter->setOpacity(.60);   
-                    }
-
-                    
-                    if(!my_edge){
-                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind) + "_Gray");
-
-                    }else{
-                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
-                    }
-                    painter->setOpacity(1);
+        auto& my_edges = getVisualEdgeKinds();
+        auto& edges = isExpanded() ? my_edges : getAllVisualEdgeKinds();
+        
+        for(auto edge_direction : edges.uniqueKeys()){
+            for(auto edge_kind : edges.values(edge_direction)){
+                auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+                auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
+                bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
+                bool got_edge = attached_edges.contains({edge_direction, edge_kind});
+                bool my_edge = my_edges.contains(edge_direction, edge_kind);
+                
+                QColor brush_color;
+                if(is_hovered){
+                    brush_color = getPen().color();
+                }else{
+                    brush_color = getHeaderColor();
                 }
+
+                painter->setBrush(brush_color);
+                painter->drawEllipse(icon_rect);
+
+                painter->setBrush(getBodyColor());
+                painter->drawEllipse(inner_rect);
+
+                if(got_edge || is_hovered){
+                    painter->setOpacity(1);
+                }else{
+                    painter->setOpacity(.60);   
+                }
+
+                
+                if(!my_edge){
+                    paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind) + "_Gray");
+
+                }else{
+                    paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
+                }
+                painter->setOpacity(1);
             }
         }
         painter->restore();
@@ -1312,7 +1172,7 @@ QRectF NodeItem::getResizeArrowRect() const
 
 int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     //Values in list are backwards
-    auto list = getAllVisualEdgeKinds().values(direction);
+    const auto& list = getAllVisualEdgeKinds().values(direction);
     auto index = list.size() - (list.indexOf(kind) + 1);
     return index;
 }
@@ -1402,18 +1262,6 @@ QRectF NodeItem::getNotificationRect(Notification::Severity severity) const{
     return QRectF();
 }
 
-QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPointF pos) const{
-    QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > kinds;
-    auto map = getAllVisualEdgeKinds();
-    for(auto direction : map.uniqueKeys()){
-        for(auto kind : map.values(direction)){
-            if(getEdgeConnectRect(direction, kind).contains(pos)){
-                kinds.insert({direction, kind});
-            }
-        }
-    }
-    return kinds;
-}
 
 std::list<NodeItem::RectVertex> NodeItem::getRectVertex(){
     return {NodeItem::RectVertex::LEFT, NodeItem::RectVertex::TOP_LEFT, NodeItem::RectVertex::TOP, NodeItem::RectVertex::TOP_RIGHT, NodeItem::RectVertex::RIGHT, NodeItem::RectVertex::BOTTOM_RIGHT, NodeItem::RectVertex::BOTTOM, NodeItem::RectVertex::BOTTOM_LEFT};
@@ -1444,8 +1292,8 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     clearEdgeKnobPressedState();
     clearNotificationKnobPressedState();
 
-    for(auto direction : visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = visual_edge_kinds.values(direction);
+    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
+        auto edge_kinds = my_visual_edge_kinds.values(direction);
         for(auto edge_kind : edge_kinds){
             auto rect = getEdgeConnectRect(direction, edge_kind);
             if(rect.contains(event->pos())){
@@ -1538,8 +1386,10 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     bool need_update = false;
 
-    for(auto direction : visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = visual_edge_kinds.values(direction);
+
+
+    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
+        auto edge_kinds = my_visual_edge_kinds.values(direction);
         edge_kinds.push_front(EDGE_KIND::NONE);
         for(auto edge_kind : edge_kinds){
             auto in_rect = getEdgeConnectRect(direction, edge_kind).contains(event->pos());

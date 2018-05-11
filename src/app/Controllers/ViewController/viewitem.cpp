@@ -171,6 +171,10 @@ void ViewItem::destruct()
     }
 }
 
+void ViewItem::childAdded(ViewItem* child){
+}
+void ViewItem::childRemoved(ViewItem* child){
+}
 
 void ViewItem::addChild(ViewItem *child)
 {
@@ -180,6 +184,7 @@ void ViewItem::addChild(ViewItem *child)
             children.insertMulti(ek, child);
             child->setParentViewItem(this);
             connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
+            childAdded(child);
         }
     }
 }
@@ -189,6 +194,7 @@ void ViewItem::removeChild(ViewItem *child)
     if(child){
         GRAPHML_KIND ek = child->getEntityKind();
         children.remove(ek, child);
+        childRemoved(child);
     }
 }
 

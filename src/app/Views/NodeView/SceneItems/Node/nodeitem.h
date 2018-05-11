@@ -54,17 +54,10 @@ public:
     QPointF getNearestGridPointToCenter();
 
 
-    void setGridEnabled(bool enabled);
-    bool isGridEnabled() const;
-    void setGridVisible(bool visible);
-    bool isGridVisible() const;
 
     void setResizeEnabled(bool enabled);
     bool isResizeEnabled();
 
-    void setChildMoving(EntityItem* child, bool moving);
-
-    void setMoveStarted();
     bool setMoveFinished();
 
     void setResizeStarted();
@@ -95,16 +88,14 @@ public:
     QRectF getNotificationRect() const;
     QRectF getNotificationRect(Notification::Severity severity) const;
 
-    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos) const;
-
 
     int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const;
 
     QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
 
 
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getAllVisualEdgeKinds() const;
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getVisualEdgeKinds() const;
+    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getAllVisualEdgeKinds() const;
+    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getVisualEdgeKinds() const;
 
     
 
@@ -216,11 +207,12 @@ private:
     int getResizeArrowRotation(NodeItem::RectVertex vert) const;
 
 
-    void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> visual_edge_kinds;
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> all_visual_edge_kinds;
+
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
@@ -244,8 +236,6 @@ private:
 
 
     QRectF _childRect;
-    bool gridEnabled;
-    bool gridVisible;
     bool ignorePosition;
 
     void clearEdgeKnobPressedState();
@@ -290,7 +280,6 @@ private:
 
     QPair<QString, QString> secondary_icon;
 
-    QPainterPath gridLines;
 
     QColor readOnlyInstanceColor;
     QColor readOnlyDefinitionColor;
@@ -298,7 +287,6 @@ private:
 
     qreal modelWidth;
     qreal modelHeight;
-    QPen gridLinePen;
 
     QString primaryTextKey;
     QString secondaryTextKey;

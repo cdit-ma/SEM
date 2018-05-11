@@ -26,7 +26,6 @@ public:
     QRectF getElementRect(EntityRect rect) const;
     QPainterPath getElementPath(EntityRect rect) const;
 
-    void setMoveStarted();
     bool setMoveFinished();
 
     bool isCentered() const;

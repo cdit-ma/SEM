@@ -53,6 +53,21 @@ bool NodeViewItem::isNodeOfType(NODE_TYPE type)
     return is_type;
 }
 
+void NodeViewItem::childAdded(ViewItem* child){
+    if(child && child->isNode()){
+        auto node = (NodeViewItem*) child;
+        connect(node, &NodeViewItem::visualEdgeKindsChanged, this, &NodeViewItem::nestedVisualEdgeKindsChanged);
+        
+    }
+}
+
+void NodeViewItem::childRemoved(ViewItem* child){
+    if(child && child->isNode()){
+        auto node = (NodeViewItem*) child;
+        disconnect(node, &NodeViewItem::visualEdgeKindsChanged, this, &NodeViewItem::nestedVisualEdgeKindsChanged);
+    }
+}
+
 void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
 {
     if(edge){
@@ -140,4 +155,34 @@ QSet<EDGE_KIND> NodeViewItem::getVisualEdgeKinds(){
 QSet<EDGE_DIRECTION> NodeViewItem::getVisualEdgeKindDirections(EDGE_KIND kind){
     auto values = visual_edge_kinds.values(kind).toSet() + owned_edge_kinds.values(kind).toSet();
     return values;
+}
+
+QSet<EDGE_KIND> NodeViewItem::getNestedVisualEdgeKinds(){
+    auto kinds = getVisualEdgeKinds();
+
+    for(auto child : getDirectChildren()){
+        if(child->isNode()){
+            auto node = (NodeViewItem*) child;
+            kinds += node->getNestedVisualEdgeKinds();
+        }
+    }
+    return kinds;
+}
+
+QSet<EDGE_DIRECTION> NodeViewItem::getNestedVisualEdgeKindDirections(EDGE_KIND kind){
+    auto max_count = 2;
+    auto directions = getVisualEdgeKindDirections(kind);
+
+    for(auto child : getDirectChildren()){
+        if(child->isNode()){
+            auto node = (NodeViewItem*) child;
+            directions += node->getNestedVisualEdgeKindDirections(kind);
+            
+        }
+        if(directions.size() == 2){
+            break;
+        }
+    }
+
+    return directions;
 }

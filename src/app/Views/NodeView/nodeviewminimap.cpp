@@ -273,7 +273,6 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
         QPointF sceneDelta = previousScenePos - mapToScene(event->pos());
 
         emit minimap_Pan(sceneDelta);
-
         //Update the previous Scene position after the view has panned, such that we get smooth movement.
         previousScenePos = mapToScene(event->pos());
     }
@@ -296,6 +295,5 @@ void NodeViewMinimap::wheelEvent(QWheelEvent *event)
 
 void NodeViewMinimap::resizeEvent(QResizeEvent *)
 {
-    //Recenter the Minimap after a widget resize.
-    centerView();;
+    centerView();
 }

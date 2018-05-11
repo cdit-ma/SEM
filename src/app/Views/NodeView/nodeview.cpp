@@ -1253,10 +1253,6 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
     NodeItem* destination = getParentNodeItem(item->getDestination());
 
     if(source && destination){
-        qCritical() << parent;
-        qCritical() << source;
-        qCritical() << destination;
-
         EdgeItem* edgeItem = new EdgeItem(item, parent, source, destination);
 
         if(edgeItem){
