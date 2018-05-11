@@ -43,6 +43,8 @@ public:
     QSharedPointer<NotificationObject> getNotification(int id);
     QSharedPointer<NotificationObject> getLatestNotification();
 
+    void ShowNotificationPanel(Notification::Severity severity);
+
 signals:
     void toastNotification(QSharedPointer<NotificationObject> notification);
     void notificationUpdated(QSharedPointer<NotificationObject> notification);
@@ -52,7 +54,6 @@ signals:
     
     void notificationsSeen();
     void showNotificationPanel();
-
 public slots:
     void hideToast();
     void toastLatestNotification();

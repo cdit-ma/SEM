@@ -368,5 +368,16 @@
         <file alias="squarePlus">Resources/Icons/squarePlus.png</file>
         <file alias="circlePlusTwoTone">Resources/Icons/circlePlusTwoTone.png</file>
         <file alias="timeElapsed">Resources/Icons/timeElapsed.png</file>
+
+
+
+        <file alias="squarePlusDark">Resources/Icons/squarePlusDark.png</file>
+        <file alias="number1Dark">Resources/Icons/number1Dark.png</file>
+        <file alias="number2Dark">Resources/Icons/number2Dark.png</file>
+        <file alias="number3Dark">Resources/Icons/number3Dark.png</file>
+        <file alias="number4Dark">Resources/Icons/number4Dark.png</file>
+        <file alias="number5Dark">Resources/Icons/number5Dark.png</file>
+        <file alias="number6Dark">Resources/Icons/number6Dark.png</file>
+        <file alias="octagonCriticalDark">Resources/Icons/octagonCriticalDark.png</file>
     </qresource>
 </RCC>

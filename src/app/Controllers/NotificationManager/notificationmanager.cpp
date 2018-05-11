@@ -32,7 +32,7 @@ NotificationManager::NotificationManager(ViewController* controller)
     //Setup Severity Icons
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::INFO), icon_prefix, "circleInfoDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::WARNING), icon_prefix, "triangleCritical");
-    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "pointyCircleCriticalDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "octagonCriticalDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::SUCCESS), icon_prefix, "circleTickDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::RUNNING), icon_prefix, "running");
 
@@ -279,4 +279,9 @@ void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject>
             }
         }
     }
+}
+
+void NotificationManager::ShowNotificationPanel(Notification::Severity severity){
+    getPanel()->showSeveritySelection(severity);
+    emit showNotificationPanel();
 }

@@ -115,6 +115,8 @@ public:
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
 private:
     void SetParentNode(ViewItem* parent, ViewItem* child);
+    void notification_Added(QSharedPointer<NotificationObject> obj);
+    void notification_Destructed(QSharedPointer<NotificationObject> obj);
 
 signals:
     //TO OTHER VIEWS SIGNALS

@@ -436,15 +436,6 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     }
 }
 
-void EntityItem::propertyChanged(QString, QVariant)
-{
-}
-
-void EntityItem::dataRemoved(QString)
-{
-
-}
-
 void EntityItem::adjustPos(QPointF delta)
 {
     setPos(getPos() + delta);
@@ -608,8 +599,6 @@ void EntityItem::connectViewItem(ViewItem *viewItem)
     viewItem->registerObject(this);
     connect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
     connect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
-    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
-    connect(viewItem, &ViewItem::propertyChanged, this, &EntityItem::propertyChanged);
 }
 
 void EntityItem::disconnectViewItem()
@@ -617,7 +606,6 @@ void EntityItem::disconnectViewItem()
     if(viewItem){
         disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
         disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
-        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
         viewItem->unregisterObject(this);
         viewItem = 0;
     }
@@ -732,6 +720,15 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
+    if(state > RENDER_STATE::BLOCK){
+        painter->save();
+        //Paint the Outline path.
+        painter->setPen(getPen());
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(currentRect());
+        painter->restore();
+    }
+
     if(state == RENDER_STATE::BLOCK){
         QBrush brush(Qt::SolidPattern);
         painter->setPen(Qt::NoPen);
@@ -758,6 +755,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, lod, EntityRect::LOCKED_STATE_ICON, "Icons", "lockClosed");
         }
     }
+
+    
 }
 
 QPen EntityItem::getDefaultPen() const{

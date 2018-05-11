@@ -91,6 +91,9 @@ public:
     QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
     QRectF getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
     QRectF getEdgeDirectionRect(EDGE_DIRECTION direction) const;
+    
+    QRectF getNotificationRect() const;
+    QRectF getNotificationRect(Notification::Severity severity) const;
 
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos) const;
 
@@ -157,6 +160,8 @@ public:
 
     void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind, bool update = true);
     void updateVisualEdgeKinds();
+    void updateNotifications();
+    void updateNestedNotifications();
     EDGE_KIND getVisualEdgeKind() const;
 
     
@@ -219,6 +224,10 @@ private:
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
+    QMap<Notification::Severity, int> notification_counts_;
+
+    QSet<Notification::Severity> hovered_notifications_;
+
 
     EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
     QString visualEntityIcon;
@@ -240,12 +249,17 @@ private:
     bool ignorePosition;
 
     void clearEdgeKnobPressedState();
+    void clearNotificationKnobPressedState();
 
     bool edge_knob_pressed = false;
     bool edge_knob_dragged = false;
     QRectF pressed_edge_knob_rect;
     EDGE_DIRECTION pressed_edge_knob_direction = EDGE_DIRECTION::SOURCE;
     EDGE_KIND pressed_edge_knob_kind = EDGE_KIND::NONE;
+
+    bool notification_pressed = false;
+    QRectF pressed_notification_rect;
+    Notification::Severity pressed_notification = Notification::Severity::NONE;
 
 
 
@@ -293,6 +307,8 @@ private:
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+protected:
+    void paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     // EntityItemNew interface
 public:

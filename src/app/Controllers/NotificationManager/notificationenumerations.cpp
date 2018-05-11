@@ -1,6 +1,23 @@
 #include "notificationenumerations.h"
 #include "../../theme.h"
 
+class NotificationSorter{
+    public:
+        NotificationSorter(){
+            severities = Notification::getSeverities().toList();
+            type = Notification::getTypes().toList();
+            categories = Notification::getCategories().toList();
+            
+            std::sort(severities.begin(), severities.end());
+            std::sort(type.begin(), type.end());
+            std::sort(categories.begin(), categories.end());
+        };
+        QList<Notification::Severity> severities;
+        QList<Notification::Type> type;
+        QList<Notification::Category> categories;
+};
+
+static NotificationSorter sorted;
 
 QSet<Notification::Context> Notification::getContexts(){
     return {Context::NOT_SELECTED, Context::SELECTED};
@@ -15,6 +32,18 @@ QSet<Notification::Category> Notification::getCategories(){
 
 QSet<Notification::Severity> Notification::getSeverities(){
     return {Severity::NONE, Severity::RUNNING, Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
+}
+
+const QList<Notification::Type>& Notification::getSortedTypes(){
+    return sorted.type;
+}
+
+const QList<Notification::Category>& Notification::getSortedCategories(){
+    return sorted.categories;
+}
+
+const QList<Notification::Severity>& Notification::getSortedSeverities(){
+    return sorted.severities;
 }
 
 QString Notification::getTypeString(Notification::Type type)

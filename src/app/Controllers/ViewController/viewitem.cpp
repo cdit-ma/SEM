@@ -179,6 +179,7 @@ void ViewItem::addChild(ViewItem *child)
         if(!children.contains(ek, child)){
             children.insertMulti(ek, child);
             child->setParentViewItem(this);
+            connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
         }
     }
 }
@@ -293,4 +294,30 @@ void ViewItem::updateProtectedKey(QString key_name, bool is_protected){
     }else{
         protected_keys.remove(key_name);
     }
+}
+
+void ViewItem::addNotification(QSharedPointer<NotificationObject> notification){
+    notifications_.insert(notification);
+    connect(notification.data(), &NotificationObject::notificationChanged, [=](QSharedPointer<NotificationObject>){emit notificationsChanged();});
+    emit notificationsChanged();
+}
+
+void ViewItem::removeNotification(QSharedPointer<NotificationObject> notification){
+    notifications_.remove(notification);
+    emit notificationsChanged();
+}
+
+QSet<QSharedPointer<NotificationObject> > ViewItem::getNotifications(){
+    return notifications_;
+}
+
+QSet<QSharedPointer<NotificationObject> > ViewItem::getNestedNotifications(){
+    QSet<QSharedPointer<NotificationObject> > notifications;
+    
+    notifications += getNotifications();
+
+    for(auto child : getDirectChildren()){
+        notifications += child->getNestedNotifications();
+    }
+    return notifications;
 }

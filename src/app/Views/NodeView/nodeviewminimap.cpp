@@ -154,7 +154,6 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    return;
     if(drawRect){
         QRegion mainArea(rect.toAlignedRect());
         QRegion viewArea(viewportRect.toAlignedRect());

@@ -18,11 +18,16 @@ namespace Notification{
     extern QSet<Notification::Category> getCategories();
     extern QSet<Notification::Severity> getSeverities();
 
+    extern const QList<Notification::Type>& getSortedTypes();
+    extern const QList<Notification::Category>& getSortedCategories();
+    extern const QList<Notification::Severity>& getSortedSeverities();
+
     //String Getters
     extern QString getContextString(Notification::Context context);
     extern QString getTypeString(Notification::Type type);
     extern QString getCategoryString(Notification::Category category);
     extern QString getSeverityString(Notification::Severity severity);
+
 
 
 

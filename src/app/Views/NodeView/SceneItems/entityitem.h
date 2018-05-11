@@ -43,7 +43,7 @@ public:
         TERTIARY_ICON,
         
         LOCKED_STATE_ICON,
-        NOTIFICATION_ICON,
+        NOTIFICATION_RECT,
         RESIZE_ARROW_ICON,
 
         CONNECT_SOURCE,
@@ -248,8 +248,6 @@ signals:
     void positionChanged();
     void scenePosChanged();
 private slots:
-    virtual void propertyChanged(QString propertyName, QVariant data);
-    virtual void dataRemoved(QString keyName);
     void destruct();
 
 public:

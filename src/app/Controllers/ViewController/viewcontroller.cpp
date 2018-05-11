@@ -76,6 +76,9 @@ ViewController::ViewController() : QObject(){
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
+    //connect(NotificationManager::manager(), &NotificationManager::notificationChanged, this, &ViewController::notification_Added);
+    connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);
 
 
     
@@ -1495,7 +1498,7 @@ void ViewController::StoreViewItem(ViewItem* view_item){
         }
         setDefaultIcon(view_item);
         connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-
+        connect(view_item, &ViewItem::showNotifications, NotificationManager::manager(), &NotificationManager::ShowNotificationPanel);
         emit vc_viewItemConstructed(view_item);
     }
 }
@@ -1527,6 +1530,15 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     
     StoreViewItem(node_item);
     controller_nodeEdgeChanged(id);
+
+    if(kind == NODE_KIND::AGGREGATE){
+        for(auto severity : Notification::getSeverities()){
+            if(severity != Notification::Severity::NONE && severity != Notification::Severity::RUNNING){
+                //Add some notification
+                NotificationManager::manager()->AddNotification("TEST", "Icons", "circlePlusTwoTone", severity,  Notification::Type::MODEL, Notification::Category::VALIDATION, false, id);
+            }
+        }
+    }
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
@@ -1987,4 +1999,22 @@ ViewItem *ViewController::getViewItem(int ID)
         return viewItems[ID];
     }
     return 0;
+}
+
+
+
+void ViewController::notification_Added(QSharedPointer<NotificationObject> notification){
+    //Check for IDs
+    auto entity = getViewItem(notification->getEntityID());
+    if(entity){
+        entity->addNotification(notification);
+    }
+}
+
+void ViewController::notification_Destructed(QSharedPointer<NotificationObject> notification){
+    //Check for IDs
+    auto entity = getViewItem(notification->getEntityID());
+    if(entity){
+        entity->removeNotification(notification);
+    }
 }

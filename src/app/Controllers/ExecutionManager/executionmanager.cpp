@@ -103,8 +103,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
                         auto is_warning = get_xml_attribute(xml, "warning") == "true";
                         auto result_text = xml.readElementText();
                         auto severity = is_warning ? Notification::Severity::WARNING : Notification::Severity::ERROR;
-                        
-                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, entity_id, true);
+                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, entity_id, false);
                     }else if(result == "true"){
                         success_count ++;
                     }

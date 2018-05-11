@@ -155,8 +155,9 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
     case EntityRect::MAIN_ICON:
         return headerContent_Icon();
     case EntityRect::MAIN_ICON_OVERLAY:
-    case EntityRect::NOTIFICATION_ICON:
         return headerContent_Icon_Overlay();
+    case EntityRect::NOTIFICATION_RECT:
+        return notificationRect();
     case EntityRect::SECONDARY_ICON:
         return headerContent_Data_Secondary_Icon();
     case EntityRect::PRIMARY_TEXT:
@@ -175,55 +176,12 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
     return NodeItem::getElementRect(rect);
 }
 
-void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
-    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
-    RENDER_STATE state = getRenderState(lod);
 
-    painter->setClipRect(option->exposedRect);
-    painter->setPen(Qt::NoPen);
-
-    auto IS_BLOCK = state == RENDER_STATE::BLOCK;
-
-    if(state >= RENDER_STATE::BLOCK){
-        
-        if(isExpanded()){
-            //Paint the Body
-            painter->setBrush(getBodyColor());
-            if(IS_BLOCK){
-                painter->drawRect(getElementRect(EntityRect::SHAPE));
-            }else{
-                painter->drawPath(getElementPath(EntityRect::SHAPE));
-            }
-        }
-
-        //Paint the Header
-        painter->setBrush(getHeaderColor());
-        if(IS_BLOCK){
-            painter->drawRect(getElementRect(EntityRect::MOVE));
-        }else{
-            painter->drawPath(getElementPath(EntityRect::MOVE));
-        }
-        
-    
-
-        if(state > RENDER_STATE::BLOCK){
-            //Paint the Text Background
-            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
-                painter->setBrush(getBodyColor());
-                painter->drawRect(headerContent_Data_Secondary_Text() + QMarginsF(1,0,1,0));
-            }
-        }
-    }
-}
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    
-
     paintBackground(painter, option, widget);
     NodeItem::paint(painter, option, widget);
-
-    
 }
 
 QRectF BasicNodeItem::headerRect() const
@@ -242,6 +200,15 @@ QRectF BasicNodeItem::connectSourceRect() const
 
     auto h_offset = r.width() / 2;
     r.moveLeft(left - h_offset);
+    return r;
+}
+
+QRectF BasicNodeItem::notificationRect() const
+{
+    QRectF r = headerRect();
+    r.setHeight(smallIconSize().width() / 2);
+    auto v_offset = r.height() / 2;
+    r.moveTop(r.top() - v_offset);
     return r;
 }
 

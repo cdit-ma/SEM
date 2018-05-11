@@ -68,9 +68,12 @@ QSet<QSharedPointer<NotificationObject> > NotificationDialog::getFilteredNotific
     
     //We only need to check selection when the SELECTED is exclusively selected.
     auto check_selection = checked_context_set.size() == 1 && checked_context_set.contains(Notification::Context::SELECTED);
-    QSet<int> selected_ids;
+
+    QSet<QSharedPointer<NotificationObject> > selected_notifications;
     if(viewController && check_selection){
-        selected_ids = viewController->getSelectionController()->getSelectionIDs().toSet();
+        for(auto view_item : viewController->getSelectionController()->getSelection()){
+            selected_notifications += view_item->getNestedNotifications();
+        }
     }
 
     QSet<QSharedPointer<NotificationObject> > filtered;
@@ -79,7 +82,7 @@ QSet<QSharedPointer<NotificationObject> > NotificationDialog::getFilteredNotific
         auto matches_severity = checked_severity_set.contains(notification->getSeverity());
         auto matches_category = checked_category_set.contains(notification->getCategory());
         auto matches_type = checked_type_set.contains(notification->getType());
-        auto matches_context = check_selection ? selected_ids.contains(notification->getEntityID()) : true;
+        auto matches_context = check_selection ? selected_notifications.contains(notification) : true;
         //Check if this notification matches all the filters
         auto matches_filters = matches_severity && matches_category && matches_type && matches_context;
         if(matches_filters){
@@ -185,18 +188,14 @@ void NotificationDialog::themeChanged()
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     clear_filtered_action->setIcon(theme->getIcon("Icons", "bin"));
     
-    //sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
-    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "slider"));
+    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
     
-    //auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
-    //clock_label->setPixmap(pixmap);
-
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
 
-    top_toolbar->setIconSize(theme->getLargeIconSize());
+    top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
 }
 
@@ -487,6 +486,11 @@ void NotificationDialog::setupLayout()
     setupFilters();
 
     
+}
+
+void NotificationDialog::showSeveritySelection(Notification::Severity severity){
+    showSeverity(severity);
+    context_filters->setOptionChecked(QVariant::fromValue(Notification::Context::SELECTED), true);
 }
 
 void NotificationDialog::showSeverity(Notification::Severity severity){

@@ -1043,11 +1043,7 @@ int ModelController::getSharedParent(int id, int id2){
     auto node_2 = entity_factory->GetNode(id2);
     if(node_1 && node_2){
         auto parent = node_1->getCommonAncestor(node_2);
-
-        qCritical() << " 1 : " <<node_1->toString();
-        qCritical() << " 2 : " <<node_2->toString();
         if(parent){
-            qCritical() << " P : " <<parent->toString();
             return parent->getID();
         }
     }

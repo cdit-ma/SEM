@@ -216,8 +216,6 @@ void Node::removeNodeType(NODE_TYPE type)
 
 Node *Node::getCommonAncestor(Node *dst)
 {
-    qCritical() << getTreeIndex();
-    qCritical() << dst->getTreeIndex();
     int height = getDepthFromCommonAncestor(dst);
 
     if(height != -1){

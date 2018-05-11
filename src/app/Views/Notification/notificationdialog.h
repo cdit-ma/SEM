@@ -23,6 +23,7 @@ public:
 signals:
     void mouseEntered();
 public slots:
+    void showSeveritySelection(Notification::Severity severity);
     void showSeverity(Notification::Severity severity);
 private slots:
     void notificationAdded(QSharedPointer<NotificationObject> notification);

@@ -30,7 +30,7 @@ public:
     QPainterPath getElementPath(EntityRect rect) const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    
 
 private:
     QPointF validateMove(QPointF delta);
@@ -39,6 +39,7 @@ protected:
 private:
     QRectF connectSourceRect() const;
     QRectF connectTargetRect() const;
+    QRectF notificationRect() const;
 
     QRectF headerContent() const;
     

@@ -1444,7 +1444,7 @@ void Theme::resetTheme(ThemePreset themePreset){
 
             emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, white());
             emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
-            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,255,10));
             emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
             emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(50,205,50));
             resetAspectTheme(true);

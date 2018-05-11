@@ -59,6 +59,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
         connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
         connect(nodeViewItem, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+        connect(nodeViewItem, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
+        connect(nodeViewItem, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
     }
 
     if(parentItem){
@@ -78,12 +80,13 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     gridLinePen.setWidthF(.5);
 
     updateVisualEdgeKinds();
+    updateNotifications();
 }
 
 void NodeItem::updateVisualEdgeKinds(){
     visual_edge_kinds.clear();
 
-    QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};//, EDGE_KIND::AGGREGATE};
+    QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
 
     auto node_view_item = getNodeViewItem();
 
@@ -94,6 +97,25 @@ void NodeItem::updateVisualEdgeKinds(){
             }
         }
     }
+    update();
+}
+void NodeItem::updateNestedNotifications(){
+    if(!isExpanded()){
+        updateNotifications();
+    }
+}
+
+
+
+void NodeItem::updateNotifications(){
+    notification_counts_.clear();
+
+    auto notifications = isExpanded() ? getViewItem()->getNotifications() : getViewItem()->getNestedNotifications();
+
+    for(auto notification : notifications){
+        notification_counts_[notification->getSeverity()] ++;
+    }
+
     update();
 }
 
@@ -494,6 +516,7 @@ void NodeItem::setExpandedWidth(qreal width)
 
 QColor NodeItem::getHeaderColor() const{
     auto header_color = EntityItem::getHeaderColor();
+    /*
     if(!hasChildNodes()){
         if(getParentNodeItem()){
             if(!isHighlighted()){
@@ -502,7 +525,7 @@ QColor NodeItem::getHeaderColor() const{
         }else{
             header_color = EntityItem::getBodyColor();
         }
-    }
+    }*/
     return header_color;
 }
 
@@ -710,6 +733,7 @@ void NodeItem::setExpanded(bool expand)
 
         update();
         emit sizeChanged();
+        updateNotifications();
     }
 }
 
@@ -1047,21 +1071,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     RENDER_STATE state = getRenderState(lod);
 
-    //Paint the grid lines.
-    if(isGridVisible()){
-        painter->save();
-        painter->setClipRect(gridRect());
-        painter->strokePath(gridLines, gridLinePen);
-        painter->restore();
-    }
 
     if(state > RENDER_STATE::MINIMAL){
         if(gotSecondaryTextKey()){
             paintPixmap(painter, lod,EntityRect::SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
         }
     }
-
-
 
     if(state > RENDER_STATE::BLOCK){
         painter->save();
@@ -1113,7 +1128,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->restore();
     }
 
-    if(state > RENDER_STATE::BLOCK){
+    if(state >= RENDER_STATE::REDUCED){
         painter->save();
         auto my_edges = getVisualEdgeKinds();
         auto map = isExpanded() ? my_edges : getAllVisualEdgeKinds();
@@ -1126,21 +1141,15 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                     bool got_edge = attached_edges.contains({edge_direction, edge_kind});
                     bool my_edge = my_edges.contains(edge_direction, edge_kind);
                     
-                    if(is_hovered || got_edge){
-                        QColor brush_color;
-                        if(is_hovered){
-                            brush_color = getPen().color();
-                        }else{
-                            if(got_edge){
-                                brush_color = getBodyColor();
-                            }else{
-                                brush_color = Qt::transparent;
-                            }
-                        }
-
-                        painter->setBrush(brush_color);
-                        painter->drawEllipse(icon_rect);
+                    QColor brush_color;
+                    if(is_hovered){
+                        brush_color = getPen().color();
+                    }else{
+                        brush_color = getHeaderColor();
                     }
+
+                    painter->setBrush(brush_color);
+                    painter->drawEllipse(icon_rect);
 
                     painter->setBrush(getBodyColor());
                     painter->drawEllipse(inner_rect);
@@ -1165,15 +1174,36 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->restore();
     }
 
-    if(state > RENDER_STATE::BLOCK){
+
+    if(state >= RENDER_STATE::REDUCED){
         painter->save();
 
-        //Paint the Outline path.
-        painter->setPen(getPen());
-        painter->setBrush(Qt::NoBrush);
-        painter->drawPath(getElementPath(EntityRect::SHAPE));
-        painter->restore();
+        for(auto severity : Notification::getSortedSeverities()){
+            if(notification_counts_.contains(severity)){
+                auto severity_str = Notification::getSeverityString(severity);
+                auto count = notification_counts_[severity];
+                auto rect = getNotificationRect(severity);
+                auto inner_rect = rect.adjusted(.5,.5,-.5,-.5);
+                bool is_hovered = hovered_notifications_.contains(severity);
 
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(is_hovered ? getHighlightColor() : getHeaderColor());
+                painter->drawEllipse(rect);
+
+                const auto icon_color = is_hovered ? getHighlightTextColor() : Theme::theme()->getSeverityColor(severity);
+
+                if(is_hovered){
+                    QString icon_path = "number9+";
+                    if(count < 10){
+                        icon_path = "number" + QString::number(count);
+                    }
+                    paintPixmap(painter, lod, inner_rect, "Icons", icon_path, icon_color);
+                }else{
+                    paintPixmap(painter, lod, inner_rect, "Notification", severity_str, icon_color);
+                }
+            }
+        }
+        painter->restore();
     }
 }
 
@@ -1195,6 +1225,20 @@ QRectF NodeItem::getElementRect(EntityRect rect) const
 
 QPainterPath NodeItem::getElementPath(EntityRect rect) const
 {
+    switch(rect){
+        case EntityRect::SHAPE:{
+            //Selection Area is the Center Circle and Arrow Heads
+            QPainterPath path = EntityItem::getElementPath(EntityRect::SHAPE);
+            path.setFillRule(Qt::WindingFill);
+
+            for(auto severity : notification_counts_.uniqueKeys()){
+                path.addEllipse(getNotificationRect(severity));
+            }
+            return path;//return path.simplified();
+        }
+        default:
+            break;
+    }
     return EntityItem::getElementPath(rect);
 }
 
@@ -1330,6 +1374,34 @@ QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction) const{
     return QRectF();
 }
 
+QRectF NodeItem::getNotificationRect() const{
+    return getElementRect(EntityRect::NOTIFICATION_RECT);
+}
+
+QRectF NodeItem::getNotificationRect(Notification::Severity severity) const{
+    int offset = 2;
+    int last_used = 0;
+    for(auto sev : Notification::getSortedSeverities()){
+        if(notification_counts_.contains(sev)){
+            if(severity == sev){
+                auto rect = getNotificationRect();
+                auto top_left = rect.topLeft();
+
+                QRectF icon_rect;
+                auto item_width = rect.height();
+                icon_rect.setWidth(item_width);
+                icon_rect.setHeight(item_width);
+
+                top_left.rx() += offset + (last_used * (item_width + 2));
+                icon_rect.moveTopLeft(top_left);
+                return icon_rect;
+            }
+            last_used++;
+        }
+    }
+    return QRectF();
+}
+
 QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPointF pos) const{
     QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > kinds;
     auto map = getAllVisualEdgeKinds();
@@ -1356,6 +1428,13 @@ void NodeItem::clearEdgeKnobPressedState(){
     pressed_edge_knob_kind = EDGE_KIND::NONE;
 }
 
+void NodeItem::clearNotificationKnobPressedState(){
+    //Clear the Knob Edge data
+    notification_pressed = false;
+    pressed_notification_rect = QRectF();
+    pressed_notification = Notification::Severity::NONE;
+}
+
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     EntityItem::mousePressEvent(event);
@@ -1363,6 +1442,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     bool caughtEdge = false;
 
     clearEdgeKnobPressedState();
+    clearNotificationKnobPressedState();
 
     for(auto direction : visual_edge_kinds.uniqueKeys()){
         auto edge_kinds = visual_edge_kinds.values(direction);
@@ -1378,6 +1458,16 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             }
         }
         if(caughtEdge){
+            break;
+        }
+    }
+
+    for(auto severity : notification_counts_.uniqueKeys()){
+        auto rect = getNotificationRect(severity);
+        if(rect.contains(event->pos())){
+            notification_pressed = true;
+            pressed_notification_rect = rect;
+            pressed_notification = severity;
             break;
         }
     }
@@ -1413,6 +1503,13 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
    if(edge_knob_pressed && !edge_knob_dragged){
        emit req_connectEdgeMenu(event->scenePos(), pressed_edge_knob_kind, pressed_edge_knob_direction);
        clearEdgeKnobPressedState();
+   }
+
+   if(notification_pressed){
+       if(pressed_notification_rect.contains(event->pos() )){
+           emit getViewItem()->showNotifications(pressed_notification);
+        }
+        clearNotificationKnobPressedState();
    }
 
     EntityItem::mouseReleaseEvent(event);
@@ -1459,6 +1556,19 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
     }
 
+    for(auto severity : notification_counts_.uniqueKeys()){
+        auto in_rect = getNotificationRect(severity).contains(event->pos());
+        auto contains = hovered_notifications_.contains(severity);
+        if(in_rect != contains){
+            if(in_rect){
+                hovered_notifications_.insert(severity);
+            }else{
+                hovered_notifications_.remove(severity);
+            }
+            need_update = true;
+        }
+    }
+
     if(isSelected() && isResizeEnabled() && isExpanded() && hasChildNodes()){
         NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
         for(auto vert : getRectVertex()){
@@ -1487,6 +1597,12 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         hovered_edge_kinds.clear();
         needs_update = true;
     }
+
+    if(!hovered_notifications_.empty()){
+        hovered_notifications_.clear();
+        needs_update = true;
+    }
+
     if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
         hoveredResizeVertex = NodeItem::RectVertex::NONE;
         needs_update = true;
@@ -1519,4 +1635,38 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 QPointF NodeItem::getTopLeftOffset() const
 {
     return getMarginOffset();
+}
+
+void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+    RENDER_STATE state = getRenderState(lod);
+
+    painter->setClipRect(option->exposedRect);
+    painter->setPen(Qt::NoPen);
+
+    auto IS_BLOCK = state == RENDER_STATE::BLOCK;
+
+    if(state >= RENDER_STATE::BLOCK){
+        
+        if(isExpanded()){
+            //Paint the Body
+            painter->setBrush(getBodyColor());
+            painter->drawRect(currentRect());
+        }
+
+        //Paint the Header
+        painter->setBrush(getHeaderColor());
+        if(!IS_BLOCK){
+            painter->drawRect(headerRect());
+        }
+        
+        if(state > RENDER_STATE::BLOCK){
+            //Paint the Text Background
+            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
+                painter->setBrush(getBodyColor());
+
+                painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT) + QMarginsF(1,0,1,0));
+            }
+        }
+    }
 }

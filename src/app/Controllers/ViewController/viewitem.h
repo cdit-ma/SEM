@@ -6,6 +6,7 @@
 #include "../../Utils/qobjectregistrar.h"
 #include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/kinds.h"
+#include "../NotificationManager/notificationobject.h"
 
 
 //Forward declaration.
@@ -61,6 +62,12 @@ public:
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
 
+    void addNotification(QSharedPointer<NotificationObject> obj);
+    void removeNotification(QSharedPointer<NotificationObject> obj);
+
+    QSet<QSharedPointer<NotificationObject> > getNotifications();
+    QSet<QSharedPointer<NotificationObject> > getNestedNotifications();
+
     QList<QVariant> getValidValuesForKey(QString keyName) const;
 signals:
     void labelChanged(QString label);
@@ -70,9 +77,10 @@ signals:
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
 
-    void propertyAdded(QString propertyName, QVariant data);
-    void propertyChanged(QString propertyName, QVariant data);
-    void propertyRemoved(QString propertyName);
+    void notificationsChanged();
+    void nestedNotificationsChanged();
+
+    void showNotifications(Notification::Severity severity);
 
     void destructing(int ID);
 protected:
@@ -101,5 +109,7 @@ private:
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
+    
+    QSet<QSharedPointer<NotificationObject> > notifications_;
 };
 #endif // VIEWITEM_H
