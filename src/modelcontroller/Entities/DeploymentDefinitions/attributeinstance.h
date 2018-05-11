@@ -9,7 +9,6 @@ class AttributeInstance : public DataNode
 
     Q_OBJECT
 
-protected:
 public:
 	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:

@@ -213,13 +213,7 @@ private:
     bool isDataVisual(Data* data);
     static bool isKeyNameVisual(QString key_name);
 
-    Node* construct_setter_node(Node* parent, int index);
-    Node* construct_dds_profile_node(Node* parent, int index);
-    Node* construct_for_node(Node* parent, int index);
     Node* construct_component_node(Node* parent, int index);
-    Node* construct_periodic_eventport(Node* parent, int index);
-    Node* construct_server_interface_node(Node* parent, int index);
-    Node* construct_boolean_expression_node(Node* parent, int index);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);

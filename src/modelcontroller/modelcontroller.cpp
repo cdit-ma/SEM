@@ -547,22 +547,12 @@ Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int inde
             node = construct_component_node(parent_node, index);
             break;
         }
-        case NODE_KIND::PERIODICEVENT:{
-            node = construct_periodic_eventport(parent_node, index);
-            break;
-        }
-       
-        default:
+        default:{
             node = construct_child_node(parent_node, kind, index);
             break;
+        }
     }
-
-    if(node){
-        //Probably need to store each bit
-        
-    }
-
-    //ATtach
+    
     if(node){
         addDependantsToDependants(parent_node, node);
     }
@@ -689,125 +679,6 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, 
     emit ActionFinished();
 }
 
-
-
-Node* ModelController::construct_setter_node(Node* parent, int index)
-{
-    if(parent){
-        auto node = construct_child_node(parent, NODE_KIND::SETTER, index);
-        if(node){
-            auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-            auto value = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-
-            setData_(variable, "icon", "Variable", false);
-            setData_(variable, "icon_prefix", "EntityIcons", false);
-            setData_(variable, "label", "Variable", false);
-
-            setData_(value, "icon", "arrowHeadRight", false);
-            setData_(value, "icon_prefix", "Icons", false);
-            setData_(value, "label", "operand", false);
-            return node;
-        }
-    }
-    return 0;
-}
-
-Node* ModelController::construct_boolean_expression_node(Node* parent, int index)
-{
-    if(parent){
-        auto node = construct_child_node(parent, NODE_KIND::BOOLEAN_EXPRESSION, index);
-        if(node){
-            auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-            auto variable2 = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-
-            setData_(variable, "icon", "Variable", false);
-            setData_(variable, "icon_prefix", "EntityIcons", false);
-            setData_(variable, "label", "lhs", false);
-
-            setData_(variable2, "icon", "Variable", false);
-            setData_(variable2, "icon_prefix", "EntityIcons", false);
-            setData_(variable2, "label", "rhs", false);
-
-            //Should probably store
-            return node;
-        }
-    }
-    return 0;
-}
-
-
-
-
- 
-Node* ModelController::construct_dds_profile_node(Node* parent, int index)
-{
-    if(parent){
-        auto profile = construct_child_node(parent, NODE_KIND::QOS_DDS_PROFILE, index);
-        
-        if(profile){
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DEADLINE);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DURABILITY);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_ENTITYFACTORY);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_GROUPDATA);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_HISTORY);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LIFESPAN);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LIVELINESS);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_OWNERSHIP);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_PARTITION);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_PRESENTATION);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_READERDATALIFECYCLE);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_RELIABILITY);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_RESOURCELIMITS);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TIMEBASEDFILTER);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TOPICDATA);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TRANSPORTPRIORITY);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_USERDATA);
-            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE);
-            return profile;
-        }
-    }
-    return 0;
-}
-
-
-
-
-Node* ModelController::construct_for_node(Node* parent, int index)
-{
-    if(parent){
-        triggerAction("Constructing For Condition");
-
-
-        auto node = construct_child_node(parent, NODE_KIND::FOR_LOOP, index);
-        if(node){
-            auto variable = construct_child_node(node, NODE_KIND::VARIABLE_PARAMETER);
-            auto condition = construct_boolean_expression_node(node, -1);
-            auto iteration = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-
-            setData_(variable, "label", "i", false);
-            setData_(variable, "type", "Integer", false);
-            setData_(variable, "value", 0, false);
-
-            setData_(condition, "row", "0", false);
-            setData_(condition, "column", "-1", false);
-            setData_(condition, "index", "1", false);
-
-            setData_(iteration, "label", "iterator", false);
-            setData_(iteration, "type", "String", false);
-            setData_(iteration, "icon", "reload", false);
-            setData_(iteration, "icon_prefix", "Icons", false);
-            setData_(iteration, "value", "i++", false);
-
-            return node;
-        }
-    }
-    return 0;
-}
-
 Node* ModelController::construct_component_node(Node* parent, int index){
     if(parent){
         triggerAction("Constructing Component");
@@ -821,45 +692,6 @@ Node* ModelController::construct_component_node(Node* parent, int index){
     }
     return 0;
 }
-
-Node* ModelController::construct_periodic_eventport(Node* parent, int index){
-    if(parent){
-        triggerAction("Constructing PeriodicEvent Port");
-
-
-        auto node = construct_child_node(parent, NODE_KIND::PERIODICEVENT, index);
-        if(node){
-            auto duration = construct_child_node(node, NODE_KIND::ATTRIBUTE_INSTANCE);
-            if(duration){
-                setData_(duration, "label", "frequency", false);
-                setData_(duration, "type", "Integer", false);
-                setData_(duration, "value", 1, false);
-                setData_(duration, "row", 1, false);
-                setData_(duration, "icon", "clockCycle", false);
-                setData_(duration, "icon_prefix", "Icons", false);
-                
-            }
-            return node;
-        }
-    }
-    return 0;
-}
-
-Node* ModelController::construct_server_interface_node(Node* parent, int index){
-    if(parent){
-        triggerAction("Constructing Request Reply");
-
-        auto node = construct_child_node(parent, NODE_KIND::SERVER_INTERFACE, index);
-
-        if(node){
-            auto request_type = construct_child_node(node, NODE_KIND::INPUT_PARAMETER_GROUP);
-            auto reply_type = construct_child_node(node, NODE_KIND::RETURN_PARAMETER_GROUP);
-            return node;
-        }
-    }
-    return 0;
-}
-
 
 void ModelController::constructConnectedNodeAtPos(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos){
     QWriteLocker lock(&lock_);
