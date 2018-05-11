@@ -106,15 +106,18 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
 
 bool zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
+    try{
+        if(context_ && socket_){
+            delete socket_;
+            socket_ = 0;
+            delete context_;
+            context_ = 0;
+            return true;
+        }
+        return false;
 
-    if(context_ && socket_){
-        delete socket_;
-        socket_ = 0;
-        delete context_;
-        context_ = 0;
-        return true;
     }
-    return false;
+    catch(...){
+        return false;
+    }
 }
-//Gain the lock
-    

@@ -142,6 +142,7 @@ bool zmq::CachedProtoWriter::Terminate(){
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
+
         return true;
     }
     return false;

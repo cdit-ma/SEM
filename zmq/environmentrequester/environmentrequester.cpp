@@ -5,7 +5,7 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
                                             EnvironmentRequester::DeploymentType deployment_type){
     manager_address_ = manager_address;
     experiment_id_ = experiment_id;
-    deployment_type_ = deployment_type_;
+    deployment_type_ = deployment_type;
 }
 
 void EnvironmentRequester::Init(){
@@ -269,7 +269,13 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::Con
 
 void EnvironmentRequester::RemoveDeployment(){
     NodeManager::EnvironmentMessage message;
-    message.set_type(NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
+    if(deployment_type_ == EnvironmentRequester::DeploymentType::RE_MASTER){
+        message.set_type(NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
+    }
+
+    if(deployment_type_ == EnvironmentRequester::DeploymentType::LOGAN_CLIENT){
+        message.set_type(NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT);
+    }
 
     auto response = QueueRequest(message.SerializeAsString());
 
