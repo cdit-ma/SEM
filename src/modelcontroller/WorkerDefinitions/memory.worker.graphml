@@ -24,7 +24,7 @@
     <graph id="G">
         <node id="memoryworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.1</data>
+            <data key="version">1.0.0</data>
             <data key="worker">Memory_Worker</data>
             <data key="label">Memory Worker</data>
             <data key="description">Provides memory (RAM) functionality.</data>
