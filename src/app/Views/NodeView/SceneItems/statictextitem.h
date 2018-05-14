@@ -22,14 +22,16 @@ class StaticTextItem{
         QRectF bounding_rect;
         QRectF text_rect;
         QString text;
-        QFont font;
+        QString elided_text_;
+        bool is_elided_ = false;
+        QFont font; 
         QPointF top_left;
         Qt::Alignment text_align;
         QTextOption option;
 
         bool dirty_ = false;
 
-        int max_size = 10;
+        int max_size = 12;
         int min_size = 3;
 };
 
