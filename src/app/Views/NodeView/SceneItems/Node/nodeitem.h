@@ -87,6 +87,7 @@ public:
     
     QRectF getNotificationRect() const;
     QRectF getNotificationRect(Notification::Severity severity) const;
+    QRectF getExpandStateRect() const;
 
 
     int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const;
@@ -99,7 +100,7 @@ public:
 
     
 
-
+    bool isExpandEnabled();
     virtual QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -266,6 +267,7 @@ private:
 
     bool hoveredConnect;
 
+    bool icon_hovered_ = false;
 
 
     NodeItem::RectVertex hoveredResizeVertex;

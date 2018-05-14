@@ -38,7 +38,7 @@ EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
 
 
 
-    _isExpanded = false;
+    _isExpanded = true;
     expandEnabled = false;
     selectEnabled = true;
     moveEnabled = true;
@@ -532,7 +532,6 @@ void EntityItem::handleExpand(bool expand)
             emit req_expanded(this, expand);
         }
     }
-
 }
 
 void EntityItem::handleHover(bool hovered)
@@ -746,7 +745,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     if(state > RENDER_STATE::BLOCK){
         if(paintIconOverlay){
-            paintPixmap(painter, lod, EntityRect::MAIN_ICON_OVERLAY, iconOverlayIconPath);
+            auto rect = getElementRect(EntityRect::MAIN_ICON_OVERLAY);
+            auto inner_rect = rect.adjusted(.75,.75,-.75,-.75);
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(getBodyColor());
+            painter->drawEllipse(rect);
+            paintPixmap(painter, lod, inner_rect, iconOverlayIconPath.first, iconOverlayIconPath.second);
         }
         if(paintTertiaryIcon){
             paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, tertiaryIconPath);

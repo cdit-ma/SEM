@@ -14,7 +14,7 @@ void Member::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     });
 }
 
-Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 
@@ -32,6 +32,8 @@ Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
 
 
 void Member::parentSet(Node* parent){
-    AggregateInstance::ParentSet(this);
+    if(parent->getNodeKind() != NODE_KIND::VARIABLE){
+        AggregateInstance::ParentSet(this);
+    }
     DataNode::parentSet(parent);
 }

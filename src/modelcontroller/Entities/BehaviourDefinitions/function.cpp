@@ -57,7 +57,7 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
 
 void MEDEA::Function::parentSet(Node* parent){
 
-    auto src_data = parent->getData("type");
+    auto src_data = parent->getData("label");
     auto dst_data = getData("class");
     if(src_data && dst_data){
         src_data->linkData(dst_data, true);

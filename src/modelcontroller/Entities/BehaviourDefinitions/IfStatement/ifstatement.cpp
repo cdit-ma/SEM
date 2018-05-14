@@ -18,6 +18,14 @@ MEDEA::IfStatement::IfStatement(::EntityFactoryBroker& broker, bool is_temp) : N
     setAcceptsNodeKind(NODE_KIND::ELSE_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSEIF_CONDITION);
     setLabelFunctional(false);
+
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+    
+    broker.AttachData(this, "label", QVariant::String, "If Group", false);
+    broker.ConstructChildNode(*this, NODE_KIND::IF_CONDITION);
 }
 
 

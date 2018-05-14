@@ -14,7 +14,7 @@ void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(::EntityFactoryRegist
 }
 
 
-MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     setDataProducer(true);
     setDataReceiver(true);

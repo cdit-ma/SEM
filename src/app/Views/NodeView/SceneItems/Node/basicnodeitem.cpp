@@ -287,8 +287,8 @@ QRectF BasicNodeItem::headerContent_Icon() const
 QRectF BasicNodeItem::headerContent_Icon_Overlay() const
 {
     QRectF rect;
-    rect.setSize(smallIconSize());
-    rect.moveCenter(headerContent_Icon().center());
+    rect.setSize(smallIconSize() / 2);
+    rect.moveTopRight(headerContent_Icon().topRight());
     return rect;
 }
 

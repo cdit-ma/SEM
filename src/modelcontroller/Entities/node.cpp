@@ -1032,9 +1032,23 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     }else if(instance->isDefinition()){
         bind_labels = false;
     }
+    
+    auto def_got_inner_type = definition->gotData("inner_type");
+    auto def_got_outer_type = definition->gotData("outer_type");
+
+    auto inst_got_inner_type = instance->gotData("inner_type");
+    auto inst_got_outer_type = instance->gotData("outer_type");
+
+
+    bind_values.insert("inner_type", "inner_type");
+    bind_values.insert("outer_type", "outer_type");
+
+
 
     if(bind_types){
-        if(definition->gotData("type")){
+        if(!def_got_inner_type && inst_got_inner_type){
+            bind_values.insert("type", "inner_type");
+        }else if(definition->gotData("type")){
             bind_values.insert("type", "type");
         }else if(definition->gotData("label")){
             bind_values.insert("label", "type");

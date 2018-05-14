@@ -22,6 +22,8 @@ public:
 protected:
     void childAdded(Node* child);
     void childRemoved(Node* child);
+    void parentSet(Node* parent);
+    void BindVectorTypes(Node* vector, Node* child, bool bind);
 };
 
 

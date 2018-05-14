@@ -2,7 +2,7 @@
 #include "../Keys/typekey.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
+#include "aggregateinstance.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR;
 const QString kind_string = "Vector";
@@ -89,11 +89,26 @@ void Vector::childAdded(Node* child){
     Vector::updateVectorIcon(this);
 
     DataNode::childAdded(child);
-    TypeKey::BindInnerAndOuterTypes(child, this, true);
+    Vector::BindVectorTypes(this, child, true);
 }
 
 void Vector::childRemoved(Node* child){
     Vector::updateVectorIcon(this);
     DataNode::childRemoved(child);
-    TypeKey::BindInnerAndOuterTypes(child, this, false);
+    Vector::BindVectorTypes(this, child, false);
+}
+
+void Vector::BindVectorTypes(Node* vector, Node* child, bool bind){
+    auto src_inner_type_data = vector->getData("inner_type");
+    auto child_type_data = child->getData("type");
+
+    //Got fully described data
+    if(src_inner_type_data && child_type_data){
+        child_type_data->linkData(src_inner_type_data, bind);
+    }
+}
+
+void Vector::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
 }

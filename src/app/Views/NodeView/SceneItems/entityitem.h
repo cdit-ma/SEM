@@ -211,7 +211,7 @@ public:
 public:
     //Feature State Getters
     bool isSelectionEnabled();
-    bool isExpandEnabled();
+    virtual bool isExpandEnabled();
     bool isMoveEnabled();
     bool isHoverEnabled();
 
@@ -285,10 +285,7 @@ public:
 protected:
     StaticTextItem* getTextItem(EntityRect rect);
 private:
-
-    //QHash<EntityRect, ImageMap> imageMap;
     QHash<EntityRect, StaticTextItem*> textMap;
-
     QHash<EntityRect, QString> tooltipMap;
     QHash<EntityRect, QCursor> tooltipCursorMap;
 

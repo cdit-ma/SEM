@@ -1,19 +1,20 @@
 #ifndef MEDEA_IF_CONDITION_H
 #define MEDEA_IF_CONDITION_H
-#include "../containernode.h"
-#include "../../InterfaceDefinitions/datanode.h"
+#include "../../node.h"
 
 
 class EntityFactoryRegistryBroker;
 namespace MEDEA{
-    class IfCondition: public DataNode
+    class IfCondition: public Node
     {
     friend class ::EntityFactory;
-    protected:
-public:
+    public:
         static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
-protected:
+    protected:
         IfCondition(EntityFactoryBroker& factory, bool is_temp_node);
+    private:
+        void updateLabel();
+        Node* expression_ = 0;
     };
 };
 

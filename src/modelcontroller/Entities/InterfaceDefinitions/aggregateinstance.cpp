@@ -65,60 +65,44 @@ void AggregateInstance::ParentSet(DataNode* child){
         bool got_valid_producer = false;
         bool got_valid_receiver = false;
 
-        QSet<NODE_KIND> valid_producer_parents = {NODE_KIND::INEVENTPORT_IMPL, NODE_KIND::VARIABLE};
+        QSet<NODE_KIND> valid_producer_parents;
         QSet<NODE_KIND> valid_receiver_parents = {NODE_KIND::OUTEVENTPORT_IMPL};
-        QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE};
+        
+        QSet<NODE_KIND> inverse_parents = {NODE_KIND::FUNCTION_CALL, NODE_KIND::SERVER_REQUEST};
+        QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE, NODE_KIND::VARIABLE};
+        
 
-        QSet<NODE_KIND> special_parents = {NODE_KIND::RETURN_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE};
+        QSet<NODE_KIND> ancestor_kinds;
 
-
-        //Check our ancestor type
+        //Make a list of ancestor kinds
         for(auto ancestor : child->getParentNodes(-1)){
-            auto ancestor_kind = ancestor->getNodeKind();
-            auto parent_node_kind = ancestor->getParentNodeKind();
+            ancestor_kinds += ancestor->getNodeKind();
+        }
 
-            if(!got_valid_receiver && !got_valid_producer && valid_producer_parents.contains(ancestor_kind)){
+
+        if(ancestor_kinds.intersects(inverse_parents)){
+            valid_producer_parents += {NODE_KIND::RETURN_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE};
+            valid_receiver_parents += {NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE};
+        }else{
+            valid_producer_parents += {NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE};
+            valid_receiver_parents += {NODE_KIND::RETURN_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE};
+        }
+
+        if(!ancestor_kinds.intersects(valid_receiver_parents)){
+            valid_producer_parents += {NODE_KIND::INEVENTPORT_IMPL};
+        }
+
+        if(!ancestor_kinds.intersects(invalid_parents)){
+            if(ancestor_kinds.intersects(valid_producer_parents)){
                 got_valid_producer = true;
             }
-
-            if(!got_valid_receiver && valid_receiver_parents.contains(ancestor_kind)){
+            if(ancestor_kinds.intersects(valid_receiver_parents)){
                 got_valid_receiver = true;
-            }
-
-            if(special_parents.contains(ancestor_kind)){
-                QSet<NODE_KIND> inverse_direction = {NODE_KIND::SERVER_REQUEST, NODE_KIND::FUNCTION_CALL};
-
-                auto invert_direction = inverse_direction.contains(parent_node_kind);
-
-                switch(ancestor_kind){
-                    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
-                    case NODE_KIND::INPUT_PARAMETER_GROUP:{
-                        got_valid_producer = invert_direction ? false : true;
-                        got_valid_receiver = invert_direction ? true : false;
-                        break;
-                    }
-                    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
-                    case NODE_KIND::RETURN_PARAMETER_GROUP:{
-                        got_valid_producer = invert_direction ? true : false;
-                        got_valid_receiver = invert_direction ? false : true;
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            
-            if(invalid_parents.contains(ancestor_kind)){
-                got_valid_producer = false;
-                got_valid_receiver = false;
-                break;
             }
         }
 
         child->setDataProducer(got_valid_producer);
         child->setDataReceiver(got_valid_receiver);
-
     }
 }
 void AggregateInstance::parentSet(Node* parent){

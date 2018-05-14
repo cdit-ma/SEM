@@ -14,6 +14,7 @@ public:
     static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     VectorInstance(EntityFactoryBroker& factory, bool is_temp_node);
+    void parentSet(Node* parent);
 public:
     bool canAdoptChild(Node* child);
 };

@@ -1,7 +1,7 @@
 #include "vectorinstance.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
+#include "aggregateinstance.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR_INSTANCE;
 const QString kind_string = "VectorInstance";
@@ -43,4 +43,9 @@ bool VectorInstance::canAdoptChild(Node *child)
         return false;
     }
     return Node::canAdoptChild(child);
+}
+
+void VectorInstance::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
 }

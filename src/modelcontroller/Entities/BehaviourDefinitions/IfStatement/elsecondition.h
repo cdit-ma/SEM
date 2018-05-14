@@ -1,11 +1,11 @@
 #ifndef MEDEA_ELSE_CONDITION_H
 #define MEDEA_ELSE_CONDITION_H
-#include "../../InterfaceDefinitions/datanode.h"
 
+#include "../../node.h"
 
 class EntityFactoryRegistryBroker;
 namespace MEDEA{
-    class ElseCondition: public DataNode{
+    class ElseCondition: public Node{
     
     friend class ::EntityFactory;
     protected:

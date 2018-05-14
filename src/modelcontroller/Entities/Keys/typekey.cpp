@@ -128,15 +128,20 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
         auto inner_type_data_1 = node_1->getData("inner_type");
         auto inner_type_data_2 = node_2->getData("inner_type");
 
-        if(outer_type_data_1 &&  outer_type_data_2){
+        if(outer_type_data_1 && outer_type_data_2 && inner_type_data_1 && inner_type_data_2){
             auto outer_type_1 = outer_type_data_1->getValue().toString();
             auto outer_type_2 = outer_type_data_2->getValue().toString();
+            auto outer_types_match = outer_type_1 == outer_type_2;
+            auto outer_types_empty = outer_types_match && outer_type_1.isEmpty();
 
-            if(outer_type_1 == outer_type_2){
-                auto inner_type_2 = inner_type_data_2 ? inner_type_data_2->getValue().toString() : "";
+            auto inner_type_1 = inner_type_data_1->getValue().toString();
+            auto inner_type_2 = inner_type_data_2->getValue().toString();
+            auto inner_types_match = inner_type_1 == inner_type_2;
+            auto inner_types_empty = inner_types_match && inner_type_1.isEmpty();
 
-                if(inner_type_2 == ""){
-                    //If inner_type in the destination doesn't have a defined inner-type go ahead and use it.
+
+            if(outer_types_match){
+                if(inner_types_match && !inner_types_empty){
                     return true;
                 }
             }

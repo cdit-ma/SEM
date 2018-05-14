@@ -8,7 +8,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 
-DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
+DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp, bool use_complex_types) : Node(broker, node_kind, is_temp){
     setNodeType(NODE_TYPE::DATA);
 
     if(is_temp){
@@ -16,8 +16,10 @@ DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_tem
         return;
     }
 
-    broker.AttachData(this, "inner_type", QVariant::String, "", true);
-    broker.AttachData(this, "outer_type", QVariant::String, "", true);
+    if(use_complex_types){
+        broker.AttachData(this, "inner_type", QVariant::String, "", true);
+        broker.AttachData(this, "outer_type", QVariant::String, "", true);
+    }
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "value", QVariant::String, "", false);
 };

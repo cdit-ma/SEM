@@ -8,7 +8,7 @@ class DataNode : public Node
 {
 
 protected:
-    DataNode(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
+    DataNode(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp, bool use_complex_types = true);
 public:
     static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();

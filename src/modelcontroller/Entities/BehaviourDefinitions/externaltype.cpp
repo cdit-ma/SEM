@@ -25,6 +25,8 @@ MEDEA::ExternalType::ExternalType(::EntityFactoryBroker& broker, bool is_temp) :
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "inner_type", QVariant::String, "", true);
+    broker.AttachData(this, "outer_type", QVariant::String, "", true);
     broker.AttachData(this, "label", QVariant::String, "", true);
 }
 

@@ -832,12 +832,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::LOGGINGSERVER:
                 nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("database");
                 secondary_icon.second = "servers";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("mode");
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -862,7 +864,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
                 break;
@@ -925,6 +927,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
+                
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -932,17 +935,18 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
+                
 
              
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::AGGREGATE:{
-                auto stack_item  = new StackNodeItem(item, parentNode, Qt::Vertical);
+                auto stack_item  = new StackNodeItem(item, parentNode);
                 nodeItem = stack_item;
                 
                 //Don't show icon
-                secondary_icon.second = "tiles";
+                secondary_icon.second = "letterA";
                 stack_item->setSecondaryIconPath(secondary_icon);
                 stack_item->setSecondaryTextKey("namespace");
                 
@@ -952,7 +956,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 break;
             case NODE_KIND::FUNCTION_CALL:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setSecondaryTextKey("class");
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -960,35 +964,30 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setRightJustified(true);
-                
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
 
 
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setRightJustified(true);
-                
                 nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
 
 
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
-                nodeItem->setRightJustified(true);
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
-                nodeItem->setRightJustified(true);
                 nodeItem->setSecondaryTextKey("type");
 
 
@@ -997,7 +996,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::ENUM_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -1010,7 +1009,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setIconOverlay("Icons", "key");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::OUTEVENTPORT_IMPL:
@@ -1024,7 +1023,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::VARIABLE_PARAMETER:
@@ -1057,7 +1056,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::SERVER_PORT:
@@ -1077,7 +1076,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setRightJustified(true);
                 nodeItem->setSecondaryTextKey("type");
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -1097,6 +1095,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::CODE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
                 break;
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INSTANCE:
@@ -1104,7 +1103,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 
                 nodeItem->setSecondaryTextKey("type");
                 
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "category";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
              case NODE_KIND::FUNCTION:

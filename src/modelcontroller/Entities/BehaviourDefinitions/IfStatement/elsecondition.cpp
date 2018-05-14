@@ -12,7 +12,7 @@ void MEDEA::ElseCondition::RegisterWithEntityFactory(::EntityFactoryRegistryBrok
         });
 }
 
-MEDEA::ElseCondition::ElseCondition(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+MEDEA::ElseCondition::ElseCondition(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //SetupState
     setLabelFunctional(false);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
@@ -27,4 +27,6 @@ MEDEA::ElseCondition::ElseCondition(::EntityFactoryBroker& broker, bool is_temp)
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "else", true);
+    broker.AttachData(this, "row", QVariant::Int, 0, true);
+    broker.AttachData(this, "column", QVariant::Int, 1, true);
 }

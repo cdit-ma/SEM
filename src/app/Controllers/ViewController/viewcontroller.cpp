@@ -598,7 +598,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case NODE_KIND::ELSEIF_CONDITION:
             case NODE_KIND::ELSE_CONDITION:{
                 default_icon_prefix = "EntityIcons";
-                default_icon_name = "Condition";
+                default_icon_name = "IfCondition";
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
@@ -621,13 +621,15 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             }
 
             case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::INPUT_PARAMETER_GROUP:{
+            case NODE_KIND::INPUT_PARAMETER_GROUP:
+            case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
                 default_icon_prefix = "EntityIcons";
                 default_icon_name = "InputParameterGroup";
                 break;
             }
             case NODE_KIND::RETURN_PARAMETER:
-            case NODE_KIND::RETURN_PARAMETER_GROUP:{
+            case NODE_KIND::RETURN_PARAMETER_GROUP:
+            case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
                 default_icon_prefix = "EntityIcons";
                 default_icon_name = "ReturnParameterGroup";
                 break;

@@ -88,6 +88,7 @@
         <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
+        <file alias="IfCondition">Resources/EntityIcons/IfCondition.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -370,5 +371,7 @@
         <file alias="timeElapsed">Resources/Icons/timeElapsed.png</file>
         <file alias="squarePlusDark">Resources/Icons/squarePlusDark.png</file>
         <file alias="octagonCriticalDark">Resources/Icons/octagonCriticalDark.png</file>
+        <file alias="circleArrowDownDark">Resources/Icons/circleArrowDownDark.png</file>
+        <file alias="circleArrowRightDark">Resources/Icons/circleArrowRightDark.png</file>
     </qresource>
 </RCC>

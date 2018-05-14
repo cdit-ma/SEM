@@ -46,7 +46,6 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
 
     setUpColors();
 
-    addRequiredData("isExpanded");
     addRequiredData("readOnlyDefinition");
     addRequiredData("snippetID");
 
@@ -1031,6 +1030,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->setOpacity(1);
             }
         }
+
+        
         painter->restore();
     }
 
@@ -1063,6 +1064,22 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 }
             }
         }
+        {
+            if(isExpandEnabled()){
+                const auto icon_path = isExpanded() ? "circleArrowDownDark" : "circleArrowRightDark";
+                const auto brush_color = getHeaderColor();
+                const auto icon_color = icon_hovered_ ? getHighlightColor() : getAltTextColor();
+                auto rect = getExpandStateRect();
+                auto inner_rect = rect.adjusted(.5,.5,-.5,-.5);
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(brush_color);
+                painter->drawEllipse(rect);
+                paintPixmap(painter, lod, inner_rect, "Icons", icon_path, icon_color);
+            }
+            
+        }
+
+
         painter->restore();
     }
 }
@@ -1236,6 +1253,13 @@ QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction) const{
 
 QRectF NodeItem::getNotificationRect() const{
     return getElementRect(EntityRect::NOTIFICATION_RECT);
+}
+
+QRectF NodeItem::getExpandStateRect() const{
+    QRectF icon_rect;
+    icon_rect.setSize(smallIconSize() / 2);
+    icon_rect.moveBottomLeft(getElementRect(EntityRect::MAIN_ICON).bottomLeft());
+    return icon_rect;
 }
 
 QRectF NodeItem::getNotificationRect(Notification::Severity severity) const{
@@ -1418,6 +1442,14 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             need_update = true;
         }
     }
+    
+    {
+        auto in_rect = getElementRect(EntityRect::MAIN_ICON).contains(event->pos());
+        if(icon_hovered_ != in_rect){
+            icon_hovered_ = in_rect;
+            need_update = true;
+        }
+    }
 
     if(isSelected() && isResizeEnabled() && isExpanded() && hasChildNodes()){
         NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
@@ -1450,6 +1482,11 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
     if(!hovered_notifications_.empty()){
         hovered_notifications_.clear();
+        needs_update = true;
+    }
+
+    if(icon_hovered_){
+        icon_hovered_ = false;
         needs_update = true;
     }
 
@@ -1519,4 +1556,8 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
             }
         }
     }
+}
+
+bool NodeItem::isExpandEnabled(){
+    return hasChildNodes() && EntityItem::isExpandEnabled();
 }
