@@ -35,6 +35,7 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
 
     //Attach Data
     broker.AttachData(this, "label", QVariant::String, "for", true);
+    broker.ProtectData(this, "index", false);
 
     //Attach Children
     
@@ -57,6 +58,7 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
     for(auto child : {variable_, expression_, iteration_}){
         broker.AttachData(child, "row", QVariant::Int, 0, true);
         broker.AttachData(child, "column", QVariant::Int, -1, true);
+        broker.ProtectData(child, "index", true);
     }
 
     //Bind Value changing

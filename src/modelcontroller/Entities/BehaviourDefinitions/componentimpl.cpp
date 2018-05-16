@@ -13,7 +13,6 @@ void ComponentImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
 
 ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
-    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
 

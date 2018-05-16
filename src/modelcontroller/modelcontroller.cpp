@@ -41,10 +41,10 @@ inline QPair<bool, QString> readFile(QString filePath)
     return result;
 }
 
-inline QString getXMLAttribute(QXmlStreamReader &xml, QString attribute)
+inline QString getXMLAttribute(const QXmlStreamReader &xml, const QString& attribute)
 {
     //Get the Attributes of the current XML entity.
-    QXmlStreamAttributes attributes = xml.attributes();
+    const auto &attributes = xml.attributes();
 
     if(attributes.hasAttribute(attribute)){
         return attributes.value(attribute).toString();
@@ -721,22 +721,7 @@ Node* ModelController::constructConnectedNode(Node* parent_node, NODE_KIND node_
     Node* node = 0;
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
-
-
-        auto should_clone = false;
-
-        if(edge_kind == EDGE_KIND::DEFINITION){
-            if(!dst_node->isDefinition()){
-                should_clone = true;
-            }
-        }
-
-        if(should_clone){
-            qCritical() << "CLONING NODE: " << dst_node->toString();
-            node = cloneNode(dst_node, parent_node);
-        }else{
-            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind, index);
-        }
+        node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind, index);
     }
     return node;
 }
@@ -915,7 +900,7 @@ QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_id
     QMap<EDGE_DIRECTION, int> id_map;
 
     QReadLocker lock(&lock_);
-    
+
     auto node_map = _getConnectableNodes(getNodes(src_ids), edge_kind);
     for(const auto& key : node_map.uniqueKeys()){
         for(const auto& value : node_map.values(key)){
@@ -945,6 +930,7 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> s
     //Only itterate if we have nodes
     if((srcs_accept_source_edge || srcs_accept_target_edge) && src_nodes.size()){
         if(srcs_accept_source_edge){
+            
             for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
                 bool src2dst_valid = true;
 
@@ -963,7 +949,6 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> s
                 bool dst2src_valid = true;
 
                 for(auto src : src_nodes){
-                    //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
                     dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
                 }
                 
@@ -1195,45 +1180,47 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
 {
     bool success = false;
     if(item){
-        auto id = entity_factory->RegisterEntity(item, desired_id);
-        if(id >= 0){
-            auto id = item->getID();
-
-            bool inserted = false;
-            if(item->isNode()){
-                if(!node_ids_.contains(id)){
-                    node_ids_.insert(id);
-                    auto node = (Node*) item;
-                    connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
-                    
-                    emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
-                    inserted = true;
-                }
-            }else if(item->isEdge()){
-                if(!edge_ids_.contains(id)){
-                    edge_ids_.insert(id);
-                    auto edge = (Edge*) item;
-                    emit EdgeConstructed(id, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());
-                    inserted = true;
-                }
-            }
-
-            if(inserted){
-                connect(item, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
-                    DataUpdate data;
-                    data.key_name = key_name;
-                    data.value = value;
-                    data.is_protected = is_protected;
-
-                    emit DataChanged(ID, data);
-                });
-                
-                connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
-            }else{
-                qCritical() << "Entity: " << id << " Already Stored";
-            }
-            success = inserted;
+        try{
+            entity_factory->RegisterEntity(item, desired_id);
+        }catch(const std::exception & ex){
+            qCritical() << ex.what();
+            return false;
         }
+        auto id = item->getID();
+
+        bool inserted = false;
+        if(item->isNode()){
+            if(!node_ids_.contains(id)){
+                node_ids_.insert(id);
+                auto node = (Node*) item;
+                connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
+                
+                emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
+                inserted = true;
+            }
+        }else if(item->isEdge()){
+            if(!edge_ids_.contains(id)){
+                edge_ids_.insert(id);
+                auto edge = (Edge*) item;
+                emit EdgeConstructed(id, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());
+                inserted = true;
+            }
+        }
+
+        if(inserted){
+            
+            connect(item, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
+                DataUpdate data;
+                data.key_name = key_name;
+                data.value = value;
+                data.is_protected = is_protected;
+
+                emit DataChanged(ID, data);
+            });
+            
+            connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
+        }
+        success = inserted;
     }
     return success;
 }
@@ -1292,41 +1279,6 @@ QList<Entity *> ModelController::getUnorderedEntities(QList<int> ids){
     }
     return entities;
 }
-
-Node *ModelController::cloneNode(Node *original, Node *parent)
-{
-
-    if(original && parent){
-        
-        auto node = construct_node(parent, original->getNodeKind());
-        
-        if(node){
-            QSet<QString> ignore_keys = {"index", "uuid"};
-            //Get the data
-            for(auto data : original->getData()){
-                auto key_name = data->getKeyName();
-                    
-                if(!ignore_keys.contains(key_name)){
-                    setData_(node, data->getKeyName(), data->getValue(), false);
-                }
-            }
-            //Attach CLones of the data before we try and adopt
-            auto success = attachChildNode(parent, node, true);
-            if(!success){
-                entity_factory->DestructEntity(node);
-                node = 0;
-                return node;
-            }
-
-            for(auto child : original->getChildren(0)){
-                cloneNode(child, node);
-            }
-        }
-        return node;
-    }
-    return 0;
-}
-
 
 
 //Look inside target_node for things which could become a dependant of the the definition
@@ -1629,6 +1581,11 @@ bool ModelController::canDeleteNode(Node *node)
         if(protected_nodes.contains(node)){
             return false;
         }
+
+        if(node->isImplicitlyConstructed()){
+            return false;
+        }
+
         auto node_kind = node->getNodeKind();
         auto parent_node = node->getParentNode();
         auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
@@ -1721,117 +1678,26 @@ QString ModelController::_copy(QList<Entity *> selection)
     return exportGraphML(selection, false);
 }
 
-void ModelController::setCustomNodeData(Node* node){
-    auto parent_node = node->getParentNode();
-    auto parent_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
-    auto node_kind = node->getNodeKind();
-
-    QMap<QString, QVariant> new_data;
-
-    switch(node_kind){
-        case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(parent_kind == NODE_KIND::INEVENTPORT_IMPL){
-                new_data["row"] = 0;
-                new_data["column"] = -1;
-            }
-            break;
-        }
-        case NODE_KIND::CLASS_INSTANCE:{
-            new_data["row"] = 1;
-            new_data["column"] = 2;
-            break;
-        }
-        case NODE_KIND::SERVER_PORT:
-        case NODE_KIND::SERVER_PORT_INSTANCE:
-        case NODE_KIND::INEVENTPORT:
-        case NODE_KIND::INEVENTPORT_INSTANCE:{
-            new_data["row"] = 0;
-            break;
-        }
-        case NODE_KIND::CLIENT_PORT:
-        case NODE_KIND::CLIENT_PORT_INSTANCE:
-        case NODE_KIND::OUTEVENTPORT:
-        case NODE_KIND::OUTEVENTPORT_INSTANCE:{
-            new_data["row"] = 2;
-            break;
-        }
-        case NODE_KIND::ATTRIBUTE:
-        case NODE_KIND::ATTRIBUTE_INSTANCE:{
-            new_data["row"] = 1;
-            break;
-        }
-        case NODE_KIND::ATTRIBUTE_IMPL:{
-            new_data["row"] = 1;
-            new_data["column"] = 0;
-            break;
-        }
-        case NODE_KIND::VARIABLE:{
-            new_data["row"] = 1;
-            new_data["column"] = 1;
-            break;
-        }
-        case NODE_KIND::HEADER:{
-            new_data["row"] = 1;
-            new_data["column"] = -1;
-            break;
-        }
-        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
-        case NODE_KIND::INPUT_PARAMETER_GROUP:
-            new_data["row"] = 0;
-            new_data["column"] = -1;
-            break;
-        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
-        case NODE_KIND::RETURN_PARAMETER_GROUP:
-            new_data["row"] = 0;
-            new_data["column"] = 1;
-            break;
-
-        default:
-            break;
-    }
-
-    switch(parent_kind){
-        case NODE_KIND::WHILE_LOOP:
-        case NODE_KIND::FOR_LOOP:{
-            if(node_kind == NODE_KIND::INPUT_PARAMETER || node_kind == NODE_KIND::VARIABLE_PARAMETER){
-                new_data["row"] = 0;
-                new_data["column"] = -1;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
-
-
-    for(auto key : new_data.keys()){
-        if(!node->gotData(key)){
-            setData_(node, key, new_data[key], false);
-        }
-    }
-}
-
 
 bool ModelController::storeNode(Node* node, int desired_id, bool store_children, bool add_action)
 {
     bool success = false;
     if(node){
-        //Set the Custom Data
-        setCustomNodeData(node);
-        
         success = storeEntity(node, desired_id);
 
         if(success){
             if(store_children){
                 //Get all our children
                 for(auto child : node->getChildren()){
-                    setCustomNodeData(child);
-                    storeEntity(child, -1);
+                    if(child->isImplicitlyConstructed()){
+                        storeEntity(child, -1);
+                    }
                 }
                 
                 for(auto edge : node->getEdges()){
-                    storeEntity(edge, -1);
+                    if(edge->isImplicitlyConstructed()){
+                        storeEntity(edge, -1);
+                    }
                 }
             }
 
@@ -1959,9 +1825,8 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         auto eventport = (EventPort*) src;
         auto aggregate = (Aggregate*) dst;
 
-        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::OUTEVENTPORT, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
 
-        bool construct_instance = setup && isUserAction() && (instance_kinds.contains(eventport->getNodeKind()));
+        bool construct_instance = setup && isUserAction() && !eventport->IsEdgeRuleActive(Node::EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
         //Only auto construct if we are processing a user action.
         if(construct_instance){
             Node* aggregate_instance = 0;
@@ -2331,25 +2196,25 @@ bool ModelController::importGraphML(QString document, Node *parent)
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
-    bool link_id = isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO);
-    bool reset_position = isModelAction(MODEL_ACTION::PASTE);
-    bool partial_import = isModelAction(MODEL_ACTION::PASTE) || link_id;
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
-    bool show_progress = !isModelAction(MODEL_ACTION::NONE);
-    bool process_uuids = isModelAction(MODEL_ACTION::IMPORT);
-    bool generate_uuid_off_id = (parent == workerDefinitions);
-
     current_entity->setID(parent->getID());
 
+    //State flags
+    const bool IS_OPEN = isModelAction(MODEL_ACTION::OPEN);
+    const bool IS_IMPORT = isModelAction(MODEL_ACTION::IMPORT);
+    const bool IS_UNDO_REDO = isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO);
+    const bool IS_PASTE = isModelAction(MODEL_ACTION::PASTE);
+    const bool IS_PARTIAL_IMPORT = IS_UNDO_REDO || IS_PASTE;
+    const bool UPDATE_PROGRESS = !isModelAction(MODEL_ACTION::NONE);
+    const bool GENERATE_UUID_FROM_ID = IS_IMPORT && (parent == workerDefinitions);
 
-    if(show_progress){
+    if(UPDATE_PROGRESS){
         ProgressUpdated_("Parsing Project");
         ProgressChanged_(-1);
     }
 
     while(xml.readNext() != QXmlStreamReader::EndDocument){
-        //Check what kind we are dealing with
-        GRAPHML_KIND kind = getGraphMLKindFromString(xml.name());
+        auto kind = getGraphMLKindFromString(xml.name());
 
         //Handle the elements
         if(xml.isStartElement()){
@@ -2358,12 +2223,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     auto key_id = getXMLAttribute(xml, "id");
                     auto key_name = getXMLAttribute(xml, "attr.name");
                     auto key_type = Key::getTypeFromGraphML(getXMLAttribute(xml, "attr.type"));
-
-                  
                     auto key = entity_factory->GetKey(key_name, key_type);
-
                     if(key){
-
                         if(!key_hash.contains(key_id)){
                             //First time we've seen it
                             key_hash.insert(key_id, key);
@@ -2424,8 +2285,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     entity->setIDStr(id);
                     entity->setLineNumber(xml.lineNumber());
 
-                    //If we are meant to generate UUIDS, and our parent has a uuid, set it!
-                    if(generate_uuid_off_id){
+                    if(GENERATE_UUID_FROM_ID){
+                        //If we are meant to generate UUIDS
+                        //Use the String'd ID as the seed for the UUID
                         auto uuid_id = ExportIDKey::GetUUIDOfValue(id);
                         entity->addData("uuid", uuid_id);
                         unique_entity_ids.push_back(id);
@@ -2470,41 +2332,27 @@ bool ModelController::importGraphML(QString document, Node *parent)
     //Handle unique ids
     for(auto id : unique_entity_ids){
         auto entity = entity_hash.value(id, 0);
-        //Get the UUID
-        auto uuid = entity->getDataValue("uuid").toString();
-        auto kind = entity->getDataValue("kind").toString();
-        bool export_uuid = process_uuids;
-
-        //Always handle uuids for HardwareNodes/Clusters
-        if(!export_uuid && entity->isNode()){
-            NODE_KIND node_kind = entity_factory->getNodeKind(kind);
-            switch(node_kind){
-                case NODE_KIND::HARDWARE_CLUSTER:
-                case NODE_KIND::HARDWARE_NODE:
-                    export_uuid = true;
-                    break;
-                default:
-                    break;
-            }
-
-            //CHeck if our parent is a WorkerDefinition
-            auto parent = entity;
-            while(parent && parent->isNode()){
-                auto parent_kind_str = parent->getDataValue("kind").toString();
-                auto parent_kind = entity_factory->getNodeKind(parent_kind_str);
-                if(parent_kind == NODE_KIND::CLASS){
-                    export_uuid = true;
-                    break;
-                }
-                parent = parent->getParent();
-            }
+        if(!entity){
+            qCritical() << "ImportGraphML: Cannot process UUID'd entity with id: '" << id << "'";
+            continue;
         }
 
+        bool handle_uuid = IS_IMPORT;
+        auto kind = entity->getDataValue("kind").toString();
+
+        if(!handle_uuid && entity->isNode()){
+            auto parent_node_kinds_set = entity->getParentStack().toSet();
+            const QSet<NODE_KIND> always_handle_kinds = {NODE_KIND::HARDWARE_DEFINITIONS, NODE_KIND::WORKER_DEFINITIONS};
+            handle_uuid = parent_node_kinds_set.intersects(always_handle_kinds);
+        }
 
         //Handle UUIDS
-        if(export_uuid){
+        if(handle_uuid){
+            
+            const auto& uuid = entity->getDataValue("uuid").toString();
             //If we have a uuid, we should set the entity as read-only
             entity->addData("readOnly", true);
+            entity->setUUIDMatched(true);
             
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
@@ -2572,9 +2420,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
     double entities_total_perc = entity_hash.size() / 100.0;
     double entities_made = 0;
 
-    if(show_progress){
+    if(UPDATE_PROGRESS){
         ProgressUpdated_("Constructing Nodes");
     }
+    QQueue<Node*> implicitly_constructed_nodes;
 
     //Construct all nodes
     for(auto id : node_ids){
@@ -2597,8 +2446,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
 
         //This is the top most element
-        if(parent_entity == current_entity && reset_position){
-            //Remove all visual data.
+        if(IS_PASTE && parent_entity == current_entity){
             for(auto key_name : entity->getKeys()){
                 if(isKeyNameVisual(key_name)){
                     entity->removeData(key_name);
@@ -2620,45 +2468,46 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 //Get the ID of the next auto constructed ID
                 auto id = parent_entity->TakeNextImplicitlyConstructedNodeID(kind);
                 node = entity_factory->GetNode(id);
-                if(node){
-                    entity->setImplicitlyConstructed();
-                }
             }else{
                 node = construct_node(parent_node, kind);
-            }
-            
-
-            if(node){
-                //Check to see if the node constructed some other stuff, It shouldn't have any children.
-                for(auto child : node->getChildren(0)){
-                    entity->AddImplicitlyConstructedNodeID(child->getNodeKind(), child->getID());
-                }
-
-                for(auto edge : node->getEdges(0)){
-                    entity->AddImplicitlyConstructedEdgeID(edge->getEdgeKind(), edge->getID());
-                }
-            }
-
-
-
-            //If we have matched something which is already got a parent node we shouldn't overwrite its data
-            //This will stop any data stored in the aspects getting overwritten
-            if(node && node->getParentNode() && isModelAction(MODEL_ACTION::IMPORT)){
-                if(!entity->isImpliciltyConstructed()){
-                    entity->clearData();
-                }
             }
         }
 
         if(node){
+            //Check to see if the node constructed some other stuff, It shouldn't have any children.
+            for(auto child : node->getChildren()){
+                if(child->isImplicitlyConstructed()){
+                    entity->AddImplicitlyConstructedNodeID(child->getNodeKind(), child->getID());
+                    if(!implicitly_constructed_nodes.contains(child)){
+                        implicitly_constructed_nodes << child;
+                    }
+                }
+            }
+
+            for(auto edge : node->getEdges()){
+                if(edge->isImplicitlyConstructed()){
+                    entity->AddImplicitlyConstructedEdgeID(edge->getEdgeKind(), edge->getID());
+                }
+            }
+
+            //If we have matched something which is already got a parent node we shouldn't overwrite its data
+            //This will stop any data stored in the aspects getting overwritten
+            if(node->getID() > 0 && !IS_OPEN){
+                if(!entity->isUUIDMatched()){
+                    qCritical() << node->toString() << " IGNORING IMPORTED DATA";
+                    entity->clearData();
+                }
+            }
+
+
             bool is_model = kind == NODE_KIND::MODEL;
 
             bool got_parent = node->getParentNode();
             bool requires_parenting = !got_parent && !is_model;
-            bool implicitly_created = entity->isImpliciltyConstructed();
+            bool implicitly_created = node->isImplicitlyConstructed();
             bool need_to_store = false;
             
-            if(!got_parent || implicitly_created){
+            if(requires_parenting || implicitly_created){
                 //If the node is not attached to a parent, or it was implicilty constructed, set the data ahead of time
                 for(auto key_name : entity->getKeys()){
                     auto value = entity->getDataValue(key_name);
@@ -2691,6 +2540,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 entity_factory->DestructEntity(node);
                 node = 0;
             }
+
+            
         }
         if(!node){
             QString title = "Cannot create Node '" + entity->getKind() + "'";
@@ -2699,11 +2550,15 @@ bool ModelController::importGraphML(QString document, Node *parent)
             emit Notification(MODEL_SEVERITY::ERROR, title, description);
         }
 
-        if(show_progress){
+        if(UPDATE_PROGRESS){
             ProgressChanged_(++entities_made / entities_total_perc);
         }
     }
 
+    while(implicitly_constructed_nodes.size()){
+        auto node = implicitly_constructed_nodes.dequeue();
+        storeNode(node, -1, false, false);
+    }
 
     QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
@@ -2726,14 +2581,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
         if(src_entity && src_entity->gotID()){
             src_node = entity_factory->GetNode(src_entity->getID());
-        }else if(partial_import){
+        }else if(IS_PARTIAL_IMPORT){
             //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
             src_node = entity_factory->GetNode(entity->getSourceIDInt());
         }
 
         if(dst_entity && dst_entity->gotID()){
             dst_node = entity_factory->GetNode(dst_entity->getID());
-        }else if(partial_import){
+        }else if(IS_PARTIAL_IMPORT){
             //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
             dst_node = entity_factory->GetNode(entity->getTargetIDInt());
         }
@@ -2770,7 +2625,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
     }
 
-    if(show_progress){
+    if(UPDATE_PROGRESS){
         ProgressUpdated_("Constructing Edges");
     }
 
@@ -2782,7 +2637,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         QList<TempEntity*> unconstructed_edges;
         
         int constructed_edges = 0;
-      EDGE_KIND edge_kind = EDGE_KIND::NONE;
+        EDGE_KIND edge_kind = EDGE_KIND::NONE;
         
         //Find the first index which still has edges left
         for(auto kind : edge_kind_keys){
@@ -2836,7 +2691,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
             }
 
             if(edge){
-                if(show_progress){
+                if(UPDATE_PROGRESS){
                     ProgressChanged_(++entities_made / entities_total_perc);
                 }
                 constructed_edges++;
@@ -2868,13 +2723,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
         edge_iterations ++;
     }
 
-    if(show_progress){
+    if(UPDATE_PROGRESS){
         ProgressChanged_(100);
     }
 
-    if(edge_ids.size() > 0){
-        //qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_iterations << " Iterations.";
-    }
 
     for(auto entity : entity_hash){
         delete entity;
@@ -2917,29 +2769,40 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     QSet<SELECTION_PROPERTIES> properties;
 
     auto item = entity_factory->GetEntity(active_id);
-
+    
+    auto unordered_items = getUnorderedEntities(ids);
     //Got a list of entites
-    auto items = getOrderedEntities(ids);
+    auto ordered_items = getOrderedEntities(unordered_items);
 
-    if(canCut(items)){
+    if(canCut(ordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_CUT);
     }
 
-    if(canCopy(items)){
+    if(canCopy(ordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_COPY);
     }
 
-    if(canRemove(items)){
+    if(canRemove(ordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_REMOVE);
     }
 
-    if(canPaste(items)){
+    if(canPaste(ordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_PASTE);
     }
 
-    if(canReplicate(items)){
+    if(canReplicate(ordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_REPLICATE);
     }
+
+    if(canChangeIndex(unordered_items)){
+        properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_INDEX);
+    }
+
+    if(canChangeRow(unordered_items)){
+        properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_ROW);
+    }
+
+    
 
     //Check Active Selection
     if(item){
@@ -2972,10 +2835,10 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     return properties;
 }
 
-bool ModelController::canCut(QList<Entity *> selection)
+bool ModelController::canCut(const QList<Entity *>& ordered_selection)
 {
-    if(canRemove(selection)){
-        for(auto item : selection){
+    if(canRemove(ordered_selection)){
+        for(const auto& item : ordered_selection){
             if(item->isNode()){
                 Node* node = (Node*) item;
                
@@ -2992,12 +2855,12 @@ bool ModelController::canCut(QList<Entity *> selection)
 
 
 
-bool ModelController::canCopy(QList<Entity *> selection)
+bool ModelController::canCopy(const QList<Entity *>& ordered_selection)
 {
-    bool valid = !selection.isEmpty();
+    bool valid = !ordered_selection.isEmpty();
     Node* parent = 0;
 
-    for(auto item : selection){
+    for(const auto& item : ordered_selection){
         if(item->isNode()){
             Node* node = (Node*) item;
             if(!canDeleteNode(node)){
@@ -3031,10 +2894,10 @@ bool ModelController::canCopy(QList<Entity *> selection)
     return valid;
 }
 
-bool ModelController::canPaste(QList<Entity *> selection)
+bool ModelController::canPaste(const QList<Entity *>& ordered_selection)
 {
-    if(selection.size() == 1){
-        Entity* item = selection.first();
+    if(ordered_selection.size() == 1){
+        Entity* item = ordered_selection.first();
 
         if(item && item->isNode()){
             auto node = (Node*) item;
@@ -3054,24 +2917,54 @@ bool ModelController::canPaste(QList<Entity *> selection)
     return false;
 }
 
-
-bool ModelController::canReplicate(QList<Entity *> selection)
+bool ModelController::canChangeIndex(const QList<Entity *>& unordered_selection)
 {
-    if(canCopy(selection)){
+    bool valid = unordered_selection.count() == 1;
+
+    if(valid){
+        for(const auto& entity : unordered_selection){
+            auto data = entity->getData("index");
+            if(!data || data->isProtected()){
+                valid = false;
+                break;
+            }
+        }
+    }
+    return valid;
+}
+
+bool ModelController::canChangeRow(const QList<Entity *>& unordered_selection)
+{
+    bool valid = unordered_selection.count() == 1;
+
+    if(valid){
+        for(const auto& entity : unordered_selection){
+            auto data = entity->getData("row");
+            if(!data || data->isProtected()){
+                valid = false;
+                break;
+            }
+        }
+    }
+    return valid;
+}
+
+bool ModelController::canReplicate(const QList<Entity *>& ordered_selection)
+{
+    if(canCopy(ordered_selection)){
         //Get the first item, check if we can paste into it
-        auto first = selection.first();
-        return canPaste(QList<Entity*>{first});
+        return canPaste({ordered_selection.first()});
     }
     return false;
 }
 
-bool ModelController::canRemove(QList<Entity *> selection)
+bool ModelController::canRemove(const QList<Entity *>& ordered_selection)
 {
-    if(selection.isEmpty()){
+    if(ordered_selection.isEmpty()){
         return false;
     }
 
-    for(auto entity : selection){
+    for(const auto& entity : ordered_selection){
         if(entity->isNode()){
             auto node = (Node*) entity;
             auto parent_node = node->getParentNode();

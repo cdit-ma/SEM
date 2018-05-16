@@ -672,6 +672,15 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 default_icon_name = "PeriodicEvent";
                 break;
             }
+            case NODE_KIND::SHARED_DATATYPES:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "SharedDatatypes";
+                if(viewItem->isReadOnly()){
+                    custom_icon_prefix = "EntityIcons";
+                    custom_icon_name = "SharedDatatypesLocked";
+                }
+                break;
+            }
             default:
                 break;
             }
@@ -776,20 +785,24 @@ JobMonitor* ViewController::getExecutionMonitor(){
 }
 
 void ViewController::incrementSelectedKey(QString key_name){
-    ViewItem* item = getActiveSelectedItem();
-    if(item && item->hasData(key_name) && !item->isDataProtected(key_name)){
-        auto data = item->getData(key_name).toInt();
+    auto selected_items = selectionController->getSelection();
+    if(selected_items.count()){
         emit vc_triggerAction(key_name + " Changed");
-        emit vc_setData(item->getID(), key_name, data + 1);
+        for(auto item : selected_items){
+            auto data = item->getData(key_name).toInt();
+            emit vc_setData(item->getID(), key_name, data + 1);
+        }
     }
 }
 void ViewController::decrementSelectedKey(QString key_name){
-    ViewItem* item = getActiveSelectedItem();
-    if(item && item->hasData(key_name) && !item->isDataProtected(key_name)){
-        auto data = item->getData(key_name).toInt();
-        if(data > 0){
-            emit vc_triggerAction(key_name + " Changed");
-            emit vc_setData(item->getID(), key_name, data - 1);
+    auto selected_items = selectionController->getSelection();
+    if(selected_items.count()){
+        emit vc_triggerAction(key_name + " Changed");
+        for(auto item : selected_items){
+            auto data = item->getData(key_name).toInt();
+            if(data > 0){
+                emit vc_setData(item->getID(), key_name, data - 1);
+            }
         }
     }
 }
@@ -1532,15 +1545,6 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     
     StoreViewItem(node_item);
     controller_nodeEdgeChanged(id);
-
-    if(kind == NODE_KIND::AGGREGATE){
-        for(auto severity : Notification::getSeverities()){
-            if(severity != Notification::Severity::NONE && severity != Notification::Severity::RUNNING){
-                //Add some notification
-                NotificationManager::manager()->AddNotification("TEST", "Icons", "circlePlusTwoTone", severity,  Notification::Type::MODEL, Notification::Category::VALIDATION, false, id);
-            }
-        }
-    }
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
@@ -1556,7 +1560,7 @@ void ViewController::controller_dataChanged(int ID, DataUpdate data)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " Protected " : "");
+        //qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " Protected " : "");
         viewItem->changeData(data.key_name, data.value, data.is_protected);
     }
 }
@@ -1937,7 +1941,7 @@ void ViewController::aboutMEDEA()
     "<li>Dan Fraser (Lead Programmer)</li>"
     "<li>Cathlyn Aston (UX Programmer)</li>"
     "<li>Mitchell Conrad (Programmer)</li>"
-    "<li>Jackson Michael (Workers)</li>"
+    "<li>Jackson Michael (Programmer)</li>"
     "</ul>"
     "Past Members:"
     "<ul>"

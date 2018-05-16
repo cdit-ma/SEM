@@ -38,17 +38,17 @@ void EventPort::setAggregate(Aggregate *aggregate)
     }
 }
 
-Aggregate *EventPort::getAggregate()
-{
+
+Aggregate* EventPort::getAggregate(){
     //Special case.
     if(isInstance()){
-        Node* definition = getDefinition(true);
+        auto definition = getDefinition(true);
 
         if(definition && definition->isNodeOfType(NODE_TYPE::EVENTPORT)){
             return ((EventPort*)definition)->getAggregate();
         }
     }
-    return aggregate;
+    return this->aggregate;
 }
 
 void EventPort::unsetAggregate()

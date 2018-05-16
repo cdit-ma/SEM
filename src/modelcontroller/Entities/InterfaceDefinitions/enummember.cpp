@@ -14,7 +14,7 @@ void EnumMember::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     });
 }
 
-EnumMember::EnumMember(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+EnumMember::EnumMember(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     setPromiscuousDataLinker(true);
     setDataProducer(true);
@@ -26,6 +26,6 @@ EnumMember::EnumMember(EntityFactoryBroker& broker, bool is_temp) : DataNode(bro
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "ENUM_VAL", false);
-    broker.AttachData(this, "index", QVariant::Int, -1, true);
     broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.ProtectData(this, "index", false);
 }

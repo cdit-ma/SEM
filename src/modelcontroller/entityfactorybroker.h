@@ -29,6 +29,9 @@ class EntityFactoryBroker
 
         Data* AttachData(Entity* entity, Key* key, QVariant value = QVariant(), bool is_protected = false);
         Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value = QVariant(), bool is_protected = false);
+        void RemoveData(Entity* entity, QString key_name);
+
+        void ProtectData(Entity* entity, QString key_name, bool is_protected = true);
 
         void AcceptedEdgeKindsChanged(Node* node);
 

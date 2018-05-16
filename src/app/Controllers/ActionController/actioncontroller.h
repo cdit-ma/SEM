@@ -129,6 +129,7 @@ public:
     RootAction* edit_renameActiveSelection;
     RootAction* edit_expand;
     RootAction* edit_contract;
+    
     RootAction* edit_incrementIndex;
     RootAction* edit_decrementIndex;
 

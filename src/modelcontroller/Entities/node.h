@@ -24,7 +24,8 @@ class Node : public Entity
             ALLOW_EXTERNAL_DEFINITIONS,
             IGNORE_REQUIRED_INSTANCE_DEFINITIONS,
             ALWAYS_CHECK_VALID_DEFINITIONS,
-            ALLOW_MULTIPLE_IMPLEMENTATIONS
+            ALLOW_MULTIPLE_IMPLEMENTATIONS,
+            DISALLOW_DEFINITION_CHAINING
         };
 
     protected:
@@ -46,7 +47,7 @@ class Node : public Entity
 
         //Rule Getters/Setters
         void SetEdgeRuleActive(EdgeRule rule, bool active = true);
-        bool IsEdgeRuleActive(EdgeRule rule);
+        
 
         virtual QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
         virtual QSet<Node*> getParentNodesForValidDefinition();
@@ -89,6 +90,7 @@ class Node : public Entity
     signals:
         void acceptedEdgeKindsChanged(Node* node);
     public:
+        bool IsEdgeRuleActive(EdgeRule rule) const;
         //Valid Definition/Instance/Impl Getters
         bool isValidInstanceKind(NODE_KIND kind) const;
         bool isValidImplKind(NODE_KIND kind) const;

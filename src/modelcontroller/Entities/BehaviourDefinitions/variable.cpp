@@ -29,7 +29,9 @@ Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker,
     }
     
     //Setup Data
-    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    broker.AttachData(this, "column", QVariant::Int, 1, true);
 }
 
 bool Variable::canAdoptChild(Node* child)

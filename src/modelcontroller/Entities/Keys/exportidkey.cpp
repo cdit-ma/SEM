@@ -50,12 +50,11 @@ bool ExportIDKey::setData(Data* data, QVariant data_value){
     //Change the data
     bool data_changed = Key::setData(data, data_value);
     auto entity = data->getParent();
-    if(data_changed){
-        auto new_value = data->getValue().toString();;
-        if(uuid_notifier_){
-            //Update the Factory
-            uuid_notifier_(entity, old_value, new_value);
-        }
+    
+    auto new_value = data->getValue().toString();
+    if(uuid_notifier_){
+        //Update the Factory
+        uuid_notifier_(entity, old_value, new_value);
     }
     return data_changed;
 }

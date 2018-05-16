@@ -32,6 +32,8 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
     broker.AttachData(frequency, "icon", QVariant::String, "timeElapsed", true);
     broker.AttachData(frequency, "icon_prefix", QVariant::String, "Icons", true);
     broker.AttachData(frequency, "type", QVariant::String, "Double", true);
+    broker.ProtectData(frequency, "index", true);
+    broker.ProtectData(this, "index", false);
 }
 
 bool PeriodicEvent::canAdoptChild(Node* child)

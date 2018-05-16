@@ -22,4 +22,5 @@ Code::Code(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, 
     
     //Setup Data
     broker.AttachData(this, "code", QVariant::String);
+    broker.ProtectData(this, "index", false);
 }

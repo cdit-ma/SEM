@@ -22,4 +22,8 @@ Header::Header(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     broker.AttachData(this, "code", QVariant::String, "", false);
     auto header_location = broker.AttachData(this, "header_location", QVariant::String, "CPP", false);
     header_location->addValidValues({"Class Declaration", "Header", "CPP"});
+
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    broker.AttachData(this, "column", QVariant::Int, -1, true);
 }

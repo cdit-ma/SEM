@@ -30,16 +30,6 @@
             <data key="icon_prefix">Icons</data>
             <data key="icon">gpu</data>
             <graph id="opencl:">
-                <node id="opencl::device_id">
-					<data key="type">Integer</data>
-					<data key="label">device_id</data>
-					<data key="kind">Attribute</data>
-				</node>
-				<node id="opencl::platform_id">
-                    <data key="type">Integer</data>
-					<data key="label">platform_id</data>
-					<data key="kind">Attribute</data>
-				</node>
                 <node id="opencl::opencl_buffer_float">
 					<data key="inner_type">Float</data>
                     <data key="outer_type">OpenCLBuffer</data>
@@ -416,6 +406,16 @@
                         </node>
                     </graph>
                 </node>
+                <node id="opencl::device_id">
+					<data key="type">Integer</data>
+					<data key="label">device_id</data>
+					<data key="kind">Attribute</data>
+				</node>
+				<node id="opencl::platform_id">
+                    <data key="type">Integer</data>
+					<data key="label">platform_id</data>
+					<data key="kind">Attribute</data>
+				</node>
             </graph>
         </node>
     </graph>

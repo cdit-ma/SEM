@@ -1,5 +1,7 @@
 #include "basicnodeitem.h"
 #include <QDebug>
+#include "stacknodeitem.h"
+
 BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :NodeItem(viewItem, parentItem, CONTAINER_ITEM)
 {
     setMoveEnabled(true);
@@ -7,6 +9,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     setResizeEnabled(true);
 
     parentContainer = qobject_cast<BasicNodeItem*>(parentItem);
+    parentStackContainer = qobject_cast<StackNodeItem*>(parentItem);
 
     header_margins = QMarginsF(4,2,4,2);
     auto g_s = getGridSize();
@@ -76,14 +79,19 @@ BasicNodeItem *BasicNodeItem::getParentContainer() const
 {
     return parentContainer;
 }
+\
+StackNodeItem* BasicNodeItem::getParentStackContainer() const{
+    return parentStackContainer;
+}
 
 QPointF BasicNodeItem::validateMove(QPointF delta){
-    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+    if(getParentStackContainer()){
         return delta;
     }else{
         return NodeItem::validateMove(delta);
     }
 }
+
 
 
 void BasicNodeItem::setPos(const QPointF &p)

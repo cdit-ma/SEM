@@ -29,6 +29,7 @@ MEDEA::ServerPort::ServerPort(::EntityFactoryBroker& broker, bool is_temp) : Nod
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "index", QVariant::String, -1, false);
+    broker.AttachData(this, "row", QVariant::Int, 0, true);
 }
 
 bool MEDEA::ServerPort::canAdoptChild(Node* child)

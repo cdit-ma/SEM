@@ -686,6 +686,7 @@ QPair<QString, QString> NodeItem::getSecondaryIconPath() const{
 
 void NodeItem::setSecondaryIconPath(QPair<QString, QString> pair){
     secondary_icon = pair;
+    
 }
 
 

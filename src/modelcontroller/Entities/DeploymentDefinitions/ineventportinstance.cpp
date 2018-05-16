@@ -21,7 +21,11 @@ InEventPortInstance::InEventPortInstance(EntityFactoryBroker& broker, bool is_te
         //Break out early for temporary entities
         return;
     }
-    
+
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 0, false);
+
+
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
     connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::updateQOSEdge);
     

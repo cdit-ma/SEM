@@ -31,7 +31,7 @@ AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) 
     }
     
     //Setup Data
-    broker.AttachData(this, "index", QVariant::Int, -1);
+    broker.ProtectData(this, "index", true);
     broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
@@ -106,6 +106,28 @@ void AggregateInstance::ParentSet(DataNode* child){
     }
 }
 void AggregateInstance::parentSet(Node* parent){
+    switch(parent->getNodeKind()){
+        case NODE_KIND::INEVENTPORT_IMPL:{
+            getFactoryBroker().AttachData(this, "row", QVariant::Int, 0, true);
+            getFactoryBroker().AttachData(this, "column", QVariant::Int, -1, true);
+            break;
+        }
+        case NODE_KIND::AGGREGATE:{
+            getFactoryBroker().ProtectData(this, "index", true);
+            SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
+            break;
+        }
+        case NODE_KIND::VECTOR:
+        case NODE_KIND::VARIABLE:
+        case NODE_KIND::INPUT_PARAMETER_GROUP:
+        case NODE_KIND::RETURN_PARAMETER_GROUP:{
+            SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
+            break;
+        }
+        default:
+            break;
+    }
+
     AggregateInstance::ParentSet(this);
     DataNode::parentSet(parent);
 }

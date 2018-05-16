@@ -11,7 +11,7 @@ Entity::Entity(EntityFactoryBroker& broker, GRAPHML_KIND kind):GraphML(broker, k
 Entity::~Entity()
 {
     disconnect(this);
-    for(auto data : dataLookup){
+    for(auto data : data_map_){
         //Unregister the data so we don't bother calling back into this class
         data->setParent(0);
         delete data;
@@ -51,12 +51,12 @@ bool Entity::addData(Data *data)
 
     QString keyName = key->getName();
 
-    if(!keyLookup.contains(keyName)){
-        keyLookup.insert(keyName, key);
+    if(!key_lookup_.contains(keyName)){
+        key_lookup_.insert(keyName, key);
     }
 
-    if(!dataLookup.contains(key)){
-        dataLookup.insert(key, data);
+    if(!data_map_.contains(key)){
+        data_map_.insert(key, data);
     }
 
     //Attach this.
@@ -96,7 +96,7 @@ void Entity::_dataRemoved(Data *data)
 {
     if(data){
         auto key_name = data->getKeyName();
-        keyLookup.remove(key_name);
+        key_lookup_.remove(key_name);
         emit dataRemoved(getID(), key_name);
     }
 }
@@ -116,8 +116,8 @@ Data *Entity::getData(QString keyName) const
 
 Key *Entity::getKey(QString keyName) const
 {
-    if(keyLookup.contains(keyName)){
-        return keyLookup[keyName];
+    if(key_lookup_.contains(keyName)){
+        return key_lookup_[keyName];
     }
     return 0;
 }
@@ -130,8 +130,8 @@ Key *Entity::getKey(QString keyName) const
  */
 Data *Entity::getData(Key *key) const
 {
-    if(key && dataLookup.contains(key)){
-        return dataLookup[key];
+    if(key && data_map_.contains(key)){
+        return data_map_[key];
     }
     return 0;
 }
@@ -143,23 +143,23 @@ Data *Entity::getData(Key *key) const
  */
 QList<Data *> Entity::getData() const
 {
-    return dataLookup.values();
+    return data_map_.values();
 }
 
 QList<Key *> Entity::getKeys() const
 {
-    return keyLookup.values();
+    return key_lookup_.values();
 }
 
 QStringList Entity::getKeyNames() const
 {
-    return keyLookup.keys();
+    return key_lookup_.keys();
 }
 
 bool Entity::gotData(QString keyName) const
 {
     if(keyName.isEmpty()){
-        return !dataLookup.isEmpty();
+        return !data_map_.isEmpty();
     }else{
         return getData(keyName);
     }
@@ -189,24 +189,6 @@ bool Entity::isReadOnly() const
         return readOnlyData->getValue().toBool();
     }
     return false;
-}
-
-bool Entity::isSnippetReadOnly() const
-{
-    if(isReadOnly()){
-        if(!getData("snippetID")){
-            return false;
-        }
-        if(!getData("snippetMAC")){
-            return false;
-        }
-        if(!getData("snippetTime")){
-            return false;
-        }
-        return true;
-    }
-    return false;
-
 }
 
 QVariant Entity::getDataValue(QString keyName) const
@@ -268,7 +250,7 @@ bool Entity::removeData(Key *key)
 bool Entity::removeData(Data *data)
 {
     if(data){
-        if(!dataLookup.values().contains(data)){
+        if(!data_map_.values().contains(data)){
             return false;
 
         }
@@ -278,8 +260,8 @@ bool Entity::removeData(Data *data)
             return false;
         }
         int count = 0;
-        count += dataLookup.remove(key);
-        count += keyLookup.remove(key->getName());
+        count += data_map_.remove(key);
+        count += key_lookup_.remove(key->getName());
 
         data->setParent(0);
         
@@ -317,9 +299,17 @@ bool Entity::SortByIndex(const Entity* a, const Entity* b){
 }
 
 bool Entity::isLabelFunctional() const{
-    return is_label_functional;
+    return is_label_functional_;
 }
 
 void Entity::setLabelFunctional(bool functional){
-    is_label_functional = functional;
+    is_label_functional_ = functional;
+}
+
+bool Entity::isImplicitlyConstructed() const{
+    return is_implicitly_constructed_;
+}
+
+void Entity::setImplicitlyConstructed(bool implicitly_constructed){
+    is_implicitly_constructed_ = implicitly_constructed;
 }

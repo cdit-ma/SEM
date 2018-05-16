@@ -21,12 +21,16 @@ Edge::Edge(EntityFactoryBroker& broker, Node *source, Node *destination, EDGE_KI
         if(source == destination){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as both Source and Target.");
         }
-
         if(!source->canAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Source.");
         }
+
         if(!destination->canAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Target.");
+        }
+
+        if(!source->canAcceptEdge(edge_kind, destination)){
+            throw std::invalid_argument(source->toString().toStdString() + " Cannot add edge.");
         }
         source->addEdge(this);
         destination->addEdge(this);

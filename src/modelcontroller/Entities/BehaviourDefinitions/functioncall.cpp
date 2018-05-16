@@ -16,6 +16,7 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
+    
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
@@ -30,6 +31,7 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     broker.AttachData(this, "label", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
     broker.AttachData(this, "icon", QVariant::String, "", true);
+    broker.ProtectData(this, "index", false);
 }
 
 bool FunctionCall::canAdoptChild(Node* child)

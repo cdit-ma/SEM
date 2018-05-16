@@ -15,8 +15,8 @@ InEventPortImpl::InEventPortImpl(EntityFactoryBroker& broker, bool is_temp) : No
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     addImplsDefinitionKind(NODE_KIND::INEVENTPORT);
-
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
@@ -28,6 +28,7 @@ InEventPortImpl::InEventPortImpl(EntityFactoryBroker& broker, bool is_temp) : No
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.ProtectData(this, "index", false);
 }
 
 bool InEventPortImpl::canAdoptChild(Node *child)

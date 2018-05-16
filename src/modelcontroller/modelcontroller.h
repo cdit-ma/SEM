@@ -23,7 +23,7 @@ class EntityFactory;
 
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
-enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES};
+enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES, CAN_CHANGE_INDEX, CAN_CHANGE_ROW};
 enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
 
 struct HistoryAction{
@@ -185,14 +185,18 @@ private:
     Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
-    void setCustomNodeData(Node* node);
     double compare_version(QString current_version, QString version);
     QSet<NODE_KIND> getGUINodeKinds();
-    bool canReplicate(QList<Entity*> selection);
-    bool canCut(QList<Entity*> selection);
-    bool canCopy(QList<Entity*> selection);
-    bool canPaste(QList<Entity*> selection);
-    bool canRemove(QList<Entity *> selection);
+    bool canReplicate(const QList<Entity *>& ordered_selection);
+    bool canCut(const QList<Entity *>& ordered_selection);
+    bool canCopy(const QList<Entity *>& ordered_selection);
+    bool canPaste(const QList<Entity *>& ordered_selection);
+    bool canRemove(const QList<Entity *>& ordered_selection);
+    
+    bool canChangeIndex(const QList<Entity *>& unordered_selection);
+    bool canChangeRow(const QList<Entity *>& unordered_selection);
+
+
     bool canDeleteNode(Node* node);
 
     void loadWorkerDefinitions();
@@ -254,7 +258,6 @@ private:
     
 
 
-    Node* cloneNode(Node* original, Node* parent);
     
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     bool storeNode(Node* node, int desired_id = -1, bool store_children = true, bool add_action = true);

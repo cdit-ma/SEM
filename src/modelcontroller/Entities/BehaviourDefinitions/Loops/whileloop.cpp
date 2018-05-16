@@ -32,10 +32,13 @@ MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(
     }
 
     broker.AttachData(this, "label", QVariant::String, "while", true);
+    broker.ProtectData(this, "index", false);
+    
     auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
     broker.AttachData(expression, "row", QVariant::Int, 0, true);
     broker.AttachData(expression, "column", QVariant::Int, -1, true);
+    broker.ProtectData(expression, "index", true);
 
     //Set that the Expression can accept data
     expression->setDataReceiver(true);

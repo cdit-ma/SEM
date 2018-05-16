@@ -14,6 +14,7 @@ public:
     static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     EnumInstance(EntityFactoryBroker& factory, bool is_temp_node);
+    void parentSet(Node* parent);
 public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

@@ -23,6 +23,7 @@ BehaviourDefinitions::BehaviourDefinitions(EntityFactoryBroker& broker, bool is_
     }
 
     //Setup Data
+    setLabelFunctional(false);
     broker.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);
 }
 

@@ -265,7 +265,7 @@ void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& k
     node->constructor = constructor;
 
     if(!node_kind_lookup.contains(kind_string)){
-        qCritical() << "EntityFactory: Registered Node Kind [" << (uint)node_kind << "]: " << kind_string;
+        //qCritical() << "EntityFactory: Registered Node Kind [" << (uint)node_kind << "]: " << kind_string;
         //Insert into our reverse lookup
         node_kind_lookup.insert(kind_string, node_kind);
     }else{
@@ -282,7 +282,7 @@ void EntityFactory::RegisterEdgeKind(const EDGE_KIND edge_kind, const QString& k
     edge->constructor = constructor;
 
     if(!edge_kind_lookup.contains(kind_string)){
-        qCritical() << "EntityFactory: Registered Edge Kind [" << (uint)edge_kind << "]: " << kind_string;
+        //qCritical() << "EntityFactory: Registered Edge Kind [" << (uint)edge_kind << "]: " << kind_string;
         //Insert into our reverse lookup
         edge_kind_lookup.insert(kind_string, edge_kind);
     }else{
@@ -500,7 +500,7 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
         try{
             edge = edge_struct->constructor(factory_broker_, source, destination);
         }catch(const std::exception& ex){
-            std::cerr << ex.what() << std::endl;
+            //std::cerr << ex.what() << std::endl;
             edge = 0;
         }
     }
@@ -582,7 +582,7 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         }else if(key_name == "namespace"){
             key = new NamespaceKey(factory_broker_);
         }else{
-        key = new Key(factory_broker_, key_name, type);
+            key = new Key(factory_broker_, key_name, type);
         }
         
         if(VisualKeyNames().contains(key_name)){
@@ -733,15 +733,16 @@ Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type
     return AttachData(entity, GetKey(key_name, type), value, is_protected);
 }
 
-int EntityFactory::getFreeID(int pregistry_brokererred_id){
-
-    int id = pregistry_brokererred_id;
+int EntityFactory::getFreeID(int start_id){
+    int id = start_id;
     //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-    while(id == -1 || hash_.contains(id)){
+    
+    while(id <= 0 || hash_.contains(id)){
         id = ++id_counter_;
     }
     return id;
 }
+
 int EntityFactory::getUnregisteredFreeID(){
 
     if(resuable_unregistered_ids_.size()){
@@ -765,43 +766,74 @@ bool EntityFactory::UnregisterTempID(GraphML* graphml){
     }
 }
 
-int EntityFactory::RegisterEntity(GraphML* graphml, int id){
+bool EntityFactory::IsEntityRegistered(GraphML* graphml){
+    if(graphml){
+        auto current_id = graphml->getID();
+        return hash_.value(current_id, 0) == graphml;
+    }
+    return false;
+}
+
+bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
+    if(!graphml){
+        //Can't register NULL graphml
+        return false;
+    }
+    
+    if(IsEntityRegistered(graphml)){
+        //Can't register element which is already registered
+        return false;
+    }
+
     auto graphml_factory = &(graphml->getFactoryBroker().GetEntityFactory());
-    //Get the current ID
-    if(graphml && graphml_factory == this){
-        auto success = UnregisterTempID(graphml);
-        
-        if(!success){
-            //Check if the ID is already in the normal hash.
-            id = graphml->getID();
-        }else{
-            id = getFreeID(id);
-        }
+    
+    if(graphml_factory != this){
+        throw std::runtime_error("EntityFactory: Trying to Register Entity created by different factory." + graphml->toString().toStdString());
+    }
 
-        if(!hash_.contains(id)){
-            //Dont allow a change from a permanent ID
-            if(graphml->getID() > 0 ){
-                qCritical() << "RIP" << id;
+    
+    if(!UnregisterTempID(graphml)){
+        throw std::runtime_error("EntityFactory: Couldn't unregister Temp Entity." + graphml->toString().toStdString());
+    }
+
+    id = getFreeID(id);
+
+    //Dont allow a change from a permanent ID
+    if(graphml->getID() > 0){
+        throw std::runtime_error("EntityFactory: Trying to Register Entity which already somehow has a valid ID." + graphml->toString().toStdString());
+    }
+
+    auto hash_element = hash_.value(id, 0);
+    if(hash_element){
+        throw std::runtime_error("EntityFactory: Trying to Register Entity which already in registry." + graphml->toString().toStdString());
+    }
+
+    //Set the ID
+    graphml->setID(id);
+    
+    //Insert
+    hash_.insert(id, graphml);
+
+    switch(graphml->getGraphMLKind()){
+        case GRAPHML_KIND::NODE:
+        case GRAPHML_KIND::EDGE:{
+            auto entity = (Entity*) graphml;
+
+            auto uuid_data = entity->getData("uuid");
+            if(uuid_data){
+                uuid_data->revalidateData();
             }
-            //Set the ID
-            graphml->setID(id);
-            //Insert
-            hash_.insert(id, graphml);
-
-            if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
-                auto node = (Node*) graphml;
+            if(entity->isNode()){
+                auto node = (Node*) entity;
                 AcceptedEdgeKindsChanged(node);
             }
-        }else{
-            auto hash_element = hash_.value(id, 0);
-            if(graphml != hash_element){
-                qCritical() << "EntityFactory: Registry hash collision @ ID: " << id;
-                qCritical() << "\tExistent Element: " << hash_element->toString();
-                qCritical() << "\tInserted Element: " << graphml->toString();
-            }
+            break;
         }
+        default:
+            break;
     }
-    return graphml ? graphml->getID() : -1;
+
+    return true;
 }
 
 void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
@@ -856,8 +888,16 @@ void EntityFactory::EntitiesUUIDChanged(Entity* entity, QString old_uuid, QStrin
     if(entity){
         uuid_lookup_.remove(old_uuid);
 
-        if(!new_uuid.isEmpty()){
-            uuid_lookup_.insert(new_uuid, entity->getID());
+        auto id = entity->getID();
+        if(id > 0){
+            if(uuid_lookup_.contains(new_uuid)){
+                auto current_id = uuid_lookup_.value(new_uuid);
+                if(current_id != id){
+                    qCritical() << "UUID Collision @ ID: " << new_uuid;
+                }
+            }else{
+                uuid_lookup_.insert(new_uuid, entity->getID());
+            }
         }
     }
 }
@@ -871,6 +911,8 @@ Node* EntityFactory::ConstructChildNode(Node& parent, NODE_KIND node_kind){
             child = 0;
             throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Adopt Child of Kind: " + getNodeKindString(node_kind).toStdString());
         }
+        //Set implicitly constructed
+        child->setImplicitlyConstructed();
     }else{
         throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Construct Child of Kind: " + getNodeKindString(node_kind).toStdString());
     }

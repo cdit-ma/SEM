@@ -263,10 +263,13 @@ void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap
 
 void EntityItem::setIconOverlay(QString alias, QString imageName)
 {
-    if(!paintIconOverlay || iconOverlayIconPath.first != alias || iconOverlayIconPath.second != imageName){
+    if(iconOverlayIconPath.first != alias || iconOverlayIconPath.second != imageName){
         iconOverlayIconPath.first = alias;
         iconOverlayIconPath.second = imageName;
-        update();
+
+        if(paintIconOverlay){
+            update();
+        }
     }
 }
 
@@ -471,11 +474,6 @@ QPointF EntityItem::validateMove(QPointF delta)
 }
 
 
-void EntityItem::setData(QString keyName, QVariant value)
-{
-    emit req_setData(viewItem, keyName, value);
-}
-
 QVariant EntityItem::getData(QString keyName) const
 {
     return viewItem->getData(keyName);
@@ -598,6 +596,7 @@ void EntityItem::connectViewItem(ViewItem *viewItem)
     viewItem->registerObject(this);
     connect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
     connect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
 }
 
 void EntityItem::disconnectViewItem()
@@ -605,6 +604,7 @@ void EntityItem::disconnectViewItem()
     if(viewItem){
         disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
         disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
         viewItem->unregisterObject(this);
         viewItem = 0;
     }

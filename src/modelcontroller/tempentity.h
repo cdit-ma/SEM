@@ -25,6 +25,8 @@ public:
 
     QString getKind();
 
+    NODE_KIND getNodeKind();
+
     void setIDStr(QString id_str);
     QString getIDStr();
     bool gotPreviousID();
@@ -34,9 +36,11 @@ public:
     int getID();
     bool gotID();
     void setImplicitlyConstructed();
-    bool isImpliciltyConstructed();
+    bool isImplicitlyConstructed();
 
     QList<TempEntity*> getChildren();
+    
+    const QList<NODE_KIND>& getParentStack();
 
     void setSourceIDStr(QString id);
     QString getSourceIDStr();
@@ -52,6 +56,8 @@ public:
     void setTargetID(int id);
     int getTargetID();
 
+    bool isUUIDMatched();
+    void setUUIDMatched(bool uuid_matched);
 
     
     void appendEdgeKinds(QList<EDGE_KIND> edgeKinds);
@@ -73,6 +79,8 @@ public:
     bool GotImplicitlyConstructedNodeID(NODE_KIND kind);
     bool GotImplicitlyConstructedEdgeID(EDGE_KIND kind);
 
+    QQueue<int> GetLeftOverImplicitlyConstructedNodeIds();
+
     int TakeNextImplicitlyConstructedNodeID(NODE_KIND kind);
     int TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind);
 private:
@@ -91,6 +99,7 @@ private:
     int line_number = -1;
     QString id_str;
     QString kind_str;
+    bool uuid_matched = false;
 
     int previous_id = -1;
     int actual_id = -1;
@@ -103,6 +112,10 @@ private:
 
     bool implicitly_constructed = false;
     GRAPHML_KIND graphml_kind = GRAPHML_KIND::NONE;
+
+    NODE_KIND node_kind = NODE_KIND::NONE;
+protected:
+    QList<NODE_KIND> parent_stack;
 };
 
 #endif // TEMPENTITY_H

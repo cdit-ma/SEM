@@ -22,6 +22,9 @@ OutEventPortInstance::OutEventPortInstance(EntityFactoryBroker& broker, bool is_
         return;
     }
 
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 2, false);
+    
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
     connect(data_middleware, &Data::dataChanged, this, &OutEventPortInstance::updateQOSEdge);
     

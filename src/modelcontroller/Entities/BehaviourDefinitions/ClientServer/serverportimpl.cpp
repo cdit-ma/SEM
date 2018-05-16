@@ -29,7 +29,7 @@ MEDEA::ServerPortImpl::ServerPortImpl(::EntityFactoryBroker& broker, bool is_tem
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.ProtectData(this, "index", false);
 }
 
 bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)

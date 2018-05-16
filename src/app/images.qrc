@@ -67,6 +67,7 @@
         <file alias="PeriodicEvent">Resources/EntityIcons/PeriodicEvent.png</file>
         <file alias="QOSProfile">Resources/EntityIcons/QOSProfile.png</file>
         <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
+        <file alias="SharedDatatypesLocked">Resources/EntityIcons/SharedDatatypesLocked.png</file>
         <file alias="Termination">Resources/EntityIcons/Termination.png</file>
         <file alias="Variable">Resources/EntityIcons/Variable.png</file>
         <file alias="Vector_AggregateInstance">Resources/EntityIcons/Vector_AggregateInstance.png</file>

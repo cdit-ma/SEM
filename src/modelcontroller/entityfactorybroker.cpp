@@ -34,6 +34,11 @@ Data* EntityFactoryBroker::AttachData(Entity* entity, Key* key, QVariant value, 
     return factory_.AttachData(entity, key, value, is_protected);
 }
 
+void EntityFactoryBroker::RemoveData(Entity* entity, QString key_name){
+    auto data = entity->getData(key_name);
+    factory_.DestructEntity(data);
+}
+
 Data* EntityFactoryBroker::AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value, bool is_protected){
     return AttachData(entity, GetKey(key_name, type), value, is_protected);
 }
@@ -48,4 +53,11 @@ QString EntityFactoryBroker::GetNodeKindString(NODE_KIND node_kind){
 
 void EntityFactoryBroker::AcceptedEdgeKindsChanged(Node* node){
     factory_.AcceptedEdgeKindsChanged(node);
+}
+
+void EntityFactoryBroker::ProtectData(Entity* entity, QString key_name, bool is_protected){
+    auto data = entity->getData(key_name);
+    if(data){
+        data->setProtected(is_protected);
+    }
 }

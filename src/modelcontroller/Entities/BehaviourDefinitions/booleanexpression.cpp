@@ -27,9 +27,11 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
         return;
     }
 
+
     //setup Data
     auto label = broker.AttachData(this, "label", QVariant::String, "???", true);
     auto data_value = broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.ProtectData(this, "index", false);
     broker.AttachData(this, "type", QVariant::String, "Boolean", true);
     
     //Attach Children

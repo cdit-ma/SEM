@@ -23,6 +23,7 @@ WorkerDefinitions::WorkerDefinitions(EntityFactoryBroker& broker, bool is_temp) 
     }
     
     //Setup Data
+    setLabelFunctional(false);
     broker.AttachData(this, "label", QVariant::String, "WORKERS", true);
 }
 

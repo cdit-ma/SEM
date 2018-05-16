@@ -26,6 +26,8 @@ AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "", true);
     broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    broker.ProtectData(this, "index", false);
 }
 
 void AttributeInstance::parentSet(Node* parent){

@@ -12,8 +12,10 @@ DataTableModel::DataTableModel(ViewItem *item)
 
     multiline_keys << "processes_to_log" << "code";
     icon_keys << "icon" << "icon_prefix";
-    ignoredKeys << "x" << "y" << "width" << "height" << "readOnly";
-    //ignoredKeys << "icon" << "icon_prefix";
+    //ignoredKeys << "x" << "y" << "width" << "height" << "readOnly";
+    
+    
+    ignoredKeys << "isExpanded";
     setupDataBinding();
 }
 
@@ -179,6 +181,9 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DecorationRole) {
         if(hasCodeEditor(index) || hasIconEditor(index)){
             return  Theme::theme()->getImage("Icons", "popOut", QSize(16,16), Theme::theme()->getMenuIconColor());
+        }
+        if(isIndexProtected(index)){
+            return  Theme::theme()->getImage("Icons", "lockClosed", QSize(8,8), Theme::theme()->getMenuIconColor());
         }
     }
 

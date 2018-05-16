@@ -69,7 +69,7 @@ void Node::SetEdgeRuleActive(EdgeRule rule, bool active){
 }
 
 
-bool Node::IsEdgeRuleActive(EdgeRule rule){
+bool Node::IsEdgeRuleActive(EdgeRule rule) const{
     return active_edge_rules_.contains(rule);
 }
 
@@ -98,19 +98,7 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     
     switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
-
             auto parent_node = getParentNode();
-
-
-            if(!parent_node->isInstanceImpl()){
-                //Only allow edges to things which don't have a definition
-                if(dst->getDefinition()){
-                    return false;
-                }
-            }
-
-
-            
 
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
@@ -924,6 +912,12 @@ bool Node::isValidImplKind(NODE_KIND kind) const{
 }
 
 bool Node::isValidDefinitionKind(NODE_KIND kind) const{
+
+    if(IsEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING)){
+        if(getNodeKind() == kind){
+            return false;
+        }
+    }
     return definition_kinds_.contains(kind);
 }
 

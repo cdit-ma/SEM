@@ -33,6 +33,7 @@ Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     broker.AttachData(this, "icon", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
     broker.AttachData(this, "outer_type", QVariant::String, "Vector", true);
+    broker.ProtectData(this, "index", false);
 }
 
 bool Vector::canAdoptChild(Node *child)

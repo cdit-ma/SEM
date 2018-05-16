@@ -333,8 +333,11 @@ void ContextMenu::action_triggered(QAction* action){
             auto item = view_controller->getSelectionController()->getActiveSelectedItem();
             if(item){
                 auto parent_id = item->getID();
-                //Expand!
-                emit view_controller->vc_setData(parent_id, "isExpanded", true);
+
+                if(item->hasData("isExpanded")){
+                    //Expand!
+                    emit view_controller->vc_setData(parent_id, "isExpanded", true);
+                }
 
                 switch(node_position){
                     case NodePosition::INDEX:{

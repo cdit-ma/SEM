@@ -39,6 +39,7 @@ MEDEA::IfCondition::IfCondition(::EntityFactoryBroker& broker, bool is_temp) : N
     expression_ = expression;
     broker.AttachData(expression, "row", QVariant::Int, 0, true);
     broker.AttachData(expression, "column", QVariant::Int, -1, true);
+    broker.ProtectData(expression, "index", true);
 
     //Set that the Expression can accept data
     expression->setDataReceiver(true);

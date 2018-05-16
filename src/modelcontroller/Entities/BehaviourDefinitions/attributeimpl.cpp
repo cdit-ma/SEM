@@ -17,6 +17,14 @@ AttributeImpl::AttributeImpl(EntityFactoryBroker& broker, bool is_temp) : DataNo
     addImplsDefinitionKind(NODE_KIND::ATTRIBUTE);
     setDataProducer(true);
     setDataReceiver(false);
+
+    if(is_temp){
+        return;
+    }
+
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    broker.AttachData(this, "column", QVariant::Int, 0, true);
 }
 
 bool AttributeImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

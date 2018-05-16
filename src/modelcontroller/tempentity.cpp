@@ -1,4 +1,5 @@
 #include "tempentity.h"
+#include "entityfactory.h"
 
 int str_to_int(QString str){
     bool ok;
@@ -12,7 +13,6 @@ int str_to_int(QString str){
 
 TempEntity::TempEntity(GRAPHML_KIND kind, TempEntity* parent)
 {
-    
     this->parent = parent;
     this->graphml_kind = kind;
     
@@ -39,6 +39,19 @@ int TempEntity::getLineNumber()
 {
     return line_number;
 }
+
+NODE_KIND TempEntity::getNodeKind(){
+    if(isNode() && node_kind == NODE_KIND::NONE){
+        auto data = getDataValue("kind").toString();
+        node_kind = EntityFactory::getNodeKind(data);
+    }
+    return node_kind;
+}
+
+const QList<NODE_KIND>& TempEntity::getParentStack(){
+    return parent_stack;
+}
+
 
 void TempEntity::setLineNumber(int line_number)
 {
@@ -102,6 +115,12 @@ QList<TempEntity*> TempEntity::getChildren(){
 
 void TempEntity::addChild(TempEntity* child){
     children.push_back(child);
+    if(parent){
+        child->parent_stack = parent_stack;
+        if(isNode()){
+            child->parent_stack += getNodeKind();
+        }
+    }
 }
 
 void TempEntity::setSourceID(int id)
@@ -225,6 +244,21 @@ int TempEntity::TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind){
 void TempEntity::setImplicitlyConstructed(){
     implicitly_constructed = true;
 }
-bool TempEntity::isImpliciltyConstructed(){
+bool TempEntity::isImplicitlyConstructed(){
     return implicitly_constructed;
+}
+
+QQueue<int> TempEntity::GetLeftOverImplicitlyConstructedNodeIds(){
+    QQueue<int> values;
+    for(auto queue : implicit_nodes.values()){
+        values += queue;
+    }
+    return values;
+}   
+
+bool TempEntity::isUUIDMatched(){
+    return uuid_matched;
+}
+void TempEntity::setUUIDMatched(bool uuid_matched){
+    this->uuid_matched = uuid_matched;
 }

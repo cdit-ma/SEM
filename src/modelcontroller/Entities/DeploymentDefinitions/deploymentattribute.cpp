@@ -29,6 +29,7 @@ MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, b
     auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
     broker.AttachData(this, "comment", QVariant::String, "", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
+    broker.AttachData(this, "value", QVariant::String, "", false);
 }
 
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

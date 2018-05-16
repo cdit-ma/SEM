@@ -28,6 +28,7 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
     }
 
     //Setup Data
+    setLabelFunctional(false);
     broker.AttachData(this, "label", QVariant::String, "HARDWARE", true);
 
     //Attach Children

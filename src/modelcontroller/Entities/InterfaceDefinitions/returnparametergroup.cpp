@@ -25,7 +25,9 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker,
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "Return", false);
     broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.ProtectData(this, "index", true);
+    broker.AttachData(this, "row", QVariant::Int, 0, true);
+    broker.AttachData(this, "column", QVariant::Int, 1, true);
 }
 
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)

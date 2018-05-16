@@ -25,6 +25,7 @@ MEDEA::IfStatement::IfStatement(::EntityFactoryBroker& broker, bool is_temp) : N
     }
     
     broker.AttachData(this, "label", QVariant::String, "If Group", false);
+    broker.ProtectData(this, "index", false);
     broker.ConstructChildNode(*this, NODE_KIND::IF_CONDITION);
 }
 

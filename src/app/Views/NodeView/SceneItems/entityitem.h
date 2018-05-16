@@ -164,7 +164,7 @@ private:
 
 public:
     //Model State Get/Setters
-    void setData(QString keyName, QVariant value);
+    //void setData(QString keyName, QVariant value);
     QVariant getData(QString keyName) const;
 
     // QVa/riant getProperty(QString propertyName) const;
@@ -222,6 +222,7 @@ public:
 
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
+    virtual void dataRemoved(QString keyName){};
 signals:
     //Request changes
     void req_Move(QPointF delta);
@@ -233,7 +234,6 @@ signals:
     void req_selected(ViewItem*, bool);
     void req_activeSelected(ViewItem*);
 
-    void req_setData(ViewItem* item, QString keyName, QVariant data);
     void req_removeData(ViewItem* item, QString keyName);
     void req_editData(ViewItem* item, QString keyName);
 
@@ -260,7 +260,7 @@ public:
 protected:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
-    private:
+private:
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
     QPixmap getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
     QSize getPixmapSize(QRectF rect, qreal lod) const;
@@ -333,6 +333,8 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+    
+
 
 
     // QGraphicsItem interface

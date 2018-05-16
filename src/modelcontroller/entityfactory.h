@@ -111,9 +111,9 @@ protected:
     void RegisterNodeKind(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor);    
     void RegisterEdgeKind(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactoryBroker&, Node*, Node*)> constructor);
 
-    int RegisterEntity(GraphML* graphml, int desired_id = -1);
+    bool RegisterEntity(GraphML* graphml, int desired_id = -1);
+    bool IsEntityRegistered(GraphML* graphml);
     
-    void DeregisterEntity(GraphML* graphml);
     bool UnregisterTempID(GraphML* graphml);
 
     void EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid);

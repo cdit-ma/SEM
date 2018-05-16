@@ -20,6 +20,7 @@ Parameter::Parameter(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "inner_type", QVariant::String, "", true);
     broker.AttachData(this, "outer_type", QVariant::String, "", true);
+    broker.AttachData(this, "value", QVariant::String, "", false);
 }
 
 bool Parameter::isInputParameter() const

@@ -12,6 +12,7 @@
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
 #include "SceneItems/Node/compactnodeitem.h"
+#include "SceneItems/Node/hardwarenodeitem.h"
 
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
@@ -814,20 +815,20 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             if(nodeKindStr.contains("DDS")){
                 return;
             }
+            
+            if(nodeKind == NODE_KIND::FUNCTION && parentNode->getNodeKind() == NODE_KIND::CLASS_INSTANCE){
+                return;
+            }
+
 
             bool ignorePosition = containedNodeViewItem == item;
 
             QPair<QString, QString> secondary_icon;
             secondary_icon.first = "Icons";
             switch(nodeKind){
-            /*case NODE_KIND::FUNCTION:{
-                return;
-            }*/
             case NODE_KIND::HARDWARE_NODE:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new HardwareNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
-                secondary_icon.second = "arrowsUpDownDark";
-                nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setExpandEnabled(true);
                 break;
             case NODE_KIND::LOGGINGSERVER:
@@ -1298,7 +1299,7 @@ QList<EntityItem *> NodeView::getTopLevelEntityItems() const
 QList<EntityItem *> NodeView::getSelectedItems() const
 {
     QList<EntityItem*> items;
-    foreach(ViewItem* item, selectionHandler->getSelection()){
+    for(auto item : selectionHandler->getSelection()){
         EntityItem* eItem = getEntityItem(item);
         if(eItem){
             items.append(eItem);
@@ -1656,10 +1657,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(CONTROL && SHIFT){
         emit trans_InActive2RubberbandMode();
-        event->accept();
     }
-    
-    QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
@@ -1671,7 +1669,77 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     if(!(CONTROL && SHIFT)){
         emit trans_RubberbandMode2InActive();
     }
-    QGraphicsView::keyReleaseEvent(event);
+
+    if(event->modifiers().testFlag(Qt::AltModifier)){
+        switch(event->key()){
+            case Qt::Key_Left:
+            case Qt::Key_Right:
+            case Qt::Key_Up:
+            case Qt::Key_Down:{
+                auto selectedItems = getSelectedItems();
+                if(selectedItems.count() == 1){
+                    auto item = selectedItems.first();
+                    if(item->isNodeItem()){
+                        ShiftOrderInParent((NodeItem*) item, event->key());
+                        event->setAccepted(true);
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+void NodeView::ShiftOrderInParent(NodeItem* item, int key){
+    auto node_item = qobject_cast<BasicNodeItem*>(item);
+
+    if(node_item){
+        auto parent_stack_item = node_item->getParentStackContainer();
+        if(parent_stack_item){
+            auto index = StackNodeItem::GetCellIndex(node_item); 
+            //Get the orientation of the index
+            auto orientation = parent_stack_item->getCellOrientation(index);
+
+            auto increment = key == Qt::Key_Right || key == Qt::Key_Down;
+            
+            auto move_index = false;
+            switch(key){
+                case Qt::Key_Left:
+                case Qt::Key_Right:{
+                    move_index = orientation == Qt::Horizontal;
+                    break;
+                }
+                case Qt::Key_Up:
+                case Qt::Key_Down:{
+                    move_index = orientation == Qt::Vertical;
+                    break;
+                }
+                default:
+                    return;
+            }
+
+            auto action_controller = viewController->getActionController();
+            QAction* action = 0;
+            if(move_index){
+                if(increment){
+                    action = action_controller->edit_incrementIndex;
+                }else{
+                    action = action_controller->edit_decrementIndex;
+                }
+            }else{
+                if(increment){
+                    action = action_controller->edit_incrementRow;
+                }else{
+                    action = action_controller->edit_decrementRow;
+                }
+            }
+            if(action && action->isEnabled()){
+                action->trigger();
+            }
+    }
+    }
 }
 
 void NodeView::wheelEvent(QWheelEvent *event)

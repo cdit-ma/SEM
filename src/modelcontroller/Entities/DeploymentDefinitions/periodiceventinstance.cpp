@@ -20,11 +20,10 @@ PeriodicEventInstance::PeriodicEventInstance(EntityFactoryBroker& broker, bool i
         //Break out early for temporary entities
         return;
     }
-
-    /*auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INSTANCE);
-    broker.AttachData(frequency, "label", QVariant::String, "Frequency", true);
-    broker.AttachData(frequency, "icon", QVariant::String, "Variable", true);
-    broker.AttachData(frequency, "icon_prefix", QVariant::String, "EntityIcons", true);*/
+    
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, false);
+    broker.AttachData(this, "column", QVariant::Int, 1, true);
 }
 
 bool PeriodicEventInstance::canAdoptChild(Node* child)

@@ -66,8 +66,6 @@ public:
 
 
 
-
-
     //RECTS
     virtual QRectF viewRect() const;
     virtual QRectF boundingRect() const;
@@ -182,7 +180,8 @@ signals:
     void childCountChanged();
 
     void indexChanged();
-    
+
+
     void req_connectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_connectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_addNodeMenu(QPointF scene_pos, int index = -1);

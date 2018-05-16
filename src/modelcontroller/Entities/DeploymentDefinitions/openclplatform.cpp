@@ -17,7 +17,7 @@ OpenCLPlatform::OpenCLPlatform(EntityFactoryBroker& broker, bool is_temp) : Node
     setLabelFunctional(false);
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsNodeKind(NODE_KIND::OPENCL_DEVICE);
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
+    //setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 
     if(is_temp){
         //Break out early for temporary entities

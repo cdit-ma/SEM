@@ -12,6 +12,7 @@ class StackNodeItem: public BasicNodeItem
     Q_OBJECT
 public:
     StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation = Qt::Vertical);
+    static CellIndex GetCellIndex(NodeItem* child);
 
     void setAlignment(Qt::Orientation orientation);
     QPointF getStemAnchorPoint() const;
@@ -36,6 +37,8 @@ public:
     void childPosChanged(EntityItem* child);
     void RecalculateCells();
 
+    Qt::Orientation getCellOrientation(const CellIndex& index) const;
+
 protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -57,7 +60,7 @@ private:
     QMarginsF getCellMargin(const CellIndex& index) const;
     qreal getDefaultCellSpacing() const;
     qreal getCellSpacing(const CellIndex& index) const;
-    Qt::Orientation getCellOrientation(const CellIndex& index) const;
+    
 
     QRectF GetGapIconRect(const Qt::Orientation orientation, const QRectF& prev_rect, const QRectF& current_rect);
 
@@ -70,7 +73,7 @@ private:
     QRectF getRowRect(int row) const;
     
 
-    static CellIndex GetCellIndex(NodeItem* child);
+    
 
     struct PersistentCellInfo{
         CellIndex index;

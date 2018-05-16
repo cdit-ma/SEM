@@ -24,7 +24,7 @@ Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     }
 
     //Setup Data
-    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.ProtectData(this, "index", false);
     auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
     broker.AttachData(this, "key", QVariant::Bool, false, false);
@@ -35,5 +35,11 @@ void Member::parentSet(Node* parent){
     if(parent->getNodeKind() != NODE_KIND::VARIABLE){
         AggregateInstance::ParentSet(this);
     }
+    //Needs Value
+    QSet<NODE_KIND> needs_value_key = {NODE_KIND::VARIABLE, NODE_KIND::RETURN_PARAMETER_GROUP};
+    if(needs_value_key.contains(parent->getNodeKind())){
+        
+    }
+    
     DataNode::parentSet(parent);
 }

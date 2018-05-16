@@ -15,4 +15,12 @@ InEventPort::InEventPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(
     //Setup State
     addImplKind(NODE_KIND::INEVENTPORT_IMPL);
 	addInstanceKind(NODE_KIND::INEVENTPORT_INSTANCE);
+
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+    
+    broker.AttachData(this, "row", QVariant::Int, 0, true);
+    broker.ProtectData(this, "index", false);
 }

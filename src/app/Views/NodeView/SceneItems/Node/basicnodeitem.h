@@ -3,6 +3,7 @@
 
 #include "nodeitem.h"
 
+class StackNodeItem;
 class BasicNodeItem : public NodeItem
 {
     Q_OBJECT
@@ -16,10 +17,12 @@ public:
     virtual QPointF getElementPosition(BasicNodeItem* child);
 
     BasicNodeItem* getParentContainer() const;
+    StackNodeItem* getParentStackContainer() const;
 
 
     void setPos(const QPointF &pos);
     QPointF getNearestGridPoint(QPointF newPos);
+    
 
     
 
@@ -58,6 +61,7 @@ private:
     QRectF expandedStateRect() const;
 
     BasicNodeItem* parentContainer = 0;
+    StackNodeItem* parentStackContainer = 0;
     bool is_sorted_ordered = false;
 
     QMarginsF header_margins;

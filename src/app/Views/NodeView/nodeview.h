@@ -166,6 +166,8 @@ private:
     void _clearSelection();
     qreal distance(QPoint p1, QPoint p2);
 private:
+    void ShiftOrderInParent(NodeItem* item, int key_pressed);
+    
     void setupStateMachine();
 
     void topLevelItemMoved();

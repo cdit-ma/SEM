@@ -33,11 +33,13 @@ MEDEA::ElseIfCondition::ElseIfCondition(::EntityFactoryBroker& broker, bool is_t
     broker.AttachData(this, "value", QVariant::String, "", false);
     broker.AttachData(this, "row", QVariant::Int, 0, true);
     broker.AttachData(this, "column", QVariant::Int, 0, true);
+    broker.ProtectData(this, "index", false);
 
     auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
     broker.AttachData(expression, "row", QVariant::Int, 0, true);
     broker.AttachData(expression, "column", QVariant::Int, -1, true);
+    broker.ProtectData(expression, "index", true);
 
     //Set that the Expression can accept data
     expression->setDataReceiver(true);

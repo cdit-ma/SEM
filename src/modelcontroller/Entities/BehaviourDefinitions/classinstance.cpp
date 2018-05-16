@@ -31,6 +31,10 @@ MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp)
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
     broker.AttachData(this, "icon", QVariant::String, "", true);
+    
+    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    broker.AttachData(this, "column", QVariant::Int, 2, true);
 };
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)

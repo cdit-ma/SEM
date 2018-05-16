@@ -1,4 +1,5 @@
 #include "enuminstance.h"
+#include "aggregateinstance.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
@@ -14,8 +15,6 @@ void EnumInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker
 
 EnumInstance::EnumInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
-    setDataReceiver(true);
-    setDataProducer(true);
     addInstancesDefinitionKind(NODE_KIND::ENUM);
     setChainableDefinition();
 
@@ -26,7 +25,6 @@ EnumInstance::EnumInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "value", QVariant::String, "", false);
 }
 
 bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
@@ -58,4 +56,9 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
         break;
     }
     return DataNode::canAcceptEdge(edge_kind, dst);
+}
+
+void EnumInstance::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
 }

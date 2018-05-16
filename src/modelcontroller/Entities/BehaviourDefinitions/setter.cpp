@@ -27,6 +27,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
 
     //setup Data
     auto label = broker.AttachData(this, "label", QVariant::String, "???", true);
+    broker.ProtectData(this, "index", false);
 
     //Attach Children
     lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
