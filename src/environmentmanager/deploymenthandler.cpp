@@ -84,10 +84,10 @@ void DeploymentHandler::HeartbeatLoop(){
             if(removed_flag_){
                 break;
             }
-            environment_->ExperimentLive(experiment_id_, time_added_);
+            //TODO: Update experiments status to be ACTIVE
         }
         else if(--liveness == 0){
-            environment_->ExperimentTimeout(experiment_id_, time_added_);
+            //TODO: Update experiments status to be TIMEOUT
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;

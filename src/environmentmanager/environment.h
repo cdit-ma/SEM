@@ -7,8 +7,14 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
+
+namespace EnvironmentManager{
+    class Experiment;
+    class Node;
+    class EventPort;
+}
 
 class Environment{
 
@@ -55,141 +61,26 @@ class Environment{
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
 
+        std::string GetPort(const std::string& node_ip);
+        void FreePort(const std::string& node_ip, const std::string& port_number);
+        
+        std::string GetManagerPort();
+        void FreeManagerPort(const std::string& port);
+
+
+        bool HasPublicEventPort(const std::string& port_id);
+        std::string GetPublicEventPortEndpoint(const std::string& port_id);
+        void AddPublicEventPort(const std::string& port_id, const std::string& address_string);
+        void AddPublicEventPort(const std::string& port_id, EnvironmentManager::EventPort event_port);
+
+        bool HasPendingPublicEventPort(const std::string& port_id);
+        std::set<std::string> GetDependentExperiments(const std::string& port_id);
+        void AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id);
+
         uint64_t GetClock();
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
-
-        struct LoganClient{
-            std::string management_port;
-            std::string ip_address;
-            std::string experiment_name;
-            std::string logging_port;
-        };
-
-        class Node{
-            public:
-                Node(const std::string& name, unique_queue<int> port_set){
-                    this->name = name;
-                    available_ports = port_set;
-                }
-                std::string GetPort(){
-                    std::unique_lock<std::mutex> lock(port_mutex);
-                    if(available_ports.empty()){
-                        return "";
-                    }
-                    auto port = available_ports.front();
-                    available_ports.pop();
-                    auto port_str =  std::to_string(port);
-                    return port_str;
-                };
-
-                void FreePort(const std::string& port){
-                    std::unique_lock<std::mutex> lock(port_mutex);
-                    int port_number;
-                    try{
-                        port_number = std::stoi(port);
-                        available_ports.push(port_number);
-                    }
-                    catch(const std::invalid_argument& ex){
-                        std::cerr << "Could not free port, port string could not be converted to int." << std::endl;
-                        std::cerr << ex.what() << std::endl;
-                    }
-                    catch(const std::out_of_range& ex){
-                        std::cerr << "Could not free port, port # out of range for int." << std::endl;
-                        std::cerr << ex.what() << std::endl;
-                    }
-                }
-                std::string name;
-                std::string ip;
-                int component_count = 0;
-            private:
-                std::mutex port_mutex;
-                unique_queue<int> available_ports;
-
-                //eventport guid -> port number assigned
-                std::map<std::string, std::string> used_ports;
-
-        };
-
-        struct EventPort{
-            std::string id;
-            std::string guid;
-            std::string type;
-            std::string node_id;
-            std::string port_number;
-            std::string topic;
-
-            //list of publisher ids
-            std::vector<std::string> connected_ports;
-
-            std::string endpoint;
-
-        };
-
-        enum class ExperimentState{
-            ACTIVE,
-            TIMEOUT,
-            SHUTDOWN
-        };
-
-        struct Experiment{
-            Experiment(std::string name){
-                model_name_ = name;
-            };
-
-            void AddLoganClient(LoganClient* client){
-                logan_clients.push_back(client);
-            };
-            
-            std::mutex mutex_;
-
-            Environment* environment_;
-
-            NodeManager::ControlMessage deployment_message_;
-            std::string model_name_;
-            std::string master_port_;
-            std::string master_ip_address_;
-            std::string manager_port_;
-
-            //node_id -> protobuf node
-            std::unordered_map<std::string, NodeManager::Node*> node_map_;
-
-            //node_id -> node_ip_addr
-            std::unordered_map<std::string, std::string> node_address_map_;
-
-            //node_ip_address -> node_id
-            std::unordered_map<std::string, std::string> node_id_map_;
-
-            //event port id -> eventport
-            std::unordered_map<std::string, EventPort> port_map_;
-
-            //subscriber_id -> publisher_id
-            std::unordered_map<std::string, std::vector<std::string> > connection_map_;
-
-            //node_id -> management_port
-            std::unordered_map<std::string, std::string> management_port_map_;
-
-            //node_id -> model_logger_port
-            std::unordered_map<std::string, std::string> modellogger_port_map_;
-
-            //list of topics used in this experiment
-            std::set<std::string> topic_set_;
-
-            //map of node id -> deployed component count
-            std::unordered_map<std::string, int> deployment_map_;
-
-            std::vector<LoganClient*> logan_clients;
-
-            uint64_t time_added;
-            ExperimentState state;
-
-            //Set dirty flag when we've added a public port to the environment that this experiment cares about.
-            //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to
-            bool dirty_flag = false;
-
-            std::set<std::string> updated_port_ids_;
-        };
         uint64_t clock_;
         std::mutex clock_mutex_;
 
@@ -199,29 +90,20 @@ class Environment{
 
         int MANAGER_PORT_RANGE_MIN;
         int MANAGER_PORT_RANGE_MAX;
-        
 
         //Returns management port for logan client
         std::string AddLoganClient(const std::string& model_name, const std::string& ip_address);
 
-        //
-
-        std::string GetPort(const std::string& node_ip);
-        void FreePort(const std::string& node_ip, const std::string& port_number);
-
-        std::string GetManagerPort();
-        void FreeManagerPort(const std::string& port);
-
-        Experiment* AddExperiment(const std::string& model_name);
+        bool AddExperiment(const std::string& model_name);
         //model_name -> experiment data structure
-        std::unordered_map<std::string, Experiment*> experiment_map_;
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
         //node_ip -> node data structure
-        std::unordered_map<std::string, Node*> node_map_;
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
 
         //event port guid -> event port data structure
         //event port guid takes form "experiment_id.{component_assembly_label}*n.component_instance_label.event_port_label"
-        std::unordered_map<std::string, EventPort> public_event_port_map_;
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::EventPort> > public_event_port_map_;
 
         //event port guid -> set of experiment ids
         //keeps track of experiments waiting for port of this guid to become live.

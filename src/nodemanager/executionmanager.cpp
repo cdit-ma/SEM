@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 
 #include <re_common/zmq/protowriter/protowriter.h>

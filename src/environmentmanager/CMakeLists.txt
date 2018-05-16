@@ -20,6 +20,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
     )
 
@@ -31,6 +32,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
     )
 
 add_library(${ENVIRONMENT_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})
@@ -52,11 +54,13 @@ target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
 
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
 
 
 

@@ -1,5 +1,5 @@
 #include "translate.h"
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 #include <iostream>
 
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(const NodeManager::Attribute& attr){

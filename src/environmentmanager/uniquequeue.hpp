@@ -1,3 +1,6 @@
+#ifndef UNIQUE_QUEUE_H
+#define UNIQUE_QUEUE_H
+
 #include <cassert>
 #include <iostream>
 #include <queue>
@@ -37,3 +40,5 @@ public:
         return m_queue.empty();
     }
 };
+
+#endif //UNIQUE_QUEUE_H

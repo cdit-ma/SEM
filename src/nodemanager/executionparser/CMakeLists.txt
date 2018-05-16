@@ -29,16 +29,20 @@ add_executable(${EXECUTION_PARSER} "${CMAKE_CURRENT_SOURCE_DIR}/executionparser.
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../re_common/)
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${RE_SRC_PATH})
 
 
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${PUGIXML_ROOT}/include)
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../re_common/)
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${RE_SRC_PATH})
 
 
 # Remove the need for _lib extensions
 target_link_libraries(${EXECUTION_PARSER_LIB} re_common_proto_control)
 target_link_libraries(${EXECUTION_PARSER_LIB} ${PUGIXML_LIBRARIES})
+target_link_libraries(${EXECUTION_PARSER_LIB} ${PROTOBUF_LIBRARIES})
+
 target_link_libraries(${EXECUTION_PARSER} ${EXECUTION_PARSER_LIB})

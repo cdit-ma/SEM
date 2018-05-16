@@ -13,7 +13,7 @@
 
 #include <core/modellogger.h>
 #include "deploymentcontainer.h"
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace zmq{class ProtoReceiver;};
 class Execution;

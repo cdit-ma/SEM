@@ -10,7 +10,7 @@
 #include "environment.h"
 #include "deploymenthandler.h"
 
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 
 class DeploymentRegister{
