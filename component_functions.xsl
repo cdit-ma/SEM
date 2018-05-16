@@ -751,27 +751,218 @@
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:function name="cdit:generate_setter_code">
+
+    <xsl:function name="cdit:generate_for_loop_code">
         <xsl:param name="node" as="element()"/>
         <xsl:param name="tab" as="xs:integer"/>
 
-        <xsl:variable name="operator" select="graphml:get_data_value($node, 'operator')" />
+        <xsl:variable name="required_args" select="3" />
+        <xsl:variable name="children" select="graphml:get_child_nodes($node)" />
+
+        
+
+        <xsl:if test="count($children) >= $required_args">
+            
+
+            <xsl:variable name="var_set">
+                <xsl:value-of select="cpp:define_variable('int', graphml:get_label($children[1]), cdit:get_resolved_getter_function($children[1], false(), false()), '', 0)" />
+            </xsl:variable>
+
+            <xsl:variable name="condition">
+                <xsl:value-of select="cdit:generate_boolean_expression_code($children[2], 0, true())" />
+            </xsl:variable>
+
+            <xsl:variable name="value_setter">    
+                <xsl:value-of select="cdit:generate_setter_code($children[3], 0, true())" />
+            </xsl:variable>
+            
+            <xsl:variable name="statement">
+                <xsl:value-of select="o:wrap_bracket(o:join_list(($var_set, $condition, $value_setter), '; '))" />
+            </xsl:variable>
+            
+            <xsl:value-of select="concat(o:t($tab), 'for', $statement, cpp:scope_start(0))" />
+            
+            <xsl:value-of select="cdit:generate_scoped_variables($node, $tab + 1)" />
+            
+            <xsl:for-each select="$children">
+                <xsl:if test="position() > $required_args">
+                    <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab + 1)" />
+                </xsl:if>
+            </xsl:for-each>
+
+            <xsl:value-of select="cpp:scope_end($tab)" />
+        </xsl:if>
+
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_scoped_variables">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($node, 'Variable')" />
+
+        <xsl:for-each select="$variables">
+            <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
+            <xsl:variable name="var_label" select="cdit:get_variable_label(.)" />
+            <xsl:variable name="value" select="cdit:get_resolved_getter_function(., false(), false())" />
+            
+            <xsl:value-of select="cpp:define_variable($cpp_type, $var_label, $value, cpp:nl(), $tab)" />
+        </xsl:for-each>
+
+    </xsl:function>
+
+
+    <xsl:function name="cdit:generate_while_loop_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:variable name="required_args" select="1" />
+        <xsl:variable name="children" select="graphml:get_child_nodes($node)" />
+
+
+        <xsl:if test="count($children) >= $required_args">
+            <xsl:variable name="condition">
+                <xsl:value-of select="cdit:generate_boolean_expression_code($children[1], 0, true())" />
+            </xsl:variable>
+            
+            <xsl:variable name="statement">
+                <xsl:value-of select="o:wrap_bracket($condition)" />
+            </xsl:variable>
+            
+            <xsl:value-of select="concat(o:t($tab), 'while', $statement, cpp:scope_start(0))" />
+            <xsl:value-of select="cdit:generate_scoped_variables($node, $tab + 1)" />
+            
+            <xsl:for-each select="$children">
+                <xsl:if test="position() > $required_args">
+                    <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab + 1)" />
+                </xsl:if>
+            </xsl:for-each>
+
+            <xsl:value-of select="cpp:scope_end($tab)" />
+        </xsl:if>
+
+    </xsl:function>
+
+    
+    <xsl:function name="cdit:generate_boolean_expression_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:param name="inline" as="xs:boolean"/>
+        
 
         <xsl:variable name="input_parameters" select="graphml:get_child_nodes_of_kind($node, 'InputParameter')" />
-        <xsl:variable name="variadic_parameters" select="graphml:get_child_nodes_of_kind($node, 'VariadicParameter')" />
 
-        <xsl:if test="count($input_parameters) = 1 and count($variadic_parameters) = 1">
+        <xsl:if test="count($input_parameters) = 3">
+            <xsl:variable name="var_setter">
+                <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[1], true(), false())" />
+            </xsl:variable>
+
+            <xsl:variable name="operator">    
+                <xsl:value-of select="graphml:get_label($input_parameters[2])" />
+            </xsl:variable>
+
+            <xsl:variable name="value_setter">    
+                <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+            </xsl:variable>
+            
+            <xsl:variable name="statement">
+                <xsl:value-of select="concat($var_setter, ' ', $operator, ' ', $value_setter)" />
+            </xsl:variable>
+
+            <xsl:choose>
+                <xsl:when test="$inline">
+                    <xsl:value-of select="$statement" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat(o:t($tab), $var_setter, ' ', $operator, ' ', $value_setter, cpp:nl())" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:function>
+
+    
+
+    <xsl:function name="cdit:generate_if_condition_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:variable name="kind" select="graphml:get_kind($node)" />
+
+        <xsl:variable name="prefix">
+            <xsl:choose>
+                <xsl:when test="$kind = 'IfCondition'">
+                    <xsl:value-of select="'if'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'ElseIfCondition'">
+                    <xsl:value-of select="'else if'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'ElseCondition'">
+                    <xsl:value-of select="'else'" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+    
+        
+        <xsl:for-each select="graphml:get_child_nodes($node)">
+            <xsl:variable name="child_kind" select="graphml:get_kind(.)" />
+
+            <xsl:if test="position() = 1">
+                <xsl:variable name="statement">
+                    <xsl:if test="$child_kind = 'BooleanExpression'">
+                        <xsl:value-of select="o:wrap_bracket(cdit:generate_boolean_expression_code(., 0, true()))" />
+                    </xsl:if>
+                </xsl:variable> 
+                <xsl:value-of select="concat(o:t($tab), $prefix, $statement, cpp:scope_start(0))" />
+                <xsl:value-of select="cdit:generate_scoped_variables($node, $tab + 1)" />
+            </xsl:if>
+
+
+            <xsl:if test="position() > 1 or $kind = 'ElseCondition'">
+                <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab + 1)" />
+            </xsl:if>
+
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="concat(o:t($tab), '}', o:nl(1))" />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+    
+    
+
+
+    <xsl:function name="cdit:generate_setter_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:param name="inline" as="xs:boolean"/>
+
+        <xsl:variable name="input_parameters" select="graphml:get_child_nodes_of_kind($node, 'InputParameter')" />
+
+        <xsl:if test="count($input_parameters) = 3">
             <xsl:variable name="var_setter">    
                 <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[1], true(), false())" />
             </xsl:variable>
 
-            <xsl:variable name="value_setter">    
-                <xsl:value-of select="cdit:get_resolved_getter_function($variadic_parameters[1], false(), false())" />
+            <xsl:variable name="operator">    
+                <xsl:value-of select="graphml:get_label($input_parameters[2])" />
             </xsl:variable>
 
-            <xsl:if test="$var_setter and $value_setter">
-                <xsl:value-of select="concat(o:t($tab), $var_setter, ' ', $operator, ' ', $value_setter, cpp:nl())" />
-            </xsl:if>
+            <xsl:variable name="value_setter">    
+                <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+            </xsl:variable>
+
+            <xsl:variable name="statement">    
+                <xsl:value-of select="concat($var_setter, ' ', $operator, ' ', $value_setter)" />
+            </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="$inline">
+                    <xsl:value-of select="$statement" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat(o:t($tab), $statement, cpp:nl())" />
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:function>
 
@@ -974,33 +1165,40 @@
             <xsl:value-of select="cpp:comment(('Model Comment:', o:nl(1), $comment), $tab)" />
         </xsl:if>
         
-        <xsl:variable name="should_traverse" as="xs:boolean">
-            <xsl:choose>
-                <xsl:when test="$kind = 'Termination'">
-                    <!-- Continue code generating on Termination, Only if our last node was a branch element -->
-                    <xsl:value-of select="cdit:uses_branch($previous_node)" />
-                </xsl:when>
-                <xsl:otherwise> 
-                    <xsl:value-of select="true()" />
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-
         <xsl:choose>
-            <xsl:when test="$kind = 'PeriodicEvent'" />
+            <xsl:when test="$kind = 'PeriodicEvent' or $kind = 'InEventPortImpl' or $kind = 'IfStatement'">
+                <xsl:value-of select="cdit:generate_scoped_variables($node, $tab)" />
+                <xsl:for-each select="graphml:get_child_nodes($node)">
+                    <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
+                </xsl:for-each>
+            </xsl:when>
+
+            <xsl:when test="$kind = 'ForLoop'">
+                <xsl:value-of select="cdit:generate_for_loop_code($node, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'WhileLoop'">
+                <xsl:value-of select="cdit:generate_while_loop_code($node, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'IfCondition' or $kind = 'ElseIfCondition' or $kind = 'ElseCondition'">
+                <xsl:value-of select="cdit:generate_if_condition_code($node, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'BooleanExpression'">
+                <xsl:value-of select="cdit:generate_boolean_expression_code($node, $tab, false())" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Setter'">
+                <xsl:value-of select="cdit:generate_setter_code($node, $tab, false())" />
+            </xsl:when>
+
+
             <xsl:when test="$kind = 'InEventPortImpl'" />
-            <xsl:when test="$kind = 'Condition'" />
-            <xsl:when test="$kind = 'ForCondition'" />
-            <xsl:when test="$kind = 'Termination'" />
             <xsl:when test="$kind = 'MemberInstance'" />
             <xsl:when test="$kind = 'VectorInstance'" />
             <xsl:when test="$kind = 'EnumInstance'" />
             <xsl:when test="$kind = 'WorkerProcess'">
                 <xsl:value-of select="cdit:generate_worker_process_code($node, $tab)" />
             </xsl:when>
-            <xsl:when test="$kind = 'Setter'">
-                <xsl:value-of select="cdit:generate_setter_code($node, $tab)" />
-            </xsl:when>
+
+            
             <xsl:when test="cdit:uses_branch($node)">
                 <xsl:value-of select="cdit:generate_branch_code($node, $tab)" />
             </xsl:when>
@@ -1021,11 +1219,9 @@
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:if test="$should_traverse">
-            <xsl:for-each select="graphml:get_targets($node, 'Edge_Workflow')">
-                <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
-            </xsl:for-each>
-        </xsl:if>
+        <!--<xsl:for-each select="graphml:get_child_nodes($node)">
+            <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
+        </xsl:for-each>-->
     </xsl:function>
 
     <xsl:function name="cdit:get_component_export">
