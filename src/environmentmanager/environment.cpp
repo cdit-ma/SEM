@@ -44,7 +44,8 @@ std::string Environment::AddDeployment(const std::string& model_name,
 
 bool Environment::AddExperiment(const std::string& model_name){
     if(!experiment_map_.count(model_name)){
-        experiment_map_.emplace(model_name, new EnvironmentManager::Experiment(*this, model_name));
+        auto temp = std::unique_ptr<EnvironmentManager::Experiment>(new EnvironmentManager::Experiment(*this, model_name));
+        experiment_map_.emplace(model_name, std::move(temp));
         experiment_map_.at(model_name)->SetManagerPort(GetManagerPort());
     }else{
         return false;
@@ -197,7 +198,8 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     if(node_map_.count(ip)){
         return;
     }
-    node_map_.emplace(ip, new EnvironmentManager::Node(node.info().name(), available_ports_));
+    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(node.info().name(), available_ports_));
+    node_map_.emplace(ip, std::move(temp));
 }
 
 //Get port from node specified.
@@ -314,8 +316,8 @@ std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
 
 void Environment::AddPublicEventPort(const std::string& port_guid, const std::string& address){
 
-
-    public_event_port_map_.emplace(port_guid, new EnvironmentManager::EventPort());
+    auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
+    public_event_port_map_.emplace(port_guid, std::move(temp));
     public_event_port_map_.at(port_guid)->id = port_guid;
     public_event_port_map_.at(port_guid)->guid = port_guid;
     public_event_port_map_.at(port_guid)->endpoint = address;
@@ -329,7 +331,9 @@ void Environment::AddPublicEventPort(const std::string& port_guid, const std::st
 }
 
 void Environment::AddPublicEventPort(const std::string& port_guid, EnvironmentManager::EventPort event_port){
-    public_event_port_map_.emplace(port_guid, new EnvironmentManager::EventPort(event_port));
+    auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort(event_port));
+    
+    public_event_port_map_.emplace(port_guid, std::move(temp));
 
     if(pending_port_map_.count(port_guid)){
         for(auto experiment_id : pending_port_map_.at(port_guid)){

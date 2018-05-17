@@ -53,7 +53,8 @@ void Experiment::SetMasterPublisherIp(const std::string& ip){
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
-    node_map_.emplace(node.info().id(), new NodeManager::Node(node));
+    auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
+    node_map_.emplace(node.info().id(), std::move(temp));
     deployment_map_.insert({node_address_map_.at(node.info().id()), 0});
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
@@ -128,7 +129,8 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
         management_port_map_.insert({node.info().id(), management_port});
     }
 
-    node_map_.emplace(node.info().id(), new NodeManager::Node(node));
+    auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
+    node_map_.emplace(node.info().id(), std::move(temp));
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
