@@ -18,7 +18,6 @@
     <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
-    <key attr.name="is_variadic" attr.type="boolean" for="all" id="is_variadic"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">

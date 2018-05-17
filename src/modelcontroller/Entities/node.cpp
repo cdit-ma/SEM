@@ -281,27 +281,24 @@ QList<Node*> Node::getParentNodes(int depth){
     return parents;
 }
 
-
-Node *Node::getParentNode(int depth)
-{
-
-    if(depth < 0){
+Node* Node::getParentNode(int depth) const{
+    if(depth <= 0){
         return 0;
     }
-    if(depth == 0){
-        return this;
-    }
-    if(depth == 1){
-        return parent_node_;
-    }
-    Node* node = this;
-    while(depth >= 1){
-        if(node){
-            node = node->getParentNode();
+    auto parent_node = getParentNode();
+    
+    while(--depth > 0){
+        if(parent_node){
+            parent_node = parent_node->getParentNode();
+        }else{
+            break;
         }
-        depth --;
     }
-    return node;
+    return parent_node;
+
+}
+Node* Node::getParentNode() const{
+    return parent_node_;
 }
 
 int Node::getParentNodeID()
@@ -956,11 +953,16 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
 
     QMultiMap<QString, QString> bind_values;
+    QSet<QString> required_instance_keys;
     bind_values.insert("key", "key");
 
     bind_values.insert("icon", "icon");
     bind_values.insert("icon_prefix", "icon_prefix");
+
+    required_instance_keys.insert("icon");
+    required_instance_keys.insert("icon_prefix");
     bind_values.insert("worker", "worker");
+    
     
 
     bool bind_index = false;
@@ -1012,12 +1014,16 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 bind_values.insert("description", "description");
                 bind_values.insert("class", "class");
+                bind_values.insert("is_variadic", "is_variadic");
+                required_instance_keys.insert("is_variadic");
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values.insert("operation", "operation");
                 bind_values.insert("description", "description");
                 bind_values.insert("class", "class");
+                bind_values.insert("is_variadic", "is_variadic");
+                required_instance_keys.insert("is_variadic");
                 break;
             }
             default:
@@ -1058,26 +1064,22 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         bind_values.insert("index", "index");
     }
 
-
-    auto def_icon_prefix = definition->getData("icon_prefix");
-    auto def_icon = definition->getData("icon");
-    if(def_icon && def_icon_prefix){
-        auto key_icon_prefix = def_icon_prefix->getKey();
-        auto key_icon = def_icon->getKey();
-        auto& broker = instance->getFactoryBroker();
-
-        //Construct Icon Prefix if we don't have one already
-        if(!instance->gotData(key_icon_prefix)){
-            broker.AttachData(instance, key_icon_prefix, def_icon_prefix->getValue(), true);
-        }
-        //Construct Icon if we don't have one already
-        if(!instance->gotData(key_icon)){
-            broker.AttachData(instance, key_icon, def_icon->getValue(), true);
+    for(auto key_name : required_instance_keys){
+        if(bind_values.contains(key_name)){
+            auto def_data = definition->getData(key_name);
+            if(def_data){
+                auto key = def_data->getKey();
+                if(!instance->getData(key)){
+                    //Construct data
+                    instance->getFactoryBroker().AttachData(instance, key, def_data->getValue(), true);
+                }
+            }
         }
     }
 
     for(auto definition_key : bind_values.uniqueKeys()){
         for(auto instance_key : bind_values.values(definition_key)){
+            //
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }

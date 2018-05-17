@@ -14,7 +14,8 @@ class StaticTextItem{
     public:
         StaticTextItem(Qt::Alignment text_align = Qt::AlignCenter);
         void setText(QString text);
-        void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text = "");
+        void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text);
+        void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect);
         void setAlignment(Qt::Alignment text_align);
     private:
         void UpdateText(QPainter* painter, QRectF rect, QString text);

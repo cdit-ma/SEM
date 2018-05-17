@@ -77,7 +77,6 @@ ViewController::ViewController() : QObject(){
     execution_manager = new ExecutionManager(this);
 
     connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
-    //connect(NotificationManager::manager(), &NotificationManager::notificationChanged, this, &ViewController::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);
 
 
@@ -895,6 +894,7 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::HARDWARE_CLUSTER);
     constructableNodes.removeAll(NODE_KIND::HARDWARE_NODE);
     constructableNodes.removeAll(NODE_KIND::INEVENTPORT_IMPL);
+    constructableNodes.removeAll(NODE_KIND::SERVER_PORT_IMPL);
     constructableNodes.removeAll(NODE_KIND::INTERFACE_DEFINITIONS);
     constructableNodes.removeAll(NODE_KIND::MANAGEMENT_COMPONENT);
     constructableNodes.removeAll(NODE_KIND::OUTEVENTPORT_INSTANCE);
@@ -906,7 +906,10 @@ void ViewController::setupEntityKindItems()
 
 
     for(auto kind : constructableNodes){
-        QString label = EntityFactory::getNodeKindString(kind);
+        QString label = EntityFactory::getPrettyNodeKindString(kind);
+        if(kind == NODE_KIND::VARIADIC_PARAMETER){
+            label = "Optional Parameter";
+        }
 
         auto item = new NodeViewItem(this, kind, label);
         setDefaultIcon(item);

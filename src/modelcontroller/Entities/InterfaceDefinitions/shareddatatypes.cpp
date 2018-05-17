@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SHARED_DATATYPES;
-const QString kind_string = "SharedDatatypes";
+const QString kind_string = "Shared Datatypes";
 
 void SharedDatatypes::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

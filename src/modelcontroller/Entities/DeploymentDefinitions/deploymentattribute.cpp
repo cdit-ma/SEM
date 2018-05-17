@@ -5,7 +5,7 @@
 #include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_ATTRIBUTE;
-const QString kind_string = "DeploymentAttribute";
+const QString kind_string = "Deployment Attribute";
 
 void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

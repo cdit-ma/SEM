@@ -6,7 +6,7 @@
 #include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::MEMBER_INSTANCE;
-const QString kind_string = "MemberInstance";
+const QString kind_string = "Member Instance";
 
 void MemberInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
@@ -25,12 +25,16 @@ MemberInstance::MemberInstance(EntityFactoryBroker& broker, bool is_temp) : Data
     }
 
     //Setup Data
+    setLabelFunctional(false);
     broker.ProtectData(this, "index", true);
     broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
 
 void MemberInstance::parentSet(Node* parent){
+    if(parent->getNodeKind() == NODE_KIND::AGGREGATE){
+        setLabelFunctional(true);
+    }
     AggregateInstance::ParentSet(this);
     DataNode::parentSet(parent);
 }

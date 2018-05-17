@@ -6,7 +6,7 @@
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::EXTERNAL_TYPE;
-const QString kind_string = "ExternalType";
+const QString kind_string = "External Type";
 
 void MEDEA::ExternalType::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

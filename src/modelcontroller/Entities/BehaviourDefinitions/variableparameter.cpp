@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::VARIABLE_PARAMETER;
-const QString kind_string = "VariableParameter";
+const QString kind_string = "Variable Parameter";
 
 void VariableParameter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

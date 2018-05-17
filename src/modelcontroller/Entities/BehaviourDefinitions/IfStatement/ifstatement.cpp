@@ -3,7 +3,7 @@
 #include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::IF_STATEMENT;
-const QString kind_string = "IfStatement";
+const QString kind_string = "If Statement";
 
 void MEDEA::IfStatement::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

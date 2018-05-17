@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
-const QString kind_string = "AttributeInstance";
+const QString kind_string = "Attribute Instance";
 
 
 void AttributeInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){

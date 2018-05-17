@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::COMPONENT_INSTANCE;
-const QString kind_string = "ComponentInstance";
+const QString kind_string = "Component Instance";
 
 void ComponentInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

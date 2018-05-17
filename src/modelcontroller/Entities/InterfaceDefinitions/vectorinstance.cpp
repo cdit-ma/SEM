@@ -4,7 +4,7 @@
 #include "aggregateinstance.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR_INSTANCE;
-const QString kind_string = "VectorInstance";
+const QString kind_string = "Vector Instance";
 
 void VectorInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

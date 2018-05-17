@@ -2,8 +2,8 @@
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const static NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
-const static QString kind_string = "OutEventPort";
+const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
+const QString kind_string = "OutEvent Port";
 
 void OutEventPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

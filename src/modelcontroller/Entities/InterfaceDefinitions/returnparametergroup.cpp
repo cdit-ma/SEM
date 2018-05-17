@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP;
-const QString kind_string = "ReturnParameterGroup";
+const QString kind_string = "Return Parameter Group";
 
 void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

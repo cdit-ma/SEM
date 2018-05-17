@@ -255,11 +255,16 @@ QRectF BasicNodeItem::headerContent_Data() const
 }
 
 QRectF BasicNodeItem::headerContent_Data_Primary() const{
-    QRectF rect(headerContent_Data());
+    QRectF rect;
 
-    if(gotSecondaryTextKey()){
-        rect.setHeight(rect.height() * ratio);
+    if(gotPrimaryTextKey()){
+        rect = headerContent_Data();
+
+        if(gotSecondaryTextKey()){
+            rect.setHeight(rect.height() * ratio);
+        }
     }
+
     return rect;
 }
 
@@ -269,8 +274,9 @@ QRectF BasicNodeItem::headerContent_Data_Secondary() const{
     QRectF rect;
     if(gotSecondaryTextKey()){
         rect = header_content;
-        rect.setHeight(rect.height() *  (1 - ratio));
-        rect.moveBottomRight(header_content.bottomRight());
+        if(gotPrimaryTextKey()){
+            rect.setTop(headerContent_Data_Primary().bottom());
+        }
     }
     return rect;
 }

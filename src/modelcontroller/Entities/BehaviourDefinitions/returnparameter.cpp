@@ -3,7 +3,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER;
-const QString kind_string = "ReturnParameter";
+const QString kind_string = "Return Parameter";
 
 void ReturnParameter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

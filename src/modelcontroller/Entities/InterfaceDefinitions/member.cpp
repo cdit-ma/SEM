@@ -24,6 +24,7 @@ Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     }
 
     //Setup Data
+    setLabelFunctional(false);
     broker.ProtectData(this, "index", false);
     auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
@@ -32,8 +33,14 @@ Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
 
 
 void Member::parentSet(Node* parent){
+    if(parent->getNodeKind() == NODE_KIND::AGGREGATE){
+        setLabelFunctional(true);
+    }
+
     if(parent->getNodeKind() != NODE_KIND::VARIABLE){
         AggregateInstance::ParentSet(this);
+    }else{
+        getFactoryBroker().ProtectData(this, "label", true);
     }
     //Needs Value
     QSet<NODE_KIND> needs_value_key = {NODE_KIND::VARIABLE, NODE_KIND::RETURN_PARAMETER_GROUP};

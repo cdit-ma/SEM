@@ -6,7 +6,7 @@
 #include "../../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
-const QString kind_string = "ForLoop";
+const QString kind_string = "For Loop";
 
 void MEDEA::ForLoop::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

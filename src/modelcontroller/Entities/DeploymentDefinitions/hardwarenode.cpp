@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const auto node_kind = NODE_KIND::HARDWARE_NODE;
-const QString kind_string = "HardwareNode";
+const QString kind_string = "Hardware Node";
 
 void HardwareNode::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

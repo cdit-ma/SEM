@@ -6,7 +6,7 @@
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::AGGREGATE_INSTANCE;
-const QString kind_string = "AggregateInstance";
+const QString kind_string = "Aggregate Instance";
 
 
 void AggregateInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){

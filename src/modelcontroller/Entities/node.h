@@ -130,7 +130,8 @@ class Node : public Entity
 
         //Parent Node Getters
         QList<Node*> getParentNodes(int depth = 1);
-        Node* getParentNode(int depth = 1);
+        Node* getParentNode(int depth) const;
+        Node* getParentNode() const;
         int getParentNodeID();
 
         //Returns whether or not this Node can Adopt the child Node.

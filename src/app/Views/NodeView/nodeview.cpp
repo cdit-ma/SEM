@@ -817,7 +817,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
             
             if(nodeKind == NODE_KIND::FUNCTION && parentNode->getNodeKind() == NODE_KIND::CLASS_INSTANCE){
-                return;
+                //return;
             }
 
 
@@ -1038,14 +1038,26 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::VARIADIC_PARAMETER:
+            case NODE_KIND::INPUT_PARAMETER:{
                 nodeItem = new StackNodeItem(item, parentNode);
-                
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("value");
+                secondary_icon.second = "pencil";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+
+                break;
+            }
+            case NODE_KIND::VARIADIC_PARAMETER:
+                nodeItem = new StackNodeItem(item, parentNode);
+                
+                nodeItem->setExpandEnabled(false);
+                
+                //nodeItem->setTertiaryIcon("Items", nodeKindStr);
+                //nodeItem->setTertiaryIconVisible(true);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->setPrimaryTextKey("");
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -1053,6 +1065,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
+                
                 
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);

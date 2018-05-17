@@ -10,10 +10,14 @@ namespace MEDEA{
    
     friend class ::EntityFactory;
     protected:
-public:
+    public:
         static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
-protected:
+    protected:
         InputParameterGroupInstance(EntityFactoryBroker& factory, bool is_temp_node);
+        bool canAdoptChild(Node* child);
+        QSet<NODE_KIND> getUserConstructableNodeKinds() const;
+    private:
+        bool canAdoptVariadicParameters() const;
     };
 };
 

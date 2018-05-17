@@ -3,7 +3,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_IMPL;
-const QString kind_string = "AttributeImpl";
+const QString kind_string = "Attribute Impl";
 
 
 void AttributeImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){

@@ -5,6 +5,8 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 {
     online_icon = {"Icons", "arrowsUpDownDark"};
     offline_icon = {"Notification", "Warning"};
+
+    setSecondaryIconPath(online_icon);
     
     addRequiredData("is_online");
     reloadRequiredData();

@@ -3,7 +3,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::INEVENTPORT_IMPL;
-const QString kind_string = "InEventPortImpl";
+const QString kind_string = "In EventPort Impl";
 
 void InEventPortImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

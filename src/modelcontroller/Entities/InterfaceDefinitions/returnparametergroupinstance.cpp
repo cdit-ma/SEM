@@ -3,7 +3,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE;
-const QString kind_string = "ReturnParameterGroupInstance";
+const QString kind_string = "Return Parameter Group Instance";
 
 
 void MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){

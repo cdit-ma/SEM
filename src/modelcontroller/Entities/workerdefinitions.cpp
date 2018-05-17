@@ -4,7 +4,7 @@
 #include "../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::WORKER_DEFINITIONS;
-const QString kind_string = "WorkerDefinitions";
+const QString kind_string = "Worker Definitions";
 
 void WorkerDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

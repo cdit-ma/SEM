@@ -2,8 +2,8 @@
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const static NODE_KIND node_kind = NODE_KIND::INEVENTPORT;
-const static QString kind_string = "InEventPort";
+const NODE_KIND node_kind = NODE_KIND::INEVENTPORT;
+const QString kind_string = "In Event Port";
 
 void InEventPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_DEFINITIONS;
-const QString kind_string = "DeploymentDefinitions";
+const QString kind_string = "Deployment Definitions";
 
 void DeploymentDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

@@ -42,6 +42,8 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::CLIENT_PORT] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::SERVER_REQUEST] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::SERVER_PORT_IMPL] = EDGE_KIND::DEFINITION;
+    
 
     action_controller = view_controller->getActionController();
 

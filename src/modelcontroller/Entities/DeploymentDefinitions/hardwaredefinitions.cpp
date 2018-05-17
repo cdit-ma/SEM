@@ -6,7 +6,7 @@
 #include <QSysInfo>
 
 const NODE_KIND node_kind = NODE_KIND::HARDWARE_DEFINITIONS;
-const QString kind_string = "HardwareDefinitions";
+const QString kind_string = "Hardware Definitions";
 
 void HardwareDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

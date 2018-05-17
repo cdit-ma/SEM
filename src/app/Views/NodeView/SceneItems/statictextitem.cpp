@@ -20,14 +20,12 @@ void StaticTextItem::setText(QString text){
     this->text = text;
 }
 
+void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF rect){
+    RenderText(painter, state, rect, this->text);
+}
 void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text){
     painter->save();
     {
-        if(text == ""){
-            text = this->text;
-        }
-
-        
         
         UpdateText(painter, rect, text);
         painter->setClipRect(rect);

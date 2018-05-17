@@ -6,7 +6,7 @@
 
 
 const NODE_KIND node_kind = NODE_KIND::BOOLEAN_EXPRESSION;
-const QString kind_string = "BooleanExpression";
+const QString kind_string = "Boolean Expression";
 
 
 void MEDEA::BooleanExpression::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){

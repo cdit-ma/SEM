@@ -3,7 +3,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
-const QString kind_string = "ClassInstance";
+const QString kind_string = "Class Instance";
 
 void MEDEA::ClassInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
@@ -54,11 +54,14 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
                 if(parent_node_kind == NODE_KIND::COMPONENT_INSTANCE){
                     auto parent_node_def = parent_node->getDefinition(true);
                     bool in_ancestor = false;
-                    for(auto impl : parent_node_def->getImplementations()){
-                        if(impl->isAncestorOf(dst)){
-                            in_ancestor = true;
-                            break;
+                    if(parent_node_def){
+                        for(auto impl : parent_node_def->getImplementations()){
+                            if(impl->isAncestorOf(dst)){
+                                in_ancestor = true;
+                                break;
+                            }
                         }
+
                     }
                     
                     if(!in_ancestor){

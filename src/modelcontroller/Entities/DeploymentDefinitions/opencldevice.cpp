@@ -3,8 +3,8 @@
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const static NODE_KIND node_kind = NODE_KIND::OPENCL_DEVICE;
-const static QString kind_string = "OpenCLDevice";
+const NODE_KIND node_kind = NODE_KIND::OPENCL_DEVICE;
+const QString kind_string = "OpenCL Device";
 
 void OpenCLDevice::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

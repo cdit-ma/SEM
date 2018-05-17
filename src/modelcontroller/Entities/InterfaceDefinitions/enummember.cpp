@@ -6,7 +6,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ENUM_MEMBER;
-const QString kind_string = "EnumMember";
+const QString kind_string = "Enum Member";
 
 void EnumMember::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

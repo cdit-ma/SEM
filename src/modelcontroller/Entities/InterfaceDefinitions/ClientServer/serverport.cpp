@@ -4,7 +4,7 @@
 #include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_PORT;
-const QString kind_string = "ServerPort";
+const QString kind_string = "Server Port";
 
 void MEDEA::ServerPort::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
 	broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){

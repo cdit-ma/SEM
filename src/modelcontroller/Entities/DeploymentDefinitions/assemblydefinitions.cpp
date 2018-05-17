@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ASSEMBLY_DEFINITIONS;
-const QString kind_string = "AssemblyDefinitions";
+const QString kind_string = "Assembly Definitions";
 
 void AssemblyDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

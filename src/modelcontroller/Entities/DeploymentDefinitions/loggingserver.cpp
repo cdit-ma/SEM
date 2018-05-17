@@ -3,8 +3,8 @@
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const static NODE_KIND node_kind = NODE_KIND::LOGGINGSERVER;
-const static QString kind_string = "LoggingServer";
+const NODE_KIND node_kind = NODE_KIND::LOGGINGSERVER;
+const QString kind_string = "Logging Server";
 
 void LoggingServer::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){

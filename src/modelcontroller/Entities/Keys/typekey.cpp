@@ -122,11 +122,16 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
             return true;
         }
 
+        if(type_2 == ""){
+            return true;
+        }
+
         auto outer_type_data_1 = node_1->getData("outer_type");
         auto outer_type_data_2 = node_2->getData("outer_type");
 
         auto inner_type_data_1 = node_1->getData("inner_type");
         auto inner_type_data_2 = node_2->getData("inner_type");
+
 
         if(outer_type_data_1 && outer_type_data_2 && inner_type_data_1 && inner_type_data_2){
             auto outer_type_1 = outer_type_data_1->getValue().toString();

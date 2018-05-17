@@ -5,7 +5,7 @@
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::CLIENT_PORT;
-const QString kind_string = "ClientPort";
+const QString kind_string = "Client Port";
 
 
 void MEDEA::ClientPort::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){

@@ -197,6 +197,25 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
     return kind_str;
 }
 
+QString EntityFactory::getPrettyNodeKindString(NODE_KIND kind){
+    QString kind_str;
+    auto node_struct = globalFactory()->getNodeStruct(kind);
+    if(node_struct){
+        kind_str = node_struct->pretty_kind_str;
+    }
+    return kind_str;
+
+}
+
+QString EntityFactory::getPrettyEdgeKindString(EDGE_KIND kind){
+    QString kind_str;
+    auto edge_struct = globalFactory()->getEdgeStruct(kind);
+    if(edge_struct){
+        kind_str = edge_struct->pretty_kind_str;
+    }
+    return kind_str;
+}
+
 QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
     return {
         VIEW_ASPECT::INTERFACES,
@@ -255,12 +274,15 @@ EDGE_KIND EntityFactory::getEdgeKind(QString kind)
     return globalFactory()->edge_kind_lookup.value(kind, EDGE_KIND::NONE);
 }
 
-void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor){
+void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& pretty_kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor){
+    auto kind_string = pretty_kind_string;
+    kind_string.replace(" ", "");
     if(doesNodeStructExist(node_kind)){
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Node with kind '" + kind_string.toStdString() + "'");
     }
 
     auto node = getNodeStruct(node_kind);
+    node->pretty_kind_str = pretty_kind_string;
     node->kind_str = kind_string;
     node->constructor = constructor;
 
@@ -272,19 +294,22 @@ void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& k
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Node with kind string '" + kind_string.toStdString() + "'");
     }
 }
-void EntityFactory::RegisterEdgeKind(const EDGE_KIND edge_kind, const QString& kind_string, std::function<Edge* (EntityFactoryBroker&,Node*, Node*)> constructor){
+void EntityFactory::RegisterEdgeKind(const EDGE_KIND edge_kind, const QString& pretty_kind_string, std::function<Edge* (EntityFactoryBroker&,Node*, Node*)> constructor){
+    auto kind_string = pretty_kind_string;
+    kind_string.replace(" ", "");
     if(doesEdgeStructExist(edge_kind)){
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Edge with kind '" + kind_string.toStdString() + "'");
     }
 
     auto edge = getEdgeStruct(edge_kind);
+    edge->pretty_kind_str = pretty_kind_string;
     edge->kind_str = kind_string;
     edge->constructor = constructor;
 
-    if(!edge_kind_lookup.contains(kind_string)){
+    if(!edge_kind_lookup.contains(edge->kind_str)){
         //qCritical() << "EntityFactory: Registered Edge Kind [" << (uint)edge_kind << "]: " << kind_string;
         //Insert into our reverse lookup
-        edge_kind_lookup.insert(kind_string, edge_kind);
+        edge_kind_lookup.insert(edge->kind_str, edge_kind);
     }else{
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Edge with kind string '" + kind_string.toStdString() + "'");
     }

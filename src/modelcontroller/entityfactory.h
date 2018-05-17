@@ -43,12 +43,14 @@ private:
     struct NodeLookupStruct{
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
+        QString pretty_kind_str = "INVALID_NODE";
         std::function<Node* (EntityFactoryBroker&, bool)> constructor;
     };
 
     struct EdgeLookupStruct{
         EDGE_KIND kind;
         QString kind_str = "INVALID_EDGE";
+        QString pretty_kind_str = "INVALID_NODE";
         std::function<Edge* (EntityFactoryBroker&, Node*, Node*)> constructor;
     };
 
@@ -66,6 +68,9 @@ public:
 
     static QString getNodeKindString(NODE_KIND node_kind);
     static QString getEdgeKindString(EDGE_KIND edge_kind);
+
+    static QString getPrettyNodeKindString(NODE_KIND node_kind);
+    static QString getPrettyEdgeKindString(EDGE_KIND edge_kind);
 
 protected:
     static EntityFactory* getNewFactory();

@@ -5,7 +5,7 @@
 #include "../../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::ELSEIF_CONDITION;
-const QString kind_string = "ElseIfCondition";
+const QString kind_string = "Else If Condition";
 
 void MEDEA::ElseIfCondition::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
