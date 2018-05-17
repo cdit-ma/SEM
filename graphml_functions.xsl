@@ -205,6 +205,15 @@
         </xsl:if>
     </xsl:function>
 
+      <!--
+        Gets the siblings node of the entity provided (Looks two levels up)
+    -->
+    <xsl:function name="graphml:get_siblings" as="element(gml:node)*">
+        <xsl:param name="entity" as="element(gml:node)?" />
+        <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
+        <xsl:sequence select="graphml:get_child_nodes($parent)" />
+    </xsl:function>
+
     <!--
         Gets descendant nodes of the node provided
     -->
@@ -303,6 +312,20 @@
         <xsl:if test="count($targets) = 0">
             <xsl:sequence select="$node" />
         </xsl:if>
+    </xsl:function>
+
+    <!--
+        Gets the definition of the node provided, will recurse to the first definition
+    -->
+    <xsl:function name="graphml:get_first_definition" as="element(gml:node)?">
+        <xsl:param name="node" as="element(gml:node)?" />
+
+        <xsl:variable name="targets" select="graphml:get_targets($node, 'Edge_Definition')" />
+
+        <!-- Recurse all the way until we don't have any definitions -->
+        <xsl:for-each select="$targets">
+            <xsl:sequence select="." />
+        </xsl:for-each>
     </xsl:function>
 
     <!--

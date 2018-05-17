@@ -596,83 +596,6 @@
             </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:generate_branch_code">
-        <xsl:param name="node" as="element()"/>
-        <xsl:param name="tab" as="xs:integer"/>
-
-        <xsl:variable name="kind" select="graphml:get_kind($node)" />
-        
-        
-        <xsl:for-each select="graphml:get_child_nodes($node)">
-            <xsl:variable name="child_kind" select="graphml:get_kind(.)" />
-
-            <xsl:variable name="prefix">
-                <xsl:choose>
-                    <xsl:when test="$kind = 'BranchState'">
-                        <xsl:value-of select="if(position() = 1) then 'if' else 'else if'" />
-                    </xsl:when>
-                    <xsl:when test="$kind = 'WhileLoop' and $child_kind = 'Condition'">
-                        <xsl:value-of select="'while'" />
-                    </xsl:when>
-                    <xsl:when test="$kind = 'WhileLoop' and $child_kind = 'ForCondition'">
-                        <xsl:value-of select="'for'" />
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:variable>
-
-            <!-- Calculate the Statement-->
-            <xsl:variable name="statement">
-                <xsl:choose>
-                    <xsl:when test="$child_kind = 'Condition'">
-                        <xsl:value-of select="cdit:get_resolved_getter_function(., false(), false())" />
-                    </xsl:when>
-                    <xsl:when test="$child_kind = 'ForCondition'">
-                        <xsl:variable name="for_condition_children" select="graphml:get_child_nodes(.)" />
-                            <xsl:choose>
-                                <xsl:when test="count($for_condition_children) = 3">
-                                    <xsl:variable name="first" select="$for_condition_children[1]" />
-                                    <xsl:variable name="second" select="$for_condition_children[2]" />
-                                    <xsl:variable name="third" select="$for_condition_children[3]" />
-
-                                    <xsl:variable name="first_arg" select="cpp:define_variable('int', graphml:get_label($first), cdit:get_resolved_getter_function($first, false(), false()), '', 0)" />
-                                    <xsl:variable name="second_arg" select="cdit:get_resolved_getter_function($second, false(), false())" />
-                                    <xsl:variable name="third_arg" select="cdit:get_resolved_getter_function($third, false(), false())" />
-                                    <xsl:value-of select="o:join_list(($first_arg, $second_arg, $third_arg), '; ')" />
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="o:warning(('Got unexpected number of children in ForCondition'))" />
-                                </xsl:otherwise>
-                            </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="o:warning(('Unimplemented kind:', $child_kind))" />
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:variable>
-
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="o:t($tab)" />
-            </xsl:if>
-
-            <xsl:value-of select="concat($prefix, o:wrap_bracket($statement), cpp:scope_start(0))" />
-            <!-- Callback into the generate workflow code to generate the code for this branch condition -->
-            <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab + 1)" />
-            <xsl:value-of select="concat(o:t($tab), '}')" />
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
-    </xsl:function>
-
-    <xsl:function name="cdit:generate_condition_code">
-        <xsl:param name="node" as="element()"/>
-        <xsl:param name="tab" as="xs:integer"/>
-        
-        <xsl:for-each select="graphml:get_child_nodes($node)">
-            <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
-        </xsl:for-each>
-    </xsl:function>
-
     <xsl:function name="cdit:generate_cpp_code">
         <xsl:param name="node" as="element()"/>
         <xsl:param name="tab" as="xs:integer"/>
@@ -804,7 +727,7 @@
         <xsl:for-each select="$variables">
             <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
             <xsl:variable name="var_label" select="cdit:get_variable_label(.)" />
-            <xsl:variable name="value" select="cdit:get_resolved_getter_function(., false(), false())" />
+            <xsl:variable name="value" select="cdit:get_resolved_getter_function(., false(), true())" />
             
             <xsl:value-of select="cpp:define_variable($cpp_type, $var_label, $value, cpp:nl(), $tab)" />
         </xsl:for-each>
@@ -888,6 +811,12 @@
 
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
 
+        <xsl:variable name="siblings" select="graphml:get_siblings($node)" />
+        <xsl:variable name="sibling_count" select="count($siblings)" />
+        <xsl:variable name="sibling_index" select="count($node/preceding-sibling::*)+1" />
+
+        
+
         <xsl:variable name="prefix">
             <xsl:choose>
                 <xsl:when test="$kind = 'IfCondition'">
@@ -913,7 +842,12 @@
                         <xsl:value-of select="o:wrap_bracket(cdit:generate_boolean_expression_code(., 0, true()))" />
                     </xsl:if>
                 </xsl:variable> 
-                <xsl:value-of select="concat(o:t($tab), $prefix, $statement, cpp:scope_start(0))" />
+                <xsl:if test="$sibling_index = 1">
+                    <!-- First If should Indent -->
+                    <xsl:value-of select="o:t($tab)" />
+                </xsl:if>
+                <xsl:value-of select="concat($prefix, $statement, cpp:scope_start(0))" />
+
                 <xsl:value-of select="cdit:generate_scoped_variables($node, $tab + 1)" />
             </xsl:if>
 
@@ -923,12 +857,67 @@
             </xsl:if>
 
             <xsl:if test="position() = last()">
-                <xsl:value-of select="concat(o:t($tab), '}', o:nl(1))" />
+                <xsl:value-of select="concat(o:t($tab), '}')" />
+
+                <xsl:if test="$sibling_index = $sibling_count">
+                    <!-- First If should Indent -->
+                    <xsl:value-of select="o:nl(1)" />
+                </xsl:if>
             </xsl:if>
         </xsl:for-each>
     </xsl:function>
 
-    
+        
+    <xsl:function name="cdit:generate_function_call_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
+        <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
+        <xsl:variable name="worker_function_def" select="graphml:get_definition($worker_function_inst)" />
+        <xsl:variable name="worker_def" select="graphml:get_definition($worker_inst)" />
+
+        
+
+        <xsl:variable name="worker_type" select="graphml:get_data_value($worker_def, 'worker')" />
+
+        <xsl:choose>
+            <!-- Handle Vector Operations -->
+            <xsl:when test="$worker_type = 'Vector_Operations'">
+                <!-- TODO -->
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="worker_variable" select="cdit:get_variable_name($node)" />
+                <xsl:variable name="operation" select="graphml:get_data_value($worker_function_def, 'operation')" />
+
+                <xsl:variable name="arguments" as="xs:string*">
+                    <xsl:choose>
+                        <xsl:when test="$worker_type = 'Utility_Worker' and $operation = 'EvaluateComplexity'">
+                            <xsl:sequence select="cdit:get_function_parameters($node, 'double')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="cdit:get_function_parameters($node, '')" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <!-- TODO PARSE THROUGH RETURN PARAMETER GROUPS -->
+                <xsl:variable name="variable_name" select="cdit:get_variable_name(cdit:get_function_return_parameters($node))" />
+                
+
+                <xsl:variable name="function" select="cpp:invoke_function($worker_variable, cpp:arrow(), $operation, $arguments , 0)" />
+
+                <xsl:choose>
+                    <xsl:when test="$variable_name = ''">
+                        <xsl:value-of select="concat(o:t($tab), $function, cpp:nl())"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cpp:define_variable(cpp:auto(), $variable_name, $function, cpp:nl(), $tab)"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
     
 
 
@@ -1088,8 +1077,10 @@
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
 
         <xsl:choose>
-            <xsl:when test="$kind = 'WorkerProcess'">
-                <xsl:value-of select="cdit:variablize_value(graphml:get_data_value($node, 'workerID'))"/>
+            <xsl:when test="$kind = 'FunctionCall'">
+                <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
+                <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
+                <xsl:value-of select="cdit:variablize_value(graphml:get_data_value($worker_inst, 'label'))"/>
             </xsl:when>
             <xsl:when test="$kind = 'Variable' or $kind = 'AttributeImpl'">
                 <xsl:value-of select="cdit:variablize_value(graphml:get_label($node))"/>
@@ -1106,44 +1097,51 @@
         <xsl:param name="node" as="element()"/>
         <xsl:param name="cast_type" as="xs:string"/>
 
+        <xsl:variable name="input_parameter_group" select="graphml:get_child_nodes_of_kind($node, ('InputParameterGroup', 'InputParameterGroupInstance'))" />
+
         <xsl:variable name="resolved_args" as="xs:string*">
-            <xsl:for-each select="graphml:get_child_nodes($node)">
+            <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
+                <xsl:variable name="value" select="graphml:get_data_value(., 'value')" />
+                <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., true(), false())" />
+
+                <xsl:variable name="suffix">
+                    <xsl:variable name="data_source" select="graphml:get_sources(., 'Edge_Data')" />
+
+                    <!-- Use of Variadic Parameters, having string parameters should have a c_str casting -->
+                    <xsl:if test="$kind = 'VariadicParameter' and count($data_source) > 0">
+                        <xsl:variable name="type" select="graphml:get_type($data_source)" />
+                        <xsl:if test="$type = 'String'">
+                            <xsl:value-of select="'.c_str()'" />
+                        </xsl:if>
+                    </xsl:if>
+                </xsl:variable>
+
+                <xsl:variable name="resolved_getter" select="o:join_list(($getter, $suffix), '')" />
+
                 <xsl:choose>
                     <!-- Handle Vector Operations -->
-                    <xsl:when test="$kind = 'InputParameter' or $kind = 'VariadicParameter'">
-                        <xsl:variable name="value" select="graphml:get_data_value(., 'value')" />
-                        <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., true(), false())" />
-
-                        <xsl:variable name="suffix">
-                            <xsl:variable name="data_source" select="graphml:get_sources(., 'Edge_Data')" />
-
-                            <!-- Use of Variadic Parameters, having string parameters should have a c_str casting -->
-                            <xsl:if test="$kind = 'VariadicParameter' and count($data_source) > 0">
-                                <xsl:variable name="type" select="graphml:get_type($data_source)" />
-                                <xsl:if test="$type = 'String'">
-                                    <xsl:value-of select="'.c_str()'" />
-                                </xsl:if>
-                            </xsl:if>
-                        </xsl:variable>
-
-                        <xsl:variable name="resolved_getter" select="o:join_list(($getter, $suffix), '')" />
-
-                        <xsl:choose>
-                            <!-- Handle Vector Operations -->
-                            <xsl:when test="$kind = 'VariadicParameter' and $cast_type != ''">
-                                <xsl:sequence select="cpp:cast($cast_type, $resolved_getter)"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:sequence select="$resolved_getter"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                    <xsl:when test="$kind = 'VariadicParameter' and $cast_type != ''">
+                        <xsl:sequence select="cpp:cast($cast_type, $resolved_getter)"/>
                     </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$resolved_getter"/>
+                    </xsl:otherwise>
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:sequence select="cpp:join_args($resolved_args)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_function_return_parameters">
+        <xsl:param name="node" as="element()"/>
+
+        <xsl:variable name="return_parameter_group" select="graphml:get_child_nodes_of_kind($node, ('ReturnParameterGroup', 'ReturnParameterGroupInstance'))" />
+
+        <xsl:for-each select="graphml:get_child_nodes($return_parameter_group[1])">
+            <xsl:sequence select="."/>
+        </xsl:for-each>
     </xsl:function>
 
     
@@ -1188,6 +1186,9 @@
             <xsl:when test="$kind = 'Setter'">
                 <xsl:value-of select="cdit:generate_setter_code($node, $tab, false())" />
             </xsl:when>
+            <xsl:when test="$kind = 'FunctionCall'">
+                <xsl:value-of select="cdit:generate_function_call_code($node, $tab)" />
+            </xsl:when>
 
 
             <xsl:when test="$kind = 'InEventPortImpl'" />
@@ -1199,9 +1200,6 @@
             </xsl:when>
 
             
-            <xsl:when test="cdit:uses_branch($node)">
-                <xsl:value-of select="cdit:generate_branch_code($node, $tab)" />
-            </xsl:when>
             <xsl:when test="$kind = 'Code'">
                 <xsl:value-of select="cdit:generate_cpp_code($node, $tab)" />
             </xsl:when>
