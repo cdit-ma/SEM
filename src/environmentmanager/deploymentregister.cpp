@@ -10,20 +10,20 @@ DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::st
     ip_addr_ = ip_addr;
     registration_port_ = registration_port;
 
-    context_ = new zmq::context_t(1);
-    environment_ = new Environment(portrange_min, portrange_max);
+    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
+    environment_ = std::unique_ptr<Environment>(new Environment(portrange_min, portrange_max));
 
 }
 
 void DeploymentRegister::Start(){
-    registration_loop_ = new std::thread(&DeploymentRegister::RegistrationLoop, this);
+    registration_loop_ = std::thread(&DeploymentRegister::RegistrationLoop, this);
 }
 
 //Main registration loop, passes request workload off to other threads
 void DeploymentRegister::RegistrationLoop() noexcept{
-    zmq::socket_t* rep;
+    std::unique_ptr<zmq::socket_t> rep;
     try{
-        rep = new zmq::socket_t(*context_, ZMQ_REP);
+        rep = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_.get(), ZMQ_REP));
         rep->bind(TCPify(ip_addr_, registration_port_));
     }
     catch(zmq::error_t& e){
@@ -34,7 +34,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
 
     while(true){
         //Receive deployment information
-        auto reply = ZMQReceiveRequest(rep);
+        auto reply = ZMQReceiveRequest(*rep);
 
         NodeManager::EnvironmentMessage message;
         bool parse_success = message.ParseFromString(reply.second);
@@ -55,7 +55,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
             }
         }
 
-        ZMQSendReply(rep, message.SerializeAsString());
+        ZMQSendReply(*rep, message.SerializeAsString());
     }
 }
 
@@ -85,12 +85,17 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
 
 void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& message){
     //Push work onto new thread with port number promise
-    std::promise<std::string>* port_promise = new std::promise<std::string>();
+    auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
 
-    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, Environment::DeploymentType::EXECUTION_MASTER, "", port_promise, message.experiment_id());
-    deployments_.push_back(deployment_handler);
+    deployments_.emplace_back(new DeploymentHandler(*environment_,
+                                                    *context_,
+                                                    ip_addr_,
+                                                    Environment::DeploymentType::EXECUTION_MASTER,
+                                                    "",
+                                                    port_promise.get(),
+                                                    message.experiment_id()));
 
     try{
         //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
@@ -110,11 +115,16 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
     std::string experiment_id = message.experiment_id();
     std::string node_ip_address = message.logger().publisher_address();
 
-    std::promise<std::string>* port_promise = new std::promise<std::string>();
+    auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
-    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, Environment::DeploymentType::LOGAN_CLIENT, node_ip_address, port_promise, experiment_id);
-    logan_clients_.push_back(deployment_handler);
+    logan_clients_.emplace_back(new DeploymentHandler(*environment_,
+                                                    *context_,
+                                                    ip_addr_,
+                                                    Environment::DeploymentType::LOGAN_CLIENT,
+                                                    node_ip_address,
+                                                    port_promise.get(),
+                                                    experiment_id));
 
     try{
         port = port_future.get();
@@ -195,26 +205,26 @@ std::string DeploymentRegister::TCPify(const std::string& ip_address, int port) 
     return std::string("tcp://" + ip_address + ":" + std::to_string(port));
 }
 
-void DeploymentRegister::ZMQSendReply(zmq::socket_t* socket, const std::string& message){
+void DeploymentRegister::ZMQSendReply(zmq::socket_t& socket, const std::string& message){
     std::string lamport_string = std::to_string(environment_->Tick());
     zmq::message_t lamport_time_msg(lamport_string.begin(), lamport_string.end());
     zmq::message_t zmq_msg(message.begin(), message.end());
 
     try{
-        socket->send(lamport_time_msg, ZMQ_SNDMORE);
-        socket->send(zmq_msg);
+        socket.send(lamport_time_msg, ZMQ_SNDMORE);
+        socket.send(zmq_msg);
     }
     catch(std::exception error){
         std::cerr << error.what() << "in DeploymentRegister::SendTwoPartReply" << std::endl;
     }
 }
 
-std::pair<uint64_t, std::string> DeploymentRegister::ZMQReceiveRequest(zmq::socket_t* socket){
+std::pair<uint64_t, std::string> DeploymentRegister::ZMQReceiveRequest(zmq::socket_t& socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
     try{
-        socket->recv(&lamport_time_msg);
-        socket->recv(&request_contents_msg);
+        socket.recv(&lamport_time_msg);
+        socket.recv(&request_contents_msg);
     }
     catch(zmq::error_t error){
         //TODO: Throw this further up

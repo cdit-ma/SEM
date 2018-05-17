@@ -9,12 +9,7 @@
 #include <iostream>
 #include <proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
-
-namespace EnvironmentManager{
-    class Experiment;
-    class Node;
-    class EventPort;
-}
+#include "experiment.h"
 
 class Environment{
 

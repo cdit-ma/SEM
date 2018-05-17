@@ -15,8 +15,8 @@ namespace NodeManager{
 class DeploymentHandler{
     public:
         
-        DeploymentHandler(Environment* env,
-                        zmq::context_t* context,
+        DeploymentHandler(Environment& env,
+                        zmq::context_t& context,
                         const std::string& ip_addr,
                         Environment::DeploymentType deployment_type,
                         const std::string& deployment_ip_address,
@@ -47,15 +47,15 @@ class DeploymentHandler{
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
 
-        void ZMQSendReply(zmq::socket_t* socket, const std::string& message);
-        std::pair<uint64_t, std::string> ZMQReceiveRequest(zmq::socket_t* socket);
+        void ZMQSendReply(zmq::socket_t& socket, const std::string& message);
+        std::pair<uint64_t, std::string> ZMQReceiveRequest(zmq::socket_t& socket);
 
         //Members
         std::string ip_addr_;
-        zmq::context_t* context_;
-        zmq::socket_t* handler_socket_;
+        zmq::context_t& context_;
+        std::unique_ptr<zmq::socket_t> handler_socket_;
 
-        Environment* environment_;
+        Environment& environment_;
 
         Environment::DeploymentType deployment_type_;
         std::string deployment_ip_address_;
@@ -63,7 +63,7 @@ class DeploymentHandler{
         std::map<std::string, std::string> port_map_;
         long time_added_;
 
-        std::thread* handler_thread_;
+        std::unique_ptr<std::thread> handler_thread_;
 
         std::promise<std::string>* port_promise_;
 

@@ -1,5 +1,4 @@
 #include "environment.h"
-#include "experiment.h"
 #include <iostream>
 #include <cassert>
 #include <queue>
@@ -45,7 +44,7 @@ std::string Environment::AddDeployment(const std::string& model_name,
 
 bool Environment::AddExperiment(const std::string& model_name){
     if(!experiment_map_.count(model_name)){
-        experiment_map_[model_name] = std::unique_ptr<EnvironmentManager::Experiment>(new EnvironmentManager::Experiment(this, model_name));
+        experiment_map_.emplace(model_name, new EnvironmentManager::Experiment(*this, model_name));
         experiment_map_.at(model_name)->SetManagerPort(GetManagerPort());
     }else{
         return false;
@@ -138,7 +137,7 @@ void Environment::DeclusterNode(NodeManager::Node& node){
 void Environment::AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node){
     if(experiment_map_.count(model_name)){
         AddNodeToEnvironment(node);
-        experiment_map_[model_name]->AddNode(node);
+        experiment_map_.at(model_name)->AddNode(node);
     }
     else{
         throw std::invalid_argument("No experiment called: " + model_name);
@@ -158,7 +157,7 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
 
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port){
     if(experiment_map_.count(model_name)){
-        return experiment_map_[model_name]->GetPublisherAddress(port);
+        return experiment_map_.at(model_name)->GetPublisherAddress(port);
     }else{
         throw std::invalid_argument("Model named :" + model_name + " not found.");
     }
@@ -198,14 +197,14 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     if(node_map_.count(ip)){
         return;
     }
-    node_map_[ip] = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(node.info().name(), available_ports_));
+    node_map_.emplace(ip, new EnvironmentManager::Node(node.info().name(), available_ports_));
 }
 
 //Get port from node specified.
 std::string Environment::GetPort(const std::string& node_ip){
     //Get first available port, store then erase it
     if(node_map_.count(node_ip)){
-        return node_map_[node_ip]->GetPort();
+        return node_map_.at(node_ip)->GetPort();
     }
     else{
         throw std::invalid_argument("No node found with ip: " + node_ip);
@@ -215,7 +214,7 @@ std::string Environment::GetPort(const std::string& node_ip){
 //Free port specified from node specified
 void Environment::FreePort(const std::string& node_ip, const std::string& port_number){
     if(node_map_.count(node_ip)){
-        node_map_[node_ip]->FreePort(port_number);
+        node_map_.at(node_ip)->FreePort(port_number);
     }
     else{
         throw std::invalid_argument("No node found with ip: " + node_ip);
@@ -316,10 +315,10 @@ std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
 void Environment::AddPublicEventPort(const std::string& port_guid, const std::string& address){
 
 
-    public_event_port_map_[port_guid] = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
-    public_event_port_map_[port_guid]->id = port_guid;
-    public_event_port_map_[port_guid]->guid = port_guid;
-    public_event_port_map_[port_guid]->endpoint = address;
+    public_event_port_map_.emplace(port_guid, new EnvironmentManager::EventPort());
+    public_event_port_map_.at(port_guid)->id = port_guid;
+    public_event_port_map_.at(port_guid)->guid = port_guid;
+    public_event_port_map_.at(port_guid)->endpoint = address;
 
     if(pending_port_map_.count(port_guid)){
         for(auto experiment_id : pending_port_map_.at(port_guid)){
@@ -330,7 +329,7 @@ void Environment::AddPublicEventPort(const std::string& port_guid, const std::st
 }
 
 void Environment::AddPublicEventPort(const std::string& port_guid, EnvironmentManager::EventPort event_port){
-    public_event_port_map_[port_guid] = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort(event_port));
+    public_event_port_map_.emplace(port_guid, new EnvironmentManager::EventPort(event_port));
 
     if(pending_port_map_.count(port_guid)){
         for(auto experiment_id : pending_port_map_.at(port_guid)){

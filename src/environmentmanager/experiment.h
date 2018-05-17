@@ -98,7 +98,7 @@ enum class ExperimentState{
 
 class Experiment{
     public:
-        Experiment(Environment* environment, std::string name);
+        Experiment(Environment& environment, std::string name);
         ~Experiment();
         
         std::string GetManagerPort() const;
@@ -135,7 +135,7 @@ class Experiment{
     
         std::mutex mutex_;
 
-        Environment* environment_;
+        Environment& environment_;
 
         NodeManager::ControlMessage deployment_message_;
         std::string model_name_;
@@ -144,7 +144,7 @@ class Experiment{
         std::string manager_port_;
 
         //node_id -> protobuf node
-        std::unordered_map<std::string, NodeManager::Node*> node_map_;
+        std::unordered_map<std::string, std::unique_ptr<NodeManager::Node> > node_map_;
 
         //node_id -> node_ip_addr
         std::unordered_map<std::string, std::string> node_address_map_;

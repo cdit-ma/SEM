@@ -5,30 +5,30 @@
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
 
-DeploymentHandler::DeploymentHandler(Environment* env,
-                                    zmq::context_t* context,
+DeploymentHandler::DeploymentHandler(Environment& env,
+                                    zmq::context_t& context,
                                     const std::string& ip_addr,
                                     Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string>* port_promise,
-                                    const std::string& experiment_id){
+                                    const std::string& experiment_id) :
+                                    environment_(env),
+                                    context_(context){
 
-    environment_ = env;
-    context_ = context;
     ip_addr_ = ip_addr;
     deployment_type_ = deployment_type;
     deployment_ip_address_ = deployment_ip_address;
     port_promise_ = port_promise;
     experiment_id_ = experiment_id;
-    handler_thread_ = new std::thread(&DeploymentHandler::Init, this);
+    handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::Init, this));
 }
 
 void DeploymentHandler::Init(){
-    handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
+    handler_socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(context_, ZMQ_REP));
 
-    time_added_ = environment_->GetClock();
+    time_added_ = environment_.GetClock();
 
-    std::string assigned_port = environment_->AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 
@@ -53,12 +53,11 @@ void DeploymentHandler::HeartbeatLoop(){
     int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
 
     if(initial_events >= 1){
-        auto request = ZMQReceiveRequest(handler_socket_);
+        auto request = ZMQReceiveRequest(*handler_socket_);
         HandleRequest(request);
     }
     //Break out early if we never get our first heartbeat
     else{
-        delete handler_socket_;
         RemoveDeployment(time_added_);
         return;
     }
@@ -79,7 +78,7 @@ void DeploymentHandler::HeartbeatLoop(){
             //Reset
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
-            auto request = ZMQReceiveRequest(handler_socket_);
+            auto request = ZMQReceiveRequest(*handler_socket_);
             HandleRequest(request);
             if(removed_flag_){
                 break;
@@ -99,17 +98,15 @@ void DeploymentHandler::HeartbeatLoop(){
             liveness = HEARTBEAT_LIVENESS;
         }
     }
-    //Broken out of heartbeat loop at this point, remove deployment
-    delete handler_socket_;
 }
 
 void DeploymentHandler::RemoveDeployment(uint64_t call_time){
 
     if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
-        environment_->RemoveExperiment(experiment_id_, call_time);
+        environment_.RemoveExperiment(experiment_id_, call_time);
     }
     if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
-        environment_->RemoveLoganClient(experiment_id_, deployment_ip_address_);
+        environment_.RemoveLoganClient(experiment_id_, deployment_ip_address_);
     }
     removed_flag_ = true;
 }
@@ -122,26 +119,26 @@ std::string DeploymentHandler::TCPify(const std::string& ip_address, int port) c
     return std::string("tcp://" + ip_address + ":" + std::to_string(port));
 }
 
-void DeploymentHandler::ZMQSendReply(zmq::socket_t* socket, const std::string& message){
-    std::string lamport_string = std::to_string(environment_->Tick());
+void DeploymentHandler::ZMQSendReply(zmq::socket_t& socket, const std::string& message){
+    std::string lamport_string = std::to_string(environment_.Tick());
     zmq::message_t time_msg(lamport_string.begin(), lamport_string.end());
     zmq::message_t msg(message.begin(), message.end());
 
     try{
-        socket->send(time_msg, ZMQ_SNDMORE);
-        socket->send(msg);
+        socket.send(time_msg, ZMQ_SNDMORE);
+        socket.send(msg);
     }
     catch(std::exception e){
         std::cerr << e.what() << " in DeploymentHandler::ZMQSendReply" << std::endl;
     }
 }
 
-std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socket_t* socket){
+std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socket_t& socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
     try{
-        socket->recv(&lamport_time_msg);
-        socket->recv(&request_contents_msg);
+        socket.recv(&lamport_time_msg);
+        socket.recv(&request_contents_msg);
     }
     catch(zmq::error_t error){
         //TODO: Throw this further up
@@ -152,7 +149,7 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
     //Update and get current lamport time
     std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
 
-    uint64_t lamport_time = environment_->SetClock(std::stoull(incoming_time));
+    uint64_t lamport_time = environment_.SetClock(std::stoull(incoming_time));
     return std::make_pair(lamport_time, contents);
 }
 
@@ -166,9 +163,9 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
 
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
                 //Create generator and populate message
-                DeploymentGenerator generator(*environment_);
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
+                DeploymentGenerator generator(environment_);
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(environment_)));
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(environment_)));
                 generator.PopulateDeployment(*(message.mutable_control_message()));
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
@@ -185,7 +182,7 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                if(environment_->ExperimentIsDirty(experiment_id_)){
+                if(environment_.ExperimentIsDirty(experiment_id_)){
                     HandleDirtyExperiment(message);
                 }else{
                     message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
@@ -210,7 +207,7 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
     }
 
-    ZMQSendReply(handler_socket_, message.SerializeAsString());
+    ZMQSendReply(*handler_socket_, message.SerializeAsString());
 }
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
@@ -219,14 +216,14 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 
     auto update_message = message.mutable_control_message();
 
-    environment_->GetExperimentUpdate(experiment_id_, *update_message);
+    environment_.GetExperimentUpdate(experiment_id_, *update_message);
 
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
     auto logger_message = message.mutable_logger();
     auto ip_address = logger_message->publisher_address();
-    auto logger_port = environment_->GetLoganPublisherPort(experiment_id_, ip_address);
+    auto logger_port = environment_.GetLoganPublisherPort(experiment_id_, ip_address);
     logger_message->set_publisher_port(logger_port);
 
     message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
