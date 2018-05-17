@@ -403,6 +403,7 @@ void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
             break;
         }
         case NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT:{
+            //TODO:
             //Parse control message and give to node manager to update it's endpoint
             
             break;
