@@ -152,7 +152,7 @@ void ViewItem::resetIcon()
     setIcon(defaultIcon.first, defaultIcon.second);
 }
 
-IconPair ViewItem::getIcon() const
+const IconPair& ViewItem::getIcon() const
 {
     return currentIcon;
 }
@@ -228,7 +228,7 @@ QList<ViewItem* > ViewItem::getNestedChildren(){
     return nodes + edges;
 }
 
-ViewItem *ViewItem::getParentItem()
+ViewItem *ViewItem::getParentItem() const
 {
     return _parent;
 }

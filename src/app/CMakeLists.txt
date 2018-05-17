@@ -32,6 +32,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/membernodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/compactnodeitem.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.cpp

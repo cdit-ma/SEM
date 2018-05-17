@@ -12,15 +12,18 @@ class EdgeViewItem;
 class NodeViewItem: public ViewItem
 {
     Q_OBJECT
+
+    friend class ViewController;
 public:
     NodeViewItem(ViewController* controller, NODE_KIND kind, QString label);
     NodeViewItem(ViewController* controller, int ID, NODE_KIND kind);
 
 
     NODE_KIND getNodeKind() const;
-    NodeViewItem* getParentNodeViewItem();
+    NodeViewItem* getParentNodeViewItem() const;
+    NODE_KIND getParentNodeKind() const;
     int getParentID();
-    bool isNodeOfType(NODE_TYPE type);
+    bool isNodeOfType(NODE_TYPE type) const;
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
@@ -39,7 +42,10 @@ public:
     QSet<EDGE_KIND> getNestedVisualEdgeKinds();
     QSet<EDGE_DIRECTION> getNestedVisualEdgeKindDirections(EDGE_KIND kind);
 
+    
+
 protected:
+    void setNodeTypes(QSet<NODE_TYPE> types);
     void childAdded(ViewItem* child);
     void childRemoved(ViewItem* child);
 signals:
@@ -50,6 +56,8 @@ signals:
 private:
     QMultiMap<EDGE_KIND, EDGE_DIRECTION> visual_edge_kinds;
     QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;
+
+    QSet<NODE_TYPE> node_types;
 
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND node_kind;

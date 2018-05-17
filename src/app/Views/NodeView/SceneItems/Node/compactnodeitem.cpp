@@ -4,7 +4,6 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem):B
 {
     setMoveEnabled(false);
     setExpandEnabled(false);
-    setResizeEnabled(false);
 
     addRequiredData("index");
     addRequiredData("row");

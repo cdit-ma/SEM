@@ -9,7 +9,7 @@ class HardwareNodeItem: public StackNodeItem
 public:
     HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem);
 protected:
-    void dataChanged(QString keyName, QVariant data);
+    void dataChanged(const QString& key_name, const QVariant& data);
 private:
     QPair<QString, QString> online_icon;
     QPair<QString, QString> offline_icon;

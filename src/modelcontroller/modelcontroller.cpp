@@ -1124,15 +1124,13 @@ QVariant ModelController::getEntityDataValue(int ID, QString key_name){
     return value;
 }
 
-
-bool ModelController::isNodeOfType(int ID, NODE_TYPE type){
+QSet<NODE_TYPE> ModelController::getNodesTypes(int ID){
     QReadLocker lock(&lock_);
-    bool is_type = false;
     auto node = entity_factory->GetNode(ID);
     if(node){
-        is_type = node->isNodeOfType(type);
+        return node->getTypes();
     }
-    return is_type;
+    return {};
 }
 
 
@@ -1194,6 +1192,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
                 node_ids_.insert(id);
                 auto node = (Node*) item;
                 connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
+                connect(node, &Node::typesChanged, [=](){emit NodeTypesChanged(id);});
                 
                 emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
                 inserted = true;
@@ -2494,7 +2493,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
             //This will stop any data stored in the aspects getting overwritten
             if(node->getID() > 0 && !IS_OPEN){
                 if(!entity->isUUIDMatched()){
-                    qCritical() << node->toString() << " IGNORING IMPORTED DATA";
+                    //qCritical() << node->toString() << " IGNORING IMPORTED DATA";
                     entity->clearData();
                 }
             }

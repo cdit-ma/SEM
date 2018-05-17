@@ -47,8 +47,6 @@ signals:
     void trans_InActive2Moving();
     void trans_Moving2InActive();
 
-    void trans_InActive2Resizing();
-    void trans_Resizing2InActive();
 
     void trans_InActive2RubberbandMode();
     void trans_RubberbandMode2InActive();
@@ -115,7 +113,6 @@ private slots:
     void item_SetCentered(EntityItem* item);
 
     void item_MoveSelection(QPointF delta);
-    void item_Resize(NodeItem *item, QSizeF delta, NodeItem::RectVertex vert);
 
 
     void centerItem(int ID);
@@ -213,7 +210,6 @@ private:
 
     QState* state_Active = 0;
     QState* state_Active_Moving = 0;
-    QState* state_Active_Resizing = 0;
     QState* state_Active_RubberbandMode = 0;
     QState* state_Active_RubberbandMode_Selecting = 0;
     QState* state_Active_Connecting = 0;
@@ -225,9 +221,6 @@ private slots:
     void activeViewDockChanged(ViewDockWidget* dw);
     void state_Moving_Entered();
     void state_Moving_Exited();
-
-    void state_Resizing_Entered();
-    void state_Resizing_Exited();
 
     void state_RubberbandMode_Entered();
     void state_RubberbandMode_Exited();

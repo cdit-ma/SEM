@@ -14,49 +14,24 @@
 
 
 
-NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND kind):EntityItem(viewItem, parentItem, EntityItem::NODE)
+NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(viewItem, parentItem, EntityItem::NODE)
 {
-    minimumHeight = 0;
-    minimumWidth = 0;
-    expandedHeight = 0;
-    expandedWidth = 0;
-    modelHeight = 0;
-    modelWidth = 0;
-    
-    hoveredConnect = false;
-    resizeEnabled = false;
-    ignorePosition = false;
-    _rightJustified = false;
-    aspect = VIEW_ASPECT::NONE;
-    selectedResizeVertex = NodeItem::RectVertex::NONE;
-    hoveredResizeVertex = NodeItem::RectVertex::NONE;
-    readState = NodeItem::NORMAL;
-
-    visualEdgeKind = EDGE_KIND::NONE;
-
-
-    nodeViewItem = viewItem;
-    nodeItemKind = kind;
+    node_view_item = viewItem;
 
     setMoveEnabled(true);
-    setSelectionEnabled(true);
-    setResizeEnabled(true);
     setExpandEnabled(true);
 
 
-    setUpColors();
 
-    addRequiredData("readOnlyDefinition");
-    addRequiredData("snippetID");
 
-    if(nodeViewItem){
-        connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
-        connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
-        connect(nodeViewItem, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
-        connect(nodeViewItem, &NodeViewItem::nestedVisualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+    if(node_view_item){
+        connect(node_view_item, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
+        connect(node_view_item, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
+        connect(node_view_item, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+        connect(node_view_item, &NodeViewItem::nestedVisualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
         
-        connect(nodeViewItem, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
-        connect(nodeViewItem, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
+        connect(node_view_item, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
+        connect(node_view_item, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
     }
 
     if(parentItem){
@@ -73,6 +48,14 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
 
     updateVisualEdgeKinds();
     updateNotifications();
+
+    addHoverFunction(EntityRect::MAIN_ICON, std::bind(&NodeItem::mainIconHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::PRIMARY_TEXT, std::bind(&NodeItem::primaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::SECONDARY_TEXT, std::bind(&NodeItem::secondaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::NOTIFICATION_RECT, std::bind(&NodeItem::notificationHover, this, std::placeholders::_1, std::placeholders::_2));
+    
+    addHoverFunction(EntityRect::CONNECT_SOURCE, std::bind(&NodeItem::edgeKnobHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::CONNECT_TARGET, std::bind(&NodeItem::edgeKnobHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void NodeItem::updateVisualEdgeKinds(){
@@ -143,34 +126,25 @@ QRectF NodeItem::viewRect() const
     return EntityItem::viewRect();
 }
 
-NodeItem::KIND NodeItem::getNodeItemKind()
-{
-    return nodeItemKind;
-}
 
 NodeViewItem *NodeItem::getNodeViewItem() const
 {
-    return nodeViewItem;
+    return node_view_item;
 }
 
 NODE_KIND NodeItem::getNodeKind() const
 {
-    return nodeViewItem->getNodeKind();
-}
-
-NodeItem::NODE_READ_STATE NodeItem::getReadState() const
-{
-    return readState;
+    return node_view_item->getNodeKind();
 }
 
 void NodeItem::setRightJustified(bool isRight)
 {
-    _rightJustified = isRight;
+    right_justified = isRight;
 }
 
 bool NodeItem::isRightJustified() const
 {
-    return _rightJustified;
+    return right_justified;
 }
 
 void NodeItem::addChildNode(NodeItem *nodeItem)
@@ -292,36 +266,13 @@ QList<EdgeItem *> NodeItem::getChildEdges() const
     return childEdges.values();
 }
 
-void NodeItem::setResizeEnabled(bool enabled)
-{
-    if(resizeEnabled != enabled){
-        resizeEnabled = enabled;
-    }
-}
 
-bool NodeItem::isResizeEnabled()
-{
-    return resizeEnabled;
-}
 
 bool NodeItem::setMoveFinished()
 {
     setPos(getNearestGridPoint());
     return EntityItem::setMoveFinished();
 }
-
-void NodeItem::setResizeStarted()
-{
-    sizePreResize = getExpandedSize();
-    _isResizing = true;
-}
-
-bool NodeItem::setResizeFinished()
-{
-    _isResizing = false;
-    return getExpandedSize() != sizePreResize;
-}
-
 
 
 QRectF NodeItem::boundingRect() const
@@ -398,8 +349,8 @@ void NodeItem::adjustExpandedSize(QSizeF delta)
 
 void NodeItem::setMinimumWidth(qreal width)
 {
-    if(minimumWidth != width){
-        minimumWidth = width;
+    if(min_width != width){
+        min_width = width;
         if(!isExpanded()){
             prepareGeometryChange();
             update();
@@ -410,8 +361,8 @@ void NodeItem::setMinimumWidth(qreal width)
 
 void NodeItem::setMinimumHeight(qreal height)
 {
-    if(minimumHeight != height){
-        minimumHeight = height;
+    if(min_height != height){
+        min_height = height;
         if(!isExpanded()){
             prepareGeometryChange();
             update();
@@ -425,19 +376,19 @@ void NodeItem::setExpandedWidth(qreal width)
     //Limit by the size of all contained children.
     qreal minWidth = childrenRect().right() - getMargin().left();
     //Can't shrink smaller than minimum
-    minWidth = qMax(minWidth, modelWidth);
-    minWidth = qMax(minWidth, minimumWidth);
+    minWidth = qMax(minWidth, model_width);
+    minWidth = qMax(minWidth, min_width);
     width = qMax(width, minWidth);
 
 
 
 
-    if(expandedWidth != width){
-        if(width > modelWidth){
-            modelWidth = -1;
+    if(expanded_width != width){
+        if(width > model_width){
+            model_width = -1;
         }
 
-        expandedWidth = width;
+        expanded_width = width;
 
         if(isExpanded()){
             prepareGeometryChange();
@@ -447,37 +398,22 @@ void NodeItem::setExpandedWidth(qreal width)
     }
 }
 
-QColor NodeItem::getHeaderColor() const{
-    auto header_color = EntityItem::getHeaderColor();
-    /*
-    if(!hasChildNodes()){
-        if(getParentNodeItem()){
-            if(!isHighlighted()){
-                header_color = Qt::transparent;
-            }
-        }else{
-            header_color = EntityItem::getBodyColor();
-        }
-    }*/
-    return header_color;
-}
-
 void NodeItem::setExpandedHeight(qreal height)
 {
     //Limit by the size of all contained children.
     qreal minHeight = childrenRect().bottom() - getMargin().top();
     //Can't shrink smaller than minimum
-    minHeight = qMax(minHeight, modelHeight);
-    minHeight = qMax(minHeight, minimumHeight);
+    minHeight = qMax(minHeight, model_height);
+    minHeight = qMax(minHeight, min_height);
     height = qMax(height, minHeight);
 
 
 
-    if(expandedHeight != height){
-        if(height > modelHeight){
-            modelHeight = -1;
+    if(expanded_height != height){
+        if(height > model_height){
+            model_height = -1;
         }
-        expandedHeight = height;
+        expanded_height = height;
         if(isExpanded()){
             prepareGeometryChange();
             update();
@@ -496,27 +432,27 @@ void NodeItem::setExpandedSize(QSizeF size)
 
 qreal NodeItem::getExpandedWidth() const
 {
-    return expandedWidth;
+    return expanded_width;
 }
 
 qreal NodeItem::getExpandedHeight() const
 {
-    return expandedHeight;
+    return expanded_height;
 }
 
 QSizeF NodeItem::getExpandedSize() const
 {
-    return QSizeF(expandedWidth, expandedHeight);
+    return QSizeF(expanded_width, expanded_height);
 }
 
 qreal NodeItem::getMinimumWidth() const
 {
-    return minimumWidth;
+    return min_width;
 }
 
 qreal NodeItem::getMinimumHeight() const
 {
-    return minimumHeight;
+    return min_height;
 }
 
 void NodeItem::setMargin(QMarginsF margin)
@@ -599,30 +535,6 @@ VIEW_ASPECT NodeItem::getAspect()
     return aspect;
 }
 
-void NodeItem::setManuallyAdjusted(NodeItem::RectVertex corner)
-{
-    bool adjustingWidth = false;
-    bool adjustingHeight = false;
-
-    if(corner == NodeItem::RectVertex::TOP_LEFT || corner == NodeItem::RectVertex::TOP_RIGHT || corner == NodeItem::RectVertex::BOTTOM_RIGHT || corner == NodeItem::RectVertex::BOTTOM_LEFT){
-        adjustingWidth = true;
-        adjustingHeight = true;
-    }
-    if(corner == NodeItem::RectVertex::RIGHT || corner == NodeItem::RectVertex::LEFT){
-        adjustingWidth = true;
-    }
-    if(corner == NodeItem::RectVertex::TOP || corner == NodeItem::RectVertex::BOTTOM){
-        adjustingHeight = true;
-    }
-
-    if(adjustingWidth){
-        //manuallyAdjustedWidth = -1;
-    }
-    if(adjustingHeight){
-       // manuallyAdjustedHeight = -1;
-    }
-}
-
 QMarginsF NodeItem::getMargin() const
 {
     return margin;
@@ -680,16 +592,6 @@ QString NodeItem::getPrimaryTextKey() const
     return primaryTextKey;
 }
 
-QPair<QString, QString> NodeItem::getSecondaryIconPath() const{
-    return secondary_icon;
-}
-
-void NodeItem::setSecondaryIconPath(QPair<QString, QString> pair){
-    secondary_icon = pair;
-    
-}
-
-
 
 QString NodeItem::getSecondaryTextKey() const
 {
@@ -723,58 +625,39 @@ QString NodeItem::getSecondaryText() const
 }
 
 
-void NodeItem::dataChanged(QString keyName, QVariant data)
-{
-    if(getRequiredDataKeys().contains(keyName)){
-        if(keyName == "width" || keyName == "height"){
+void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
+    if(isDataRequired(key_name)){
+        if(key_name == "width" || key_name == "height"){
             qreal realData = data.toReal();
 
-            if(keyName == "width"){
-                modelWidth = -1;
+            if(key_name == "width"){
+                model_width = -1;
                 setExpandedWidth(realData);
-                modelWidth = getExpandedWidth();
-            }else if(keyName == "height"){
-                modelHeight = -1;
+                model_width = getExpandedWidth();
+            }else if(key_name == "height"){
+                model_height = -1;
                 setExpandedHeight(realData);
-                modelHeight = getExpandedHeight();
+                model_height = getExpandedHeight();
             }
             setExpandedSize(getGridAlignedSize());
-        }else if(keyName == "isExpanded"){
+        }else if(key_name == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
-        }else if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
-            updateReadState();
-        }else if(keyName == "readOnly"){
+        }else if(key_name == "readOnly"){
             update();
-        }else if(keyName == "key" && getNodeKind() == NODE_KIND::MEMBER){
-            bool boolData = data.toBool();
-            setIconOverlayVisible(boolData);
-        }else if(keyName =="index"){
+        }else if(key_name =="index"){
             emit indexChanged();
-        }else if(keyName =="row"){
+        }else if(key_name =="row"){
             emit indexChanged();
-        }else if(keyName =="column"){
+        }else if(key_name =="column"){
             emit indexChanged();
         }
 
-        if(keyName == primaryTextKey || keyName == secondaryTextKey){
+        if(key_name == primaryTextKey || key_name == secondaryTextKey){
             update();
         }
     }
-    EntityItem::dataChanged(keyName, data);
-}
-
-void NodeItem::propertyChanged(QString, QVariant)
-{
-}
-
-void NodeItem::dataRemoved(QString keyName)
-{
-    if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
-        updateReadState();
-    }else if(keyName == "readOnly"){
-        update();
-    }
+    EntityItem::dataChanged(key_name, data);
 }
 
 void NodeItem::childPosChanged(EntityItem*)
@@ -840,40 +723,6 @@ QSizeF NodeItem::getGridAlignedSize(QSizeF size) const
     return size;
 }
 
-void NodeItem::updateReadState()
-{
-    bool readOnlyDef = getData("readOnlyDefinition").toBool();
-
-    NODE_READ_STATE newState = NORMAL;
-    if(readOnlyDef){
-        newState = READ_ONLY_DEFINITION;
-    }else{
-        bool readOnlyInstance = getData("snippetID").toBool();
-        if(readOnlyInstance){
-            newState = READ_ONLY_INSTANCE;
-        }
-    }
-    if(readState != newState){
-        readState = newState;
-        update();
-    }
-}
-
-void NodeItem::setUpColors()
-{
-    qreal blendFactor = 0.6;
-    QColor blue = QColor(100,149,237);
-    QColor brown = QColor(222,184,135);
-    QColor originalColor = EntityItem::getBodyColor();
-
-
-    readOnlyDefinitionColor = Theme::blendColors(originalColor, brown, blendFactor);
-    readOnlyInstanceColor = Theme::blendColors(originalColor, blue, blendFactor);
-
-    resizeColor = originalColor.darker(140);
-    resizeColor.setAlpha(120);
-}
-
 void NodeItem::resizeToChildren()
 {
     setExpandedWidth(-1);
@@ -881,47 +730,8 @@ void NodeItem::resizeToChildren()
     update();
 }
 
-int NodeItem::getVertexAngle(NodeItem::RectVertex vert) const
-{
-    switch(vert){
-        case NodeItem::RectVertex::TOP:
-            return 0;
-        case NodeItem::RectVertex::TOP_RIGHT:
-            return 45;
-        case NodeItem::RectVertex::RIGHT:
-            return 90;
-        case NodeItem::RectVertex::BOTTOM_RIGHT:
-            return 135;
-        case NodeItem::RectVertex::BOTTOM:
-            return 180;
-        case NodeItem::RectVertex::BOTTOM_LEFT:
-            return 225;
-        case NodeItem::RectVertex::LEFT:
-            return 270;
-        case NodeItem::RectVertex::TOP_LEFT:
-            return 315;
-        default:
-            return 0;
-    }
-}
-
-int NodeItem::getResizeArrowRotation(NodeItem::RectVertex vert) const
-{
-    //Image starts Facing Bottom. which is 180
-    int imageOffset = 180;
-    return (imageOffset + getVertexAngle(vert)) % 360;
-}
 
 
-
-QPainterPath NodeItem::getChildNodePath()
-{
-    QPainterPath path;
-    foreach(NodeItem* child, childNodes.values()){
-        path.addRect(child->translatedBoundingRect());
-    }
-    return path;
-}
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -933,60 +743,49 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     RENDER_STATE state = getRenderState(lod);
 
 
-    if(state > RENDER_STATE::MINIMAL){
-        if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod,EntityRect::SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
-        }
-    }
-
-    if(state > RENDER_STATE::BLOCK){
-        painter->save();
-
-        //Paint the selected section.
-        if(selectedResizeVertex != NodeItem::RectVertex::NONE){
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(resizeColor);
-            painter->drawRect(getResizeRect(hoveredResizeVertex));
-        }
-
-        //Paint the hovered section.
-        if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(resizeColor);
-            painter->drawRect(getResizeRect(hoveredResizeVertex));
-
-            if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
-                //Rotate
-                painter->save();
-                QRectF arrowRect = getElementRect(EntityRect::RESIZE_ARROW_ICON);
-                //Move to Center.
-                painter->translate(arrowRect.center());
-                //Rotate the Image
-                painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
-                //Move back to top left.
-            painter->translate(-arrowRect.center());
-
-                //Paint the resize section
-                paintPixmap(painter, lod,EntityRect::RESIZE_ARROW_ICON, "Icons", "triangleDown");
-                painter->restore();
-            }
-        }
-        painter->restore();
-    }
-
     EntityItem::paint(painter, option, widget);
     {
-        painter->save();
-        painter->setPen(getDefaultPen());
-
         if(gotPrimaryTextKey()){
-            renderText(painter, lod,EntityRect::PRIMARY_TEXT, getPrimaryText());
+            auto is_protected = isDataProtected(getPrimaryTextKey());
+
+            if(state >= RENDER_STATE::REDUCED){
+                if(isHovered(EntityRect::PRIMARY_TEXT) && !is_protected){
+                    painter->save();
+                    painter->setBrush(Qt::NoBrush);
+                    painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
+                    painter->drawRect(getElementRect(EntityRect::PRIMARY_TEXT) + QMarginsF(1,0,1,0));
+                    painter->restore();
+                }
+            }
+
+            painter->save();
+            
+            painter->setPen(getTextColor());
+            renderText(painter, lod, EntityRect::PRIMARY_TEXT, getPrimaryText());
+            painter->restore();
         }
 
         if(gotSecondaryTextKey()){
-            renderText(painter, lod,EntityRect::SECONDARY_TEXT, getSecondaryText());
+            auto is_protected = isDataProtected(getSecondaryTextKey());
+            if(state >= RENDER_STATE::REDUCED){
+                if(!is_protected){
+                    painter->save();
+                    painter->setBrush(getBodyColor());
+                    painter->setPen(Qt::NoPen);
+
+                    if(isHovered(EntityRect::SECONDARY_TEXT)){
+                        painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
+                    }
+                    painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT) + QMarginsF(1,0,1,0));
+                    painter->restore();
+                }
+            }
+
+            painter->save();
+            painter->setPen(getTextColor());
+            renderText(painter, lod, EntityRect::SECONDARY_TEXT, getSecondaryText());
+            painter->restore();
         }
-        painter->restore();
     }
 
     if(state >= RENDER_STATE::REDUCED){
@@ -998,7 +797,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             for(auto edge_kind : edges.values(edge_direction)){
                 auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
                 auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
-                bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
+                bool is_hovered = IsEdgeKnobHovered({edge_direction, edge_kind});
                 bool got_edge = attached_edges.contains({edge_direction, edge_kind});
                 bool my_edge = my_edges.contains(edge_direction, edge_kind);
                 
@@ -1069,7 +868,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             if(isExpandEnabled()){
                 const auto icon_path = isExpanded() ? "circleArrowDownDark" : "circleArrowRightDark";
                 const auto brush_color = getHeaderColor();
-                const auto icon_color = icon_hovered_ ? getHighlightColor() : getAltTextColor();
+                const auto icon_color = isHovered(EntityRect::MAIN_ICON) ? getHighlightColor() : getAltTextColor();
                 auto rect = getExpandStateRect();
                 auto inner_rect = rect.adjusted(.5,.5,-.5,-.5);
                 painter->setPen(Qt::NoPen);
@@ -1077,9 +876,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->drawEllipse(rect);
                 paintPixmap(painter, lod, inner_rect, "Icons", icon_path, icon_color);
             }
-            
         }
-
 
         painter->restore();
     }
@@ -1090,9 +887,6 @@ QRectF NodeItem::getElementRect(EntityRect rect) const
     switch(rect){
         case EntityRect::MOVE:{
             return headerRect();
-        }
-        case EntityRect::RESIZE_ARROW_ICON:{
-            return getResizeArrowRect();
         }
         default:
             break;
@@ -1118,74 +912,6 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
             break;
     }
     return EntityItem::getElementPath(rect);
-}
-
-QRectF NodeItem::getResizeRect(NodeItem::RectVertex vert) const
-{
-    QRectF rect;
-
-    if(vert != NodeItem::RectVertex::NONE){
-        int resizeRectRadius = RESIZE_RECT_SIZE;
-        int resizeRectSize = resizeRectRadius * 2;
-        rect.setWidth(resizeRectSize);
-        rect.setHeight(resizeRectSize);
-
-        if(vert == NodeItem::RectVertex::TOP || vert == NodeItem::RectVertex::BOTTOM){
-            //Horizontal Rectangle
-            rect.setWidth(getWidth() - resizeRectSize);
-
-            QPointF topLeft;
-
-            if(vert == NodeItem::RectVertex::TOP){
-                topLeft = expandedRect().topLeft() + QPointF(resizeRectRadius, - resizeRectRadius);
-            }else{
-                topLeft = expandedRect().bottomLeft() + QPointF(resizeRectRadius, - resizeRectRadius);
-            }
-
-            rect.moveTopLeft(topLeft);
-        }else if(vert == NodeItem::RectVertex::LEFT || vert == NodeItem::RectVertex::RIGHT){
-            //Vertical Rectangle
-            rect.setHeight(getHeight() - resizeRectSize);
-
-            QPointF topLeft;
-
-            if(vert == NodeItem::RectVertex::LEFT){
-                topLeft = expandedRect().topLeft() + QPointF(-resizeRectRadius, resizeRectRadius);
-            }else{
-                topLeft = expandedRect().topRight() + QPointF(-resizeRectRadius, resizeRectRadius);
-            }
-
-            rect.moveTopLeft(topLeft);
-        }else{
-            switch(vert){
-                case NodeItem::RectVertex::TOP_LEFT:
-                    rect.moveCenter(expandedRect().topLeft());
-                    break;
-                case NodeItem::RectVertex::TOP_RIGHT:
-                    rect.moveCenter(expandedRect().topRight());
-                    break;
-                case NodeItem::RectVertex::BOTTOM_RIGHT:
-                    rect.moveCenter(expandedRect().bottomRight());
-                    break;
-                case NodeItem::RectVertex::BOTTOM_LEFT:
-                    rect.moveCenter(expandedRect().bottomLeft());
-                    break;
-                default:
-                break;
-            }
-        }
-    }
-    return rect;
-}
-
-QRectF NodeItem::getResizeArrowRect() const
-{
-    QRectF rect;
-    if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
-        rect.setSize(QSize(2 * RESIZE_RECT_SIZE, 2 * RESIZE_RECT_SIZE));
-        rect.moveCenter(getResizeRect(hoveredResizeVertex).center());
-    }
-    return rect;
 }
 
 int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const{
@@ -1288,9 +1014,6 @@ QRectF NodeItem::getNotificationRect(Notification::Severity severity) const{
 }
 
 
-std::list<NodeItem::RectVertex> NodeItem::getRectVertex(){
-    return {NodeItem::RectVertex::LEFT, NodeItem::RectVertex::TOP_LEFT, NodeItem::RectVertex::TOP, NodeItem::RectVertex::TOP_RIGHT, NodeItem::RectVertex::RIGHT, NodeItem::RectVertex::BOTTOM_RIGHT, NodeItem::RectVertex::BOTTOM, NodeItem::RectVertex::BOTTOM_LEFT};
-}
 
 void NodeItem::clearEdgeKnobPressedState(){
     //Clear the Knob Edge data
@@ -1311,7 +1034,6 @@ void NodeItem::clearNotificationKnobPressedState(){
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     EntityItem::mousePressEvent(event);
-    bool caughtResize = false;
     bool caughtEdge = false;
 
     clearEdgeKnobPressedState();
@@ -1344,35 +1066,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
-
-    if(isSelected() && !caughtEdge && isResizeEnabled() && isExpanded()){
-        NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
-
-        for(auto vert : getRectVertex()){
-            if(getResizeRect(vert).contains(event->pos())){
-                vertex = vert;
-            }
-        }
-        if(vertex != selectedResizeVertex){
-            selectedResizeVertex = vertex;
-            if(selectedResizeVertex != NodeItem::RectVertex::NONE){
-                previousResizePoint = event->scenePos();
-            }
-            emit req_StartResize();
-            update();
-            caughtResize = true;
-        }
-    }
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-   if(selectedResizeVertex != NodeItem::RectVertex::NONE){
-       emit req_FinishResize();
-       selectedResizeVertex = NodeItem::RectVertex::NONE;
-       update();
-   }
-
    if(edge_knob_pressed && !edge_knob_dragged){
        emit req_connectEdgeMenu(event->scenePos(), pressed_edge_knob_kind, pressed_edge_knob_direction);
        clearEdgeKnobPressedState();
@@ -1397,109 +1094,12 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             emit req_connectEdgeMode(pos, pressed_edge_knob_kind, pressed_edge_knob_direction);
             clearEdgeKnobPressedState();
         }
-    }else if(selectedResizeVertex != NodeItem::RectVertex::NONE){
-        QPointF deltaPos = event->scenePos() - previousResizePoint;
-        previousResizePoint = event->scenePos();
-        setManuallyAdjusted(selectedResizeVertex);
-        emit req_Resize(this, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
     }else{
         EntityItem::mouseMoveEvent(event);
     }
 }
 
-void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
-{
-    bool need_update = false;
 
-
-
-    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = my_visual_edge_kinds.values(direction);
-        edge_kinds.push_front(EDGE_KIND::NONE);
-        for(auto edge_kind : edge_kinds){
-            auto in_rect = getEdgeConnectRect(direction, edge_kind).contains(event->pos());
-            QPair<EDGE_DIRECTION, EDGE_KIND> key = {direction, edge_kind};
-            auto contains = hovered_edge_kinds.contains(key);
-            if(in_rect != contains){
-                if(in_rect){
-                    hovered_edge_kinds.insert(key);
-                }else{
-                    hovered_edge_kinds.remove(key);
-                }
-                need_update = true;
-            }
-        }
-    }
-
-    for(auto severity : notification_counts_.uniqueKeys()){
-        auto in_rect = getNotificationRect(severity).contains(event->pos());
-        auto contains = hovered_notifications_.contains(severity);
-        if(in_rect != contains){
-            if(in_rect){
-                hovered_notifications_.insert(severity);
-            }else{
-                hovered_notifications_.remove(severity);
-            }
-            need_update = true;
-        }
-    }
-    
-    {
-        auto in_rect = getElementRect(EntityRect::MAIN_ICON).contains(event->pos());
-        if(icon_hovered_ != in_rect){
-            icon_hovered_ = in_rect;
-            need_update = true;
-        }
-    }
-
-    if(isSelected() && isResizeEnabled() && isExpanded() && hasChildNodes()){
-        NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
-        for(auto vert : getRectVertex()){
-            if(getResizeRect(vert).contains(event->pos())){
-                vertex = vert;
-            }
-        }
-        if(vertex != hoveredResizeVertex){
-            hoveredResizeVertex = vertex;
-            need_update = true;
-            
-        }
-    }
-
-    if(need_update){
-        update();
-    }
-    EntityItem::hoverMoveEvent(event);
-}
-
-void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
-{
-    bool needs_update = false;
-
-    if(!hovered_edge_kinds.empty()){
-        hovered_edge_kinds.clear();
-        needs_update = true;
-    }
-
-    if(!hovered_notifications_.empty()){
-        hovered_notifications_.clear();
-        needs_update = true;
-    }
-
-    if(icon_hovered_){
-        icon_hovered_ = false;
-        needs_update = true;
-    }
-
-    if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
-        hoveredResizeVertex = NodeItem::RectVertex::NONE;
-        needs_update = true;
-    }
-    if(needs_update){
-        update();
-    }
-    EntityItem::hoverLeaveEvent(event);
-}
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -1552,7 +1152,10 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
             //Paint the Text Background
             if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
                 painter->setBrush(getBodyColor());
-
+                
+                if(isHovered(EntityRect::SECONDARY_TEXT)){
+                    painter->setBrush(getHighlightColor());
+                }
                 painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT) + QMarginsF(1,0,1,0));
             }
         }
@@ -1562,3 +1165,134 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
 bool NodeItem::isExpandEnabled(){
     return hasChildNodes() && EntityItem::isExpandEnabled();
 }
+
+void NodeItem::mainIconHover(bool hovered, QPointF){
+    if(isExpandEnabled()){
+        if(hovered){
+            setToolTip(isExpanded() ? "Double-Click to Contract" : "Double Click to Expand");
+        }else{
+            setToolTip("");
+        }
+    }
+}
+
+void NodeItem::primaryTextHover(bool hovered, QPointF){
+    if(gotPrimaryTextKey()){
+        const auto& data_key = getPrimaryTextKey();
+        if(!isDataProtected(data_key)){
+            if(hovered){
+                setToolTip("Double-Click to edit <" + data_key + ">");
+            }else{
+                setToolTip("");
+            }
+        }
+    }
+}
+
+void NodeItem::secondaryTextHover(bool hovered, QPointF){
+    if(gotSecondaryTextKey()){
+        const auto& data_key = getSecondaryTextKey();
+        if(!isDataProtected(data_key)){
+            if(hovered){
+                setToolTip("Double-Click to edit <" + data_key + ">");
+            }else{
+                setToolTip("");
+            }
+        }
+    }
+}
+
+void NodeItem::notificationHover(bool hovered, QPointF event_pos){
+    bool should_update = false;
+
+    auto hover_count = hovered_notifications_.size();
+
+    for(auto severity : notification_counts_.uniqueKeys()){
+        auto in_rect = hovered && getNotificationRect(severity).contains(event_pos);
+        
+        if(SetNotificationHovered(severity, in_rect)){
+            should_update = true;
+            if(in_rect){
+                setToolTip("Double-Click to show attached <" + Notification::getSeverityString(severity)+ "> Notifications");
+            }
+        }
+    }
+
+    auto post_hover_count = hovered_notifications_.size();
+
+    if(hover_count && post_hover_count == 0){
+        //Clear the tootlip if we have gone from 1 to None
+        setToolTip("");
+    }
+
+    if(should_update){
+        update();
+    }
+}
+
+void NodeItem::edgeKnobHover(bool hovered, QPointF event_pos){
+    bool should_update = false;
+    auto hover_count = hovered_edge_kinds.size();
+
+    const auto& my_edges = getVisualEdgeKinds();
+
+    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
+        auto edge_kinds = my_visual_edge_kinds.values(direction);
+        edge_kinds.push_front(EDGE_KIND::NONE);
+        for(auto edge_kind : edge_kinds){
+            QPair<EDGE_DIRECTION, EDGE_KIND> edge_knob = {direction, edge_kind};
+
+            auto in_rect = hovered && getEdgeConnectRect(direction, edge_kind).contains(event_pos);
+
+            if(SetEdgeKnobHovered(edge_knob, in_rect)){
+                should_update = true;
+                if(in_rect && my_edges.contains(direction, edge_kind)){
+                    setToolTip("Click to show <" + EntityFactory::getPrettyEdgeKindString(edge_kind)+ "> Connect Menu.\nOr Click and drag to enter connect mode.");
+                }
+            }
+        }
+    }
+
+    auto post_hover_count = hovered_edge_kinds.size();
+
+    if(hover_count && post_hover_count == 0){
+        //Clear the tootlip if we have gone from 1 to None
+        setToolTip("");
+    }
+
+    if(should_update){
+        update();
+    }
+}
+
+bool NodeItem::IsNotificationHovered(Notification::Severity severity) const{
+    return hovered_notifications_.contains(severity);
+}
+
+bool NodeItem::SetNotificationHovered(Notification::Severity severity, bool hovered){
+    if(hovered && !IsNotificationHovered(severity)){
+        hovered_notifications_.insert(severity);
+    }else if(!hovered && IsNotificationHovered(severity)){
+        hovered_notifications_.remove(severity);
+    }else{
+        return false;
+    }
+    return true;
+}
+
+
+bool NodeItem::IsEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob) const{
+    return hovered_edge_kinds.contains(edge_knob);
+}
+
+bool NodeItem::SetEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob, bool hovered){
+    if(hovered && !IsEdgeKnobHovered(edge_knob)){
+        hovered_edge_kinds.insert(edge_knob);
+    }else if(!hovered && IsEdgeKnobHovered(edge_knob)){
+        hovered_edge_kinds.remove(edge_knob);
+    }else{
+        return false;
+    }
+    return true;
+}
+

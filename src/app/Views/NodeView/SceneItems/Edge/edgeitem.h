@@ -35,8 +35,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
 private slots:
-    void dataChanged(QString keyName, QVariant data);
-    void dataRemoved(QString keyName);
+    void dataChanged(const QString& key_name, const QVariant& data);
+    void dataRemoved(const QString& key_name);
     void updateEdge();
     void srcAncestorVisibilityChanged();
     void dstAncestorVisibilityChanged();

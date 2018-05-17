@@ -13,6 +13,7 @@
 #include "SceneItems/Node/stacknodeitem.h"
 #include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
+#include "SceneItems/Node/membernodeitem.h"
 
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
@@ -543,45 +544,6 @@ void NodeView::item_MoveSelection(QPointF delta)
     }
 }
 
-void NodeView::item_Resize(NodeItem *item, QSizeF delta, NodeItem::RectVertex vertex)
-{
-    if(state_Active_Resizing->active()){
-
-        if(vertex == NodeItem::RectVertex::TOP || vertex == NodeItem::RectVertex::BOTTOM){
-            delta.setWidth(0);
-        }else if(vertex == NodeItem::RectVertex::LEFT || vertex == NodeItem::RectVertex::RIGHT){
-            delta.setHeight(0);
-        }
-
-        if(vertex == NodeItem::RectVertex::TOP || vertex == NodeItem::RectVertex::TOP_LEFT || vertex == NodeItem::RectVertex::TOP_RIGHT){
-            //Invert the H
-            delta.rheight() *= -1;
-        }
-        if(vertex == NodeItem::RectVertex::TOP_LEFT || vertex == NodeItem::RectVertex::LEFT || vertex == NodeItem::RectVertex::BOTTOM_LEFT){
-            //Invert the W
-            delta.rwidth() *= -1;
-        }
-
-        QSizeF preSize = item->getExpandedSize();
-        item->adjustExpandedSize(delta);
-        QSizeF postSize = item->getExpandedSize();
-        if(preSize != postSize){
-            QSizeF deltaSize = preSize - postSize;
-            QPointF offset(deltaSize.width(), deltaSize.height());
-
-            if(vertex == NodeItem::RectVertex::BOTTOM || vertex == NodeItem::RectVertex::BOTTOM_LEFT || vertex == NodeItem::RectVertex::BOTTOM_RIGHT){
-                //Ignore the delta Y
-                offset.setY(0);
-            }
-            if(vertex == NodeItem::RectVertex::RIGHT || vertex == NodeItem::RectVertex::BOTTOM_RIGHT || vertex == NodeItem::RectVertex::TOP_RIGHT){
-                //Ignore the delta X
-                offset.setX(0);
-            }
-            item->adjustPos(offset);
-        }
-    }
-
-}
 
 
 void NodeView::minimap_Pan(QPointF delta)
@@ -637,11 +599,6 @@ void NodeView::setupConnections(EntityItem *item)
 
     if(item->isNodeItem()){
         NodeItem* node = (NodeItem*) item;
-
-        connect(node, &NodeItem::req_StartResize, this, &NodeView::trans_InActive2Resizing);
-        connect(node, &NodeItem::req_Resize, this, &NodeView::item_Resize);
-        connect(node, &NodeItem::req_FinishResize, this, &NodeView::trans_Resizing2InActive);
-
         
         connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::node_ConnectEdgeMode);
         connect(node, &NodeItem::req_connectEdgeMenu, this, &NodeView::node_ConnectEdgeMenu);
@@ -805,359 +762,259 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
-            int ID = item->getID();
-            NodeItem* nodeItem =  0;
-            NODE_KIND nodeKind = item->getNodeKind();
-            QString nodeKindStr = item->getData("kind").toString();
+            NodeItem* node_item =  0;
 
+
+            auto ID = item->getID();
+            auto node_kind = item->getNodeKind();
+            auto parent_node_kind = item->getParentNodeKind();
             
-            //Ignore
-            if(nodeKindStr.contains("DDS")){
+            //Ignore QOS Elements
+            if(item->isNodeOfType(NODE_TYPE::QOS)){
                 return;
             }
             
-            if(nodeKind == NODE_KIND::FUNCTION && parentNode->getNodeKind() == NODE_KIND::CLASS_INSTANCE){
-                //return;
+            //Ignore Functions contained within Class Instances
+            if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INSTANCE){
+                return;
             }
-
-
-            bool ignorePosition = containedNodeViewItem == item;
-
-            QPair<QString, QString> secondary_icon;
-            secondary_icon.first = "Icons";
-            switch(nodeKind){
+            
+            switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:
-                nodeItem = new HardwareNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("ip_address");
-                nodeItem->setExpandEnabled(true);
+                node_item = new HardwareNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("ip_address");
+                node_item->setExpandEnabled(true);
                 break;
             case NODE_KIND::LOGGINGSERVER:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setSecondaryTextKey("database");
-                secondary_icon.second = "servers";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("database");
+                node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
                 break;
             case NODE_KIND::LOGGINGPROFILE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setSecondaryTextKey("mode");
-                secondary_icon.second = "gear";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("mode");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "gear"}, true);
                 break;
             case NODE_KIND::IDL:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                node_item = new DefaultNodeItem(item, parentNode);
                 break;
             case NODE_KIND::SHARED_DATATYPES:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("version");
-                secondary_icon.second = "tag";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("version");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             case NODE_KIND::COMPONENT:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
                 break;
             case NODE_KIND::COMPONENT_IMPL:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             case NODE_KIND::CLASS:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                nodeItem->setSecondaryTextKey("type");
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                secondary_icon.second = "copyX";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                nodeItem->setSecondaryTextKey("replicate_count");
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("replicate_count");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
-                nodeItem = new StackNodeItem(item, parentNode);
+                node_item = new StackNodeItem(item, parentNode);
                 break;
             case NODE_KIND::INEVENTPORT_DELEGATE:
             case NODE_KIND::OUTEVENTPORT_DELEGATE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                nodeItem->setExpandEnabled(false);
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
 
             case NODE_KIND::SERVER_PORT_INSTANCE:
             case NODE_KIND::CLIENT_PORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                nodeItem->setExpandEnabled(false);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                node_item->setExpandEnabled(false);
 
-                switch(nodeKind){
-                    case NODE_KIND::INEVENTPORT_INSTANCE:
-                    case NODE_KIND::SERVER_PORT_INSTANCE:{
-                        break;
-                    }
-                    case NODE_KIND::OUTEVENTPORT_INSTANCE:
-                    case NODE_KIND::CLIENT_PORT_INSTANCE:{
-                        nodeItem->setRightJustified(true);
-                        break;
-                    }
-                    default:
-                        break;
+                if(node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE || node_kind == NODE_KIND::CLIENT_PORT_INSTANCE){
+                    node_item->setRightJustified(true);
                 }
-                
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                break;
-            case NODE_KIND::FOR_CONDITION:{
-                auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                nodeItem = stack_item;
-
-                break;
-            }
-            case NODE_KIND::CONDITION:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                nodeItem->setSecondaryTextKey("value");
-                secondary_icon.second = "circleQuestion";
-                nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("value");
-                nodeItem->setExpandEnabled(false);
-                
-                secondary_icon.second = "pencil";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("value");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("value");
-                nodeItem->setExpandEnabled(false);
-                
-
-             
-                secondary_icon.second = "pencil";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("value");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             case NODE_KIND::AGGREGATE:{
-                auto stack_item  = new StackNodeItem(item, parentNode);
-                nodeItem = stack_item;
-                
-                //Don't show icon
-                secondary_icon.second = "letterA";
-                stack_item->setSecondaryIconPath(secondary_icon);
-                stack_item->setSecondaryTextKey("namespace");
-                
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("namespace");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+                break;
             }
-                break;
-            case NODE_KIND::SETTER:
-                nodeItem = new StackNodeItem(item, parentNode);
-                break;
             case NODE_KIND::FUNCTION_CALL:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                nodeItem->setSecondaryTextKey("class");
-                secondary_icon.second = "spanner";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("class");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
             case NODE_KIND::MEMBER_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                nodeItem->setExpandEnabled(false);
-
-
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setExpandEnabled(false);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::VARIABLE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-
-
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                node_item->setExpandEnabled(false);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
-                nodeItem->setSecondaryTextKey("type");
-
-
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::ENUM_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setSecondaryTextKey("value");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("value");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::MEMBER:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->addRequiredData("key");
-                
-                
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setSecondaryTextKey("type");
-                nodeItem->setIconOverlay("Icons", "key");
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new MemberNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::OUTEVENTPORT_IMPL:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                
-                nodeItem->setSecondaryTextKey("type");
-                nodeItem->setExpandEnabled(false);
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::VARIABLE_PARAMETER:
-                nodeItem = new StackNodeItem(item, parentNode);
-                
-                
-                nodeItem->setExpandEnabled(false);
-                nodeItem->setTertiaryIcon("Items", nodeKindStr);
-                nodeItem->setTertiaryIconVisible(true);
-                nodeItem->setSecondaryTextKey("value");
-                secondary_icon.second = "pencil";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "value"}, true);
                 break;
             case NODE_KIND::INPUT_PARAMETER:{
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
 
                 if(item->hasData("value")){
-                    nodeItem->setSecondaryTextKey("value");
-                    secondary_icon.second = "pencil";
-                    nodeItem->setSecondaryIconPath(secondary_icon);
+                    node_item->setSecondaryTextKey("value");
                 }else{
-                    nodeItem->setPrimaryTextKey("");
-                    nodeItem->setSecondaryTextKey("label");
-                    secondary_icon.second = "pencil";
-                    nodeItem->setSecondaryIconPath(secondary_icon);
+                    node_item->setPrimaryTextKey("");
+                    node_item->setSecondaryTextKey("label");
                 }
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             }
             case NODE_KIND::VARIADIC_PARAMETER:
-                nodeItem = new StackNodeItem(item, parentNode);
-                
-                nodeItem->setExpandEnabled(false);
-                
-                nodeItem->setSecondaryTextKey("value");
-                nodeItem->setPrimaryTextKey("");
-                secondary_icon.second = "pencil";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setPrimaryTextKey("");
+                node_item->setSecondaryTextKey("value");
+
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
 
             case NODE_KIND::RETURN_PARAMETER:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
-                
-                
-                nodeItem->setTertiaryIcon("Items", nodeKindStr);
-                nodeItem->setTertiaryIconVisible(true);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::SERVER_PORT:
             case NODE_KIND::CLIENT_PORT:
             case NODE_KIND::SERVER_REQUEST:
             case NODE_KIND::SERVER_INTERFACE:{
-                auto stack_item = new StackNodeItem(item, parentNode);
-                nodeItem = stack_item;
-                stack_item->setAlignment(Qt::Horizontal);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             }
-            case NODE_KIND::INEVENTPORT:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                break;
             case NODE_KIND::OUTEVENTPORT:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+            case NODE_KIND::INEVENTPORT:
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::INEVENTPORT_IMPL:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::PERIODICEVENT:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                break;
-            case NODE_KIND::IF_STATEMENT:
-            case NODE_KIND::WHILE_LOOP:
-                nodeItem = new StackNodeItem(item, parentNode);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             case NODE_KIND::CODE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
                 break;
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
-                
-                nodeItem->setSecondaryTextKey("type");
-                
-                secondary_icon.second = "category";
-                nodeItem->setSecondaryIconPath(secondary_icon);
+                node_item = new StackNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
              case NODE_KIND::FUNCTION:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             default:
-                nodeItem = new StackNodeItem(item, parentNode);
-                
+                node_item = new StackNodeItem(item, parentNode);
                 break;
             }
 
-            if(nodeItem){
+            if(node_item){
                 bool small_style = true;
 
                 if(small_style){
-                    nodeItem->setMinimumHeight(20);
-                    nodeItem->setMinimumWidth(20*3);
+                    node_item->setMinimumHeight(20);
+                    node_item->setMinimumWidth(20*3);
 
-                    nodeItem->setExpandedHeight(20);
-                    nodeItem->setExpandedWidth(20*3);
+                    node_item->setExpandedHeight(20);
+                    node_item->setExpandedWidth(20*3);
 
-                    if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE || nodeKind == NODE_KIND::OUTEVENTPORT_INSTANCE){
-                        nodeItem->setMinimumHeight(20);
-                        nodeItem->setMinimumWidth(40);
+                    if(node_kind == NODE_KIND::INEVENTPORT_INSTANCE || node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+                        node_item->setMinimumHeight(20);
+                        node_item->setMinimumWidth(40);
 
-                        nodeItem->setExpandedHeight(20);
-                        nodeItem->setExpandedWidth(40);
+                        node_item->setExpandedHeight(20);
+                        node_item->setExpandedWidth(40);
                     }
                 }
                 
                 
                 
-
-                if(ignorePosition){
-                    nodeItem->setIgnorePosition(true);
+                //Ignore the position if we are 
+                if(containedNodeViewItem == item){
+                    node_item->setIgnorePosition(true);
                 }
-                auto stack_item = dynamic_cast<StackNodeItem*>(nodeItem);
+
+                auto stack_item = dynamic_cast<StackNodeItem*>(node_item);
                 if(small_style && stack_item){
                     stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
                 }
@@ -1167,7 +1024,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     if(stack_item){
                         stack_item->setAlignment(Qt::Horizontal);
 
-                        if(nodeKind == NODE_KIND::COMPONENT_IMPL || nodeKind == NODE_KIND::CLASS){
+                        if(node_kind == NODE_KIND::COMPONENT_IMPL || node_kind == NODE_KIND::CLASS){
                             stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                         }else{
@@ -1213,34 +1070,26 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         stack_item->SetCellSpacing(1, 2, 10);
                     }
                 }else{
-                    if(nodeKind == NODE_KIND::AGGREGATE){
+                    if(node_kind == NODE_KIND::AGGREGATE){
                         stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     }
                 }
-
                 
+                //Insert into the GUI hash
+                guiItems[ID] = node_item;
+                setupConnections(node_item);
 
-                
-                guiItems[ID] = nodeItem;
-
-                setupConnections(nodeItem);
-                
-
-
-
-
-                if(!scene()->items().contains(nodeItem)){
-                    scene()->addItem(nodeItem);
-
+                if(!scene()->items().contains(node_item)){
+                    scene()->addItem(node_item);
+                    
                     topLevelGUIItemIDs.append(ID);
-                    connect(nodeItem, &NodeItem::positionChanged, this, &NodeView::topLevelItemMoved);
-                    connect(nodeItem, &NodeItem::sizeChanged, this, &NodeView::topLevelItemMoved);
+                    connect(node_item, &NodeItem::positionChanged, this, &NodeView::topLevelItemMoved);
+                    connect(node_item, &NodeItem::sizeChanged, this, &NodeView::topLevelItemMoved);
                 }
 
                 if(stack_item){
                     stack_item->RecalculateCells();
                 }
-
             }
         }
     }
@@ -1471,7 +1320,6 @@ void NodeView::setupStateMachine()
     state_InActive = new QState();
 
     state_Active_Moving = new QState();
-    state_Active_Resizing = new QState();
     state_Active_RubberbandMode = new QState();
     state_Active_RubberbandMode_Selecting = new QState();
     state_Active_Connecting = new QState();
@@ -1479,7 +1327,6 @@ void NodeView::setupStateMachine()
     //Add States
     viewStateMachine->addState(state_InActive);
     viewStateMachine->addState(state_Active_Moving);
-    viewStateMachine->addState(state_Active_Resizing);
     viewStateMachine->addState(state_Active_RubberbandMode);
     viewStateMachine->addState(state_Active_RubberbandMode_Selecting);
     viewStateMachine->addState(state_Active_Connecting);
@@ -1496,8 +1343,6 @@ void NodeView::setupStateMachine()
     state_Active_RubberbandMode->addTransition(this, &NodeView::trans_RubberbandMode2RubberbandMode_Selecting, state_Active_RubberbandMode_Selecting);
     state_Active_RubberbandMode_Selecting->addTransition(this, &NodeView::trans_RubberbandMode2InActive, state_Active_RubberbandMode);
 
-    state_InActive->addTransition(this, &NodeView::trans_InActive2Resizing, state_Active_Resizing);
-    state_Active_Resizing->addTransition(this, &NodeView::trans_Resizing2InActive, state_InActive);
 
 
     state_InActive->addTransition(this, &NodeView::trans_InActive2Connecting, state_Active_Connecting);
@@ -1505,7 +1350,6 @@ void NodeView::setupStateMachine()
 
 
     connect(this, &NodeView::trans_inactive, &NodeView::trans_Moving2InActive);
-    connect(this, &NodeView::trans_inactive, &NodeView::trans_Resizing2InActive);
     connect(this, &NodeView::trans_inactive, &NodeView::trans_Connecting2InActive);
     connect(this, &NodeView::trans_inactive, &NodeView::trans_RubberbandMode2InActive);
     //Connect to states.
@@ -1515,9 +1359,6 @@ void NodeView::setupStateMachine()
 
     connect(state_Active_Moving, &QState::entered, this, &NodeView::state_Moving_Entered);
     connect(state_Active_Moving, &QState::exited, this, &NodeView::state_Moving_Exited);
-
-    connect(state_Active_Resizing, &QState::entered, this, &NodeView::state_Resizing_Entered);
-    connect(state_Active_Resizing, &QState::exited, this, &NodeView::state_Resizing_Exited);
 
     connect(state_Active_RubberbandMode, &QState::entered, this, &NodeView::state_RubberbandMode_Entered);
     connect(state_Active_RubberbandMode, &QState::exited, this, &NodeView::state_RubberbandMode_Exited);
@@ -1584,39 +1425,6 @@ void NodeView::state_Moving_Exited()
     }
 }
 
-void NodeView::state_Resizing_Entered()
-{
-    if(selectionHandler){
-        if(selectionHandler->getSelectionCount() != 1){
-            emit trans_Resizing2InActive();
-            return;
-        }
-
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
-            NodeItem* item = getNodeItem(viewItem);
-            if(item){
-                item->setResizeStarted();
-            }
-        }
-        setCursor(Qt::SizeAllCursor);
-    }
-}
-
-void NodeView::state_Resizing_Exited()
-{
-    if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
-            NodeItem* item = getNodeItem(viewItem);
-
-            if(item && item->setResizeFinished()){
-                emit triggerAction("Resizing Item");
-                QSizeF size = item->getGridAlignedSize();
-                emit setData(item->getID(), "width", size.width());
-                emit setData(item->getID(), "height", size.height());
-            }
-        }
-    }
-}
 
 void NodeView::state_RubberbandMode_Entered()
 {

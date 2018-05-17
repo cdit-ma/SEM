@@ -29,16 +29,6 @@ void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF re
         
         UpdateText(painter, rect, text);
         painter->setClipRect(rect);
-
-        /*
-        painter->save();
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(QColor(255,0,0,100));
-        painter->drawRect(rect);
-        painter->setBrush(QColor(0,0,255,100));
-        painter->drawRect(text_rect);
-        painter->restore();*/
-
         switch(state){
         case RENDER_STATE::BLOCK:
             break;

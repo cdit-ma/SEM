@@ -231,6 +231,8 @@ public slots:
     void controller_dataChanged(int ID, DataUpdate data);
     void controller_dataRemoved(int ID, QString key);
     void controller_nodeEdgeChanged(int ID);
+    void controller_nodeTypesChanged(int ID);
+    
 
     void setClipboardData(QString data);
 

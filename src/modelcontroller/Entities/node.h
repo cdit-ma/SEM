@@ -89,6 +89,7 @@ class Node : public Entity
         virtual void updateViewAspect(VIEW_ASPECT parent_view_aspect);
     signals:
         void acceptedEdgeKindsChanged(Node* node);
+        void typesChanged();
     public:
         bool IsEdgeRuleActive(EdgeRule rule) const;
         //Valid Definition/Instance/Impl Getters

@@ -26,13 +26,18 @@ NODE_KIND NodeViewItem::getNodeKind() const
     return node_kind;
 }
 
-NodeViewItem *NodeViewItem::getParentNodeViewItem()
+NodeViewItem *NodeViewItem::getParentNodeViewItem() const
 {
-    ViewItem* parent = getParentItem();
+    auto parent = getParentItem();
     if(parent && parent->isNode()){
         return (NodeViewItem*) parent;
     }
     return 0;
+}
+
+NODE_KIND NodeViewItem::getParentNodeKind() const{
+    auto parent_node = getParentNodeViewItem();
+    return parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 }
 
 
@@ -44,13 +49,9 @@ int NodeViewItem::getParentID()
     return parent_id;
 }
 
-bool NodeViewItem::isNodeOfType(NODE_TYPE type)
+bool NodeViewItem::isNodeOfType(NODE_TYPE type) const
 {
-    bool is_type = false;
-    if(getController()){
-        is_type = getController()->isNodeOfType(getID(), type);
-    }
-    return is_type;
+    return node_types.contains(type);
 }
 
 void NodeViewItem::childAdded(ViewItem* child){
@@ -185,4 +186,8 @@ QSet<EDGE_DIRECTION> NodeViewItem::getNestedVisualEdgeKindDirections(EDGE_KIND k
     }
 
     return directions;
+}
+
+void NodeViewItem::setNodeTypes(QSet<NODE_TYPE> types){
+    node_types = types;
 }

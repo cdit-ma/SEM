@@ -11,12 +11,12 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
 
     src = source;
     dst = destination;
+
     vSrc = 0;
     vDst = 0;
     _isCentered = true;
 
     setMoveEnabled(true);
-    setSelectionEnabled(true);
     setExpandEnabled(false);
 
     //Bind all the source's ancestors all the way to the shared parent.
@@ -213,10 +213,16 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(state == RENDER_STATE::BLOCK){
         painter->setClipPath(getElementPath(EntityRect::SHAPE));
     }
-    paintPixmap(painter, lod, EntityRect::MAIN_ICON, getIconPath());
+
+    auto ICON = EntityRect::MAIN_ICON;
+    if(isIconVisible(ICON)){
+        paintPixmap(painter, lod, ICON, getIcon(ICON));
+    }
+
+    
     if(state > RENDER_STATE::BLOCK && isSelected()){
-        paintPixmap(painter, lod, EntityRect::SECONDARY_ICON, src->getIconPath());
-        paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, dst->getIconPath());
+        paintPixmap(painter, lod, EntityRect::SECONDARY_ICON, src->getIcon(ICON));
+        paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, dst->getIcon(ICON));
     }
 }
 
@@ -277,18 +283,22 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void EdgeItem::dataChanged(QString keyName, QVariant data)
+void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(keyName == "x" || keyName == "y"){
-        setCentered(false);
+    if(isDataRequired(key_name)){
+        if(key_name == "x" || key_name == "y"){
+            setCentered(false);
+        }
+        EntityItem::dataChanged(key_name, data);
     }
-    EntityItem::dataChanged(keyName, data);
 }
 
-void EdgeItem::dataRemoved(QString keyName)
+void EdgeItem::dataRemoved(const QString& key_name)
 {
-    if(keyName == "x" || keyName == "y"){
-        setCentered(!(hasData("x") && hasData("y")));
+    if(isDataRequired(key_name)){
+        if(key_name == "x" || key_name == "y"){
+            setCentered(!(hasData("x") && hasData("y")));
+        }
     }
 }
 

@@ -28,16 +28,12 @@ public:
 
     // QGraphicsItem interface
 public:
-
     QRectF getElementRect(EntityRect rect) const;
     QPainterPath getElementPath(EntityRect rect) const;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    
-
 private:
     QPointF validateMove(QPointF delta);
 protected:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF headerRect() const;
 private:
     QRectF connectSourceRect() const;

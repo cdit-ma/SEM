@@ -8,53 +8,26 @@
 #include "Node/nodeitem.h"
 
 
-EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
+EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 {
-    this->defaultZValue = 0;
-    this->viewItem = 0;
-    this->parentItem = parentItem;
+    this->parent_item = parent_item;
     this->kind = kind;
-    paintIconOverlay = false;
-    paintTertiaryIcon = false;
-    connectViewItem(viewItem);
 
-    if(parentItem){
-        connect(parentItem, SIGNAL(scenePosChanged()), this, SIGNAL(scenePosChanged()));
-    }
+    setFlag(QGraphicsItem::ItemIsSelectable, false);
+    setAcceptHoverEvents(true);
+    setExpanded(true);
+    setDefaultZValue(1);
 
-    //Sets the default border to be dark gray
-    QPen defaultPen(QColor(50, 50, 50));
-    defaultPen.setCosmetic(true);
-    setDefaultPen(defaultPen);
-
-    _isHovered = false;
-    _isSelected = false;
-    _isActiveSelected = false;
-    _isMoving = false;
-    _isMouseMoving = false;
-    _hasMouseMoved = false;
-    _isHighlighted = false;
-    ignorePosition = false;
+    connectViewItem(view_item);
 
 
+    //setup the lock state
+    setIconVisible(EntityRect::LOCKED_STATE_ICON, {"Icons", "lockClosed"}, false);
 
-    _isExpanded = true;
-    expandEnabled = false;
-    selectEnabled = true;
-    moveEnabled = true;
-
-    textFont = QFont("Verdana");
-    setFontSize(10);
 
     addRequiredData("readOnly");
 
-    //Setup the initial Body color
-    bodyColor = QColor(233,234,237).lighter(110);
-
-
-    setHoverEnabled(true);
-    setFlag(QGraphicsItem::ItemIsSelectable, false);
-    setDefaultZValue(1);
+    addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 EntityItem::~EntityItem()
@@ -62,37 +35,9 @@ EntityItem::~EntityItem()
     disconnectViewItem();
 }
 
-int EntityItem::type() const
-{
-    return ENTITY_ITEM_KIND;
-}
-
 bool EntityItem::isHidden() const
 {
     return !isVisible();
-}
-
-void EntityItem::setTertiaryIcon(QString path, QString image)
-{
-    tertiaryIconPath.first = path;
-    tertiaryIconPath.second = image;
-    update();
-}
-
-void EntityItem::setTertiaryIconVisible(bool visible)
-{
-    paintTertiaryIcon = visible;
-    update();
-}
-
-bool EntityItem::isTertiaryIconVisible() const
-{
-    return paintTertiaryIcon;
-}
-
-QPair<QString, QString> EntityItem::getTertiaryIcon() const
-{
-    return tertiaryIconPath;
 }
 
 RENDER_STATE EntityItem::getRenderState(qreal lod) const
@@ -110,36 +55,36 @@ RENDER_STATE EntityItem::getRenderState(qreal lod) const
 
 EntityItem *EntityItem::getParent() const
 {
-    return parentItem;
+    return parent_item;
 }
 
 NodeItem *EntityItem::getParentNodeItem() const
 {
-    if(parentItem && parentItem->isNodeItem()){
-        return (NodeItem*) parentItem;
+    if(parent_item && parent_item->isNodeItem()){
+        return (NodeItem*) parent_item;
     }
     return 0;
 }
 
 void EntityItem::unsetParent()
 {
-    parentItem = 0;
+    parent_item = 0;
     setParentItem(0);
 }
 
 bool EntityItem::isTopLevelItem() const
 {
-    return parentItem == 0;
+    return parent_item == 0;
 }
 
 bool EntityItem::isReadOnly() const
 {
-    return viewItem->isReadOnly();
+    return view_item->isReadOnly();
 }
 
 ViewItem *EntityItem::getViewItem() const
 {
-    return viewItem;
+    return view_item;
 }
 
 void EntityItem::setPos(const QPointF &pos)
@@ -151,14 +96,13 @@ void EntityItem::setPos(const QPointF &pos)
             QPointF newPos = getPos() + deltaPos;
             QGraphicsObject::setPos(newPos - getTopLeftOffset());
             emit positionChanged();
-            emit scenePosChanged();
         }
     }
 }
 
 int EntityItem::getID()
 {
-    return viewItem->getID();
+    return view_item->getID();
 }
 
 QRectF EntityItem::getElementRect(EntityRect rect) const
@@ -220,6 +164,10 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, const QRectF& image_r
     }
 }
 
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, const QRectF& image_rect, const QPair<QString, QString>& image, QColor tintColor){
+    paintPixmap(painter, lod, image_rect, image.first, image.second, tintColor);
+}
+
 void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QPair<QString, QString>& image, QColor tintColor)
 {
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
@@ -237,22 +185,19 @@ StaticTextItem* EntityItem::getTextItem(EntityRect pos){
 
 void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QString text, int textOptions)
 {
-    painter->save();
-    
     auto text_item = getTextItem(pos);
-
-    painter->setPen(getTextColor());
-    
-    text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
-    painter->restore();
+    if(text_item){
+        text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
+    }
 }
 
-void EntityItem::setTooltip(EntityRect rect, QString tooltip, QCursor cursor)
-{
-    tooltipMap[rect] = tooltip;
-    tooltipCursorMap[rect] = cursor;
+void EntityItem::addHoverFunction(EntityRect rect, std::function<void (bool, QPointF)> func){
+    hover_function_map.insert(rect, func);
 }
 
+void EntityItem::removeHoverFunction(EntityRect rect){
+    hover_function_map.remove(rect);
+}
 
 void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
@@ -261,30 +206,6 @@ void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap
     }
 }
 
-void EntityItem::setIconOverlay(QString alias, QString imageName)
-{
-    if(iconOverlayIconPath.first != alias || iconOverlayIconPath.second != imageName){
-        iconOverlayIconPath.first = alias;
-        iconOverlayIconPath.second = imageName;
-
-        if(paintIconOverlay){
-            update();
-        }
-    }
-}
-
-void EntityItem::setIconOverlayVisible(bool visible)
-{
-    if(paintIconOverlay != visible){
-        paintIconOverlay = visible;
-        update();
-    }
-}
-
-bool EntityItem::isIconOverlayVisible() const
-{
-    return paintIconOverlay;
-}
 
 QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
 {
@@ -331,40 +252,34 @@ bool EntityItem::intersectsRectInScene(QRectF rectInScene) const
     return rectInScene.contains(sceneBoundingRect());
 }
 
-bool EntityItem::isDataProtected(QString keyName) const
+bool EntityItem::isDataProtected(QString key_name) const
 {
-    if(viewItem){
-        return viewItem->isDataProtected(keyName);
+    if(view_item){
+        return view_item->isDataProtected(key_name);
     }
     return true;
 }
-
-void EntityItem::addRequiredData(QString keyName)
+bool EntityItem::isDataRequired(const QString& key_name) const{
+    return required_data_keys.contains(key_name);
+}
+void EntityItem::addRequiredData(const QString& key_name)
 {
-    if(!requiredDataKeys.contains(keyName)){
-        requiredDataKeys.append(keyName);
-    }
+    required_data_keys.insert(key_name);
 }
 
-void EntityItem::removeRequiredData(QString keyName)
+void EntityItem::removeRequiredData(const QString& key_name)
 {
-    if(requiredDataKeys.contains(keyName)){
-        requiredDataKeys.removeAll(keyName);
-    }
+    required_data_keys.remove(key_name);
 }
 
-QStringList EntityItem::getRequiredDataKeys()
-{
-    return requiredDataKeys;
-}
 
 void EntityItem::reloadRequiredData()
 {
-    foreach(QString keyName, requiredDataKeys){
-        if(viewItem->hasData(keyName)){
-            QVariant dataValue = viewItem->getData(keyName);
-            if(!dataValue.isNull()){
-                dataChanged(keyName, dataValue);
+    for(const auto& key_name : required_data_keys){
+        if(view_item->hasData(key_name)){
+            auto data_value = view_item->getData(key_name);
+            if(!data_value.isNull()){
+                dataChanged(key_name, data_value);
             }
         }
     }
@@ -402,7 +317,7 @@ QPainterPath EntityItem::sceneShape() const
 
 void EntityItem::setIgnorePosition(bool ignore)
 {
-    ignorePosition = ignore;
+    is_ignoring_positon = ignore;
     if(ignore){
         removeRequiredData("x");
         removeRequiredData("y");
@@ -414,20 +329,20 @@ void EntityItem::setIgnorePosition(bool ignore)
 
 bool EntityItem::isIgnoringPosition()
 {
-    return ignorePosition;
+    return is_ignoring_positon;
 }
 
-void EntityItem::dataChanged(QString keyName, QVariant data)
+void EntityItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(getRequiredDataKeys().contains(keyName)){
-        if(keyName == "x" || keyName == "y"){
+    if(isDataRequired(key_name)){
+        if(key_name == "x" || key_name == "y"){
             qreal realData = data.toReal();
             QPointF oldPos = getPos();
             QPointF newPos = oldPos;
 
-            if(keyName == "x"){
+            if(key_name == "x"){
                 newPos.setX(realData);
-            }else if(keyName == "y"){
+            }else if(key_name == "y"){
                 newPos.setY(realData);
             }
 
@@ -435,6 +350,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
                 setPos(newPos);
                 setPos(getNearestGridPoint());
             }
+        }else if(key_name == "readOnly"){
+            bool isReadOnly = data.toBool();
+            setIconVisible(EntityRect::LOCKED_STATE_ICON, isReadOnly);
         }
     }
 }
@@ -474,39 +392,37 @@ QPointF EntityItem::validateMove(QPointF delta)
 }
 
 
-QVariant EntityItem::getData(QString keyName) const
+QVariant EntityItem::getData(const QString& key_name) const
 {
-    return viewItem->getData(keyName);
+    return view_item->getData(key_name);
 }
 
 
-bool EntityItem::hasData(QString keyName) const
+bool EntityItem::hasData(const QString& key_name) const
 {
-    return viewItem->hasData(keyName);
+    return view_item->hasData(key_name);
 }
 
 qreal EntityItem::getDefaultZValue() const
 {
-    return defaultZValue;
+    return default_z_value;
 }
 
 void EntityItem::handleSelection(bool append)
 {
-    if(isSelectionEnabled()){
-        bool setActive = false;
+    bool setActive = false;
 
-        if(isSelected() && !append){
-            setActive = true;
-        }
+    if(isSelected() && !append){
+        setActive = true;
+    }
 
-        if(setActive){
-            //If it isnt actively selected, we shouldn't unselect
-            if(!isActiveSelected()){
-                emit req_activeSelected(getViewItem());
-            }
-        }else{
-            emit req_selected(getViewItem(), append);
+    if(setActive){
+        //If it isnt actively selected, we shouldn't unselect
+        if(!isActiveSelected()){
+            emit req_activeSelected(getViewItem());
         }
+    }else{
+        emit req_selected(getViewItem(), append);
     }
 }
 
@@ -519,14 +435,14 @@ void EntityItem::removeData(QString keyName)
 
 void EntityItem::setDefaultZValue(qreal z)
 {
-    defaultZValue = z;
+    default_z_value = z;
     updateZValue();
 }
 
 void EntityItem::handleExpand(bool expand)
 {
     if(isExpandEnabled()){
-        if(expand != _isExpanded){
+        if(expand != is_expanded){
             emit req_expanded(this, expand);
         }
     }
@@ -534,79 +450,78 @@ void EntityItem::handleExpand(bool expand)
 
 void EntityItem::handleHover(bool hovered)
 {
-    if(isHoverEnabled()){
-        if(hovered != _isHovered){
-            setHovered(hovered);
-        }
+    if(hovered != is_hovered){
+        setHovered(hovered);
     }
 }
-
-void EntityItem::setSelectionEnabled(bool enabled)
-{
-    selectEnabled = enabled;
+void EntityItem::shapeHover(bool handle, QPointF point){
+    setHovered(handle);
 }
 
 void EntityItem::setMoveStarted()
 {
     positionPreMove = getPos();
-    _isMoving = true;
+    is_moving = true;
 }
 
 bool EntityItem::setMoveFinished()
 {
-    _isMoving = false;
+    is_moving = false;
     return getPos() != positionPreMove;
 }
 
-void EntityItem::setHoverEnabled(bool enabled)
-{
-    setAcceptHoverEvents(enabled);
-    hoverEnabled = enabled;
-}
-
-bool EntityItem::isHoverEnabled()
-{
-    return hoverEnabled;
-}
 
 bool EntityItem::isSelected() const
 {
-    return _isSelected;
+    return is_selected;
 }
 
 bool EntityItem::isActiveSelected() const
 {
-    return _isActiveSelected;
+    return is_active_selected;
 }
 
 bool EntityItem::isHighlighted() const
 {
-    return _isHighlighted;
+    return is_highlighted;
 }
 
 bool EntityItem::isHovered() const
 {
-    return _isHovered;
+    return is_hovered;
 }
 
-void EntityItem::connectViewItem(ViewItem *viewItem)
-{
-    this->viewItem = viewItem;
+void EntityItem::updateIcon(){
+    auto view_item = getViewItem();
+    if(view_item){
+        setIconVisible(EntityRect::MAIN_ICON, view_item->getIcon(), true);
+    }else{
+        setIconVisible(EntityRect::MAIN_ICON, false);
+    }
+}
 
-    viewItem->registerObject(this);
-    connect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
-    connect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
-    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
+void EntityItem::connectViewItem(ViewItem *view_item)
+{
+    this->view_item = view_item;
+
+    view_item->registerObject(this);
+    connect(view_item, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
+    connect(view_item, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+    connect(view_item, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
+    connect(view_item, &ViewItem::iconChanged, this, &EntityItem::updateIcon);
+    updateIcon();
 }
 
 void EntityItem::disconnectViewItem()
 {
-    if(viewItem){
-        disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
-        disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
-        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
-        viewItem->unregisterObject(this);
-        viewItem = 0;
+    if(view_item){
+        disconnect(view_item, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
+        disconnect(view_item, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+        disconnect(view_item, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
+        disconnect(view_item, &ViewItem::iconChanged, this, &EntityItem::updateIcon);
+        view_item->unregisterObject(this);
+        view_item = 0;
+        updateIcon();
     }
 }
 
@@ -625,25 +540,18 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     if(isMoveEnabled() && event->button() == Qt::LeftButton && getElementPath(EntityRect::MOVE).contains(event->pos())){
         //Check for movement.
-        _isMouseMoving = true;
-        _hasMouseMoved = false;
+        is_mouse_moving = true;
+        has_mouse_moving = false;
         previousMovePoint = event->scenePos();
     }
 }
 
-void EntityItem::setFontSize(int fontSize)
-{
-    textFont.setPixelSize(fontSize * 2);
-    this->fontSize = fontSize;
-}
-
-
 void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(_isMouseMoving){
-        if(!_hasMouseMoved){
+    if(is_mouse_moving){
+        if(!has_mouse_moving){
             emit req_StartMove();
-            _hasMouseMoved = true;
+            has_mouse_moving = true;
         }
         QPointF deltaPos = event->scenePos() - previousMovePoint;
         previousMovePoint = event->scenePos();
@@ -653,51 +561,67 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 {
-    if(_isMouseMoving){
-        _isMouseMoving = false;
+    if(is_mouse_moving){
+        is_mouse_moving = false;
         emit req_FinishMove();
     }
 }
 
 
-
-void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
-{
-    bool inItem = getElementPath(EntityRect::SHAPE).contains(event->pos());
-    if(isHovered() && !inItem){
-        handleHover(false);
-    }else if(!isHovered() && inItem){
-        handleHover(true);
-    }
+void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
+    hoverMoveEvent(event);
 }
 
 void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    bool inItem = getElementPath(EntityRect::SHAPE).contains(event->pos());
-    if(isHovered() && !inItem){
-        handleHover(false);
-    }else if(!isHovered() && inItem){
-        handleHover(true);
+    for(auto rect : hover_function_map.uniqueKeys()){
+        auto hit_rect = getElementRect(rect).contains(event->pos());
+        auto was_hovered = isHovered(rect);
+        
+        if(hit_rect){
+            setAreaHovered(rect, true);
+            if(hover_function_map.value(rect)){
+                hover_function_map.value(rect)(true, event->pos());
+            }
+        }else if(was_hovered){
+            if(hover_function_map.value(rect)){
+                hover_function_map.value(rect)(false, event->pos());
+            }
+            setAreaHovered(rect, false);
+            
+        }
     }
+    QGraphicsObject::hoverMoveEvent(event);
 }
 
-void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
+bool EntityItem::isHovered(EntityRect area) const{
+    return hovered_areas.contains(area);
+}
+
+void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 {
-    if(isHovered()){
-        handleHover(false);
+    for(auto rect : hover_function_map.uniqueKeys()){
+        auto was_hovered = isHovered(rect);
+        if(was_hovered){
+            if(hover_function_map.value(rect)){
+                hover_function_map.value(rect)(false, event->pos());
+            }
+            setAreaHovered(rect, false);
+        }
     }
+    QGraphicsObject::hoverLeaveEvent(event);
 }
 
 
 bool EntityItem::isExpanded() const
 {
-    return _isExpanded;
+    return is_expanded;
 }
 
 void EntityItem::setExpanded(bool expand)
 {
-    if(_isExpanded != expand){
-        _isExpanded = expand;
+    if(is_expanded != expand){
+        is_expanded = expand;
         emit positionChanged();
     }
 }
@@ -740,23 +664,37 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             brush.setColor(getBodyColor());
         }
     }
-      
-    paintPixmap(painter, lod, EntityRect::MAIN_ICON, getIconPath());
+
+    auto ICON = EntityRect::MAIN_ICON;
+    if(isIconVisible(ICON)){
+        paintPixmap(painter, lod, ICON, getIcon(ICON));
+    }
 
     if(state > RENDER_STATE::BLOCK){
-        if(paintIconOverlay){
-            auto rect = getElementRect(EntityRect::MAIN_ICON_OVERLAY);
+        ICON = EntityRect::MAIN_ICON_OVERLAY;
+        //Paint extra icons
+        if(isIconVisible(ICON)){
+            auto rect = getElementRect(ICON);
             auto inner_rect = rect.adjusted(.75,.75,-.75,-.75);
             painter->setPen(Qt::NoPen);
             painter->setBrush(getBodyColor());
             painter->drawEllipse(rect);
-            paintPixmap(painter, lod, inner_rect, iconOverlayIconPath.first, iconOverlayIconPath.second);
+            paintPixmap(painter, lod, inner_rect, getIcon(ICON));
         }
-        if(paintTertiaryIcon){
-            paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, tertiaryIconPath);
+
+        ICON = EntityRect::SECONDARY_ICON;
+        if(isIconVisible(ICON)){
+            paintPixmap(painter, lod, ICON, getIcon(ICON));
         }
-        if(isReadOnly()){
-            paintPixmap(painter, lod, EntityRect::LOCKED_STATE_ICON, "Icons", "lockClosed");
+
+        ICON = EntityRect::TERTIARY_ICON;
+        if(isIconVisible(ICON)){
+            paintPixmap(painter, lod, ICON, getIcon(ICON));
+        }
+
+        ICON = EntityRect::LOCKED_STATE_ICON;
+        if(isIconVisible(ICON)){
+            paintPixmap(painter, lod, ICON, getIcon(ICON));
         }
     }
 
@@ -809,20 +747,12 @@ bool EntityItem::isEdgeItem()
 
 bool EntityItem::isMoving() const
 {
-    return _isMoving;
+    return is_moving;
 }
 
 int EntityItem::getGridSize() const
 {
     return 10;
-}
-
-QPair<QString, QString> EntityItem::getIconPath()
-{
-    if(viewItem){
-        return viewItem->getIcon();
-    }
-    return QPair<QString, QString>();
 }
 
 QPointF EntityItem::getNearestGridPoint(QPointF newPos)
@@ -846,9 +776,9 @@ void EntityItem::destruct()
 
 void EntityItem::setHovered(bool isHovered)
 {
-    if(_isHovered != isHovered){
-        _isHovered = isHovered;
-        if(_isHovered && getParent()){
+    if(is_hovered != isHovered){
+        is_hovered = isHovered;
+        if(is_hovered && getParent()){
             getParent()->setHovered(false);
         }
         update();
@@ -857,16 +787,16 @@ void EntityItem::setHovered(bool isHovered)
 
 void EntityItem::setHighlighted(bool isHighlight)
 {
-    if(_isHighlighted != isHighlight){
-        _isHighlighted = isHighlight;
+    if(is_highlighted != isHighlight){
+        is_highlighted = isHighlight;
         update();
     }
 }
 
 void EntityItem::setSelected(bool selected)
 {
-    if(_isSelected != selected){
-        _isSelected = selected;
+    if(is_selected != selected){
+        is_selected = selected;
 
         updateZValue();
         update();
@@ -875,8 +805,8 @@ void EntityItem::setSelected(bool selected)
 
 void EntityItem::setActiveSelected(bool active)
 {
-    if(_isActiveSelected != active){
-        _isActiveSelected = active;
+    if(is_active_selected != active){
+        is_active_selected = active;
         updateZValue();
         update();
     }
@@ -1004,55 +934,80 @@ void EntityItem::setBaseBodyColor(QColor color)
     }
 }
 
-bool EntityItem::isSelectionEnabled()
-{
-    return selectEnabled;
-}
-
 bool EntityItem::isExpandEnabled()
 {
-    return expandEnabled;
+    return is_expand_enabled;
 }
 
 void EntityItem::setExpandEnabled(bool enabled)
 {
-    if(expandEnabled != enabled){
+    if(is_expand_enabled != enabled){
         if(enabled){
             addRequiredData("isExpanded");
         }else{
             removeRequiredData("isExpanded");
             setExpanded(false);
         }
-        expandEnabled = enabled;
+        is_expand_enabled = enabled;
     }
+    
 }
 
 void EntityItem::setMoveEnabled(bool enabled)
 {
-    if(moveEnabled != enabled){
-        moveEnabled = enabled;
+    if(is_move_enabled != enabled){
+        is_move_enabled = enabled;
     }
 }
 
 bool EntityItem::isMoveEnabled()
 {
-    return moveEnabled;
+    return is_move_enabled;
 }
 
+bool EntityItem::gotIcon(const EntityRect rect) const{
+    return icon_map.contains(rect);
+}
 
-void EntityItem::AddNotification(QString image_path, QString image_name, QColor color){
-    if(!paint_notification || notification_icon.first != image_path || notification_icon.second != image_name){
-        notification_icon.first = image_path;
-        notification_icon.second = image_name;
-        notification_color = color;
-        paint_notification = true;
-        update();
+const QPair<QString, QString>& EntityItem::getIcon(const EntityRect rect){
+    return icon_map[rect];
+}
+
+void EntityItem::setIcon(const EntityRect rect, const QPair<QString, QString>& icon){
+    icon_map.insert(rect, icon);
+    update();
+}
+
+void EntityItem::setIconVisible(const EntityRect rect, const QPair<QString, QString>& icon, bool visible){
+    setIcon(rect, icon);
+    setIconVisible(rect, visible);
+}
+
+void EntityItem::setIconVisible(const EntityRect rect, bool visible){
+    if(visible && !visible_icons.contains(rect)){
+        visible_icons.insert(rect);
+    }else if(!visible && visible_icons.contains(rect)){
+        visible_icons.remove(rect);
+    }else{
+        return;
     }
+    update();
 }
 
-void EntityItem::ClearNotification(){
-    if(paint_notification){
-        paint_notification = false;
-        update();
+bool EntityItem::isIconVisible(const EntityRect rect) const{
+    return gotIcon(rect) && visible_icons.contains(rect);
+}
+
+void EntityItem::setAreaHovered(EntityRect rect, bool is_hovered){
+    if(is_hovered){
+        if(!hovered_areas.contains(rect)){
+            hovered_areas.insert(rect);
+            update();
+        }
+    }else{
+        if(hovered_areas.contains(rect)){
+            hovered_areas.remove(rect);
+            update();
+        }
     }
 }

@@ -192,12 +192,18 @@ bool Node::isNodeOfType(NODE_TYPE type) const
 
 void Node::setNodeType(NODE_TYPE type)
 {
-    node_types_.insert(type);
+    if(!node_types_.contains(type)){
+        node_types_.insert(type);
+        emit typesChanged();
+    }
 }
 
 void Node::removeNodeType(NODE_TYPE type)
 {
-    node_types_.remove(type);
+    if(node_types_.contains(type)){
+        node_types_.remove(type);
+        emit typesChanged();
+    }
 }
 
 

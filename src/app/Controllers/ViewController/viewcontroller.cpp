@@ -117,6 +117,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::DataChanged, this, &ViewController::controller_dataChanged);
     connect(controller, &ModelController::DataRemoved, this, &ViewController::controller_dataRemoved);
     connect(controller, &ModelController::NodeEdgeKindsChanged, this, &ViewController::controller_nodeEdgeChanged);
+    connect(controller, &ModelController::NodeTypesChanged, this, &ViewController::controller_nodeTypesChanged);
 
     connect(controller, &ModelController::ProjectModified, this, &ViewController::mc_projectModified);
     connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
@@ -1514,6 +1515,10 @@ void ViewController::StoreViewItem(ViewItem* view_item){
                 view_item->changeData(data.key_name, data.value, data.is_protected);
             }
         }
+        if(view_item->isNode()){
+            controller_nodeTypesChanged(id);
+            controller_nodeEdgeChanged(id);
+        }
         setDefaultIcon(view_item);
         connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
         connect(view_item, &ViewItem::showNotifications, NotificationManager::manager(), &NotificationManager::ShowNotificationPanel);
@@ -1545,9 +1550,9 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     
     nodeKindLookups.insertMulti(kind, id);
     SetParentNode(parent_item, node_item);
+
     
     StoreViewItem(node_item);
-    controller_nodeEdgeChanged(id);
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
@@ -1595,14 +1600,17 @@ void ViewController::controller_nodeEdgeChanged(int ID)
     }
 }
 
-
-bool ViewController::isNodeOfType(int ID, NODE_TYPE type){
-    bool is_type = false;
-    if(controller){
-        is_type = controller->isNodeOfType(ID, type); 
+void ViewController::controller_nodeTypesChanged(int ID)
+{
+    auto node_item = getNodeViewItem(ID);
+    if(node_item){
+        if(controller){
+            auto node_types = controller->getNodesTypes(ID);
+            node_item->setNodeTypes(node_types);
+        }
     }
-    return is_type;
 }
+
 int ViewController::getNodeParentID(int ID){
     int parent_id = -1;
     if(controller){

@@ -24,7 +24,6 @@ class EntityItem: public QGraphicsObject
     Q_OBJECT
 
 public:
-    static const int ENTITY_ITEM_KIND = UserType + 1;
     enum KIND{
         EDGE,
         NODE,
@@ -54,7 +53,6 @@ public:
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
     ~EntityItem();
-    int type() const;
 
     bool isHidden() const;
 
@@ -104,15 +102,17 @@ public:
 
     void paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
+
+    void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
+
     void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
 
 private:
 public:
-    void AddNotification(QString image_path, QString image_name, QColor color);
-    void ClearNotification();
     void renderText(QPainter* painter, qreal lod, EntityRect pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
 
-    void setTooltip(EntityRect rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
+    void addHoverFunction(EntityRect rect, std::function<void (bool, QPointF)> func);
+    void removeHoverFunction(EntityRect rect);
 
     QRectF translatedBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
@@ -133,42 +133,35 @@ public:
     bool intersectsRectInScene(QRectF rectInScene) const;
     bool isDataProtected(QString keyName) const;
 
-    void addRequiredData(QString keyName);
-    void removeRequiredData(QString keyName);
-    QStringList getRequiredDataKeys();
+    void addRequiredData(const QString& keyName);
+    void removeRequiredData(const QString& keyName);
+    bool isDataRequired(const QString& key_name) const;
+
+
     void reloadRequiredData();
     QPen getPen();
     QPen getDefaultPen() const;
     void setDefaultPen(QPen pen);
-    QPair<QString, QString> getIconPath();
-
-
+    
 
     virtual QPointF getNearestGridPoint(QPointF newPos=QPointF());
 
     void setFontSize(int fontSize);
 
-    void setIconOverlay(QString iconAlias, QString iconPath);
-    void setIconOverlayVisible(bool visible);
-    bool isIconOverlayVisible() const;
 
-    void setTertiaryIcon(QString path, QString image);
-    void setTertiaryIconVisible(bool visible);
-    bool isTertiaryIconVisible() const;
-    QPair<QString, QString> getTertiaryIcon() const;
+    void setIconVisible(const EntityRect rect, const QPair<QString, QString>& icon, bool visible);
+    void setIconVisible(const EntityRect rect, bool visible);
 
+    bool gotIcon(const EntityRect rect) const;
+    bool isIconVisible(const EntityRect rect) const;
+    const QPair<QString, QString>& getIcon(const EntityRect rect);
+    void setIcon(const EntityRect rect, const QPair<QString, QString>& icon);
 
 private:
-    int fontSize;
-    QFont textFont;
-
+    void shapeHover(bool handle, QPointF point);
 public:
-    //Model State Get/Setters
-    //void setData(QString keyName, QVariant value);
-    QVariant getData(QString keyName) const;
-
-    // QVa/riant getProperty(QString propertyName) const;
-    bool hasData(QString keyName) const;
+    QVariant getData(const QString& key_name) const;
+    bool hasData(const QString& key_name) const;
 
     qreal getDefaultZValue() const;
 public:
@@ -191,7 +184,6 @@ public:
     void setMoveEnabled(bool enabled);
     void setHoverEnabled(bool enabled);
     void setExpandEnabled(bool enabled);
-    void setSelectionEnabled(bool enabled);
 
     virtual void setMoveStarted();
     virtual bool setMoveFinished();
@@ -208,6 +200,8 @@ public:
     int getGridSize() const;
     virtual QPointF getTopLeftOffset() const;
 
+    bool isHovered(EntityRect area) const;
+
 public:
     //Feature State Getters
     bool isSelectionEnabled();
@@ -217,18 +211,17 @@ public:
 
     void setIgnorePosition(bool ignore);
     bool isIgnoringPosition();
-
-
-
+private:
+    void updateIcon();
 public slots:
-    virtual void dataChanged(QString keyName, QVariant data);
+    virtual void dataChanged(const QString& key_name, const QVariant& data);
     virtual void dataRemoved(QString keyName){};
+
 signals:
     //Request changes
     void req_Move(QPointF delta);
     void req_StartMove();
     void req_FinishMove();
-
 
     //Request changes
     void req_selected(ViewItem*, bool);
@@ -249,7 +242,8 @@ signals:
     void scenePosChanged();
 private slots:
     void destruct();
-
+private:
+    void setAreaHovered(EntityRect rect, bool is_hovered);
 public:
     void setHovered(bool isHovered);
     void setHighlighted(bool isHighlight);
@@ -268,43 +262,47 @@ private:
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
 
-    EntityItem* parentItem;
-    ViewItem* viewItem;
-    QStringList requiredDataKeys;
 
-    bool paintIconOverlay;
-    QPair<QString, QString> iconOverlayIconPath;
-    QPair<QString, QString> secondaryIconPath;
-    QPair<QString, QString> tertiaryIconPath;
-    bool paintTertiaryIcon;
+    
 
-public:
-    QPair<QString, QString> notification_icon;
-    QColor notification_color;
-    bool paint_notification = false;
 protected:
     StaticTextItem* getTextItem(EntityRect rect);
 private:
+    QHash<EntityRect, std::function<void (bool, QPointF)> > hover_function_map;
+
+    EntityItem* parent_item = 0;
+    ViewItem* view_item = 0;
+    qreal default_z_value = 0;
+
     QHash<EntityRect, StaticTextItem*> textMap;
-    QHash<EntityRect, QString> tooltipMap;
-    QHash<EntityRect, QCursor> tooltipCursorMap;
+    
+    QHash<EntityRect, QPair<QString, QString> > icon_map;
+    QSet<EntityRect> visible_icons;
+
+    QSet<QString> required_data_keys;
+    QSet<EntityRect> hovered_areas;
 
 
 
-    bool selectEnabled;
-    bool hoverEnabled;
-    bool moveEnabled;
-    bool expandEnabled;
+    bool is_move_enabled = true;
+    bool is_expand_enabled = false;
 
-    bool _isHovered;
-    bool _isHighlighted;
-    bool _isSelected;
-    bool _isActiveSelected;
-    bool _isExpanded;
+    bool is_hovered = false;
+    bool is_highlighted = false;
+    bool is_selected = false;
+    bool is_active_selected = false;
+    
+    bool is_expanded = true;
+    bool is_moving = false;
+    bool is_mouse_moving = false;
+    bool has_mouse_moving = false;
+
+    bool is_ignoring_positon = false;
+
+    bool paintTertiaryIcon;
 
     QPointF positionPreMove;
 
-    bool _isMoving;
     bool _isMouseMoving;
     bool _hasMouseMoved;
 
@@ -322,7 +320,9 @@ private:
     KIND kind;
     bool ignorePosition;
 
-    qreal defaultZValue;
+    
+
+    
 
 
 protected:

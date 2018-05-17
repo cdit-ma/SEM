@@ -91,8 +91,7 @@ public:
     QSet<int> GetIDs();
 
     
-
-    bool isNodeOfType(int ID, NODE_TYPE type);
+    QSet<NODE_TYPE> getNodesTypes(int ID);
     int getNodeParentID(int ID);
     VIEW_ASPECT getNodeViewAspect(int ID);
     int getSharedParent(int ID, int ID2);
@@ -170,6 +169,7 @@ signals:
     void DataChanged(int ID, DataUpdate data);
     void DataRemoved(int ID, QString keyName);
     void NodeEdgeKindsChanged(int ID);
+    void NodeTypesChanged(int ID);
     
     void ProjectFileChanged(QString);
     void ProjectNameChanged(QString);

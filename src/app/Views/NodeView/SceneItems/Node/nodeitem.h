@@ -9,29 +9,17 @@ class NodeItem: public EntityItem
 {
     Q_OBJECT
 public:
-    enum class RectVertex{NONE, LEFT, TOP_LEFT, TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT};
-    
-    static std::list<RectVertex> getRectVertex();
-    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ITEM};
-    enum NODE_READ_STATE{NORMAL, READ_ONLY_INSTANCE, READ_ONLY_DEFINITION};
-    NodeItem(NodeViewItem *viewItem, NodeItem* parentItem, KIND kind);
+    NodeItem(NodeViewItem *viewItem, NodeItem* parentItem);
     ~NodeItem();
 
-    KIND getNodeItemKind();
     NodeViewItem* getNodeViewItem() const;
-
     NODE_KIND getNodeKind() const;
-
-    NODE_READ_STATE getReadState() const;
 
 
     virtual void setRightJustified(bool isRight);
     bool isRightJustified() const;
 
     virtual void addChildNode(NodeItem* nodeItem);
-
-    QColor getHeaderColor() const;
-
 
     void removeChildNode(NodeItem *nodeItem);
 
@@ -44,8 +32,6 @@ public:
     QList<NodeItem*> getSortedChildNodes() const;
     QList<EntityItem*> getChildEntities() const;
 
-    QPainterPath getChildNodePath();
-
     void addChildEdge(EdgeItem* edgeItem);
     void removeChildEdge(int ID);
     QList<EdgeItem*> getChildEdges() const;
@@ -54,14 +40,7 @@ public:
     QPointF getNearestGridPointToCenter();
 
 
-
-    void setResizeEnabled(bool enabled);
-    bool isResizeEnabled();
-
     bool setMoveFinished();
-
-    void setResizeStarted();
-    bool setResizeFinished();
 
 
 
@@ -137,9 +116,6 @@ public:
     void setAspect(VIEW_ASPECT aspect);
     VIEW_ASPECT getAspect();
 
-    void setManuallyAdjusted(NodeItem::RectVertex aspect);
-
-
     QMarginsF getMargin() const;
     QMarginsF getBodyPadding() const;
 
@@ -158,8 +134,8 @@ public:
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
-    QPair<QString, QString> getSecondaryIconPath() const;
-    void setSecondaryIconPath(QPair<QString, QString> pair);
+
+    
     bool gotPrimaryTextKey() const;
     bool gotSecondaryTextKey() const;
 
@@ -171,7 +147,6 @@ public:
 
 
     QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
-    int getVertexAngle(NodeItem::RectVertex vert) const;
     virtual void childPosChanged(EntityItem* child);
 signals:
     void childSizeChanged(EntityItem* child);
@@ -186,57 +161,54 @@ signals:
     void req_connectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_addNodeMenu(QPointF scene_pos, int index = -1);
 
-    void req_StartResize();
-    void req_Resize(NodeItem* item, QSizeF delta, NodeItem::RectVertex vert);
-    void req_FinishResize();
-
 public slots:
-    virtual void dataChanged(QString keyName, QVariant data);
-    virtual void propertyChanged(QString propertyName, QVariant data);
-    virtual void dataRemoved(QString keyName);
+    virtual void dataChanged(const QString& key_name, const QVariant& data);
 private:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
 
-
-    void updateReadState();
-    void setUpColors();
 protected:
     void resizeToChildren();
 private:
-    int getResizeArrowRotation(NodeItem::RectVertex vert) const;
+    bool IsNotificationHovered(Notification::Severity severity) const;
+    bool SetNotificationHovered(Notification::Severity severity, bool hovered);
+
+    bool IsEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob) const;
+    bool SetEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob, bool hovered);
 
 
-    NodeViewItem* nodeViewItem;
-    KIND nodeItemKind;
+    void mainIconHover(bool handle, QPointF point);
+    void primaryTextHover(bool handle, QPointF point);
+    void secondaryTextHover(bool handle, QPointF point);
+    void notificationHover(bool handle, QPointF point);
+    void edgeKnobHover(bool handle, QPointF point);
+    
 
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> all_visual_edge_kinds;
-
-    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
+
     QMap<Notification::Severity, int> notification_counts_;
-
     QSet<Notification::Severity> hovered_notifications_;
+    
+    VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
 
+    NodeViewItem* node_view_item = 0;
 
-    EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
-    QString visualEntityIcon;
-
-    NODE_READ_STATE readState;
-
-    qreal minimumWidth;
-    qreal minimumHeight;
-    qreal expandedWidth;
-    qreal expandedHeight;
+    qreal min_width = 0;
+    qreal min_height = 0;
+    qreal expanded_width = 0;
+    qreal expanded_height = 0;
+    qreal model_width = 0;
+    qreal model_height = 0;
 
     QMarginsF margin;
     QMarginsF bodyPadding;
 
 
     QRectF _childRect;
-    bool ignorePosition;
 
     void clearEdgeKnobPressedState();
     void clearNotificationKnobPressedState();
@@ -253,46 +225,15 @@ private:
 
 
 
-    bool _isResizing;
-    QSizeF sizePreResize;
-
-
-    bool _rightJustified;
-
-    bool resizeEnabled;
-
-
-
-
-    bool hoveredConnect;
-
-    bool icon_hovered_ = false;
-
-
-    NodeItem::RectVertex hoveredResizeVertex;
-    NodeItem::RectVertex selectedResizeVertex;
-
-    QPointF previousMovePoint;
-    QPointF previousResizePoint;
-    VIEW_ASPECT aspect;
-
-    QHash<int, NodeItem*> childNodes;
-    QHash<int, EdgeItem*> childEdges;
-
-    QPair<QString, QString> secondary_icon;
-
-
-    QColor readOnlyInstanceColor;
-    QColor readOnlyDefinitionColor;
-    QColor resizeColor;
-
-    qreal modelWidth;
-    qreal modelHeight;
-
     QString primaryTextKey;
     QString secondaryTextKey;
 
-    QPair<QString, QString> tertiaryIcon;
+    bool right_justified = false;
+
+    QPointF previousMovePoint;
+    
+    QHash<int, NodeItem*> childNodes;
+    QHash<int, EdgeItem*> childEdges;
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -303,27 +244,12 @@ protected:
 public:
     virtual QRectF getElementRect(EntityRect rect) const;
     virtual QPainterPath getElementPath(EntityRect rect) const;
-    virtual QRectF getResizeRect(NodeItem::RectVertex vert) const;
-    virtual QRectF getResizeArrowRect() const;
-
-
+    QPointF getTopLeftOffset() const;
     // QGraphicsItem interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
-
-
-
-    // EntityItemNew interface
-
-    // EntityItemNew interface
-public:
-    QPointF getTopLeftOffset() const;
-private:
-    QColor header_color;
 };
 #endif //NODEITEM_H

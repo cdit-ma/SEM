@@ -3,7 +3,6 @@
 DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItem *parentItem):BasicNodeItem(viewItem, parentItem)
 {
     setExpandEnabled(true);
-    setResizeEnabled(true);
     setSortOrdered(false);
     addRequiredData("width");
     addRequiredData("height");

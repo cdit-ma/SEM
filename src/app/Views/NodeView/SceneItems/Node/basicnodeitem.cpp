@@ -2,11 +2,10 @@
 #include <QDebug>
 #include "stacknodeitem.h"
 
-BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :NodeItem(viewItem, parentItem, CONTAINER_ITEM)
+BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : NodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
     setExpandEnabled(true);
-    setResizeEnabled(true);
 
     parentContainer = qobject_cast<BasicNodeItem*>(parentItem);
     parentStackContainer = qobject_cast<StackNodeItem*>(parentItem);
@@ -45,10 +44,6 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
         addRequiredData("row");
         addRequiredData("column");
     }
-
-    if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
-        addRequiredData("key");
-    }
     reloadRequiredData();
 }
 
@@ -79,7 +74,8 @@ BasicNodeItem *BasicNodeItem::getParentContainer() const
 {
     return parentContainer;
 }
-\
+
+
 StackNodeItem* BasicNodeItem::getParentStackContainer() const{
     return parentStackContainer;
 }
@@ -186,18 +182,16 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
 
 
 
-void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    paintBackground(painter, option, widget);
-    NodeItem::paint(painter, option, widget);
-}
-
 QRectF BasicNodeItem::headerRect() const
 {
     QRectF rect(getMarginOffset(), QSize(getWidth(), getMinimumHeight()));
     return rect;
 }
 
+void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
+    paintBackground(painter, option, widget);
+    NodeItem::paint(painter, option, widget);
+}
 
 
 QRectF BasicNodeItem::connectSourceRect() const
@@ -315,9 +309,9 @@ QRectF BasicNodeItem::headerContent_Data_Primary_Text() const{
 }
 
 QRectF BasicNodeItem::headerContent_Data_Primary_Icon() const{
-    auto header_content = headerContent_Data_Primary();
+    const auto& header_content = headerContent_Data_Primary();
     QRectF rect;
-    if(isReadOnly()){
+    if(isIconVisible(EntityRect::LOCKED_STATE_ICON)){
         rect.setSize(smallIconSize() / 2);
         rect.moveTopRight(header_content.topRight() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }
@@ -329,7 +323,10 @@ QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const{
     QRectF rect;
     if(gotSecondaryTextKey()){
         rect = headerContent_Data_Secondary();
-        rect.setLeft(headerContent_Data_Secondary_Icon().right() + 2);
+
+        if(isIconVisible(EntityRect::SECONDARY_ICON)){
+            rect.setLeft(headerContent_Data_Secondary_Icon().right() + 2);
+        }
     }
     return rect;
 }
@@ -337,7 +334,7 @@ QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const{
 QRectF BasicNodeItem::headerContent_Data_Secondary_Icon() const{
     auto header_content = headerContent_Data_Secondary();
     QRectF rect;
-    if(gotSecondaryTextKey()){
+    if(isIconVisible(EntityRect::SECONDARY_ICON) && header_content.isValid()){
         rect.setSize(smallIconSize() * 0.75);
         rect.moveTopLeft(header_content.topLeft() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }

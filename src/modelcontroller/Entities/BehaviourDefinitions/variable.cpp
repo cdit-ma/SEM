@@ -17,6 +17,7 @@ void Variable::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
     setDataProducer(true);
+    setDataReceiver(true);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR);

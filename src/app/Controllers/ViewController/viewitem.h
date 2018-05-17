@@ -51,7 +51,7 @@ public:
     void setIcon(QString iconPrefix, QString iconName);
     void resetIcon();
 
-    QPair<QString, QString> getIcon() const;
+    const QPair<QString, QString>& getIcon() const;
 
 
     void addChild(ViewItem* child);
@@ -61,7 +61,7 @@ public:
     QList<ViewItem *> getDirectChildren() const;
     QList<ViewItem* > getNestedChildren();
 
-    ViewItem* getParentItem();
+    ViewItem* getParentItem() const;
     void setParentViewItem(ViewItem* item);
 
     void addNotification(QSharedPointer<NotificationObject> obj);
