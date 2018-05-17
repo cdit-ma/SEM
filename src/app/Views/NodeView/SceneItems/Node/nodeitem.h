@@ -177,11 +177,13 @@ private:
     bool SetEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob, bool hovered);
 
 
-    void mainIconHover(bool handle, QPointF point);
-    void primaryTextHover(bool handle, QPointF point);
-    void secondaryTextHover(bool handle, QPointF point);
-    void notificationHover(bool handle, QPointF point);
-    void edgeKnobHover(bool handle, QPointF point);
+    void expandContractHover(bool handle, const QPointF& pos);
+    void primaryTextHover(bool handle, const QPointF& pos);
+    void secondaryTextHover(bool handle, const QPointF& pos);
+    void notificationHover(bool handle, const QPointF& pos);
+    void edgeKnobHover(bool handle, const QPointF& pos);
+    void lockHover(bool handle, const QPointF& pos);
+    
     
 
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;

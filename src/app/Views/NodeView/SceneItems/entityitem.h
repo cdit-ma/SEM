@@ -8,6 +8,7 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QPen>
 #include <QPainter>
+#include <QStack>
 #include <QStyleOptionGraphicsItem>
 #include "statictextitem.h"
 
@@ -33,6 +34,9 @@ public:
         MOVE,
         EXPAND_CONTRACT,
 
+        HEADER,
+        BODY,
+
         PRIMARY_TEXT,
         SECONDARY_TEXT,
         
@@ -48,7 +52,7 @@ public:
         CONNECT_SOURCE,
         CONNECT_TARGET
     };
-
+    static QList<EntityRect> GetEntityRects();
     
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
@@ -158,7 +162,8 @@ public:
     void setIcon(const EntityRect rect, const QPair<QString, QString>& icon);
 
 private:
-    void shapeHover(bool handle, QPointF point);
+    void shapeHover(bool handle, const QPointF& point);
+    void moveHover(bool handle, const QPointF& point);
 public:
     QVariant getData(const QString& key_name) const;
     bool hasData(const QString& key_name) const;
@@ -254,6 +259,8 @@ public:
 protected:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
+    void AddTooltip(const QString& tooltip);
+    void AddCursor(const QCursor& cursor);
 private:
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
     QPixmap getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
@@ -262,13 +269,10 @@ private:
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
 
-
-    
-
 protected:
     StaticTextItem* getTextItem(EntityRect rect);
 private:
-    QHash<EntityRect, std::function<void (bool, QPointF)> > hover_function_map;
+    QHash<EntityRect, std::function<void (bool, const QPointF&)> > hover_function_map;
 
     EntityItem* parent_item = 0;
     ViewItem* view_item = 0;
@@ -281,6 +285,9 @@ private:
 
     QSet<QString> required_data_keys;
     QSet<EntityRect> hovered_areas;
+
+    QStack<QString> tooltip_stack;
+    QStack<QCursor> cursor_stack;
 
 
 

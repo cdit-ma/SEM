@@ -28,6 +28,32 @@ EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
     addRequiredData("readOnly");
 
     addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::MOVE, std::bind(&NodeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+QList<EntityItem::EntityRect> EntityItem::GetEntityRects(){
+    return {
+        EntityRect::SHAPE,
+        EntityRect::MOVE,
+        EntityRect::EXPAND_CONTRACT,
+        EntityRect::HEADER,
+        EntityRect::BODY,
+
+        EntityRect::PRIMARY_TEXT,
+        EntityRect::SECONDARY_TEXT,
+        
+        EntityRect::MAIN_ICON,
+        EntityRect::MAIN_ICON_OVERLAY,
+        EntityRect::SECONDARY_ICON,
+        EntityRect::TERTIARY_ICON,
+        
+        EntityRect::LOCKED_STATE_ICON,
+        EntityRect::NOTIFICATION_RECT,
+        EntityRect::RESIZE_ARROW_ICON,
+
+        EntityRect::CONNECT_SOURCE,
+        EntityRect::CONNECT_TARGET
+    };
 }
 
 EntityItem::~EntityItem()
@@ -454,8 +480,15 @@ void EntityItem::handleHover(bool hovered)
         setHovered(hovered);
     }
 }
-void EntityItem::shapeHover(bool handle, QPointF point){
+void EntityItem::shapeHover(bool handle, const QPointF&){
     setHovered(handle);
+}
+
+void EntityItem::moveHover(bool handle, const QPointF&){
+    if(handle && isMoveEnabled()){
+        AddTooltip("Click and drag to move entity");
+        AddCursor(Qt::OpenHandCursor);
+    }
 }
 
 void EntityItem::setMoveStarted()
@@ -574,23 +607,58 @@ void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
 
 void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    for(auto rect : hover_function_map.uniqueKeys()){
-        auto hit_rect = getElementRect(rect).contains(event->pos());
+    
+
+    const QPointF& pos = event->pos();
+    QList<EntityRect> hovered_rects;
+    QList<EntityRect> unhovered_rects;
+
+    for(auto rect : GetEntityRects()){
+        auto in_rect = getElementRect(rect).contains(pos);
         auto was_hovered = isHovered(rect);
-        
-        if(hit_rect){
+
+        if(in_rect){
             setAreaHovered(rect, true);
-            if(hover_function_map.value(rect)){
-                hover_function_map.value(rect)(true, event->pos());
+            hovered_rects += rect;
+        }else{
+            if(was_hovered){
+                setAreaHovered(rect, false);
+                unhovered_rects += rect;
             }
-        }else if(was_hovered){
-            if(hover_function_map.value(rect)){
-                hover_function_map.value(rect)(false, event->pos());
-            }
-            setAreaHovered(rect, false);
-            
         }
     }
+    
+    
+
+    //Handle Unhovering first
+    for(auto rect : unhovered_rects){
+        if(hover_function_map.contains(rect)){
+            hover_function_map[rect](false, pos);
+        }
+    }
+
+    //Clear the tooltips
+    tooltip_stack.clear();
+    cursor_stack.clear();
+
+    for(auto rect : hovered_rects){
+        if(hover_function_map.contains(rect)){
+            hover_function_map[rect](true, pos);
+        }
+    }
+
+    if(tooltip_stack.size()){
+        setToolTip(tooltip_stack.top());
+    }else{
+        setToolTip("");
+    }
+
+    if(cursor_stack.size()){
+        setCursor(cursor_stack.top());
+    }else{
+        unsetCursor();
+    }
+
     QGraphicsObject::hoverMoveEvent(event);
 }
 
@@ -1010,4 +1078,12 @@ void EntityItem::setAreaHovered(EntityRect rect, bool is_hovered){
             update();
         }
     }
+}
+
+void EntityItem::AddTooltip(const QString& tooltip){
+    tooltip_stack.push(tooltip);
+}
+
+void EntityItem::AddCursor(const QCursor& cursor){
+    cursor_stack.push(cursor);
 }

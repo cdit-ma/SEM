@@ -57,13 +57,6 @@ void BasicNodeItem::setSortOrdered(bool ordered)
     is_sorted_ordered = ordered;
 }
 
-QRectF BasicNodeItem::bodyRect() const
-{
-    QRectF rect = currentRect();
-    rect.setTop(rect.top() + getMinimumHeight());
-    return rect;
-}
-
 QPointF BasicNodeItem::getElementPosition(BasicNodeItem *child)
 {
     return child->getPos();
@@ -107,49 +100,6 @@ QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
     return NodeItem::getNearestGridPoint(newPos);
 }
 
-QPainterPath BasicNodeItem::getElementPath(EntityRect rect) const
-{
-    switch(rect){
-        case EntityRect::MOVE:{
-            //Selection Area is the Center Circle and Arrow Heads
-            QPainterPath path = NodeItem::getElementPath(EntityRect::MOVE);
-            path.setFillRule(Qt::WindingFill);
-            auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
-
-            for(auto edge_direction : map.uniqueKeys()){
-                for(auto edge_kind : map.values(edge_direction)){
-                    if(edge_kind != EDGE_KIND::NONE){
-                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-                        path.addEllipse(icon_rect);
-                    }
-                }
-            }
-
-            return path.simplified();
-        }
-        case EntityRect::SHAPE:{
-            //Selection Area is the Center Circle and Arrow Heads
-            QPainterPath path = NodeItem::getElementPath(EntityRect::SHAPE);
-            path.setFillRule(Qt::WindingFill);
-            auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
-
-            
-
-            for(auto edge_direction : map.uniqueKeys()){
-                for(auto edge_kind : map.values(edge_direction)){
-                    if(edge_kind != EDGE_KIND::NONE){
-                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-                        path.addEllipse(icon_rect);
-                    }
-                }
-            }
-            return path.simplified();
-        }
-    default:
-        break;
-    }
-    return NodeItem::getElementPath(rect);
-}
 
 
 QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
@@ -181,12 +131,6 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
 }
 
 
-
-QRectF BasicNodeItem::headerRect() const
-{
-    QRectF rect(getMarginOffset(), QSize(getWidth(), getMinimumHeight()));
-    return rect;
-}
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     paintBackground(painter, option, widget);

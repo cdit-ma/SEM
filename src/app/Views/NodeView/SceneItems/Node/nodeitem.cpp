@@ -49,13 +49,14 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     updateVisualEdgeKinds();
     updateNotifications();
 
-    addHoverFunction(EntityRect::MAIN_ICON, std::bind(&NodeItem::mainIconHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::EXPAND_CONTRACT, std::bind(&NodeItem::expandContractHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::PRIMARY_TEXT, std::bind(&NodeItem::primaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_TEXT, std::bind(&NodeItem::secondaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::NOTIFICATION_RECT, std::bind(&NodeItem::notificationHover, this, std::placeholders::_1, std::placeholders::_2));
     
     addHoverFunction(EntityRect::CONNECT_SOURCE, std::bind(&NodeItem::edgeKnobHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::CONNECT_TARGET, std::bind(&NodeItem::edgeKnobHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::LOCKED_STATE_ICON, std::bind(&NodeItem::lockHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void NodeItem::updateVisualEdgeKinds(){
@@ -313,12 +314,16 @@ QRectF NodeItem::expandedGridRect() const
 
 QRectF NodeItem::bodyRect() const
 {
-    return currentRect();
+    QRectF rect = currentRect();
+    rect.setTop(rect.top() + getMinimumHeight());
+    return rect;
 }
 
 QRectF NodeItem::headerRect() const
 {
-    return currentRect();
+    QRectF rect = currentRect();
+    rect.setBottom(rect.top() + getMinimumHeight());
+    return rect;
 }
 
 QRectF NodeItem::translatedHeaderRect() const{
@@ -885,9 +890,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 QRectF NodeItem::getElementRect(EntityRect rect) const
 {
     switch(rect){
-        case EntityRect::MOVE:{
+        case EntityRect::HEADER:
+        case EntityRect::MOVE:
             return headerRect();
-        }
+        case EntityRect::BODY:
+            return bodyRect();
+        
         default:
             break;
     }
@@ -903,6 +911,18 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
             QPainterPath path = EntityItem::getElementPath(EntityRect::SHAPE);
             path.setFillRule(Qt::WindingFill);
 
+            const auto& edge_knobs = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+
+            //Add Edge Knobs
+            for(auto edge_direction : edge_knobs.uniqueKeys()){
+                for(auto edge_kind : edge_knobs.values(edge_direction)){
+                    if(edge_kind != EDGE_KIND::NONE){
+                        path.addEllipse(getEdgeConnectIconRect(edge_direction, edge_kind));
+                    }
+                }
+            }
+
+            //Add Severity Knobs
             for(auto severity : notification_counts_.uniqueKeys()){
                 path.addEllipse(getNotificationRect(severity));
             }
@@ -1166,63 +1186,65 @@ bool NodeItem::isExpandEnabled(){
     return hasChildNodes() && EntityItem::isExpandEnabled();
 }
 
-void NodeItem::mainIconHover(bool hovered, QPointF){
+void NodeItem::expandContractHover(bool hovered, const QPointF&){
     if(isExpandEnabled()){
         if(hovered){
-            setToolTip(isExpanded() ? "Double-Click to Contract" : "Double Click to Expand");
-        }else{
-            setToolTip("");
+            AddTooltip(isExpanded() ? "Double-Click to Contract" : "Double Click to Expand");
         }
     }
 }
 
-void NodeItem::primaryTextHover(bool hovered, QPointF){
+void NodeItem::lockHover(bool hovered, const QPointF&){
+    if(isReadOnly()){
+        if(hovered){
+            AddTooltip("Entity is read-only");
+        }
+    }
+}
+
+
+
+
+void NodeItem::primaryTextHover(bool hovered, const QPointF&){
     if(gotPrimaryTextKey()){
         const auto& data_key = getPrimaryTextKey();
-        if(!isDataProtected(data_key)){
-            if(hovered){
-                setToolTip("Double-Click to edit <" + data_key + ">");
-            }else{
-                setToolTip("");
+        const auto& data = getPrimaryText();
+        if(hovered){
+            QString tooltip = "\"" + data_key + "\" = " + data;
+            if(!isDataProtected(data_key)){
+                tooltip += "\nDouble-Click to edit";
             }
+            AddTooltip(tooltip);
         }
     }
 }
 
-void NodeItem::secondaryTextHover(bool hovered, QPointF){
+void NodeItem::secondaryTextHover(bool hovered, const QPointF&){
     if(gotSecondaryTextKey()){
         const auto& data_key = getSecondaryTextKey();
-        if(!isDataProtected(data_key)){
-            if(hovered){
-                setToolTip("Double-Click to edit <" + data_key + ">");
-            }else{
-                setToolTip("");
+        const auto& data = getSecondaryText();
+        if(hovered){
+            QString tooltip = "[" + data_key + "] = " + data;
+            if(!isDataProtected(data_key)){
+                tooltip += "\nDouble-Click to edit";
             }
+            AddTooltip(tooltip);
         }
     }
 }
 
-void NodeItem::notificationHover(bool hovered, QPointF event_pos){
+void NodeItem::notificationHover(bool hovered, const QPointF& pos){
     bool should_update = false;
-
-    auto hover_count = hovered_notifications_.size();
-
+    
     for(auto severity : notification_counts_.uniqueKeys()){
-        auto in_rect = hovered && getNotificationRect(severity).contains(event_pos);
+        auto in_rect = hovered && getNotificationRect(severity).contains(pos);
         
         if(SetNotificationHovered(severity, in_rect)){
             should_update = true;
-            if(in_rect){
-                setToolTip("Double-Click to show attached <" + Notification::getSeverityString(severity)+ "> Notifications");
-            }
         }
-    }
-
-    auto post_hover_count = hovered_notifications_.size();
-
-    if(hover_count && post_hover_count == 0){
-        //Clear the tootlip if we have gone from 1 to None
-        setToolTip("");
+        if(in_rect){
+            AddTooltip("Double-Click to show attached <" + Notification::getSeverityString(severity)+ "> Notifications");
+        }
     }
 
     if(should_update){
@@ -1230,9 +1252,8 @@ void NodeItem::notificationHover(bool hovered, QPointF event_pos){
     }
 }
 
-void NodeItem::edgeKnobHover(bool hovered, QPointF event_pos){
+void NodeItem::edgeKnobHover(bool hovered, const QPointF& pos){
     bool should_update = false;
-    auto hover_count = hovered_edge_kinds.size();
 
     const auto& my_edges = getVisualEdgeKinds();
 
@@ -1242,23 +1263,18 @@ void NodeItem::edgeKnobHover(bool hovered, QPointF event_pos){
         for(auto edge_kind : edge_kinds){
             QPair<EDGE_DIRECTION, EDGE_KIND> edge_knob = {direction, edge_kind};
 
-            auto in_rect = hovered && getEdgeConnectRect(direction, edge_kind).contains(event_pos);
+            auto in_rect = hovered && getEdgeConnectRect(direction, edge_kind).contains(pos);
 
             if(SetEdgeKnobHovered(edge_knob, in_rect)){
                 should_update = true;
-                if(in_rect && my_edges.contains(direction, edge_kind)){
-                    setToolTip("Click to show <" + EntityFactory::getPrettyEdgeKindString(edge_kind)+ "> Connect Menu.\nOr Click and drag to enter connect mode.");
-                }
+            }
+
+            if(in_rect && my_edges.contains(direction, edge_kind)){
+                AddTooltip("Click to show <" + EntityFactory::getPrettyEdgeKindString(edge_kind)+ "> Connect Menu.\nOr Click and drag to enter connect mode.");
             }
         }
     }
 
-    auto post_hover_count = hovered_edge_kinds.size();
-
-    if(hover_count && post_hover_count == 0){
-        //Clear the tootlip if we have gone from 1 to None
-        setToolTip("");
-    }
 
     if(should_update){
         update();

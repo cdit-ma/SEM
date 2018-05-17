@@ -2473,7 +2473,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
 
         if(node){
-            //Check to see if the node constructed some other stuff, It shouldn't have any children.
+            //Check to see if the node constructed some other stuff, It shouldn 't have any children.
             for(auto child : node->getChildren()){
                 if(child->isImplicitlyConstructed()){
                     entity->AddImplicitlyConstructedNodeID(child->getNodeKind(), child->getID());

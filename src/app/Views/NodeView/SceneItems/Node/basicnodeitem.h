@@ -12,7 +12,6 @@ public:
 
     bool isSortOrdered() const;
     void setSortOrdered(bool ordered);
-    QRectF bodyRect() const;
     //Pure virtual functions.
     virtual QPointF getElementPosition(BasicNodeItem* child);
 
@@ -22,19 +21,14 @@ public:
 
     void setPos(const QPointF &pos);
     QPointF getNearestGridPoint(QPointF newPos);
-    
-
-    
 
     // QGraphicsItem interface
 public:
     QRectF getElementRect(EntityRect rect) const;
-    QPainterPath getElementPath(EntityRect rect) const;
 private:
     QPointF validateMove(QPointF delta);
 protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QRectF headerRect() const;
 private:
     QRectF connectSourceRect() const;
     QRectF connectTargetRect() const;

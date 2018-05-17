@@ -40,7 +40,6 @@ public:
     Qt::Orientation getCellOrientation(const CellIndex& index) const;
 
 protected:
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 public:
@@ -50,6 +49,7 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
+    void bodyHover(bool handle, const QPointF& pos);
     QRectF childrenRect() const;
     void ChildSizeChanged(EntityItem* item);
     void ChildIndexChanged(EntityItem* item);

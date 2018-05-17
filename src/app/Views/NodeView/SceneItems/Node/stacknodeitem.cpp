@@ -22,6 +22,8 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     connect(this, &NodeItem::childIndexChanged, this, &StackNodeItem::ChildIndexChanged);
     connect(this, &NodeItem::childCountChanged, this, &StackNodeItem::ChildCountChanged);
 
+    addHoverFunction(EntityRect::BODY, std::bind(&StackNodeItem::bodyHover, this, std::placeholders::_1, std::placeholders::_2));
+
     cell_spacing = getGridSize();
     RecalculateCells();
 }
@@ -649,9 +651,9 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     NodeItem::paint(painter, option, widget);
 }
 
-void StackNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event){
-    bool need_update = false;
-    const auto& mouse_pos = event->pos();
+void StackNodeItem::bodyHover(bool hovered, const QPointF& pos){
+    bool should_update = false;
+    
     for(auto& p_cell : cell_info.values()){
         if(p_cell.render_icons()){
             const auto& index = p_cell.index;
@@ -659,21 +661,26 @@ void StackNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event){
                 auto& cell = cells[index];
                 
                 for (auto& cell_icon_rect : cell.child_gap_rects){
-                    auto is_hovered = cell_icon_rect.icon_rect.contains(mouse_pos);
+                    auto is_hovered = hovered && cell_icon_rect.icon_rect.contains(pos);
                     if(cell_icon_rect.hovered != is_hovered){
                         cell_icon_rect.hovered = is_hovered;
-                        need_update = true;
+                        should_update = true;
+
+                    }
+                    if(is_hovered){
+                        AddTooltip("Click to show Add Menu");
                     }
                 }
             }
         }
     }
 
-    if(need_update){
+
+    if(should_update){
         update();
     }
-    NodeItem::hoverMoveEvent(event);
 }
+
 
 void StackNodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
     NodeItem::mousePressEvent(event);

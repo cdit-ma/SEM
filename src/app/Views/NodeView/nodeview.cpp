@@ -861,12 +861,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("value");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
-            case NODE_KIND::AGGREGATE:{
+            case NODE_KIND::AGGREGATE:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("namespace");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
-            }
             case NODE_KIND::FUNCTION_CALL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("class");
