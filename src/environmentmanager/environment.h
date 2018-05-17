@@ -94,7 +94,6 @@ class Environment{
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
         //node_ip -> node data structure
-        //std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
 
         //event port guid -> event port data structure

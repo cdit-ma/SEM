@@ -209,7 +209,7 @@ std::string Environment::GetPort(const std::string& node_ip){
         return node_map_.at(node_ip)->GetPort();
     }
     else{
-        throw std::invalid_argument("No node found with ip: " + node_ip);
+        throw std::invalid_argument("Environment::GetPort No node found with ip: " + node_ip);
     }
 }
 
@@ -219,7 +219,7 @@ void Environment::FreePort(const std::string& node_ip, const std::string& port_n
         node_map_.at(node_ip)->FreePort(port_number);
     }
     else{
-        throw std::invalid_argument("No node found with ip: " + node_ip);
+        throw std::invalid_argument("Environment::FreePort No node found with ip: " + node_ip);
     }
 }
 

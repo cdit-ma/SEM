@@ -65,6 +65,8 @@ void Experiment::AddNode(const NodeManager::Node& node){
         }
     }
 
+    std::string node_ip = node_address_map_.at(node.info().id());
+
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
         for(int j = 0; j < component.ports_size(); j++){
@@ -73,7 +75,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
             EventPort event_port;
             event_port.id = port.info().id();
             event_port.guid = port.port_guid();
-            event_port.port_number = environment_.GetPort(node.info().name());
+            event_port.port_number = environment_.GetPort(node_ip);
             event_port.node_id = node.info().id();
 
             //TODO: Fix this when namespace/scoping is into medea, also need to fix in protobufmodelparser
@@ -105,10 +107,11 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
 void Experiment::ConfigureNode(NodeManager::Node& node){
     std::string node_name = node.info().name();
+    std::string node_ip = node_address_map_.at(node.info().id());
 
     if(node.components_size() > 0){
         //set modellogger port
-        auto logger_port = environment_.GetPort(node_name);
+        auto logger_port = environment_.GetPort(node_ip);
 
         auto logger_attribute = node.add_attributes();
         auto logger_attribute_info = logger_attribute->mutable_info();
@@ -117,7 +120,7 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
         logger_attribute->add_s(logger_port);
 
         //set master/slave port
-        auto management_port = environment_.GetPort(node_name);
+        auto management_port = environment_.GetPort(node_ip);
 
         auto management_endpoint_attribute = node.add_attributes();
         auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
@@ -130,7 +133,7 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
     }
 
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
-    node_map_.emplace(node.info().id(), std::move(temp));
+    node_map_.at(node.info().id()).swap(temp);
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
