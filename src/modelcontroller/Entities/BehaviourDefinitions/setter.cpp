@@ -47,6 +47,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, "=", false);
     broker.AttachData(comparator_, "icon", QVariant::String, "circlePlusDark", true);
     broker.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
+    broker.RemoveData(comparator_, "value");
     data_comparator->addValidValues({"=", "+=", "-=", "*=", "/="});
 
     //Setup RHS

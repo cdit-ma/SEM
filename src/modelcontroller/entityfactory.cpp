@@ -486,9 +486,11 @@ EntityFactory *EntityFactory::getNewFactory()
 {
     return new EntityFactory();
 }
+
 bool EntityFactory::doesNodeStructExist(NODE_KIND kind){
     return node_struct_lookup.contains(kind);
 }
+
 bool EntityFactory::doesEdgeStructExist(EDGE_KIND kind){
     return edge_struct_lookup.contains(kind);
 }
@@ -656,9 +658,18 @@ void EntityFactory::DeregisterEdge(Edge* edge){
 
 void EntityFactory::DeregisterGraphML(GraphML* graphml){
     if(graphml){
-        auto id = graphml->getID();
-        hash_.remove(id);
-        unregistered_hash_.remove(id);
+        switch(graphml->getGraphMLKind()){
+            case GRAPHML_KIND::NODE:
+            case GRAPHML_KIND::EDGE:
+            case GRAPHML_KIND::KEY:{
+                auto id = graphml->getID();
+                hash_.remove(id);
+                unregistered_hash_.remove(id);
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 

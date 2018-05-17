@@ -1041,12 +1041,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::INPUT_PARAMETER:{
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setTertiaryIcon("Items", nodeKindStr);
-                nodeItem->setTertiaryIconVisible(true);
-                nodeItem->setSecondaryTextKey("value");
-                secondary_icon.second = "pencil";
-                nodeItem->setSecondaryIconPath(secondary_icon);
 
+                if(item->hasData("value")){
+                    nodeItem->setSecondaryTextKey("value");
+                    secondary_icon.second = "pencil";
+                    nodeItem->setSecondaryIconPath(secondary_icon);
+                }else{
+                    nodeItem->setPrimaryTextKey("");
+                    nodeItem->setSecondaryTextKey("label");
+                    secondary_icon.second = "pencil";
+                    nodeItem->setSecondaryIconPath(secondary_icon);
+                }
                 break;
             }
             case NODE_KIND::VARIADIC_PARAMETER:
@@ -1054,8 +1059,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 
                 nodeItem->setExpandEnabled(false);
                 
-                //nodeItem->setTertiaryIcon("Items", nodeKindStr);
-                //nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setPrimaryTextKey("");
                 secondary_icon.second = "pencil";
