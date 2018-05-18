@@ -23,7 +23,7 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker,
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "Return", false);
+    broker.AttachData(this, "label", QVariant::String, "Return Parameters", true);
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.ProtectData(this, "index", true);
     broker.AttachData(this, "row", QVariant::Int, 0, true);

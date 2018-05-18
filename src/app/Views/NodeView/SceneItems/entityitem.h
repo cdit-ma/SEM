@@ -39,6 +39,7 @@ public:
 
         PRIMARY_TEXT,
         SECONDARY_TEXT,
+        TERTIARY_TEXT,
         
         MAIN_ICON,
         MAIN_ICON_OVERLAY,
@@ -71,7 +72,6 @@ public:
 
     ViewItem* getViewItem() const;
 
-    virtual QPointF getSceneEdgeTermination(bool left) const = 0;
     virtual QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const = 0;
 
     QColor getTextColor() const;
@@ -101,7 +101,7 @@ public:
     virtual void setPos(const QPointF &pos);
     int getID();
 
-    virtual QRectF getElementRect(EntityRect rect) const;
+    virtual QRectF getElementRect(EntityRect rect) const = 0;
     virtual QPainterPath getElementPath(EntityRect rect) const;
 
     void paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QPair<QString, QString>& image, QColor tintColor=QColor());

@@ -30,8 +30,11 @@ MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(br
         return;
     }
 
+    setLabelFunctional(false);
+
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, "", true);
+    broker.AttachData(this, "operation", QVariant::String, "", false);
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", false);
     broker.AttachData(this, "icon", QVariant::String, "", false);
@@ -70,6 +73,14 @@ void MEDEA::Function::parentSet(Node* parent){
         setAcceptsNodeKind(NODE_KIND::INEVENTPORT_IMPL, false);
         setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_IMPL, false);
         setAcceptsNodeKind(NODE_KIND::SERVER_REQUEST, false);
+    }
+    
+    if(parent_node_kind != NODE_KIND::CLASS_INSTANCE){
+        auto operation = getData("operation");
+        auto label = getData("label");
+        if(operation && label){
+            operation->linkData(label, true);
+        }
     }
 
     Node::parentSet(parent);

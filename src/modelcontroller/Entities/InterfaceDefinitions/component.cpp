@@ -33,14 +33,5 @@ Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     broker.AttachData(this, "comment", QVariant::String, "");
     broker.AttachData(this, "namespace", QVariant::String, "", true);
     broker.AttachData(this, "type", QVariant::String, "", true);
-}
-
-void Component::DataAdded(Data* data){
-    Node::DataAdded(data);
-
-    auto key_name = data->getKeyName();
-
-    if(key_name == "label" || key_name == "namespace" || key_name == "type"){
-        TypeKey::BindNamespaceAndLabelToType(this, true);
-    }
+    TypeKey::BindNamespaceAndLabelToType(this, true);
 }

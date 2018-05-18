@@ -14,7 +14,6 @@ public:
 	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     Aggregate(EntityFactoryBroker& factory, bool is_temp_node);
-    void DataAdded(Data* data);
 };
 
 

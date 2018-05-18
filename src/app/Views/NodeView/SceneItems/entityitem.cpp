@@ -26,10 +26,6 @@ EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 
 
     addRequiredData("readOnly");
-
-    if(kind == NODE){
-        
-    }
     addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -43,6 +39,7 @@ QList<EntityItem::EntityRect> EntityItem::GetEntityRects(){
 
         EntityRect::PRIMARY_TEXT,
         EntityRect::SECONDARY_TEXT,
+        EntityRect::TERTIARY_TEXT,
         
         EntityRect::MAIN_ICON,
         EntityRect::MAIN_ICON_OVERLAY,
@@ -118,7 +115,7 @@ ViewItem *EntityItem::getViewItem() const
 void EntityItem::setPos(const QPointF &pos)
 {
     if(pos != getPos()){
-        QPointF deltaPos = pos - this->getPos();
+        QPointF deltaPos = pos - getPos();
         deltaPos = validateMove(deltaPos);
         if(!deltaPos.isNull()){
             QPointF newPos = getPos() + deltaPos;
@@ -139,6 +136,7 @@ QRectF EntityItem::getElementRect(EntityRect rect) const
 
     switch(rect){
         case EntityRect::SHAPE:
+
             r = currentRect();
             break;
         case EntityRect::MOVE:
@@ -215,7 +213,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QStrin
 {
     auto text_item = getTextItem(pos);
     if(text_item){
-        //painter->fillRect(getElementRect(pos), QColor(0,255,0,100));
+        //painter->fillRect(getElementRect(pos), QColor(0,0,255,50));
         text_item->RenderText(painter, getRenderState(lod), getElementRect(pos) + QMarginsF(-1,0,0,0), text);
     }
 }
@@ -483,6 +481,7 @@ void EntityItem::handleHover(bool hovered)
         setHovered(hovered);
     }
 }
+
 void EntityItem::shapeHover(bool handle, const QPointF&){
     setHovered(handle);
 }
@@ -713,7 +712,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         //Paint the Outline path.
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
-        painter->drawRect(currentRect());
+
+        painter->drawRect(getElementRect(EntityRect::SHAPE) );
         painter->restore();
     }
 
@@ -786,6 +786,7 @@ QPen EntityItem::getPen()
         penColor = Theme::theme()->getHighlightColor();
     }
 
+
     if(!isHovered()){
         if(!isSelected() || (isSelected() && !isActiveSelected())){
             penColor = penColor.lighter(140);
@@ -818,7 +819,7 @@ bool EntityItem::isMoving() const
 
 int EntityItem::getGridSize() const
 {
-    return 10;
+    return 5;
 }
 
 QPointF EntityItem::getNearestGridPoint(QPointF newPos)

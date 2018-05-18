@@ -14,7 +14,6 @@ public:
     static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     Component(EntityFactoryBroker& factory, bool is_temp_node);
-    void DataAdded(Data* data);
 };
 
 #endif // COMPONENT_H

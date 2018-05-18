@@ -120,27 +120,17 @@ QPointF EdgeItem::getPos() const
  */
 QRectF EdgeItem::boundingRect() const
 {
-    QRectF r = currentRect();
-    r = r.united(srcIconCircle());
-    r = r.united(dstIconCircle());
-    r = r.united(srcArrow.controlPointRect());
-    r = r.united(srcCurve.controlPointRect());
-    r = r.united(dstArrow.controlPointRect());
-    r = r.united(dstCurve.controlPointRect());
-    //Add Margins to stop edges getting cropped
-    r = r.marginsAdded(margins);
+    QRectF r = translatedCenterCircleRect();
+    r |= srcIconCircle();
+    r |= dstIconCircle();
+    r |= srcArrow.controlPointRect();
+    r |= dstArrow.controlPointRect();
+    r |= srcCurve.controlPointRect();
+    r |= dstCurve.controlPointRect();
+    r += margins;
     return r;
 }
 
-/**
- * @brief EdgeItem::getSceneEdgeTermination Gets the position in which the edge line would join the left/right side of the center point.
- * @param left Left or Right side
- * @return
- */
-QPointF EdgeItem::getSceneEdgeTermination(bool left) const
-{
-    return getCenterCircleTermination(left, _centerPoint);
-}
 
 QPointF EdgeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     return getCenterCircleTermination(direction == EDGE_DIRECTION::SOURCE, _centerPoint);
@@ -190,6 +180,10 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawPath(dstArrow);
     }
 
+    if(!isSelected()){
+        painter->restore();
+    }
+    
     if(state > RENDER_STATE::BLOCK){
         painter->setBrush(getBodyColor());
         pen.setStyle(Qt::SolidLine);
@@ -198,9 +192,6 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawEllipse(translatedCenterCircleRect());
     }
 
-    if(!isSelected()){
-        painter->restore();
-    }
 
     auto ICON = EntityRect::MAIN_ICON;
     if(isIconVisible(ICON)){
@@ -245,16 +236,10 @@ QPainterPath EdgeItem::getElementPath(EntityRect rect) const
             if(isSelected()){
                 path.addEllipse(srcIconCircle());
                 path.addEllipse(dstIconCircle());
+            }else{
+                path.addPath(srcArrow);
+                path.addPath(dstArrow);
             }
-            path.addPath(srcArrow);
-            path.addPath(dstArrow);
-            return path;
-        }
-        case EntityRect::MOVE:{
-            //Move Area is the Center Circle
-            QPainterPath path;
-            path.setFillRule(Qt::WindingFill);
-            path.addEllipse(translatedCenterCircleRect());
             return path;
         }
     default:
@@ -267,6 +252,7 @@ QPainterPath EdgeItem::getElementPath(EntityRect rect) const
 QRectF EdgeItem::getElementRect(EntityRect rect) const
 {
     switch(rect){
+        case EntityRect::MOVE:
         case EntityRect::MAIN_ICON:{
             return centerIconRect();
         }
@@ -294,8 +280,10 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         if(!isCentered() && translatedCenterCircleRect().contains(pos)){
             resetCenter();
         }else if(isSelected() && srcIconRect().contains(pos)){
+            vSrc->setHighlighted(false);
             emit req_centerItem(src);
         }else if(isSelected() && dstIconRect().contains(pos)){
+            vDst->setHighlighted(false);
             emit req_centerItem(dst);
         }
     }
@@ -392,18 +380,44 @@ QRectF EdgeItem::dstIconRect() const
 QRectF EdgeItem::srcIconCircle() const
 {
     QRectF  r;
-    r.setSize(QSizeF(10,10));
+    if(isSelected()){
+        r.setSize(QSizeF(10,10));
 
-    QRectF cR = translatedCenterCircleRect();
-    r.moveCenter(cR.center());
+        QRectF cR = translatedCenterCircleRect();
+        r.moveCenter(cR.center());
 
-    if(srcCurveEntersCenterLeft){
-        r.moveRight(cR.left());
-    }else{
-        r.moveLeft(cR.right());
+        if(srcCurveEntersCenterLeft){
+            r.moveRight(cR.left());
+        }else{
+            r.moveLeft(cR.right());
+        }
     }
     return r;
 }
+
+/**
+ * @brief EdgeItem::dstIconCircle Gets the Destination Icon Circle
+ * This swaps side depending on the whether the Destination Edge enters the left of the Center
+ * @return
+ */
+QRectF EdgeItem::dstIconCircle() const
+{
+    QRectF  r;
+    if(isSelected()){
+        r.setSize(QSizeF(10,10));
+
+        QRectF cR = translatedCenterCircleRect();
+        r.moveCenter(cR.center());
+
+        if(!srcCurveEntersCenterLeft){
+            r.moveRight(cR.left());
+        }else{
+            r.moveLeft(cR.right());
+        }
+    }
+    return r;
+}
+
 
 QPolygonF EdgeItem::getTriangle() const{
     //http://www.mathopenref.com/triangleincircle.html
@@ -436,24 +450,6 @@ QPolygonF EdgeItem::getTriangle() const{
     //auto diff = br.center() - center;
     //poly.translate(diff);
     return poly;
-}
-/**
- * @brief EdgeItem::dstIconCircle Gets the Destination Icon Circle
- * This swaps side depending on the whether the Destination Edge enters the left of the Center
- * @return
- */
-QRectF EdgeItem::dstIconCircle() const
-{
-    QRectF  r;
-    r.setSize(QSizeF(10,10));
-    QRectF cR = translatedCenterCircleRect();
-    r.moveCenter(cR.center());
-    if(!srcCurveEntersCenterLeft){
-        r.moveRight(cR.left());
-    }else{
-        r.moveLeft(cR.right());
-    }
-    return r;
 }
 
 /**
@@ -728,8 +724,8 @@ void EdgeItem::resetCenter()
  */
 bool EdgeItem::srcExitsLeft(QPointF center) const{
 
-    QPointF srcLeft = vSrc->getSceneEdgeTermination(true);
-    QPointF srcRight = vSrc->getSceneEdgeTermination(false);
+    QPointF srcLeft = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, EDGE_KIND::NONE);
+    QPointF srcRight = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
     //Allow for the arrow head
     QPointF ctrLeft = getCenterCircleTermination(true, center) - QPointF(ARROW_SIZE, 0);
     QPointF ctrRight = getCenterCircleTermination(false, center) + QPointF(ARROW_SIZE, 0);;
@@ -750,8 +746,8 @@ bool EdgeItem::srcExitsLeft(QPointF center) const{
  */
 bool EdgeItem::dstExitsLeft(QPointF center) const{
     //Allow for the arrow head
-    QPointF dstLeft = vDst->getSceneEdgeTermination(true) - QPointF(ARROW_SIZE, 0);
-    QPointF dstRight = vDst->getSceneEdgeTermination(false) + QPointF(ARROW_SIZE, 0);
+    QPointF dstLeft = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE) - QPointF(ARROW_SIZE, 0);
+    QPointF dstRight = vDst->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, EDGE_KIND::NONE) + QPointF(ARROW_SIZE, 0);
     QPointF ctrLeft = getCenterCircleTermination(true, center);
     QPointF ctrRight = getCenterCircleTermination(false, center);
 
@@ -772,8 +768,8 @@ bool EdgeItem::dstExitsLeft(QPointF center) const{
  */
 bool EdgeItem::srcLeftOfDst() const
 {
-    QPointF srcLeft = vSrc->getSceneEdgeTermination(true);
-    QPointF dstLeft = vDst->getSceneEdgeTermination(true);
+    QPointF srcLeft = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
+    QPointF dstLeft = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
     return srcLeft.x() <= dstLeft.x();
 }
 
@@ -840,12 +836,14 @@ void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos){
     if(hovered){
         AddTooltip("Double-Click to center on edge's source");
     }
+    vSrc->setHighlighted(hovered);
 }
 
 void EdgeItem::targetIconHover(bool hovered, const QPointF& pos){
     if(hovered){
         AddTooltip("Double-Click to center on edge's target");
     }
+    vDst->setHighlighted(hovered);
 }
 
 void EdgeItem::moveHover(bool hovered, const QPointF& pos){

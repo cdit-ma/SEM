@@ -8,7 +8,20 @@ LabelKey::LabelKey(EntityFactoryBroker& broker): Key(broker, "label", QVariant::
     //QStringList invalidChars;
     //invalidChars << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
     //invalidChars << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
-}   
+}
+
+QVariant LabelKey::ValidateSystemLabel(Data* data, QVariant data_value){
+    auto new_label = data_value.toString();
+
+    if(new_label.isEmpty()){
+        //Don't allow an empty value
+        new_label = data->getValue().toString();
+    }
+
+    new_label.replace("\t", " ");
+    new_label.replace(" ", "_");
+    return new_label;
+}
 
 QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
     auto new_label = data_value.toString();
@@ -24,6 +37,8 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
     
     //Replace Tabs
     new_label.replace("\t", " ");
+    
+    
 
     if(new_label.isEmpty()){
         //Don't allow an empty value
@@ -31,8 +46,8 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
     }
 
     if(functional_label){
-        //Get rid of spaces and tabs
-        new_label.replace(" ", "_");
+        //Validate
+        new_label = ValidateSystemLabel(data, new_label).toString();
 
         //Check for _XX
         QRegularExpression regex("^" + new_label + "_([0-9]+)?$");

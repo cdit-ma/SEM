@@ -1,6 +1,7 @@
 #include "serverinterface.h"
 #include "../../../entityfactorybroker.h"
 #include "../../../entityfactoryregistrybroker.h"
+#include "../../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_INTERFACE;
 const QString kind_string = "Server Interface";
@@ -28,8 +29,10 @@ MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_t
     auto input_params = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);
     auto return_params = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
 
-    broker.AttachData(input_params, "label", QVariant::String, "Request", false);
-    broker.AttachData(return_params, "label", QVariant::String, "Reply", false);
+    broker.AttachData(this, "namespace", QVariant::String, "", true);
+    broker.AttachData(input_params, "label", QVariant::String, "Request Type", true);
+    broker.AttachData(return_params, "label", QVariant::String, "Reply Type", true);
+    TypeKey::BindNamespaceAndLabelToType(this, true);
 }
 
 

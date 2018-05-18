@@ -15,6 +15,8 @@ public:
     NodeViewItem* getNodeViewItem() const;
     NODE_KIND getNodeKind() const;
 
+    virtual QRectF getElementRect(EntityRect rect) const;
+
 
     virtual void setRightJustified(bool isRight);
     bool isRightJustified() const;
@@ -44,18 +46,17 @@ public:
 
 
 
+    QRectF boundingRect() const;
+
 
     //RECTS
-    virtual QRectF viewRect() const;
-    virtual QRectF boundingRect() const;
-    virtual QRectF contractedRect() const;
-    virtual QRectF expandedRect() const;
-    virtual QRectF currentRect() const;
-    QRectF translatedHeaderRect() const;
+    QRectF viewRect() const;
+    QRectF currentRect() const;
+    
     QRectF gridRect() const;
-    QRectF expandedGridRect() const;
-    virtual QRectF bodyRect() const;
-    virtual QRectF headerRect() const;
+
+    QRectF bodyRect() const;
+    QRectF headerRect() const;
 
 
     QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
@@ -77,7 +78,7 @@ public:
 
     
 
-    bool isExpandEnabled();
+    virtual bool isExpandEnabled();
     virtual QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -111,7 +112,6 @@ public:
 
     QPointF getCenterOffset() const;
 
-    virtual QPointF getSceneEdgeTermination(bool left) const;
 
     void setAspect(VIEW_ASPECT aspect);
     VIEW_ASPECT getAspect();
@@ -122,6 +122,7 @@ public:
 
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
+    void setTertiaryTextKey(QString key);
 
 
     void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind, bool update = true);
@@ -134,14 +135,19 @@ public:
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
+    QString getTertiaryTextKey() const;
+    
 
     
     bool gotPrimaryTextKey() const;
     bool gotSecondaryTextKey() const;
+    bool gotTertiaryTextKey() const;
+
 
 
     QString getPrimaryText() const;
     QString getSecondaryText() const;
+    QString getTertiaryText() const;
 
     virtual void setExpanded(bool expand);
 
@@ -180,6 +186,8 @@ private:
     void expandContractHover(bool hovered, const QPointF& pos);
     void primaryTextHover(bool hovered, const QPointF& pos);
     void secondaryTextHover(bool hovered, const QPointF& pos);
+    void tertiaryTextHover(bool hovered, const QPointF& pos);
+    
     void notificationHover(bool hovered, const QPointF& pos);
     void edgeKnobHover(bool hovered, const QPointF& pos);
     void moveHover(bool hovered, const QPointF& pos);
@@ -230,6 +238,7 @@ private:
 
     QString primaryTextKey;
     QString secondaryTextKey;
+    QString tertiaryTextKey;
 
     bool right_justified = false;
 
@@ -245,7 +254,6 @@ protected:
 
     // EntityItemNew interface
 public:
-    virtual QRectF getElementRect(EntityRect rect) const;
     virtual QPainterPath getElementPath(EntityRect rect) const;
     QPointF getTopLeftOffset() const;
     // QGraphicsItem interface

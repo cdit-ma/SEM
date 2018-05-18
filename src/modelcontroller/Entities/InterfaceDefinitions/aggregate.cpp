@@ -36,14 +36,6 @@ Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "namespace", QVariant::String, "", true);
     broker.AttachData(this, "comment", QVariant::String, "");
+    TypeKey::BindNamespaceAndLabelToType(this, true);
 }
 
-void Aggregate::DataAdded(Data* data){
-    Node::DataAdded(data);
-
-    auto key_name = data->getKeyName();
-
-    if(key_name == "label" || key_name == "namespace" || key_name == "type"){
-        TypeKey::BindNamespaceAndLabelToType(this, true);
-    }
-}

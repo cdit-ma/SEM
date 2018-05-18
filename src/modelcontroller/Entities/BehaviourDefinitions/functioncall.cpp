@@ -26,6 +26,7 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
         return;
     }
 
+    setLabelFunctional(false);
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, "", true);
     broker.AttachData(this, "label", QVariant::String, "", true);

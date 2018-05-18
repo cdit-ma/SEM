@@ -21,15 +21,26 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     setMoveEnabled(true);
     setExpandEnabled(true);
 
+    const auto& grid_size = getGridSize();
+    auto margins = QMarginsF(grid_size, grid_size, grid_size, grid_size);
+    
+    setBodyPadding(margins);
+    setMargin(margins);
 
+    //DEFAULTS
+    const int height = 20;
+    const int width = 55;
 
+    setMinimumHeight(height);
+    setMinimumWidth(width);
+    setExpandedHeight(height);
+    setExpandedWidth(width);
 
     if(node_view_item){
         connect(node_view_item, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(node_view_item, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
         connect(node_view_item, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
         connect(node_view_item, &NodeViewItem::nestedVisualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
-        
         connect(node_view_item, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
         connect(node_view_item, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
     }
@@ -38,8 +49,9 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
 
+        
         parentItem->addChildNode(this);
-        setPos(getNearestGridPoint());
+        setPos(QPointF(-1, -1));
     }
 
     connect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
@@ -53,6 +65,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     addHoverFunction(EntityRect::EXPAND_CONTRACT, std::bind(&NodeItem::expandContractHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::PRIMARY_TEXT, std::bind(&NodeItem::primaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_TEXT, std::bind(&NodeItem::secondaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::TERTIARY_TEXT, std::bind(&NodeItem::tertiaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::NOTIFICATION_RECT, std::bind(&NodeItem::notificationHover, this, std::placeholders::_1, std::placeholders::_2));
     
     addHoverFunction(EntityRect::CONNECT_SOURCE, std::bind(&NodeItem::edgeKnobHover, this, std::placeholders::_1, std::placeholders::_2));
@@ -158,8 +171,6 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
         connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
         connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
         connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
-        
-
         
         childNodes[ID] = nodeItem;
         nodeItem->setBaseBodyColor(getBaseBodyColor());
@@ -280,59 +291,42 @@ bool NodeItem::setMoveFinished()
 QRectF NodeItem::boundingRect() const
 {
     QRectF rect;
-    rect.setWidth(margin.left() + margin.right() + getWidth());
-    rect.setHeight(margin.top() + margin.bottom() + getHeight());
+    rect = getElementRect(EntityRect::BODY) | getElementRect(EntityRect::HEADER);
+    rect += margin;
     return rect;
-}
-
-
-QRectF NodeItem::contractedRect() const
-{
-    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getMinimumWidth(), getMinimumHeight()));
-}
-
-QRectF NodeItem::expandedRect() const
-{
-    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getExpandedWidth(), getExpandedHeight()));
 }
 
 QRectF NodeItem::currentRect() const
 {
-
-    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getWidth(), getHeight()));
+    return getElementRect(EntityRect::BODY) | getElementRect(EntityRect::HEADER);
 }
-
 
 QRectF NodeItem::gridRect() const
 {
-    return bodyRect().marginsRemoved(getBodyPadding());
+    return getElementRect(EntityRect::BODY).marginsRemoved(getBodyPadding());
 }
 
-QRectF NodeItem::expandedGridRect() const
-{
-    return expandedRect().marginsRemoved(getBodyPadding());
-}
 
 QRectF NodeItem::bodyRect() const
 {
-    QRectF rect = currentRect();
+    QRectF rect;
+    rect.setTopLeft(getMarginOffset());
+    rect.setWidth(getWidth());
+    rect.setHeight(getHeight());
+
     rect.setTop(rect.top() + getMinimumHeight());
     return rect;
 }
 
 QRectF NodeItem::headerRect() const
 {
-    QRectF rect = currentRect();
-    rect.setBottom(rect.top() + getMinimumHeight());
+    QRectF rect;
+    rect.setTopLeft(getMarginOffset());
+    rect.setWidth(getWidth());
+    rect.setHeight(getMinimumHeight());
     return rect;
 }
 
-QRectF NodeItem::translatedHeaderRect() const{
-    QRectF rect = headerRect();
-    //we should use the bounding rect coordinates!
-    rect.translate(pos());
-    return rect;
-}
 
 QRectF NodeItem::childrenRect() const
 {
@@ -523,18 +517,6 @@ const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getCurrentVisualEdgeKinds(
 }
 
 
-QPointF NodeItem::getCenterOffset() const
-{
-    return contractedRect().center();
-}
-
-QPointF NodeItem::getSceneEdgeTermination(bool left) const
-{
-    qreal y = contractedRect().center().y();
-    qreal x = left ? currentRect().left() : currentRect().right();
-    return mapToScene(x,y);
-}
-
 void NodeItem::setAspect(VIEW_ASPECT aspect)
 {
     this->aspect = aspect;
@@ -568,9 +550,9 @@ void NodeItem::setExpanded(bool expand)
         }
 
         update();
-        emit sizeChanged();
         updateNotifications();
         updateVisualEdgeKinds();
+        emit sizeChanged();
     }
 }
 
@@ -592,11 +574,24 @@ void NodeItem::setSecondaryTextKey(QString key)
     }
 }
 
+void NodeItem::setTertiaryTextKey(QString key)
+{
+    if(tertiaryTextKey != key){
+        tertiaryTextKey = key;
+        addRequiredData(key);
+    }
+}
+
 
 
 QString NodeItem::getPrimaryTextKey() const
 {
     return primaryTextKey;
+}
+
+QString NodeItem::getTertiaryTextKey() const
+{
+    return tertiaryTextKey;
 }
 
 
@@ -615,6 +610,11 @@ bool NodeItem::gotSecondaryTextKey() const
     return !secondaryTextKey.isEmpty();
 }
 
+bool NodeItem::gotTertiaryTextKey() const
+{
+    return !tertiaryTextKey.isEmpty();
+}
+
 QString NodeItem::getPrimaryText() const
 {
     if(!primaryTextKey.isEmpty()){
@@ -631,6 +631,13 @@ QString NodeItem::getSecondaryText() const
     return QString();
 }
 
+QString NodeItem::getTertiaryText() const
+{
+    if(!tertiaryTextKey.isEmpty()){
+        return getData(tertiaryTextKey).toString();
+    }
+    return QString();
+}
 
 void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
     if(isDataRequired(key_name)){
@@ -660,7 +667,7 @@ void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
             emit indexChanged();
         }
 
-        if(key_name == primaryTextKey || key_name == secondaryTextKey){
+        if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
             update();
         }
     }
@@ -671,11 +678,12 @@ void NodeItem::childPosChanged(EntityItem*)
 {
     //Update the child rect.    
     QRectF rect;
+
     for(auto child : getChildEntities()){
         if(child->isNodeItem()){
             rect = rect.united(child->translatedBoundingRect());
         }else if(child->isEdgeItem()){
-            rect = rect.united(child->currentRect());
+            rect = rect.united(child->translatedBoundingRect());
         }
     }
     _childRect = rect;
@@ -760,7 +768,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                     painter->save();
                     painter->setBrush(Qt::NoBrush);
                     painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
-                    painter->drawRect(getElementRect(EntityRect::PRIMARY_TEXT));// + );
+                    painter->drawRect(getElementRect(EntityRect::PRIMARY_TEXT));
                     painter->restore();
                 }
             } 
@@ -783,7 +791,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                     if(isHovered(EntityRect::SECONDARY_TEXT)){
                         painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
                     }
-                    painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT));// + QMarginsF(1,0,1,0));
+                    painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT));
                     painter->restore();
                 }
             }
@@ -791,6 +799,28 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->save();
             painter->setPen(getTextColor());
             renderText(painter, lod, EntityRect::SECONDARY_TEXT, getSecondaryText());
+            painter->restore();
+        }
+
+        if(gotTertiaryTextKey()){
+            auto is_protected = isDataProtected(getTertiaryTextKey());
+            if(state >= RENDER_STATE::REDUCED){
+                if(!is_protected){
+                    painter->save();
+                    painter->setBrush(getBodyColor());
+                    painter->setPen(Qt::NoPen);
+
+                    if(isHovered(EntityRect::TERTIARY_TEXT)){
+                        painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
+                    }
+                    painter->drawRect(getElementRect(EntityRect::TERTIARY_TEXT));
+                    painter->restore();
+                }
+            }
+
+            painter->save();
+            painter->setPen(getTextColor());
+            renderText(painter, lod, EntityRect::TERTIARY_TEXT, getTertiaryText());
             painter->restore();
         }
     }
@@ -889,21 +919,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 }
 
-QRectF NodeItem::getElementRect(EntityRect rect) const
-{
-    switch(rect){
-        case EntityRect::HEADER:
-        case EntityRect::MOVE:
-            return headerRect();
-        case EntityRect::BODY:
-            return bodyRect();
-        
-        default:
-            break;
-    }
-    //Just call base class.
-    return EntityItem::getElementRect(rect);
-}
+
 
 QPainterPath NodeItem::getElementPath(EntityRect rect) const
 {
@@ -1007,7 +1023,15 @@ QRectF NodeItem::getNotificationRect() const{
 QRectF NodeItem::getExpandStateRect() const{
     QRectF rect;
     const auto& icon = getElementRect(EntityRect::MAIN_ICON);
-    rect.setSize(icon.size() / 4.0);
+    auto icon_size = icon.size() / 4.0;
+    const auto& minimum_size = smallIconSize() / 3;
+
+    if(icon_size.width() < minimum_size.width()){
+        icon_size = minimum_size;
+    }
+
+    
+    rect.setSize(icon_size);
     rect.moveBottomLeft(icon.bottomLeft());
     return rect;
 }
@@ -1136,6 +1160,11 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             emit req_editData(getViewItem(), getSecondaryTextKey());
         }
     }
+    if(!getTertiaryText().isEmpty()){
+        if(event->button() == Qt::LeftButton && getElementPath(EntityRect::TERTIARY_TEXT).contains(event->pos())){
+            emit req_editData(getViewItem(), getTertiaryTextKey());
+        }
+    }
 
 
     EntityItem::mouseDoubleClickEvent(event);
@@ -1147,6 +1176,20 @@ QPointF NodeItem::getTopLeftOffset() const
 {
     return getMarginOffset();
 }
+
+QRectF NodeItem::getElementRect(EntityItem::EntityRect rect) const
+{
+    switch(rect){
+    case EntityRect::HEADER:
+        return headerRect();
+    case EntityRect::BODY:
+        return bodyRect();
+    default:
+        break;
+    }
+    return EntityItem::getElementRect(rect);
+}
+
 
 void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
@@ -1162,13 +1205,13 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
         if(isExpanded()){
             //Paint the Body
             painter->setBrush(getBodyColor());
-            painter->drawRect(currentRect());
+            painter->drawRect(getElementRect(EntityRect::BODY));
         }
 
         //Paint the Header
-        painter->setBrush(getHeaderColor());
         if(!IS_BLOCK){
-            painter->drawRect(headerRect());
+            painter->setBrush(getHeaderColor());
+            painter->drawRect(getElementRect(EntityRect::HEADER));
         }
     }
 }
@@ -1214,6 +1257,20 @@ void NodeItem::secondaryTextHover(bool hovered, const QPointF&){
     if(gotSecondaryTextKey()){
         const auto& data_key = getSecondaryTextKey();
         const auto& data = getSecondaryText();
+        if(hovered){
+            QString tooltip = "[" + data_key + "] = " + data;
+            if(!isDataProtected(data_key)){
+                tooltip += "\nDouble-Click to edit";
+            }
+            AddTooltip(tooltip);
+        }
+    }
+}
+
+void NodeItem::tertiaryTextHover(bool hovered, const QPointF&){
+    if(gotTertiaryTextKey()){
+        const auto& data_key = getTertiaryTextKey();
+        const auto& data = getTertiaryText();
         if(hovered){
             QString tooltip = "[" + data_key + "] = " + data;
             if(!isDataProtected(data_key)){

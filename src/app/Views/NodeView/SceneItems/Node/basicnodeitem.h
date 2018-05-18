@@ -32,6 +32,7 @@ protected:
 private:
     QRectF connectSourceRect() const;
     QRectF connectTargetRect() const;
+    
     QRectF notificationRect() const;
 
     QRectF headerContent() const;

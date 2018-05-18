@@ -990,6 +990,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     if(instance->isInstanceImpl()){
         switch(instance_kind){
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::CLIENT_PORT:
             case NODE_KIND::COMPONENT_INSTANCE:{
                 bind_labels = false;
                 break;
@@ -1003,8 +1005,6 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 break;
             };
             case NODE_KIND::CLASS_INSTANCE:{
-
-            
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
@@ -1021,6 +1021,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 bind_values.insert("description", "description");
                 bind_values.insert("class", "class");
                 bind_values.insert("is_variadic", "is_variadic");
+                bind_values.insert("operation", "label");
                 required_instance_keys.insert("is_variadic");
                 break;
             case NODE_KIND::FUNCTION:{
@@ -1029,6 +1030,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 bind_values.insert("description", "description");
                 bind_values.insert("class", "class");
                 bind_values.insert("is_variadic", "is_variadic");
+                
                 required_instance_keys.insert("is_variadic");
                 break;
             }

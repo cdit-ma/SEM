@@ -11,20 +11,8 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : Nod
     parentStackContainer = qobject_cast<StackNodeItem*>(parentItem);
 
     header_margins = QMarginsF(4,2,4,2);
-    auto g_s = getGridSize();
-    auto margins = QMarginsF(g_s, g_s, g_s, g_s);
+   
     
-    setBodyPadding(margins);
-    setMargin(margins);
-
-    qreal height = DEFAULT_SIZE / 2.0;
-    qreal width = DEFAULT_SIZE / 2.0;
-
-    setMinimumHeight(height);
-    setMinimumWidth(width*2);
-
-    setExpandedWidth(width*2);
-    setExpandedHeight(height);
 
     setPrimaryTextKey("label");
 
@@ -96,6 +84,8 @@ QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
 {
     if(getParentContainer() && getParentContainer()->isSortOrdered()){
         return getParentContainer()->getElementPosition(this);
+    }else{
+
     }
     return NodeItem::getNearestGridPoint(newPos);
 }
@@ -124,6 +114,9 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
         return connectTargetRect();
     case EntityRect::CONNECT_SOURCE:
         return connectSourceRect();
+    case EntityRect::HEADER:
+    case EntityRect::MOVE:
+        return headerRect();
     default:
         break;
     }
@@ -140,7 +133,8 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
 QRectF BasicNodeItem::connectSourceRect() const
 {
-    QRectF r = headerRect();
+
+    QRectF r = getElementRect(EntityRect::HEADER);
     auto left = r.right();
     r.setWidth(smallIconSize().width());
 
@@ -151,7 +145,7 @@ QRectF BasicNodeItem::connectSourceRect() const
 
 QRectF BasicNodeItem::notificationRect() const
 {
-    QRectF r = headerRect();
+    QRectF r = getElementRect(EntityRect::HEADER);
     r.setHeight(smallIconSize().width() / 2);
     auto v_offset = r.height() / 2;
     r.moveTop(r.top() - v_offset);
@@ -160,7 +154,7 @@ QRectF BasicNodeItem::notificationRect() const
 
 QRectF BasicNodeItem::connectTargetRect() const
 {
-    QRectF r = headerRect();
+    QRectF r = getElementRect(EntityRect::HEADER);
     auto right = r.left();
     r.setWidth(smallIconSize().width());
 

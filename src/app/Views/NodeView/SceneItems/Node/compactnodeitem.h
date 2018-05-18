@@ -11,18 +11,23 @@ public:
 public:
     QRectF getElementRect(EntityRect rect) const;
 private:
-    void secondaryIconHover(bool handle, const QPointF& pos);
-    QRectF innerHeaderRect() const;
-    QRectF topRect() const;
-    QRectF bottomRect() const;
+    bool isExpandEnabled();
+
+    
+    QRectF headerRect() const;
+
+    
+    QRectF primaryRow() const;
+    QRectF secondaryRow() const;
+    QRectF tertiaryRow() const;
 
     QRectF textRect_Primary() const;
     QRectF textRect_Secondary() const;
+    QRectF textRect_Tertiary() const;
 
     QRectF iconRect_Primary() const;
     QRectF iconRect_Secondary() const;
     QRectF iconRect_Tertiary() const;
-    QRectF iconRect_Union() const;
     
 };
 

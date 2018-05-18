@@ -8,6 +8,8 @@ class LabelKey : public Key
     Q_OBJECT
 public:
     LabelKey(EntityFactoryBroker& factory);
+    static QVariant ValidateSystemLabel(Data* data, QVariant dataValue);
+
     QVariant validateDataChange(Data* data, QVariant dataValue);
 };
 

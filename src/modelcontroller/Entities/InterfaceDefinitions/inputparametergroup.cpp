@@ -23,7 +23,7 @@ MEDEA::InputParameterGroup::InputParameterGroup(::EntityFactoryBroker& broker, b
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "Input", false);
+    broker.AttachData(this, "label", QVariant::String, "Input Parameters", true);
     broker.AttachData(this, "type", QVariant::String, "", true);
     
     broker.ProtectData(this, "index", true);
@@ -37,6 +37,20 @@ bool MEDEA::InputParameterGroup::canAdoptChild(Node* child)
     if(getParentNodeKind() == NODE_KIND::SERVER_INTERFACE && getChildrenCount() > 0 ){
         return false;
     }
+
+
+    auto child_node_kind = child->getNodeKind();
+
+    if(child_node_kind == NODE_KIND::VOID_TYPE){
+        if(getChildrenCount() > 0){
+            return false;
+        }
+    }else{
+        if(getChildrenOfKindCount(NODE_KIND::VOID_TYPE) > 0){
+            return false;
+        }
+    }
+
     return Node::canAdoptChild(child);
 }
 

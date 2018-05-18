@@ -73,7 +73,6 @@ QMarginsF StackNodeItem::getDefaultCellMargin() const{
 }
 
 QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
-    auto grid_size = getGridSize();
     if(cell_info.contains(index)){
         return cell_info[index].margin;
     }
@@ -193,6 +192,7 @@ QPointF StackNodeItem::getStemAnchorPoint() const
 int StackNodeItem::GetHorizontalGap() const{
     return 2 * getGridSize();
 }
+
 int StackNodeItem::GetVerticalGap() const{
     return getGridSize();
 }

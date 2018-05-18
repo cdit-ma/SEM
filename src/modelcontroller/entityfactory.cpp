@@ -24,6 +24,7 @@
 #include "Entities/Keys/innertypekey.h"
 #include "Entities/Keys/outertypekey.h"
 #include "Entities/Keys/namespacekey.h"
+#include "Entities/Keys/operationkey.h"
 
 //Model Includes
 
@@ -608,6 +609,8 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new TypeKey(factory_broker_);    
         }else if(key_name == "namespace"){
             key = new NamespaceKey(factory_broker_);
+        }else if(key_name == "operation"){
+            key = new OperationKey(factory_broker_);
         }else{
             key = new Key(factory_broker_, key_name, type);
         }
