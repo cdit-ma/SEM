@@ -196,7 +196,7 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
             }
 
             default:{
-                std::cout << message.DebugString() << std::endl;
+                std::cerr << message.DebugString() << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 break;
             }

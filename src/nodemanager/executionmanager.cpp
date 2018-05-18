@@ -123,8 +123,6 @@ bool ExecutionManager::PopulateDeployment(){
 
         *deployment_message_ = response;
 
-        std::cout << response.DebugString() << std::endl;
-
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
             auto attribute = deployment_message_->attributes(i);
             if(attribute.info().name() == "master_publisher_port"){

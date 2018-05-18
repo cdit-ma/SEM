@@ -56,8 +56,8 @@ class Environment{
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
 
-        std::string GetPort(const std::string& node_ip);
-        void FreePort(const std::string& node_ip, const std::string& port_number);
+        std::string GetPort(const std::string& node_name);
+        void FreePort(const std::string& node_name, const std::string& port_number);
         
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
@@ -93,8 +93,14 @@ class Environment{
         //model_name -> experiment data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
-        //node_ip -> node data structure
+        //node_name -> node data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
+
+        //node_name -> node_ip map
+        std::unordered_map<std::string, std::string> node_ip_map_;
+
+        //node_ip -> node_name map
+        std::unordered_map<std::string, std::string> node_name_map_;
 
         //event port guid -> event port data structure
         //event port guid takes form "experiment_id.{component_assembly_label}*n.component_instance_label.event_port_label"

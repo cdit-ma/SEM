@@ -42,7 +42,7 @@ class Node{
                 available_ports_.push(port_number);
             }
             catch(const std::invalid_argument& ex){
-                std::cerr << "Could not free port, port string could not be converted to int." << std::endl;
+                std::cerr << "Could not free port <\'" << port <<"\'>, port string could not be converted to int." << std::endl;
                 std::cerr << ex.what() << std::endl;
             }
             catch(const std::out_of_range& ex){
@@ -72,14 +72,13 @@ class Node{
 
         //eventport guid -> port number assigned
         std::unordered_map<std::string, std::string> used_ports_;
-
 };
 
 struct EventPort{
     std::string id;
     std::string guid;
     std::string type;
-    std::string node_id;
+    std::string node_name;
     std::string port_number;
     std::string topic;
 
@@ -101,6 +100,9 @@ class Experiment{
         Experiment(Environment& environment, std::string name);
         ~Experiment();
         
+        void SetConfigureDone();
+        bool ConfigureDone();
+
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_port);
 
@@ -109,14 +111,14 @@ class Experiment{
         void AddNode(const NodeManager::Node& node);
         void ConfigureNode(NodeManager::Node& node);
 
-        bool HasDeploymentOn(const std::string& ip_address) const;
+        bool HasDeploymentOn(const std::string& node_name) const;
 
         void AddLoganClient(const std::string& model_name,
                             const std::string& ip_address,
                             const std::string& management_port,
                             const std::string& logging_port);
                             
-        std::string GetMasterPublisherPort() const;
+        std::string GetMasterPublisherPort();
         std::string GetNodeManagementPort(const std::string& ip) const;
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
 
@@ -134,6 +136,8 @@ class Experiment{
     private:
     
         std::mutex mutex_;
+
+        bool configure_done_;
 
         Environment& environment_;
 

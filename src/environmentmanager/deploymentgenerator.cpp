@@ -87,7 +87,6 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 }
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
-
     std::string experiment_id(control_message.experiment_id());
 
     for(int i = 0; i < control_message.nodes_size(); i++){
@@ -96,10 +95,8 @@ void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& contr
 }
 
 void DeploymentGenerator::AddNodeToExperiment(const std::string& experiment_id, const NodeManager::Node& node){
-
     for(int i = 0; i < node.nodes_size(); i++){
         AddNodeToExperiment(experiment_id, node.nodes(i));
     }
-
     environment_.AddNodeToExperiment(experiment_id, node);
 }
