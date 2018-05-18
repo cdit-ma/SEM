@@ -57,7 +57,7 @@ class EnvironmentRequester{
         
         //Threads
         void HeartbeatLoop();
-        std::thread* heartbeat_thread_;
+        std::unique_ptr<std::thread> heartbeat_thread_;
         bool end_flag_ = false;
 
         //Request helpers
@@ -80,10 +80,10 @@ class EnvironmentRequester{
         std::queue<Request> request_queue_;
 
         //ZMQ sockets and helpers
-        zmq::context_t* context_;
-        zmq::socket_t* update_socket_;
-        void ZMQSendRequest(zmq::socket_t* socket, const std::string& request);
-        std::string ZMQReceiveReply(zmq::socket_t* socket);
+        std::unique_ptr<zmq::context_t> context_;
+        std::unique_ptr<zmq::socket_t> update_socket_;
+        void ZMQSendRequest(zmq::socket_t& socket, const std::string& request);
+        std::string ZMQReceiveReply(zmq::socket_t& socket);
 };
 
 #endif //NODEMANAGER_ENVIRONMENTREQUESTER_H
