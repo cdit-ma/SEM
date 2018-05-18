@@ -11,6 +11,9 @@ Environment::Environment(int port_range_min, int port_range_max){
     MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
     MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
 
+    //Ensure that ports arent allocated out of 16bit port max
+    assert(MANAGER_PORT_RANGE_MAX < 65535);
+
     //Bail out if ranges are illegal
     assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
     assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
