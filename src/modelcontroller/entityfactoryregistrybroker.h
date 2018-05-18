@@ -1,7 +1,7 @@
 #ifndef ENTITYFACTORY_REGISTERBROKER_H
 #define ENTITYFACTORY_REGISTERBROKER_H
 
-#include <factory>
+#include <functional>
 #include "nodekinds.h"
 #include "edgekinds.h"
 
