@@ -48,7 +48,6 @@ private:
     QRectF headerContent_Data_Secondary_Text() const;
     QRectF headerContent_Data_Secondary_Icon() const;
 
-    QRectF expandedStateRect() const;
 
     BasicNodeItem* parentContainer = 0;
     StackNodeItem* parentStackContainer = 0;

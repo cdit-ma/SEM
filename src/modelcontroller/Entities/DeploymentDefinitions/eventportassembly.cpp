@@ -15,12 +15,7 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
     }
 
     broker.AttachData(this, "type", QVariant::String, "", true);
-    if(node_kind == NODE_KIND::INEVENTPORT_INSTANCE || node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
-        broker.AttachData(this, "topicName", QVariant::String, "", true);
-        
-        auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
-        data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
-    }
+    
 };
 
 bool EventPortAssembly::isInPortDelegate() const

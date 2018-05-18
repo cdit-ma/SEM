@@ -102,7 +102,10 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
                 //Try Eliding;
                 int line_height = fm.lineSpacing() + fm.height();
                 int max_lines = ceil(rect.height() / line_height);
-                int max_width = (floor(rect.width()) * max_lines) - fm.width("..");
+                int max_width = (floor(rect.width()) * max_lines);// - fm.width("");
+                if(max_lines > 1){
+                    max_width -= (max_lines * fm.width("."));
+                }
 
                 /*qCritical() << "line_height:" << line_height;
                 qCritical() << "max_lines:" << max_lines;

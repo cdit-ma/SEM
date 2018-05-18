@@ -518,6 +518,10 @@ const  QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getVisualEdgeKinds() cons
     return my_visual_edge_kinds;
 }
 
+const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getCurrentVisualEdgeKinds() const{
+    return isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+}
+
 
 QPointF NodeItem::getCenterOffset() const
 {
@@ -559,12 +563,9 @@ void NodeItem::setExpanded(bool expand)
 
         prepareGeometryChange();
 
-        auto children = getChildEntities();
-
-        for(auto child : children){
+        for(auto child : getChildEntities()){
             child->setVisible(isExpanded());
         }
-        
 
         update();
         emit sizeChanged();
@@ -759,10 +760,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                     painter->save();
                     painter->setBrush(Qt::NoBrush);
                     painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
-                    painter->drawRect(getElementRect(EntityRect::PRIMARY_TEXT) + QMarginsF(1,0,1,0));
+                    painter->drawRect(getElementRect(EntityRect::PRIMARY_TEXT));// + );
                     painter->restore();
                 }
-            }
+            } 
 
             painter->save();
             
@@ -782,7 +783,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                     if(isHovered(EntityRect::SECONDARY_TEXT)){
                         painter->setPen(QPen(getTextColor(), 0, Qt::DotLine));
                     }
-                    painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT) + QMarginsF(1,0,1,0));
+                    painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT));// + QMarginsF(1,0,1,0));
                     painter->restore();
                 }
             }
@@ -797,7 +798,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(state >= RENDER_STATE::REDUCED){
         painter->save();
         auto& my_edges = getVisualEdgeKinds();
-        auto& edges = isExpanded() ? my_edges : getAllVisualEdgeKinds();
+
+        auto& edges = getCurrentVisualEdgeKinds();
         
         for(auto edge_direction : edges.uniqueKeys()){
             for(auto edge_kind : edges.values(edge_direction)){
@@ -876,11 +878,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 const auto brush_color = getHeaderColor();
                 const auto icon_color = isHovered(EntityRect::MAIN_ICON) ? getHighlightColor() : getAltTextColor();
                 auto rect = getExpandStateRect();
-                auto inner_rect = rect.adjusted(.5,.5,-.5,-.5);
                 painter->setPen(Qt::NoPen);
                 painter->setBrush(brush_color);
                 painter->drawEllipse(rect);
-                paintPixmap(painter, lod, inner_rect, "Icons", icon_path, icon_color);
+                paintPixmap(painter, lod, rect, "Icons", icon_path, icon_color);
             }
         }
 
@@ -912,7 +913,7 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
             QPainterPath path = EntityItem::getElementPath(EntityRect::SHAPE);
             path.setFillRule(Qt::WindingFill);
 
-            const auto& edge_knobs = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+            const auto& edge_knobs = getCurrentVisualEdgeKinds();
 
             //Add Edge Knobs
             for(auto edge_direction : edge_knobs.uniqueKeys()){
@@ -935,12 +936,6 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
     return EntityItem::getElementPath(rect);
 }
 
-int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const{
-    //Values in list are backwards
-    const auto& list = getAllVisualEdgeKinds().values(direction);
-    auto index = list.size() - (list.indexOf(kind) + 1);
-    return index;
-}
 
 QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     auto rect = getEdgeConnectRect(direction, kind);
@@ -960,9 +955,15 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) co
     auto rect = getEdgeDirectionRect(direction);
 
     if(kind != EDGE_KIND::NONE){
+        const auto& edge_knobs = getCurrentVisualEdgeKinds();
+        double pos = 0;
+        {
+            const auto& list = edge_knobs.values(direction);
+            pos = list.size() - (list.indexOf(kind) + 1);
+        }
+        
         //Get our position 
-        double pos = getEdgeConnectPos(direction, kind);
-        double count = getAllVisualEdgeKinds().count(direction);
+        double count = edge_knobs.count(direction);
         if(count == 0){
             count = 1;
         }
@@ -1004,10 +1005,11 @@ QRectF NodeItem::getNotificationRect() const{
 }
 
 QRectF NodeItem::getExpandStateRect() const{
-    QRectF icon_rect;
-    icon_rect.setSize(smallIconSize() / 2);
-    icon_rect.moveBottomLeft(getElementRect(EntityRect::MAIN_ICON).bottomLeft());
-    return icon_rect;
+    QRectF rect;
+    const auto& icon = getElementRect(EntityRect::MAIN_ICON);
+    rect.setSize(icon.size() / 4.0);
+    rect.moveBottomLeft(icon.bottomLeft());
+    return rect;
 }
 
 QRectF NodeItem::getNotificationRect(Notification::Severity severity) const{
@@ -1168,18 +1170,6 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
         if(!IS_BLOCK){
             painter->drawRect(headerRect());
         }
-        
-        if(state > RENDER_STATE::BLOCK){
-            //Paint the Text Background
-            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
-                painter->setBrush(getBodyColor());
-                
-                if(isHovered(EntityRect::SECONDARY_TEXT)){
-                    painter->setBrush(getHighlightColor());
-                }
-                painter->drawRect(getElementRect(EntityRect::SECONDARY_TEXT) + QMarginsF(1,0,1,0));
-            }
-        }
     }
 }
 
@@ -1271,6 +1261,7 @@ void NodeItem::edgeKnobHover(bool hovered, const QPointF& pos){
             }
 
             if(in_rect && my_edges.contains(direction, edge_kind)){
+                AddCursor(Qt::ArrowCursor);
                 AddTooltip("Click to show <" + EntityFactory::getPrettyEdgeKindString(edge_kind)+ "> Connect Menu.\nOr Click and drag to enter connect mode.");
             }
         }

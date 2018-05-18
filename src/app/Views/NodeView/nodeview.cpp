@@ -840,9 +840,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::CLIENT_PORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
-                node_item = new StackNodeItem(item, parentNode);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                node_item = new CompactNodeItem(item, parentNode);
+                node_item->setSecondaryTextKey("middleware");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "trafficLight"}, true);
                 node_item->setExpandEnabled(false);
 
                 if(node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE || node_kind == NODE_KIND::CLIENT_PORT_INSTANCE){
@@ -1003,6 +1004,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                         node_item->setExpandedHeight(20);
                         node_item->setExpandedWidth(40);
+                    }
+                    if(node_kind == NODE_KIND::PERIODICEVENT_INSTANCE || node_kind == NODE_KIND::CLASS_INSTANCE){
+                        node_item->setMinimumHeight(10);
+                        node_item->setMinimumWidth(40);
+
                     }
                 }
                 

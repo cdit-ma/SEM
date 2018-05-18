@@ -239,8 +239,9 @@ QRectF BasicNodeItem::headerContent_Icon() const
 QRectF BasicNodeItem::headerContent_Icon_Overlay() const
 {
     QRectF rect;
-    rect.setSize(smallIconSize() / 2);
-    rect.moveTopRight(headerContent_Icon().topRight());
+    const auto& icon = headerContent_Icon();
+    rect.setSize(icon.size() / 4.0);
+    rect.moveTopRight(icon.topRight());
     return rect;
 }
 
@@ -282,15 +283,5 @@ QRectF BasicNodeItem::headerContent_Data_Secondary_Icon() const{
         rect.setSize(smallIconSize() * 0.75);
         rect.moveTopLeft(header_content.topLeft() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }
-    return rect;
-}
-
-QRectF BasicNodeItem::expandedStateRect() const
-{
-    QRectF rect;
-    rect.setSize(smallIconSize() / 2);
-    auto bottom_right = currentRect().bottomRight();
-
-    rect.moveBottomRight(bottom_right - QPointF(1, 1));
     return rect;
 }

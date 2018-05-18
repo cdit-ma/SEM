@@ -215,7 +215,8 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QStrin
 {
     auto text_item = getTextItem(pos);
     if(text_item){
-        text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
+        //painter->fillRect(getElementRect(pos), QColor(0,255,0,100));
+        text_item->RenderText(painter, getRenderState(lod), getElementRect(pos) + QMarginsF(-1,0,0,0), text);
     }
 }
 
@@ -743,6 +744,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             painter->setPen(Qt::NoPen);
             painter->setBrush(getBodyColor());
             painter->drawEllipse(rect);
+
             paintPixmap(painter, lod, inner_rect, getIcon(ICON));
         }
 

@@ -220,7 +220,7 @@ private:
     void updateIcon();
 public slots:
     virtual void dataChanged(const QString& key_name, const QVariant& data);
-    virtual void dataRemoved(QString keyName){};
+    virtual void dataRemoved(const QString& key_name){};
 
 signals:
     //Request changes

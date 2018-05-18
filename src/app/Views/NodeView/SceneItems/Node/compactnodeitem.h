@@ -10,19 +10,20 @@ public:
     CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
 public:
     QRectF getElementRect(EntityRect rect) const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
+    void secondaryIconHover(bool handle, const QPointF& pos);
     QRectF innerHeaderRect() const;
-    QRectF textRect_Top() const;
-    QRectF textRect_Bottom() const;
-    
     QRectF topRect() const;
     QRectF bottomRect() const;
 
-    QRectF iconRect_Top() const;
-    QRectF iconRect_Bottom() const;
+    QRectF textRect_Primary() const;
+    QRectF textRect_Secondary() const;
 
-    QMarginsF header_margins;
+    QRectF iconRect_Primary() const;
+    QRectF iconRect_Secondary() const;
+    QRectF iconRect_Tertiary() const;
+    QRectF iconRect_Union() const;
+    
 };
 
 #endif // COMPACTNODEITEM_H

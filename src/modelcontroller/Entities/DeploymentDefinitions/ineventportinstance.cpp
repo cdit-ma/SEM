@@ -24,9 +24,11 @@ InEventPortInstance::InEventPortInstance(EntityFactoryBroker& broker, bool is_te
 
     broker.ProtectData(this, "index", false);
     broker.AttachData(this, "row", QVariant::Int, 0, false);
+    
+    broker.AttachData(this, "topicName", QVariant::String, "", false);
 
-
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", false);
+    data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
     connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::updateQOSEdge);
     
     updateQOSEdge();

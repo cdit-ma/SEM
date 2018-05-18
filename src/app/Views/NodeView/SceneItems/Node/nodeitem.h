@@ -67,13 +67,13 @@ public:
     QRectF getExpandStateRect() const;
 
 
-    int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const;
-
     QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
 
 
     const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getAllVisualEdgeKinds() const;
     const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getVisualEdgeKinds() const;
+
+    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getCurrentVisualEdgeKinds() const;
 
     
 
@@ -177,13 +177,13 @@ private:
     bool SetEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_knob, bool hovered);
 
 
-    void expandContractHover(bool handle, const QPointF& pos);
-    void primaryTextHover(bool handle, const QPointF& pos);
-    void secondaryTextHover(bool handle, const QPointF& pos);
-    void notificationHover(bool handle, const QPointF& pos);
-    void edgeKnobHover(bool handle, const QPointF& pos);
-    void moveHover(bool handle, const QPointF& pos);
-    void lockHover(bool handle, const QPointF& pos);
+    void expandContractHover(bool hovered, const QPointF& pos);
+    void primaryTextHover(bool hovered, const QPointF& pos);
+    void secondaryTextHover(bool hovered, const QPointF& pos);
+    void notificationHover(bool hovered, const QPointF& pos);
+    void edgeKnobHover(bool hovered, const QPointF& pos);
+    void moveHover(bool hovered, const QPointF& pos);
+    void lockHover(bool hovered, const QPointF& pos);
     
     
 

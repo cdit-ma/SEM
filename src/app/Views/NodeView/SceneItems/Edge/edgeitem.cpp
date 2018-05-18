@@ -189,29 +189,17 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawPath(srcArrow);
         painter->drawPath(dstArrow);
     }
+
     if(state > RENDER_STATE::BLOCK){
         painter->setBrush(getBodyColor());
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
 
-        QPainterPath path;
-        path.setFillRule(Qt::WindingFill);
-
-        //Draw the center Circle/Rectangle
-        path.addEllipse(translatedCenterCircleRect());
-        
-        
-        //Stroke the path
-        painter->drawPath(path);
+        painter->drawEllipse(translatedCenterCircleRect());
     }
 
     if(!isSelected()){
         painter->restore();
-    }
-    
-    //Draw the icons.
-    if(state == RENDER_STATE::BLOCK){
-        painter->setClipPath(getElementPath(EntityRect::SHAPE));
     }
 
     auto ICON = EntityRect::MAIN_ICON;
@@ -229,19 +217,21 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->setBrush(brush_color);
             painter->setPen(pen);
             painter->drawEllipse(srcIconCircle());
-            paintPixmap(painter, lod, ICON, src->getIcon(EntityRect::MAIN_ICON), icon_color);
+            paintPixmap(painter, lod, srcIconRect(), src->getIcon(EntityRect::MAIN_ICON), icon_color);
         }
 
         {
             ICON = EntityRect::TERTIARY_ICON;
             auto is_hovered = isHovered(ICON);
+
             const auto brush_color = is_hovered ? getHighlightColor() : getBodyColor();
             const auto icon_color = is_hovered ? getHighlightTextColor() : QColor();
             painter->setBrush(brush_color);
             painter->setPen(pen);
             painter->setPen(pen);
             painter->drawEllipse(dstIconCircle());
-            paintPixmap(painter, lod, ICON, dst->getIcon(EntityRect::MAIN_ICON), icon_color);
+            
+            paintPixmap(painter, lod, dstIconRect(), dst->getIcon(EntityRect::MAIN_ICON), icon_color);
         }
     }
 }
@@ -281,10 +271,10 @@ QRectF EdgeItem::getElementRect(EntityRect rect) const
             return centerIconRect();
         }
         case EntityRect::SECONDARY_ICON:{
-            return srcIconRect();
+            return srcIconCircle();
         }
         case EntityRect::TERTIARY_ICON:{
-            return dstIconRect();
+            return dstIconCircle();
         }
         default:
         break;
@@ -301,7 +291,7 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     //If we aren't
     if(event->button() == Qt::LeftButton){
         const auto& pos = event->pos();
-        if(isCentered() && translatedCenterCircleRect().contains(pos)){
+        if(!isCentered() && translatedCenterCircleRect().contains(pos)){
             resetCenter();
         }else if(isSelected() && srcIconRect().contains(pos)){
             emit req_centerItem(src);
@@ -325,7 +315,11 @@ void EdgeItem::dataRemoved(const QString& key_name)
 {
     if(isDataRequired(key_name)){
         if(key_name == "x" || key_name == "y"){
-            setCentered(!(hasData("x") && hasData("y")));
+            auto has_x_and_y = hasData("x") && hasData("y");
+
+            if(!has_x_and_y){
+                setCentered(true);
+            }
         }
     }
 }
@@ -711,8 +705,8 @@ void EdgeItem::updateEdge()
 void EdgeItem::resetCenter()
 {
     if(vSrc && vDst){
-        auto srcCenter = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
-        auto dstCenter = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+        auto srcCenter = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+        auto dstCenter = vDst->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
         
         //Calculate new Center position
         auto center = (srcCenter + dstCenter) / 2;
