@@ -182,6 +182,7 @@ private:
     void secondaryTextHover(bool handle, const QPointF& pos);
     void notificationHover(bool handle, const QPointF& pos);
     void edgeKnobHover(bool handle, const QPointF& pos);
+    void moveHover(bool handle, const QPointF& pos);
     void lockHover(bool handle, const QPointF& pos);
     
     

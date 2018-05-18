@@ -41,6 +41,10 @@ private slots:
     void srcAncestorVisibilityChanged();
     void dstAncestorVisibilityChanged();
 private:
+    void sourceIconHover(bool handle, const QPointF& pos);
+    void targetIconHover(bool handle, const QPointF& pos);
+    void moveHover(bool handle, const QPointF& pos);
+
     //Rectangle helpers
     QRectF srcIconRect() const;
     QRectF centerIconRect() const;

@@ -49,6 +49,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     updateVisualEdgeKinds();
     updateNotifications();
 
+    addHoverFunction(EntityRect::MOVE, std::bind(&NodeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::EXPAND_CONTRACT, std::bind(&NodeItem::expandContractHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::PRIMARY_TEXT, std::bind(&NodeItem::primaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_TEXT, std::bind(&NodeItem::secondaryTextHover, this, std::placeholders::_1, std::placeholders::_2));
@@ -1312,3 +1313,11 @@ bool NodeItem::SetEdgeKnobHovered(const QPair<EDGE_DIRECTION, EDGE_KIND>& edge_k
     return true;
 }
 
+
+
+void NodeItem::moveHover(bool handle, const QPointF&){
+    if(handle && isMoveEnabled()){
+        AddTooltip("Click and drag to move entity");
+        AddCursor(Qt::OpenHandCursor);
+    }
+}

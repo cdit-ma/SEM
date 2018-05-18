@@ -1383,7 +1383,7 @@ EntityItem *NodeView::getEntityAtPos(QPointF scenePos)
 
 void NodeView::state_Moving_Entered()
 {
-    setCursor(Qt::SizeAllCursor);
+    //setCursor(Qt::SizeAllCursor);
     if(selectionHandler){
         foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItem* item = getEntityItem(viewItem);
@@ -1432,6 +1432,7 @@ void NodeView::state_RubberbandMode_Entered()
 
 void NodeView::state_RubberbandMode_Exited()
 {
+    unsetCursor();
 }
 
 void NodeView::state_RubberbandMode_Selecting_Entered()

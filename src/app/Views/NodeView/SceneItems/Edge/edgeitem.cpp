@@ -78,6 +78,10 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     addRequiredData("y");
 
     reloadRequiredData();
+
+    addHoverFunction(EntityRect::MOVE, std::bind(&EdgeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::SECONDARY_ICON, std::bind(&EdgeItem::sourceIconHover, this, std::placeholders::_1, std::placeholders::_2));
+    addHoverFunction(EntityRect::TERTIARY_ICON, std::bind(&EdgeItem::targetIconHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 EdgeItem::~EdgeItem()
@@ -195,11 +199,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         //Draw the center Circle/Rectangle
         path.addEllipse(translatedCenterCircleRect());
-        if(isSelected()){
-            //If we are selected add the circles to the left/right
-            path.addEllipse(srcIconCircle());
-            path.addEllipse(dstIconCircle());
-        }
+        
         
         //Stroke the path
         painter->drawPath(path);
@@ -221,8 +221,28 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     
     if(state > RENDER_STATE::BLOCK && isSelected()){
-        paintPixmap(painter, lod, EntityRect::SECONDARY_ICON, src->getIcon(ICON));
-        paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, dst->getIcon(ICON));
+        {
+            ICON = EntityRect::SECONDARY_ICON;
+            auto is_hovered = isHovered(ICON);
+            const auto brush_color = is_hovered ? getHighlightColor() : getBodyColor();
+            const auto icon_color = is_hovered ? getHighlightTextColor() : QColor();
+            painter->setBrush(brush_color);
+            painter->setPen(pen);
+            painter->drawEllipse(srcIconCircle());
+            paintPixmap(painter, lod, ICON, src->getIcon(EntityRect::MAIN_ICON), icon_color);
+        }
+
+        {
+            ICON = EntityRect::TERTIARY_ICON;
+            auto is_hovered = isHovered(ICON);
+            const auto brush_color = is_hovered ? getHighlightColor() : getBodyColor();
+            const auto icon_color = is_hovered ? getHighlightTextColor() : QColor();
+            painter->setBrush(brush_color);
+            painter->setPen(pen);
+            painter->setPen(pen);
+            painter->drawEllipse(dstIconCircle());
+            paintPixmap(painter, lod, ICON, dst->getIcon(EntityRect::MAIN_ICON), icon_color);
+        }
     }
 }
 
@@ -277,9 +297,17 @@ QRectF EdgeItem::getElementRect(EntityRect rect) const
 
 void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+
     //If we aren't
-    if(!isCentered() && event->button() == Qt::LeftButton && currentRect().contains(event->pos())){
-        resetCenter();
+    if(event->button() == Qt::LeftButton){
+        const auto& pos = event->pos();
+        if(isCentered() && translatedCenterCircleRect().contains(pos)){
+            resetCenter();
+        }else if(isSelected() && srcIconRect().contains(pos)){
+            emit req_centerItem(src);
+        }else if(isSelected() && dstIconRect().contains(pos)){
+            emit req_centerItem(dst);
+        }
     }
 }
 
@@ -813,3 +841,26 @@ bool EdgeItem::setMoveFinished()
     return EntityItem::setMoveFinished();
 }
 
+
+void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos){
+    if(hovered){
+        AddTooltip("Double-Click to center on edge's source");
+    }
+}
+
+void EdgeItem::targetIconHover(bool hovered, const QPointF& pos){
+    if(hovered){
+        AddTooltip("Double-Click to center on edge's target");
+    }
+}
+
+void EdgeItem::moveHover(bool hovered, const QPointF& pos){
+    if(hovered){
+        QString tooltip = "Click and drag to move edge";
+        if(!isCentered()){
+            tooltip+= "\nDouble-Click to reset edge";
+        }
+        AddTooltip(tooltip);
+        AddCursor(Qt::OpenHandCursor);
+    }
+}

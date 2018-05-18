@@ -163,7 +163,7 @@ public:
 
 private:
     void shapeHover(bool handle, const QPointF& point);
-    void moveHover(bool handle, const QPointF& point);
+    
 public:
     QVariant getData(const QString& key_name) const;
     bool hasData(const QString& key_name) const;

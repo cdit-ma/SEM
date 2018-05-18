@@ -27,8 +27,10 @@ EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 
     addRequiredData("readOnly");
 
+    if(kind == NODE){
+        
+    }
     addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
-    addHoverFunction(EntityRect::MOVE, std::bind(&NodeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 QList<EntityItem::EntityRect> EntityItem::GetEntityRects(){
@@ -484,12 +486,6 @@ void EntityItem::shapeHover(bool handle, const QPointF&){
     setHovered(handle);
 }
 
-void EntityItem::moveHover(bool handle, const QPointF&){
-    if(handle && isMoveEnabled()){
-        AddTooltip("Click and drag to move entity");
-        AddCursor(Qt::OpenHandCursor);
-    }
-}
 
 void EntityItem::setMoveStarted()
 {
@@ -614,10 +610,10 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     QList<EntityRect> unhovered_rects;
 
     for(auto rect : GetEntityRects()){
-        auto in_rect = getElementRect(rect).contains(pos);
+        auto in_path = getElementPath(rect).contains(pos);
         auto was_hovered = isHovered(rect);
 
-        if(in_rect){
+        if(in_path){
             setAreaHovered(rect, true);
             hovered_rects += rect;
         }else{
