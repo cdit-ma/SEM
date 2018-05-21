@@ -69,7 +69,7 @@ void AggregateInstance::ParentSet(DataNode* child){
         QSet<NODE_KIND> valid_receiver_parents = {NODE_KIND::OUTEVENTPORT_IMPL};
         
         QSet<NODE_KIND> inverse_parents = {NODE_KIND::FUNCTION_CALL, NODE_KIND::SERVER_REQUEST};
-        QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE, NODE_KIND::VARIABLE};
+        QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE};//, NODE_KIND::VARIABLE};
         
 
         QSet<NODE_KIND> ancestor_kinds;

@@ -34,7 +34,7 @@ MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(br
 
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, "", true);
-    broker.AttachData(this, "operation", QVariant::String, "", false);
+    broker.AttachData(this, "operation", QVariant::String, "Function", false);
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", false);
     broker.AttachData(this, "icon", QVariant::String, "", false);

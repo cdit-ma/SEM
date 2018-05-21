@@ -351,7 +351,6 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         auto bind_source = source;
         auto source_key = "label";
 
-        //Data bind to the Variable, instead of the Member
         if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
             bind_source = source_parent;
         }

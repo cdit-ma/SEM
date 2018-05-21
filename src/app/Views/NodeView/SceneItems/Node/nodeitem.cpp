@@ -1150,19 +1150,24 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!getPrimaryTextKey().isEmpty()){
+    auto primary_key = getPrimaryTextKey();
+    auto secondary_key = getSecondaryTextKey();
+    auto tertiary_key = getTertiaryTextKey();
+
+    if(!primary_key.isEmpty() && !isDataProtected(primary_key)){
         if(event->button() == Qt::LeftButton && getElementPath(EntityRect::PRIMARY_TEXT).contains(event->pos())){
-            emit req_editData(getViewItem(), getPrimaryTextKey());
+            emit req_editData(getViewItem(), primary_key);
         }
     }
-    if(!getSecondaryTextKey().isEmpty()){
+    if(!secondary_key.isEmpty() && !isDataProtected(secondary_key)){
         if(event->button() == Qt::LeftButton && getElementPath(EntityRect::SECONDARY_TEXT).contains(event->pos())){
-            emit req_editData(getViewItem(), getSecondaryTextKey());
+            emit req_editData(getViewItem(), secondary_key);
         }
     }
-    if(!getTertiaryText().isEmpty()){
+
+    if(!tertiary_key.isEmpty() && !isDataProtected(tertiary_key)){
         if(event->button() == Qt::LeftButton && getElementPath(EntityRect::TERTIARY_TEXT).contains(event->pos())){
-            emit req_editData(getViewItem(), getTertiaryTextKey());
+            emit req_editData(getViewItem(), tertiary_key);
         }
     }
 

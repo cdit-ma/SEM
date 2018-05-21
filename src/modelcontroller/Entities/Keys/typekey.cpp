@@ -76,6 +76,8 @@ void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
     }else if(src_type_data){
         if(dst_inner_type_data){
             src_type_data->linkData(dst_inner_type_data, bind);
+        }else if(dst_type_data){
+            src_type_data->linkData(dst_type_data, bind);
         }
     }
 }
@@ -147,6 +149,8 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
 
             if(outer_types_match){
                 if(inner_types_match && !inner_types_empty){
+                    return true;
+                }else if(inner_type_2 == ""){
                     return true;
                 }
             }

@@ -1,3 +1,120 @@
+# MEDEA v3.0.0
+## New Features:
+* New containment workload paradigm
+  * Interface:
+    * Namespace
+    * Server Interface
+  * Behaviour:
+    * Class
+    * Function
+    * Class Instance
+    * Function Call
+    * For Loop
+    * While Loop
+    * Boolean Expression
+    * Setter
+    * If Statement
+    * Input Parameter Group
+    * Return Parameter Group
+    * Server Port Impl
+    * Server Request
+    * External Type
+  * Hardware:
+    * OpenCL Platform
+    * OpenCL Device
+  * Assembly:
+    * Deployment Attribute
+    
+
+* Updated rendering code for Nodes
+    * Broken into cells ordered by rows/columns
+    * Color palette driven by active theme
+    * Visual representation matches model order
+    * Automatic resizing
+    * Elements can be visually re-ordered which updates the model
+    * Tooltips and hover-visuals implemented
+    * New visual indicator for expand/contract
+* Visual Edge 'knoblets'
+  * Connect/Disconnect Menu available via clicking (Context/Direction specific menu)
+  * Visual connecting by click-dragging
+  * 'knoblet' position is directionally contextual, and determined by valid edges
+  * Multiple connection when group is selected possible
+  * Used for all Edge types
+  * Visual highlight when edge is connected
+  * Contracting a Node will route its children edges through the first visible parent's knoblets
+* Visual Notification 'knoblets'
+  * Nodes which have Notifications attached will show validation notifications on canvas
+  * Grouped by severity.
+  * Contracting a Node will pass its children notifications to its first visible parent
+  * Clicking on a notification will open the Notification Panel and only show the notifications for the selected entities
+
+
+
+
+## Resolved JIRA Issues:
+| Issue key | Summary  |
+|-----------|----------|
+| [MED-319](https://cdit-ma.atlassian.net/browse/MED-319)	| Add an option to request only jobs that the logged in user logged |
+
+
+# MEDEA v2.4.2
+## New Features:
+* Updated Execution Manager
+* Added a setting to enable user-based job querying
+* Changed Jenkins Manager to use new std::async requests and futures
+* Updated re_gen to v1.5.1b
+
+## Resolved JIRA Issues:
+| Issue key | Summary  |
+|-----------|----------|
+| [MED-319](https://cdit-ma.atlassian.net/browse/MED-319)	| Add an option to request only jobs that the logged in user logged |
+
+# MEDEA v2.4.1
+## New Features:
+* Updated Execution Manager
+  * Added a refresh Jenkins Job button to query recent jobs
+  * Added an Artifacts panel, to show Jenkins jobs artifacts when jobs are complete
+  * Panel auto queries recent jobs after a build job is run
+* Integrated file upload parameter changes to Build Job request
+* Updated re_gen to v1.5.0g
+
+## Resolved JIRA Issues:
+| Issue key | Summary  |
+|-----------|----------|
+| [MED-311](https://cdit-ma.atlassian.net/browse/MED-311)	| Implement file parameter uploading in MEDEA for Jenkins |
+
+# MEDEA v2.4.0
+## New Features:
+* Added a MEDEA_cli shell program which allows command line import/export of models
+* Added test frameworks for components:
+  * test_idlparser - Runs test cases for the idl2graphml parser
+  * test_modelcontroller - Runs basic model importing tests on the ModelController class
+## Resolved JIRA Issues:
+| Issue key | Summary  |
+|-----------|----------|
+| [MED-276](https://cdit-ma.atlassian.net/browse/MED-276)	| Ability to place enum within a shared data type | |
+| [MED-275](https://cdit-ma.atlassian.net/browse/MED-275)	| Allow multiple IDL files to be passed to be passed into the IDL Parser |
+| [MED-273](https://cdit-ma.atlassian.net/browse/MED-273)	| idl import stops when it encounters an interface |
+| [MED-272](https://cdit-ma.atlassian.net/browse/MED-272)	| #include functionality when parsing idl files |
+| [MED-271](https://cdit-ma.atlassian.net/browse/MED-271)	| Move test folder outside of src |
+| [MED-270](https://cdit-ma.atlassian.net/browse/MED-270)	| Add all commands/options + examples for execution of all programs into README.md |
+| [MED-269](https://cdit-ma.atlassian.net/browse/MED-269)	| Fix Local Deployment on Ubuntu |
+| [MED-268](https://cdit-ma.atlassian.net/browse/MED-268)	| Add Dans Laptop as a OSX build node |
+| [MED-267](https://cdit-ma.atlassian.net/browse/MED-267)	| Setup Windows VM for release building |
+| [MED-266](https://cdit-ma.atlassian.net/browse/MED-266)	| Create Jenkins job for building MEDEA |
+| [MED-264](https://cdit-ma.atlassian.net/browse/MED-264)	| Implement CLI MEDEA |
+| [MED-262](https://cdit-ma.atlassian.net/browse/MED-262)	| Can not rename label of index variable in for condition while loop |
+| [MED-261](https://cdit-ma.atlassian.net/browse/MED-261)	| Setup toggle icons for the tabs in the vizualisation panel. |
+| [MED-260](https://cdit-ma.atlassian.net/browse/MED-260)	| Integer variable (i in default case) in for condition while loop can not be connected from (data edge) |
+| [MED-258](https://cdit-ma.atlassian.net/browse/MED-258)	| Implement extension of addTab |
+| [MED-255](https://cdit-ma.atlassian.net/browse/MED-255)	| Implement tab-able panel for visualization graphs |
+| [MED-254](https://cdit-ma.atlassian.net/browse/MED-254)	| Add comment field to model |
+| [MED-251](https://cdit-ma.atlassian.net/browse/MED-251)	| idl parsing should handle exceptions |
+| [MED-247](https://cdit-ma.atlassian.net/browse/MED-247)	| Fix IDL Parser to handle block comments with non-greedy regex |
+| [MED-246](https://cdit-ma.atlassian.net/browse/MED-246)	| Add all valid IDL primitive types to IDL parser |
+| [MED-245](https://cdit-ma.atlassian.net/browse/MED-245)	| Build MEDEA rollout job on Jenkins |
+| [MED-243](https://cdit-ma.atlassian.net/browse/MED-243)	| Add a changelog.md file with the list of changed features |
+
 # MEDEA v2.3.3
 ## New Features:
 * Added a MEDEA_cli shell program which allows command line import/export of models

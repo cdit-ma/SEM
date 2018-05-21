@@ -860,10 +860,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
                 break;
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-                node_item = new StackNodeItem(item, parentNode);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("value");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                node_item = new CompactNodeItem(item, parentNode);
+                node_item->setMoveEnabled(true);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                node_item->setTertiaryTextKey("value");
+                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);

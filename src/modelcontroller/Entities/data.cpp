@@ -201,6 +201,7 @@ void Data::addParentData(Data* data){
         }
 
         connect(data, &Data::dataChanged, this, &Data::setValue);
+        updateChildren();
         setValue(data->getValue());
     }
 }
@@ -211,6 +212,7 @@ void Data::removeParentData(Data* data){
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
         if(parent_datas.isEmpty()){
             restore_value();
+            updateChildren();
         }
     }
 }
