@@ -51,9 +51,6 @@ private:
 
 
 
-    bool isItemsAncestorSelected(ViewItem* item);
-    int unsetItemsDescendants(ViewItem* item);
-
     int ID;
 private:
     static int _SelectionHandlerID;

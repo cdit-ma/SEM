@@ -13,12 +13,13 @@
 #include "nodekinds.h"
 #include "edgekinds.h"
 #include "dataupdate.h"
-
+#include "viewcontrollerint.h"
 class Entity;
 class Node;
 class Edge;
 class Data;
 class EntityFactory;
+class ViewController;
 
 
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
@@ -62,8 +63,6 @@ class ModelController: public QObject
 {
     Q_OBJECT
 public:
-    static QStringList getVisualKeys();
-
     ModelController();
     ~ModelController();
 
@@ -88,17 +87,12 @@ public:
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
-    QSet<int> GetIDs();
-
     
     QSet<NODE_TYPE> getNodesTypes(int ID);
-    int getNodeParentID(int ID);
     VIEW_ASPECT getNodeViewAspect(int ID);
     int getSharedParent(int ID, int ID2);
     bool isNodeAncestor(int ID, int ID2);
 
-    QStringList getProtectedEntityKeys(int ID);
-    QStringList getEntityKeys(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
 
 
@@ -112,23 +106,24 @@ public:
 
     int getDefinition(int ID);
     int getImplementation(int ID);
-    int getAggregate(int ID);
-    int getDeployedHardwareID(int ID);
-public slots:
-    bool SetupController(QString file_path="");
+
+    void ConnectViewController(ViewControllerInterface* view_controller);
 
     //Clipboard functionality
-    void cut(QList<int> ids);
-    void copy(QList<int> ids);
+    QString cut(QList<int> ids);
+    QString copy(QList<int> ids);
+
+public slots:
+    bool SetupController(QString file_path="");
+    bool importProjects(QStringList xmlDataList);
+private slots:
+    
     void paste(QList<int> ids, QString xml);
     void replicate(QList<int> ids);
     void remove(QList<int> ids);
     void undo();
     void redo();
 
-    
-
-    bool importProjects(QStringList xmlDataList);
 
     //Model Functionality
     void setData(int id, QString key_name, QVariant value);
@@ -140,24 +135,16 @@ public slots:
 
     void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
-    
 
-
-
-    void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
-    
-
-    void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
+    void destructEdges(QList<int> srcIDs, QList<int> dstID, EDGE_KIND edgeClass);
     void destructAllEdges(QList<int> srcIDs, EDGE_KIND edge_kind, QSet<EDGE_DIRECTION> edge_direction);
 
     void triggerAction(QString actionName);
 
     void addDependantsToDependants(Node* parent_node, Node* dependant);
 signals:
-    void highlight(QList<int> ids);
-    void ActionProcessing(bool running, bool success = false, QString error_string= "");
     //New SIGNAL
     void NodeConstructed(int parent_id, int id, NODE_KIND kind);
     void EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);

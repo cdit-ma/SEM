@@ -147,47 +147,7 @@ int SelectionHandler::_clearSelection()
     return itemsChanged;
 }
 
-/**
- * @brief SelectionHandler::isItemsAncestorSelected Returns whether or not an Item's ancestor is already selected.
- * @param item
- * @return
- */
-bool SelectionHandler::isItemsAncestorSelected(ViewItem *item)
-{
-    bool selected = false;
-    if(item->isNode()){
-        NodeViewItem* nodeItem = (NodeViewItem*)item;
-        foreach(ViewItem* selectedItem, currentSelection){
-            if(selectedItem->isNode()){
-                NodeViewItem* selectedNodeItem = (NodeViewItem*)selectedItem;
-                if(selectedNodeItem->isAncestorOf(nodeItem)){
-                    selected = true;
-                    break;
-                }
-            }
-        }
-    }
-    return selected;
-}
 
-int SelectionHandler::unsetItemsDescendants(ViewItem *item)
-{
-    int itemsUnset = 0;
-    if(item->isNode()){
-        NodeViewItem* nodeItem = (NodeViewItem*)item;
-        foreach(ViewItem* selectedItem, currentSelection){
-            if(selectedItem->isNode()){
-                NodeViewItem* selectedNodeItem = (NodeViewItem*)selectedItem;
-
-                if(nodeItem->isAncestorOf(selectedNodeItem)){
-                    //Remove it.
-                    itemsUnset += _toggleItemsSelection(selectedItem);
-                }
-            }
-        }
-    }
-    return itemsUnset;
-}
 
 int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
 {

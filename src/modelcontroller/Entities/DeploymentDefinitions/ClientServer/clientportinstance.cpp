@@ -27,6 +27,7 @@ MEDEA::ClientPortInstance::ClientPortInstance(::EntityFactoryBroker& broker, boo
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.ProtectData(this, "index", false);
     broker.AttachData(this, "row", QVariant::Int, 2, true);
+    broker.AttachData(this, "middleware", QVariant::String, "TAO", true);
 }
 
 

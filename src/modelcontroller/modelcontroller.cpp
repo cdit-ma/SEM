@@ -76,6 +76,32 @@ ModelController::ModelController():QObject(0)
     
 }
 
+void ModelController::ConnectViewController(ViewControllerInterface* view_controller){
+    if(view_controller){
+        connect(view_controller, &ViewControllerInterface::SetupModelController, this, &ModelController::SetupController, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::ImportProjects, this, &ModelController::importProjects, Qt::QueuedConnection);
+
+        connect(view_controller, &ViewControllerInterface::TriggerAction, this, &ModelController::triggerAction, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::SetData, this, &ModelController::setData, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::RemoveData, this, &ModelController::removeData, Qt::QueuedConnection);
+
+        connect(view_controller, &ViewControllerInterface::ConstructNodeAtIndex, this, &ModelController::constructNodeAtIndex, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::ConstructNodeAtPos, this, &ModelController::constructNodeAtPos, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::ConstructConnectedNodeAtIndex, this, &ModelController::constructConnectedNodeAtIndex, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::ConstructConnectedNodeAtPos, this, &ModelController::constructConnectedNodeAtPos, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::ConstructEdges, this, &ModelController::constructEdges, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::DestructEdges, this, &ModelController::destructEdges, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::DestructAllEdges, this, &ModelController::destructAllEdges, Qt::QueuedConnection);
+        
+
+        connect(view_controller, &ViewControllerInterface::Undo, this, &ModelController::undo, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::Redo, this, &ModelController::redo, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::Delete, this, &ModelController::remove, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::Paste, this, &ModelController::paste, Qt::QueuedConnection);
+        connect(view_controller, &ViewControllerInterface::Replicate, this, &ModelController::replicate, Qt::QueuedConnection);
+    }
+}
+
 bool ModelController::SetupController(QString file_path)
 {
     QWriteLocker lock(&lock_);
@@ -588,28 +614,6 @@ void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int in
 
 
 
-void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
-{
-    QWriteLocker lock(&lock_);
-
-    auto sources = getNodes(src_ids);
-    auto valid_dsts = _getConnectableNodes(sources, edge_kind).values(EDGE_DIRECTION::TARGET);
-    auto dst = entity_factory->GetNode(dst_id);
-    bool success = true;
-    if(dst && valid_dsts.contains(dst)){
-        triggerAction("Constructing child edge");
-        for(auto src : sources){
-            auto edge = construct_edge(edge_kind, src, dst);
-            
-            if(!edge){
-                success = false;
-                break;
-            }
-        }
-    }
-    emit ActionFinished();
-}
-
 void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE_KIND edge_kind){
     QWriteLocker lock(&lock_);
     
@@ -633,20 +637,25 @@ void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDG
 }
 
 
-void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
+void ModelController::destructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE_KIND edge_kind)
 {
     QWriteLocker lock(&lock_);
 
     triggerAction("Destructing edges");
 
     QList<Entity*> edges;
-    auto dst = entity_factory->GetNode(dst_id);
+    
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
 
-        auto edge = src->getEdgeTo(dst, edge_kind);
-        if(edge){
-            edges << edge;
+        for(auto dst_id : dst_ids){
+            auto dst = entity_factory->GetNode(dst_id);
+            if(src && dst){
+                auto edge = src->getEdgeTo(dst, edge_kind);
+                if(edge){
+                    edges << edge;
+                }
+            }
         }
     }
     destructEntities(edges);
@@ -788,22 +797,17 @@ void ModelController::redo()
  * @brief NewController::copy - Attempts to copy a list of entities defined by their IDs
  * @param IDs - The list of entity IDs
  */
-void ModelController::copy(QList<int> ids)
+QString ModelController::copy(QList<int> ids)
 {
     QReadLocker lock(&lock_);
     auto selection = getOrderedEntities(ids);
 
-    bool success = false;
     if(canCopy(selection)){
         auto value = _copy(selection);
 
-        if(!value.isEmpty()){
-            emit SetClipboardData(value);
-            success = true;
-        }
+        return value;
     }
-
-    emit ActionFinished();
+    return "";
 }
 
 void ModelController::remove(QList<int> ids)
@@ -833,20 +837,19 @@ void ModelController::replicate(QList<int> IDs)
     emit ActionFinished();
 }
 
-void ModelController::cut(QList<int> ids)
+QString ModelController::cut(QList<int> ids)
 {
     QWriteLocker lock(&lock_);
 
     auto selection = getOrderedEntities(ids);
-    bool success = false;
+    QString data;
     if(canCut(selection)){
-        auto data = exportGraphML(selection, true);
-        emit SetClipboardData(data);
+        data = exportGraphML(selection, true);
         emit triggerAction("Cutting Selection");
-        success = destructEntities(selection);
+        destructEntities(selection);
     }
-
     emit ActionFinished();
+    return data;
 }
 
 void ModelController::paste(QList<int> ids, QString xml)
@@ -1046,20 +1049,6 @@ bool ModelController::isNodeAncestor(int ID, int ID2){
     return is_ancestor;
 }
 
-int ModelController::getNodeParentID(int ID){
-    QReadLocker lock(&lock_);
-    int parent_id = -1;
-    auto node = entity_factory->GetNode(ID);
-    
-    if(node){
-        auto parent = node->getParentNode();
-        if(parent){
-            parent_id = parent->getID();
-        }
-    }
-    return parent_id;
-}
-
 VIEW_ASPECT ModelController::getNodeViewAspect(int ID){
     QReadLocker lock(&lock_);
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
@@ -1071,16 +1060,6 @@ VIEW_ASPECT ModelController::getNodeViewAspect(int ID){
     return aspect;
 }
 
-QStringList ModelController::getEntityKeys(int ID){
-    QReadLocker lock(&lock_);
-    QStringList keys;
-
-    auto entity = entity_factory->GetEntity(ID);
-    if(entity){
-        keys = entity->getKeyNames();
-    }
-    return keys;
-}
 
 QList<DataUpdate> ModelController::getEntityDataList(int ID){
     QList<DataUpdate> data_list;
@@ -1095,22 +1074,6 @@ QList<DataUpdate> ModelController::getEntityDataList(int ID){
     }
     return data_list;
 }
-
-QStringList ModelController::getProtectedEntityKeys(int ID){
-    QReadLocker lock(&lock_);
-    QStringList keys;
-
-    auto entity = entity_factory->GetEntity(ID);
-    if(entity){
-        for(auto data: entity->getData()){
-            if(data->isProtected()){
-                keys << data->getKeyName();
-            }
-        }
-    }
-    return keys;
-}
-
 
 
 QVariant ModelController::getEntityDataValue(int ID, QString key_name){
@@ -1133,35 +1096,6 @@ QSet<NODE_TYPE> ModelController::getNodesTypes(int ID){
     return {};
 }
 
-
-int ModelController::getAggregate(int ID)
-{
-    int aggrID = -1;
-    Node* node = entity_factory->GetNode(ID);
-    if(node){
-        if(node->isNodeOfType(NODE_TYPE::EVENTPORT)){
-            EventPort* eventPort = (EventPort*)node;
-            if(eventPort && eventPort->getAggregate()){
-                aggrID = eventPort->getAggregate()->getID();
-            }
-        }
-    }
-    return aggrID;
-
-}
-
-//TODO REFACTORED
-int ModelController::getDeployedHardwareID(int ID)
-{
-    int hw_id = -1;
-    Node* node = entity_factory->GetNode(ID);
-    if(node){
-        for(auto edge : node->getEdgesOfKind(EDGE_KIND::DEPLOYMENT, 0)){
-            hw_id = edge->getDestinationID();
-        }
-    }
-    return hw_id;
-}
 
 void ModelController::setProjectSaved(QString path)
 {
@@ -1970,6 +1904,7 @@ QSet<EDGE_KIND> ModelController::getCurrentEdgeKinds(QList<int> ids)
 
 QSet<NODE_KIND> ModelController::getValidNodeKinds(int ID)
 {
+    
     QWriteLocker lock(&lock_);
     QSet<NODE_KIND> node_kinds;
 
@@ -2036,9 +1971,6 @@ QList<int> ModelController::getConstructablesConnectableNodes(int constructable_
     return getIDs(nodes);
 }
 
-QSet<int> ModelController::GetIDs(){
-    return node_ids_ + edge_ids_;
-}
 
 QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
@@ -2047,18 +1979,6 @@ QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     return node_set;
 }
 
-
-QStringList ModelController::getVisualKeys()
-{
-    QStringList visualKeys;
-    visualKeys << "x";
-    visualKeys << "y";
-    visualKeys << "width";
-    visualKeys << "height";
-    visualKeys << "isExpanded";
-    visualKeys << "readOnly";
-    return visualKeys;
-}
 
 
 

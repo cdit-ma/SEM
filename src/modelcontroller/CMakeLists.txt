@@ -138,6 +138,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactorybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactoryregistrybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/viewcontrollerint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
@@ -268,9 +269,9 @@ set(HEADERS
 )
 
 
-set(RESOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
-    )
+#set(RESOURCES
+#    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
+#    )
 
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 

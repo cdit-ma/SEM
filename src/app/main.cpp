@@ -29,8 +29,8 @@ int launchMEDEA(int argc, char *argv[]){
         
 
         //Initialize images
-        Q_INIT_RESOURCE(images);
-        Q_INIT_RESOURCE(workers);
+        //Q_INIT_RESOURCE(images);
+        //Q_INIT_RESOURCE(workers);
 
         //Fixes MacOS QIcon resolution.
         a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);

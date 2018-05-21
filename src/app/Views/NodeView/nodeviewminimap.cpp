@@ -30,6 +30,8 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setRenderHint(QPainter::HighQualityAntialiasing, false);
     setRenderHint(QPainter::NonCosmeticDefaultPen, false);
 
+    setCacheMode(QGraphicsView::CacheBackground);
+
     zoomPixmap = Theme::theme()->getImage("Icons", "zoom", QSize(16, 16), Qt::white);
 
 

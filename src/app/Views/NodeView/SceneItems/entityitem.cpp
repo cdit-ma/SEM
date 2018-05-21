@@ -213,7 +213,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QStrin
 {
     auto text_item = getTextItem(pos);
     if(text_item){
-        //painter->fillRect(getElementRect(pos), QColor(0,0,255,50));
+        //painter->fillRect(getElementRect(pos), QColor(0,0,255,20));
         text_item->RenderText(painter, getRenderState(lod), getElementRect(pos) + QMarginsF(-1,0,0,0), text);
     }
 }
@@ -750,16 +750,19 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         ICON = EntityRect::SECONDARY_ICON;
         if(isIconVisible(ICON)){
+            //painter->fillRect(getElementRect(ICON), QColor(255,0,0,20));
             paintPixmap(painter, lod, ICON, getIcon(ICON));
         }
 
         ICON = EntityRect::TERTIARY_ICON;
         if(isIconVisible(ICON)){
+            //painter->fillRect(getElementRect(ICON), QColor(255,0,0,20));
             paintPixmap(painter, lod, ICON, getIcon(ICON));
         }
 
         ICON = EntityRect::LOCKED_STATE_ICON;
         if(isIconVisible(ICON)){
+            //painter->fillRect(getElementRect(ICON), QColor(255,0,0,20));
             paintPixmap(painter, lod, ICON, getIcon(ICON));
         }
     }

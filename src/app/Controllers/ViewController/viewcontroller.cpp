@@ -57,7 +57,7 @@
 #define IDL_FILE_SUFFIX ".idl"
 
 
-ViewController::ViewController() : QObject(){
+ViewController::ViewController(){
     rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
@@ -108,59 +108,7 @@ ContextMenu* ViewController::getContextMenu(){
     return menu;
 }
 
-void ViewController::connectModelController(ModelController* c){
-    connect(controller, &ModelController::NodeConstructed, this, &ViewController::model_NodeConstructed);
-    connect(controller, &ModelController::EdgeConstructed, this, &ViewController::model_EdgeConstructed);
-    connect(controller, &ModelController::EntityDestructed, this, &ViewController::controller_entityDestructed);
-    
-    connect(controller, &ModelController::ModelReady, this, &ViewController::ModelControllerReady);
-    connect(controller, &ModelController::DataChanged, this, &ViewController::controller_dataChanged);
-    connect(controller, &ModelController::DataRemoved, this, &ViewController::controller_dataRemoved);
-    connect(controller, &ModelController::NodeEdgeKindsChanged, this, &ViewController::controller_nodeEdgeChanged);
-    connect(controller, &ModelController::NodeTypesChanged, this, &ViewController::controller_nodeTypesChanged);
 
-    connect(controller, &ModelController::ProjectModified, this, &ViewController::mc_projectModified);
-    connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
-
-    connect(controller, &ModelController::ActionFinished, this, &ViewController::vc_ActionFinished);
-    
-    connect(controller, &ModelController::Notification, this, &ViewController::modelNotification);
-
-    connect(controller, &ModelController::SetClipboardData, this, &ViewController::setClipboardData);
-    connect(controller, &ModelController::UndoRedoUpdated, this, &ViewController::mc_undoRedoUpdated);
-    connect(controller, &ModelController::ShowProgress, this, &ViewController::mc_showProgress);
-    connect(controller, &ModelController::ProgressChanged, this, &ViewController::mc_progressChanged);
-    connect(controller, &ModelController::ModelReady, this, &ViewController::vc_ProjectLoaded);
-
-
-    connect(this, &ViewController::vc_SetupModelController, controller, &ModelController::SetupController);
-    connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
-    connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
-    connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
-    connect(this, &ViewController::vc_constructNodeAtIndex, controller, &ModelController::constructNodeAtIndex);
-    connect(this, &ViewController::vc_constructNodeAtPos, controller, &ModelController::constructNodeAtPos);
-
-    connect(this, &ViewController::vc_constructConnectedNodeAtIndex, controller, &ModelController::constructConnectedNodeAtIndex);
-    connect(this, &ViewController::vc_constructConnectedNodeAtPos, controller, &ModelController::constructConnectedNodeAtPos);
-
-
-    connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
-    connect(this, &ViewController::vc_constructEdges, controller, &ModelController::constructEdges);
-    
-    connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
-    connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
-    connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
-    connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
-    connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
-    connect(this, &ViewController::vc_triggerAction, controller, &ModelController::triggerAction);
-    connect(this, &ViewController::vc_cutEntities, controller, &ModelController::cut);
-    connect(this, &ViewController::vc_copyEntities, controller, &ModelController::copy);
-    connect(this, &ViewController::vc_paste, controller, &ModelController::paste);
-    connect(this, &ViewController::vc_replicateEntities, controller, &ModelController::replicate);
-    connect(this, &ViewController::vc_deleteEntities, controller, &ModelController::remove);
-   
-    controller = c;
-}
 
 void ViewController::RequestJenkinsNodes(){
     auto request = jenkins_manager->getJenkinsNodes();
@@ -321,7 +269,7 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node
     return items;
 }
 
-QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges2(EDGE_KIND kind){
+QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges(EDGE_KIND kind){
     QHash<EDGE_DIRECTION, ViewItem*>  items;
     if(selectionController && controller){
         auto selection = selectionController->getSelectionIDs();
@@ -500,7 +448,7 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
         auto id_list = {id};
         auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
         auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
-        emit vc_constructEdges(src_ids, dst_ids, edge_kind);
+        emit ConstructEdges(src_ids, dst_ids, edge_kind);
     }
 }
 
@@ -736,7 +684,7 @@ void ViewController::importGraphMLExtract(QString data)
 {
     if(!data.isEmpty()){
         // fit the contents in all the view aspects after import when no model has been imported yet?
-        emit vc_importProjects(QStringList(data));
+        emit ImportProjects(QStringList(data));
     }
 }
 
@@ -787,21 +735,21 @@ JobMonitor* ViewController::getExecutionMonitor(){
 void ViewController::incrementSelectedKey(QString key_name){
     auto selected_items = selectionController->getSelection();
     if(selected_items.count()){
-        emit vc_triggerAction(key_name + " Changed");
+        emit TriggerAction(key_name + " Changed");
         for(auto item : selected_items){
             auto data = item->getData(key_name).toInt();
-            emit vc_setData(item->getID(), key_name, data + 1);
+            emit SetData(item->getID(), key_name, data + 1);
         }
     }
 }
 void ViewController::decrementSelectedKey(QString key_name){
     auto selected_items = selectionController->getSelection();
     if(selected_items.count()){
-        emit vc_triggerAction(key_name + " Changed");
+        emit TriggerAction(key_name + " Changed");
         for(auto item : selected_items){
             auto data = item->getData(key_name).toInt();
             if(data > 0){
-                emit vc_setData(item->getID(), key_name, data - 1);
+                emit SetData(item->getID(), key_name, data - 1);
             }
         }
     }
@@ -828,10 +776,10 @@ void ViewController::showExecutionMonitor(){
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
     if(!graphmlData.isEmpty()){
-        emit vc_triggerAction("Loading Jenkins Nodes");
+        emit TriggerAction("Loading Jenkins Nodes");
         QStringList fileData;
         fileData << graphmlData;
-        emit vc_importProjects(fileData);
+        emit ImportProjects(fileData);
     }
 }
 
@@ -867,21 +815,12 @@ void ViewController::selectModel()
     emit selectionController->itemActiveSelectionChanged(getModel(), true);
 }
 
-void ViewController::launchLocalDeployment()
-{
-    if(controller){
-        QString filePath = getTempFileForModel();
-        if(!filePath.isEmpty()){
-            emit vc_launchLocalDeployment(filePath);
-        }
-    }
-}
 
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
-    emit vc_triggerAction("Table Changed");
-    emit vc_setData(ID, key, data);
+    emit TriggerAction("Table Changed");
+    emit SetData(ID, key, data);
 }
 
 void ViewController::setupEntityKindItems()
@@ -1161,22 +1100,22 @@ NodeView *ViewController::getActiveNodeView()
     return 0;
 }
 
-void ViewController::modelNotification(MODEL_SEVERITY severity, QString title, QString description, int ID){
-    Notification::Severity ns = Notification::Severity::INFO;
+void ViewController::AddNotification(MODEL_SEVERITY severity, QString title, QString description, int id){
+    auto notification_severity = Notification::Severity::INFO;
     switch(severity){
         case MODEL_SEVERITY::ERROR:
-            ns = Notification::Severity::ERROR;
+            notification_severity = Notification::Severity::ERROR;
             break;
         case MODEL_SEVERITY::WARNING:
-            ns = Notification::Severity::WARNING;
+            notification_severity = Notification::Severity::WARNING;
             break;
         case MODEL_SEVERITY::INFO:
-            ns = Notification::Severity::INFO;
+            notification_severity = Notification::Severity::INFO;
             break;
         default:
             break;
     }
-    auto notification = NotificationManager::manager()->AddNotification(title, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, true, ID);
+    auto notification = NotificationManager::manager()->AddNotification(title, "Icons", "dotsInRectangle", notification_severity, Notification::Type::MODEL, Notification::Category::NONE, true, id);
     notification->setDescription(description);
 }
 
@@ -1185,7 +1124,7 @@ void ViewController::setControllerReady(bool ready)
     if(_controllerReady != ready){
         _controllerReady = ready;
         emit vc_controllerReady(ready);
-        emit vc_ActionFinished();
+        emit ActionFinished();
     }
 
     if(ready){
@@ -1197,7 +1136,7 @@ void ViewController::setControllerReady(bool ready)
     }
 }
 
-void ViewController::ModelControllerReady(bool ready)
+void ViewController::ModelReady(bool ready)
 {
     setControllerReady(ready);
     if(ready){
@@ -1215,26 +1154,28 @@ void ViewController::openURL(QString url)
 void ViewController::deleteSelection()
 {
     if(selectionController){
-        emit vc_deleteEntities(selectionController->getSelectionIDs());
+        emit Delete(selectionController->getSelectionIDs());
     }
 }
 
 void ViewController::expandSelection()
 {
-    if(selectionController && selectionController->getSelectionCount() > 0){
-        emit vc_triggerAction("Expand Selection");
-        foreach(int ID, selectionController->getSelectionIDs()){
-            emit vc_setData(ID, "isExpanded", true);
+    auto selection = selectionController->getSelectionIDs();
+    if(selection.size()){
+        emit TriggerAction("Expand Selection");
+        for(auto id : selection){
+            emit SetData(id, "isExpanded", true);
         }
     }
 }
 
 void ViewController::contractSelection()
 {
-    if(selectionController && selectionController->getSelectionCount() > 0){
-        emit vc_triggerAction("Expand Selection");
-        foreach(int ID, selectionController->getSelectionIDs()){
-            emit vc_setData(ID, "isExpanded", false);
+    auto selection = selectionController->getSelectionIDs();
+    if(selection.size()){
+        emit TriggerAction("Expand Selection");
+        for(auto id : selection){
+            emit SetData(id, "isExpanded", false);
         }
     }
 }
@@ -1260,7 +1201,7 @@ void ViewController::constructDDSQOSProfile()
 {
     foreach(ViewItem* item, getItemsOfKind(NODE_KIND::ASSEMBLY_DEFINITIONS)){
         if(item){
-            emit vc_constructNodeAtIndex(item->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
+            emit ConstructNodeAtIndex(item->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
         }
     }
 }
@@ -1273,8 +1214,8 @@ void ViewController::TeardownController()
         setControllerReady(false);
         emit selectionController->clearSelection();
 
-        emit vc_projectPathChanged("");
-        emit mc_projectModified(false);
+        emit ProjectFileChanged("");
+        emit ProjectModified(false);
         destructViewItem(rootItem);
 
         nodeKindLookups.clear();
@@ -1329,7 +1270,7 @@ bool ViewController::_newProject(QString file_path)
     if(_closeProject()){
         if(!controller){
             initializeController();
-            emit vc_SetupModelController(file_path);
+            emit SetupModelController(file_path);
 
             if(!file_path.isEmpty()){
                 emit vc_addProjectToRecentProjects(file_path); 
@@ -1354,7 +1295,7 @@ bool ViewController::_saveProject()
             QString data = controller->getProjectAsGraphML();
 
             if(FileHandler::writeTextFile(filePath, data)){
-                emit vc_projectSaved(filePath);
+                controller->setProjectSaved(filePath);
                 emit vc_addProjectToRecentProjects(filePath);
             }
 
@@ -1465,14 +1406,6 @@ ModelController* ViewController::getModelController(){
     return controller;    
 }
 
-QStringList ViewController::getEntityKeys(int ID){
-    QStringList keys;
-    if(controller){
-        qCritical() << "REQUESTING KEYS FOR: " << ID;
-        keys = controller->getEntityKeys(ID);
-    }
-    return keys;
-}
 
 QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     QVariant data;
@@ -1483,8 +1416,7 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     return data;
 }
 
-void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
-    //qCritical() << "ViewController: Edge Constructed: " << id << " " << EntityFactory::getEdgeKindString(kind);
+void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
     auto src = getNodeViewItem(src_id);
     auto dst = getNodeViewItem(dst_id);
     auto parent = getSharedParent(src, dst);
@@ -1516,8 +1448,8 @@ void ViewController::StoreViewItem(ViewItem* view_item){
             }
         }
         if(view_item->isNode()){
-            controller_nodeTypesChanged(id);
-            controller_nodeEdgeChanged(id);
+            NodeTypesChanged(id);
+            NodeEdgeKindsChanged(id);
         }
         setDefaultIcon(view_item);
         connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
@@ -1543,29 +1475,26 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
     }
 }
 
-void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
-    //qCritical() << "ViewController: Node Constructed: " << id << " " << EntityFactory::getNodeKindString(kind);
-    auto node_item = new NodeViewItem(this, id, kind);
+void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind){
+    auto node_item = new NodeViewItem(this, id, node_kind);
     auto parent_item = getNodeViewItem(parent_id);
     
-    nodeKindLookups.insertMulti(kind, id);
+    nodeKindLookups.insertMulti(node_kind, id);
     SetParentNode(parent_item, node_item);
-
-    
     StoreViewItem(node_item);
 }
 
-void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
+void ViewController::EntityDestructed(int id, GRAPHML_KIND)
 {
-    auto success = destructViewItem(getViewItem(ID));
+    auto success = destructViewItem(getViewItem(id));
     if(!success){
-        qCritical() << "ViewController: Destructing ID: " << ID << " FAILED!";
+        qCritical() << "ViewController: Destructing ID: " << id << " FAILED!";
     }
 }
 
-void ViewController::controller_dataChanged(int ID, DataUpdate data)
+void ViewController::DataChanged(int id, DataUpdate data)
 {
-    ViewItem* viewItem = getViewItem(ID);
+    ViewItem* viewItem = getViewItem(id);
 
     if(viewItem){
         //qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " Protected " : "");
@@ -1573,21 +1502,20 @@ void ViewController::controller_dataChanged(int ID, DataUpdate data)
     }
 }
 
-void ViewController::controller_dataRemoved(int ID, QString key)
+void ViewController::DataRemoved(int id, QString key_name)
 {
-    ViewItem* viewItem = getViewItem(ID);
-
-    if(viewItem){
-        viewItem->removeData(key);
+    auto view_item = getViewItem(id);
+    if(view_item){
+        view_item->removeData(key_name);
     }
 }
 
-void ViewController::controller_nodeEdgeChanged(int ID)
+void ViewController::NodeEdgeKindsChanged(int id)
 {
-    auto node_item = getNodeViewItem(ID);
+    auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto edge_kinds = getValidEdgeKinds({ID});
+            auto edge_kinds = getValidEdgeKinds({id});
             node_item->clearVisualEdgeKinds();
             for(auto edge_kind : edge_kinds.first){
                 node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);
@@ -1600,24 +1528,15 @@ void ViewController::controller_nodeEdgeChanged(int ID)
     }
 }
 
-void ViewController::controller_nodeTypesChanged(int ID)
+void ViewController::NodeTypesChanged(int id)
 {
-    auto node_item = getNodeViewItem(ID);
+    auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto node_types = controller->getNodesTypes(ID);
+            auto node_types = controller->getNodesTypes(id);
             node_item->setNodeTypes(node_types);
         }
     }
-}
-
-int ViewController::getNodeParentID(int ID){
-    int parent_id = -1;
-    if(controller){
-        parent_id = controller->getNodeParentID(ID);
-    }
-    return parent_id;
-
 }
 
 
@@ -1676,28 +1595,6 @@ void ViewController::importProjects()
     _importProjects();
 }
 
-void ViewController::importXMEProject()
-{
-    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an XME File to import.", QFileDialog::ExistingFile, false, GME_FILE_EXT, GME_FILE_SUFFIX);
-    if(files.length() == 1){
-        QString xmePath = files.first();
-        QFile file(xmePath);
-        QFileInfo fileInfo = QFileInfo(file);
-        QString tempFile = FileHandler::getTempFileName(fileInfo.baseName() + "_FromXME.graphml");
-        emit mc_showProgress(true, "Transforming XME Project");
-        emit mc_progressChanged(-1);
-        emit vc_importXMEProject(xmePath, tempFile);
-    }
-}
-
-void ViewController::importXMIProject()
-{
-    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an XMI File to import.", QFileDialog::ExistingFile, false, XMI_FILE_EXT, XMI_FILE_SUFFIX);
-    if(files.length() == 1){
-        QString xmiPath = files.first();
-        emit vc_importXMIProject(xmiPath);
-    }
-}
 
 void ViewController::importIdlFiles()
 {
@@ -1726,7 +1623,7 @@ void ViewController::importIdlFiles()
             notification->setDescription(error);
             notification->setSeverity(results.first ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
             if(idl_qstr.length()){
-                emit vc_importProjects({idl_qstr});
+                emit ImportProjects({idl_qstr});
             }
         });
     }
@@ -1816,7 +1713,7 @@ void ViewController::_importProjectFiles(QStringList files)
     }
     if(!fileData.isEmpty()){
         // fit the contents in all the view aspects after import when no model has been imported yet?
-        emit vc_importProjects(fileData);
+        emit ImportProjects(fileData);
     }
 }
 
@@ -1967,28 +1864,30 @@ void ViewController::aboutMEDEA()
 void ViewController::cut()
 {
     if(selectionController){
-        emit vc_cutEntities(selectionController->getSelectionIDs());
+        auto data = controller->cut(selectionController->getSelectionIDs());
+        setClipboardData(data);
     }
 }
 
 void ViewController::copy()
 {
     if(selectionController){
-        emit vc_copyEntities(selectionController->getSelectionIDs());
+        auto data = controller->copy(selectionController->getSelectionIDs());
+        setClipboardData(data);
     }
 }
 
 void ViewController::paste()
 {
     if(selectionController && selectionController->getSelectionCount() == 1){
-        emit vc_paste(selectionController->getSelectionIDs(), QApplication::clipboard()->text());
+        emit Paste(selectionController->getSelectionIDs(), QApplication::clipboard()->text());
     }
 }
 
 void ViewController::replicate()
 {
     if(selectionController && selectionController->getSelectionCount() > 0){
-        emit vc_replicateEntities(selectionController->getSelectionIDs());
+        emit Replicate(selectionController->getSelectionIDs());
     }
 }
 
@@ -1998,7 +1897,7 @@ void ViewController::initializeController()
     if(!controller){
         setControllerReady(false);
         controller = new ModelController();
-        connectModelController(controller);
+        ConnectModelController(controller);
     }
 }
 

@@ -1209,10 +1209,8 @@ void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem
         }
 
         //Paint the Header
-        if(!IS_BLOCK){
-            painter->setBrush(getHeaderColor());
-            painter->drawRect(getElementRect(EntityRect::HEADER));
-        }
+        painter->setBrush(getHeaderColor());
+        painter->drawRect(getElementRect(EntityRect::HEADER));
     }
 }
 

@@ -44,7 +44,10 @@ NODE_KIND NodeViewItem::getParentNodeKind() const{
 int NodeViewItem::getParentID()
 {
     if(parent_id == -1){
-        parent_id = getController()->getNodeParentID(getID());
+        auto parent = getParentItem();
+        if(parent){
+            parent_id = parent->getID();
+        }
     }
     return parent_id;
 }
@@ -132,7 +135,7 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
     bool is_ancestor = false;
 
-    if(getController() && item){
+    if(item){
         is_ancestor = getController()->isNodeAncestor(getID(), item->getID());
     }
     return is_ancestor;

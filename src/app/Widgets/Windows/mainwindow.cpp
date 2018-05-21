@@ -101,8 +101,8 @@ void MainWindow::setViewController(ViewController* view_controller)
     this->view_controller = view_controller;
     action_controller = view_controller->getActionController();
 
-    connect(view_controller, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
-    connect(view_controller, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
+    connect(view_controller, &ViewController::ProjectModified, this, &MainWindow::setWindowModified);
+    connect(view_controller, &ViewController::ProjectFileChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
 
     addActions(action_controller->getAllActions());
@@ -362,8 +362,8 @@ void MainWindow::setupTools()
 {
     //Setup Progress Bar
     auto progress_bar = new ProgressPopup();
-    connect(view_controller, &ViewController::mc_showProgress, progress_bar, &ProgressPopup::ProgressUpdated);
-    connect(view_controller, &ViewController::mc_progressChanged, progress_bar, &ProgressPopup::UpdateProgressBar);
+    connect(view_controller, &ViewController::ShowProgress, progress_bar, &ProgressPopup::ProgressUpdated);
+    connect(view_controller, &ViewController::ProgressUpdated, progress_bar, &ProgressPopup::UpdateProgressBar);
    
     setupMenuBar();
 

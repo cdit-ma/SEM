@@ -53,8 +53,8 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
     
 
-    connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::invalidate_menus);
-    connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::update_dock_menus);
+    connect(vc, &ViewController::ActionFinished, this, &ContextMenu::invalidate_menus);
+    connect(vc, &ViewController::ActionFinished, this, &ContextMenu::update_dock_menus);
 
     connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &ContextMenu::invalidate_menus);
     connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &ContextMenu::update_dock_menus);
@@ -338,17 +338,17 @@ void ContextMenu::action_triggered(QAction* action){
 
                 if(item->hasData("isExpanded")){
                     //Expand!
-                    emit view_controller->vc_setData(parent_id, "isExpanded", true);
+                    emit view_controller->SetData(parent_id, "isExpanded", true);
                 }
 
                 switch(node_position){
                     case NodePosition::INDEX:{
-                        emit view_controller->vc_constructNodeAtIndex(parent_id, node_kind, node_index);
+                        emit view_controller->ConstructNodeAtIndex(parent_id, node_kind, node_index);
                         node_index = -1;
                         break;
                     }
                     case NodePosition::POSITION:{
-                        emit view_controller->vc_constructNodeAtPos(parent_id, node_kind, model_point);
+                        emit view_controller->ConstructNodeAtPos(parent_id, node_kind, model_point);
                         break;
                     }
                 }
@@ -359,16 +359,16 @@ void ContextMenu::action_triggered(QAction* action){
             auto item = view_controller->getSelectionController()->getActiveSelectedItem();
             if(item){
                 auto parent_id = item->getID();
-                emit view_controller->vc_setData(parent_id, "isExpanded", true);
+                emit view_controller->SetData(parent_id, "isExpanded", true);
 
                 switch(node_position){
                     case NodePosition::INDEX:{
-                        emit view_controller->vc_constructConnectedNodeAtIndex(parent_id, node_kind, id, edge_kind, node_index);
+                        emit view_controller->ConstructConnectedNodeAtIndex(parent_id, node_kind, id, edge_kind, node_index);
                         node_index = -1;
                         break;
                     }
                     case NodePosition::POSITION:{
-                        emit view_controller->vc_constructConnectedNodeAtPos(parent_id, node_kind, id, edge_kind, model_point);
+                        emit view_controller->ConstructConnectedNodeAtPos(parent_id, node_kind, id, edge_kind, model_point);
                         break;
                     }
                 }
@@ -399,9 +399,9 @@ void ContextMenu::action_triggered(QAction* action){
                     if(remove_target){
                         edge_directions.insert(EDGE_DIRECTION::TARGET);
                     }
-                    emit view_controller->vc_destructAllEdges(selection, edge_kind, edge_directions);
+                    emit view_controller->DestructAllEdges(selection, edge_kind, edge_directions);
                 }else{
-                    emit view_controller->vc_destructEdges(selection, id, edge_kind);
+                    emit view_controller->DestructEdges(selection, {id}, edge_kind);
                 }
             }
             break;
@@ -421,7 +421,7 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
         auto src_menu = add_edge_menu_direct_hash.value({EDGE_DIRECTION::SOURCE, edge_kind}, 0);
         auto dst_menu = add_edge_menu_direct_hash.value({EDGE_DIRECTION::TARGET, edge_kind}, 0);
 
-        auto connect_map = view_controller->getValidEdges2(edge_kind);
+        auto connect_map = view_controller->getValidEdges(edge_kind);
         auto disconnect_map = view_controller->getExistingEndPointsOfSelection(edge_kind);
 
         auto is_empty = connect_map.isEmpty() && disconnect_map.isEmpty();
@@ -776,7 +776,7 @@ void ContextMenu::update_deploy_menu(){
         auto edge_kind = EDGE_KIND::DEPLOYMENT;
         auto edge_direction = EDGE_DIRECTION::TARGET;
 
-        auto connect_map = view_controller->getValidEdges2(EDGE_KIND::DEPLOYMENT);
+        auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
         auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
 
         auto menus = {dock_deploy_menu, deploy_menu};

@@ -264,7 +264,7 @@ QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const{
         rect = headerContent_Data_Secondary();
 
         if(isIconVisible(EntityRect::SECONDARY_ICON)){
-            rect.setLeft(headerContent_Data_Secondary_Icon().right() + 2);
+            rect.setLeft(headerContent_Data_Secondary_Icon().right() + 1);
         }
     }
     return rect;

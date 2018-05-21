@@ -49,6 +49,9 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setRenderHint(QPainter::SmoothPixmapTransform, true);
     setRenderHint(QPainter::HighQualityAntialiasing, true);
 
+    setCacheMode(QGraphicsView::CacheBackground);
+
+
 
     //Turn off the Scroll bars.
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -102,9 +105,9 @@ void NodeView::setViewController(ViewController *viewController)
         connect(selectionHandler, &SelectionHandler::itemActiveSelectionChanged, this, &NodeView::selectionHandler_ItemActiveSelectionChanged);
 
         connect(this, &NodeView::toolbarRequested, viewController, &ViewController::vc_showToolbar);
-        connect(this, &NodeView::triggerAction, viewController, &ViewController::vc_triggerAction);
-        connect(this, &NodeView::setData, viewController, &ViewController::vc_setData);
-        connect(this, &NodeView::removeData, viewController, &ViewController::vc_removeData);
+        connect(this, &NodeView::triggerAction, viewController, &ViewController::TriggerAction);
+        connect(this, &NodeView::setData, viewController, &ViewController::SetData);
+        connect(this, &NodeView::removeData, viewController, &ViewController::RemoveData);
         connect(this, &NodeView::editData, viewController, &ViewController::vc_editTableCell);
 
 
@@ -126,6 +129,9 @@ void NodeView::setViewController(ViewController *viewController)
 
 void NodeView::translate(QPointF point)
 {
+    /*for(auto t : getTopLevelEntityItems()){
+        t->setPos(t->getPos() + point);
+    }*/
     QGraphicsView::translate(point.x(), point.y());
 }
 
@@ -138,7 +144,7 @@ void NodeView::scale(qreal sx, qreal sy)
         //Limit to zoom 25% between 400%
 
         zoom = qMax(0.25, zoom);
-        zoom = qMin(zoom, 100.0);
+        zoom = qMin(zoom, 5.0);
 
         //m11 and m22 are x/y scaling respectively
         t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
@@ -381,7 +387,7 @@ void NodeView::node_AddMenu(QPointF scene_pos, int index){
 void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_DIRECTION direction){
     emit trans_InActive2Connecting();
     if(state_Active_Connecting->active()){
-        auto item_map = viewController->getValidEdges2(edge_kind);
+        auto item_map = viewController->getValidEdges(edge_kind);
 
         auto edge_direction = direction == EDGE_DIRECTION::SOURCE ? EDGE_DIRECTION::TARGET : EDGE_DIRECTION::SOURCE;
 
@@ -692,7 +698,6 @@ void NodeView::topLevelItemMoved()
 
 
 void NodeView::update_minimap(){
-    
     emit viewport_changed(viewportRect(), transform().m11());
     emit scenerect_changed(currentSceneRect);
 }
@@ -848,7 +853,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 node_item->setTertiaryTextKey("middleware");
-                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "trafficLight"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "sliders"}, true);
 
                 if(node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE || node_kind == NODE_KIND::CLIENT_PORT_INSTANCE){
                     node_item->setRightJustified(true);
@@ -1468,7 +1473,7 @@ void NodeView::state_Connecting_Exited()
     auto edge_kind = state_Active_Connecting->property("edge_kind").value<EDGE_KIND>();
     auto edge_direction = state_Active_Connecting->property("edge_direction").value<EDGE_DIRECTION>();
     
-    auto item_map = viewController->getValidEdges2(edge_kind);
+    auto item_map = viewController->getValidEdges(edge_kind);
     
     for(auto item : item_map.values(edge_direction)){
         emit viewController->vc_highlightItem(item->getID(), false);
@@ -1640,8 +1645,11 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     if(isPanning){
         //Calculate the distance in screen pixels travelled
         pan_distance += distance(event->pos(), pan_lastPos);
+        
+        auto scene_delta = scenePos - pan_lastScenePos;
+
         //Pan the Canvas
-        translate(scenePos - pan_lastScenePos);
+        translate(scene_delta);
         pan_lastPos = event->pos();
         pan_lastScenePos = mapToScene(event->pos());
         event->accept();

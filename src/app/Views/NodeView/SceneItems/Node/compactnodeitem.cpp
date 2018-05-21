@@ -111,6 +111,7 @@ QRectF CompactNodeItem::iconRect_Secondary() const{
     if(isIconVisible(EntityRect::SECONDARY_ICON)){
         const auto& full_rect = secondaryRow();
         rect = full_rect;
+
         //Baby Icon
         rect.setWidth(rect.height() *.75);
         rect.setHeight(rect.width());
@@ -155,10 +156,14 @@ QRectF CompactNodeItem::iconRect_Tertiary() const{
         rect.setWidth(rect.height() *.75);
         rect.setHeight(rect.width());
 
-        if(!isRightJustified()){
-            rect.moveBottomLeft(full_rect.bottomLeft());
+        QPointF offset;
+        offset.ry() += (full_rect.height() - rect.height()) / 2.0;
+       
+
+        if(isRightJustified()){
+            rect.moveTopRight(full_rect.topRight() + offset);
         }else{
-            rect.moveBottomRight(full_rect.bottomRight());
+            rect.moveTopLeft(full_rect.topLeft() + offset);
         }
     }
     return rect;

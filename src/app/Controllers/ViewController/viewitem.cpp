@@ -54,7 +54,6 @@ ViewItem::~ViewItem()
 
 VIEW_ASPECT ViewItem::getViewAspect()
 {
-    //Get Once
     if(aspect == VIEW_ASPECT::NONE){
         aspect = getController()->getNodeViewAspect(getID());
     }

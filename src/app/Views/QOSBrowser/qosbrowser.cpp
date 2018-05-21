@@ -82,7 +82,7 @@ void QOSBrowser::removeSelectedProfile()
         }
     }
     if(!IDs.isEmpty()){
-        vc->vc_deleteEntities(IDs);
+        vc->Delete(IDs);
     }
 }
 

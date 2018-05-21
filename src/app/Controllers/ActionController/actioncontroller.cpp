@@ -44,13 +44,16 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, &ViewController::vc_ActionFinished, this, &ActionController::actionFinished);
+        connect(controller, &ViewController::ActionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::GotJenkins, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::GotJava, this, &ActionController::gotJava);
         connect(controller, &ViewController::GotRe, this, &ActionController::gotRe);
 
-        connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
+        connect(controller, &ViewController::UndoRedoUpdated, this, &ActionController::updateUndoRedo);
+
+        
+
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);
         connect(controller, &ViewController::vc_removeProjectFromRecentProjects, this, &ActionController::removeRecentProject);
 
@@ -64,11 +67,14 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::importProjects);
         connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
 
-        connect(edit_undo, &QAction::triggered, viewController, &ViewController::vc_undo);
-        connect(edit_redo, &QAction::triggered, viewController, &ViewController::vc_redo);
+        
+
+        connect(edit_undo, &QAction::triggered, viewController, &ViewController::Undo);
+        connect(edit_redo, &QAction::triggered, viewController, &ViewController::Redo);
         connect(edit_cut, &QAction::triggered, viewController, &ViewController::cut);
         connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
+        
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
         connect(view_fitView, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(true);});
         connect(view_fitAllViews, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(false);});
@@ -374,6 +380,7 @@ void ActionController::selectionChanged(int selection_size)
 void ActionController::actionFinished()
 {
     selectionChanged(-1);
+    updateUndoRedo();
 }
 
 void ActionController::ModelControllerReady(bool)
