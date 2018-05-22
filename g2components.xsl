@@ -30,6 +30,8 @@
         
         <!-- Parse the components parameter to produce a list of labels -->
         <xsl:variable name="component_impls" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')" />
+        <xsl:variable name="behaviour_definitions" select="graphml:get_descendant_nodes_of_kind($model, 'BehaviourDefinitions')" />
+        <xsl:variable name="classes" select="graphml:get_descendant_nodes_of_kind($behaviour_definitions, 'Class')" />
         <xsl:variable name="parsed_components" select="cdit:parse_components($components)" />
         <xsl:variable name="output_path" select="'components'" />
 
@@ -101,6 +103,35 @@
             <xsl:result-document href="{o:write_file(($component_path, $impl_cpp))}">
                 <xsl:value-of select="cdit:get_component_impl_cpp($component_impl)" />
             </xsl:result-document>
+        </xsl:for-each-group>
+
+        <xsl:for-each-group select="$classes" group-by=".">
+            <xsl:variable name="class" select="." />
+            
+            <!-- Get the labels of the definition and impl -->
+            <xsl:variable name="class_label" select="graphml:get_label($class)" />
+            <xsl:variable name="class_prefix" select="lower-case($class_label)" />
+            <xsl:variable name="class_path" select="o:join_paths(('classes', $class_prefix))" />
+
+            <xsl:value-of select="o:message(('Generating Class:', o:wrap_quote($class_label)))" />
+            
+            <xsl:if test="not($preview)">
+                <!-- Only Generate the Interfaces and CMake files when we aren't in preview mode -->
+                <xsl:variable name="class_h" select="concat($class_prefix, '.h')" />
+                <xsl:variable name="class_cpp" select="concat($class_prefix, '.cpp')" />
+
+                <xsl:result-document href="{o:write_file(($class_path, $class_h))}">
+                    <xsl:value-of select="cdit:get_class_h($class)" />
+                </xsl:result-document>
+
+                <xsl:result-document href="{o:write_file(($class_path, $class_cpp))}">
+                    <xsl:value-of select="cdit:get_class_cpp($class)" />
+                </xsl:result-document>
+
+                <!--<xsl:result-document href="{o:write_file(($class_path, cmake:cmake_file()))}">
+                    <xsl:value-of select="cdit:get_class_cmake($class)" />
+                </xsl:result-document>-->
+            </xsl:if>
         </xsl:for-each-group>
 
 

@@ -73,6 +73,17 @@
     </xsl:function>
 
     <!--
+        Checks if the data value exists, by it's key name
+    -->
+    <xsl:function name="graphml:got_data" as="xs:boolean">
+        <xsl:param name="entity" as="element()?" />
+        <xsl:param name="key_name" as="xs:string"/>
+
+        <xsl:variable name="key_id" select="graphml:get_key_id($entity, $key_name)" />
+        <xsl:value-of select="boolean($entity/gml:data[@key=$key_id])" />
+    </xsl:function>
+
+    <!--
         Gets the data value from all entities, by its keyname
     -->
     <xsl:function name="graphml:get_data_values" as="xs:string*">

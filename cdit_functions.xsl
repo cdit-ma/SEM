@@ -333,6 +333,9 @@
             <xsl:when test="$kind = 'Member' or $kind = 'Attribute'">
                 <xsl:value-of select="cpp:get_member_type($node)" />
             </xsl:when>
+            <xsl:when test="$kind = 'VoidType'">
+                <xsl:value-of select="'void'" />
+            </xsl:when>
             <xsl:when test="$kind = 'Variable'">
                 <xsl:variable name="child" select="graphml:get_child_node($node, 1)" />
                 <xsl:choose>
@@ -799,7 +802,7 @@
         <xsl:sequence select="graphml:get_definitions($aggregate_instances)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_eventport_function_name" as="xs:string">
+    <xsl:function name="cdit:get_function_name" as="xs:string">
         <xsl:param name="port" as="element()"/>
         <xsl:variable name="port_def" select="graphml:get_definition($port)" />
         <xsl:variable name="label" select="graphml:get_label($port_def)" />
@@ -815,6 +818,9 @@
                 </xsl:when>
                 <xsl:when test="$kind = 'PeriodicEvent'">
                     <xsl:value-of select="'Periodic'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'Function'">
+                    <xsl:value-of select="'Fn'" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="o:warning(('Kind:', $kind, 'Not supported'))" />
@@ -983,13 +989,12 @@
         <xsl:value-of select="graphml:get_type($attribute)" />
     </xsl:function>
 
-
-    <xsl:function name="cdit:get_unique_workers" as="element()*">
+    <xsl:function name="cdit:get_unique_class" as="element()*">
         <xsl:param name="component_impl" as="element()"  />
 
-        <xsl:variable name="workers" select="graphml:get_child_nodes_of_kind($component_impl, 'WorkerProcess')" />
+        <xsl:variable name="classes" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
 
-        <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'workerID')">
+        <xsl:for-each-group select="$classes" group-by="graphml:get_definition(.)">
             <xsl:variable name="worker" select="graphml:get_data_value(., 'worker')" />
 
             <xsl:choose>
@@ -1010,18 +1015,36 @@
         <xsl:value-of select="$rel_folder" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_worker_header" as="xs:string">
-        <xsl:param name="worker" as="element()"  />
+    <xsl:function name="cdit:get_class_type" as="xs:string">
+        <xsl:param name="class" as="element()"  />
 
-        <xsl:variable name="worker_name" select="graphml:get_data_value($worker, 'worker')" />
+        <xsl:variable name="class_def" select="graphml:get_definition($class)" />
+        <xsl:value-of select="graphml:get_data_value($class_def, 'worker')" />
+    </xsl:function>
 
+    <xsl:function name="cdit:is_class_worker" as="xs:boolean">
+        <xsl:param name="class" as="element()"  />
+
+        <xsl:variable name="class_def" select="graphml:get_definition($class)" />
+        <xsl:value-of select="graphml:got_data($class_def, 'worker')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_class_header" as="xs:string">
+        <xsl:param name="class" as="element()"  />
+
+        <xsl:variable name="class_def" select="graphml:get_definition($class)" />
+
+        <xsl:variable name="worker_name" select="graphml:get_data_value($class_def, 'worker')" />
         <xsl:choose>
             <xsl:when test="$worker_name = 'Vector_Operations'">
                 <xsl:value-of select="''" />
             </xsl:when>
+            <xsl:when test="$worker_name != ''">
+                <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($class_def, 'file'))" />
+                <xsl:value-of select="o:join_paths((cdit:get_worker_path($class_def), concat($worker_file, '.h')))" />
+            </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($worker, 'file'))" />
-                <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_file, '.h')))" />
+                <!-- TODO DO EXTERNAL CLASS REFERENCE -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>

@@ -84,7 +84,9 @@
     <xsl:function name="cpp:include_library_header">
         <xsl:param name="library_path" as="xs:string" />
 
-        <xsl:value-of select="concat('#include ', o:wrap_angle($library_path), o:nl(1))" />
+        <xsl:if test="$library_path != ''">
+            <xsl:value-of select="concat('#include ', o:wrap_angle($library_path), o:nl(1))" />
+        </xsl:if>
     </xsl:function>
 
     <!--
@@ -93,8 +95,9 @@
     -->
     <xsl:function name="cpp:include_local_header">
         <xsl:param name="library_path" as="xs:string" />
-
-        <xsl:value-of select="concat('#include ', o:wrap_dblquote($library_path), o:nl(1))" />
+        <xsl:if test="$library_path != ''">
+            <xsl:value-of select="concat('#include ', o:wrap_dblquote($library_path), o:nl(1))" />
+        </xsl:if>
     </xsl:function>
 
     <!--
