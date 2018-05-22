@@ -68,7 +68,6 @@ std::string DeploymentManager::QueryEnvironmentManager(){
     }catch(const std::runtime_error& ex){
         //Communication with environment manager has likely timed out. Return blank string.
         std::cerr << "Response from env manager timed out, terminating" << std::endl;
-        
         return "";
     }
 
