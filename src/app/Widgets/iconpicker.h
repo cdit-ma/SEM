@@ -20,7 +20,8 @@ public:
 signals:
     void ApplyIcon();
 
-    
+protected:
+    void showEvent(QShowEvent *event);
 private:
     void themeChanged();
     void setupLayout();
@@ -41,6 +42,8 @@ private:
     QLineEdit* edit_icon = 0;
     QAction* apply_action = 0;
     QSize preview_icon_size = QSize(64, 64);
+
+    bool setup_layout = false;
 
 
 };

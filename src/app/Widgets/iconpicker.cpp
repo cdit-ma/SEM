@@ -11,15 +11,20 @@
 IconPicker::IconPicker(QWidget *parent) : QFrame(parent)
 {
     setMinimumSize(520,700);
-    setupLayout();
+    
     connect(Theme::theme(), &Theme::theme_Changed, this, &IconPicker::themeChanged);
     themeChanged();
+
+    //setupLayout();
     
 }
 
 
 void IconPicker::themeChanged()
 {
+    if(!setup_layout){
+        return;
+    }
     auto theme = Theme::theme();
 
     setStyleSheet(
@@ -33,25 +38,28 @@ void IconPicker::themeChanged()
                     
                 );
 
-    //background-color: " % theme->getAltBackgroundColorHex() + ";
     label_selected_icon->setStyleSheet("border:1px solid " % theme->getAltBackgroundColorHex() % ";");
-
     apply_action->setIcon(theme->getIcon("Icons", "tick"));
-
+    
     for(auto action : all_icons){
         Theme::UpdateActionIcon(action, theme);
     }
+
     updateIcon();
 }
 
 void IconPicker::clear(){
-    edit_icon->clear();
-    edit_icon_prefix->clear();
+    if(setup_layout){
+        edit_icon->clear();
+        edit_icon_prefix->clear();
+    }
 }
 
 void IconPicker::setCurrentIcon(QString icon_prefix, QString icon_name){
-    edit_icon_prefix->setText(icon_prefix);
-    edit_icon->setText(icon_name);
+    if(setup_layout){
+        edit_icon_prefix->setText(icon_prefix);
+        edit_icon->setText(icon_name);
+    }
 }
 
 void IconPicker::setupLayout()
@@ -172,6 +180,9 @@ void IconPicker::setupLayout()
     layout->addStretch();
 
     connect(apply_action, &QAction::triggered, this, &IconPicker::ApplyIcon);
+
+    setup_layout = true;
+    themeChanged();
 }
 
 void IconPicker::clearSelection(){
@@ -179,7 +190,6 @@ void IconPicker::clearSelection(){
         icon->setChecked(false);
     }
     selected_icons.clear();
-
 }
 
 void IconPicker::updateIcon(){
@@ -225,9 +235,23 @@ void IconPicker::iconPressed(QAction* action){
 QPair<QString, QString> IconPicker::getCurrentIcon(){
     QPair<QString, QString> selected_icon;
 
-    for(auto icon : selected_icons){
-        selected_icon.first = icon->property("icon_prefix").toString();
-        selected_icon.second = icon->property("icon_name").toString();
+    if(setup_layout){
+        if(selected_icons.size()){
+            for(auto icon : selected_icons){
+                selected_icon.first = icon->property("icon_prefix").toString();
+                selected_icon.second = icon->property("icon_name").toString();
+            }
+        }else{
+            selected_icon.first = edit_icon->text();
+            selected_icon.second = edit_icon_prefix->text();
+        }
     }
+
     return selected_icon;
+}
+void IconPicker::showEvent(QShowEvent *event){
+    if(!setup_layout){
+        setupLayout();
+    }
+    qCritical() << event;    
 }

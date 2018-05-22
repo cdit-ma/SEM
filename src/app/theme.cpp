@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QStringBuilder>
 #include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrent/QtConcurrentMap>
 #include <QThreadPool>
 #include <QAction>
 #include <QApplication>
@@ -27,13 +28,11 @@ Theme::Theme() : QObject(0)
     updateValid();
 
     //Preload images on a background thread.
-    preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
+    preloadImages();
 }
 
 Theme::~Theme()
 {
-    //Wait for the preloading to finish
-    preloadThread.waitForFinished();
 }
 
 QColor Theme::white()
@@ -367,7 +366,10 @@ bool Theme::gotImage(IconPair icon)
 
 bool Theme::gotImage(const QString& path, const QString& alias)
 {
-    auto resource_name = getResourceName(path, alias);
+    return gotImage(getResourceName(path, alias));
+}
+
+bool Theme::gotImage(const QString& resource_name){
     QReadLocker lock(&lock_);
     return image_names.contains(resource_name);
 }
@@ -392,24 +394,26 @@ QIcon Theme::getIcon(IconPair icon)
     return getIcon(icon.first, icon.second);
 }
 
-QIcon Theme::getIcon(const QString& prefix, const QString& alias)//{//, bool ignore_checked_colors)
+QIcon Theme::getIcon(const QString& prefix, const QString& alias)
 {
-    bool ignore_checked_colors = false;
-    //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    QString lookupName = getResourceName(prefix, alias);
+    const auto resource_name = getResourceName(prefix, alias);
 
-    if(iconLookup.contains(lookupName)){
-        return iconLookup[lookupName];
-    }else{
-        
-        QIcon icon;
+    {
+        QReadLocker lock(&lock_);
+        if(iconLookup.contains(resource_name)){
+            return iconLookup[resource_name];
+        }
+    }
+
+    QIcon icon;
+    if(prefix.size() && alias.size()){
 
         IconToggle icon_toggle;
 
 
         //Check if we have a toggled Icon
-        if(iconToggledLookup2.contains(lookupName)){
-            icon_toggle = iconToggledLookup2.value(lookupName);
+        if(iconToggledLookup2.contains(resource_name)){
+            icon_toggle = iconToggledLookup2.value(resource_name);
         }else{
             icon_toggle.off.first = prefix;
             icon_toggle.off.second = alias;
@@ -434,7 +438,7 @@ QIcon Theme::getIcon(const QString& prefix, const QString& alias)//{//, bool ign
             }
         }
 
-        
+            
         //Handle On State
         if(icon_toggle.got_toggle){
             icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
@@ -448,60 +452,70 @@ QIcon Theme::getIcon(const QString& prefix, const QString& alias)//{//, bool ign
             icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
         }
 
-        iconLookup[lookupName] = icon;
-        return icon;
+        {
+            QWriteLocker lock(&lock_);
+            iconLookup[resource_name] = icon;
+        }
     }
+    return icon;
 }
 
 QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintColor)
 {
-    QPixmap pixmap;
     //Get the name of the pixmap url
     QString pixmap_url = getPixmapResourceName(resourceName, size, tintColor);
 
-    if(pixmapLookup.contains(pixmap_url)){
-        //Get the pixmap from the lookup
-        pixmap = pixmapLookup.value(pixmap_url);
-    }else{
-        //Get the Image (Load it if it isn't loaded)
-        QImage image = getImage(resourceName);
+    {
+        QReadLocker lock(&pixmap_lock_);
+
+         if(pixmapLookup.contains(pixmap_url)){
+            //Get the pixmap from the lookup
+            return pixmapLookup.value(pixmap_url);
+        }
+    }
+
+    //Get the Image (Load it if it isn't loaded)
+    QImage image = getImage(resourceName);
+
+    if(!image.isNull()){
         //Get the size of the original Image
         QSize original_size = image.size();
 
-        if(!image.isNull()){
+        //If we haven't got a tint color, get a default tint color (If Any)
+        if(!tintColor.isValid()){
+            tintColor = getTintColor(resourceName);
+        }
 
-            //If we haven't got a tint color, get a default tint color (If Any)
-            if(!tintColor.isValid()){
-                tintColor = getTintColor(resourceName);
+        //If we have been given a size, which is different to the original size, round it
+        if(size.isValid() && size != original_size){
+            size = roundQSize(size);
+            //Scale the image
+            image = image.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+
+        //Tint the icon if we have to
+        if(tintColor.isValid() && tintIcon(original_size)){
+            //Replace the image with it's alphaChannel
+            image = image.alphaChannel();
+
+            //Replace the colors with the tinted color.
+            for(int i = 0; i < image.colorCount(); ++i) {
+                tintColor.setAlpha(qGray(image.color(i)));
+                image.setColor(i, tintColor.rgba());
             }
+        }
 
-            //If we have been given a size, which is different to the original size, round it
-            if(size.isValid() && size != original_size){
-                size = roundQSize(size);
-                //Scale the image
-                image = image.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            }
+        //Construct a Pixmap from the image.
+        auto pixmap = QPixmap::fromImage(image);
 
-            //Tint the icon if we have to
-            if(tintColor.isValid() && tintIcon(original_size)){
-                //Replace the image with it's alphaChannel
-                image = image.alphaChannel();
-
-                //Replace the colors with the tinted color.
-                for(int i = 0; i < image.colorCount(); ++i) {
-                    tintColor.setAlpha(qGray(image.color(i)));
-                    image.setColor(i, tintColor.rgba());
-                }
-            }
-
-            //Construct a Pixmap from the image.
-            pixmap = QPixmap::fromImage(image);
-
+        {
+            QWriteLocker lock(&pixmap_lock_);
             //Store it in the pixmap map
             pixmapLookup[pixmap_url] = pixmap;
         }
+        return pixmap;
     }
-    return pixmap;
+    return QPixmap();
 }
 
 QPixmap Theme::getImage(const QString& prefix, const QString& alias, QSize size, QColor tintColor)
@@ -1124,6 +1138,14 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
            "}";
 }
 
+bool Theme::preloadImage(const QString& resource_name){
+    auto is_valid = !getImage(resource_name).isNull();
+    if(!is_valid){
+        qCritical() << "Image: " << resource_name << " Is an null image";
+    }
+    return is_valid;
+}
+
 void Theme::preloadImages()
 {   
     auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -1132,6 +1154,7 @@ void Theme::preloadImages()
     //Recurse through all files in the image alias.
     QDirIterator it(":/Images/", QDirIterator::Subdirectories);
 
+    
     QList<QString> files;
     {
         QWriteLocker lock(&lock_);
@@ -1139,23 +1162,29 @@ void Theme::preloadImages()
             it.next();
             if(it.fileInfo().isFile()){
                 //Trim the :/ from the path1
-                auto file_path = it.filePath().mid(2);
+                QString file_path = it.filePath().mid(2);
+                files << file_path;
                 image_names.insert(file_path);
-                files.append(file_path);
             }
         }
     }
-    for(auto file_path : files){
-         //load the image
-         if(getImage(file_path).isNull()){
-            qCritical() << "Image: " << file_path << " Is an null image";
-        }else{
-            load_count ++;
+
+
+    auto results = QtConcurrent::blockingMapped(files, &Theme::LoadImage);
+
+    {
+        QWriteLocker lock(&lock_);
+        for(const auto& i : results){
+            icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
+
+            imageLookup[i.resource_name] = i.image;
+            pixmapSizeLookup[i.resource_name] = i.image.size();
+            pixmapMainColorLookup[i.resource_name] = i.color;
         }
     }
-
+    
     auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Preloaded #" << load_count << " Images in: " <<  time_finish - time_start << "MS";
+    qCritical() << "Preloaded #" << files.count() << " Images in: " <<  time_finish - time_start << "MS";
     clearIconMap();
     emit theme_Changed();
 }
@@ -1298,23 +1327,23 @@ void Theme::clearIconMap()
     iconLookup.clear();
 }
 
-QColor Theme::calculateImageColor(QImage image)
+QColor Theme::CalculateImageColor(const QImage& image)
 {
     QColor c;
     if(!image.isNull()){
         int size = 32;
-        image = image.scaled(size, size);
+        auto scaled_image = image.scaled(size, size);
 
-        QHash<QRgb, int> colorCount;
+        QHash<QRgb, int> color_count;
         int max = 0;
-        QRgb frequentColor = QColor(Qt::black).rgb();
+        QRgb frequent_color = QColor(Qt::black).rgb();
 
         int f = 25;
 
         for(int i = 0; i < size * size; i++){
             int x = i % size;
             int y = i / size;
-            QRgb pixel = image.pixel(x,y);
+            QRgb pixel = scaled_image.pixel(x,y);
 
             int r = qRed(pixel);
             int g = qGreen(pixel);
@@ -1325,22 +1354,21 @@ QColor Theme::calculateImageColor(QImage image)
                 continue;
             }
 
-            if(colorCount.contains(pixel)){
-                colorCount[pixel] ++;
+            
+
+            if(color_count.contains(pixel)){
+                color_count[pixel] ++;
             }else{
-                colorCount[pixel] = 1;
+                color_count[pixel] = 1;
             }
 
-            int count = colorCount[pixel];
+            int count = color_count[pixel];
             if(count > max){
-                frequentColor = pixel;
+                frequent_color = pixel;
                 max = count;
             }
         }
-        c = QColor(frequentColor);
-        if(colorCount.isEmpty()){
-            c = iconColor;
-        }
+        c = QColor(frequent_color);
     }
     return c;
 }
@@ -1376,10 +1404,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
     setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
-
     setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
-
-    
 }
 
 void Theme::setupAliasIcons(){
@@ -1613,6 +1638,19 @@ void Theme::updateValid()
     themeChanged = true;
 }
 
+Theme::ImageLoad Theme::LoadImage(const QString& resource_name){
+    ImageLoad i;
+    i.resource_name = resource_name;
+    i.image = QImage(":/" % resource_name);
+    if(!i.image.isNull()){
+        i.color = CalculateImageColor(i.image);
+        i.image_path = SplitImagePath(resource_name);
+    }else{
+        qCritical() << "Theme Loading Null Image: " << resource_name;
+    }
+    return i;
+}
+
 QImage Theme::getImage(const QString& resource_name)
 {
     {
@@ -1622,24 +1660,24 @@ QImage Theme::getImage(const QString& resource_name)
             return imageLookup[resource_name];
         }
     }
-    //Else load the image
-    QImage image(":/" % resource_name);
-    //qCritical() << resource_name;
-    auto color = calculateImageColor(image);
+
+    if(gotImage(resource_name)){
+        return QImage();
+    }
 
 
-    //Try Remove Images of the front
-
-
-    auto icon_path = splitImagePath(resource_name);
-    icon_prefix_lookup[icon_path.first].insert(icon_path.second);
-
-    QWriteLocker lock(&lock_);
-    //Gain lock to write to the lookups
-    imageLookup[resource_name] = image;
-    pixmapSizeLookup[resource_name] = image.size();
-    pixmapMainColorLookup[resource_name] = color;
-    return image;
+    auto i = LoadImage(resource_name);
+    {
+        
+        if(!i.image.isNull()){
+            QWriteLocker lock(&lock_);
+            icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
+            imageLookup[i.resource_name] = i.image;
+            pixmapSizeLookup[i.resource_name] = i.image.size();
+            pixmapMainColorLookup[i.resource_name] = i.color;
+        }
+    }
+    return i.image;
 }
 
 QColor Theme::getTintColor(const QString& resource_name)
@@ -1654,7 +1692,7 @@ QSize Theme::getOriginalSize(const QString& resource_name)
     return pixmapSizeLookup.value(resource_name);
 }
 
-IconPair Theme::splitImagePath(const QString& path)
+IconPair Theme::SplitImagePath(const QString& path)
 {
     auto origin = 0;
     const QString image_prefix("Images/");

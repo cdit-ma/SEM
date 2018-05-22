@@ -479,177 +479,161 @@ QList<QVariant> ViewController::getValidValuesForKey(int ID, QString keyName)
 }
 
 
-void ViewController::setDefaultIcon(ViewItem *viewItem)
+void ViewController::SetDefaultIcon(ViewItem& view_item)
 {
-    if(viewItem){
-        bool isNode = viewItem->isNode();
-        bool isEdge = viewItem->isEdge();
-
-        NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
-        EdgeViewItem* edgeViewItem = (EdgeViewItem*)viewItem;
-
-        QString default_icon_prefix = "EntityIcons";
-        QString default_icon_name = viewItem->getData("kind").toString();
+    QString default_icon_prefix = "EntityIcons";
+    QString default_icon_name = view_item.getData("kind").toString();
+    
+    QString custom_icon_prefix = view_item.getData("icon_prefix").toString();
+    QString custom_icon_name = view_item.getData("icon").toString();
         
-        QString custom_icon_prefix = viewItem->getData("icon_prefix").toString();
-        QString custom_icon_name = viewItem->getData("icon").toString();
-        
-        if(isNode){
-            auto node_kind = nodeViewItem->getNodeKind();
+    if(view_item.isNode()){
+        auto& node_item = (NodeViewItem&)view_item;
+        const auto& node_kind = node_item.getNodeKind();
 
 
-            switch(node_kind){
-            case NODE_KIND::HARDWARE_NODE:{
-                auto os = viewItem->getData("os").toString();
-                auto arch = viewItem->getData("architecture").toString();
+        switch(node_kind){
+        case NODE_KIND::HARDWARE_NODE:{
+            auto os = view_item.getData("os").toString();
+            auto arch = view_item.getData("architecture").toString();
+            custom_icon_prefix = "EntityIcons";
+            custom_icon_name = (os % "_" % arch);
+            break;
+        }
+        case NODE_KIND::OPENCL_PLATFORM:{
+            auto vendor = view_item.getData("vendor").toString();
+            
+            custom_icon_prefix = "Icons";
+            
+            if(vendor == "Advanced Micro Devices, Inc."){
+                custom_icon_name = "amd";
+            }else if(vendor == "Altera Corporation"){
+                custom_icon_name = "intel";
+            }else if(vendor == "NVIDIA Corporation"){
+                custom_icon_name = "nvidia";
+            }
+            
+            break;
+        }
+        case NODE_KIND::OPENCL_DEVICE:{
+            auto type = view_item.getData("type").toString();
+            
+            custom_icon_prefix = "Icons";
+            if(type == "CL_DEVICE_TYPE_CPU"){
+                custom_icon_name = "cpu";
+            }else if(type == "CL_DEVICE_TYPE_GPU"){
+                custom_icon_name = "gpu";
+            }
+            break;
+        }
+        case NODE_KIND::VARIADIC_PARAMETER:{
+            default_icon_prefix = "Icons";
+            default_icon_name = "label";
+            break;
+        }
+        case NODE_KIND::FOR_LOOP:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "WhileLoop";
+            break;
+        }
+        case NODE_KIND::IF_CONDITION:
+        case NODE_KIND::ELSEIF_CONDITION:
+        case NODE_KIND::ELSE_CONDITION:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "IfCondition";
+            break;
+        }
+        case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "Attribute";
+            break;
+        case NODE_KIND::SERVER_PORT:
+        case NODE_KIND::SERVER_PORT_IMPL:
+        case NODE_KIND::SERVER_PORT_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "ReplyPort";
+            break;
+        }
+        case NODE_KIND::CLIENT_PORT:
+        case NODE_KIND::SERVER_REQUEST:
+        case NODE_KIND::CLIENT_PORT_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "RequestPort";
+            break;
+        }
+
+        case NODE_KIND::INPUT_PARAMETER:
+        case NODE_KIND::INPUT_PARAMETER_GROUP:
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "InputParameterGroup";
+            break;
+        }
+        case NODE_KIND::RETURN_PARAMETER:
+        case NODE_KIND::RETURN_PARAMETER_GROUP:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "ReturnParameterGroup";
+            break;
+        }
+        case NODE_KIND::VARIABLE_PARAMETER:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "Variable";
+            break;
+        }
+        case NODE_KIND::WORKER_DEFINITIONS:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "Workload";
+            break;
+        }
+        case NODE_KIND::MODEL:
+            default_icon_prefix = "Icons";
+            default_icon_name = "medeaLogo";
+            break;
+        case NODE_KIND::EXTERNAL_TYPE:
+            default_icon_prefix = "Icons";
+            default_icon_name = "translate";
+            break;
+        case NODE_KIND::BOOLEAN_EXPRESSION:
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "Condition";
+            break;
+        case NODE_KIND::FUNCTION:
+        case NODE_KIND::FUNCTION_CALL:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "Workload";
+            break;
+        }
+        case NODE_KIND::ENUM_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "EnumMember";
+            break;
+        }
+        case NODE_KIND::PERIODICEVENT_INSTANCE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "PeriodicEvent";
+            break;
+        }
+        case NODE_KIND::SHARED_DATATYPES:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "SharedDatatypes";
+            if(view_item.isReadOnly()){
                 custom_icon_prefix = "EntityIcons";
-                custom_icon_name = (os % "_" % arch);
-                break;
+                custom_icon_name = "SharedDatatypesLocked";
             }
-            case NODE_KIND::OPENCL_PLATFORM:{
-                auto vendor = viewItem->getData("vendor").toString();
-                
-                custom_icon_prefix = "Icons";
-                
-                if(vendor == "Advanced Micro Devices, Inc."){
-                    custom_icon_name = "amd";
-                }else if(vendor == "Altera Corporation"){
-                    custom_icon_name = "intel";
-                }else if(vendor == "NVIDIA Corporation"){
-                    custom_icon_name = "nvidia";
-                }
-                
-                break;
-            }
-            case NODE_KIND::OPENCL_DEVICE:{
-                auto type = viewItem->getData("type").toString();
-                
-                custom_icon_prefix = "Icons";
-                if(type == "CL_DEVICE_TYPE_CPU"){
-                    custom_icon_name = "cpu";
-                }else if(type == "CL_DEVICE_TYPE_GPU"){
-                    custom_icon_name = "gpu";
-                }
-                break;
-            }
-            case NODE_KIND::VARIADIC_PARAMETER:{
-                default_icon_prefix = "Icons";
-                default_icon_name = "label";
-                break;
-            }
-            case NODE_KIND::FOR_LOOP:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "WhileLoop";
-                break;
-            }
-            case NODE_KIND::IF_CONDITION:
-            case NODE_KIND::ELSEIF_CONDITION:
-            case NODE_KIND::ELSE_CONDITION:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "IfCondition";
-                break;
-            }
-            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "Attribute";
-                break;
-            case NODE_KIND::SERVER_PORT:
-            case NODE_KIND::SERVER_PORT_IMPL:
-            case NODE_KIND::SERVER_PORT_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "ReplyPort";
-                break;
-            }
-            case NODE_KIND::CLIENT_PORT:
-            case NODE_KIND::SERVER_REQUEST:
-            case NODE_KIND::CLIENT_PORT_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "RequestPort";
-                break;
-            }
-
-            case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::INPUT_PARAMETER_GROUP:
-            case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "InputParameterGroup";
-                break;
-            }
-            case NODE_KIND::RETURN_PARAMETER:
-            case NODE_KIND::RETURN_PARAMETER_GROUP:
-            case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "ReturnParameterGroup";
-                break;
-            }
-            case NODE_KIND::VARIABLE_PARAMETER:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "Variable";
-                break;
-            }
-            case NODE_KIND::WORKER_DEFINITIONS:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "Workload";
-                break;
-            }
-            case NODE_KIND::MODEL:
-                default_icon_prefix = "Icons";
-                default_icon_name = "medeaLogo";
-                break;
-            case NODE_KIND::EXTERNAL_TYPE:
-                default_icon_prefix = "Icons";
-                default_icon_name = "translate";
-                break;
-            case NODE_KIND::BOOLEAN_EXPRESSION:
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "Condition";
-                break;
-            case NODE_KIND::FUNCTION:
-            case NODE_KIND::FUNCTION_CALL:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "Workload";
-                break;
-            }
-            case NODE_KIND::ENUM_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "EnumMember";
-                break;
-            }
-            case NODE_KIND::PERIODICEVENT_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "PeriodicEvent";
-                break;
-            }
-            case NODE_KIND::SHARED_DATATYPES:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "SharedDatatypes";
-                if(viewItem->isReadOnly()){
-                    custom_icon_prefix = "EntityIcons";
-                    custom_icon_name = "SharedDatatypesLocked";
-                }
-                break;
-            }
-            default:
-                break;
-            }
+            break;
         }
+        default:
+            break;
+        }
+    }
         
-        auto got_icon = false;
-        if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
-            Theme::theme()->getIcon(default_icon_prefix, default_icon_name);
-            viewItem->setIcon(default_icon_prefix, default_icon_name);
-            got_icon = true;
-        }
-
-        if(Theme::theme()->gotImage(custom_icon_prefix, custom_icon_name)){
-            Theme::theme()->getIcon(custom_icon_prefix, custom_icon_name);
-            viewItem->setIcon(custom_icon_prefix, custom_icon_name);
-            got_icon = true;
-        }
-
-        if(!got_icon){
-            viewItem->setIcon("Icons", "circleQuestion");
-        }
+    if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
+        view_item.setDefaultIcon(default_icon_prefix, default_icon_name);
+    }
+    
+    if(custom_icon_prefix.size() && custom_icon_name.size()){
+        view_item.setIcon(custom_icon_prefix, custom_icon_name);
     }
 }
 
@@ -697,7 +681,6 @@ DefaultDockWidget* ViewController::constructDockWidget(QString title, QString ic
     dock_widget->setCloseVisible(false);
 
     
-
     Theme::theme()->setWindowIcon(title, icon_path, icon_name);
 
     dock_widget->setWidget(widget);
@@ -852,7 +835,9 @@ void ViewController::setupEntityKindItems()
         }
 
         auto item = new NodeViewItem(this, kind, label);
-        setDefaultIcon(item);
+        if(item){
+            ViewController::SetDefaultIcon(*item);
+        }
         nodeKindItems[kind] = item;
     }
 
@@ -863,7 +848,9 @@ void ViewController::setupEntityKindItems()
         //Trim the Edge_ from the label
         label.remove(0, 5);
         auto item = new EdgeViewItem(this, kind, label);
-        setDefaultIcon(item);
+        if(item){
+            ViewController::SetDefaultIcon(*item);
+        }
 
         edgeKindItems[kind] = item;
     }
@@ -1451,7 +1438,7 @@ void ViewController::StoreViewItem(ViewItem* view_item){
             NodeTypesChanged(id);
             NodeEdgeKindsChanged(id);
         }
-        setDefaultIcon(view_item);
+        ViewController::SetDefaultIcon(*view_item);
         connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
         connect(view_item, &ViewItem::showNotifications, NotificationManager::manager(), &NotificationManager::ShowNotificationPanel);
         emit vc_viewItemConstructed(view_item);

@@ -2,7 +2,7 @@
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
-find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
 
 if(WIN32)
 	SET(QT_USE_QTMAIN TRUE)
@@ -251,6 +251,8 @@ target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} Qt5::Network)
+target_link_libraries(${PROJ_NAME} Qt5::Concurrent)
+
 
 #Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})

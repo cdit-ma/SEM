@@ -47,9 +47,8 @@ public:
     void updateProtectedKeys(QList<QString> protected_keys);
     void updateProtectedKey(QString key_name, bool is_protected);
 
-    void setDefaultIcon(QString iconPrefix, QString iconName);
-    void setIcon(QString iconPrefix, QString iconName);
-    void resetIcon();
+    bool setDefaultIcon(const QString& prefix, const QString& name);
+    bool setIcon(const QString& prefix, const QString& name);
 
     const QPair<QString, QString>& getIcon() const;
 
@@ -86,6 +85,7 @@ signals:
 
     void destructing(int ID);
 protected:
+    void updateIcon();
     void changeData(QString keyName, QVariant data, bool is_protected = false);
     void removeData(QString keyName);
     virtual void childAdded(ViewItem* child);
@@ -111,8 +111,12 @@ private:
     QString kind;
     GRAPHML_KIND entityKind;
 
-    QPair<QString, QString> defaultIcon;
-    QPair<QString, QString> currentIcon;
+    bool default_valid = false;
+    QPair<QString, QString> default_icon;
+    
+    bool current_valid = false;
+    QPair<QString, QString> current_icon;
+
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
     
     QSet<QSharedPointer<NotificationObject> > notifications_;

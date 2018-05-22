@@ -119,7 +119,6 @@ void ContextMenu::themeChanged(){
     //Set Icons for top level icons
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
-    //remove_edge_menu->setIcon(theme->getIcon("Icons", "connectStriked"));
     deploy_menu->setIcon(theme->getIcon("Icons", "screenTwoTone"));
 
     for(auto node_action : add_node_action_hash.values()){

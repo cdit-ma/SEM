@@ -119,6 +119,7 @@ public:
 
     bool gotImage(IconPair icon);
     bool gotImage(const QString&, const QString&);
+    bool gotImage(const QString&);
 
     void setIconSize(int size);
 
@@ -175,7 +176,17 @@ public slots:
 private:
     void clearIconMap();
     void preloadImages();
-    QColor calculateImageColor(QImage image);
+    bool preloadImage(const QString& resource_name);
+
+struct ImageLoad{
+    QString resource_name;
+    QPair<QString, QString> image_path;
+    QImage image;
+    QColor color;
+};
+    static ImageLoad LoadImage(const QString& resource_name);
+    static QColor CalculateImageColor(const QImage& image);
+
     QString getResourceName(QString prefix, QString alias) const;
     QString getResourceName(IconPair icon) const;
     void resetTheme(ThemePreset themePreset);
@@ -190,7 +201,7 @@ private:
     QColor getTintColor(const QString& resource_name);
     QSize getOriginalSize(const QString& resource_name);
 
-    IconPair splitImagePath(const QString& path);
+    static IconPair SplitImagePath(const QString& path);
 
     bool tintIcon(IconPair pair);
     bool tintIcon(const QString& prefix, const QString& alias);
@@ -250,12 +261,11 @@ private:
     QFont font;
 
     QReadWriteLock lock_;
+    QReadWriteLock pixmap_lock_;
 
 
     bool themeChanged = false;
     bool valid = false;
-
-    QFuture<void> preloadThread;
 public:
     static QColor blendColors(const QColor color1, const QColor color2, qreal blendRatio=0.5);
     static QString QColorToHex(const QColor color);

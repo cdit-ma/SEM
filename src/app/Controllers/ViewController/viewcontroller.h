@@ -89,7 +89,8 @@ public:
     QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
-    void setDefaultIcon(ViewItem* viewItem);
+    static void SetDefaultIcon(ViewItem& viewItem);
+    
     ViewItem* getModel();
     bool isControllerReady();
 

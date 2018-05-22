@@ -126,34 +126,47 @@ bool ViewItem::isReadOnly() const
     return readOnly;
 }
 
-void ViewItem::setDefaultIcon(QString iconPrefix, QString iconName)
+bool ViewItem::setDefaultIcon(const QString& prefix, const QString& name)
 {
-    //If the icon is different to what we have currently, update and send signal.
-    if(defaultIcon.first != iconPrefix || defaultIcon.second != iconName){
-        defaultIcon.first = iconPrefix;
-        defaultIcon.second = iconName;
-        setIcon(iconPrefix, iconName);
+    if(default_icon.first != prefix){ 
+        default_icon.first = prefix;
     }
+    if(default_icon.second != name){
+        default_icon.second = name;
+    }
+
+    
+    default_valid = Theme::theme()->gotImage(default_icon);
+    emit iconChanged();
+    return default_valid;
 }
 
-void ViewItem::setIcon(QString iconPrefix, QString iconName)
+bool ViewItem::setIcon(const QString& prefix, const QString& name)
 {
-    //If the icon is different to what we have currently, update and send signal.
-    if(currentIcon.first != iconPrefix || currentIcon.second != iconName){
-        currentIcon.first = iconPrefix;
-        currentIcon.second = iconName;
-        emit iconChanged();
+    if(current_icon.first != prefix){
+        current_icon.first = prefix;
     }
+    if(current_icon.second != name){
+        current_icon.second = name;
+    }
+    
+    //Check with the theme?
+    current_valid = Theme::theme()->gotImage(current_icon);
+    emit iconChanged();
+    return current_valid;
 }
 
-void ViewItem::resetIcon()
-{
-    setIcon(defaultIcon.first, defaultIcon.second);
-}
 
 const IconPair& ViewItem::getIcon() const
 {
-    return currentIcon;
+    if(current_valid){
+        return current_icon;
+    }else if(default_valid){
+        return default_icon;
+    }else{
+        static IconPair invalid_icon({"Icons", "circleQuestionDark"});
+        return invalid_icon;
+    }
 }
 
 void ViewItem::destruct()
@@ -272,11 +285,14 @@ void ViewItem::changeData(QString keyName, QVariant data, bool is_protected)
     if(keyName == "label"){
         emit labelChanged(data.toString());
     }else if(keyName == "icon" || keyName == "icon_prefix"){
-        auto icon = _data.value("icon", "").toString();
-        auto icon_prefix = _data.value("icon_prefix", "").toString();
-        setIcon(icon_prefix, icon);
+        updateIcon();
     }
+}
 
+void ViewItem::updateIcon(){
+    auto icon = _data.value("icon", "").toString();
+    auto icon_prefix = _data.value("icon_prefix", "").toString();
+    setIcon(icon_prefix, icon);
 }
 
 void ViewItem::removeData(QString keyName)
