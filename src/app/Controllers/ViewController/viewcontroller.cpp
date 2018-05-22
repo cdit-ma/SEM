@@ -47,11 +47,6 @@
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
-#define GME_FILE_EXT "GME Documents (*.xme)"
-#define GME_FILE_SUFFIX ".xme"
-
-#define XMI_FILE_EXT "UML XMI Documents (*.xml)"
-#define XMI_FILE_SUFFIX ".xml"
 
 #define IDL_FILE_EXT "IDL Documents (*.idl)"
 #define IDL_FILE_SUFFIX ".idl"

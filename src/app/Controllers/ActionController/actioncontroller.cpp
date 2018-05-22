@@ -125,9 +125,6 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
 
-        //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
-        //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
-        //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
         connect(file_importIdl, &QAction::triggered, viewController, &ViewController::importIdlFiles);
         
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
@@ -486,8 +483,7 @@ void ActionController::updateActions()
     file_importGraphML->setEnabled(controller_ready);
     
     file_importIdl->setEnabled(controller_ready);
-    //file_importXME->setEnabled(modelActions);
-    //file_importXMI->setEnabled(modelActions);
+    
     file_saveProject->setEnabled(controller_ready);
     file_saveAsProject->setEnabled(controller_ready);
     file_closeProject->setEnabled(controller_ready);
@@ -666,10 +662,6 @@ void ActionController::setupActions()
     
     file_importIdl = createRootAction("Project", "Import IDL Files", "", "Icons", "clipboardDown");
     file_importIdl->setToolTip("Import IDL files into current project.");
-    //file_importXME = createRootAction("Project", "Import XME Project", "", "Icons", "gme");
-    //file_importXME->setToolTip("Import XME Project into current project.");
-    //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
-    //file_importXMI->setToolTip("Import XMI Project into current project.");
 
   
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
@@ -961,9 +953,6 @@ void ActionController::setupMainMenu()
     menu_file->addAction(file_importGraphML);
     menu_file->addAction(file_importIdl);
     
-    //menu_file->addAction(file_importXME);
-    //menu_file->addAction(file_importXMI);
-    //menu_file->addSeparator();
 
     menu_file->addSeparator();
     menu_file->addAction(file_exit);

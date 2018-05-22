@@ -98,8 +98,7 @@ public:
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
     RootAction* file_importGraphML;
-    //RootAction* file_importXME;
-    //RootAction* file_importXMI;
+    
     RootAction* file_importIdl;
     RootAction* file_openProject;
     RootAction* file_saveProject;
