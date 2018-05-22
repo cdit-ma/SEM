@@ -63,7 +63,7 @@ class EnvironmentRequester{
         //Request helpers
         std::future<std::string> QueueRequest(const std::string& request);
         void SendRequest(Request request);
-        void HandleReply(NodeManager::EnvironmentMessage message);
+        void HandleReply(NodeManager::EnvironmentMessage& message);
 
         std::string experiment_id_;
 

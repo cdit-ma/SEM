@@ -206,13 +206,19 @@ void EnvironmentRequester::HeartbeatLoop(){
                 ZMQSendRequest(*update_socket_, output);
                 auto reply = ZMQReceiveReply(*update_socket_);
                 if(reply.empty()){
+                    //TODO: Run shutdown callback from here!
                     std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
                 }
                 NodeManager::EnvironmentMessage reply_message;
                 reply_message.ParseFromString(reply);
 
-                HandleReply(reply_message);
-
+                try{
+                    HandleReply(reply_message);
+                }
+                catch(const std::exception& ex){
+                    //todo: call registered exception handling callback??
+                    std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
+                }
 
             }
             //CV got wakeup, take from request queue
@@ -396,7 +402,7 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t& socket){
     }
 }
 
-void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
+void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
     switch(message.type()){
         case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
             //NO-OP
