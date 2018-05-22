@@ -110,6 +110,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
             port_map_.insert({event_port.id, event_port});
         }
         deployment_map_.at(node_name)++;
+        std::cout << node_name << " deployment count: " << deployment_map_.at(node_name) << std::endl;
     }
 }
 

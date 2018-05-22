@@ -7,7 +7,18 @@
 #include "broadcaster.h"
 #include "deploymentregister.h"
 
+bool terminate = false;
+
+void signal_handler(int sig)
+{
+    terminate = true;
+}
+
 int main(int argc, char **argv){
+
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+
     static const std::string default_bcast_port = "22334";
     static const std::string default_registration_port = "22335";
 
@@ -58,10 +69,9 @@ int main(int argc, char **argv){
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(ip_address, registration_port));
     deployment_register->Start();
 
-    //TODO: condition variable to control termination correctly.
-    while(true){
-
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+    while(!terminate){
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
+
     return 0;
 }
