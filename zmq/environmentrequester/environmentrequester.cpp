@@ -61,7 +61,7 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //Get update endpoint
     //note: This falls out of scope and self destructs at the end of this function,
     //      this is important as we cant destruct our context otherwise
-    zmq::socket_t initial_request_socket(*context_, ZMQ_REP);
+    zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
 
     initial_request_socket.connect(manager_address_);
 
