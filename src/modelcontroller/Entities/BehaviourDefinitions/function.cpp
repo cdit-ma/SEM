@@ -74,8 +74,8 @@ void MEDEA::Function::parentSet(Node* parent){
         setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_IMPL, false);
         setAcceptsNodeKind(NODE_KIND::SERVER_REQUEST, false);
     }
-    
-    if(parent_node_kind != NODE_KIND::CLASS_INSTANCE){
+
+    if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INSTANCE){
         auto operation = getData("operation");
         auto label = getData("label");
         if(operation && label){

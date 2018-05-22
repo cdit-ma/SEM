@@ -29,13 +29,12 @@
             <data key="description">Provides CPU workload functionality.</data>
             <data key="icon_prefix">Icons</data>
             <data key="icon">cpu</data>
+            <data key="folder">${RE_PATH}/src/workers/cpu</data>
+            <data key="file">cpu_worker</data>
             <graph id="cpuworker:">
                 <node id="cpuworker::intop">
                     <data key="kind">Function</data>
-                    <data key="label">IntOp</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
+                    <data key="label">Int Op</data>
                     <data key="operation">IntOp</data>
                     <data key="description">Execute requested number of Integer Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
@@ -58,15 +57,11 @@
                 </node>
                 <node id="cpuworker::floatop">
                     <data key="kind">Function</data>
-                    <data key="label">FloatOp</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
+                    <data key="label">Float Op</data>
                     <data key="operation">FloatOp</data>
                     <data key="description">Execute requested number of Floating Point Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data> 
                     <graph id="cpuworker::floatop:">
                         <node id="cpuworker::floatop::in">
                             <data key="kind">InputParameterGroup</data>
@@ -86,14 +81,10 @@
                 <node id="cpuworker::whetstone">
                     <data key="kind">Function</data>
                     <data key="label">Whetstone</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
                     <data key="operation">Whetstone</data>
                     <data key="description">Execute requested number of loops through the Whetstone benchmark. It is estimated that ten loops is equivalent to one Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::whetstone:">
                         <node id="cpuworker::whetstone::in">
                             <data key="kind">InputParameterGroup</data>
@@ -113,14 +104,10 @@
                 <node id="cpuworker::mwip">
                     <data key="kind">Function</data>
                     <data key="label">MWIP</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
                     <data key="operation">MWIP</data>
                     <data key="description">Execute requested number of Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::mwip:">
                         <node id="cpuworker::mwip::in">
                             <data key="kind">InputParameterGroup</data>
@@ -140,14 +127,10 @@
                 <node id="cpuworker::dhrystone">
                     <data key="kind">Function</data>
                     <data key="label">Dhrystone</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
                     <data key="operation">Dhrystone</data>
                     <data key="description">Execute requested number of loops through the Dhrystone benchmark. For one Dhrystone Millions of Instructions Performed (DMIP) it takes 1757 loops through this benchmark.This uses modified code taken from Dhrystone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::dhrystone:">
                         <node id="cpuworker::dhrystone::in">
                             <data key="kind">InputParameterGroup</data>
@@ -167,14 +150,10 @@
                 <node id="cpuworker::dmip">
                     <data key="kind">Function</data>
                     <data key="label">DMIP</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
                     <data key="operation">DMIP</data>
                     <data key="description">Execute requested number of Dhrystone Millions of Instructions Performed (DMIP). This uses modified code taken from Dhrystone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::dmip:">
                         <node id="cpuworker::dmip::in">
                             <data key="kind">InputParameterGroup</data>
@@ -193,15 +172,11 @@
                 </node>
                 <node id="cpuworker::matrixmult">
                     <data key="kind">Function</data>
-                    <data key="label">MatrixMult</data>
-                    <data key="worker">Cpu_Worker</data>
-                    <data key="folder">${RE_PATH}/src/workers/cpu</data>
-                    <data key="file">cpu_worker</data>
+                    <data key="label">Matrix Mult</data>
                     <data key="operation">MatrixMult</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">grid3x3</data>
-                    <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::matrixmult:">
                         <node id="cpuworker::matrixmult::in">
                             <data key="kind">InputParameterGroup</data>

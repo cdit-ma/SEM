@@ -25,6 +25,11 @@ int launchMEDEA(int argc, char *argv[]){
     try{
         //Construct a QApplication
         QApplication a(argc, argv);
+
+        //Initialize images
+        Q_INIT_RESOURCE(images);
+        Q_INIT_RESOURCE(workers);
+
         Theme::theme();
 
         //Fixes MacOS QIcon resolution.

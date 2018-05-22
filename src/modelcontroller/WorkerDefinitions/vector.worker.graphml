@@ -34,7 +34,6 @@
                 <node id="vectorworker::get">
                     <data key="kind">Function</data>
                     <data key="label">Get</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Get</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circleInfo</data>
@@ -81,7 +80,6 @@
                 <node id="vectorworker::remove">
                     <data key="kind">Function</data>
                     <data key="label">Remove</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Remove</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circleMinus</data>
@@ -128,7 +126,6 @@
                 <node id="vectorworker::insert">
                     <data key="kind">Function</data>
                     <data key="label">Insert</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Insert</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circlePlus</data>
@@ -170,7 +167,6 @@
                 <node id="vectorworker::set">
                     <data key="kind">Function</data>
                     <data key="label">Set</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Set</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">pencil</data>
@@ -212,7 +208,6 @@
                 <node id="vectorworker::length">
                     <data key="kind">Function</data>
                     <data key="label">Length</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Length</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">arrowUpDown</data>
@@ -251,7 +246,6 @@
                 <node id="vectorworker::clear">
                     <data key="kind">Function</data>
                     <data key="label">Clear</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Clear</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">bin</data>
@@ -277,7 +271,6 @@
                 <node id="vectorworker::resize">
                     <data key="kind">Function</data>
                     <data key="label">Resize</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Resize</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">arrowTransfer</data>
@@ -320,7 +313,6 @@
                 <node id="vectorworker::swap">
                     <data key="kind">Function</data>
                     <data key="label">Swap</data>
-                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Swap</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">refresh</data>

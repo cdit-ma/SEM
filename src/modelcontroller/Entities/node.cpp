@@ -967,7 +967,6 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     required_instance_keys.insert("icon");
     required_instance_keys.insert("icon_prefix");
-    bind_values.insert("worker", "worker");
     
     
 
@@ -1021,7 +1020,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 bind_values.insert("description", "description");
                 bind_values.insert("class", "class");
                 bind_values.insert("is_variadic", "is_variadic");
-                bind_values.insert("operation", "label");
+                bind_values.insert("label", "label");
                 required_instance_keys.insert("is_variadic");
                 break;
             case NODE_KIND::FUNCTION:{

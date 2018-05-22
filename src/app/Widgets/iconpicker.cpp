@@ -249,9 +249,9 @@ QPair<QString, QString> IconPicker::getCurrentIcon(){
 
     return selected_icon;
 }
+
 void IconPicker::showEvent(QShowEvent *event){
     if(!setup_layout){
         setupLayout();
     }
-    qCritical() << event;    
 }

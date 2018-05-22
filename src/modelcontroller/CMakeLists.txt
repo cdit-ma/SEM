@@ -269,9 +269,9 @@ set(HEADERS
 )
 
 
-#set(RESOURCES
-#    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
-#    )
+set(RESOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
+    )
 
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
