@@ -49,6 +49,9 @@ class Node{
                 std::cerr << "Could not free port, port # out of range for int." << std::endl;
                 std::cerr << ex.what() << std::endl;
             }
+            catch(...){
+                std::cerr << "Unknown exception thrown in Node::FreePort" << std::endl;
+            }
         }
         std::string GetName(){
             return name_;

@@ -3,7 +3,6 @@
 #include <cassert>
 #include <queue>
 
-
 Environment::Environment(int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
@@ -224,9 +223,6 @@ void Environment::FreePort(const std::string& node_name, const std::string& port
     if(node_map_.count(node_name)){
         std::cout << "Free port " << node_name << ":" << port_number << std::endl;
         node_map_.at(node_name)->FreePort(port_number);
-    }
-    else{
-        throw std::invalid_argument("Environment::FreePort No node found with name: " + node_name);
     }
 }
 

@@ -33,6 +33,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
     )
 
 add_library(${ENVIRONMENT_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})

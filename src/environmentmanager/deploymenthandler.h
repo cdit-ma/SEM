@@ -23,6 +23,8 @@ class DeploymentHandler{
                         std::promise<std::string>* port_promise,
                         const std::string& experiment_id);
 
+        void Terminate();
+
 
     private:
         //Heartbeat constants (ms)
@@ -68,6 +70,7 @@ class DeploymentHandler{
         std::promise<std::string>* port_promise_;
 
         bool removed_flag_ = false;
+        bool terminate_ = false;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENTHANDLER

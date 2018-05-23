@@ -4,20 +4,23 @@
 #include <exception>
 #include <boost/program_options.hpp>
 
+#include <re_common/util/execution.hpp>
+
 #include "broadcaster.h"
 #include "deploymentregister.h"
 
-bool terminate = false;
+Execution* exe = 0;
 
 void signal_handler(int sig)
 {
-    terminate = true;
+    exe->Interrupt();
 }
 
 int main(int argc, char **argv){
 
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
+    exe = new Execution();
 
     static const std::string default_bcast_port = "22334";
     static const std::string default_registration_port = "22335";
@@ -63,15 +66,12 @@ int main(int argc, char **argv){
     std::string bcast_address("tcp://" + ip_address + ":" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
 
-    //auto broadcaster = std::unique_ptr<Broadcaster>(new Broadcaster(bcast_address, bcast_message));
-    //broadcaster->StartBroadcast();
-
-    auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(ip_address, registration_port));
+    auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(*exe, ip_address, registration_port));
     deployment_register->Start();
 
-    while(!terminate){
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-    }
+    exe->Start();
+
+    delete exe;
 
     return 0;
 }

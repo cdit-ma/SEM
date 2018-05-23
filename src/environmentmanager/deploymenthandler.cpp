@@ -23,6 +23,10 @@ DeploymentHandler::DeploymentHandler(Environment& env,
     handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::Init, this));
 }
 
+void DeploymentHandler::Terminate(){
+    
+}
+
 void DeploymentHandler::Init(){
     handler_socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(context_, ZMQ_REP));
 

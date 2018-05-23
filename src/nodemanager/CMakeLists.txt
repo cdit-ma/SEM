@@ -29,6 +29,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
+
     )
 
 #Pass Version info into cmakevars.h

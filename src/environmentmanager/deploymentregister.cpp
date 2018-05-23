@@ -3,8 +3,8 @@
 #include <chrono>
 #include <exception>
 
-DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 
-                                        int portrange_min, int portrange_max){
+DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
+                                        int portrange_min, int portrange_max) : execution_(exe){
 
     assert(portrange_min < portrange_max);
     ip_addr_ = ip_addr;
@@ -17,6 +17,11 @@ DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::st
 
 void DeploymentRegister::Start(){
     registration_loop_ = std::thread(&DeploymentRegister::RegistrationLoop, this);
+}
+
+void DeploymentRegister::Terminate(){
+    context_.reset();
+    registration_loop_.join();
 }
 
 //Main registration loop, passes request workload off to other threads
@@ -33,8 +38,19 @@ void DeploymentRegister::RegistrationLoop() noexcept{
     }
 
     while(true){
+
+        if(terminate_){
+            break;
+        }
+
+        std::pair<uint64_t, std::string> reply;
+
         //Receive deployment information
-        auto reply = ZMQReceiveRequest(*rep);
+        try{
+            reply = ZMQReceiveRequest(*rep);
+        }catch(const zmq::error_t& ex){
+            break;
+        }
 
         NodeManager::EnvironmentMessage message;
         bool parse_success = message.ParseFromString(reply.second);
@@ -229,6 +245,7 @@ std::pair<uint64_t, std::string> DeploymentRegister::ZMQReceiveRequest(zmq::sock
     catch(zmq::error_t error){
         //TODO: Throw this further up
         std::cerr << error.what() << "in DeploymentRegister::ReceiveTwoPartRequest" << std::endl;
+        throw std::runtime_error("DeploymentRegister::ZMQReceiveRequest");
     }
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
