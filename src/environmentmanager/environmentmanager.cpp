@@ -72,6 +72,7 @@ int main(int argc, char **argv){
     exe->Start();
 
     delete exe;
+    std::cout << std::endl;
 
     return 0;
 }

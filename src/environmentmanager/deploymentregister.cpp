@@ -13,6 +13,8 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     environment_ = std::unique_ptr<Environment>(new Environment(portrange_min, portrange_max));
 
+    execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
+
 }
 
 void DeploymentRegister::Start(){
@@ -20,6 +22,7 @@ void DeploymentRegister::Start(){
 }
 
 void DeploymentRegister::Terminate(){
+    
     context_.reset();
     registration_loop_.join();
 }
@@ -48,7 +51,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
         //Receive deployment information
         try{
             reply = ZMQReceiveRequest(*rep);
-        }catch(const zmq::error_t& ex){
+        }catch(...){
             break;
         }
 
@@ -59,6 +62,10 @@ void DeploymentRegister::RegistrationLoop() noexcept{
             try{
                 //Handle message. Reply message is created by mutating this message.
                 RequestHandler(message);
+            }
+            catch(const zmq::error_t& exception){
+                std::cout << exception.what() << std::endl;
+                std::cout << "NUM: " << exception.num() << std::endl;
             }
             catch(const std::exception& exception){
                 //Print error message to cerr and add to error message field of response.
@@ -230,23 +237,16 @@ void DeploymentRegister::ZMQSendReply(zmq::socket_t& socket, const std::string& 
         socket.send(lamport_time_msg, ZMQ_SNDMORE);
         socket.send(zmq_msg);
     }
-    catch(std::exception error){
-        std::cerr << error.what() << "in DeploymentRegister::SendTwoPartReply" << std::endl;
+    catch(const zmq::error_t& error){
+        std::cerr << error.what() << " in DeploymentRegister::SendTwoPartReply" << std::endl;
     }
 }
 
 std::pair<uint64_t, std::string> DeploymentRegister::ZMQReceiveRequest(zmq::socket_t& socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
-    try{
-        socket.recv(&lamport_time_msg);
-        socket.recv(&request_contents_msg);
-    }
-    catch(zmq::error_t error){
-        //TODO: Throw this further up
-        std::cerr << error.what() << "in DeploymentRegister::ReceiveTwoPartRequest" << std::endl;
-        throw std::runtime_error("DeploymentRegister::ZMQReceiveRequest");
-    }
+    socket.recv(&lamport_time_msg);
+    socket.recv(&request_contents_msg);
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
     //Update and get current lamport time
