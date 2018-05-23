@@ -15,8 +15,11 @@ class GraphmlParser{
         std::vector<std::string> FindNodes(const std::string& kind, const std::string& parent_id = "");
         std::vector<std::string> FindEdges(const std::string& kind = "");
 
+        std::vector<std::string> FindImmediateChildren(const std::string& kind, const std::string& parent_id);
+
         std::string GetAttribute(const std::string& id, const std::string& attribute_name);
         std::string GetDataValue(const std::string& id, const std::string& key_name);
+        std::string GetParentNode(const std::string& id, uint depth);
         std::string GetParentNode(const std::string& id);
     private:
         bool legal_parse = false;
