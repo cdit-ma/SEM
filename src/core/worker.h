@@ -10,7 +10,7 @@
 
 class Worker: public Activatable{
     public:
-        Worker(const Component& component, const std::string& worker_name, const std::string& inst_name);
+        Worker(const Component& component, const std::string& class_name, const std::string& inst_name, bool is_worker = true);
         virtual ~Worker();
 
         const Component& get_component() const;
@@ -18,6 +18,9 @@ class Worker: public Activatable{
         
         std::string get_arg_string(const std::string str_format, va_list args);
         std::string get_arg_string_variadic(const std::string str_format, ...);
+
+        bool is_custom_class() const;
+        bool is_worker() const;
 
     protected:
         virtual bool HandleActivate();
@@ -29,9 +32,12 @@ class Worker: public Activatable{
         
     private:
         const Component& component_;
+        const std::string worker_name_;
+        const bool is_worker_class_;
+        
         std::mutex mutex_;
-        std::string worker_name_;
         int work_id_ = 0;
+
 };
 
 #endif //CORE_WORKER_H

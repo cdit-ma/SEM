@@ -31,6 +31,9 @@ class Component : public Activatable{
 
         template<class T>
         std::shared_ptr<T> AddTypedWorker(const Component& component, const std::string& worker_name);
+
+        template<class T>
+        std::shared_ptr<T> AddTypedCustomClass(const Component& component, const std::string& worker_name);
         
         template<class T>
         std::shared_ptr<T> GetTypedWorker(const std::string& worker_name);
@@ -82,10 +85,19 @@ bool Component::AddCallback(const std::string& event_port_name, std::function<vo
 template<class T>
 std::shared_ptr<T> Component::AddTypedWorker(const Component& component, const std::string& worker_name){
     static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
-    auto t_ptr = std::unique_ptr<T>(new T(component, worker_name));
+    auto t_ptr = std::unique_ptr<T>(new T(component, worker_name, true));
     auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
     return t;
 }
+
+template<class T>
+std::shared_ptr<T> Component::AddTypedCustomClass(const Component& component, const std::string& class_name){
+    static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
+    auto t_ptr = std::unique_ptr<T>(new T(component, class_name, false));
+    auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
+    return t;
+}
+
 
 template<class T>
 std::shared_ptr<T> Component::GetTypedWorker(const std::string& worker_name){
