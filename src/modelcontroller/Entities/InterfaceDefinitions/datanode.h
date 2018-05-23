@@ -38,6 +38,7 @@ public:
     Node* getContainmentNode();
     Node* getChildOfContainmentNode();
 private:
+    void updateType();
     void RunContainmentChecks();
     bool _run_containment_checks = false;
 

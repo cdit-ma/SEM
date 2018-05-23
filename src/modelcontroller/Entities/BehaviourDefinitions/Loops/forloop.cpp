@@ -4,6 +4,9 @@
 #include "../../../entityfactoryregistrybroker.h"
 #include "../../../entityfactoryregistrybroker.h"
 #include "../../InterfaceDefinitions/datanode.h"
+#include "../setter.h"
+#include "../booleanexpression.h"
+#include "../../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
 const QString kind_string = "For Loop";
@@ -36,26 +39,42 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
     //Attach Data
     broker.AttachData(this, "label", QVariant::String, "for", true);
     broker.ProtectData(this, "index", false);
+    
+   
 
     //Attach Children
     
     variable_ = broker.ConstructChildNode(*this, NODE_KIND::VARIABLE_PARAMETER);
-    auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
-    expression_ = expression;
-    iteration_ = broker.ConstructChildNode(*this, NODE_KIND::SETTER);
-
-    //Set that the Expression
-    expression->setDataReceiver(true);
-    expression->setDataProducer(false);
+    expression_ = (BooleanExpression*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
+    iteration_ = (Setter*) broker.ConstructChildNode(*this, NODE_KIND::SETTER);
 
 
+    //Setup Variable
     broker.AttachData(variable_, "label", QVariant::String, "i", false);
     broker.AttachData(variable_, "value", QVariant::Int, 0, false);
+    auto variable_type = broker.AttachData(variable_, "type", QVariant::String, "Integer", false);
+    variable_type->addValidValues(TypeKey::GetValidNumberTypes());
+    
 
+
+    //Setup Expression
+    expression_->setDataReceiver(true);
+    expression_->setDataProducer(false);
+    //Set Defaults for the Expression Children
+    broker.AttachData(expression_->GetLhs(), "value", QVariant::String, "i", false);
+    broker.AttachData(expression_->GetComparator(), "label", QVariant::String, "<", false);
+    broker.AttachData(expression_->GetRhs(), "value", QVariant::String, "?", false);
+
+
+    //Setup Itteration element
     broker.AttachData(iteration_, "icon", QVariant::String, "reload", true);
     broker.AttachData(iteration_, "icon_prefix", QVariant::String, "Icons", true);
+    //Set Defaults for the Interation Children
+    broker.AttachData(iteration_->GetLhs(), "value", QVariant::String, "i", false);
+    broker.AttachData(iteration_->GetOperator(), "label", QVariant::String, "+=", false);
+    broker.AttachData(iteration_->GetRhs(), "value", QVariant::String, "1", false);
 
-    for(auto child : {variable_, expression_, iteration_}){
+    for(auto child : QList<Node*>({variable_, expression_, iteration_})){
         broker.AttachData(child, "row", QVariant::Int, 0, true);
         broker.AttachData(child, "column", QVariant::Int, -1, true);
         broker.ProtectData(child, "index", true);
@@ -103,13 +122,14 @@ void MEDEA::ForLoop::updateLabel(){
     QString new_label = "for";
     if(variable_ && expression_ && iteration_){
         new_label += "(";
+        auto var_type = TypeKey::GetCPPPrimitiveType(variable_->getDataValue("type").toString());
         auto var_label = variable_->getDataValue("label").toString();
         auto var_value = variable_->getDataValue("value").toString();
         
         auto expression_label = expression_->getDataValue("label").toString();
         auto itterator_label = iteration_->getDataValue("label").toString();
 
-        new_label += var_label;
+        new_label += var_type + ' ' + var_label;
         new_label += "=" + var_value + "; ";
         new_label += expression_label + "; ";
         new_label += itterator_label + "";

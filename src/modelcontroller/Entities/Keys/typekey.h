@@ -21,9 +21,16 @@ public:
     static void BindNamespaceAndLabelToType(Node* node, bool bind);
 
     static QList<QVariant> GetValidPrimitiveTypes();
+    static QList<QVariant> GetValidNumberTypes();
+
+    static QString GetCPPPrimitiveType(const QString& type);
+    
 
     static bool CompareTypes(Node* node_1 , Node* node_2);
 private:
+    static QSet<QString> GetPrimitiveTypes();
+    static QSet<QString> GetNumberTypes();
+
     QSet<NODE_KIND> combine_namespace_kinds;
 };
 

@@ -17,10 +17,7 @@ MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-
-    setAcceptsNodeKind(NODE_KIND::VARIABLE_PARAMETER);
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
-
+    
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }

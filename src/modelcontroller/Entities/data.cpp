@@ -255,7 +255,7 @@ void Data::store_value(){
 }
 
 void Data::restore_value(){
-    //qCritical() << toString() << ": RESTORING VALUE: " << old_value;
+    qCritical() << toString() << ": RESTORING VALUE: " << old_value;
     setValue(old_value);
 }
 

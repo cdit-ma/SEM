@@ -2437,6 +2437,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 //If the node is not attached to a parent, or it was implicilty constructed, set the data ahead of time
                 for(auto key_name : entity->getKeys()){
                     auto value = entity->getDataValue(key_name);
+                    //TODO: WORK OUT IF WE SHOULD ALLOW DATA WE DON'T IMPICILTLY CREATE
                     setData_(node, key_name, value, false);
                 }
                 //Remove the data as we have already attached it

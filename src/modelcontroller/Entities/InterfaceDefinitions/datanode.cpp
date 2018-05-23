@@ -316,38 +316,42 @@ bool DataNode::isPromiscuousDataLinker() const{
 void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup){
     if(source && destination && source->isNodeOfType(NODE_TYPE::DATA) && destination->isNodeOfType(NODE_TYPE::DATA)){
         auto source_parent = source->getParentNode();
+
         auto destination_parent = destination->getParentNode();
+        auto destination_second_parent = destination->getParentNode(2);
 
-        if(destination_parent){
-            if(destination_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
-                auto worker_name = destination_parent->getDataValue("worker").toString();
-                auto parameter_label = destination->getDataValue("label").toString();
-
-                if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
-                    for(auto param : destination_parent->getChildren(0)){
-                        if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                            //Check if we are using generic params
-                            auto is_generic_param = param->getDataValue("is_generic_param").toBool();
-                            if(is_generic_param){
-                                LinkData(source, "inner_type", param, "inner_type", setup);
+        if(destination_second_parent){
+            //Check for worker
+            if(destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
+                const auto& class_name = destination_second_parent->getDataValue("class").toString();
+                if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){
+                    for(auto child : destination_second_parent->getChildren()){
+                        for(auto parameter : child->getChildren()){
+                            if(parameter->getDataValue("is_generic_param").toBool()){
+                                LinkData(source, "inner_type", parameter, "inner_type", setup);
                                 if(!setup){
-                                    param->setDataValue("inner_type", "");
+                                    //TODO HANDLE CLEARING!
+                                    //parameter->getData("inner_type")->clearValue();
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+
+        if(destination_parent){
             if(destination_parent->getNodeKind() == NODE_KIND::SETTER){
                 for(auto param : destination_parent->getChildren(0)){
                     if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        LinkData(source, "inner_type", param, "inner_type", setup);
-                        LinkData(source, "outer_type", param, "outer_type", setup);
+                        TypeKey::BindInnerAndOuterTypes(source, param, setup);
+                        //LinkData(source, "inner_type", param, "inner_type", setup);
+                        //LinkData(source, "outer_type", param, "outer_type", setup);
                     }
                 }
             }
-            
         }
+        
         auto bind_source = source;
         auto source_key = "label";
 
@@ -355,14 +359,10 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             bind_source = source_parent;
         }
 
-        //BIND LABEL
-        //QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::BOOLEAN_EXPRESSION};
-
-        //if(bind_labels.contains(bind_source->getNodeKind())){
-        //    source_key = "label";
-        //}
-
         LinkData(bind_source, source_key, destination, "value", setup);
-        TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
+
+        if(destination->getNodeKind() == NODE_KIND::VARIABLE_PARAMETER){
+            TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
+        }
     }
 }

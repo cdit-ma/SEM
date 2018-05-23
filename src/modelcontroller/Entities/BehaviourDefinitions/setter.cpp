@@ -30,13 +30,13 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     broker.ProtectData(this, "index", false);
 
     //Attach Children
-    lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    auto datanode_comparator = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    datanode_comparator->setDataReceiver(false);
-    datanode_comparator->setDataProducer(false);
-    comparator_ = datanode_comparator;
+    lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    operator_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    rhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
-    rhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    operator_->setDataReceiver(false);
+    operator_->setDataProducer(false);
+
 
     //Setup LHS
     broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
@@ -44,11 +44,15 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Setup Comparator
-    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, "=", false);
-    broker.AttachData(comparator_, "icon", QVariant::String, "circlePlusDark", true);
-    broker.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
-    broker.RemoveData(comparator_, "value");
-    data_comparator->addValidValues({"=", "+=", "-=", "*=", "/="});
+    auto data_operator = broker.AttachData(operator_, "label", QVariant::String, "=", false);
+    broker.AttachData(operator_, "icon", QVariant::String, "circlePlusDark", true);
+    broker.AttachData(operator_, "icon_prefix", QVariant::String, "Icons", true);
+    broker.RemoveData(operator_, "value");
+    broker.RemoveData(operator_, "type");
+    broker.RemoveData(operator_, "inner_type");
+    broker.RemoveData(operator_, "outer_type");
+
+    data_operator->addValidValues({"=", "+=", "-=", "*=", "/="});
 
     //Setup RHS
     broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
@@ -62,7 +66,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     //Update Label on data Change
     connect(data_rhs_value, &Data::dataChanged, this, &Setter::updateLabel);
     connect(data_lhs_value, &Data::dataChanged, this, &Setter::updateLabel);
-    connect(data_comparator, &Data::dataChanged, this, &Setter::updateLabel);
+    connect(data_operator, &Data::dataChanged, this, &Setter::updateLabel);
 
     updateLabel();
     TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
@@ -86,14 +90,26 @@ bool Setter::canAdoptChild(Node* child)
 
 void Setter::updateLabel(){
     QString new_label = "???";
-    if(lhs_ && comparator_ && rhs_){
+    if(lhs_ && operator_ && rhs_){
         auto lhs_value = lhs_->getDataValue("value").toString();
-        auto comparator = comparator_->getDataValue("label").toString();
+        auto operator_value = operator_->getDataValue("label").toString();
         auto rhs_value = rhs_->getDataValue("value").toString();
 
         if(lhs_value.length() && rhs_value.length()){
-            new_label = lhs_value + " " + comparator + " " + rhs_value;
+            new_label = lhs_value + " " + operator_value + " " + rhs_value;
         }
     }
     setDataValue("label", new_label);
+}
+
+DataNode* Setter::GetLhs(){
+    return lhs_;
+}
+
+DataNode* Setter::GetRhs(){
+    return rhs_;
+}
+
+DataNode* Setter::GetOperator(){
+    return operator_;
 }

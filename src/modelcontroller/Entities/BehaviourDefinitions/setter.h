@@ -3,6 +3,7 @@
 #include "../node.h"
 
 
+class DataNode;
 class EntityFactoryRegistryBroker;
 class Setter : public Node
 {
@@ -16,11 +17,16 @@ protected:
 	Setter(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
+
+	DataNode* GetLhs();
+	DataNode* GetRhs();
+	DataNode* GetOperator();
 private:
 	void updateLabel();
-	Node* lhs_ = 0;
-	Node* comparator_ = 0;
-	Node* rhs_ = 0;
+
+	DataNode* lhs_ = 0;
+	DataNode* operator_ = 0;
+	DataNode* rhs_ = 0;
 
 };
 

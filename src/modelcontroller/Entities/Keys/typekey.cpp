@@ -10,7 +10,44 @@ TypeKey::TypeKey(EntityFactoryBroker& broker): Key(broker, "type", QVariant::Str
 }
 
 QList<QVariant> TypeKey::GetValidPrimitiveTypes(){
-    return {"String",  "Boolean", "Integer", "Double", "Float", "Character"};
+    QList<QVariant> vals;
+    for(const auto& val : GetPrimitiveTypes()){
+        vals += val;
+    }
+    return vals;
+}
+
+QList<QVariant> TypeKey::GetValidNumberTypes(){
+    QList<QVariant> vals;
+    for(const auto& val : GetNumberTypes()){
+        vals += val;
+    }
+    return vals;
+}
+
+
+
+QSet<QString> TypeKey::GetPrimitiveTypes(){
+    return {"String", "Boolean", "Integer", "Double", "Float", "Character"};
+}
+
+QSet<QString> TypeKey::GetNumberTypes(){
+    return {"Integer", "Double", "Float", "Character"};
+}
+
+QString TypeKey::GetCPPPrimitiveType(const QString& type){
+    if(type == "Boolean"){
+        return "bool";
+    }else if(type == "Double"){
+        return "double";
+    }else if(type == "Float"){
+        return "float";
+    }else if(type == "Integer"){
+        return "int";
+    }else if(type == "Character"){
+        return "char";
+    }
+    return type;
 }
 
 QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
@@ -37,14 +74,17 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
         auto inner_type_data = entity->getData("inner_type");
         auto outer_type_data = entity->getData("outer_type");
 
-        //Check for life!
-        auto inner_type = inner_type_data ? inner_type_data->getValue().toString() : "";
-        auto outer_type = outer_type_data ? outer_type_data->getValue().toString() : "";
-
-        if(outer_type.size()){
-            new_type = outer_type + "<" + inner_type + ">";
-        }else if(inner_type.size()){
-            new_type = inner_type;
+        if(inner_type_data && outer_type_data){
+            auto inner_type = inner_type_data->getValue().toString();
+            auto outer_type = outer_type_data->getValue().toString();
+            
+            if(outer_type.size()){
+                new_type = outer_type + "<" + inner_type + ">";
+            }else if(inner_type.size()){
+                new_type = inner_type;
+            }else{
+                new_type = "";
+            }
         }
     }
     
@@ -103,8 +143,7 @@ void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
 
 bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
     if(node_1 && node_2){
-        //qCritical() << "Compare: " << node_1->toString() << " & " << node_2->toString();
-        QSet<QString> number_types = {"Float", "Double", "Integer", "Boolean"};
+        const auto number_types = GetNumberTypes();
 
         //Variadic Parameters can always use Anything
         if(node_2->getNodeKind() == NODE_KIND::VARIADIC_PARAMETER){

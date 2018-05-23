@@ -6,8 +6,13 @@
 
 
 class EntityFactoryRegistryBroker;
+class Setter;
+
 namespace MEDEA{
+    class BooleanExpression;
     class ForLoop : public Node{
+
+    
 
    
     friend class ::EntityFactory;
@@ -21,8 +26,8 @@ protected:
     private:
         void updateLabel();
         Node* variable_ = 0;
-        Node* expression_ = 0;
-        Node* iteration_ = 0;
+        BooleanExpression* expression_ = 0;
+        Setter* iteration_ = 0;
     };
 };
 

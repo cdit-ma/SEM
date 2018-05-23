@@ -11,19 +11,21 @@ namespace MEDEA{
     {
    
     friend class ::EntityFactory;
-    protected:
-public:
+    public:
         static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
-protected:
+    protected:
         BooleanExpression(EntityFactoryBroker& factory, bool is_temp_node);
-        
     public:
         bool canAdoptChild(Node* child);
+
+        DataNode* GetLhs();
+        DataNode* GetRhs();
+        DataNode* GetComparator();
     private:
         void updateLabel();
-        Node* lhs_ = 0;
-        Node* comparator_ = 0;
-        Node* rhs_ = 0;
+        DataNode* lhs_ = 0;
+        DataNode* comparator_ = 0;
+        DataNode* rhs_ = 0;
     };
 }
 

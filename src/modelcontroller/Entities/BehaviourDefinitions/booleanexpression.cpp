@@ -15,7 +15,7 @@ void MEDEA::BooleanExpression::RegisterWithEntityFactory(::EntityFactoryRegistry
         });
 }
 
-MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
@@ -35,13 +35,11 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(this, "type", QVariant::String, "Boolean", true);
     
     //Attach Children
-    lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    auto datanode_comparator = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    datanode_comparator->setDataReceiver(false);
-    datanode_comparator->setDataProducer(false);
-    rhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    comparator_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    rhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
-    comparator_ = datanode_comparator;
+
     
 
     //Setup LHS
@@ -50,11 +48,16 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Setup Comparator
+    comparator_->setDataReceiver(false);
+    comparator_->setDataProducer(false);
     auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, "==", false);
+    data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
     broker.AttachData(comparator_, "icon", QVariant::String, "circleQuestionDark", true);
     broker.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
     broker.RemoveData(comparator_, "value");
-    data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
+    broker.RemoveData(comparator_, "type");
+    broker.RemoveData(comparator_, "inner_type");
+    broker.RemoveData(comparator_, "outer_type");
 
     //Setup RHS
     broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
@@ -111,4 +114,16 @@ void MEDEA::BooleanExpression::updateLabel(){
     }
 
     setDataValue("label", new_label);
+}
+
+DataNode* MEDEA::BooleanExpression::GetLhs(){
+    return lhs_;
+}
+
+DataNode* MEDEA::BooleanExpression::GetRhs(){
+    return rhs_;
+}
+
+DataNode* MEDEA::BooleanExpression::GetComparator(){
+    return comparator_;
 }
