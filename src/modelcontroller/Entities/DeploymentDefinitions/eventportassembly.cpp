@@ -8,6 +8,7 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE, false);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -65,7 +66,7 @@ bool EventPortAssembly::isOutPortInstance() const
     return getNodeKind() == NODE_KIND::OUTEVENTPORT_INSTANCE;
 }
 
-
+#include <QDebug>
 bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
@@ -93,25 +94,30 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 
         int depthToAncestor = getDepthFromCommonAncestor(port);
         int depthToAncestorReverse = port->getDepthFromCommonAncestor(this);
-        int difference = abs(depthToAncestor - depthToAncestorReverse);
+        int delta = depthToAncestor - depthToAncestorReverse;
+        int abs_difference = abs(delta);
         int totalDepth = depthToAncestor + depthToAncestorReverse;
 
         //Can connect in either the same Assembly or 1 different higher.
-        if(difference > 1){
+        if(abs_difference > 1){
             return false;
         }
         if(totalDepth > 4){
             return false;
         }
 
-        if(difference == 0){
+        if(delta < 0 && !isInPortAssembly()){
+            return false;
+        }
+
+        if(abs_difference == 0){
             //Different Parents
             if(depthToAncestor == 2){
                 //Don't allow connections from the same type, inter assembly.
-                if(isOutPortDelegate() && !port->isInPortDelegate()){
+                if(isOutPortDelegate() && !port->isInPortAssembly()){
                     return false;
                 }
-                if(isOutPortInstance() && !port->isInPortInstance()){
+                if(isOutPortInstance() && !port->isInPortAssembly()){
                     return false;
                 }
             }else if(depthToAncestor == 1){
@@ -127,7 +133,7 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                     }
                 }
             }
-        }else if(difference == 1){
+        }else if(abs_difference == 1){
             if(isInPortAssembly() != port->isInPortAssembly()){
                 return false;
             }
@@ -159,4 +165,23 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         break;
     }
     return EventPort::canAcceptEdge(edge_kind, dst);
+}
+
+void EventPortAssembly::MiddlewareUpdated(){
+    const auto& middleware = getDataValue("middleware").toString();
+
+    QSet<QString> qos_middlewares = {"RTI", "OSPL"};
+    QSet<QString> topic_middlewares = {"RTI", "OSPL", "AMQP"};
+
+
+    auto topic_key = getFactoryBroker().GetKey("topic_name", QVariant::String);
+    if(topic_middlewares.contains(middleware)){
+        if(!gotData(topic_key)){
+            auto topic = getFactoryBroker().AttachData(this, "topic_name", QVariant::String, "", false);
+        }
+    }else{
+        getFactoryBroker().RemoveData(this, "topic_name");
+    }
+
+    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE, qos_middlewares.contains(middleware));
 }

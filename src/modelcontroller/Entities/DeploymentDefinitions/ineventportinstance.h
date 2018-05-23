@@ -14,8 +14,6 @@ public:
 	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     InEventPortInstance(EntityFactoryBroker& factory, bool is_temp_node);
-private:
-	void updateQOSEdge();
 };
 
 #endif // INEVENTPORTINSTANCE_H

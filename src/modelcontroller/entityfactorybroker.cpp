@@ -1,6 +1,7 @@
 #include "entityfactorybroker.h"
 #include "entityfactory.h"
 #include "entityfactoryregistrybroker.h"
+#include "Entities/node.h"
 
 EntityFactoryBroker::EntityFactoryBroker(EntityFactory& factory) : factory_(factory){
 
@@ -59,5 +60,11 @@ void EntityFactoryBroker::ProtectData(Entity* entity, QString key_name, bool is_
     auto data = entity->getData(key_name);
     if(data){
         data->setProtected(is_protected);
+    }
+}
+
+void EntityFactoryBroker::SetAcceptsEdgeKind(Node* node, EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept){
+    if(node){
+        node->setAcceptsEdgeKind(edge_kind, direction, accept);
     }
 }

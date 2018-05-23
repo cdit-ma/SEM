@@ -35,6 +35,9 @@ class EntityFactoryBroker
 
         void AcceptedEdgeKindsChanged(Node* node);
 
+        void SetAcceptsEdgeKind(Node* node, EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept = true);
+
+
         QString GetEdgeKindString(EDGE_KIND edge_kind);
         QString GetNodeKindString(NODE_KIND node_kind);
     private:

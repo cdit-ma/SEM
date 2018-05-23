@@ -158,6 +158,7 @@ set(SOURCE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/clientportinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/serverportinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodiceventinstance.cpp
 )
 

@@ -24,20 +24,10 @@ InEventPortInstance::InEventPortInstance(EntityFactoryBroker& broker, bool is_te
 
     broker.ProtectData(this, "index", false);
     broker.AttachData(this, "row", QVariant::Int, 0, false);
-    
-    broker.AttachData(this, "topicName", QVariant::String, "", false);
 
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", false);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
-    connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::updateQOSEdge);
-    
-    updateQOSEdge();
-}
 
-void InEventPortInstance::updateQOSEdge(){
-    auto middleware_value = getDataValue("middleware").toString();
-    QSet<QString> qos_middlewares = {"RTI", "OSPL"};
-    
-    //Check for QOSable Middlewares
-    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE, qos_middlewares.contains(middleware_value));
+    connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::MiddlewareUpdated);
+    MiddlewareUpdated();
 }

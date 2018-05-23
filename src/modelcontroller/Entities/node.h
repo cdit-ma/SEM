@@ -18,6 +18,7 @@ class Node : public Entity
 {
     Q_OBJECT
     friend class Edge;
+    friend class EntityFactoryBroker;
     
     public:
         enum class EdgeRule{

@@ -8,8 +8,6 @@ class DeploymentDefinitions: public Node
 {
 
     Q_OBJECT
-
-protected:
 public:
 	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:

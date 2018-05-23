@@ -14,8 +14,6 @@ public:
 	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     OutEventPortInstance(EntityFactoryBroker& factory, bool is_temp_node);
-private:
-	void updateQOSEdge();
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

@@ -1784,6 +1784,13 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
             }
         }
 
+        if(eventport->getNodeKind() == NODE_KIND::EXTERNAL_ASSEMBLY){
+            //Connect our children
+            for(auto child : eventport->getChildren()){
+                construct_edge(EDGE_KIND::AGGREGATE, child, dst);
+            }
+        }
+
         //Check for an edge between the EventPort and the Aggregate
         if(eventport->gotEdgeTo(aggregate, EDGE_KIND::AGGREGATE)){
             if(setup){

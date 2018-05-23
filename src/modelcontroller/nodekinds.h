@@ -120,6 +120,7 @@ enum class NODE_KIND
         QOS_DDS_POLICY_USERDATA,
         QOS_DDS_POLICY_WRITERDATALIFECYCLE,
 
+        EXTERNAL_ASSEMBLY,
         SHARED_DATATYPES
     };
 inline uint qHash(NODE_KIND key, uint seed)

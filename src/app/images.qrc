@@ -16,6 +16,7 @@
         <file alias="Code">Resources/EntityIcons/Code.png</file>
         <file alias="Component">Resources/EntityIcons/Component.png</file>
         <file alias="ComponentAssembly">Resources/EntityIcons/ComponentAssembly.png</file>
+        <file alias="ExternalAssembly">Resources/EntityIcons/ExternalAssembly.png</file>
         <file alias="ComponentImpl">Resources/EntityIcons/ComponentImpl.png</file>
         <file alias="ComponentInstance">Resources/EntityIcons/ComponentInstance.png</file>
         <file alias="Condition">Resources/EntityIcons/Condition.png</file>

@@ -859,6 +859,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     node_item->setRightJustified(true);
                 }
                 break;
+            case NODE_KIND::EXTERNAL_ASSEMBLY:{
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                break;
+            }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
                 node_item = new CompactNodeItem(item, parentNode);
                 node_item->setMoveEnabled(true);

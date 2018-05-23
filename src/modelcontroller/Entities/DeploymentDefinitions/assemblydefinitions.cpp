@@ -19,6 +19,8 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactoryBroker& broker, bool is_te
     setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
     setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
+    setAcceptsNodeKind(NODE_KIND::EXTERNAL_ASSEMBLY);
+    
 
     if(is_temp){
         //Break out early for temporary entities

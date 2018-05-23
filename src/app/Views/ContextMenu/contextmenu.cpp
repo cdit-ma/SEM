@@ -37,6 +37,7 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::EXTERNAL_ASSEMBLY] = EDGE_KIND::AGGREGATE;
 
     connect_node_edge_kinds[NODE_KIND::SERVER_PORT] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::CLIENT_PORT] = EDGE_KIND::DEFINITION;

@@ -11,6 +11,8 @@ class EventPortAssembly: public EventPort
 
 protected:
     EventPortAssembly(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
+    void MiddlewareUpdated();
+
 public:
     bool isPortDelegate() const;
 
@@ -29,6 +31,8 @@ public:
 
     bool isInPortInstance() const;
     bool isOutPortInstance() const;
+
+    
 
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
