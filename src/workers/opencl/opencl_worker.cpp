@@ -203,6 +203,13 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
 
 
 bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations) {
+    if (manager_->IsFPGA()) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+                "KMeans implementation not provided for FPGA platforms");
+        return false;
+    }
+    std::cout << "KMEANS RUNNING" << std::endl;
+
     auto point_buffer = CreateBuffer(points);
     auto centroid_buffer = CreateBuffer(centroids);
     auto classification_buffer = CreateBuffer(point_classifications, true);

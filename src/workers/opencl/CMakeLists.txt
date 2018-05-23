@@ -2,9 +2,20 @@
 set(PROJ_NAME opencl_worker)
 set(TESTER_NAME ${PROJ_NAME}_tester)
 
+set(ALTERA_OCLSDK_ROOT $ENV{ALTERAOCLSDKROOT})
+set(ALTERA_OCLSDK_LIB_ROOT $ENV{ALTERA_OCLSDK_LIB_ROOT})
+
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
 project(${PROJ_NAME})
+
+find_library(ALTERA_OCLSDK_LIB OpenCL ${ALTERA_OCLSDK_LIB_ROOT})
+
+if (NOT ALTERA_OCLSDK_LIB)
+    message("Well damn, can't find altera opencl library :/ .............................................")
+    message("${ALTERA_OCLSDK_LIB_ROOT}")
+endif()
+
 
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
 
@@ -17,6 +28,7 @@ endif()
 # Specify the subprojects that depend on OpenCL
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/fft")
 
 set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
@@ -67,14 +79,21 @@ set(CLFFT_ROOT $ENV{CLFFT_ROOT})
 set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
+# Search for Altera OpenCL libraries
+set(ALTERA_OCLSDK_ROOT $ENV{ALTERAOCLSDKROOT})
+set(ALTERA_OCLSDK_LIB_ROOT "$ENV{ALTERA_OCLSDK_LIB_ROOT}")
+find_library(ALTERA_OCLSDK_LIB OpenCl ${ALTERA_OCLSDK_LIB_ROOT})
+
+message("!!!!!!!!!!!!!!!!!!! altera root: ${ALTERA_OCLSDK_LIB_ROOT}")
 
 # Add implementations for fft library as necessary
-if(FPGA_FFT_LIB)
+if(ALTERA_OCLSDK_LIB)
     message(STATUS "building OpenCL worker with FPGA FFT library")
     # set(FFT_LIB FPGA)
     set(SOURCE
         ${SOURCE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fpgafft.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
         )
 elseif (CLFFT_LIB)
     message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
@@ -88,7 +107,7 @@ else()
     ${SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
     )
-endif(FPGA_FFT_LIB)
+endif()
 
 
 # Mark library dependencies
@@ -100,9 +119,10 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 add_executable(${TESTER_NAME} openclmanagertests.cpp)
 
 # Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
-if(FPGA_FFT_LIB)
+if(ALTERA_OCLSDK_LIB)
     message(STATUS "building OpenCL worker with FPGA FFT library")
     target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
+    #target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
 elseif (CLFFT_LIB)
     message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
     target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
@@ -111,7 +131,7 @@ elseif (CLFFT_LIB)
 
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
-endif(FPGA_FFT_LIB)
+endif()
 
 
 

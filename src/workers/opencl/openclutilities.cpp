@@ -179,6 +179,8 @@ cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenam
 				__func__,
 				"Failed to open file when reading binary files: " + filename);
 			break;*/
+            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
+            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
 			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading binary files: " + filename);
 		}
 

@@ -5,8 +5,8 @@
  * found during compilation
  **/
 
-bool InitFFT() { return false; };
-bool CleanupFFT() {return false; };
+bool OpenCL_Worker::InitFFT() { return false; };
+bool OpenCL_Worker::CleanupFFT() {return false; };
 
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {

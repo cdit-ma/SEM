@@ -134,7 +134,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 	cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
-
+            std::cout << "Loading from binary " << filename << std::endl;
 	std::vector<std::string> filenames;
 	filenames.push_back(filename);
 	cl::Program::Binaries binaries = ReadOpenCLBinaries(filenames);
@@ -200,6 +200,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		}
 		kernels_.emplace_back(worker, manager_, kernel);
 		//std::cout << name << std::endl;
+        std::cout << "Loaded binary " << name << std::endl;
 	}
 
 	return true;

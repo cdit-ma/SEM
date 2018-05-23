@@ -33,6 +33,8 @@ class OpenCLManager {
 		* @return The OpenCLMaanager for the provided platform, or NULL if one can't be created
 		**/
 		static OpenCLManager* GetReferenceByPlatformID(const Worker& worker, int platform_id);
+		
+		static OpenCLManager* GetReferenceByPlatformName(const Worker& worker, std::string platform_name);
 
 
 		static const std::vector<cl::Platform> GetPlatforms(const Worker& worker);
@@ -57,6 +59,7 @@ class OpenCLManager {
 		void ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer);
 		
 		bool IsValid() const;
+        bool IsFPGA() const;
 
 		class BufferAttorney {
 			BufferAttorney() = delete;
@@ -109,6 +112,8 @@ class OpenCLManager {
 
 		std::map<int, GenericBuffer*> buffer_store_;
 		int buffer_id_count_ = -1;
+
+        bool is_fpga_=false;
 };
 
 

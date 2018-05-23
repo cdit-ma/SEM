@@ -7,6 +7,7 @@
 #include <core/worker.h>
 
 #include <string>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -27,7 +28,6 @@ std::vector<cl::Platform> OpenCLManager::platform_list_;
 /************************************************************************/
 /* Static functions                                                     */
 /************************************************************************/
-
 
 OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int platform_id) {
 	// If we haven't initialized the length of the reference list yet do so now
@@ -51,6 +51,54 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 			"platform_id is out of bounds (" + std::to_string(platform_id) + ")");
 		return NULL;
 	}
+	
+	// If we haven't created an OpenCLManager for the specified platform do so now
+	if (reference_list_[platform_id] == NULL) {
+		OpenCLManager* new_manager = new OpenCLManager(worker, platform_list_[platform_id]);
+
+		if (!new_manager->IsValid()) {
+			LogError(worker,
+					std::string(__func__),
+					"Unable to create OpenCLManager for platform " + std::to_string(platform_id));
+			delete new_manager;
+			return NULL;
+		}
+
+		reference_list_[platform_id] = new_manager;
+	}
+
+	// Return the relevant reference
+	return reference_list_[platform_id];
+
+}
+
+OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, std::string platform_name) {
+	cl_int err;
+
+	// If we haven't initialized the length of the reference list yet do so now
+	if (reference_list_.empty()) {
+		GetPlatforms(worker);
+		reference_list_.resize(platform_list_.size(), NULL);
+	}
+
+	// Find the index of the platform with the requested name
+	unsigned int platform_id = 0;
+	bool found_match = false;
+	for (auto& platform : platform_list_) {
+		std::string name = platform.getInfo<CL_PLATFORM_NAME>(&err);
+		if (err != CL_SUCCESS) {
+			throw OpenCLException("Unable to query OpenCL platform for name", err);
+		}
+		if (name == platform_name) {
+			found_match = true;
+			break;
+		}
+		platform_id++;
+	}
+	if (!found_match) {
+		throw std::runtime_error("Unable to find an OpenCL platform with the name " + platform_name);
+	}
+
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
 	if (reference_list_[platform_id] == NULL) {
@@ -105,6 +153,15 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 
 	}
 
+    std::string lower_name(platform_name_);  //("                                                                      ");
+    std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+    std::cout << lower_name << std::endl;
+    if (lower_name.find("fpga") != std::string::npos) {
+        is_fpga_ = true;
+    } else {
+        std::cout << "NOT FPGA!!!!" << lower_name << std::endl;
+    }
+
 	// Pull out all OpenCL devices in the platform (don't distinguish between CPU, GPU, etc)
 	std::vector<cl::Device> devices;
 	err = platform_.getDevices(CL_DEVICE_TYPE_ALL, &devices);
@@ -140,6 +197,18 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 	}
 
 	LoadAllBinaries(worker);
+
+    if (is_fpga_) {
+        for (auto& dev : device_list_) {
+            try {
+                dev.LoadKernelsFromBinary(worker, "fft1d.aocx");
+            } catch (const OpenCLException& ocle) {
+                LogOpenCLError(worker, "OpenCLManager::"+std::string(__func__),
+                        "Failed to load FT implementation for FPGA: "+std::string(ocle.what()));
+            }
+        }
+            
+    }
 
 	// Mark the manager as having been properly initialized
 	valid_ = true;
@@ -179,6 +248,9 @@ bool OpenCLManager::IsValid() const {
 	return valid_;
 }
 
+bool OpenCLManager::IsFPGA() const {
+    return is_fpga_;
+}
 
 /************************************************************************/
 /* Private Functions                                                    */
@@ -211,7 +283,6 @@ void OpenCLManager::UntrackBuffer(int buffer_id) {
 }
 
 bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
-
     /*if (load_balancer_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Trying to load binaries when no load balancer is specified");

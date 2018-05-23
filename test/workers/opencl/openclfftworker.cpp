@@ -62,8 +62,9 @@ struct FFTParam{
 };
 
 void addFrequency(std::vector<float>& data, float frequency, float amplitude, float phase_shift) {
-    for (unsigned int i=0; i<data.size(); i++) {
-		data[i] += amplitude * (float)(cos((float)frequency*((float)i/data.size())*2*PI + phase_shift));
+    size_t num_elements = data.size()/2;
+    for (unsigned int i=0; i<num_elements; i++) {
+		data[i*2] += amplitude * (float)(cos((float)frequency*((float)i/num_elements)*2*PI + phase_shift));
 	}
 }
 
@@ -71,42 +72,47 @@ void addFrequency(std::vector<float>& data, float frequency, float amplitude, fl
  * Constant input data should generate a single spike at the 0 bin equal to the length of the vector multiplied by the amplitude
  */
 std::vector<float> generateConstantInput(size_t length, float amplitude) {
-    std::vector<float> data(length);
-	for (unsigned int i=0; i< data.size(); i++) {
-		data[i] = amplitude;
+    std::vector<float> data(length*2, 0);
+	for (unsigned int i=0; i< data.size()/2; i++) {
+		data[i*2] = amplitude;
 	}
     return data;
 }
 std::vector<float> generateConstantOutput(size_t length, float amplitude) {
-    std::vector<float> data(length, 0);
+    std::vector<float> data(length*2, 0);
 	data[0] = length * amplitude;
     return data;
 }
 
 std::vector<float> generateAlignedFrequencyInput(size_t length, float amplitude, float frequency, size_t phase_shift) {
-    std::vector<float> data(length, 0);
+    std::vector<float> data(length*2, 0);
     addFrequency(data, frequency, amplitude, (float)phase_shift);
     return data;
 }
 
 std::vector<float> generateAlignedFrequencyOutput(size_t length, float amplitude, float frequency, size_t phase_shift) {
-    std::vector<float> data(length, (float)0);
+    std::vector<float> data(length*2, (float)0);
     data[(size_t)abs(frequency)*2] = amplitude * (float)(length/2) * (float)cos(phase_shift);
     data[(size_t)abs(frequency)*2+1] = amplitude * (float)(length/2) * (float)sin(phase_shift);
+    data[length*2-(size_t)abs(frequency)*2] = amplitude * (float)(length/2) * (float)cos(phase_shift);
+    data[length*2-(size_t)abs(frequency)*2+1] = amplitude * (float)(length/2) * (float)sin(phase_shift);
     return data;
 }
 
 std::vector<float> generateMultipleAlignedFrequencyInput(size_t length, float frequency1, float frequency2) {
-    std::vector<float> data(length, 0);
+    std::vector<float> data(length*2, 0);
     addFrequency(data, frequency1, 1, 0);
     addFrequency(data, frequency2, 3, 0);
     return data;
 }
 
 std::vector<float> generateMultipleAlignedFrequencyOutput(size_t length, float frequency1, float frequency2) {
-    std::vector<float> data(length, (float)0);
-    data[(size_t)abs(frequency1)*2] = 1 * (float)(length/2);
-    data[(size_t)abs(frequency2)*2] = 3 * (float)(length/2);
+    std::vector<float> data(length*2, (float)0);
+    data[(size_t)abs(frequency1)*2] += 1 * (float)(length/2);
+    data[(size_t)abs(frequency2)*2] += 3 * (float)(length/2);
+
+    data[length*2-(size_t)abs(frequency1)*2] += 1 * (float)(length/2);
+    data[length*2-(size_t)abs(frequency2)*2] += 3 * (float)(length/2);
     return data;
 }
 
@@ -151,8 +157,7 @@ TEST_P(FFTFixture, FFTtest)
     // Check that output is the sum of the amplitudes for constant testsB
     //EXPECT_NEAR_RELATIVE(data[0], amplitude * data.size(), EPS);
 	
-    std::cout << data[3] << ", " << expected_output[3] << std::endl;
-    EXPECT_FLOATS_NEARLY_EQ(data, expected_output, 1e-5)
+    EXPECT_FLOATS_NEARLY_EQ(data, expected_output, 1e-3)
 }
 
 typedef std::tuple<std::vector<float>, std::vector<float>, bool> TestData;
@@ -178,8 +183,8 @@ std::vector<FFTParam> getConstantTests() {
     tests.emplace_back(generateConstantInput(8, 1.0), generateConstantOutput(8, 1.0), true);
     tests.emplace_back(generateConstantInput(8, 7.0), generateConstantOutput(8, 7.0), true);
     tests.emplace_back(generateConstantInput(8, -7.0), generateConstantOutput(8, 7.0), true);
-    tests.emplace_back(generateConstantInput(2048, 1.0), generateConstantOutput(2048, 1.0), true);
-    tests.emplace_back(generateConstantInput(2048, 7.0), generateConstantOutput(2048, 7.0), true);
+    tests.emplace_back(generateConstantInput(4096, 1.0), generateConstantOutput(4096, 1.0), true);
+    tests.emplace_back(generateConstantInput(4096, 7.0), generateConstantOutput(4096, 7.0), true);
     return permuteFFTTests(getDevices(), tests);
 }
 
@@ -194,8 +199,8 @@ std::vector<FFTParam> getSingleAlignedTests() {
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, 3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, -2, 3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, -3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
-    //tests.emplace_back(generateAlignedFrequencyInput(4096, 1, 1, 0), generateAlignedFrequencyOutput(4096, 1, 1, 0), true);
-    //tests.emplace_back(generateAlignedFrequencyInput(4096, 2, 61, 0), generateAlignedFrequencyOutput(4096, 2, 61, 0), true);
+    tests.emplace_back(generateAlignedFrequencyInput(4096, 1, 1, 0), generateAlignedFrequencyOutput(4096, 1, 1, 0), true);
+    tests.emplace_back(generateAlignedFrequencyInput(4096, 2, 11, 0), generateAlignedFrequencyOutput(4096, 2, 11, 0), true);
     return permuteFFTTests(getDevices(), tests);
 }
 
@@ -205,6 +210,7 @@ std::vector<FFTParam> getMultipleAlignedTests() {
     tests.emplace_back(generateMultipleAlignedFrequencyInput(16, 1, 2), generateMultipleAlignedFrequencyOutput(16, 1, 2), true);
     tests.emplace_back(generateMultipleAlignedFrequencyInput(32, 1, 3), generateMultipleAlignedFrequencyOutput(32, 1, 3), true);
     tests.emplace_back(generateMultipleAlignedFrequencyInput(64, 5, -7), generateMultipleAlignedFrequencyOutput(64, 5, -7), true);
+    tests.emplace_back(generateMultipleAlignedFrequencyInput(4096, 13, -29), generateMultipleAlignedFrequencyOutput(4096, 13, -29), true);
     return permuteFFTTests(getDevices(), tests);
 }
 
