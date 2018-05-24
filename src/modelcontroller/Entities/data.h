@@ -3,6 +3,7 @@
 #include "key.h"
 #include "entity.h"
 #include <QSet>
+#include <QStack>
 
 class Data : public GraphML
 {
@@ -95,7 +96,7 @@ private:
     
     
     QVariant value;
-    QVariant old_value;
+    QStack<QVariant> old_values_;
 };
 
 #endif // DATA_H

@@ -182,7 +182,7 @@ QString Data::toGraphML(int indentDepth, bool functional_export)
 
 QString Data::toString() const
 {
-    return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
+    return QString("[" + QString::number(getID()) + "] Data Key: '" + getKeyName() + "' = '" + getValue().toString() + "'");
 }
 
 bool Data::linkData(Data* data, bool setup_bind){
@@ -196,9 +196,7 @@ bool Data::linkData(Data* data, bool setup_bind){
 void Data::addParentData(Data* data){
     if(data && !parent_datas.contains(data)){
         parent_datas.insert(data);
-        if(parent_datas.size() == 1){
-            store_value();
-        }
+        store_value();
 
         connect(data, &Data::dataChanged, this, &Data::setValue);
         updateChildren();
@@ -210,10 +208,9 @@ void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
         parent_datas.remove(data);
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
-        if(parent_datas.isEmpty()){
-            restore_value();
-            updateChildren();
-        }
+        
+        restore_value();
+        //updateChildren();
     }
 }
 
@@ -251,12 +248,13 @@ void Data::updateChildren(bool changed)
 }
 
 void Data::store_value(){
-    old_value = value;
+    old_values_.push(value);
 }
 
 void Data::restore_value(){
-    qCritical() << toString() << ": RESTORING VALUE: " << old_value;
-    setValue(old_value);
+    if(old_values_.size()){
+        setValue(old_values_.pop());
+    }
 }
 
 

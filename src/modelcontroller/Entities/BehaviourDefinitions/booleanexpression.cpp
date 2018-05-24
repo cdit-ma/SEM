@@ -46,6 +46,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
     broker.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
     broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, true, true);
 
     //Setup Comparator
     comparator_->setDataReceiver(false);
@@ -63,6 +64,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
     broker.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
     broker.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, true, true);
 
     //Bind Value changing
     auto data_rhs_value = rhs_->getData("value");

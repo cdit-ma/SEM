@@ -316,42 +316,38 @@ bool DataNode::isPromiscuousDataLinker() const{
 void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup){
     if(source && destination && source->isNodeOfType(NODE_TYPE::DATA) && destination->isNodeOfType(NODE_TYPE::DATA)){
         auto source_parent = source->getParentNode();
-
         auto destination_parent = destination->getParentNode();
-        auto destination_second_parent = destination->getParentNode(2);
 
-        if(destination_second_parent){
-            //Check for worker
-            if(destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
-                const auto& class_name = destination_second_parent->getDataValue("class").toString();
-                if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){
-                    for(auto child : destination_second_parent->getChildren()){
-                        for(auto parameter : child->getChildren()){
-                            if(parameter->getDataValue("is_generic_param").toBool()){
-                                LinkData(source, "inner_type", parameter, "inner_type", setup);
-                                if(!setup){
-                                    //TODO HANDLE CLEARING!
-                                    //parameter->getData("inner_type")->clearValue();
-                                }
+        //Try and do special data linking
+        if(destination_parent){
+            QList<Node*> children_to_bind;
+            switch(destination_parent->getNodeKind()){
+                case NODE_KIND::SETTER:
+                case NODE_KIND::BOOLEAN_EXPRESSION:{
+                    children_to_bind = destination_parent->getChildren();
+                    break;
+                }
+                default:{
+                    auto destination_second_parent = destination_parent->getParentNode();
+                    if(destination_second_parent && destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
+                        const auto& class_name = destination_second_parent->getDataValue("class").toString();
+                        if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){
+                            for(auto child : destination_second_parent->getChildren()){
+                                children_to_bind += child->getChildren();
                             }
                         }
                     }
+                    break;
+                }
+            }
+
+            for(auto parameter : children_to_bind){
+                if(parameter->getDataValue("is_generic_param").toBool()){
+                    LinkData(source, "inner_type", parameter, "inner_type", setup);
                 }
             }
         }
 
-        if(destination_parent){
-            if(destination_parent->getNodeKind() == NODE_KIND::SETTER){
-                for(auto param : destination_parent->getChildren(0)){
-                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        TypeKey::BindInnerAndOuterTypes(source, param, setup);
-                        //LinkData(source, "inner_type", param, "inner_type", setup);
-                        //LinkData(source, "outer_type", param, "outer_type", setup);
-                    }
-                }
-            }
-        }
-        
         auto bind_source = source;
         auto source_key = "label";
 
