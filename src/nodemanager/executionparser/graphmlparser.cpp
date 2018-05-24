@@ -9,12 +9,15 @@ GraphmlParser::GraphmlParser(const std::string& filename){
     if(!legal_parse){
         std::cerr << "GraphmlParser:Parse(" + filename + ") Error: " << result.description() << std::endl;
     }
+
+    //Pre fill attribute map
     for(auto& key : doc.select_nodes("/graphml/key")){
         const auto &name = key.node().attribute("attr.name").value();
         const auto &id = key.node().attribute("id").value();
         attribute_map_[name] = id;
     }
 
+    //Pre fill id map
     for(auto& xpath_node : doc.select_nodes("//*[@id]")){
         auto node = xpath_node.node();
         auto id = node.attribute("id").value();

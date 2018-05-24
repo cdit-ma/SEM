@@ -9,12 +9,15 @@
 
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     experiment_id_ = experiment_id;
-    graphml_parser_ = new GraphmlParser(filename);
+    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
     is_valid_ = graphml_parser_->IsValid();
-    pre_process_success_ = PreProcess();
-    process_success_ = Process();
+    if(is_valid_){
+        pre_process_success_ = PreProcess();
+        process_success_ = Process();
+    }
 }
 
+//Pretty json prints deployment protbuf controlmessage
 std::string ProtobufModelParser::GetDeploymentJSON(){
 
     std::string output;
@@ -30,6 +33,22 @@ NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
     return control_message_;
 }
 
+// Starting at a node, recurse through all edges originating from it (of a particular edge kind).
+// Returns all nodes which don't have edges (of a particular edge kind) originating from them.
+/* Visual Representation
+
+    [B]-------|
+                V
+    [C]----->[A]---->[X]
+                ʌ
+                |
+    [E]----->[D]
+                ʌ
+                |
+                [F]
+
+    Calling this function on node X would return {B,C,E,F} but ignore {A,D}
+*/ 
 std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind){
     std::set<std::string> source_ids;
     

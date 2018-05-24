@@ -75,8 +75,7 @@ class ExecutionManager{
         EnvironmentRequester* requester_ = 0;
         
         zmq::ProtoWriter* proto_writer_;
-        Graphml::ModelParser* model_parser_;
-        ProtobufModelParser* protobuf_model_parser_;
+        std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
 
         std::unordered_map<std::string, SlaveState> slave_states_;
 };

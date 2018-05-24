@@ -59,7 +59,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
 
     auto start = std::chrono::steady_clock::now();
     //Setup the parser
-    protobuf_model_parser_ = new ProtobufModelParser(graphml_path, experiment_id_);
+    protobuf_model_parser_ = std::unique_ptr<ProtobufModelParser>(new ProtobufModelParser(graphml_path, experiment_id_));
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
     auto master_ip_address = deployment_message_->add_attributes();

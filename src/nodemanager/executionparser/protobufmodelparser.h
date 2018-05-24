@@ -16,7 +16,7 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* ControlMessage();
 
     private:
-        GraphmlParser* graphml_parser_;
+        std::unique_ptr<GraphmlParser> graphml_parser_;
         bool is_valid_;
         bool pre_process_success_;
         bool process_success_;
@@ -27,23 +27,6 @@ class ProtobufModelParser{
         
         void FillProtobufAttributes(google::protobuf::RepeatedPtrField<NodeManager::Attribute>* entity, const std::string& parent_id, const std::string& unique_id_suffix);
 
-
-        // Starting at a node, recurse through all edges originating from it (of a particular edge kind).
-        // Returns all nodes which don't have edges (of a particular edge kind) originating from them.
-        /* Visual Representation
-        
-            [B]-------|
-                      V
-            [C]----->[A]---->[X]
-                      ʌ
-                      |
-            [E]----->[D]
-                      ʌ
-                      |
-                     [F]
-
-            Calling this function on node X would return {B,C,E,F} but ignore {A,D}
-        */ 
         std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind);
 
         void CalculateReplication();
@@ -96,9 +79,7 @@ class ProtobufModelParser{
         //Component id -> replication count
         std::unordered_map<std::string, int> replication_map_;
 
-
-        
-
+        //attribute_instance id -> Value
         std::unordered_map<std::string, std::string> attribute_value_map_;
 
         //port id -> nested assembly string
