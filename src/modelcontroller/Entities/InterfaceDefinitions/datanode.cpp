@@ -320,17 +320,24 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
 
         //Try and do special data linking
         if(destination_parent){
+            bool bind_inner_type = true;
+            bool bind_outer_type = false;
             QList<Node*> children_to_bind;
+
             switch(destination_parent->getNodeKind()){
                 case NODE_KIND::SETTER:
                 case NODE_KIND::BOOLEAN_EXPRESSION:{
                     children_to_bind = destination_parent->getChildren();
+                    bind_outer_type = true;
                     break;
                 }
                 default:{
                     auto destination_second_parent = destination_parent->getParentNode();
+                    
                     if(destination_second_parent && destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
                         const auto& class_name = destination_second_parent->getDataValue("class").toString();
+                        
+                        //Workers OpenCL_Worker and Vector_Operations need special data linking
                         if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){
                             for(auto child : destination_second_parent->getChildren()){
                                 children_to_bind += child->getChildren();
@@ -343,7 +350,12 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
 
             for(auto parameter : children_to_bind){
                 if(parameter->getDataValue("is_generic_param").toBool()){
-                    LinkData(source, "inner_type", parameter, "inner_type", setup);
+                    if(bind_inner_type){
+                        LinkData(source, "inner_type", parameter, "inner_type", setup);
+                    }
+                    if(bind_outer_type){
+                        LinkData(source, "outer_type", parameter, "outer_type", setup);
+                    }
                 }
             }
         }
