@@ -10,6 +10,7 @@
     exclude-result-prefixes="gml">
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
+    
 
     <!-- Load in Functions -->
     <xsl:import href="general_functions.xsl"/>
@@ -24,7 +25,9 @@
     <xsl:param name="components" as="xs:string" select="''" />
     <xsl:param name="preview" as="xs:boolean" select="false()" />
     <xsl:param name="sparse" as="xs:boolean" select="true()" />
-	 
+    <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
+    
+
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
         

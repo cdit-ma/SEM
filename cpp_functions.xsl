@@ -136,7 +136,7 @@
         <xsl:param name="suffix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="concat(o:t($tab), $return_type, ' ', $function_name, '(', $parameters, ')', $suffix, o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), o:join_list(($return_type, $function_name), ' '), '(', $parameters, ')', $suffix, o:nl(1))" />
     </xsl:function>
 
      <!--

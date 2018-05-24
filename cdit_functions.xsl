@@ -835,7 +835,9 @@
         <xsl:param name="element" as="element()" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="cpp:comment((o:wrap_square(graphml:get_kind($element)), graphml:get_label($element), o:wrap_angle(graphml:get_id($element))), $tab)" />
+        <xsl:if test="$debug_mode">
+            <xsl:value-of select="cpp:comment((o:wrap_square(graphml:get_kind($element)), graphml:get_label($element), o:wrap_angle(graphml:get_id($element))), $tab)" />
+        </xsl:if>
     </xsl:function>
 
 
@@ -856,6 +858,35 @@
             </xsl:when>
         </xsl:choose>
     </xsl:function>
+
+    <xsl:function name="cdit:define_custom_function">
+        <xsl:param name="function" as="element()" />
+        <xsl:param name="qualified_class_type" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="name" select="cdit:get_function_name($function)" />
+        <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations($function)" />
+        <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations($function)" />
+        
+        <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
+        <xsl:value-of select="cpp:define_function($return_parameter, $qualified_class_type, $name, $input_parameters, cpp:scope_start(0))" />
+        <xsl:value-of select="cdit:generate_workflow_code($function, $function, $tab + 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:declare_custom_function">
+        <xsl:param name="function" as="element()" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="name" select="cdit:get_function_name($function)" />
+        <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations($function)" />
+        <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations($function)" />
+        
+        <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
+        <xsl:value-of select="cpp:declare_function($return_parameter, $name, $input_parameters, ';', $tab)" />
+    </xsl:function>
+
 
     <xsl:function name="cdit:declare_datatype_functions">
         <xsl:param name="aggregate" as="element()" />
@@ -1006,6 +1037,35 @@
             </xsl:choose>
         </xsl:for-each-group>
     </xsl:function>
+
+    <xsl:function name="cdit:define_class_variable" as="xs:string*">
+        <xsl:param name="class" as="element()"  />
+        <xsl:param name="tab" as="xs:integer"  />
+
+        <xsl:variable name="type" select="graphml:get_data_value($class, 'type')" />
+        <xsl:variable name="label" select="graphml:get_data_value($class, 'label')" />
+        <xsl:variable name="variable" select="cdit:variablize_value($label)" />
+        <xsl:variable name="params" select="cpp:join_args(('*this', o:wrap_dblquote($label)))" />
+
+        <xsl:variable name="function" select="if(cdit:is_class_worker($class)) then 'AddTypedWorker' else 'AddCustomClass'" />
+        <xsl:variable name="getter" select="cpp:invoke_templated_static_function($type, $function, $params, '', 0)" />
+
+        <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
+        <xsl:value-of select="cpp:define_variable('', $variable, $getter, cpp:nl(), $tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:declare_class_variable" as="xs:string*">
+        <xsl:param name="class" as="element()"  />
+        <xsl:param name="tab" as="xs:integer"  />
+
+        <xsl:variable name="type" select="graphml:get_data_value($class, 'type')" />
+        <xsl:variable name="label" select="graphml:get_data_value($class, 'label')" />
+        <xsl:variable name="variable" select="cdit:variablize_value($label)" />
+        <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
+        <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr($type), $variable, cpp:nl(), $tab)" />
+    </xsl:function>
+
+
 
     <xsl:function name="cdit:get_worker_path" as="xs:string">
         <xsl:param name="worker" as="element()"  />

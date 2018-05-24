@@ -26,7 +26,8 @@
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="sparse" as="xs:boolean" select="true()" />
-	 
+    <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
+
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
 

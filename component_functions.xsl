@@ -70,7 +70,7 @@
         <xsl:value-of select="cpp:declare_function('', $class_name, cpp:const_ref_var_def('std::string', 'name'), ';', $tab + 2)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <!-- Handle OutEventPorts -->
+        <!-- Handle InEventPorts -->
         <xsl:for-each select="graphml:get_child_nodes_of_kind($component, 'InEventPort')">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:protected($tab + 1)" />
@@ -87,7 +87,7 @@
             </xsl:if>
         </xsl:for-each>
 
-        <!-- Handle InEventPorts -->
+        <!-- Handle OutEventPorts -->
         <xsl:for-each select="graphml:get_child_nodes_of_kind($component, 'OutEventPort')">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:protected($tab + 1)" />
@@ -245,7 +245,7 @@
         <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
 
         <xsl:variable name="worker_instances" select="$class_instances[cdit:is_class_worker(.) = true() and cdit:get_class_type(.) != 'Vector_Operations']" />
-        <xsl:variable name="external_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
+        <xsl:variable name="custom_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
 
         
         <xsl:variable name="class_definitions" select="cdit:get_unique_class($component_impl)" />
@@ -338,16 +338,20 @@
             <xsl:value-of select="cdit:declare_datatype_functions(., $tab + 1)" />
         </xsl:for-each>
         
-        <xsl:for-each select="$class_instances[cdit:get_class_type(.) != 'Vector_Operations']">
+        <xsl:for-each select="$worker_instances">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:private($tab + 1)" />
                 <xsl:value-of select="cpp:comment('Declare Worker Variables', $tab + 2)" />
             </xsl:if>
-            <xsl:variable name="worker_type" select="graphml:get_data_value(., 'type')" />
-            <xsl:variable name="worker_variable" select="cdit:variablize_value(graphml:get_data_value(., 'label'))" />
+            <xsl:value-of select="cdit:declare_class_variable(., $tab + 2)" />
+        </xsl:for-each>
 
-            <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr($worker_type), $worker_variable, cpp:nl(), $tab + 2)" />
+        <xsl:for-each select="$custom_class_instances">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:private($tab + 1)" />
+                <xsl:value-of select="cpp:comment('Declare Custom Class Variables', $tab + 2)" />
+            </xsl:if>
+            <xsl:value-of select="cdit:declare_class_variable(., $tab + 2)" />
         </xsl:for-each>
 
         <xsl:value-of select="cpp:scope_end($tab)" />
@@ -374,7 +378,12 @@
         <xsl:variable name="qualified_class_type" select="cpp:combine_namespaces(($namespaces, $class_name))" />
 
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($class, 'Function')" />
-        <xsl:variable name="workers" select="cdit:get_unique_class($class)" />
+        
+        <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($class, 'ClassInstance')" />
+        <xsl:variable name="worker_instances" select="$class_instances[cdit:is_class_worker(.) = true() and cdit:get_class_type(.) != 'Vector_Operations']" />
+        <xsl:variable name="custom_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
+
+
 
         <!-- Version Number -->
         <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_class_cpp', 0)" />
@@ -394,30 +403,26 @@
         <!-- Define the Constructor-->
         <xsl:value-of select="cpp:define_function('', $qualified_class_type, $class_name, cpp:const_ref_var_def('std::string', 'name'), concat($inherited_constructor, cpp:scope_start(0)))" />
             <!-- Handle Worker variables -->
-            <xsl:for-each select="$workers">
+            <xsl:for-each select="$worker_instances">
                 <xsl:if test="position() = 1">
                     <xsl:value-of select="cpp:comment('Declare Worker Variables', $tab + 1)" />
                 </xsl:if>
-                <xsl:variable name="worker_type" select="graphml:get_data_value(., 'worker')" />
-                <xsl:variable name="worker_id" select="graphml:get_data_value(., 'workerID')" />
-                <xsl:variable name="worker_variable" select="cdit:variablize_value($worker_id)" />
-                <xsl:variable name="worker_params" select="cpp:join_args(('*this', o:wrap_dblquote($worker_id)))" />
-                <xsl:variable name="worker_getter" select="cpp:invoke_templated_static_function($worker_type, 'AddTypedWorker', $worker_params, '', 0)" />
-                <xsl:value-of select="cpp:define_variable('', $worker_variable, $worker_getter, cpp:nl(), $tab + 1)" />
+                <xsl:value-of select="cdit:define_class_variable(., $tab + 1)" />
+            </xsl:for-each>
+
+            <!-- Handle Worker variables -->
+            <xsl:for-each select="$custom_class_instances">
+                <xsl:if test="position() = 1">
+                    <xsl:value-of select="cpp:comment('Declare Custom Class Variables', $tab + 1)" />
+                </xsl:if>
+                <xsl:value-of select="cdit:define_class_variable(., $tab + 1)" />
             </xsl:for-each>
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Handle Functions -->
         <xsl:for-each select="$functions">
-            <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
-            <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations(.)" />
-            <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations(.)" />
-
-            <xsl:value-of select="cpp:define_function($return_parameter, $qualified_class_type, $function_name, $input_parameters, cpp:scope_start(0))" />
-            <xsl:value-of select="cdit:generate_workflow_code(., ., 1)" />
-            <xsl:value-of select="cpp:scope_end(0)" />
-            <xsl:value-of select="o:nl(1)" />
+            <xsl:value-of select="cdit:define_custom_function(., $qualified_class_type, 0)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -430,11 +435,14 @@
         <!-- Get their required aggregates used to express Component -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($class)" />
         
-        
         <xsl:variable name="namespaces" select="o:trim_list(graphml:get_namespace($class))" />
         <xsl:variable name="label" select="graphml:get_label($class)" />
         <xsl:variable name="class_name" select="concat('Class_', o:title_case($label))" />
         <xsl:variable name="tab" select="count($namespaces)" />
+
+        <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($class, 'ClassInstance')" />
+        <xsl:variable name="worker_instances" select="$class_instances[cdit:is_class_worker(.) = true() and cdit:get_class_type(.) != 'Vector_Operations']" />
+        <xsl:variable name="custom_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
 
         <xsl:variable name="qualified_type" select="cpp:combine_namespaces(($namespaces, $label))" />
 
@@ -463,6 +471,18 @@
             </xsl:if>
         </xsl:for-each>
 
+        <!-- Include the headers once for each worker type -->
+        <xsl:for-each-group select="$worker_instances" group-by="graphml:get_definition(.)">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Include Worker Header Files', 0)" />
+            </xsl:if>
+            <xsl:value-of select="cpp:include_library_header(cdit:get_class_header(.))" />
+
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each-group>
+
         <!-- Define the namespaces -->
         <xsl:for-each select="$namespaces">
             <xsl:value-of select="cpp:namespace_start(., position() - 1)" />
@@ -479,13 +499,11 @@
 
         <!-- Handle Functions -->
         <xsl:for-each select="graphml:get_child_nodes_of_kind($class, 'Function')">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Declare Functions', $tab + 2)" />
+            </xsl:if>
             
-            <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
-            <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations(.)" />
-            <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations(.)" />
-            
-            <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function($return_parameter, $function_name, $input_parameters, ';', $tab + 2)" />
+            <xsl:value-of select="cdit:declare_custom_function(., $tab + 2)" />
 
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -495,6 +513,24 @@
         <!-- Handle Attributes -->
         <xsl:for-each select="graphml:get_child_nodes_of_kind($class, 'Attribute')">
             <xsl:value-of select="cdit:declare_datatype_functions(., $tab + 1)" />
+        </xsl:for-each>
+
+        <!-- Handle Workers -->
+        <xsl:for-each select="$worker_instances">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:private($tab + 1)" />
+                <xsl:value-of select="cpp:comment('Declare Worker Variables', $tab + 2)" />
+            </xsl:if>
+            <xsl:value-of select="cdit:declare_class_variable(., $tab + 2)" />
+        </xsl:for-each>
+
+        <!-- Handle Custom Class -->
+        <xsl:for-each select="$custom_class_instances">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:private($tab + 1)" />
+                <xsl:value-of select="cpp:comment('Declare Custom Class Variables', $tab + 2)" />
+            </xsl:if>
+            <xsl:value-of select="cdit:declare_class_variable(., $tab + 2)" />
         </xsl:for-each>
         
         <xsl:value-of select="cpp:scope_end($tab)" />
@@ -532,7 +568,12 @@
         <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'InEventPortImpl')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
-        <xsl:variable name="workers" select="cdit:get_unique_class($component_impl)" />
+
+
+        <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
+        <xsl:variable name="worker_instances" select="$class_instances[cdit:is_class_worker(.) = true() and cdit:get_class_type(.) != 'Vector_Operations']" />
+        <xsl:variable name="custom_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
+
 
         <!-- Version Number -->
         <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_impl_cpp', 0)" />
@@ -567,16 +608,19 @@
             </xsl:for-each>
 
             <!-- Handle Worker variables -->
-            <xsl:for-each select="$workers">
+            <xsl:for-each select="$worker_instances">
                 <xsl:if test="position() = 1">
                     <xsl:value-of select="cpp:comment('Declare Worker Variables', $tab + 1)" />
                 </xsl:if>
-                <xsl:variable name="worker_type" select="graphml:get_data_value(., 'worker')" />
-                <xsl:variable name="worker_id" select="graphml:get_data_value(., 'workerID')" />
-                <xsl:variable name="worker_variable" select="cdit:variablize_value($worker_id)" />
-                <xsl:variable name="worker_params" select="cpp:join_args(('*this', o:wrap_dblquote($worker_id)))" />
-                <xsl:variable name="worker_getter" select="cpp:invoke_templated_static_function($worker_type, 'AddTypedWorker', $worker_params, '', 0)" />
-                <xsl:value-of select="cpp:define_variable('', $worker_variable, $worker_getter, cpp:nl(), $tab + 1)" />
+                <xsl:value-of select="cdit:define_class_variable(., $tab + 1)" />
+            </xsl:for-each>
+
+            <!-- Handle Worker variables -->
+            <xsl:for-each select="$custom_class_instances">
+                <xsl:if test="position() = 1">
+                    <xsl:value-of select="cpp:comment('Declare Custom Class Variables', $tab + 1)" />
+                </xsl:if>
+                <xsl:value-of select="cdit:define_class_variable(., $tab + 1)" />
             </xsl:for-each>
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
@@ -597,14 +641,7 @@
 
         <!-- Handle Functions -->
         <xsl:for-each select="$functions">
-            <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
-            <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations(.)" />
-            <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations(.)" />
-
-            <xsl:value-of select="cpp:define_function($return_parameter, $qualified_impl_type, $function_name, $input_parameters, cpp:scope_start(0))" />
-            <xsl:value-of select="cdit:generate_workflow_code(., ., 1)" />
-            <xsl:value-of select="cpp:scope_end(0)" />
-            <xsl:value-of select="o:nl(1)" />
+            <xsl:value-of select="cdit:define_custom_function(., $qualified_impl_type, 0)" />
         </xsl:for-each>
 
         <!-- Handle in_ports -->
@@ -1055,6 +1092,8 @@
         <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
         <xsl:variable name="worker_function_def" select="graphml:get_definition($worker_function_inst)" />
         <xsl:variable name="worker_def" select="graphml:get_definition($worker_inst)" />
+        <xsl:variable name="function_parent" select="graphml:get_parent_node($worker_function_def)" />
+        <xsl:variable name="function_parent_kind" select="graphml:get_kind($function_parent)" />
 
         
 
@@ -1066,7 +1105,6 @@
             <!-- TODO -->
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="worker_variable" select="cdit:get_variable_name($node)" />
                 <xsl:variable name="operation" select="graphml:get_data_value($worker_function_def, 'operation')" />
 
                 <xsl:variable name="arguments" as="xs:string*">
@@ -1080,9 +1118,20 @@
                     </xsl:choose>
                 </xsl:variable>
 
-                <!-- TODO PARSE THROUGH RETURN PARAMETER GROUPS -->
                 <xsl:variable name="variable_name" select="cdit:get_variable_name(cdit:get_function_return_parameters($node))" />
-                
+
+                <xsl:variable name="worker_variable">
+                    <xsl:choose>
+                        <!-- Invoking a function contained within the ComponentImpl doesn't need scope -->
+                        <xsl:when test="$function_parent_kind = 'ComponentImpl'">
+                            <xsl:value-of select="''" />
+                        </xsl:when>
+                        <!-- Invoking a function on a class needs to point against the class variable -->
+                        <xsl:when test="$function_parent_kind = 'Class'">
+                            <xsl:value-of select="cdit:get_variable_name($node)" />
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:variable>
 
                 <xsl:variable name="function" select="cpp:invoke_function($worker_variable, cpp:arrow(), $operation, $arguments , 0)" />
 
@@ -1521,11 +1570,14 @@
 
         <xsl:variable name="relative_path" select="cmake:get_relative_path(('component', $namespace, $component_label))" />
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($component_impl)" />
+        
+        <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
+        <xsl:variable name="worker_instances" select="$class_instances[cdit:is_class_worker(.) = true() and cdit:get_class_type(.) != 'Vector_Operations']" />
+        <xsl:variable name="custom_class_instances" select="$class_instances[cdit:is_class_worker(.) = false()]" />
 
-        <xsl:variable name="workers" select="cdit:get_unique_class($component_impl)" />
 
          <!-- Include the headers once for each worker type -->
-         <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'worker')">
+         <xsl:for-each-group select="$worker_instances" group-by="graphml:get_definition(.)">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment('Include Worker Header Files', 0)" />
             </xsl:if>
