@@ -54,7 +54,6 @@ class DeploymentRegister{
         std::thread registration_loop_;
         std::vector<std::unique_ptr<DeploymentHandler> > deployments_;
         std::vector<std::unique_ptr<DeploymentHandler> > logan_clients_;
-        std::vector<std::thread*> handler_threads_;
 
         bool terminate_ = false;
 };

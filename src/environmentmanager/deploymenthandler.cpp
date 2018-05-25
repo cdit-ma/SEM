@@ -24,7 +24,7 @@ DeploymentHandler::DeploymentHandler(Environment& env,
 }
 
 void DeploymentHandler::Terminate(){
-    
+    //TODO: send terminate messages to node manager attached to this thread.
 }
 
 void DeploymentHandler::Init(){
@@ -49,16 +49,32 @@ void DeploymentHandler::Init(){
     HeartbeatLoop();
 }
 
-void DeploymentHandler::HeartbeatLoop(){
+void DeploymentHandler::HeartbeatLoop() noexcept{
     //Initialise our poll item list
     std::vector<zmq::pollitem_t> sockets = {{*handler_socket_, 0, ZMQ_POLLIN, 0}};
 
     //Wait for first heartbeat, allow more time for this one in case of server congestion
     int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
 
+    std::pair<uint64_t, std::string> request;
+
     if(initial_events >= 1){
-        auto request = ZMQReceiveRequest(*handler_socket_);
-        HandleRequest(request);
+        try{
+            request = ZMQReceiveRequest(*handler_socket_);
+        }
+        catch(const zmq::error_t& ex){
+            return;
+        }
+        std::string initial_message = HandleRequest(request);
+        try{
+            ZMQSendReply(*handler_socket_, initial_message);
+        }
+        catch(const zmq::error_t& exception){
+            std::cerr << "Exception in DeploymentHandler::HeartbeatLoop (initial): " << exception.what() << std::endl;
+            RemoveDeployment(time_added_);
+            return;
+        }
+        
     }
     //Break out early if we never get our first heartbeat
     else{
@@ -82,8 +98,24 @@ void DeploymentHandler::HeartbeatLoop(){
             //Reset
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
-            auto request = ZMQReceiveRequest(*handler_socket_);
-            HandleRequest(request);
+            try{
+                auto request = ZMQReceiveRequest(*handler_socket_);
+            }
+            catch(const zmq::error_t& exception){
+                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
+                break;
+            }
+
+            auto message = HandleRequest(request);
+
+            try{
+                ZMQSendReply(*handler_socket_, message);
+            }
+            catch(const zmq::error_t& exception){
+                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(send): " << exception.what() << std::endl;
+                break;
+            }
+
             if(removed_flag_){
                 break;
             }
@@ -96,23 +128,29 @@ void DeploymentHandler::HeartbeatLoop(){
                 interval *= 2;
             }
             else{
-                RemoveDeployment(time_added_);
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
         }
     }
+    RemoveDeployment(time_added_);
 }
 
-void DeploymentHandler::RemoveDeployment(uint64_t call_time){
-
-    if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
-        environment_.RemoveExperiment(experiment_id_, call_time);
+void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
+    try{
+        if(!removed_flag_){
+            if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
+                environment_.RemoveExperiment(experiment_id_, call_time);
+            }
+            if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
+                environment_.RemoveLoganClient(experiment_id_, deployment_ip_address_);
+            }
+            removed_flag_ = true;
+        }
     }
-    if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
-        environment_.RemoveLoganClient(experiment_id_, deployment_ip_address_);
+    catch(...){
+        std::cerr << "Exception in DeploymentHandler::RemoveDeployment" << std::endl;
     }
-    removed_flag_ = true;
 }
 
 std::string DeploymentHandler::TCPify(const std::string& ip_address, const std::string& port) const{
@@ -128,26 +166,15 @@ void DeploymentHandler::ZMQSendReply(zmq::socket_t& socket, const std::string& m
     zmq::message_t time_msg(lamport_string.begin(), lamport_string.end());
     zmq::message_t msg(message.begin(), message.end());
 
-    try{
-        socket.send(time_msg, ZMQ_SNDMORE);
-        socket.send(msg);
-    }
-    catch(std::exception e){
-        std::cerr << e.what() << " in DeploymentHandler::ZMQSendReply" << std::endl;
-    }
+    socket.send(time_msg, ZMQ_SNDMORE);
+    socket.send(msg);
 }
 
 std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socket_t& socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
-    try{
-        socket.recv(&lamport_time_msg);
-        socket.recv(&request_contents_msg);
-    }
-    catch(zmq::error_t error){
-        //TODO: Throw this further up
-        std::cerr << error.what() << " in DeploymentHandler::ZMQReceiveRequest" << std::endl;
-    }
+    socket.recv(&lamport_time_msg);
+    socket.recv(&request_contents_msg);
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
     //Update and get current lamport time
@@ -157,7 +184,7 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
     return std::make_pair(lamport_time, contents);
 }
 
-void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
+std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     auto message_time = request.first;
     NodeManager::EnvironmentMessage message;
     message.ParseFromString(request.second);
@@ -211,7 +238,8 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
     }
 
-    ZMQSendReply(*handler_socket_, message.SerializeAsString());
+    return message.SerializeAsString();
+
 }
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){

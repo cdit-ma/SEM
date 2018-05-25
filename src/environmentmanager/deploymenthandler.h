@@ -36,15 +36,15 @@ class DeploymentHandler{
 
         //Req/rep loops
         void Init();
-        void HeartbeatLoop();
+        void HeartbeatLoop() noexcept;
 
         //Reply Helpers
-        void HandleRequest(std::pair<uint64_t, std::string> request);
+        std::string HandleRequest(std::pair<uint64_t, std::string> request);
         void HandleDirtyExperiment(NodeManager::EnvironmentMessage& message);
         void HandleLoganQuery(NodeManager::EnvironmentMessage& message);
 
         //Environment Helpers
-        void RemoveDeployment(uint64_t message_time);
+        void RemoveDeployment(uint64_t message_time) noexcept;
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;

@@ -64,8 +64,8 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 RequestHandler(message);
             }
             catch(const zmq::error_t& exception){
-                std::cout << exception.what() << std::endl;
-                std::cout << "NUM: " << exception.num() << std::endl;
+                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+                break;
             }
             catch(const std::exception& exception){
                 //Print error message to cerr and add to error message field of response.
@@ -78,7 +78,13 @@ void DeploymentRegister::RegistrationLoop() noexcept{
             }
         }
 
-        ZMQSendReply(*rep, message.SerializeAsString());
+        try{
+            ZMQSendReply(*rep, message.SerializeAsString());
+        }
+        catch(const zmq::error_t& exception){
+            std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+            break;
+        }
     }
 }
 
