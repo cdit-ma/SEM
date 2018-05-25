@@ -68,5 +68,6 @@ void Namespace::parentSet(Node* parent){
     }
     
     setAcceptsNodeKind(NODE_KIND::SHARED_DATATYPES, false);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_IMPL, false);
     Node::parentSet(this);
 }

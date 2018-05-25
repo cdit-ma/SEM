@@ -16,6 +16,7 @@ BehaviourDefinitions::BehaviourDefinitions(EntityFactoryBroker& broker, bool is_
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::CLASS);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_IMPL);
+    setAcceptsNodeKind(NODE_KIND::NAMESPACE);
 
     if(is_temp){
         //Break out early for temporary entities

@@ -24,11 +24,14 @@ ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT_IMPL);
+    
 
     if(is_temp){
         //Break out early for temporary entities
         return;
     }
+
+    setLabelFunctional(false);
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
