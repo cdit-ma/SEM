@@ -58,6 +58,13 @@
     </xsl:function>
 
     <!--
+        Returns a void
+    -->
+    <xsl:function name="cpp:void">
+        <xsl:value-of select="'void'" />
+    </xsl:function>
+
+    <!--
         Wraps a type in template brackets, handles nested type semantics
     -->
     <xsl:function name="cpp:wrap_template">
@@ -725,5 +732,37 @@
         <xsl:param name="suffix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'if', o:wrap_bracket($condition), $suffix)" />
+    </xsl:function>
+
+    <!--
+        For (A,B,C)
+        produces
+        namespace A{
+            namespace B{
+                namespace C{
+    -->
+    <xsl:function name="cpp:define_namespaces">
+        <xsl:param name="namespaces" as="xs:string*" />
+
+        <xsl:for-each select="$namespaces">
+            <xsl:value-of select="cpp:namespace_start(., position() - 1)" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <!--
+        For (A,B,C)
+        produces
+                } //C
+            } //B
+        } //A
+    -->
+
+    <xsl:function name="cpp:close_namespaces">
+        <xsl:param name="namespaces" as="xs:string*" />
+
+        <xsl:for-each select="$namespaces">
+            <xsl:sort select="position()" data-type="number" order="descending"/>
+            <xsl:value-of select="cpp:namespace_end(., count($namespaces) - position())" />
+        </xsl:for-each>
     </xsl:function>
 </xsl:stylesheet>

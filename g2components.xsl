@@ -63,16 +63,22 @@
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">
             <xsl:variable name="component_impl" select="." />
             <xsl:variable name="component_def" select="graphml:get_definition($component_impl)" />
+
+
+            <xsl:variable name="namespace" select="cdit:get_aggregate_namespace($component_def)" />
+
+            
+            
             
             <!-- Get the labels of the definition and impl -->
             <xsl:variable name="component_def_label" select="graphml:get_label($component_def)" />
             <xsl:variable name="component_impl_label" select="graphml:get_label($component_impl)" />
             <xsl:variable name="component_int_prefix" select="lower-case($component_def_label)" />
             <xsl:variable name="component_impl_prefix" select="lower-case($component_impl_label)" />
-            <xsl:variable name="component_path" select="o:join_paths(($output_path, $component_int_prefix))" />
+            <xsl:variable name="component_path" select="o:join_paths(($output_path, cdit:get_aggregates_path($component_def)))" />
 
             <xsl:value-of select="o:message(('Generating Component:', o:wrap_quote($component_impl_label)))" />
-            
+                
             <xsl:if test="not($preview)">
                 <!-- Only Generate the Interfaces and CMake files when we aren't in preview mode -->
                 <xsl:variable name="int_h" select="concat($component_int_prefix, 'int.h')" />

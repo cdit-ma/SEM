@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v1.5.2'" />
+        <xsl:value-of select="'re_gen-v3.0.0A'" />
     </xsl:function>
 
     <!--
@@ -750,10 +750,10 @@
     <xsl:function name="cdit:get_aggregates_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
-        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="cdit:get_aggregate_namespace($aggregate)" />
         
-        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label))" />
+        <xsl:value-of select="lower-case(o:join_paths(($aggregate_namespace, $aggregate_label)))" />
     </xsl:function>
 
     <xsl:function name="cdit:get_base_aggregates_cpp_path" as="xs:string">
@@ -859,21 +859,7 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:define_custom_function">
-        <xsl:param name="function" as="element()" />
-        <xsl:param name="qualified_class_type" as="xs:string" />
-        <xsl:param name="tab" as="xs:integer" />
-
-        <xsl:variable name="name" select="cdit:get_function_name($function)" />
-        <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations($function)" />
-        <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations($function)" />
-        
-        <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
-        <xsl:value-of select="cpp:define_function($return_parameter, $qualified_class_type, $name, $input_parameters, cpp:scope_start(0))" />
-        <xsl:value-of select="cdit:generate_workflow_code($function, $function, $tab + 1)" />
-        <xsl:value-of select="cpp:scope_end(0)" />
-        <xsl:value-of select="o:nl(1)" />
-    </xsl:function>
+    
 
     <xsl:function name="cdit:declare_custom_function">
         <xsl:param name="function" as="element()" />
@@ -886,12 +872,11 @@
         <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
         <xsl:value-of select="cpp:declare_function($return_parameter, $name, $input_parameters, ';', $tab)" />
     </xsl:function>
-
-
-    <xsl:function name="cdit:declare_datatype_functions">
+    
+    <xsl:function name="cdit:declare_variable">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="tab" as="xs:integer" />
-        
+         
         <xsl:variable name="label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
@@ -919,7 +904,21 @@
                     </xsl:if>
                 </xsl:when>
             </xsl:choose>
-        </xsl:variable>        
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:define_variable($cpp_type, $var_label, $value, cpp:nl(), $tab)" />
+
+    </xsl:function>
+
+    <xsl:function name="cdit:declare_datatype_functions">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="tab" as="xs:integer" />
+        
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
+        <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
+        <xsl:variable name="set_value" select="graphml:get_data_value($aggregate, 'value')" />
         
         <xsl:choose>
             <xsl:when test="$cpp_type != ''">
@@ -933,7 +932,7 @@
                 <xsl:value-of select="cpp:private($tab)" />
                 <xsl:choose>
                     <xsl:when test="$kind != 'Attribute'">
-                        <xsl:value-of select="cpp:define_variable($cpp_type, $var_label, $value, cpp:nl(), $tab + 1)" />
+                        <xsl:value-of select="cdit:declare_variable($aggregate, $tab + 1)" />
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr('Attribute'), $var_label, cpp:nl(), $tab + 1)" />
@@ -1075,7 +1074,7 @@
         <xsl:value-of select="$rel_folder" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_class_type" as="xs:string">
+    <xsl:function name="cdit:get_class_worker_type" as="xs:string">
         <xsl:param name="class" as="element()"  />
 
         <xsl:variable name="class_def" select="graphml:get_definition($class)" />
@@ -1170,5 +1169,57 @@
         </xsl:choose>
    </xsl:function>
 
+   <!--
+        Gets the 'namespace' data value from the entity
+    -->
+    <xsl:function name="cdit:get_aggregate_namespace" as="xs:string*">
+        <xsl:param name="entity" as="element()?" />
+
+        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
+
+        <xsl:for-each select="graphml:get_ancestor_nodes($definition)">
+            <xsl:variable name="kind" select="graphml:get_kind(.)" />
+            <xsl:if test="$kind = 'Namespace'">
+                <xsl:sequence select="graphml:get_label(.)" />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+   
+ <xsl:function name="cdit:get_function_input_parameter_declarations" as="xs:string*">
+        <xsl:param name="node" as="element()"/>
+
+        <xsl:variable name="input_parameter_group" select="graphml:get_child_nodes_of_kind($node, 'InputParameterGroup')" />
+
+        <xsl:variable name="resolved_args" as="xs:string*">
+            <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
+                <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
+                <xsl:variable name="var_label" select="graphml:get_label(.)" />
+
+                <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:sequence select="cpp:join_args($resolved_args)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_function_return_parameter_declarations" as="xs:string*">
+        <xsl:param name="node" as="element()"/>
+
+        <xsl:variable name="return_parameter_group" select="graphml:get_child_nodes_of_kind($node, 'ReturnParameterGroup')" />
+        <xsl:variable name="return_parameters" select="graphml:get_child_nodes($return_parameter_group[1])" />
+
+
+        <xsl:choose>
+            <xsl:when test="count($return_parameters) = 1" >
+                <xsl:variable name="cpp_type" select="cpp:get_qualified_type($return_parameters[1])" />
+                <xsl:value-of select="cpp:define_variable($cpp_type, '', '', '', 0)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="'void'" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
     
 </xsl:stylesheet>
+

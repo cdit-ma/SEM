@@ -697,10 +697,10 @@
     <xsl:function name="cdit:get_aggregate_base_h">
         <xsl:param name="aggregate" as="element()" />
 
-        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="('Base', cdit:get_aggregate_namespace($aggregate))" />
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="class_name" select="o:title_case($aggregate_label)" />
-        <xsl:variable name="tab" select="if($aggregate_namespace = '') then 0 else 1" />
+        <xsl:variable name="tab" select="count($aggregate_namespace)" />
 
         <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
         
@@ -711,7 +711,7 @@
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate)" />
 
-        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('base', $aggregate_namespace, $aggregate_label), '_'))" />
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label), '_'))" />
 
         <xsl:variable name="children" select="graphml:get_child_nodes($aggregate)" />
         <xsl:variable name="enums" select="graphml:get_definitions(graphml:get_child_nodes_of_kind($aggregate, 'EnumInstance'))" />
@@ -754,35 +754,31 @@
             </xsl:if>
         </xsl:for-each>
 
-        
+        <xsl:value-of select="o:nl(1)" />
 
         <!-- Define Namespaces -->
-        <xsl:value-of select="cpp:namespace_start('Base', 0)" />
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="cpp:namespace_start($aggregate_namespace, $tab)" />
-        </xsl:if>
+        <xsl:for-each select="$aggregate_namespace">
+            <xsl:value-of select="cpp:namespace_start(., position() - 1)" />
+        </xsl:for-each>
         
         <xsl:value-of select="cpp:declare_class($class_name, 'public ::BaseMessage', $tab + 1)" />
 
-        
-        
         <!-- Define functions -->
         <xsl:for-each select="$children">
             <xsl:value-of select="cdit:declare_datatype_functions(., $tab + 1)" />
         </xsl:for-each>
 
-        
-        
         <xsl:value-of select="cpp:scope_end($tab + 1)" />
 
         <!-- End Namespaces -->
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="cpp:namespace_end($aggregate_namespace, $tab)" />
-        </xsl:if>
-        <xsl:value-of select="cpp:namespace_end('Base', 0)" />
+        <xsl:for-each select="$aggregate_namespace">
+            <xsl:sort select="position()" data-type="number" order="descending"/>
+            <xsl:value-of select="cpp:namespace_end(., count($aggregate_namespace) - position())" />
+        </xsl:for-each>
 
+        <xsl:value-of select="o:nl(1)" />
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
-    </xsl:function>
+    </xsl:function> 
 
     
 

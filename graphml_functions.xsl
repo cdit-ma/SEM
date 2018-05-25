@@ -132,6 +132,7 @@
     -->
     <xsl:function name="graphml:get_namespace" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
+
         <xsl:value-of select="graphml:get_data_value($entity, 'namespace')" />
     </xsl:function>
 
@@ -214,6 +215,20 @@
         <xsl:if test="local-name($parent) = 'node'">
             <xsl:sequence select="$parent" />
         </xsl:if>
+    </xsl:function>
+
+    <!--
+        Gets the parent node of the entity provided (Looks two levels up)
+    -->
+    <xsl:function name="graphml:get_ancestor_nodes" as="element(gml:node)*">
+        <xsl:param name="entity" as="element()?" />
+    
+        <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
+        <xsl:if test="$parent">
+            <xsl:sequence select="graphml:get_ancestor_nodes($parent)" />
+            <xsl:sequence select="$parent" />
+        </xsl:if>
+        
     </xsl:function>
 
       <!--
@@ -388,6 +403,37 @@
         <xsl:variable name="port_definition" select="graphml:get_definition($port)" />
         <xsl:variable name="aggregate_instance" select="graphml:get_child_node($port_definition, 1)" />
         <xsl:sequence select="graphml:get_definition($aggregate_instance)" />
+    </xsl:function>
+
+    <xsl:function name="graphml:is_class_instance_worker" as="xs:boolean">
+        <xsl:param name="class_instance" as="element()"  />
+
+        <xsl:variable name="class_def" select="graphml:get_definition($class_instance)" />
+        <xsl:value-of select="graphml:got_data($class_def, 'worker')" />
+    </xsl:function>
+
+    <xsl:function name="graphml:get_class_worker_type" as="xs:string">
+        <xsl:param name="class_instance" as="element()"  />
+
+        <xsl:variable name="class_def" select="graphml:get_definition($class_instance)" />
+        <xsl:value-of select="graphml:get_data_value($class_def, 'worker')" />
+    </xsl:function>
+
+    <!--
+        Gets the The Worker Instances
+    -->
+    <xsl:function name="graphml:get_worker_instances" as="element(gml:node)*">
+        <xsl:param name="component" as="element(gml:node)?" />
+
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($component, 'ClassInstance')[graphml:is_class_instance_worker(.) = true() and graphml:get_class_worker_type(.) != 'Vector_Operations']" />
+    </xsl:function>
+
+    <!--
+        Gets the The Custom Class Instances
+    -->
+    <xsl:function name="graphml:get_custom_class_instances" as="element(gml:node)*">
+        <xsl:param name="component" as="element(gml:node)?" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($component, 'ClassInstance')[graphml:is_class_instance_worker(.) = false()]" />
     </xsl:function>
 
    

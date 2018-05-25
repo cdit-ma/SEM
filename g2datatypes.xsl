@@ -48,7 +48,7 @@
             <xsl:for-each select="$required_middleware_aggregates">
                 <xsl:variable name="aggregate" select="." />
 
-                <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+                <xsl:variable name="aggregate_namespace" select="cdit:get_aggregate_namespace($aggregate)" />
                 <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
                 <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
                 
