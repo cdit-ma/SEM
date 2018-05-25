@@ -92,10 +92,10 @@ std::vector<float> generateAlignedFrequencyInput(size_t length, float amplitude,
 
 std::vector<float> generateAlignedFrequencyOutput(size_t length, float amplitude, float frequency, size_t phase_shift) {
     std::vector<float> data(length*2, (float)0);
-    data[(size_t)abs(frequency)*2] = amplitude * (float)(length/2) * (float)cos(phase_shift);
-    data[(size_t)abs(frequency)*2+1] = amplitude * (float)(length/2) * (float)sin(phase_shift);
-    data[length*2-(size_t)abs(frequency)*2] = amplitude * (float)(length/2) * (float)cos(phase_shift);
-    data[length*2-(size_t)abs(frequency)*2+1] = amplitude * (float)(length/2) * (float)sin(phase_shift);
+    data[(size_t)abs(frequency)*2] += amplitude * (float)(length/2) * (float)cos(phase_shift);
+    data[(size_t)abs(frequency)*2+1] += amplitude * (float)(length/2) * (float)sin(phase_shift);
+    data[length*2-(size_t)abs(frequency)*2] += amplitude * (float)(length/2) * (float)cos(phase_shift);
+    data[length*2-(size_t)abs(frequency)*2+1] += amplitude * (float)(length/2) * (float)sin(phase_shift);
     return data;
 }
 
@@ -117,7 +117,7 @@ std::vector<float> generateMultipleAlignedFrequencyOutput(size_t length, float f
 }
 
 std::ostream& operator<<(std::ostream& os, const FFTParam& f) {
-    return os << f.device << ", length: " << f.data_in.size() << " - input data: " << ::testing::PrintToString(f.data_in) << " , output data: " << ::testing::PrintToString(f.data_out);
+    return os << f.device << ", length: " << f.data_in.size()/2 << " - input data: " << ::testing::PrintToString(f.data_in) << " , output data: " << ::testing::PrintToString(f.data_out);
 };
 
 class FFTFixture: public ::testing::TestWithParam<FFTParam>, public OpenCL_WorkerConstructor{
@@ -138,8 +138,13 @@ TEST_P(FFTFixture, FFTtest)
     // Make sure that test case params are valid in terms of size
     ASSERT_EQ(data.size(), expected_output.size());
 
-    // as a constant vector has been passed in, we can pull amplitude out of the first element
-    float amplitude = data[0];
+    // As a constant vector has been passed in, we can pull amplitude out of the first element
+    //float amplitude = data[0];
+
+    /*for (const auto& e : data) {
+        std::cout << e << std::endl;
+    }
+    std::cout << "======" << std::endl;*/
 
 	bool did_succeed = worker_.FFT(data);
 
@@ -157,6 +162,9 @@ TEST_P(FFTFixture, FFTtest)
     // Check that output is the sum of the amplitudes for constant testsB
     //EXPECT_NEAR_RELATIVE(data[0], amplitude * data.size(), EPS);
 	
+    /*for (const auto& e : data) {
+        std::cout << e << std::endl;
+    }*/
     EXPECT_FLOATS_NEARLY_EQ(data, expected_output, 1e-3)
 }
 
@@ -197,7 +205,7 @@ std::vector<FFTParam> getSingleAlignedTests() {
     tests.emplace_back(generateAlignedFrequencyInput(4, 1, 1, 1), generateAlignedFrequencyOutput(4, 1, 1, 1), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 1, 1, 0), generateAlignedFrequencyOutput(16, 1, 1, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, 3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
-    tests.emplace_back(generateAlignedFrequencyInput(16, -2, 3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
+    tests.emplace_back(generateAlignedFrequencyInput(16, -2, 3, 0), generateAlignedFrequencyOutput(16, -2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, -3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(4096, 1, 1, 0), generateAlignedFrequencyOutput(4096, 1, 1, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(4096, 2, 11, 0), generateAlignedFrequencyOutput(4096, 2, 11, 0), true);

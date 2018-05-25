@@ -40,9 +40,9 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	cl_int err;
 
 	// Find the size of each datapoint and how many datapoints there are
-	size_t pointSize = sizeof(float);
+	//size_t pointSize = sizeof(float);
 	//size_t N = dataBytes/pointSize;
-    size_t N = data.size();
+    size_t N = data.size()/2;
 
 	// Check that prime decomposition only uses 2, 3 and 5 as clFFT doesnt support other prime numbers
 	if (N==0) {
@@ -70,37 +70,42 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     /* Set plan parameters. */
     err = clfftSetPlanPrecision(planHandle, CLFFT_SINGLE);
     //err = clfftSetLayout(planHandle, CLFFT_COMPLEX_INTERLEAVED, CLFFT_COMPLEX_INTERLEAVED);
+    //err = clfftSetLayout(planHandle, CLFFT_COMPLEX_INTERLEAVED, CLFFT_COMPLEX_PLANAR);
 	err = clfftSetLayout(planHandle, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
     err = clfftSetResultLocation(planHandle, CLFFT_INPLACE);
 
-    std::cerr << "nuim devices: " << devices_.size() << std::endl;
+    unsigned int allocated_dev_index = load_balancer_->RequestDevice();
 
-    for (auto& dev_ref : devices_) {
-        auto& dev = dev_ref.get();
-        auto& dev_queue = dev.GetQueue().GetRef()();
-        std::cerr << "baking plans" << std::endl;
+    auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
+
+    //for (auto& dev_ref : devices_) {
+        //auto& dev = dev_ref.get();
+        //auto& dev_queue = dev.GetQueue().GetRef()();
+        cl_command_queue dev_queue = dev.GetQueue().GetRef()();
         /* Bake the plan. */
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
-
-        std::cerr << "Bakey plans" << std::endl;
 
         /* Prepare OpenCL memory objects and place data inside them. */
         OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
         //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
         //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
 
-        std::cerr << "Enqueue transform" << std::endl;
-
         /* Execute the plan. */
         //err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &(*(queues[gpuNum]))(), 0, NULL, NULL, &bufX(), NULL, NULL);
         err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer->GetBackingRef()()), NULL, NULL);
-    
-    std::cerr << "starting fft" << std::endl;
+
+        if (err != CL_SUCCESS) {
+            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+                "Failed to enqueue FFT transform with error message: "+OpenCLErrorName(err));
+        }
 
         /* Wait for calculations to be finished. */
-        dev.GetQueue().GetRef().finish();
-    
-    std::cerr << "FFT finished" << std::endl;
+        err = dev.GetQueue().GetRef().finish();
+
+        if (err != CL_SUCCESS) {
+            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+                "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
+        }
 
         /* Fetch results of calculations. */
         //dev.GetQueue().enqueueReadBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
@@ -108,7 +113,9 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
         /* Release the plan. */
         err = clfftDestroyPlan( &planHandle );
-    }
+    //}
+
+    load_balancer_->ReleaseDevice(allocated_dev_index);
 
     return true;
 }
