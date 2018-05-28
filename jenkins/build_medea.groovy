@@ -101,9 +101,9 @@ stage("Build"){
     parallel step_build_test
 }
 
-stage(name: "Test"){
+/*stage(name: "Test"){
     parallel step_test
-}
+}*/
 
 stage("Package"){
     parallel step_archive
