@@ -107,12 +107,13 @@ cl_mem d_inData, d_outData;
 
 void bit_reverse(float2* src, float2* dst, size_t num_elements) {
     int bit_length = LOGN - 1;
-    std::cout << bit_length << std::endl;
+    
     /* Re-enable for dynamically sized reversal
     int bit_length = 0;
     while (1 << bit_length < num_elements) bit_length++;
     bit_length -= 1;
     */
+   
     for (unsigned int index=0; index<num_elements; index++) {
         unsigned int norm_index = index;
         unsigned int br_index = index & 1;
@@ -124,11 +125,10 @@ void bit_reverse(float2* src, float2* dst, size_t num_elements) {
             s--;
         }
         br_index <<= s;
-        //std::cout << index << " -> " << br_index << std::endl;
+        
         dst[br_index].x = src[index].x;
         dst[br_index].y = src[index].y;
     }
-    std::cout << "finished the bit reversal" << std::endl;
 }
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
@@ -147,22 +147,12 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	
   // Create device buffers - assign the buffers in different banks for more efficient
   // memory access 
-
-    std::cout << "testprint 1" << std::endl;
-
-    std::cout << &(manager->GetContext()()) << std::endl;
-    std::cout << data_size << std::endl;
-
   d_inData = clCreateBuffer(manager->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
   checkError(status, "Failed to allocate input device buffer\n");
-  std::cout << "is it here!?" << std::endl;
   d_outData = clCreateBuffer(manager->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
   checkError(status, "Failed to allocate output device buffer\n");
 
   // Copy data from host to device
-
-    std::cout << "testprint 1.5" << std::endl;
-
   status = clEnqueueWriteBuffer(queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
   checkError(status, "Failed to copy data to device");
 
@@ -173,8 +163,6 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
   // Set the kernel arguments
   status = clSetKernelArg(kernel1, 0, sizeof(cl_mem), (void *)&d_inData);
   checkError(status, "Failed to set kernel arg 0");
- 
-    std::cout << "testprint 2" << std::endl;
 
   status = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&d_outData);
   checkError(status, "Failed to set kernel arg 0");
@@ -187,42 +175,26 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
   status = clEnqueueTask(queue, kernel, 0, NULL, NULL);
   checkError(status, "Failed to launch kernel");
 
-  std::cout << "run kernel, about to enqueue kernel1" << std::endl;
-
-  //size_t ls = N/8;
   size_t ls = N/8;
   size_t gs = iterations * ls;
   status = clEnqueueNDRangeKernel(queue1, kernel1, 1, NULL, &gs, &ls, 0, NULL, NULL);
   checkError(status, "Failed to launch fetch kernel");
- 
-  std::cout << "done gone ran the second kernel (kernel1)" << std::endl;
  
   // Wait for command queue to complete pending events
   status = clFinish(queue);
   checkError(status, "Failed to finish");
   status = clFinish(queue1);
   checkError(status, "Failed to finish queue1");
-  
-  std::cout << "and the queue finished as well" << std::endl;
 
   // Copy results from device to host
   status = clEnqueueReadBuffer(queue, d_outData, CL_TRUE, 0, data_size, h_outData, 0, NULL, NULL);
   checkError(status, "Failed to copy data from device");
 
-
-   for (unsigned int i=0; i<data.size()/2; i++) {
-//        if (h_outData[i].x > 0.5) std::cout << i << ": " << h_outData[i].x << ", " << h_outData[i].y << std::endl;
-   }
-
 	//test_fft(1, false);
-    std::cout << "about to bit reverse" << std::endl;
 	//memcpy(data.data(), h_outData, data_size);
     bit_reverse(h_outData, (float2*)data.data(), data.size()/2);
-    std::cout << "about to free aligned memory" << std::endl;
     alignedFree(h_inData);
-    std::cout << "just freed in, about to free out" << std::endl;
     alignedFree(h_outData);
-    std::cout << "just freed aligned memory" << std::endl;
     h_inData = NULL;
     h_outData = NULL;
 
@@ -274,8 +246,6 @@ int main(int argc, char **argv) {
         
         std::cout << i << ": " << fft_data[i*2] << ", " << fft_data[i*2+1] << std::endl;
     }
-
-    std::cout << "right before the end" << std::endl;
 
 	return false;
 
@@ -561,17 +531,12 @@ bool OpenCL_Worker::InitFFT() {
 
 // Free the resources allocated during initialization
 bool OpenCL_Worker::CleanupFFT() {
-    std::cout << "Beginning cleanup" << std::endl;
     
-    if(queue1) 
+  if(queue1) 
     clReleaseCommandQueue(queue1);
-  /*if(h_inData)
-	alignedFree(h_inData);
-  if (h_outData)
-	alignedFree(h_outData);*/
-  if (h_verify)
-	alignedFree(h_verify);
-  std::cout << "about to free device buffers" << std::endl;
+  if (h_verify) {
+	  alignedFree(h_verify);
+  }
   if (d_inData) {      
 	clReleaseMemObject(d_inData);
     d_inData = NULL;
@@ -580,8 +545,6 @@ bool OpenCL_Worker::CleanupFFT() {
 	clReleaseMemObject(d_outData);
     d_outData = NULL;
   }
-
-    std::cout << "Finished cleanup" << std::endl;
 
   return true;
 }

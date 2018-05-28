@@ -168,8 +168,6 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
     //auto workgroup_size = kernel_workgroup_size;
     block_length = (unsigned int) sqrt(workgroup_size);
 
-	std::cout << "block length: " << block_length << std::endl;
-
     cl::LocalSpaceArg block_data_size = cl::Local(block_length*block_length*sizeof(cl_float));
 
     unsigned int max_mat_width = std::max(M, K);
@@ -208,7 +206,6 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
                 "KMeans implementation not provided for FPGA platforms");
         return false;
     }
-    std::cout << "KMEANS RUNNING" << std::endl;
 
     auto point_buffer = CreateBuffer(points);
     auto centroid_buffer = CreateBuffer(centroids);

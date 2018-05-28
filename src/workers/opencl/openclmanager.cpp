@@ -153,13 +153,10 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 
 	}
 
-    std::string lower_name(platform_name_);  //("                                                                      ");
+    std::string lower_name(platform_name_);
     std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
-    std::cout << lower_name << std::endl;
     if (lower_name.find("fpga") != std::string::npos) {
         is_fpga_ = true;
-    } else {
-        std::cout << "NOT FPGA!!!!" << lower_name << std::endl;
     }
 
 	// Pull out all OpenCL devices in the platform (don't distinguish between CPU, GPU, etc)
