@@ -16,7 +16,7 @@ stage("Checkout"){
 }
 
 def step_build_test = [:]
-def step_test = [:]
+//def step_test = [:]
 def step_archive = [:]
 
 def medea_nodes = utils.getLabelledNodes("MEDEA")
@@ -33,7 +33,7 @@ for(n in medea_nodes){
         }
     }
 
-    step_test[node_name] = {
+    /*step_test[node_name] = {
         node(node_name){
             dir(PROJECT_NAME + "/test/bin"){
                 def globstr = "*"
@@ -67,7 +67,7 @@ for(n in medea_nodes){
                 }
             }
         }
-    }
+    }*/
 
     step_archive[node_name] = {
         node(node_name){
@@ -109,7 +109,7 @@ stage("Package"){
     parallel step_archive
 }
 
-node("master"){
+/*node("master"){
     dir("test_cases"){
         for(n in medea_nodes){
             unstash(n + "_test_cases")
@@ -128,4 +128,4 @@ node("master"){
         archiveArtifacts test_archive
         deleteDir()
     }
-}
+}*/
