@@ -130,7 +130,7 @@
     <!--
         Gets the 'namespace' data value from the entity
     -->
-    <xsl:function name="graphml:get_namespace" as="xs:string?">
+    <xsl:function name="graphml:get_namespace_data" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
 
         <xsl:value-of select="graphml:get_data_value($entity, 'namespace')" />
@@ -434,6 +434,22 @@
     <xsl:function name="graphml:get_custom_class_instances" as="element(gml:node)*">
         <xsl:param name="component" as="element(gml:node)?" />
         <xsl:sequence select="graphml:get_child_nodes_of_kind($component, 'ClassInstance')[graphml:is_class_instance_worker(.) = false()]" />
+    </xsl:function>
+
+    <!--
+        Gets the 'namespace' from the aggregate/
+    -->
+    <xsl:function name="graphml:get_namespace" as="xs:string*">
+        <xsl:param name="entity" as="element()?" />
+
+        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
+
+        <xsl:for-each select="graphml:get_ancestor_nodes($definition)">
+            <xsl:variable name="kind" select="graphml:get_kind(.)" />
+            <xsl:if test="$kind = 'Namespace'">
+                <xsl:sequence select="graphml:get_label(.)" />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
    

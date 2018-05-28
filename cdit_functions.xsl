@@ -751,7 +751,7 @@
         <xsl:param name="aggregate" as="element()" />
         
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="aggregate_namespace" select="cdit:get_aggregate_namespace($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         
         <xsl:value-of select="lower-case(o:join_paths(($aggregate_namespace, $aggregate_label)))" />
     </xsl:function>
@@ -797,7 +797,7 @@
     <!-- Get all required aggregates -->
     <xsl:function name="cdit:get_required_aggregates" as="element()*">
         <xsl:param name="aggregate" as="element()" />
-
+        
         <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
         <xsl:sequence select="graphml:get_definitions($aggregate_instances)" />
     </xsl:function>
@@ -872,6 +872,8 @@
         <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
         <xsl:value-of select="cpp:declare_function($return_parameter, $name, $input_parameters, ';', $tab)" />
     </xsl:function>
+
+    
     
     <xsl:function name="cdit:declare_variable">
         <xsl:param name="aggregate" as="element()" />
@@ -1169,21 +1171,7 @@
         </xsl:choose>
    </xsl:function>
 
-   <!--
-        Gets the 'namespace' data value from the entity
-    -->
-    <xsl:function name="cdit:get_aggregate_namespace" as="xs:string*">
-        <xsl:param name="entity" as="element()?" />
-
-        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
-
-        <xsl:for-each select="graphml:get_ancestor_nodes($definition)">
-            <xsl:variable name="kind" select="graphml:get_kind(.)" />
-            <xsl:if test="$kind = 'Namespace'">
-                <xsl:sequence select="graphml:get_label(.)" />
-            </xsl:if>
-        </xsl:for-each>
-    </xsl:function>
+   
 
    
  <xsl:function name="cdit:get_function_input_parameter_declarations" as="xs:string*">

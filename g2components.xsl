@@ -65,7 +65,7 @@
             <xsl:variable name="component_def" select="graphml:get_definition($component_impl)" />
 
 
-            <xsl:variable name="namespace" select="cdit:get_aggregate_namespace($component_def)" />
+            <xsl:variable name="namespace" select="graphml:get_namespace($component_def)" />
 
             
             
@@ -97,7 +97,7 @@
                 </xsl:result-document>
 
                 <xsl:result-document href="{o:write_file(($component_path, cmake:cmake_file()))}">
-                    <xsl:value-of select="cdit:get_component_cmake($component_impl)" />
+                    <xsl:value-of select="cdit:get_class_cmake($component_impl)" />
                 </xsl:result-document>
             </xsl:if>
 
@@ -137,9 +137,9 @@
                     <xsl:value-of select="cdit:get_class_cpp($class)" />
                 </xsl:result-document>
 
-                <!--<xsl:result-document href="{o:write_file(($class_path, cmake:cmake_file()))}">
+                <xsl:result-document href="{o:write_file(($class_path, cmake:cmake_file()))}">
                     <xsl:value-of select="cdit:get_class_cmake($class)" />
-                </xsl:result-document>-->
+                </xsl:result-document>
             </xsl:if>
         </xsl:for-each-group>
 

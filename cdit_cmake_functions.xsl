@@ -196,8 +196,8 @@
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
         
-        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($aggregate)" />
 
         <xsl:variable name="shared_middleware">
              <xsl:choose>
@@ -209,7 +209,7 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="lower-case(o:join_list(($shared_middleware, $aggregate_namespace, $aggregate_label, 'lib'), '_'))" />
+        <xsl:value-of select="lower-case(o:join_list(($shared_middleware, $namespace, $label, 'lib'), '_'))" />
     </xsl:function>
 
 
@@ -220,5 +220,78 @@
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label), '_'))" />
+    </xsl:function>
+
+    
+
+    <xsl:function name="cmake:target_link_custom_libraries">
+        <xsl:param name="entity" as="element()" />
+
+        <!-- Include the headers once for each worker type -->
+        <xsl:for-each-group select="graphml:get_custom_class_instances($entity)" group-by="graphml:get_definition(.)">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment('Include Custom Class Header Files', 0)" />
+            </xsl:if>
+            <xsl:variable name="class_def" select="graphml:get_definition(.)" />
+
+            <xsl:variable name="namespace" select="graphml:get_namespace($class_def)" />
+            <xsl:variable name="label" select="graphml:get_label($class_def)" />
+
+            <xsl:variable name="worker_lib_name" select="lower-case(o:join_list(('class', $namespace, $label), '_'))" />
+
+            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $worker_lib_name, 0)" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each-group>
+    </xsl:function>
+
+    <xsl:function name="cmake:target_link_worker_libraries">
+        <xsl:param name="entity" as="element()" />
+
+        <!-- Include the headers once for each worker type -->
+        <xsl:for-each-group select="graphml:get_worker_instances($entity)" group-by="graphml:get_definition(.)">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment('Include Worker Header Files', 0)" />
+            </xsl:if>
+            <xsl:variable name="worker_def" select="graphml:get_definition(.)" />
+
+            <xsl:variable name="worker_lib_name" select="graphml:get_data_value($worker_def, 'file')" />
+
+            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
+            
+            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'))" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each-group>
+    </xsl:function>
+
+    <xsl:function name="cmake:target_link_aggregate_libraries">
+        <xsl:param name="entity" as="element()" />
+        <xsl:param name="relative_path_to_root" as="xs:string" />
+
+        <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
+
+
+        <!-- Include the headers once for each worker type -->
+        <xsl:for-each-group select="cdit:get_required_aggregates($entity)" group-by="graphml:get_definition(.)">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
+                <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path_to_root, 'datatypes', 'base'))" />
+                <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
+                <xsl:value-of select="o:nl(1)" />
+
+                <xsl:value-of select="cmake:comment('Include Aggregate Libraries', 0)" />
+            </xsl:if>
+
+            <xsl:variable name="required_lib_name" select="cmake:get_aggregates_middleware_shared_library_name(., 'base')" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $required_lib_name, 0)" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each-group>
     </xsl:function>
 </xsl:stylesheet>

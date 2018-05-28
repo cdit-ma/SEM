@@ -102,6 +102,31 @@
         </xsl:for-each-group>
     </xsl:function>
 
+    <xsl:function name="cdit:get_custom_class_path" as="xs:string">
+        <xsl:param name="custom_class_instance" as="element()" />
+        
+        <xsl:variable name="custom_class_def" select="graphml:get_definition($custom_class_instance)" />
+        <xsl:variable name="label" select="graphml:get_label($custom_class_def)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($custom_class_def)" />
+        
+        <xsl:value-of select="lower-case(o:join_paths(('classes', $namespace, $label)))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_custom_class_header_path" as="xs:string">
+        <xsl:param name="custom_class_instance" as="element()" />
+        
+        <xsl:variable name="custom_class_def" select="graphml:get_definition($custom_class_instance)" />
+        <xsl:variable name="label" select="graphml:get_label($custom_class_def)" />
+
+        <xsl:variable name="path" select="cdit:get_custom_class_path($custom_class_instance)" />
+
+        <xsl:variable name="header_file" select="concat($label, '.h')" />
+        
+        
+        <xsl:value-of select="lower-case(o:join_paths(($path, $header_file)))" />
+    </xsl:function>
+
+
     <xsl:function name="cdit:include_custom_class_headers">
         <xsl:param name="custom_class_instances" as="element()*" />
 
@@ -111,7 +136,8 @@
             </xsl:if>
 
             <!-- TODO Include correct path -->
-            <xsl:variable name="header_file" select="graphml:get_label(.)" />
+            
+            <xsl:variable name="header_file" select="cdit:get_custom_class_header_path(.)" />
 
             <xsl:value-of select="cpp:include_local_header($header_file)" />
             <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
@@ -140,7 +166,7 @@
         <xsl:param name="component" as="element()" />
         
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($component)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($component)" />
         <xsl:variable name="tab" select="count($namespaces)" />
 
         <!-- Get the label -->
@@ -244,7 +270,7 @@
         <xsl:param name="component" as="element()" />
 
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($component)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($component)" />
         <xsl:variable name="tab" select="0" />
 
         <!-- Get the label -->
@@ -334,7 +360,7 @@
         <xsl:variable name="component_definition" select="graphml:get_definition($component_impl)" />
 
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($component_definition)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($component_definition)" />
         <xsl:variable name="tab" select="count($namespaces)" />
 
         <!-- Get the label -->
@@ -482,7 +508,7 @@
         <xsl:param name="class" as="element()" />
 
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($class)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($class)" />
         <xsl:variable name="tab" select="0" />
 
         <!-- Get the label -->
@@ -566,7 +592,7 @@
         <xsl:param name="class" as="element()" />
 
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($class)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($class)" />
         <xsl:variable name="tab" select="count($namespaces)" />
 
         <!-- Get the label -->
@@ -699,7 +725,7 @@
         <xsl:variable name="component_definition" select="graphml:get_definition($component_impl)" />
 
         <!-- Get the Namespace -->
-        <xsl:variable name="namespaces" select="cdit:get_aggregate_namespace($component_definition)" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($component_definition)" />
         <xsl:variable name="tab" select="count($namespaces)" />
 
         <!-- Get the label -->
@@ -801,9 +827,9 @@
 
         <xsl:variable name="sub_directories" as="xs:string*">
             <xsl:for-each select="$component_impls">
-                <xsl:variable name="namespace" select="lower-case(graphml:get_namespace(.))" />
-                <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
-                <xsl:value-of select="o:join_paths(($namespace, $label))" />
+                <xsl:variable name="namespace" select="graphml:get_namespace(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:value-of select="lower-case(o:join_paths(($namespace, $label)))" />
             </xsl:for-each>
         </xsl:variable>
 
@@ -1698,54 +1724,106 @@
         <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_component_cmake">
-        <xsl:param name="component_impl" as="element()" />
+    <xsl:function name="cdit:get_source_files" as="xs:string*">
+        <xsl:param name="entity" as="element()" />
 
-        <xsl:variable name="component" select="graphml:get_definition($component_impl)" />
-        <xsl:variable name="component_label" select="graphml:get_label($component_impl)" />
-        <xsl:variable name="component_label_lc" select="lower-case($component_label)" />
-        <xsl:variable name="namespace" select="graphml:get_namespace($component)" />
-        
-        
-        <xsl:variable name="module_lib_name" select="lower-case(o:join_list(('component', $namespace, $component_label), '_'))" />
+        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
+        <xsl:variable name="kind" select="graphml:get_kind($definition)" />
+        <xsl:variable name="label" select="lower-case(graphml:get_label($definition))" />
+
+        <xsl:choose>
+          <xsl:when test="$kind = 'Component'">
+            <xsl:sequence select = "concat($label, 'Impl.cpp')" />
+            <xsl:sequence select = "concat($label, 'Int.cpp')" />
+          </xsl:when>
+          <xsl:when test="$kind = 'Class'">
+            <xsl:sequence select = "concat($label, '.cpp')" />
+          </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
+    <!--
+        Used by ComponentImpl/Class
+    -->
+    <xsl:function name="cdit:get_class_cmake">
+        <xsl:param name="entity" as="element()" />
+
+        <!-- Get the label and Namespace -->
+        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
+        <xsl:variable name="kind" select="lower-case(graphml:get_kind($definition))" />
+        <xsl:variable name="label" select="lower-case(graphml:get_label($definition))" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($definition)" />
+
+        <!-- Set the Project Name -->
+        <xsl:variable name="module_lib_name" select="lower-case(o:join_list(($kind, $namespace, $label), '_'))" />
         <xsl:variable name="proj_name" select="$module_lib_name" />
 
-        <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
-        <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
+        <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />
+        <xsl:variable name="source_dir_var" select="cmake:current_source_dir_var()" />
 
-        <!-- Version Number -->
-        <xsl:value-of select="cmake:print_regen_version('component_functions.xsl', 'cdit:get_component_cmake', 0)" />
-
+        <!-- Preamble -->
+        <xsl:value-of select="cmake:print_regen_version('component_functions.xsl', 'cdit:get_class_cmake', 0)" />
+        
+        <!-- Set the project name -->
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
         <!-- Find re_core -->
         <xsl:value-of select="cmake:find_re_core_library()" />
 
+        <!-- Get the source files -->
+        <xsl:variable name="source_files">
+            <xsl:choose>
+            <xsl:when test="$kind = 'Component'">
+                <xsl:sequence select = "concat($label, 'Impl.cpp')" />
+                <xsl:sequence select = "concat($label, 'Int.cpp')" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Class'">
+                <xsl:sequence select = "concat($label, '.cpp')" />
+            </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
 
-        <xsl:variable name="component_impl_h" select="concat($component_label_lc, 'impl.h')" />
-        <xsl:variable name="component_impl_cpp" select="concat($component_label_lc, 'impl.cpp')" />
-        <xsl:variable name="component_int_h" select="concat($component_label_lc, 'int.h')" />
-        <xsl:variable name="component_int_cpp" select="concat($component_label_lc, 'int.cpp')" />
-        
-        
-        
-         <!-- Set Source files -->
+        <!-- Get the header files -->
+        <xsl:variable name="header_files">
+            <xsl:choose>
+            <xsl:when test="$kind = 'Component'">
+                <xsl:sequence select = "concat($label, 'Impl.h')" />
+                <xsl:sequence select = "concat($label, 'Int.h')" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Class'">
+                <xsl:sequence select = "concat($label, '.h')" />
+            </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+        <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
-        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_int_cpp)), o:nl(1))" />
-        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_impl_cpp)), o:nl(1))" />
-        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, 'libcomponentexport.cpp')), o:nl(1))" />
+        <xsl:for-each select="$source_files">
+            <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, .)), o:nl(1))" />
+        </xsl:for-each>
         <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
-        <xsl:value-of select="o:nl(1)" />
 
         <!-- Set Header files -->
         <xsl:value-of select="concat('set(HEADERS', o:nl(1))" />
-        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_int_h)), o:nl(1))" />
-        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_impl_h)), o:nl(1))" />
+        <xsl:for-each select="$header_files">
+            <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, .)), o:nl(1))" />
+        </xsl:for-each> 
         <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
-        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Get the header files -->
+        <xsl:variable name="library_type">
+            <xsl:choose>
+            <xsl:when test="$kind = 'Component'">
+                <xsl:value-of select = "'MODULE'" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Class'">
+                <xsl:value-of select = "'SHARED'" />
+            </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
 
         <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS')), ' ')" />
-        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', $args)" />
+        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', $library_type, $args)" />
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
@@ -1755,48 +1833,16 @@
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(('component', $namespace, $component_label))" />
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($component_impl)" />
-        
-        <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
-        <xsl:variable name="worker_instances" select="graphml:get_worker_instances($component_impl)" />
-        <xsl:variable name="custom_class_instances" select="graphml:get_custom_class_instances($component_impl)" />
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(($kind, $namespace, $label))" />
 
+        <!-- Include Required Aggregates -->
+        <xsl:value-of select="cmake:target_link_aggregate_libraries($entity, $relative_path)" />
 
-         <!-- Include the headers once for each worker type -->
-         <xsl:for-each-group select="$worker_instances" group-by="graphml:get_definition(.)">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cmake:comment('Include Worker Header Files', 0)" />
-            </xsl:if>
+        <!-- Link Worker Libraries -->
+        <xsl:value-of select="cmake:target_link_worker_libraries($entity)" />
 
-            <xsl:variable name="worker_lib_name" select="graphml:get_data_value(., 'file')" />
-            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
-            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'))" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each-group>
-
-        <!-- Include the required aggregate files -->
-        <xsl:if test="count($required_aggregates) > 0">
-            <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
-            <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path, 'datatypes', 'base'))" />
-            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
-            <xsl:value-of select="o:nl(1)" />
-        </xsl:if>
-
-        <!-- Include the required aggregate files -->
-        <xsl:for-each select="$required_aggregates">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cmake:comment('Link against required aggregates libraries', 0)" />
-            </xsl:if>
-            <xsl:variable name="required_lib_name" select="cmake:get_aggregates_middleware_shared_library_name(., 'base')" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $required_lib_name, 0)" />
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
+        <!-- Link Custom Class Libraries -->
+        <xsl:value-of select="cmake:target_link_custom_libraries($entity)" />
     </xsl:function>
 
 </xsl:stylesheet>
