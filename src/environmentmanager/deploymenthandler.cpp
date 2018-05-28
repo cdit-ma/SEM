@@ -28,7 +28,7 @@ void DeploymentHandler::Terminate(){
 
     std::cout << deployment_ip_address_ << " joining " << std::endl;
 
-    handler_thread_.join();
+    handler_thread_->join();
     std::cout << deployment_ip_address_ << " joined " << std::endl;
     
 }

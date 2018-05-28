@@ -24,12 +24,12 @@ void DeploymentRegister::Start(){
 void DeploymentRegister::Terminate(){
     
     context_.reset();
-    for(auto deployment : deployments_){
+    for(const auto& deployment : deployments_){
         deployment->Terminate();
     }
 
-    for(auto client : logan_clients_){
-        client->Termiate();
+    for(const auto& client : logan_clients_){
+        client->Terminate();
     }
     registration_loop_.join();
 }
