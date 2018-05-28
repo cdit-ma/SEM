@@ -24,6 +24,13 @@ void DeploymentRegister::Start(){
 void DeploymentRegister::Terminate(){
     
     context_.reset();
+    for(auto deployment : deployments_){
+        deployment->Terminate();
+    }
+
+    for(auto client : logan_clients_){
+        client->Termiate();
+    }
     registration_loop_.join();
 }
 

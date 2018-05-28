@@ -25,6 +25,12 @@ DeploymentHandler::DeploymentHandler(Environment& env,
 
 void DeploymentHandler::Terminate(){
     //TODO: send terminate messages to node manager attached to this thread.
+
+    std::cout << deployment_ip_address_ << " joining " << std::endl;
+
+    handler_thread_.join();
+    std::cout << deployment_ip_address_ << " joined " << std::endl;
+    
 }
 
 void DeploymentHandler::Init(){
