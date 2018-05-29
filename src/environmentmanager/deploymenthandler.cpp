@@ -105,7 +105,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
             try{
-                auto request = ZMQReceiveRequest(*handler_socket_);
+                request = ZMQReceiveRequest(*handler_socket_);
             }
             catch(const zmq::error_t& exception){
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
