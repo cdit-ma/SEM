@@ -10,13 +10,13 @@
 #include "eventports/eventport.h"
 #include <iostream>
 
-#include "activatable.h"
+#include "behaviourcontainer.h"
 #include "basemessage.h"
 
 class Worker;
 class EventPort;
 
-class Component : public Activatable{
+class Component : public BehaviourContainer{
     public:
         Component(const std::string& component_name = "");
         virtual ~Component();
@@ -28,25 +28,11 @@ class Component : public Activatable{
         std::shared_ptr<T> GetTypedEventPort(const std::string& event_port_name);
         std::shared_ptr<EventPort> RemoveEventPort(const std::string& event_port_name);
         
-
-        template<class T>
-        std::shared_ptr<T> AddTypedWorker(const Component& component, const std::string& worker_name);
-
-        template<class T>
-        std::shared_ptr<T> AddTypedCustomClass(const Component& component, const std::string& worker_name);
-        
-        template<class T>
-        std::shared_ptr<T> GetTypedWorker(const std::string& worker_name);
-
-
-        //Worker
-        std::weak_ptr<Worker> AddWorker(std::unique_ptr<Worker> worker);
-        std::weak_ptr<Worker> GetWorker(const std::string& worker_name);
-        std::shared_ptr<Worker> RemoveWorker(const std::string& worker_name);
-
         template<class T>
         bool AddCallback(const std::string& event_port_name, std::function<void (T&)> function);
+        
         bool AddPeriodicCallback(const std::string& event_port_name, std::function<void()> function);
+
         std::function<void (::BaseMessage&)> GetCallback(const std::string& event_port_name);
         bool RemoveCallback(const std::string& event_port_name);
     protected:
@@ -57,12 +43,9 @@ class Component : public Activatable{
     private:
         bool AddCallback_(const std::string& event_port_name, std::function<void (::BaseMessage&)> function);
         std::mutex state_mutex_;
-        std::mutex element_mutex_;
+        std::mutex port_mutex_;
 
-        std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;
-        std::unordered_map<std::string, std::shared_ptr<EventPort> > eventports_;    
-        
-        std::unordered_map<std::string, std::string> callback_functions_type_;
+        std::unordered_map<std::string, std::shared_ptr<EventPort> > eventports_;
         std::unordered_map<std::string, std::function<void (::BaseMessage&)> > callback_functions_;
 };
 
@@ -82,28 +65,6 @@ bool Component::AddCallback(const std::string& event_port_name, std::function<vo
         });
 };
 
-template<class T>
-std::shared_ptr<T> Component::AddTypedWorker(const Component& component, const std::string& worker_name){
-    static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
-    auto t_ptr = std::unique_ptr<T>(new T(component, worker_name, true));
-    auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
-    return t;
-}
-
-template<class T>
-std::shared_ptr<T> Component::AddTypedCustomClass(const Component& component, const std::string& class_name){
-    static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
-    auto t_ptr = std::unique_ptr<T>(new T(component, class_name, false));
-    auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
-    return t;
-}
-
-
-template<class T>
-std::shared_ptr<T> Component::GetTypedWorker(const std::string& worker_name){
-    static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
-    return std::dynamic_pointer_cast<T>(GetWorker(worker_name).lock());
-}
 
 
 #endif //COMPONENT_H

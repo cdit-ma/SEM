@@ -4,16 +4,17 @@
 #include <mutex>
 #include <string>
 #include <stdarg.h>
-#include "component.h"
-#include "activatable.h"
+
+#include "behaviourcontainer.h"
 #include "modellogger.h"
 
-class Worker: public Activatable{
+class Worker: public BehaviourContainer{
     public:
-        Worker(const Component& component, const std::string& class_name, const std::string& inst_name, bool is_worker = true);
+        Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, bool is_worker = true);
         virtual ~Worker();
 
-        const Component& get_component() const;
+        const BehaviourContainer& get_container() const;
+        
         std::string get_worker_name() const;
         
         std::string get_arg_string(const std::string str_format, va_list args);
@@ -27,11 +28,12 @@ class Worker: public Activatable{
         virtual bool HandleConfigure();
         virtual bool HandlePassivate();
         virtual bool HandleTerminate();
+
         int get_new_work_id();
         void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
         
     private:
-        const Component& component_;
+        const BehaviourContainer& container_;
         const std::string worker_name_;
         const bool is_worker_class_;
         

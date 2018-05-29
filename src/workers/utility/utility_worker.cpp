@@ -41,7 +41,7 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
     Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message);
 
     if(print){
-        const auto& c = get_component();
+        const auto& c = get_container();
         std::cout << c.get_name() << "<" << c.get_type() << ">: ";
         std::cout << message << std::endl;
     }

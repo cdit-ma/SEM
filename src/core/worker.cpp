@@ -3,8 +3,8 @@
 #include <iostream>
 #include <stdarg.h>
 
-Worker::Worker(const Component& component, const std::string& class_name, const std::string& inst_name, const bool is_worker):
-    component_(component),
+Worker::Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, const bool is_worker):
+    container_(container),
     worker_name_(class_name),
     is_worker_class_(is_worker)
 {
@@ -31,8 +31,8 @@ int Worker::get_new_work_id(){
     return work_id_ ++;
 };
 
-const Component& Worker::get_component() const{
-    return component_;
+const BehaviourContainer& Worker::get_container() const{
+    return container_;
 };
 
 std::string Worker::get_arg_string(const std::string str_format, va_list args){
@@ -69,20 +69,18 @@ void Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, in
     }
 }
 
-
 bool Worker::HandleActivate(){
-    return true;
+    return BehaviourContainer::HandleActivate();
 };
 
 bool Worker::HandleConfigure(){
-    return true;
+    return BehaviourContainer::HandleConfigure();
 };
 
-
 bool Worker::HandlePassivate(){
-    return true;
+    return BehaviourContainer::HandlePassivate();
 };
 
 bool Worker::HandleTerminate(){
-    return true;
+    return BehaviourContainer::HandleTerminate();
 };
