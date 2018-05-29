@@ -40,6 +40,7 @@ void DeploymentHandler::Init(){
 
     std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
+        handler_socket_->setsockopt(ZMQ_LINGER, LINGER_DURATION);
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 
         port_promise_->set_value(assigned_port);
@@ -113,6 +114,10 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             }
 
             auto message = HandleRequest(request);
+
+            if(removed_flag_){
+                break;
+            }
 
             try{
                 ZMQSendReply(*handler_socket_, message);

@@ -23,6 +23,8 @@ class DeploymentRegister{
         void Terminate();
 
     private:
+        const int LINGER_DURATION = 3000;
+
         //Threads and thread wrappers
         void RegistrationLoop() noexcept;
         void HandleDeployment(std::promise<std::string> assigned_port, const std::string& request_info);
