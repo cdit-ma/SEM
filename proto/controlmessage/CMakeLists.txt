@@ -16,7 +16,7 @@ endif()
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
-add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${SOURCE} ${PROTO_HDRS} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${PROTO_SRCS} ${SOURCE} ${PROTO_HDRS} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
