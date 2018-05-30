@@ -33,7 +33,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
 )
 
-add_library(${EXECUTION_PARSER_LIB} STATIC ${SOURCE} ${HEADERS})
+add_library(${EXECUTION_PARSER_LIB} SHARED ${SOURCE} ${HEADERS})
 add_executable(${EXECUTION_PARSER} "${CMAKE_CURRENT_SOURCE_DIR}/executionparser.cpp")
 
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)

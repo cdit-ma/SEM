@@ -36,7 +36,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
     )
 
-add_library(${ENVIRONMENT_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})
+add_library(${ENVIRONMENT_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 
 add_executable(${ENVIRONMENT_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp)
 #add_executable(rule_tester ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp)
