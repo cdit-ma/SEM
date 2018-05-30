@@ -98,6 +98,9 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         for(const auto& port_pb : component_pb.workers()){
             auto worker = GetConfiguredWorker(component, port_pb);
         }
+
+        //Handle the external classes
+
     }
     return component;
 }

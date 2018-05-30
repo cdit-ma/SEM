@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-Utility_Worker::Utility_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
+Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
     impl_ = new Utility_Worker_Impl();
     impl_->SetRandomSeed(static_cast<unsigned int>(GetTimeOfDay()));
 }
@@ -41,7 +41,7 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
     Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message);
 
     if(print){
-        const auto& c = get_component();
+        const auto& c = get_container();
         std::cout << c.get_name() << "<" << c.get_type() << ">: ";
         std::cout << message << std::endl;
     }
