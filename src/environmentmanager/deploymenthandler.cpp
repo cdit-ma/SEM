@@ -20,28 +20,25 @@ DeploymentHandler::DeploymentHandler(Environment& env,
     deployment_ip_address_ = deployment_ip_address;
     port_promise_ = port_promise;
     experiment_id_ = experiment_id;
-    handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::Init, this));
+    handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
 }
 
 void DeploymentHandler::Terminate(){
     //TODO: send terminate messages to node manager attached to this thread.
-
-    std::cout << deployment_ip_address_ << " joining " << std::endl;
-
+    std::cout << " enter handler terminate" << std::endl;
     handler_thread_->join();
-    std::cout << deployment_ip_address_ << " joined " << std::endl;
-    
+    std::cout << " done handler terminate" << std::endl;
 }
 
-void DeploymentHandler::Init(){
-    handler_socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(context_, ZMQ_REP));
+void DeploymentHandler::HeartbeatLoop() noexcept{
+    auto handler_socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(context_, ZMQ_REP));
 
     time_added_ = environment_.GetClock();
 
     std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
-        handler_socket_->setsockopt(ZMQ_LINGER, LINGER_DURATION);
-        handler_socket_->bind(TCPify(ip_addr_, assigned_port));
+        handler_socket->setsockopt(ZMQ_LINGER, LINGER_DURATION);
+        handler_socket->bind(TCPify(ip_addr_, assigned_port));
 
         port_promise_->set_value(assigned_port);
 
@@ -51,14 +48,9 @@ void DeploymentHandler::Init(){
         return;
     }
 
-    //Start heartbeat to track liveness of deployment
-    //Use heartbeat to receive any updates re. components addition/removal
-    HeartbeatLoop();
-}
 
-void DeploymentHandler::HeartbeatLoop() noexcept{
     //Initialise our poll item list
-    std::vector<zmq::pollitem_t> sockets = {{*handler_socket_, 0, ZMQ_POLLIN, 0}};
+    std::vector<zmq::pollitem_t> sockets = {{*handler_socket, 0, ZMQ_POLLIN, 0}};
 
     //Wait for first heartbeat, allow more time for this one in case of server congestion
     int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
@@ -67,14 +59,14 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
     if(initial_events >= 1){
         try{
-            request = ZMQReceiveRequest(*handler_socket_);
+            request = ZMQReceiveRequest(*handler_socket);
         }
         catch(const zmq::error_t& ex){
             return;
         }
         std::string initial_message = HandleRequest(request);
         try{
-            ZMQSendReply(*handler_socket_, initial_message);
+            ZMQSendReply(*handler_socket, initial_message);
         }
         catch(const zmq::error_t& exception){
             std::cerr << "Exception in DeploymentHandler::HeartbeatLoop (initial): " << exception.what() << std::endl;
@@ -106,7 +98,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
             try{
-                request = ZMQReceiveRequest(*handler_socket_);
+                request = ZMQReceiveRequest(*handler_socket);
             }
             catch(const zmq::error_t& exception){
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
@@ -120,7 +112,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             }
 
             try{
-                ZMQSendReply(*handler_socket_, message);
+                ZMQSendReply(*handler_socket, message);
             }
             catch(const zmq::error_t& exception){
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(send): " << exception.what() << std::endl;

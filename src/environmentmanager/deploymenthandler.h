@@ -36,7 +36,6 @@ class DeploymentHandler{
         const int LINGER_DURATION = 3000;
 
         //Req/rep loops
-        void Init();
         void HeartbeatLoop() noexcept;
 
         //Reply Helpers
@@ -56,7 +55,6 @@ class DeploymentHandler{
         //Members
         std::string ip_addr_;
         zmq::context_t& context_;
-        std::unique_ptr<zmq::socket_t> handler_socket_;
 
         Environment& environment_;
 
