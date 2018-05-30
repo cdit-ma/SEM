@@ -7,14 +7,28 @@
 
 #include <iostream>
 
+#include <mutex>
+
 OpenCLKernelBase::OpenCLKernelBase(const Worker& worker, OpenCLManager& manager, cl::Kernel& kernel) :
         manager_(manager), kernel_(std::make_shared<cl::Kernel>(kernel)), worker_ref_(worker) {
     name_ = kernel_->getInfo<CL_KERNEL_FUNCTION_NAME>();
 }
 
+
+std::unique_lock<std::mutex> OpenCLKernelBase::lock() {
+    return std::unique_lock<std::mutex>(external_mutex_);
+}
+bool OpenCLKernelBase::unlock(std::unique_lock<std::mutex> lock) {
+    {
+        auto lock2 = std::move(lock);
+    }
+    return true;
+}
+
 void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset, const cl::NDRange& global,
     const cl::NDRange& local) {
     
+    std::lock_guard<std::mutex> guard(kernel_mutex_);
     auto& queue = device.GetQueue();
 
     cl_int err;

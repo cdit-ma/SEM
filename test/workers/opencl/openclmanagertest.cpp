@@ -28,7 +28,7 @@ TEST(OpenCLManager, GetDevices)
         auto& devices = manager->GetDevices(worker);
         ASSERT_GT(devices.size(), 0);
 
-        for(auto& device : devices){
+        for(const OpenCLDevice& device : devices){
             PrintInfo("* Device: " + device.GetName());
         }
     }

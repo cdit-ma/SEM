@@ -24,13 +24,16 @@ namespace cl {
 
 class OpenCLManager {
 	public:
+		OpenCLManager(OpenCLManager&& other) = default;
+		OpenCLManager& operator=(OpenCLManager&& other) = default;
+
 		/**
 		* Returns the OpenCLManager responsible for managing a given OpenCL platform,
 		* constructing and initializing the appropriate resources if required.
 		*
 		* @param platformID the index of the OpenCL platform as specified by the deployment information
 		* @param workerReference a reference to the worker making the call (for logging)
-		* @return The OpenCLMaanager for the provided platform, or NULL if one can't be created
+		* @return The OpenCLManager for the provided platform, or NULL if one can't be created
 		**/
 		static OpenCLManager* GetReferenceByPlatformID(const Worker& worker, int platform_id);
 		
@@ -44,7 +47,7 @@ class OpenCLManager {
 
 		std::string GetPlatformName() const;
 
-		std::vector<OpenCLDevice>& GetDevices(const Worker& worker);
+		std::vector<std::reference_wrapper<OpenCLDevice> >& GetDevices(const Worker& worker);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
@@ -75,9 +78,6 @@ class OpenCLManager {
 
 		static const int invalid_buffer_id_ = -1;
 
-	/*protected:
-		int GetNewBufferID();*/
-
 	private:
 		OpenCLManager(const Worker& worker, cl::Platform &platform);
 		~OpenCLManager() {};
@@ -105,12 +105,15 @@ class OpenCLManager {
 		cl::Platform& platform_;
 		std::string platform_name_;
 		cl::Context* context_;
-		std::vector<OpenCLDevice> device_list_;
+		std::vector<std::reference_wrapper<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
 		cl::Program* program_;
 		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
+		std::mutex opencl_resource_mutex_;
+
 		std::map<int, GenericBuffer*> buffer_store_;
+		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
 
         bool is_fpga_=false;

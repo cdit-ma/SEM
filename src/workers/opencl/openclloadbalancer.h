@@ -5,6 +5,8 @@
 #include <set>
 #include <iostream>
 
+#include <mutex>
+
 class OpenCLLoadBalancer {
 public:
     OpenCLLoadBalancer(const std::vector<unsigned int>& device_ids);
@@ -32,6 +34,8 @@ private:
     };
 
     std::set<DeviceJobList> device_ids_;
+
+    std::mutex mutex_;
 };
 
 #endif

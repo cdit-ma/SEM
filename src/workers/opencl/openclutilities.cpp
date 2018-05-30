@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <functional>
 
 /*void LogOpenCLError(std::string message, cl_int errorCode) {
 	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
@@ -110,7 +111,8 @@ std::string SanitisePathString(const std::string& str) {
 
 	std::remove_copy_if(str.begin(), str.end(),
 						std::back_inserter(result),
-						std::not1(std::ptr_fun(isValidChar)) );
+						//std::not1(std::ptr_fun(isValidChar)) );
+						std::not1(std::function<bool(char)>(isValidChar)) );
 
 	return result;
 }

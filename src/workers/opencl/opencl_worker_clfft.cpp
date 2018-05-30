@@ -17,6 +17,7 @@ bool OpenCL_Worker::InitFFT() {
             "Unable to successfully set up the clFFT library");
         return false;
     }
+    return true;
 }
 
 bool OpenCL_Worker::CleanupFFT() {
@@ -26,6 +27,7 @@ bool OpenCL_Worker::CleanupFFT() {
 		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Could not successfully tear down clFFT library");
         return false;
     }
+    return true;
 };
 
 
@@ -76,7 +78,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
     unsigned int allocated_dev_index = load_balancer_->RequestDevice();
 
-    auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
+    OpenCLDevice& dev = manager_->GetDevices(*this)[allocated_dev_index];
 
     //for (auto& dev_ref : devices_) {
         //auto& dev = dev_ref.get();

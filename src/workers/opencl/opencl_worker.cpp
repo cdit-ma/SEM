@@ -90,9 +90,12 @@ bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
     try {
         auto& parallel_kernel = GetKernel(device, "runParallel", filename);
 
+        std::unique_lock<std::mutex> mylock(std::move(parallel_kernel.lock()));
         parallel_kernel.SetArgs(ops_per_thread);
 
         parallel_kernel.Run(device, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
+        parallel_kernel.unlock(std::move(mylock));
+
         success = true;
     } catch (const std::exception& e) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
@@ -224,7 +227,8 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
 bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
     
     auto device_id = load_balancer_->RequestDevice();
-    auto& device = manager_->GetDevices(*this)[device_id];
+    OpenCLDevice& device = manager_->GetDevices(*this)[device_id];
+    //auto& device = manager_->GetDevices(*this)[device_id];
 
     std::string filename = GetSourcePath("kmeans.cl");
     auto& cluster_classify_kernel = GetKernel(device, "classifyPoints", filename);
@@ -352,7 +356,7 @@ void OpenCL_Worker::Log(std::string function_name, ModelLogger::WorkloadEvent ev
     Worker::Log("OpenCL_Worker::"+function_name, event, work_id, args);
     std::cerr << "OpenCL_Worker::" << function_name << ", " << args << std::endl;
 }
-
+/*
 OpenCLKernel* OpenCL_Worker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
     std::vector<std::string> filenames;
     filenames.push_back(source_file);
@@ -375,11 +379,10 @@ OpenCLKernel* OpenCL_Worker::InitKernel(OpenCLManager& manager, std::string kern
     Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
         "Unable to find a kernel called "+kernel_name+" in "+source_file);
     return NULL;
-}
+}*/
 
 OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file) {
-    for (auto& kernel_wrapper : device.GetKernels()) {
-        auto& kernel = kernel_wrapper.get();
+    for (OpenCLKernel& kernel : device.GetKernels()) {
         if (kernel.GetName() == kernel_name) {
             return kernel;
         }
@@ -396,8 +399,7 @@ OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& 
         throw std::invalid_argument("No kernels in file "+source_file);
     }
     
-    for (auto& kernel_wrapper : kernel_vec) {
-        auto& kernel = kernel_wrapper.get();
+    for (OpenCLKernel& kernel : kernel_vec) {
         if (kernel.GetName() == kernel_name) {
             return kernel;
         }

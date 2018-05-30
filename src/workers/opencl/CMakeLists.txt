@@ -25,10 +25,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
 # Apply overrides to OpenCL include directory if specified
 set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
 if (NOT OPENCL_INCLUDE_PATH)
-    message("setting opencl include directory to default ($ROOT/include)")
+    message(STATUS "Setting opencl include directory to default (${OPENCL_ROOT}/include)")
     set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
-message("${OPENCL_INCLUDE_PATH}")
 
 
 set(SOURCE
@@ -100,7 +99,7 @@ add_executable(${TESTER_NAME} openclmanagertests.cpp)
 
 # Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
 if(ALTERA_OCLSDK_LIB)
-    message(STATUS "building OpenCL worker with FPGA FFT library")
+    message(STATUS "Building OpenCL worker with FPGA FFT library")
     target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
     #target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
 elseif (CLFFT_LIB)

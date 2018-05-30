@@ -51,7 +51,7 @@ protected:
 
 private:
 
-    OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);
+    //OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);
     // Can throw if source file doesn't exist, contains no kernels or doesn't contain the specified kernel
     OpenCLKernel& GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file);
 
