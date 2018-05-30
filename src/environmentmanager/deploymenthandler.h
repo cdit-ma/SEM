@@ -33,7 +33,6 @@ class DeploymentHandler{
         static const int HEARTBEAT_LIVENESS = 3;
         static const int INITIAL_INTERVAL = 2000;
         static const int MAX_INTERVAL = 8000;
-        const int LINGER_DURATION = 3000;
 
         //Req/rep loops
         void HeartbeatLoop() noexcept;

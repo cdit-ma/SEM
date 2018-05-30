@@ -46,7 +46,6 @@ void DeploymentRegister::RegistrationLoop() noexcept{
     try{
         rep = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_.get(), ZMQ_REP));
         rep->bind(TCPify(ip_addr_, registration_port_));
-        rep->setsockopt(ZMQ_LINGER, LINGER_DURATION);
     }
     catch(zmq::error_t& e){
         std::cerr << "Could not bind reply socket in registration loop. IP_ADDR: " << ip_addr_ <<

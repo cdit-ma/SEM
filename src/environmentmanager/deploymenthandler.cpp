@@ -37,7 +37,6 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
     std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
-        handler_socket->setsockopt(ZMQ_LINGER, LINGER_DURATION);
         handler_socket->bind(TCPify(ip_addr_, assigned_port));
 
         port_promise_->set_value(assigned_port);
@@ -89,9 +88,6 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
         int events = zmq::poll(sockets, HEARTBEAT_INTERVAL);
-        if(removed_flag_){
-            break;
-        }
 
         if(events >= 1){
             //Reset
@@ -107,19 +103,11 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
             auto message = HandleRequest(request);
 
-            if(removed_flag_){
-                break;
-            }
-
             try{
                 ZMQSendReply(*handler_socket, message);
             }
             catch(const zmq::error_t& exception){
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(send): " << exception.what() << std::endl;
-                break;
-            }
-
-            if(removed_flag_){
                 break;
             }
             //TODO: Update experiments status to be ACTIVE
