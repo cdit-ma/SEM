@@ -25,9 +25,7 @@ DeploymentHandler::DeploymentHandler(Environment& env,
 
 void DeploymentHandler::Terminate(){
     //TODO: send terminate messages to node manager attached to this thread.
-    std::cout << " enter handler terminate" << std::endl;
     handler_thread_->join();
-    std::cout << " done handler terminate" << std::endl;
 }
 
 void DeploymentHandler::HeartbeatLoop() noexcept{
@@ -38,33 +36,23 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
         handler_socket->bind(TCPify(ip_addr_, assigned_port));
-
         port_promise_->set_value(assigned_port);
 
     }catch(zmq::error_t ex){
         //Set our promise as exception and exit if we can't find a free port.
         port_promise_->set_exception(std::current_exception());
+        RemoveDeployment(time_added_);
         return;
     }
-
 
     //Initialise our poll item list
     std::vector<zmq::pollitem_t> sockets = {{*handler_socket, 0, ZMQ_POLLIN, 0}};
 
     //Wait for first heartbeat, allow more time for this one in case of server congestion
-    int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
-
-    std::pair<uint64_t, std::string> request;
-
-    if(initial_events >= 1){
+    if(zmq::poll(sockets, INITIAL_TIMEOUT) >= 1){
         try{
-            request = ZMQReceiveRequest(*handler_socket);
-        }
-        catch(const zmq::error_t& ex){
-            return;
-        }
-        std::string initial_message = HandleRequest(request);
-        try{
+            auto initial_request = ZMQReceiveRequest(*handler_socket);
+            auto initial_message = HandleRequest(initial_request);
             ZMQSendReply(*handler_socket, initial_message);
         }
         catch(const zmq::error_t& exception){
@@ -84,30 +72,19 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     int liveness = HEARTBEAT_LIVENESS;
 
     while(!removed_flag_){
-        zmq::message_t hb_message;
-
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
-        int events = zmq::poll(sockets, HEARTBEAT_INTERVAL);
-
-        if(events >= 1){
+        if(zmq::poll(sockets, HEARTBEAT_INTERVAL) >= 1){
             //Reset
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
-            try{
-                request = ZMQReceiveRequest(*handler_socket);
-            }
-            catch(const zmq::error_t& exception){
-                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
-                break;
-            }
-
-            auto message = HandleRequest(request);
 
             try{
+                auto request = ZMQReceiveRequest(*handler_socket);
+                auto message = HandleRequest(request);
                 ZMQSendReply(*handler_socket, message);
             }
             catch(const zmq::error_t& exception){
-                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(send): " << exception.what() << std::endl;
+                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
                 break;
             }
             //TODO: Update experiments status to be ACTIVE
@@ -119,6 +96,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 interval *= 2;
             }
             else{
+                //Timed out, break out and remove deployment
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;

@@ -22,22 +22,15 @@ void DeploymentRegister::Start(){
 }
 
 void DeploymentRegister::Terminate(){
-
-    std::cout << "Enter reg terminate" << std::endl;
     context_.reset();
-    std::cout << "context dead" << std::endl;
     for(const auto& deployment : deployments_){
-        std::cout << "call handler terminate" << std::endl;
         deployment->Terminate();
     }
 
     for(const auto& client : logan_clients_){
         client->Terminate();
     }
-
-    std::cout << "wait for reg join" << std::endl;
     registration_loop_.join();
-    std::cout << "done reg terminate" << std::endl;
 }
 
 //Main registration loop, passes request workload off to other threads
@@ -53,18 +46,14 @@ void DeploymentRegister::RegistrationLoop() noexcept{
         return;
     }
 
-    while(true){
-
-        if(terminate_){
-            break;
-        }
+    while(!terminate_){
 
         std::pair<uint64_t, std::string> reply;
-
         //Receive deployment information
         try{
             reply = ZMQReceiveRequest(*rep);
-        }catch(...){
+        }catch(const zmq::error_t& exception){
+            std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
             break;
         }
 
