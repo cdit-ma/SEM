@@ -46,7 +46,6 @@ class EnvironmentRequester{
         //Constants
         const int HEARTBEAT_PERIOD = 2000;
         const int REQUEST_TIMEOUT = 3000;
-        const int LINGER_DURATION = 3000;
 
         //ZMQ endpoints
         std::string manager_address_;

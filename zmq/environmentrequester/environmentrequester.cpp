@@ -170,7 +170,6 @@ void EnvironmentRequester::HeartbeatLoop(){
     //Connect to our update socket
     try{
         update_socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
-        update_socket_->setsockopt(ZMQ_LINGER, LINGER_DURATION);
         update_socket_->connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
