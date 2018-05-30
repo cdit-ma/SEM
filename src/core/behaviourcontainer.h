@@ -36,16 +36,16 @@ class BehaviourContainer : public Activatable{
 template<class T>
 std::shared_ptr<T> BehaviourContainer::AddTypedWorker(const std::string& inst_name){
     static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
-    auto t_ptr = std::unique_ptr<T>(new T(this, inst_name));
+    auto t_ptr = std::unique_ptr<T>(new T(*this, inst_name));
     auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
     return t;
-}
+};
 
 template<class T>
 std::shared_ptr<T> BehaviourContainer::GetTypedWorker(const std::string& inst_name){
     static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
     return std::dynamic_pointer_cast<T>(GetWorker(inst_name).lock());
-}
+};
 
 
 #endif //BEHAVIOUR_CONTAINER_H

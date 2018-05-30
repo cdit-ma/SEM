@@ -4,7 +4,7 @@
 #include <core/component.h>
 #include <core/modellogger.h>
 
-Cpu_Worker::Cpu_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
+Cpu_Worker::Cpu_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
     impl_ = new Cpu_Worker_Impl();
 }
 

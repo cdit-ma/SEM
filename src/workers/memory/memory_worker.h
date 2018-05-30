@@ -7,7 +7,7 @@ class Memory_Worker_Impl;
 
 class Memory_Worker : public Worker{
     public:
-        Memory_Worker(const Component& component, const std::string& inst_name);
+        Memory_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Memory_Worker();
         
         void Allocate(size_t kilobytes);
