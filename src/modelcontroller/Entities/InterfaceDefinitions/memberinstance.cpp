@@ -26,8 +26,8 @@ MemberInstance::MemberInstance(EntityFactoryBroker& broker, bool is_temp) : Data
 
     //Setup Data
     setLabelFunctional(false);
-    broker.ProtectData(this, "index", true);
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }
 
 

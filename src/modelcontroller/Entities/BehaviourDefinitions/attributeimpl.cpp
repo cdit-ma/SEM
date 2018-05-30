@@ -22,9 +22,10 @@ AttributeImpl::AttributeImpl(EntityFactoryBroker& broker, bool is_temp) : DataNo
         return;
     }
 
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "row", QVariant::Int, 1, true);
-    broker.AttachData(this, "column", QVariant::Int, 0, true);
+    //Setup Data
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 0);
 }
 
 bool AttributeImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

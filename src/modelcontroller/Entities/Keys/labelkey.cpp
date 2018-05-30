@@ -35,11 +35,8 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
 
     auto functional_label = node ? node->isLabelFunctional() : false;
     
-    //Replace Tabs
-    new_label.replace("\t", " ");
     
     
-
     if(new_label.isEmpty()){
         //Don't allow an empty value
         new_label = data->getValue().toString();
@@ -89,6 +86,9 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
 
             new_label += "_" + QString::number(new_number);
         }
+    }else{
+        //Call into base validation
+        new_label = Key::validateDataChange(data, new_label).toString();
     }
     return new_label;
 }

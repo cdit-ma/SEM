@@ -22,10 +22,10 @@ InEventPortInstance::InEventPortInstance(EntityFactoryBroker& broker, bool is_te
         return;
     }
 
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "row", QVariant::Int, 0, false);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::UNPROTECTED, 0);
 
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", false);
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
 
     connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::MiddlewareUpdated);

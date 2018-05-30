@@ -24,10 +24,10 @@ MEDEA::ExternalType::ExternalType(::EntityFactoryBroker& broker, bool is_temp) :
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "inner_type", QVariant::String, "", true);
-    broker.AttachData(this, "outer_type", QVariant::String, "", true);
-    broker.AttachData(this, "label", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "inner_type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

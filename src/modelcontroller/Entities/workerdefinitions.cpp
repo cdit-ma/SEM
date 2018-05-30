@@ -24,7 +24,7 @@ WorkerDefinitions::WorkerDefinitions(EntityFactoryBroker& broker, bool is_temp) 
     
     //Setup Data
     setLabelFunctional(false);
-    broker.AttachData(this, "label", QVariant::String, "WORKERS", true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "WORKERS");
 }
 
 VIEW_ASPECT WorkerDefinitions::getViewAspect() const

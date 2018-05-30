@@ -23,12 +23,7 @@ DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy(EntityFactoryBroker& broker, bo
     }
 
     //Setup Data
-    QList<QVariant> values;
-    values << "VOLATILE_DURABILITY_QOS";
-    values << "TRANSIENT_LOCAL_DURABILITY_QOS";
-    values << "TRANSIENT_DURABILITY_QOS";
-    values << "PERSISTENT_DURABILITY_QOS";
-    broker.AttachData(this, "label", QVariant::String, "durability", true);
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, values.first(), true);
-    dds_kind_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "durability");
+    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_kind_data->addValidValues({"VOLATILE_DURABILITY_QOS", "TRANSIENT_LOCAL_DURABILITY_QOS", "TRANSIENT_DURABILITY_QOS", "PERSISTENT_DURABILITY_QOS"});
 }

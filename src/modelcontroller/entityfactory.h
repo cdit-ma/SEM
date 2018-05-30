@@ -12,8 +12,8 @@
 
 #include "Entities/key.h"
 #include "Entities/data.h"
-
 #include "entityfactorybroker.h"
+
 
 class Key;
 class Node;
@@ -24,6 +24,8 @@ class Entity;
 class ModelController;
 class EntityFactoryBroker;
 class EntityFactoryRegistryBroker;
+
+
 
 class EntityFactory
 {
@@ -81,9 +83,9 @@ public:
     Node* CreateNode(NODE_KIND node_kind, bool complex = true);
     Node* CreateTempNode(NODE_KIND node_kind);
     
-    Data* CreateData(Key* key, QVariant value = QVariant(), bool is_protected = false);
-    Data* AttachData(Entity* entity, Key* key, QVariant value = QVariant(), bool is_protected = false);
-    Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value = QVariant(), bool is_protected = false);
+    Data* AttachData(Entity* entity, Key* key, ProtectedState protect_state, QVariant value = QVariant());
+    Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protect_state, QVariant value = QVariant());
+
 
 
     Key* GetKey(QString key_name, QVariant::Type type);

@@ -28,18 +28,20 @@ MEDEA::IfCondition::IfCondition(::EntityFactoryBroker& broker, bool is_temp) : N
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "if", true);
-    broker.AttachData(this, "type", QVariant::String, "Boolean", true);
-    broker.AttachData(this, "value", QVariant::String, "", false);
-    broker.AttachData(this, "row", QVariant::Int, 0, true);
-    broker.AttachData(this, "column", QVariant::Int, -1, true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "if");
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED, "Boolean");
+    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
+
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
     
 
     auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
-    broker.AttachData(expression, "row", QVariant::Int, 0, true);
-    broker.AttachData(expression, "column", QVariant::Int, -1, true);
-    broker.ProtectData(expression, "index", true);
+    broker.AttachData(expression, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(expression, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(expression, "index", QVariant::Int, ProtectedState::PROTECTED);
 
     //Set that the Expression can accept data
     expression->setDataReceiver(true);

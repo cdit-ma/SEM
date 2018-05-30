@@ -23,13 +23,9 @@ DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy(EntityFactoryBroker& broker, bo
     }
 
     //Setup Data
-    QList<QVariant> values;
-    values << "AUTOMATIC_LIVELINESS_QOS";
-    values << "MANUAL_BY_PARTICIPANT_LIVELINESS_QOS";
-    values << "MANUAL_BY_TOPIC_LIVELINESS_QOS";
-    broker.AttachData(this, "label", QVariant::String, "liveliness", true);
-    broker.AttachData(this, "qos_dds_lease_duration_sec", QVariant::String, "DURATION_INFINITE_SEC", false);
-    broker.AttachData(this, "qos_dds_lease_duration_nanosec", QVariant::String, "DURATION_INFINITE_NSEC", false);
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, values.first(), false);
-    dds_kind_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "liveliness");
+    broker.AttachData(this, "qos_dds_lease_duration_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, "qos_dds_lease_duration_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
+    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_kind_data->addValidValues({"AUTOMATIC_LIVELINESS_QOS", "MANUAL_BY_PARTICIPANT_LIVELINESS_QOS", "MANUAL_BY_TOPIC_LIVELINESS_QOS"});
 }

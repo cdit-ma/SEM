@@ -25,7 +25,7 @@ OpenCLPlatform::OpenCLPlatform(EntityFactoryBroker& broker, bool is_temp) : Node
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "", true);
-    broker.AttachData(this, "vendor", QVariant::String, "", true);
-    broker.AttachData(this, "version", QVariant::String, "", true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "vendor", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "version", QVariant::String, ProtectedState::PROTECTED);
 }

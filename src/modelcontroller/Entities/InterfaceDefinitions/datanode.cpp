@@ -17,10 +17,10 @@ DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_tem
     }
 
     if(use_complex_types){
-        broker.AttachData(this, "inner_type", QVariant::String, "", true);
-        broker.AttachData(this, "outer_type", QVariant::String, "", true);
+        broker.AttachData(this, "inner_type", QVariant::String, ProtectedState::PROTECTED);
+        broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED);
     }
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
     
 };
 
@@ -80,8 +80,9 @@ void DataNode::setDataReceiver(bool receiver)
 {
     is_receiver_ = receiver;
     setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::TARGET, is_receiver_);
+
     if(receiver){
-        getFactoryBroker().AttachData(this, "value", QVariant::String, "", false);
+        getFactoryBroker().AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
     }
 }
 

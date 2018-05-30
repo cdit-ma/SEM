@@ -31,8 +31,8 @@ AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) 
     }
     
     //Setup Data
-    broker.ProtectData(this, "index", true);
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
@@ -108,12 +108,12 @@ void AggregateInstance::ParentSet(DataNode* child){
 void AggregateInstance::parentSet(Node* parent){
     switch(parent->getNodeKind()){
         case NODE_KIND::INEVENTPORT_IMPL:{
-            getFactoryBroker().AttachData(this, "row", QVariant::Int, 0, true);
-            getFactoryBroker().AttachData(this, "column", QVariant::Int, -1, true);
+            getFactoryBroker().AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+            getFactoryBroker().AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
             break;
         }
         case NODE_KIND::AGGREGATE:{
-            getFactoryBroker().ProtectData(this, "index", true);
+            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
             SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
             break;
         }

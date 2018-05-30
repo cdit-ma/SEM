@@ -26,10 +26,10 @@ MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, b
     }
 
     //Setup Data
-    auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
-    broker.AttachData(this, "comment", QVariant::String, "", false);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
-    broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

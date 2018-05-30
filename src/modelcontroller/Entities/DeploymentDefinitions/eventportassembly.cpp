@@ -15,8 +15,7 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
         return;
     }
 
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 };
 
 bool EventPortAssembly::isInPortDelegate() const
@@ -177,7 +176,7 @@ void EventPortAssembly::MiddlewareUpdated(){
     auto topic_key = getFactoryBroker().GetKey("topic_name", QVariant::String);
     if(topic_middlewares.contains(middleware)){
         if(!gotData(topic_key)){
-            auto topic = getFactoryBroker().AttachData(this, "topic_name", QVariant::String, "", false);
+            getFactoryBroker().AttachData(this, topic_key, ProtectedState::UNPROTECTED);
         }
     }else{
         getFactoryBroker().RemoveData(this, "topic_name");

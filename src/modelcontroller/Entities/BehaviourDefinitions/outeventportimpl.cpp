@@ -29,8 +29,8 @@ OutEventPortImpl::OutEventPortImpl(EntityFactoryBroker& broker, bool is_temp) : 
     }
     
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

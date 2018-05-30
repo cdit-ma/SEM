@@ -33,9 +33,9 @@ Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     }
 
     // Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "namespace", QVariant::String, "", true);
-    broker.AttachData(this, "comment", QVariant::String, "");
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
     TypeKey::BindNamespaceAndLabelToType(this, true);
 }
 

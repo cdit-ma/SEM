@@ -20,21 +20,15 @@ DDS_DurabilityServiceQosPolicy::DDS_DurabilityServiceQosPolicy(EntityFactoryBrok
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
-
-
-
     
     //Setup Data
-    QList<QVariant> values;
-    values << "KEEP_LAST_HISTORY_QOS";
-    values << "KEEP_ALL_HISTORY_QOS";
-    broker.AttachData(this, "label", QVariant::String, "durability_service", true);
-    broker.AttachData(this, "qos_dds_service_cleanup_delay_sec", QVariant::String, "0", false);
-    broker.AttachData(this, "qos_dds_service_cleanup_delay_nanosec", QVariant::String, "0", false);
-    broker.AttachData(this, "qos_dds_history_depth", QVariant::String, "1", false);
-    broker.AttachData(this, "qos_dds_max_samples", QVariant::String, "LENGTH_UNLIMITED", false);
-    broker.AttachData(this, "qos_dds_max_instances", QVariant::String, "LENGTH_UNLIMITED", false);
-    broker.AttachData(this, "qos_dds_max_samples_per_instance", QVariant::String, "LENGTH_UNLIMITED", false);
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_history_kind", QVariant::String, values.first(), false);
-    dds_kind_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "durability_service");
+    broker.AttachData(this, "qos_dds_service_cleanup_delay_sec", QVariant::String, ProtectedState::UNPROTECTED, "0");
+    broker.AttachData(this, "qos_dds_service_cleanup_delay_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "0");
+    broker.AttachData(this, "qos_dds_history_depth", QVariant::String, ProtectedState::UNPROTECTED, "1");
+    broker.AttachData(this, "qos_dds_max_samples", QVariant::String, ProtectedState::UNPROTECTED, "LENGTH_UNLIMITED");
+    broker.AttachData(this, "qos_dds_max_instances", QVariant::String, ProtectedState::UNPROTECTED,  "LENGTH_UNLIMITED");
+    broker.AttachData(this, "qos_dds_max_samples_per_instance", QVariant::String, ProtectedState::UNPROTECTED,  "LENGTH_UNLIMITED");
+    auto dds_kind_data = broker.AttachData(this, "qos_dds_history_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_kind_data->addValidValues({"KEEP_LAST_HISTORY_QOS", "KEEP_ALL_HISTORY_QOS"});
 }

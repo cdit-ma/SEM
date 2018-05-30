@@ -23,7 +23,7 @@ DDS_TimeBasedFilterQosPolicy::DDS_TimeBasedFilterQosPolicy(EntityFactoryBroker& 
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "time_based_filter", true);
-    broker.AttachData(this, "qos_dds_minimum_separation_sec", QVariant::String, "0", false);
-    broker.AttachData(this, "qos_dds_minimum_separation_nanosec", QVariant::String, "0", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "time_based_filter");
+    broker.AttachData(this, "qos_dds_minimum_separation_sec", QVariant::String, ProtectedState::UNPROTECTED,  "0");
+    broker.AttachData(this, "qos_dds_minimum_separation_nanosec", QVariant::String, ProtectedState::UNPROTECTED,  "0");
 }

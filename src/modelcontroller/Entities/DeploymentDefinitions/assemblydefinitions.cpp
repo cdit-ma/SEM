@@ -29,7 +29,7 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactoryBroker& broker, bool is_te
 
     //Setup Data
     setLabelFunctional(false);
-    broker.AttachData(this, "label", QVariant::String, "ASSEMBLIES", true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "ASSEMBLIES");
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect() const

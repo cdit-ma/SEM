@@ -23,13 +23,9 @@ DDS_PresentationQosPolicy::DDS_PresentationQosPolicy(EntityFactoryBroker& broker
     }
 
     //Setup Data
-    QList<QVariant> values;
-    values << "INSTANCE_PRESENTATION_QOS";
-    values << "TOPIC_PRESENTATION_QOS";
-    values << "GROUP_PRESENTATION_QOS";
-    broker.AttachData(this, "label", QVariant::String, "presentation", true);
-    broker.AttachData(this, "qos_dds_coherent_access", QVariant::Bool, false, false);
-    broker.AttachData(this, "qos_dds_ordered_access", QVariant::Bool, false, false);
-    auto dds_scope_data = broker.AttachData(this, "qos_dds_access_scope", QVariant::String, values.first(), false);
-    dds_scope_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "presentation");
+    broker.AttachData(this, "qos_dds_coherent_access", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    broker.AttachData(this, "qos_dds_ordered_access", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    auto dds_scope_data = broker.AttachData(this, "qos_dds_access_scope", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_scope_data->addValidValues({"INSTANCE_PRESENTATION_QOS", "TOPIC_PRESENTATION_QOS", "GROUP_PRESENTATION_QOS"});
 }

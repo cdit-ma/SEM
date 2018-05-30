@@ -29,42 +29,44 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
 
 
     //setup Data
-    auto label = broker.AttachData(this, "label", QVariant::String, "???", true);
-    auto data_value = broker.AttachData(this, "value", QVariant::String, "", false);
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "type", QVariant::String, "Boolean", true);
+    auto label = broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "???");
+    auto data_value = broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
+    
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED, "Boolean");
     
     //Attach Children
     lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
     comparator_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
     rhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
-
-    
-
     //Setup LHS
-    broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
-    broker.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
-    broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
-    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, true, true);
+    broker.AttachData(lhs_, "label", QVariant::String, ProtectedState::PROTECTED, "lhs");
+    broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Setup Comparator
     comparator_->setDataReceiver(false);
     comparator_->setDataProducer(false);
-    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, "==", false);
+    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, ProtectedState::UNPROTECTED);//, "==");
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
-    broker.AttachData(comparator_, "icon", QVariant::String, "circleQuestionDark", true);
-    broker.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
+
+
+    broker.AttachData(comparator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circleQuestionDark");
+    broker.AttachData(comparator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(comparator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
     broker.RemoveData(comparator_, "value");
     broker.RemoveData(comparator_, "type");
     broker.RemoveData(comparator_, "inner_type");
     broker.RemoveData(comparator_, "outer_type");
 
     //Setup RHS
-    broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
-    broker.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
-    broker.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
-    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, true, true);
+    broker.AttachData(rhs_, "label", QVariant::String, ProtectedState::PROTECTED, "rhs");
+    broker.AttachData(rhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(rhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
+
 
     //Bind Value changing
     auto data_rhs_value = rhs_->getData("value");

@@ -4,6 +4,12 @@
 #include <QObject>
 #include <QHash>
 
+enum class ProtectedState{
+    PROTECTED,
+    UNPROTECTED,
+    IGNORED
+};
+
 enum class NODE_KIND
     {
         NONE,

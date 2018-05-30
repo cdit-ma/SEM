@@ -23,12 +23,9 @@ DDS_ReliabilityQosPolicy::DDS_ReliabilityQosPolicy(EntityFactoryBroker& broker, 
     }
 
     //Setup Data
-    QList<QVariant> values;
-    values << "BEST_EFFORT_RELIABILITY_QOS";
-    values << "RELIABLE_RELIABILITY_QOS";
-    broker.AttachData(this, "label", QVariant::String, "reliability", true);
-    broker.AttachData(this, "qos_dds_max_blocking_time_sec", QVariant::String, "0", false);
-    broker.AttachData(this, "qos_dds_max_blocking_time_nanosec", QVariant::String, "100000000", false);
-    auto dds_kinds_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, "0", false);
-    dds_kinds_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "reliability");
+    broker.AttachData(this, "qos_dds_max_blocking_time_sec", QVariant::String, ProtectedState::UNPROTECTED, "0");
+    broker.AttachData(this, "qos_dds_max_blocking_time_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "100000000");
+    auto dds_kinds_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_kinds_data->addValidValues({"BEST_EFFORT_RELIABILITY_QOS", "RELIABLE_RELIABILITY_QOS"});
 }

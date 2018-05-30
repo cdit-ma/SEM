@@ -182,7 +182,11 @@ QString Data::toGraphML(int indentDepth, bool functional_export)
 
 QString Data::toString() const
 {
-    return QString("[" + QString::number(getID()) + "] Data Key: '" + getKeyName() + "' = '" + getValue().toString() + "'");
+    auto id = getID();
+    if(this->parent){
+        id = parent->getID();
+    }
+    return QString("[" + QString::number(id) + "] Data Key: '" + getKeyName() + "' = '" + getValue().toString() + "'");
 }
 
 bool Data::linkData(Data* data, bool setup_bind){
@@ -269,6 +273,8 @@ void Data::addValidValues(QList<QVariant> values){
     for(auto value : values){
         addValidValue(value);
     }
+    //Revalidate
+    revalidateData();
 }
 
 void Data::removeValidValue(QVariant value){

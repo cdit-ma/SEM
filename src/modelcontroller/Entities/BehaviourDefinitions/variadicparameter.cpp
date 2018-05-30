@@ -26,5 +26,5 @@ VariadicParameter::VariadicParameter(EntityFactoryBroker& broker, bool is_temp) 
     broker.RemoveData(this, "label");
     broker.RemoveData(this, "icon");
     broker.RemoveData(this, "icon_prefix");
-    broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
 }

@@ -28,13 +28,14 @@ MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp)
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    broker.AttachData(this, "icon", QVariant::String, "", true);
-    
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "row", QVariant::Int, 1, true);
-    broker.AttachData(this, "column", QVariant::Int, 2, true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 2);
 };
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)

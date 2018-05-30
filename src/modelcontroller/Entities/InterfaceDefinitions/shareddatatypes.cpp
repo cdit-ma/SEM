@@ -24,6 +24,6 @@ SharedDatatypes::SharedDatatypes(EntityFactoryBroker& broker, bool is_temp) : No
     }
 
     //Setup Data
-    broker.AttachData(this, "uuid", QVariant::String, "", true);
-    broker.AttachData(this, "version", QVariant::String, "v1.0", false);
+    broker.AttachData(this, "uuid", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "version", QVariant::String, ProtectedState::UNPROTECTED, "v1.0");
 }

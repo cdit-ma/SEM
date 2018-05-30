@@ -112,17 +112,13 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
         new_value.convert(key_type_);
     }
 
-    NODE_KIND node_kind = NODE_KIND::NONE;
-
-    if(entity && entity->isNode()){
-        node_kind = ((Node*)entity)->getNodeKind();
-    }
-
     auto valid_values = data->getValidValues();
+
     if(valid_values.size()){
         if(!valid_values.contains(new_value)){
             emit validation_failed(ID, "Value not in list of valid values.");
-            return value;
+            //Use the first value
+            new_value = valid_values.first();
         }
     }
 

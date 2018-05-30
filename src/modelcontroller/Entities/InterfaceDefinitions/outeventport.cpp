@@ -21,6 +21,6 @@ OutEventPort::OutEventPort(EntityFactoryBroker& broker, bool is_temp) : EventPor
         return;
     }
     
-    broker.AttachData(this, "row", QVariant::Int, 2, true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
 }

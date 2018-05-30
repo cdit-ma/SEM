@@ -23,7 +23,7 @@ DDS_DeadlineQosPolicy::DDS_DeadlineQosPolicy(EntityFactoryBroker& broker, bool i
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "deadline", true);
-    broker.AttachData(this, "qos_dds_period_sec", QVariant::String, "DURATION_INFINITE_SEC", false);
-    broker.AttachData(this, "qos_dds_period_nanosec", QVariant::String, "DURATION_INFINITE_NSEC", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "deadline");
+    broker.AttachData(this, "qos_dds_period_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, "qos_dds_period_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
 }

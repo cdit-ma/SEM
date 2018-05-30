@@ -24,7 +24,7 @@ EnumInstance::EnumInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)

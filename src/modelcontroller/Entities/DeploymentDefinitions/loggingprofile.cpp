@@ -23,9 +23,9 @@ LoggingProfile::LoggingProfile(EntityFactoryBroker& broker, bool is_temp) : Node
         return;
     }
 
-    broker.AttachData(this, "processes_to_log", QVariant::String, "", false);
-    broker.AttachData(this, "frequency", QVariant::Double, 1, false);
-    auto data_mode = broker.AttachData(this, "mode", QVariant::String, "CACHED", false);
+    broker.AttachData(this, "processes_to_log", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "frequency", QVariant::Double, ProtectedState::UNPROTECTED, 1);
+    auto data_mode = broker.AttachData(this, "mode", QVariant::String, ProtectedState::UNPROTECTED);
     data_mode->addValidValues({"CACHED", "OFF", "LIVE"});
 }
 

@@ -30,10 +30,11 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(::EntityFactor
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.ProtectData(this, "index", true);
-    broker.AttachData(this, "row", QVariant::Int, 0, true);
-    broker.AttachData(this, "column", QVariant::Int, 1, true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
 }
 
 bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)

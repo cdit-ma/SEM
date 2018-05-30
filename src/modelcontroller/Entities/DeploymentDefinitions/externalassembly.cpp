@@ -25,8 +25,9 @@ MEDEA::ExternalAssembly::ExternalAssembly(EntityFactoryBroker& broker, bool is_t
     }
 
     //Setup Data
-    broker.AttachData(this, "comment", QVariant::String, "", false);
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", false);
+    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
+
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
 
     in_ = broker.ConstructChildNode(*this, NODE_KIND::INEVENTPORT_DELEGATE);
@@ -36,10 +37,10 @@ MEDEA::ExternalAssembly::ExternalAssembly(EntityFactoryBroker& broker, bool is_t
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
     broker.SetAcceptsEdgeKind(out_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 
-    broker.AttachData(in_, "label", QVariant::String, "IN", true);
-    broker.AttachData(in_, "middleware", QVariant::String, "", true);
-    broker.AttachData(out_, "label", QVariant::String, "OUT", true);
-    broker.AttachData(out_, "middleware", QVariant::String, "", true);
+    broker.AttachData(in_, "label", QVariant::String, ProtectedState::PROTECTED, "IN");
+    broker.AttachData(in_, "middleware", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(out_, "label", QVariant::String, ProtectedState::PROTECTED,  "OUT");
+    broker.AttachData(out_, "middleware", QVariant::String, ProtectedState::PROTECTED);
 
     LinkData(this, "middleware", in_, "middleware", true);
     LinkData(this, "middleware", out_, "middleware", true);
@@ -99,16 +100,9 @@ void MEDEA::ExternalAssembly::MiddlewareUpdated(){
         getFactoryBroker().RemoveData(in_, "topic_name");
         getFactoryBroker().RemoveData(out_, "topic_name");
     }else{
-        if(!gotData(topic_key)){
-            getFactoryBroker().AttachData(this, "topic_name", QVariant::String, "", false);
-        }
-        if(!in_->gotData(topic_key)){
-            getFactoryBroker().AttachData(in_, "topic_name", QVariant::String, "", true);
-        }
-
-        if(!out_->gotData(topic_key)){    
-            getFactoryBroker().AttachData(out_, "topic_name", QVariant::String, "", true);
-        }
+        getFactoryBroker().AttachData(this, topic_key, ProtectedState::UNPROTECTED);
+        getFactoryBroker().AttachData(in_, topic_key, ProtectedState::PROTECTED);
+        getFactoryBroker().AttachData(out_, topic_key, ProtectedState::PROTECTED);
 
         LinkData(this, "topic_name", in_, "topic_name", true);
         LinkData(this, "topic_name", out_, "topic_name", true);

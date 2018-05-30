@@ -28,6 +28,7 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     }
 
     //Setup Data
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", false);
-    broker.AttachData(this, "icon", QVariant::String, "", false);
+
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
 };

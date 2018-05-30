@@ -23,6 +23,6 @@ DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy(EntityFactoryBroker& broker, bool
     }
     
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "group_data", true);
-    broker.AttachData(this, "qos_dds_str_value", QVariant::String, "", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "group_data");
+    broker.AttachData(this, "qos_dds_str_value", QVariant::String, ProtectedState::UNPROTECTED);
 }

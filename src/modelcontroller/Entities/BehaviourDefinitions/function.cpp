@@ -33,11 +33,12 @@ MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(br
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "class", QVariant::String, "", true);
-    broker.AttachData(this, "operation", QVariant::String, "Function", false);
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", false);
-    broker.AttachData(this, "icon", QVariant::String, "", false);
+    broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "operation", QVariant::String, ProtectedState::UNPROTECTED, "Function");
+
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 

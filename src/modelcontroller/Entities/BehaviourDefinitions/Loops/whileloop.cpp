@@ -28,15 +28,15 @@ MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(
         return;
     }
 
-    broker.AttachData(this, "label", QVariant::String, "while", true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
     
     auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
-    broker.AttachData(expression, "row", QVariant::Int, 0, true);
-    broker.AttachData(expression, "column", QVariant::Int, -1, true);
-    broker.ProtectData(expression, "index", true);
-
+    broker.AttachData(expression_, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(expression_, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(expression_, "index", QVariant::Int, ProtectedState::PROTECTED);
+    
     //Set that the Expression can accept data
     expression->setDataReceiver(true);
     expression->setDataProducer(false);

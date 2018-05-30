@@ -28,11 +28,13 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
 
     setLabelFunctional(false);
     //Setup Data
-    broker.AttachData(this, "class", QVariant::String, "", true);
-    broker.AttachData(this, "label", QVariant::String, "", true);
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    broker.AttachData(this, "icon", QVariant::String, "", true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool FunctionCall::canAdoptChild(Node* child)

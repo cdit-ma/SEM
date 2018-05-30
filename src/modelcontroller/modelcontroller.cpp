@@ -338,16 +338,7 @@ bool ModelController::setData_(Entity *entity, QString key_name, QVariant value,
             //Set the type
             action.Action.type = ACTION_TYPE::CONSTRUCTED;
             auto key = entity_factory->GetKey(key_name, value.type());
-            auto data = entity_factory->CreateData(key, value);
-            
-            if(data){
-                //Attach the Data to the parent
-                data_changed = entity->addData(data);
-                if(!data_changed){
-                    //Free up the data
-                    entity_factory->DestructEntity(data);
-                }
-            }
+            auto data = entity_factory->AttachData(entity, key, ProtectedState::IGNORED, value);
         }
 
         if(data_changed){
@@ -2653,7 +2644,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
     if(UPDATE_PROGRESS){
         ProgressChanged_(100);
     }
-
 
     for(auto entity : entity_hash){
         delete entity;

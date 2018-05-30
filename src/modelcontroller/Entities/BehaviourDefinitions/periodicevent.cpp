@@ -28,12 +28,12 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
     }
 
     auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE);
-    broker.AttachData(frequency, "label", QVariant::String, "Frequency", true);
-    broker.AttachData(frequency, "icon", QVariant::String, "timeElapsed", true);
-    broker.AttachData(frequency, "icon_prefix", QVariant::String, "Icons", true);
-    broker.AttachData(frequency, "type", QVariant::String, "Double", true);
-    broker.ProtectData(frequency, "index", true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(frequency, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsed");
+    broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Frequency");
+    broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
+
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool PeriodicEvent::canAdoptChild(Node* child)

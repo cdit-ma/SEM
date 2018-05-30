@@ -16,7 +16,7 @@ EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
         return;
     }
 
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 };
 
 bool EventPort::isInPort() const

@@ -24,10 +24,13 @@ MEDEA::ClientPortInstance::ClientPortInstance(::EntityFactoryBroker& broker, boo
     }
     
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "row", QVariant::Int, 2, true);
-    broker.AttachData(this, "middleware", QVariant::String, "TAO", true);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
+    
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED, true);
+    data_middleware->addValidValues({"TAO"});
 }
 
 

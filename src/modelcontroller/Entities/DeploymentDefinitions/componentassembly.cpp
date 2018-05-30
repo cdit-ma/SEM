@@ -29,6 +29,6 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
     }
 
     //Setup Data
-    broker.AttachData(this, "replicate_count", QVariant::Int, 1, false);
-    broker.AttachData(this, "comment", QVariant::String, "", false);
+    broker.AttachData(this, "replicate_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
+    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
 }

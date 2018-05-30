@@ -37,10 +37,9 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
     }
 
     //Attach Data
-    broker.AttachData(this, "label", QVariant::String, "for", true);
-    broker.ProtectData(this, "index", false);
-    
-   
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+
 
     //Attach Children
     
@@ -50,34 +49,35 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
 
 
     //Setup Variable
-    broker.AttachData(variable_, "label", QVariant::String, "i", false);
-    broker.AttachData(variable_, "value", QVariant::Int, 0, false);
-    auto variable_type = broker.AttachData(variable_, "type", QVariant::String, "Integer", false);
-    variable_type->addValidValues(TypeKey::GetValidNumberTypes());
-    
+    broker.AttachData(variable_, "label", QVariant::String, ProtectedState::UNPROTECTED, "i");
+    broker.AttachData(variable_, "value", QVariant::String, ProtectedState::UNPROTECTED, 0);
 
+    auto variable_type = broker.AttachData(variable_, "type", QVariant::String, ProtectedState::UNPROTECTED);
+    variable_type->addValidValues(TypeKey::GetValidNumberTypes());
 
     //Setup Expression
     expression_->setDataReceiver(true);
     expression_->setDataProducer(false);
+
     //Set Defaults for the Expression Children
-    broker.AttachData(expression_->GetLhs(), "value", QVariant::String, "i", false);
-    broker.AttachData(expression_->GetComparator(), "label", QVariant::String, "<", false);
-    broker.AttachData(expression_->GetRhs(), "value", QVariant::String, "?", false);
+    broker.AttachData(expression_->GetLhs(), "value", QVariant::String, ProtectedState::UNPROTECTED, "i");
+    broker.AttachData(expression_->GetComparator(), "label", QVariant::String, ProtectedState::UNPROTECTED, "<");
+    broker.AttachData(expression_->GetRhs(), "value", QVariant::String, ProtectedState::UNPROTECTED, "?");
 
 
     //Setup Itteration element
-    broker.AttachData(iteration_, "icon", QVariant::String, "reload", true);
-    broker.AttachData(iteration_, "icon_prefix", QVariant::String, "Icons", true);
+    broker.AttachData(iteration_, "icon", QVariant::String, ProtectedState::PROTECTED, "reload");
+    broker.AttachData(iteration_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+
     //Set Defaults for the Interation Children
-    broker.AttachData(iteration_->GetLhs(), "value", QVariant::String, "i", false);
-    broker.AttachData(iteration_->GetOperator(), "label", QVariant::String, "+=", false);
-    broker.AttachData(iteration_->GetRhs(), "value", QVariant::String, "1", false);
+    broker.AttachData(iteration_->GetLhs(), "value", QVariant::String, ProtectedState::UNPROTECTED, "i");
+    broker.AttachData(iteration_->GetOperator(), "label", QVariant::String, ProtectedState::UNPROTECTED, "+=");
+    broker.AttachData(iteration_->GetRhs(), "value", QVariant::String, ProtectedState::UNPROTECTED, "1");
 
     for(auto child : QList<Node*>({variable_, expression_, iteration_})){
-        broker.AttachData(child, "row", QVariant::Int, 0, true);
-        broker.AttachData(child, "column", QVariant::Int, -1, true);
-        broker.ProtectData(child, "index", true);
+        broker.AttachData(child, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+        broker.AttachData(child, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+        broker.AttachData(child, "index", QVariant::Int, ProtectedState::PROTECTED);
     }
 
     //Bind Value changing

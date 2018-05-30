@@ -23,9 +23,9 @@ DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy(EntityFactory
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "reader_data_lifecycle", true);
-    broker.AttachData(this, "qos_dds_autopurge_nowriter_samples_delay_sec", QVariant::String, "DURATION_INFINITE_SEC", false);
-    broker.AttachData(this, "qos_dds_autopurge_nowriter_samples_delay_nanosec", QVariant::String, "DURATION_INFINITE_NSEC", false);
-    broker.AttachData(this, "qos_dds_autopurge_disposed_samples_delay_sec", QVariant::String, "DURATION_INFINITE_SEC", false);
-    broker.AttachData(this, "qos_dds_autopurge_disposed_samples_delay_nanosec", QVariant::String, "DURATION_INFINITE_NSEC", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "reader_data_lifecycle");
+    broker.AttachData(this, "qos_dds_autopurge_nowriter_samples_delay_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, "qos_dds_autopurge_nowriter_samples_delay_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
+    broker.AttachData(this, "qos_dds_autopurge_disposed_samples_delay_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, "qos_dds_autopurge_disposed_samples_delay_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
 }

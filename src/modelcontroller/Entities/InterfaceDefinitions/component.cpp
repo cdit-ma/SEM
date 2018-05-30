@@ -30,8 +30,8 @@ Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     }
     
     //Setup Data
-    broker.AttachData(this, "comment", QVariant::String, "");
-    broker.AttachData(this, "namespace", QVariant::String, "", true);
-    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
     TypeKey::BindNamespaceAndLabelToType(this, true);
 }

@@ -22,5 +22,5 @@ InputParameter::InputParameter(EntityFactoryBroker& broker, bool is_temp) : Para
     }
 
     //Setup Data
-    broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
 }

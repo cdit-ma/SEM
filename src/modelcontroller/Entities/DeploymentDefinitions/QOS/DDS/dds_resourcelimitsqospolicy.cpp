@@ -23,8 +23,8 @@ DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy(EntityFactoryBroker& br
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "resource_limits", true);
-    broker.AttachData(this, "qos_dds_max_samples", QVariant::String, "LENGTH_UNLIMITED", false);
-    broker.AttachData(this, "qos_dds_max_instances", QVariant::String, "LENGTH_UNLIMITED", false);
-    broker.AttachData(this, "qos_dds_max_samples_per_instance", QVariant::String, "LENGTH_UNLIMITED", false);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "resource_limits");
+    broker.AttachData(this, "qos_dds_max_samples", QVariant::String, ProtectedState::UNPROTECTED, "LENGTH_UNLIMITED");
+    broker.AttachData(this, "qos_dds_max_instances", QVariant::String, ProtectedState::UNPROTECTED, "LENGTH_UNLIMITED");
+    broker.AttachData(this, "qos_dds_max_samples_per_instance", QVariant::String, ProtectedState::UNPROTECTED, "LENGTH_UNLIMITED");
 }

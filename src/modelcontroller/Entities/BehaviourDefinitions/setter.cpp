@@ -26,8 +26,8 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     }
 
     //setup Data
-    auto label = broker.AttachData(this, "label", QVariant::String, "???", true);
-    broker.ProtectData(this, "index", false);
+    auto label = broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 
     //Attach Children
     lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
@@ -39,27 +39,29 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
 
 
     //Setup LHS
-    broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
-    broker.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
-    broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
-    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, true, true);
+    broker.AttachData(lhs_, "label", QVariant::String, ProtectedState::PROTECTED, "lhs");
+    broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
+
 
     //Setup Comparator
-    auto data_operator = broker.AttachData(operator_, "label", QVariant::String, "=", false);
-    broker.AttachData(operator_, "icon", QVariant::String, "circlePlusDark", true);
-    broker.AttachData(operator_, "icon_prefix", QVariant::String, "Icons", true);
+    auto data_operator = broker.AttachData(operator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
+    data_operator->addValidValues({"=", "+=", "-=", "*=", "/="});
+
+    broker.AttachData(operator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
+    broker.AttachData(operator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(operator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
     broker.RemoveData(operator_, "value");
     broker.RemoveData(operator_, "type");
     broker.RemoveData(operator_, "inner_type");
     broker.RemoveData(operator_, "outer_type");
 
-    data_operator->addValidValues({"=", "+=", "-=", "*=", "/="});
-
     //Setup RHS
-    broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
-    broker.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
-    broker.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
-    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, true, true);
+    broker.AttachData(rhs_, "label", QVariant::String, ProtectedState::PROTECTED, "rhs");
+    broker.AttachData(rhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(rhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Bind Value changing
     auto data_rhs_value = rhs_->getData("value");

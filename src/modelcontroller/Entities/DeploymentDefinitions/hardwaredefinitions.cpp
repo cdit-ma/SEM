@@ -29,17 +29,17 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
 
     //Setup Data
     setLabelFunctional(false);
-    broker.AttachData(this, "label", QVariant::String, "HARDWARE", true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "HARDWARE");
 
     //Attach Children
     auto localhost = broker.ConstructChildNode(*this, NODE_KIND::HARDWARE_NODE);
 
-    broker.AttachData(localhost, "label", QVariant::String, "localhost", true);
-    broker.AttachData(localhost, "ip_address", QVariant::String, "127.0.0.1", true);
-    broker.AttachData(localhost, "os", QVariant::String, QSysInfo::productType(), true);
-    broker.AttachData(localhost, "os_version", QVariant::String, QSysInfo::productVersion(), true);
-    broker.AttachData(localhost, "architecture", QVariant::String, QSysInfo::currentCpuArchitecture(), true);
-    broker.AttachData(localhost, "uuid", QVariant::String, "localhost", true);
+    broker.AttachData(localhost, "label", QVariant::String, ProtectedState::PROTECTED, "localhost");
+    broker.AttachData(localhost, "ip_address", QVariant::String, ProtectedState::PROTECTED, "127.0.0.1");
+    broker.AttachData(localhost, "os", QVariant::String, ProtectedState::PROTECTED, QSysInfo::productType());
+    broker.AttachData(localhost, "os_version", QVariant::String, ProtectedState::PROTECTED, QSysInfo::productVersion());
+    broker.AttachData(localhost, "architecture", QVariant::String, ProtectedState::PROTECTED,  QSysInfo::currentCpuArchitecture());
+    broker.AttachData(localhost, "uuid", QVariant::String,ProtectedState::PROTECTED,  "localhost");
 }
 
 

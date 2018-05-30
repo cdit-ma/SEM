@@ -14,13 +14,13 @@ Parameter::Parameter(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
     }
 
     //Setup Data
-    broker.AttachData(this, "icon", QVariant::String, "", true);
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    broker.AttachData(this, "label", QVariant::String, "", true);
-    broker.AttachData(this, "type", QVariant::String, "", true);
-    broker.AttachData(this, "inner_type", QVariant::String, "", true);
-    broker.AttachData(this, "outer_type", QVariant::String, "", true);
-    broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "inner_type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "value", QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool Parameter::isInputParameter() const

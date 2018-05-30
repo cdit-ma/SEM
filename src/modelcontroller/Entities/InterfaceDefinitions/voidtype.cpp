@@ -23,5 +23,5 @@ VoidType::VoidType(EntityFactoryBroker& broker, bool is_temp) : Node(broker, nod
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "void", true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "void");
 }

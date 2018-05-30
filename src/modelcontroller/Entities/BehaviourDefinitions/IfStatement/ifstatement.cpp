@@ -23,9 +23,11 @@ MEDEA::IfStatement::IfStatement(::EntityFactoryBroker& broker, bool is_temp) : N
         //Break out early for temporary entities
         return;
     }
-    
-    broker.AttachData(this, "label", QVariant::String, "If Group", false);
-    broker.ProtectData(this, "index", false);
+
+    //Setup Data
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, "If Group");
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+
     broker.ConstructChildNode(*this, NODE_KIND::IF_CONDITION);
 }
 

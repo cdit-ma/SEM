@@ -30,10 +30,10 @@ Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     }
 
     //Setup Data
-    broker.AttachData(this, "icon", QVariant::String, "", true);
-    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    broker.AttachData(this, "outer_type", QVariant::String, "Vector", true);
-    broker.ProtectData(this, "index", false);
+    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED, "Vector");
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool Vector::canAdoptChild(Node *child)

@@ -25,10 +25,11 @@ Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : DataNode(broke
 
 
     //Setup Data
-    auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
-    broker.ProtectData(this, "index", false);
-    broker.AttachData(this, "row", QVariant::Int, 1, true);
+    
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
 }
 
 void Attribute::parentSet(Node* parent){

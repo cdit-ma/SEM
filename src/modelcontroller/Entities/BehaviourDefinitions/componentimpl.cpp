@@ -34,9 +34,9 @@ ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, "", true);
-
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }
+
 QSet<Node*> ComponentImpl::getDependants() const{
     auto required_nodes = Node::getDependants();
     auto definition = getDefinition(true);

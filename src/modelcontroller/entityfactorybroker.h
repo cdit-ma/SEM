@@ -10,7 +10,7 @@
 class Node;
 class Edge;
 class EntityFactory;
-
+enum class ProtectedState;
 class EntityFactoryBroker
 {
     friend class EntityFactory;
@@ -27,11 +27,10 @@ class EntityFactoryBroker
         Node* ConstructChildNode(Node& parent, NODE_KIND node_kind);
         Key* GetKey(QString key_name, QVariant::Type type);
 
-        Data* AttachData(Entity* entity, Key* key, QVariant value = QVariant(), bool is_protected = false);
-        Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value = QVariant(), bool is_protected = false);
-        void RemoveData(Entity* entity, QString key_name);
+        Data* AttachData(Entity* entity, Key* key, ProtectedState protected_state, QVariant value = QVariant());
+        Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value = QVariant());
 
-        void ProtectData(Entity* entity, QString key_name, bool is_protected = true);
+        void RemoveData(Entity* entity, QString key_name);
 
         void AcceptedEdgeKindsChanged(Node* node);
 

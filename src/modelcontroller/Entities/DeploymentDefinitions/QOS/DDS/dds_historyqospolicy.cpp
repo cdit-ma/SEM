@@ -23,11 +23,8 @@ DDS_HistoryQosPolicy::DDS_HistoryQosPolicy(EntityFactoryBroker& broker, bool is_
     }
 
     //Setup Data
-    QList<QVariant> values;
-    values << "KEEP_LAST_HISTORY_QOS";
-    values << "KEEP_ALL_HISTORY_QOS";
-    broker.AttachData(this, "label", QVariant::String, "history", true);
-    broker.AttachData(this, "qos_dds_depth", QVariant::String, "1", false);
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, values.first(), false);
-    dds_kind_data->addValidValues(values);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "history");
+    broker.AttachData(this, "qos_dds_depth", QVariant::String, ProtectedState::UNPROTECTED, "1");
+    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    dds_kind_data->addValidValues({"KEEP_LAST_HISTORY_QOS", "KEEP_ALL_HISTORY_QOS"});
 }

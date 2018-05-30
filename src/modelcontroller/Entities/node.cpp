@@ -26,9 +26,9 @@ Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) 
     }
 
     //Attach default data
-    broker.AttachData(this, "kind", QVariant::String, broker.GetNodeKindString(node_kind), true);
-    broker.AttachData(this, "label", QVariant::String, broker.GetNodeKindString(node_kind), false);
-    broker.AttachData(this, "index", QVariant::Int, -1, true);
+    broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED, -1);
 }
 
 Node::~Node()
@@ -365,7 +365,7 @@ bool Node::addChild(Node *child)
             auto key = data->getKey();
             if(!child->gotData("uuid")){
                 //Construct a new piece of data
-                getFactoryBroker().AttachData(child, key, "", true);
+                getFactoryBroker().AttachData(child, key, ProtectedState::PROTECTED);
             }
         }
         childAdded(child);
@@ -946,11 +946,10 @@ void Node::LinkData(Node* source, const QString &source_key, Node* destination, 
 }
 
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
-
     if(!definition || !instance){
         return;
     }
-    //qCritical() << "BINDING DEFINITION: " << definition << " TO " << instance << " " << (setup ? "LINK" : "UNLINK");
+    
     auto instance_parent = instance->getParentNode();
 
     auto definition_kind = definition->getNodeKind();
@@ -1015,6 +1014,10 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }else{
                     bind_labels = false;
                     copy_labels = true;
+                    if(definition->gotData("worker")){
+                        bind_values.insert("worker", "type");
+                        bind_types = false;
+                    }
                 }
                 break;
             }
@@ -1076,7 +1079,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     //Bind Index
     if(bind_index){
         bind_values.insert("index", "index");
-    }
+}
 
     for(auto key_name : required_instance_keys){
         if(bind_values.contains(key_name)){
@@ -1085,7 +1088,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 auto key = def_data->getKey();
                 if(!instance->getData(key)){
                     //Construct data
-                    instance->getFactoryBroker().AttachData(instance, key, def_data->getValue(), true);
+                    instance->getFactoryBroker().AttachData(instance, key, ProtectedState::PROTECTED, def_data->getValue());
                 }
             }
         }

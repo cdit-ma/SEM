@@ -3,6 +3,7 @@
 #include "entityfactorybroker.h"
 #include "entityfactoryregistrybroker.h"
 
+
 #include <iostream>
 #include <exception>
 
@@ -747,32 +748,48 @@ Key* EntityFactory::GetKey(int id){
     return 0;
 }
 
-Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
-    if(key){
-        //Don't keep ID's for data
-        auto data = new Data(factory_broker_, key, value, is_protected);
-        return data;
-    }
-    return 0;
-}
-Data* EntityFactory::AttachData(Entity* entity, Key* key, QVariant value, bool is_protected){
+    
+
+Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protected_state, QVariant value){
     Data* data = 0;
     if(entity && key){
         data = entity->getData(key);
+
+        bool constructed_data = !data;
         if(!data){
-            data = CreateData(key, value);
+            data = new Data(factory_broker_, key, value, false);
+
             if(data){
                 entity->addData(data);
+            }else{
+                return nullptr;
             }
         }
-        data->setValue(value);
-        data->setProtected(is_protected);
+
+        //Only Set if valid
+        if(value.isValid()){
+            data->setValue(value);
+        }
+
+        switch(protected_state){
+            case ProtectedState::PROTECTED:{
+                data->setProtected(true);
+                break;
+            }
+            case ProtectedState::UNPROTECTED:{
+                data->setProtected(false);
+                break;
+            }
+            case ProtectedState::IGNORED:{
+                break;
+            }
+        }
     }
     return data;
 }
 
-Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value, bool is_protected){
-    return AttachData(entity, GetKey(key_name, type), value, is_protected);
+Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
+    return AttachData(entity, GetKey(key_name, type), protected_state, value);
 }
 
 int EntityFactory::getFreeID(int start_id){

@@ -25,8 +25,9 @@ MEDEA::ElseCondition::ElseCondition(::EntityFactoryBroker& broker, bool is_temp)
         return;
     }
 
+
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "else", true);
-    broker.AttachData(this, "row", QVariant::Int, 0, true);
-    broker.AttachData(this, "column", QVariant::Int, 1, true);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "else");
+    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
 }
