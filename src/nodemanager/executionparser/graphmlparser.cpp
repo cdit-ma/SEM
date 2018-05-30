@@ -9,12 +9,15 @@ GraphmlParser::GraphmlParser(const std::string& filename){
     if(!legal_parse){
         std::cerr << "GraphmlParser:Parse(" + filename + ") Error: " << result.description() << std::endl;
     }
+
+    //Pre fill attribute map
     for(auto& key : doc.select_nodes("/graphml/key")){
         const auto &name = key.node().attribute("attr.name").value();
         const auto &id = key.node().attribute("id").value();
         attribute_map_[name] = id;
     }
 
+    //Pre fill id map
     for(auto& xpath_node : doc.select_nodes("//*[@id]")){
         auto node = xpath_node.node();
         auto id = node.attribute("id").value();
@@ -32,6 +35,7 @@ std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const
     if(parent_id.length() > 0 && id_lookup_.count(parent_id)){
         search_node = id_lookup_[parent_id];
     }
+    //Infinite depth
     std::string search = ".//node/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
     std::vector<std::string> out;
 
@@ -40,6 +44,21 @@ std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const
     }
     return out;
 }
+
+std::vector<std::string> GraphmlParser::FindImmediateChildren(const std::string& kind, const std::string& parent_id){
+    std::vector<std::string> out;
+
+    if(parent_id.length() > 0 && id_lookup_.count(parent_id)){
+        auto search_node = id_lookup_[parent_id];
+        std::string search = "./graph/node/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
+
+        for(auto& n : search_node.select_nodes(search.c_str())){
+            out.push_back(n.node().attribute("id").value());
+        }
+    }
+    return out;
+}
+
 
 std::vector<std::string> GraphmlParser::FindEdges(const std::string& kind){
     std::string search = ".//edge";
@@ -111,6 +130,17 @@ std::string GraphmlParser::GetDataValue(const std::string& id, const std::string
         }
         return out;
     }
+}
+
+std::string GraphmlParser::GetParentNode(const std::string& id, uint depth){
+    std::string parent_id = id;
+    
+    while(depth != 0){
+        parent_id = GetParentNode(parent_id);
+        depth--;
+    }
+    
+    return parent_id;
 }
 
 std::string GraphmlParser::GetParentNode(const std::string& id){

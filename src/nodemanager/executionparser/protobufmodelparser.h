@@ -16,7 +16,7 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* ControlMessage();
 
     private:
-        GraphmlParser* graphml_parser_;
+        std::unique_ptr<GraphmlParser> graphml_parser_;
         bool is_valid_;
         bool pre_process_success_;
         bool process_success_;
@@ -24,6 +24,11 @@ class ProtobufModelParser{
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
+        
+        void FillProtobufAttributes(google::protobuf::RepeatedPtrField<NodeManager::Attribute>* entity, const std::string& parent_id, const std::string& unique_id_suffix);
+
+        std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind);
+
         void CalculateReplication();
 
         //Parse helpers
@@ -48,6 +53,7 @@ class ProtobufModelParser{
         std::string experiment_id_;
 
         std::vector<std::string> deployment_edge_ids_;
+        std::vector<std::string> data_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;
         std::vector<std::string> definition_edge_ids_;
         std::vector<std::string> aggregate_edge_ids_;
@@ -72,6 +78,9 @@ class ProtobufModelParser{
 
         //Component id -> replication count
         std::unordered_map<std::string, int> replication_map_;
+
+        //attribute_instance id -> Value
+        std::unordered_map<std::string, std::string> attribute_value_map_;
 
         //port id -> nested assembly string
         std::unordered_map<std::string, std::string> full_assembly_name_map_;
@@ -99,6 +108,7 @@ class ProtobufModelParser{
                 std::string target_id;
                 bool inter_assembly = false;
         };
+
         std::unordered_map<std::string, std::vector<AssemblyConnection> > assembly_map_;
 };
 #endif //PROTOBUFMODELPARSER_H

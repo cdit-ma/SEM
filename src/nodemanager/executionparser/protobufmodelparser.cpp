@@ -9,12 +9,15 @@
 
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     experiment_id_ = experiment_id;
-    graphml_parser_ = new GraphmlParser(filename);
+    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
     is_valid_ = graphml_parser_->IsValid();
-    pre_process_success_ = PreProcess();
-    process_success_ = Process();
+    if(is_valid_){
+        pre_process_success_ = PreProcess();
+        process_success_ = Process();
+    }
 }
 
+//Pretty json prints deployment protbuf controlmessage
 std::string ProtobufModelParser::GetDeploymentJSON(){
 
     std::string output;
@@ -30,27 +33,51 @@ NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
     return control_message_;
 }
 
-void ProtobufModelParser::RecurseEdge(const std::string& source_id, const std::string& current_id){
-    for(auto edge_id : entity_edge_ids_[current_id]){
-        auto edge_source = graphml_parser_->GetAttribute(edge_id, "source");
-        auto edge_target = graphml_parser_->GetAttribute(edge_id, "target");
-        auto edge_kind = graphml_parser_->GetDataValue(edge_id, "kind");
+// Starting at a node, recurse through all edges originating from it (of a particular edge kind).
+// Returns all nodes which don't have edges (of a particular edge kind) originating from them.
+/* Visual Representation
 
-        if(edge_kind == "Edge_Assembly" && edge_source == current_id){
-            auto target_kind = graphml_parser_->GetDataValue(edge_target, "kind");
+    [B]-------|
+                V
+    [C]----->[A]---->[X]
+                ʌ
+                |
+    [E]----->[D]
+                ʌ
+                |
+                [F]
 
-            if(target_kind == "InEventPortInstance"){
-                AssemblyConnection edge;
-                edge.source_id = source_id;
-                edge.target_id = edge_target;
-                edge.inter_assembly = source_id != current_id;
-                assembly_map_[source_id].push_back(edge);
-            }
-            else if(target_kind == "OutEventPortDelegate" || target_kind == "InEventPortDelegate"){
-                RecurseEdge(source_id, edge_target);
+    Calling this function on node X would return {B,C,E,F} but ignore {A,D}
+*/ 
+std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind){
+    std::set<std::string> source_ids;
+    
+    //Get all edges connected to node_id
+    for(const auto& edge_id : entity_edge_ids_[node_id]){
+        if(edge_kind == graphml_parser_->GetDataValue(edge_id, "kind")){
+            //If node provided is the target of this edge
+            if(node_id == graphml_parser_->GetAttribute(edge_id, "target")){
+                //Get the source of this edge
+                const auto& edge_source = graphml_parser_->GetAttribute(edge_id, "source");
+                
+                //Get the edges originating from the source
+                const auto& connected_sources = GetTerminalSourcesByEdgeKind(edge_source, edge_kind);
+
+                //If we have edges originating from the source, append them
+                if(connected_sources.size()){
+                    for(const auto& source_id : connected_sources){
+                        source_ids.insert(source_id);
+                    }
+                }else{
+                    //If this node has no other edges, it itself is a terminal endpoint
+                    //So add it to our source_ids set
+                    source_ids.insert(edge_source);
+                }
             }
         }
     }
+
+    return source_ids;
 }
 
 bool ProtobufModelParser::PreProcess(){
@@ -58,12 +85,24 @@ bool ProtobufModelParser::PreProcess(){
         return false;
     }
 
+    auto assembly_definitions = graphml_parser_->FindNodes("AssemblyDefinitions");
+
+    if(assembly_definitions.size() != 1){
+        std::cerr << "Don't have an Assembly Definition! Cannot continue" << std::endl;
+        return false;
+    }
+
+    auto assembly_definition_id = assembly_definitions[0];
+
+
+
     //Get all ids
     hardware_node_ids_ = graphml_parser_->FindNodes("HardwareNode");
     hardware_cluster_ids_ = graphml_parser_->FindNodes("HardwareCluster");
+
     component_ids_ = graphml_parser_->FindNodes("Component");
+
     component_instance_ids_ = graphml_parser_->FindNodes("ComponentInstance");
-    component_impl_ids_ = graphml_parser_->FindNodes("ComponentImpl");
     component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
     model_id_ = graphml_parser_->FindNodes("Model")[0];
 
@@ -73,6 +112,7 @@ bool ProtobufModelParser::PreProcess(){
     definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
     aggregate_edge_ids_ = graphml_parser_->FindEdges("Edge_Aggregate");
     qos_edge_ids_ = graphml_parser_->FindEdges("Edge_QOS");
+    data_edge_ids_ = graphml_parser_->FindEdges("Edge_Data");
 
     for(const auto& edge_id : graphml_parser_->FindEdges()){
         auto source_id = graphml_parser_->GetAttribute(edge_id, "source");
@@ -132,10 +172,37 @@ bool ProtobufModelParser::PreProcess(){
         entity_qos_map_[source_id] = target_id;
     }
 
+
     //Populate port connection map using recurse edge function to follow port delegates through
-    for(const auto& c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
-        RecurseEdge(c_id, c_id);
+    for(const auto& port_id : graphml_parser_->FindNodes("InEventPortInstance")){
+        const auto& target_id = port_id;
+        for(auto source_id : GetTerminalSourcesByEdgeKind(target_id, "Edge_Assembly")){
+            AssemblyConnection edge;
+            edge.source_id = source_id;
+            edge.target_id = target_id;
+
+            //Check to see if our Ports parents are the same
+            auto src_pid = graphml_parser_->GetParentNode(source_id, 2);
+            auto dst_pid = graphml_parser_->GetParentNode(target_id, 2);
+            //Component->EventPort, so checking two parents up should tell us if we are contained within the same Assembly
+            edge.inter_assembly = src_pid != dst_pid;
+            assembly_map_[source_id].push_back(edge);
+        }
     }
+
+    //Find the values for the Attributes which have been data linked
+    for(const auto& attribute_id : graphml_parser_->FindNodes("AttributeInstance", assembly_definition_id)){
+        //Get all ids which feed attribute_id with Data
+        auto data_sources = GetTerminalSourcesByEdgeKind(attribute_id, "Edge_Data");
+
+        auto data_value = graphml_parser_->GetDataValue(attribute_id, "value");
+        if(data_sources.size() == 1){
+            
+            data_value = graphml_parser_->GetDataValue(*(data_sources.begin()), "value");
+        }
+        attribute_value_map_[attribute_id] = data_value;
+    }
+
 
     //Construct port fully qualified port ids
     auto out_event_port_ids = graphml_parser_->FindNodes("OutEventPortInstance", "");
@@ -235,24 +302,14 @@ bool ProtobufModelParser::Process(){
             component_info_pb->set_name(component_name);
             component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
 
-            //Set component attributes
-            auto attribute_ids = graphml_parser_->FindNodes("AttributeInstance", component_id);
-            for(const auto& attribute_id : attribute_ids){
-                auto attr_pb = component_pb->add_attributes();
-                auto attr_info_pb = attr_pb->mutable_info();
-
-                attr_info_pb->set_id(attribute_id);
-                attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
-
-                SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), 
-                                        graphml_parser_->GetDataValue(attribute_id, "value"));
-
-            }
+            //Fill the Attributes
+            FillProtobufAttributes(component_pb->mutable_attributes(), component_id, unique_id);
 
             //Find all ports in/out of component instance
-            auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", component_id);
-            auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
-            auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", GetImplId(component_id));
+            auto port_ids = graphml_parser_->FindImmediateChildren("OutEventPortInstance", component_id);
+            auto in_port_ids = graphml_parser_->FindImmediateChildren("InEventPortInstance", component_id);
+            auto periodic_ids = graphml_parser_->FindImmediateChildren("PeriodicEventInstance", component_id);
+            auto class_instance_ids = graphml_parser_->FindImmediateChildren("ClassInstance", component_id);
             port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
 
             //Set port info
@@ -301,6 +358,8 @@ bool ProtobufModelParser::Process(){
                     topic_pb->add_s(topic_name);
                 }
             }
+
+            //Handle Periodic Events
             for(const auto& periodic_id : periodic_ids){
                 std::string p_uid = component_uid + "_" + periodic_id;
                 auto port_pb = component_pb->add_ports();
@@ -308,17 +367,26 @@ bool ProtobufModelParser::Process(){
 
                 port_info_pb->set_id(p_uid);
                 port_info_pb->set_name(graphml_parser_->GetDataValue(periodic_id, "label"));
-
-                double freq = std::stod(graphml_parser_->GetDataValue(periodic_id, "frequency"));
-                auto freq_pb = port_pb->add_attributes();
-                auto freq_info_pb = freq_pb->mutable_info();
-
                 port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(periodic_id, "kind")));
 
-                freq_info_pb->set_name("frequency");
-                freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
-                freq_pb->set_d(freq);
+                //Fill the Attributes
+                FillProtobufAttributes(port_pb->mutable_attributes(), periodic_id, unique_id);
             }
+
+            //Handle Class Instances
+            for(const auto& class_instance_id : class_instance_ids){
+                std::string class_uid = component_uid + "_" + class_instance_id;
+                auto class_pb = component_pb->add_workers();
+                auto class_info_pb = class_pb->mutable_info();
+
+                class_info_pb->set_id(class_uid);
+                class_info_pb->set_name(graphml_parser_->GetDataValue(class_instance_id, "label"));
+                class_info_pb->set_type(graphml_parser_->GetDataValue(class_instance_id, "type"));
+                
+                //Fill the Attributes
+                FillProtobufAttributes(class_pb->mutable_attributes(), class_instance_id, unique_id);
+            }
+
             component_replications_[component_id].push_back(component_pb);
         }
     }
@@ -559,7 +627,7 @@ NodeManager::EventPort::Kind ProtobufModelParser::GetPortKind(const std::string&
         return NodeManager::EventPort::OUT_PORT;
     } else if(kind == "InEventPortInstance"){
         return NodeManager::EventPort::IN_PORT;
-    } else if(kind == "PeriodicEvent"){
+    } else if(kind == "PeriodicEventInstance"){
         return NodeManager::EventPort::PERIODIC_PORT;
     } else{
         std::cerr << "INVALID PORT KIND: " << kind << std::endl;
@@ -637,4 +705,16 @@ std::string ProtobufModelParser::GetUniquePrefix(int count){
         str += "_" + std::to_string(count);
     }
     return str;
+}
+
+void ProtobufModelParser::FillProtobufAttributes(google::protobuf::RepeatedPtrField<NodeManager::Attribute>* entity, const std::string& parent_id, const std::string& unique_id_suffix){
+    for(const auto& attribute_id : graphml_parser_->FindImmediateChildren("AttributeInstance", parent_id)){
+        auto attr_pb = entity->Add();
+        auto attr_info_pb = attr_pb->mutable_info();
+
+        attr_info_pb->set_id(attribute_id + unique_id_suffix);
+        attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
+
+        SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), attribute_value_map_[attribute_id]);
+    }
 }
