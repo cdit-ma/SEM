@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <set>
 
-class GraphmlParser;
+class GraphmlParserInt;
 namespace Graphml{
     //Forward Declare
     class HardwareNode;
@@ -55,7 +55,7 @@ namespace Graphml{
         private:
             std::string to_lower(const std::string& str);
             bool Process();
-            GraphmlParser* graphml_parser_;
+            GraphmlParserInt* graphml_parser_;
 
             std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
             std::string GetDefinitionId(const std::string& id);

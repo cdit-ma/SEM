@@ -6,6 +6,9 @@
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
 
+#include "graphmlparser.h"
+
+
 
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     experiment_id_ = experiment_id;
@@ -391,6 +394,7 @@ bool ProtobufModelParser::Process(){
         }
     }
     CalculateReplication();
+    return true;
 }
 
 void ProtobufModelParser::CalculateReplication(){

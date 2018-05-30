@@ -1,6 +1,6 @@
 #ifndef PROTOBUFMODELPARSER_H
 #define PROTOBUFMODELPARSER_H
-#include "graphmlparser.h"
+#include "graphmlparserint.h"
 #include <unordered_map>
 
 #include <google/protobuf/message_lite.h>
@@ -16,7 +16,7 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* ControlMessage();
 
     private:
-        std::unique_ptr<GraphmlParser> graphml_parser_;
+        std::unique_ptr<GraphmlParserInt> graphml_parser_;
         bool is_valid_;
         bool pre_process_success_;
         bool process_success_;

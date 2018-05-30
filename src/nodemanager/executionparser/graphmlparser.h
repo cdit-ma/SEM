@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "graphmlparserint.h"
 
-
-class GraphmlParser{
+class GraphmlParser : public GraphmlParserInt{
 
     public:
         GraphmlParser(const std::string& filename);
@@ -19,7 +19,7 @@ class GraphmlParser{
 
         std::string GetAttribute(const std::string& id, const std::string& attribute_name);
         std::string GetDataValue(const std::string& id, const std::string& key_name);
-        std::string GetParentNode(const std::string& id, uint depth);
+        std::string GetParentNode(const std::string& id, int depth);
         std::string GetParentNode(const std::string& id);
     private:
         bool legal_parse = false;

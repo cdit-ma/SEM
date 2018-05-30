@@ -6,7 +6,17 @@ project(${PROJ_NAME})
 
 #Find PUGIXML Library
 set(PUGIXML_ROOT $ENV{PUGIXML_ROOT})
-find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/lib)
+
+
+if(NOT PUGIXML_LIBRARIES)
+    # Find library RE_CORE_LIBRARIES
+    find_library(PUGIXML_LIBRARIES pugixml REQUIRED "${PUGIXML_ROOT}/lib")
+    
+	if(NOT PUGIXML_LIBRARIES)
+		message(STATUS "Cannot find PUGIXML cannot build ${PROJ_NAME}")
+		return()
+    endif()
+endif()
 
 find_package(Protobuf REQUIRED)
 

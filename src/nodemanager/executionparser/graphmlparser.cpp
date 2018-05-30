@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-GraphmlParser::GraphmlParser(const std::string& filename){
+GraphmlParser::GraphmlParser(const std::string& filename) : GraphmlParserInt(filename){
     auto result = doc.load_file(filename.c_str());
     legal_parse = result.status == pugi::status_ok;;
     if(!legal_parse){
@@ -132,7 +132,7 @@ std::string GraphmlParser::GetDataValue(const std::string& id, const std::string
     }
 }
 
-std::string GraphmlParser::GetParentNode(const std::string& id, uint depth){
+std::string GraphmlParser::GetParentNode(const std::string& id, int depth){
     std::string parent_id = id;
     
     while(depth != 0){
