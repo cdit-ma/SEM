@@ -19,7 +19,7 @@
         <xsl:param name="aggregate"/>
         <xsl:param name="middleware" as="xs:string" />
 
-        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
         <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
@@ -29,7 +29,7 @@
         
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'translate'), '_'))" />
 
-        <!-- Version Number -->
+        <!-- Preamble -->
         <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translate_h', 0)" />
 
         <!-- Define Guard -->
@@ -40,11 +40,8 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the base message type -->
-        <xsl:value-of select="cpp:comment(('Include the', o:wrap_quote('Base'), 'type'), 0)" />
-        <xsl:variable name="header_file" select="cdit:get_datatype_path('Base', $aggregate, concat(lower-case($aggregate_label), '.h'))"/>
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
 
-        <xsl:value-of select="cpp:include_local_header($header_file)" />
-        <xsl:value-of select="o:nl(1)" />
         <xsl:value-of select="cpp:comment(('Forward declare the', o:wrap_quote($middleware), 'type'), 0)" />
         <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, cpp:get_aggregate_type_name($aggregate), 0)" />
         <xsl:value-of select="o:nl(1)" />
@@ -107,19 +104,18 @@
         <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
         <xsl:value-of select="o:nl(1)" />
 
-        <!-- Include the middleware convert functions -->
+        <!-- Include the middleware translate functions -->
         <xsl:for-each select="$aggregate_definitions">
             <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Including required middleware convert functions', 0)" />
+                <xsl:value-of select="cpp:comment('Including required middleware translate functions', 0)" />
             </xsl:if>
-
-            <xsl:variable name="header_file" select="cdit:get_datatype_path($middleware, ., 'translate.h')" />
+            <xsl:variable name="path" select="cdit:get_aggregate_path($middleware, $aggregate)" />
+            <xsl:variable name="header_file" select="o:join_paths(($path, 'translate.h'))" />
+            
             <xsl:value-of select="cpp:include_local_header($header_file)" />
-
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
+            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
+
 
         <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
         <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('Base'), '->', o:wrap_quote($middleware)), 0)" />
@@ -165,9 +161,11 @@
         <xsl:param name="aggregate" />
 
         <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
+        <xsl:variable name="aggregate_definitions" select="cdit:get_required_aggregates($aggregate, true())" />
 
+        <!--<xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
+        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
+        -->
         <xsl:variable name="enum_instances" select="graphml:get_child_nodes_of_kind($aggregate, 'EnumInstance')" />
         <xsl:variable name="enums" select="graphml:get_definitions($enum_instances)" />
         
@@ -219,9 +217,8 @@
             </xsl:if>
         </xsl:for-each>
 
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="proto:package($aggregate_namespace)" />
-        </xsl:if>
+        <xsl:variable name="flattened_namespace" select="o:join_list($aggregate_namespace, '.')" />
+        <xsl:value-of select="proto:package($flattened_namespace)" />
 
         <xsl:value-of select="proto:message($proto_label)" />
         
@@ -429,7 +426,7 @@
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
 
         <!-- Get all required aggregates -->
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate)" />
+        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, false())" />
         
         <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
         <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
@@ -454,7 +451,7 @@
         <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(($middleware, $aggregate_namespace, $aggregate_label))" />
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', $middleware, $aggregate_namespace, $aggregate_label))" />
 
 
         <!-- Version Number -->
@@ -493,8 +490,7 @@
                 <xsl:variable name="required_aggregate_namespace" select="graphml:get_data_value(., 'namespace')" />
 
                 
-                <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                <xsl:variable name="required_file" select="o:join_paths(($relative_path, cmake:get_aggregates_middleware_file_path(., $middleware)))" />
+                <xsl:variable name="required_file" select="o:join_paths(($relative_path, 'datatypes', $middleware, cmake:get_aggregates_middleware_file_path(., $middleware)))" />
                 <xsl:value-of select="cmake:configure_file($required_file, $binary_dir_var)" />
 
                 <xsl:if test="position() = last()">
@@ -709,7 +705,7 @@
         <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_aggregate_base_h', 0)" />
 
         <!-- Get all required aggregates -->
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate)" />
+        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, true())" />
 
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label), '_'))" />
 
@@ -728,18 +724,7 @@
             <xsl:value-of select="cpp:include_library_header('vector')" />
         </xsl:if>
 
-        <!-- Import the definitions of each aggregate instance used -->
-        <xsl:for-each select="$required_aggregates">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Include required base Aggregate header files', 0)" />
-            </xsl:if>
-            <xsl:variable name="required_file" select="cdit:get_base_aggregate_h_path(.)" />
-            <xsl:value-of select="cpp:include_local_header(o:join_paths(($relative_path, $required_file)))" />
-            
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $required_aggregates)" />
 
         <!-- Import the definitions of each enum instances used -->
         <xsl:for-each select="$enums">
@@ -791,7 +776,7 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         
 
-        <!-- Version Number -->
+        <!-- Preamble -->
         <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_port_export', 0)" />
         
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'libportexport.h')))" />
@@ -799,11 +784,7 @@
         <!-- TODO -->
 
          <!-- Include the base message type -->
-        <xsl:value-of select="cpp:comment(('Include the', o:wrap_quote('Base'), 'type'), 0)" />
-        <xsl:variable name="header_file" select="cdit:get_datatype_path('Base', $aggregate, concat(lower-case($aggregate_label), '.h'))"/>
-
-        <xsl:value-of select="cpp:include_local_header($header_file)" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
 
         <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
 
@@ -924,8 +905,8 @@
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate)" />
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
+        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, true())" />
 
         <!-- Include the required aggregate files -->
         <xsl:if test="count($required_aggregates) > 0">

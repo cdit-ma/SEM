@@ -150,6 +150,11 @@
                 <xsl:value-of select="cdit:get_components_cmake($component_impls_to_generate)" />
             </xsl:result-document>
 
+            <!-- Generate the Component CMakeFile -->
+            <xsl:result-document href="{o:write_file(('classes', cmake:cmake_file()))}">
+                <xsl:value-of select="cdit:get_components_cmake($classes)" />
+            </xsl:result-document>
+
             <!-- Generate the top level cmake file -->
             <xsl:result-document href="{o:write_file(cmake:cmake_file())}">
                 <xsl:value-of select="cdit:get_top_cmake()" />

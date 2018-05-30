@@ -323,15 +323,11 @@
 
         <xsl:variable name="pruned_namespaces" as="xs:string*" select="o:trim_list($namespaces)" />
 
-        <xsl:for-each select="$pruned_namespaces">
-            <xsl:value-of select="cpp:namespace_start(., $tab + position() -1)" />
-        </xsl:for-each>
+        <xsl:value-of select="cpp:define_namespaces($pruned_namespaces)" />
 
         <xsl:value-of select="concat(o:t($tab + count($pruned_namespaces)), 'class ', $class_name, ';', o:nl(1))" />
 
-        <xsl:for-each select="$pruned_namespaces">
-            <xsl:value-of select="cpp:namespace_end(., $tab + position() -1)" />
-        </xsl:for-each>
+        <xsl:value-of select="cpp:close_namespaces($pruned_namespaces)" />
     </xsl:function>
     
     <!--

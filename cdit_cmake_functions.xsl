@@ -271,19 +271,12 @@
 
     <xsl:function name="cmake:target_link_aggregate_libraries">
         <xsl:param name="entity" as="element()" />
-        <xsl:param name="relative_path_to_root" as="xs:string" />
 
-        <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
-
+        <xsl:variable name="source_dir_var" select="cmake:current_source_dir_var()" />
 
         <!-- Include the headers once for each worker type -->
-        <xsl:for-each-group select="cdit:get_required_aggregates($entity)" group-by="graphml:get_definition(.)">
+        <xsl:for-each-group select="cdit:get_required_aggregates($entity, true())" group-by="graphml:get_definition(.)">
             <xsl:if test="position() = 1">
-                <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
-                <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path_to_root, 'datatypes', 'base'))" />
-                <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
-                <xsl:value-of select="o:nl(1)" />
-
                 <xsl:value-of select="cmake:comment('Include Aggregate Libraries', 0)" />
             </xsl:if>
 

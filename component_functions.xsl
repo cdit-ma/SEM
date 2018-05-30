@@ -73,19 +73,7 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
-    <xsl:function name="cdit:include_base_aggregate_headers">
-        <xsl:param name="aggregates" as="element()*" />
-
-        <xsl:for-each select="$aggregates">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Include required base Aggregate header files', 0)" />
-            </xsl:if>
-            
-            <xsl:variable name="header_file" select="cdit:get_base_aggregate_h_path(.)" />
-            <xsl:value-of select="cpp:include_local_header($header_file)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
-        </xsl:for-each>
-    </xsl:function>
+    
 
     <xsl:function name="cdit:include_worker_headers">
         <xsl:param name="worker_instances" as="element()*" />
@@ -177,7 +165,7 @@
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('COMPONENT', $namespaces, $class_type), '_'))" />
 
         <!-- Get the required aggregates, exclude Aggregates for the Interface -->
-        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component)" />
+        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component, true())" />
 
         <!-- Get the children required for generation -->
         <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'InEventPort')" />
@@ -208,7 +196,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_base_aggregate_headers($aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
 
         <!-- Define the Namespaces -->
         <xsl:value-of select="cpp:define_namespaces($namespaces)" />
@@ -377,7 +365,7 @@
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('COMPONENT', $namespaces, $impl_class_type), '_'))" />
         
         <!-- Get the required aggregates, exclude Aggregates for the Interface -->
-        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component_impl) except cdit:get_required_aggregates($component_definition)" />
+        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component_impl, true()) except cdit:get_required_aggregates($component_definition, false())" />
 
         <!-- Get the children required for generation -->
         <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicEvent')" />
@@ -399,7 +387,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_base_aggregate_headers($aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
         
         <!-- Include the Worker Headers -->
         <xsl:value-of select="cdit:include_worker_headers($worker_instances)" />
@@ -515,7 +503,7 @@
         <xsl:variable name="class_label" select="graphml:get_label($class)" />
 
         <!-- Compute the name of the classes -->
-        <xsl:variable name="class_type" select="o:title_case(concat('Class_', $class_label))" />
+        <xsl:variable name="class_type" select="o:title_case($class_label)" />
         <xsl:variable name="qualified_class_type" select="cpp:combine_namespaces(($namespaces, $class_type))" />
         
         <!-- Get the children required for generation -->
@@ -530,7 +518,7 @@
 
         <!-- Include Header -->
         <xsl:variable name="header_file" select="lower-case(concat($qualified_class_type, '.h'))" />
-        <xsl:value-of select="cpp:include_library_header($header_file)" />
+        <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Inject the Code in Header of type [CPP] -->
@@ -543,8 +531,9 @@
         </xsl:for-each>
 
         <!-- Define the Constructor-->
-        <xsl:variable name="inherited_constructor" select="' : ::Worker(name)'" />
-        <xsl:value-of select="cpp:define_function('', $qualified_class_type, $class_type, cpp:const_ref_var_def('std::string', 'name'), concat($inherited_constructor, cpp:scope_start(0)))" />
+        <xsl:variable name="inherited_constructor" select="concat(' : ::Worker(container, ', o:wrap_dblquote($qualified_class_type), ', inst_name, false)')" />
+        <xsl:variable name="args" select="cpp:join_args((cpp:const_ref_var_def('::BehaviourContainer', 'container'), cpp:const_ref_var_def('std::string', 'inst_name')))" />
+        <xsl:value-of select="cpp:define_function('', $qualified_class_type, $class_type, $args, concat($inherited_constructor, cpp:scope_start(0)))" />
             <!-- Define Worker Variables -->
             <xsl:for-each select="$worker_instances">
                 <xsl:if test="position() = 1">
@@ -599,7 +588,7 @@
         <xsl:variable name="label" select="graphml:get_label($class)" />
 
         <!-- Compute the name of the Impl/Int classes -->
-        <xsl:variable name="class_type" select="concat('Class_', o:title_case($label))" />
+        <xsl:variable name="class_type" select="o:title_case($label)" />
         <xsl:variable name="qualified_class_type" select="cpp:combine_namespaces(($namespaces, $class_type))" />
 
         <!-- Compute the define guard -->
@@ -613,7 +602,7 @@
         <xsl:variable name="attributes" select="graphml:get_child_nodes_of_kind($class, 'Attribute')" />
 
         <!-- Get the required aggregates -->
-        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($class)" />
+        <xsl:variable name="aggregates" select="cdit:get_required_aggregates($class, true())" />
 
         <!-- Get the children required for generation -->
         <xsl:variable name="class_instances" select="graphml:get_child_nodes_of_kind($class, 'ClassInstance')" />
@@ -632,7 +621,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_base_aggregate_headers($aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
         
         <!-- Include the Worker Headers -->
         <xsl:value-of select="cdit:include_worker_headers($worker_instances)" />
@@ -658,9 +647,15 @@
 
         <!-- Public Declarations -->
         <xsl:value-of select="cpp:public($tab + 1)" />
+
+        <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
+
+
+        
         
         <!-- Constructor Declaration -->
-        <xsl:value-of select="cpp:declare_function('', $class_type, cpp:const_ref_var_def('std::string', 'name'), ';', $tab + 2)" />
+        <xsl:variable name="args" select="cpp:join_args((cpp:const_ref_var_def('::BehaviourContainer', 'container'), cpp:const_ref_var_def('std::string', 'inst_name')))" />
+        <xsl:value-of select="cpp:declare_function('', $class_type, $args, ';', $tab + 2)" />
 
         <!-- Function Declarations -->
         <xsl:for-each select="$functions">
@@ -752,7 +747,7 @@
 
         <!-- Include Header -->
         <xsl:variable name="header_file" select="lower-case(concat($impl_class_type, '.h'))" />
-        <xsl:value-of select="cpp:include_library_header($header_file)" />
+        <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Inject the Code in Header of type [CPP] -->
@@ -1306,10 +1301,12 @@
 
         <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
         <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
-        <xsl:variable name="worker_function_def" select="graphml:get_definition($worker_function_inst)" />
+        <xsl:variable name="worker_function_def" select="graphml:get_definition($node)" />
         <xsl:variable name="worker_def" select="graphml:get_definition($worker_inst)" />
         <xsl:variable name="function_parent" select="graphml:get_parent_node($worker_function_def)" />
         <xsl:variable name="function_parent_kind" select="graphml:get_kind($function_parent)" />
+
+        <xsl:variable name="is_worker" select="graphml:is_class_instance_worker($function_parent)" />
 
         
 
@@ -1321,7 +1318,18 @@
             <!-- TODO -->
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="operation" select="graphml:get_data_value($worker_function_def, 'operation')" />
+                <xsl:variable name="operation">
+                    <xsl:choose>
+                        <xsl:when test="$is_worker">
+                            <xsl:value-of select="graphml:get_data_value($worker_function_def, 'operation')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="concat('Fn_', graphml:get_data_value($worker_function_def, 'operation'))" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                
 
                 <xsl:variable name="arguments" as="xs:string*">
                     <xsl:choose>
@@ -1539,7 +1547,11 @@
             <xsl:when test="$kind = 'FunctionCall'">
                 <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
                 <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
-                <xsl:value-of select="cdit:variablize_value(graphml:get_data_value($worker_inst, 'label'))"/>
+
+                <xsl:if test="not(graphml:is_descendant_of($worker_inst, $node))">
+                    <xsl:value-of select="cdit:variablize_value(graphml:get_data_value($worker_inst, 'label'))"/>
+                </xsl:if>
+
             </xsl:when>
             <xsl:when test="$kind = 'Variable' and ($parent_kind = 'Class' or $parent_kind = 'ComponentImpl')">
                 <xsl:value-of select="cdit:variablize_value(graphml:get_label($node))"/>
@@ -1687,6 +1699,10 @@
                 <xsl:value-of select="cdit:generate_member_code($node, $tab)" />
             </xsl:when>
 
+            <xsl:when test="$kind = 'Vector' or $kind = 'VectorInstance'">
+                <xsl:value-of select="cdit:generate_member_code($node, $tab)" />
+            </xsl:when>
+
             <xsl:otherwise>
                 <xsl:value-of select="o:warning(('cdit:generate_workflow_code()', 'Node Kind:', o:wrap_quote($kind), 'Not Implemented'))" />
             </xsl:otherwise>
@@ -1750,7 +1766,7 @@
 
         <!-- Get the label and Namespace -->
         <xsl:variable name="definition" select="graphml:get_definition($entity)" />
-        <xsl:variable name="kind" select="lower-case(graphml:get_kind($definition))" />
+        <xsl:variable name="kind" select="graphml:get_kind($definition)" />
         <xsl:variable name="label" select="lower-case(graphml:get_label($definition))" />
         <xsl:variable name="namespace" select="graphml:get_namespace($definition)" />
 
@@ -1771,11 +1787,12 @@
         <xsl:value-of select="cmake:find_re_core_library()" />
 
         <!-- Get the source files -->
-        <xsl:variable name="source_files">
+        <xsl:variable name="source_files" as="xs:string*">
             <xsl:choose>
             <xsl:when test="$kind = 'Component'">
-                <xsl:sequence select = "concat($label, 'Impl.cpp')" />
-                <xsl:sequence select = "concat($label, 'Int.cpp')" />
+                <xsl:sequence select = "concat($label, 'impl.cpp')" />
+                <xsl:sequence select = "concat($label, 'int.cpp')" />
+                <xsl:sequence select = "'libcomponentexport.cpp'" />
             </xsl:when>
             <xsl:when test="$kind = 'Class'">
                 <xsl:sequence select = "concat($label, '.cpp')" />
@@ -1784,11 +1801,11 @@
         </xsl:variable>
 
         <!-- Get the header files -->
-        <xsl:variable name="header_files">
+        <xsl:variable name="header_files" as="xs:string*">
             <xsl:choose>
             <xsl:when test="$kind = 'Component'">
-                <xsl:sequence select = "concat($label, 'Impl.h')" />
-                <xsl:sequence select = "concat($label, 'Int.h')" />
+                <xsl:sequence select = "concat($label, 'impl.h')" />
+                <xsl:sequence select = "concat($label, 'int.h')" />
             </xsl:when>
             <xsl:when test="$kind = 'Class'">
                 <xsl:sequence select = "concat($label, '.h')" />
@@ -1826,17 +1843,22 @@
         <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', $library_type, $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
 
-        <xsl:value-of select="cmake:comment('Link against runtime environment', 0)" />
+        <xsl:value-of select="cmake:comment('Include top level source dirs', 0)" />
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(($kind, $namespace, $label))" />
+        <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path))" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Include Runtime Environment -->
+        <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(($kind, $namespace, $label))" />
 
         <!-- Include Required Aggregates -->
-        <xsl:value-of select="cmake:target_link_aggregate_libraries($entity, $relative_path)" />
+        <xsl:value-of select="cmake:target_link_aggregate_libraries($entity)" />
 
         <!-- Link Worker Libraries -->
         <xsl:value-of select="cmake:target_link_worker_libraries($entity)" />

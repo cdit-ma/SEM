@@ -114,7 +114,7 @@
     <!--
         Gets the 'type' data value from the entity
     -->
-    <xsl:function name="graphml:get_type" as="xs:string?">
+    <xsl:function name="graphml:get_type" as="xs:string">
         <xsl:param name="entity" as="element()?" />
         <xsl:value-of select="graphml:get_data_value($entity, 'type')" />
     </xsl:function>
@@ -248,6 +248,13 @@
         <xsl:sequence select="$node//gml:node" />
     </xsl:function>
 
+    <xsl:function name="graphml:is_descendant_of" as="xs:boolean">
+        <xsl:param name="node_1" as="element(gml:node)" />
+        <xsl:param name="node_2" as="element(gml:node)" />
+
+        <xsl:value-of select="$node_2 = graphml:get_descendant_nodes($node_1)" />
+    </xsl:function>
+
 
     <!--
         Gets descendant nodes of the node provided, of a particular 'kind'(s)
@@ -338,6 +345,23 @@
         <xsl:if test="count($targets) = 0">
             <xsl:sequence select="$node" />
         </xsl:if>
+    </xsl:function>
+
+    <!--
+        Gets the Impl of the node provided, will recurse to the first definition
+    -->
+    <xsl:function name="graphml:get_impl" as="element(gml:node)?">
+        <xsl:param name="node" as="element(gml:node)?" />
+
+        <xsl:variable name="definition" select="graphml:get_definition($node)" />
+
+        <xsl:for-each select="graphml:get_sources($definition, 'Edge_Definition')">
+            <xsl:variable name="kind" select="graphml:get_kind(.)" />
+            
+            <xsl:if test="ends-with($kind, 'Impl')">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
     <!--

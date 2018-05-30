@@ -14,6 +14,9 @@
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 
     <!-- Load in Functions -->
+    
+    <xsl:import href="component_functions.xsl"/>
+
     <xsl:import href="general_functions.xsl"/>
     <xsl:import href="cpp_functions.xsl"/>
     <xsl:import href="cmake_functions.xsl"/>
