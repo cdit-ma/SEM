@@ -1,4 +1,5 @@
 #include "environmentrequester.h"
+#include <zmq.hpp>
 #include <controlmessage.pb.h>
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id,
