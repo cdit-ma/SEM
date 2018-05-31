@@ -24,9 +24,6 @@ namespace zmq{
             bool HandleTerminate();
         private:
             void recv_loop();
-            
-
-            
 
             std::thread* recv_thread_ = 0;
             std::string terminate_endpoint_;
@@ -50,7 +47,8 @@ zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::str
 ::InEventPort<T>(component, name, callback_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
-    terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*";
+    auto component_id = component_ ? component_->get_id() : "??";
+    terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*" + component_id + "*";
 
     end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };
