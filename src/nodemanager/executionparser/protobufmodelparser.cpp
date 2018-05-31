@@ -499,7 +499,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
         std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
         kind = NodeManager::Attribute::STRING;
     }
-
+    attr_pb->set_kind(kind);
     switch(kind){
         case NodeManager::Attribute::FLOAT:
         case NodeManager::Attribute::DOUBLE:{
