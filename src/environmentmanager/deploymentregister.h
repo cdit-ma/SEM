@@ -4,7 +4,6 @@
 #include <thread>
 #include <unordered_map>
 #include <set>
-#include <zmq.hpp>
 #include <mutex>
 #include <future>
 #include "environment.h"
@@ -13,6 +12,9 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <re_common/util/execution.hpp>
 
+namespace zmq{
+    class context_t;
+};
 
 class DeploymentRegister{
     public:
