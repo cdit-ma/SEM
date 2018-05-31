@@ -39,6 +39,7 @@ class DeploymentContainer : public Activatable{
         bool HandleTerminate();
         bool HandleConfigure();
     private:
+        std::string GetNamespaceString(const NodeManager::EventPort& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
         std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
