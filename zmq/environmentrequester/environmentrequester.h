@@ -6,12 +6,17 @@
 #include <thread>
 #include <queue>
 #include <future>
-#include <zmq.hpp>
+
 
 namespace NodeManager{
     class ControlMessage;
     class EnvironmentMessage;
 };
+
+namespace zmq{
+    class context_t;
+    class socket_t;
+}
 
 
 class EnvironmentRequester{
