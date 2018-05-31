@@ -175,12 +175,11 @@ withEnv(["model=''"]){
 
                     shared_args += " -n " + experimentName
                     shared_args += " -e " + environmentManagerAddress
+                    shared_args += " -a " + ipAddr
 
-                    slave_args += " -s " + ipAddr
                     slave_args += " -l . "
 
                     if(nodeName == masterNode){
-                        master_args += " -m " + ipAddr
                         master_args += " -t " + executionTime
                         master_args += " -d " + file
                     }

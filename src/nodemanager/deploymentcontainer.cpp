@@ -12,7 +12,10 @@
 #include <list>
 #include <thread>
 
+#include <sstream>
+#include <iterator>
 #include <future>
+
 //Converts std::string to lower
 std::string to_lower(std::string str){
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -105,6 +108,21 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     return component;
 }
 
+std::string DeploymentContainer::GetNamespaceString(const NodeManager::EventPort& port){
+    std::ostringstream concatenated_stream;
+    
+    const auto& namespaces = port.namespaces();
+    for(int i = 0; i < namespaces.size(); i++){
+        concatenated_stream << namespaces.Get(i);
+        if(i + 1 < namespaces.size()){
+            concatenated_stream << '_';
+        }
+    }
+    
+
+    return concatenated_stream.str();
+}
+
 std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb){
     std::shared_ptr<EventPort> eventport;
 
@@ -115,15 +133,17 @@ std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shar
         //Try get the port
         eventport = component->GetEventPort(eventport_info_pb.name()).lock();
         
+        
+        const auto namespace_str = GetNamespaceString(eventport_pb);
 
         if(!eventport){
             switch(eventport_pb.kind()){
                 case NodeManager::EventPort::IN_PORT:{
-                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
                     break;
                 }
                 case NodeManager::EventPort::OUT_PORT:{
-                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
                     break;
                 }
                 case NodeManager::EventPort::PERIODIC_PORT:{

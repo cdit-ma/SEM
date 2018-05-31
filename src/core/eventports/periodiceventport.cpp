@@ -12,7 +12,7 @@ PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::st
     SetMaxQueueSize(1);
 
     //Construct an attribute called frequency
-    frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "frequency").lock();
+    frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "Frequency").lock();
     if(frequency_){
         frequency_->set_Double(0);
     }
