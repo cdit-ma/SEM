@@ -86,9 +86,10 @@ void Experiment::AddNode(const NodeManager::Node& node){
             event_port.port_number = environment_.GetPort(node_name);
             event_port.node_name = node_name;
 
-            for(const auto& ns : port.namespaces()){
+            for(const auto& ns : port.info().namespaces()){
                 event_port.type += ns + "::";
             }
+
             event_port.type += port.info().type();
 
             std::cerr << event_port.id << " " << event_port.type << std::endl;

@@ -37,7 +37,7 @@ Component::Component(const std::string& component_name){
 
 Component::~Component(){
     Activatable::Terminate();
-    std::lock_guard<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> lock(port_mutex_);
     //Destory Ports
     eventports_.clear();
 }

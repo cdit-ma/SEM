@@ -295,6 +295,7 @@ bool ProtobufModelParser::Process(){
             if(hardware_id.empty() || component_id.empty() || !node_pb){
                 continue;
             }
+            auto component_def_id = GetDefinitionId(component_id);
 
             //Set component info
             auto component_pb = node_pb->add_components();
@@ -303,7 +304,12 @@ bool ProtobufModelParser::Process(){
             component_info_pb->set_id(component_uid);
             std::string component_name = graphml_parser_->GetDataValue(component_id, "label") + unique_id;
             component_info_pb->set_name(component_name);
-            component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
+            component_info_pb->set_type(graphml_parser_->GetDataValue(component_def_id, "label"));
+
+            //Copy in the new namespaces
+            for(auto ns : GetNamespace(component_def_id)){
+                component_info_pb->add_namespaces(ns);
+            }
 
             //Fill the Attributes
             FillProtobufAttributes(component_pb->mutable_attributes(), component_id, unique_id);
@@ -328,7 +334,7 @@ bool ProtobufModelParser::Process(){
 
                 //Copy in the new namespaces
                 for(auto ns : GetNamespace(aggregate_id)){
-                    port_pb->add_namespaces(ns);
+                    port_info_pb->add_namespaces(ns);
                 }
 
                 if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
