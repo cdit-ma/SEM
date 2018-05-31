@@ -85,8 +85,7 @@ target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protoreceiver)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_execution_parser_lib)
-
-#target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
+target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
 target_link_libraries(${RE_NODE_MANAGER_LIB} environment_manager_lib)
 
 target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
