@@ -43,8 +43,11 @@ add_executable(${ENVIRONMENT_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/environmentman
 
 
 if (MSVC)
-#Windows requires protobuf in DLLs
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    #Windows requires protobuf in DLLs
+    target_compile_definitions(${ENVIRONMENT_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
     target_compile_definitions(${ENVIRONMENT_MANAGER} PRIVATE -DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${ENVIRONMENT_MANAGER_LIB} PRIVATE -DPROTOBUF_USE_DLLS)
 elseif(UNIX)
     target_link_libraries(${ENVIRONMENT_MANAGER} pthread)
     target_link_libraries(${ENVIRONMENT_MANAGER} dl)

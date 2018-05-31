@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <exception>
+#include <zmq.hpp>
 
 DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
                                         int portrange_min, int portrange_max) : execution_(exe){
