@@ -112,7 +112,8 @@ message EventPort{
     Kind kind = 2;
     Middleware middleware = 3;
     repeated Attribute attributes = 4;
-    string namespace_name = 5;
+
+    repeated string namespaces = 5;
     string port_guid = 6;
     repeated string connected_ports = 7;
     Visibility visibility = 8;
