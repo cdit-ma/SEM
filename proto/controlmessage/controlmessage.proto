@@ -58,6 +58,7 @@ message Info{
     string name = 1;
     string id = 2;
     string type = 3;
+    repeated string namespaces = 4;
 }
 
 message Node{
@@ -113,7 +114,7 @@ message EventPort{
     Middleware middleware = 3;
     repeated Attribute attributes = 4;
 
-    repeated string namespaces = 5;
+    
     string port_guid = 6;
     repeated string connected_ports = 7;
     Visibility visibility = 8;
