@@ -22,6 +22,7 @@ public:
 
     static QList<QVariant> GetValidPrimitiveTypes();
     static QList<QVariant> GetValidNumberTypes();
+    static QVariant GetDefaultPrimitiveType();
 
     static QString GetCPPPrimitiveType(const QString& type);
     

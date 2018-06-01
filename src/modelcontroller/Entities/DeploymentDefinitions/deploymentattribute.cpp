@@ -26,8 +26,9 @@ MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, b
     }
 
     //Setup Data
-    auto type_data = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED, TypeKey::GetDefaultPrimitiveType());
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
+
     broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
 }

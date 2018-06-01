@@ -10,6 +10,7 @@ void PeriodicEventInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroke
         return new PeriodicEventInstance(broker, is_temp_node);
         });
 }
+#include <QDebug>
 
 PeriodicEventInstance::PeriodicEventInstance(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
@@ -24,6 +25,10 @@ PeriodicEventInstance::PeriodicEventInstance(EntityFactoryBroker& broker, bool i
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::UNPROTECTED, 1);
     broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
+
+    auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INSTANCE);
+    broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
+    broker.AttachData(frequency, "value", QVariant::String, ProtectedState::UNPROTECTED, 1);
 }
 
 bool PeriodicEventInstance::canAdoptChild(Node* child)

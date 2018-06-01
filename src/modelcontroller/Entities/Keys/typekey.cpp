@@ -11,10 +11,16 @@ TypeKey::TypeKey(EntityFactoryBroker& broker): Key(broker, "type", QVariant::Str
 
 QList<QVariant> TypeKey::GetValidPrimitiveTypes(){
     QList<QVariant> vals;
+
     for(const auto& val : GetPrimitiveTypes()){
         vals += val;
     }
+    std::sort(vals.begin(), vals.end());
     return vals;
+}
+
+QVariant TypeKey::GetDefaultPrimitiveType(){
+    return "String";
 }
 
 QList<QVariant> TypeKey::GetValidNumberTypes(){
@@ -86,9 +92,9 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
                 new_type = "";
             }
         }
+        
     }
-    
-    return new_type;
+    return Key::validateDataChange(data, new_type);
 }
 
 #include <QDebug>

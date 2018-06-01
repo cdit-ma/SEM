@@ -13,7 +13,7 @@ void AttributeInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
         });
 }
 
-AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::ATTRIBUTE);
     setChainableDefinition();
