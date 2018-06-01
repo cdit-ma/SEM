@@ -4,8 +4,17 @@
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id,
                                             EnvironmentRequester::DeploymentType deployment_type){
+    //TODO: Check valid manager_address
     manager_address_ = manager_address;
+
+    if(experiment_id.empty()){
+        throw std::invalid_argument("Empty experiment id.");
+    }
     experiment_id_ = experiment_id;
+
+    if(deployment_type != DeploymentType::RE_MASTER && deployment_type != DeploymentType::LOGAN_CLIENT){
+        throw std::invalid_argument("Invalid deployment type");
+    }
     deployment_type_ = deployment_type;
 }
 
@@ -108,7 +117,7 @@ uint64_t EnvironmentRequester::GetClock(){
 void EnvironmentRequester::HeartbeatLoop() noexcept{
     if(!context_){
         std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
-        return;
+        assert(false);
     }
 
     zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
@@ -135,12 +144,11 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             initial_message.set_type(NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT);
             break;
         }
-
         default:{
-            throw std::invalid_argument("Unknown deployment type in EnvironmentRequester::HeartbeatLoop!");
+            std::cerr << "Deployment type invalid in EnvironmentRequester::HeartbeatLoop" << std::end;
+            assert(true);
         }
     }
-
 
     initial_message.set_experiment_id(experiment_id_);
 
