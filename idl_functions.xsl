@@ -60,6 +60,55 @@
     </xsl:function>
 
     <!--
+        Produces a union member definition
+        ie. case ${case_index}: ${type} ${label};
+    -->
+    <xsl:function name="idl:union_member" as="xs:string">
+        <xsl:param name="case_index" as="xs:string" />
+        <xsl:param name="type" as="xs:string" />
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        
+        <xsl:value-of select="concat(o:t($tab), 'case ', $case_index, ': ', $type, ' ', $label, cpp:nl())" />
+    </xsl:function>
+
+    <!--
+        Produces a union definition
+        ie. union ${label} switch(long) {
+    -->
+    <xsl:function name="idl:union" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="union_type" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'union ', $label, ' switch', o:wrap_bracket($union_type), cpp:scope_start(0))" />
+    </xsl:function>
+
+    
+
+    <!--
+        Produces a interface definition
+        ie. interface ${label} {
+    -->
+    <xsl:function name="idl:interface" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'interface ', $label, cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a interface definition
+        ie. interface ${label} {
+    -->
+    <xsl:function name="idl:function" as="xs:string">
+        <xsl:param name="function_name" as="xs:string" />
+        <xsl:param name="return_type" as="xs:string" />
+        <xsl:param name="input_parameters" as="xs:string" />
+        <xsl:param name="one_way" as="xs:boolean" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), if($one_way) then 'oneway' else '', $return_type, ' ', $function_name, o:wrap_bracket($input_parameters), cpp:nl())" />
+    </xsl:function>
+
+    <!--
         Produces key pragma for RTI
         ie. // @key
     -->
@@ -133,5 +182,40 @@
                 <xsl:value-of select="o:warning(('Unhandled CPP to IDL conversion', o:wrap_quote($cpp_type)))" />
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="idl:get_enum">
+        <xsl:param name="enum_namespace" as="xs:string" />
+        <xsl:param name="enum_label" as="xs:string" />
+        <xsl:param name="enum_members" as="xs:string*" />
+        <xsl:param name="tab" />
+
+        <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label, 'IDL', 'ENUM'), '_'))" />
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_start($enum_guard_name)" />
+
+
+        <xsl:variable name="enum_tab" select="if($enum_namespace = '') then $tab else $tab + 1" />
+
+
+        <xsl:if test="$enum_namespace != ''">
+            <xsl:value-of select="idl:module($enum_namespace)" />
+        </xsl:if>
+
+        <xsl:value-of select="idl:enum($enum_label, $enum_tab)" />
+            <xsl:for-each select="$enum_members">
+                <xsl:variable name="enum_member_label" select="upper-case(.)" />
+                <xsl:value-of select="idl:enum_value($enum_member_label, position() = last(), $enum_tab + 1)" />
+            </xsl:for-each>
+        <xsl:value-of select="cpp:scope_end($tab)" />
+
+        <xsl:if test="$enum_namespace != ''">
+            <xsl:value-of select="cpp:scope_end($enum_tab)" />
+        </xsl:if>
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />
+        <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 </xsl:stylesheet>

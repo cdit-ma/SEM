@@ -334,7 +334,7 @@
 
         <!-- Define Attribute Functions -->
         <xsl:for-each select="$attributes">
-            <xsl:value-of select="cdit:define_datatype_functions(., $qualified_class_type)" />
+            <xsl:value-of select="cdit:define_datatype_functions(., $component, $qualified_class_type)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -574,7 +574,7 @@
 
         <!-- Define Attribute Functions -->
         <xsl:for-each select="$attributes">
-            <xsl:value-of select="cdit:define_datatype_functions(., $qualified_class_type)" />
+            <xsl:value-of select="cdit:define_datatype_functions(., $class, $qualified_class_type)" />
         </xsl:for-each>
     </xsl:function>
 

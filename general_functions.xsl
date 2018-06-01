@@ -155,6 +155,18 @@
     </xsl:function>
 
     <!--
+        uncaptilizes the first letter of the string provided
+        ie. 'Gello' -> 'hello'
+    -->
+    <xsl:function name="o:untitle_case" as="xs:string">
+        <xsl:param name="str" as="xs:string"  />
+
+        <xsl:if test="string-length($str) > 0">
+            <xsl:value-of select="concat(lower-case(substring($str, 1, 1)), substring($str, 2))" />
+        </xsl:if>
+    </xsl:function>
+
+    <!--
         Concatenates the path provided, and produces a xsl:message saying that the file is to be written.
         Useful for showing the written files from a transform.
     -->

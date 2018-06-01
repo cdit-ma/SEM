@@ -15,16 +15,19 @@
         
         <xsl:choose>
             <xsl:when test="$middleware_lc = 'rti'">
-                <xsl:value-of select="'RTIDDS'" />
+                <xsl:value-of select="'RTI_DDS'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'ospl'">
-                <xsl:value-of select="'OSPL'" />
+                <xsl:value-of select="'OSPL_DDS'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'qpid'">
                 <xsl:value-of select="'QPID'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'zmq'">
                 <xsl:value-of select="'ZMQ'" />
+            </xsl:when>
+            <xsl:when test="$middleware_lc = 'tao'">
+                <xsl:value-of select="'TAO'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'proto'">
                 <xsl:value-of select="'Protobuf'" />
@@ -35,10 +38,6 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-
-    
-
-    
 
     <xsl:function name="cmake:find_middleware_package">
         <xsl:param name="middleware" />
@@ -56,10 +55,36 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
+    <xsl:function name="cmake:find_middleware_helper">
+        <xsl:param name="middleware" />
+
+        <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
+        <xsl:variable name="helper_lib" select="lower-case(concat($package_name, '_helper'))" />
+        <xsl:variable name="helper_var" select="concat(upper-case($helper_lib), '_LIBRARIES')" />
+
+        <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_path('lib'))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:find_library_safe">
+        <xsl:param name="lib_var" as="xs:string" />
+        <xsl:param name="lib_name" as="xs:string" />
+        <xsl:param name="lib_path" as="xs:string" />
+        
+        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 0)" />
+        <xsl:value-of select="cmake:find_library($lib_var, $lib_name , $lib_path , 1)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 1)" />
+        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $lib_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
+        <xsl:value-of select="cmake:return(2)" />
+        <xsl:value-of select="cmake:if_end('', 1)" />
+        <xsl:value-of select="cmake:if_end('', 0)" />
+        <xsl:value-of select="o:nl(1)" /> 
+    </xsl:function>
+
+
     <xsl:function name="cmake:find_re_core_library">
         <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_library('re_core', 'RE_CORE_LIBRARIES', cmake:get_re_path('lib'))" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:find_library_safe('RE_CORE_LIBRARIES', 're_core', cmake:get_re_path('lib'))" />
     </xsl:function>
 
     <xsl:function name="cdit:build_module_library" as="xs:boolean">
@@ -68,7 +93,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base' or $middleware_lc = 'tao'">
                 <xsl:value-of select="false()" />
             </xsl:when>
             <xsl:otherwise>
@@ -83,7 +108,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'ospl'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'ospl' or $middleware_lc = 'tao'">
                 <xsl:value-of select="true()" />
             </xsl:when>
             <xsl:otherwise>
@@ -165,27 +190,15 @@
         <xsl:param name="file" as="xs:string" />
         <xsl:param name="middleware" as="xs:string" />
 
+        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
-        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+        
         <xsl:variable name="source" select="cmake:get_middleware_generated_source_var($middleware)" />
         <xsl:variable name="header" select="cmake:get_middleware_generated_header_var($middleware)" />
 
-        <xsl:variable name="middleware_compiler">
-            <xsl:choose>
-                <xsl:when test="$middleware_lc = 'rti'">
-                    <xsl:value-of select="'RTI_GENERATE_CPP'" />
-                </xsl:when>
-                <xsl:when test="$middleware_lc = 'ospl'">
-                    <xsl:value-of select="'OSPL_GENERATE_CPP'" />
-                </xsl:when>
-                <xsl:when test="$middleware_lc = 'proto'">
-                    <xsl:value-of select="'protobuf_generate_cpp'" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="cmake:comment(('UNKNOWN MIDDLEWARE', $middleware_lc), 0)" />
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
+
+        <xsl:variable name="middleware_compiler" select="upper-case(concat($middleware_package, '_generate_cpp'))" />
+
         
         <xsl:value-of select="cmake:comment(('Run the', $middleware, 'Compiler over the', o:wrap_angle($middleware_extension), 'files'), 0)" />
         <xsl:variable name="compiler_args" select="o:join_list(($source, $header, $file), ' ')" />
@@ -261,7 +274,7 @@
 
             <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
             
-            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'))" />
+            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'), 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />

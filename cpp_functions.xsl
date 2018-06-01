@@ -165,7 +165,8 @@
 
     <!--
         Produces a forward declare template function declaration
-        ie. template<> void function<ConcreteType>(int value);
+        ie. template<>
+        void function<ConcreteType>(int value);
     -->
     <xsl:function name="cpp:declare_templated_function_specialisation">
         <xsl:param name="concrete_template_type" as="xs:string" />
@@ -175,8 +176,36 @@
         <xsl:param name="suffix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($concrete_template_type, $return_type, '', $function_name, $parameters, $suffix, $tab)" />
+    </xsl:function>
+
+    <!--
+        Produces a forward declare template function declaration
+        ie. template<>
+        void class<ConcreteType>::function(int value);
+    -->
+    <xsl:function name="cpp:declare_templated_class_function_specialisation">
+        <xsl:param name="concrete_template_type" as="xs:string" />
+        <xsl:param name="return_type" as="xs:string" />
+        <xsl:param name="class_name" as="xs:string" />
+        <xsl:param name="function_name" as="xs:string" />
+        <xsl:param name="parameters" as="xs:string" />
+        <xsl:param name="suffix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
         <xsl:variable name="template_return_type" select="concat('template ', cpp:wrap_template(''), o:nl(1), o:t($tab), $return_type)" />
-        <xsl:variable name="template_function_name" select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
+
+
+        <xsl:variable name="template_function_name">
+            <xsl:choose>
+                <xsl:when test="$class_name != ''">
+                    <xsl:value-of select="concat($class_name, cpp:wrap_template($concrete_template_type), '::', $function_name)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
         <xsl:value-of select="cpp:declare_function($template_return_type, $template_function_name, $parameters, $suffix, $tab)" />
     </xsl:function>
@@ -193,6 +222,32 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="template_function_name" select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
+
+        <xsl:value-of select="cpp:invoke_templated_class_static_function($concrete_template_type, '', $function_name, $parameters, $suffix, $tab)" />
+    </xsl:function>
+
+    <!--
+        Calls a templated function in a class
+        ie. class<ConcreteType>::function(args);
+    -->
+    <xsl:function name="cpp:invoke_templated_class_static_function">
+        <xsl:param name="concrete_template_type" as="xs:string" />
+        <xsl:param name="class_name" as="xs:string" />
+        <xsl:param name="function_name" as="xs:string" />
+        <xsl:param name="parameters" as="xs:string" />
+        <xsl:param name="suffix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="template_function_name">
+            <xsl:choose>
+                <xsl:when test="$class_name != ''">
+                    <xsl:value-of select="concat($class_name, cpp:wrap_template($concrete_template_type), '::', $function_name)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
         <xsl:value-of select="cpp:invoke_static_function('', $template_function_name, $parameters, $suffix, $tab)" />
     </xsl:function>
@@ -760,5 +815,43 @@
             <xsl:sort select="position()" data-type="number" order="descending"/>
             <xsl:value-of select="cpp:namespace_end(., count($namespaces) - position())" />
         </xsl:for-each>
+    </xsl:function>
+
+    <!-->
+        Produces a an if statement
+        ie. if(!(${val})(){
+    -->
+    <xsl:function name="cpp:if_not" as="xs:string">
+        <xsl:param name="condition" as="xs:string" />
+        <xsl:param name="suffix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cpp:if(concat('!', o:wrap_bracket($condition)), $suffix, $tab)" />
+    </xsl:function>
+
+    <!--
+        Produces an and statement for an if
+    -->
+    <xsl:function name="cpp:and" as="xs:string">
+        <xsl:value-of select="concat(o:and(), o:and())" />
+    </xsl:function>
+
+    <!--
+        Produces a or statement for an if
+    -->
+    <xsl:function name="cpp:or" as="xs:string">
+        <xsl:value-of select="'||'" />
+    </xsl:function>
+
+
+    <!--
+        Produces a std::cerr statement
+    -->
+    <xsl:function name="cpp:cerr" as="xs:string">
+        <xsl:param name="message" as="xs:string*"/>
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="pipe" select="concat(' ', o:lt(), o:lt(), ' ')" />
+        
+        <xsl:value-of select="concat(o:t($tab), 'std::cerr', $pipe, o:join_list($message, $pipe), $pipe, 'std::endl', cpp:nl())" />
     </xsl:function>
 </xsl:stylesheet>
