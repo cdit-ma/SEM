@@ -15,28 +15,29 @@ OpenCLKernelBase::OpenCLKernelBase(const Worker& worker, OpenCLManager& manager,
 }
 
 
-std::unique_lock<std::mutex> OpenCLKernelBase::lock() {
+std::unique_lock<std::mutex> OpenCLKernelBase::AcquireLock() {
     return std::unique_lock<std::mutex>(external_mutex_);
-}
-bool OpenCLKernelBase::unlock(std::unique_lock<std::mutex> lock) {
-    {
-        auto lock2 = std::move(lock);
-    }
-    return true;
 }
 
 void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset, const cl::NDRange& global,
-    const cl::NDRange& local) {
-    
-    std::lock_guard<std::mutex> guard(kernel_mutex_);
-    auto& queue = device.GetQueue();
+    const cl::NDRange& local, std::unique_lock<std::mutex> external_lock) {
 
     cl_int err;
     cl::Event kernel_event;
+    auto& queue = device.GetQueue();
+    
+    {
+        std::lock_guard<std::mutex> guard(kernel_mutex_);
 
-    err = queue.GetRef().enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
-    if (err != CL_SUCCESS) {
-        throw OpenCLException(std::string(GET_FUNC)+": Failed to enqueue kernel '"+name_+"' for execution", err);
+        err = queue.GetRef().enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
+        if (err != CL_SUCCESS) {
+            throw OpenCLException(std::string(GET_FUNC)+": Failed to enqueue kernel '"+name_+"' for execution", err);
+        }
+
+        // If we were given an external lock we can "consume" it
+        if (external_lock.owns_lock()) {
+            external_lock.unlock();
+        }
     }
 
     if (block) {

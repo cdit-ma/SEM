@@ -200,16 +200,17 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 
 	// Create a representation for each of the devices
 	for(auto& d : devices) {
-		device_list_.emplace_back(worker, *this, d);
+		//device_list_.emplace_back(worker, *this, d);
+		device_list_.emplace_back(new OpenCLDevice(worker, *this, d));
 		//device_list_.push_back(std::move(OpenCLDevice(*context_, d, *worker_reference)));
 	}
 
 	LoadAllBinaries(worker);
 
     if (is_fpga_) {
-        for (OpenCLDevice& dev : device_list_) {
+        for (const auto& dev : device_list_) {
             try {
-                dev.LoadKernelsFromBinary(worker, "fft1d.aocx");
+                dev->LoadKernelsFromBinary(worker, "fft1d.aocx");
             } catch (const OpenCLException& ocle) {
                 //LogOpenCLError(worker, "OpenCLManager::"+std::string(__func__),
 				throw OpenCLException("Failed to load FFT implementation for FPGA: "+std::string(ocle.what()), ocle.ErrorCode());
@@ -233,7 +234,7 @@ std::string OpenCLManager::GetPlatformName() const {
 }
 
 // TODO: Handle the !valid_ case
-std::vector<std::reference_wrapper<OpenCLDevice> >& OpenCLManager::GetDevices(const Worker& worker) {
+std::vector<std::unique_ptr<OpenCLDevice> > const& OpenCLManager::GetDevices(const Worker& worker) {
 	return device_list_;
 }
 
@@ -250,8 +251,8 @@ const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(const Worker& worke
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
-	for (OpenCLDevice& device : device_list_) {
-		device.LoadKernelsFromSource(worker, filenames);
+	for (const auto& device : device_list_) {
+		device->LoadKernelsFromSource(worker, filenames);
 	}
 
 	return kernels;
@@ -308,8 +309,8 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
     //std::string plat_name = manager_->GetPlatformName();
 
     bool did_all_succeed = true;
-    for (OpenCLDevice& device : device_list_) {
-        std::string dev_name = SanitisePathString(device.GetName()).substr(0, 15);
+    for (const auto& device : device_list_) {
+        std::string dev_name = SanitisePathString(device->GetName()).substr(0, 15);
 		std::string plat_name = SanitisePathString(platform_name_).substr(0, 15);
 
 		std::string filename = plat_name+"-"+dev_name+".clbin";
@@ -317,7 +318,7 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
         std::string binary_path = GetSourcePath("binaries/"+filename);
         bool success = false;
 		try {
-			success = device.LoadKernelsFromBinary(worker, binary_path);
+			success = device->LoadKernelsFromBinary(worker, binary_path);
 		} catch (const std::exception& e) {
 			LogError(worker, __func__,
                 "Failed to load binary for device "+dev_name+":\n"+e.what());
@@ -329,7 +330,7 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
             did_all_succeed = false;
         } else {
 			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
-			for (OpenCLKernel& kernel : device.GetKernels()) {
+			for (OpenCLKernel& kernel : device->GetKernels()) {
 				std::cout << " - " << kernel.GetName() << std::endl;
 			}
 		}

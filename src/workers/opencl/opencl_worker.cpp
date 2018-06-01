@@ -54,11 +54,11 @@ bool OpenCL_Worker::HandleConfigure() {
 
     if (device_id == -1) {
         for (int i=0; i<device_list.size(); i++) {
-            devices_.emplace_back(device_list.at(i));
+            devices_.emplace_back(std::ref(*device_list.at(i)));
             device_ids.push_back(i);
         }
     } else {
-        devices_.emplace_back(device_list.at(std::ref(device_id)));
+        devices_.emplace_back(std::ref(*device_list.at(device_id)));
         device_ids.push_back(device_id);
     }
 
@@ -88,13 +88,16 @@ bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
 
     std::string filename = GetSourcePath("parallelthreads.cl");
     try {
-        auto& parallel_kernel = GetKernel(device, "runParallel", filename);
+        auto& parallel_kernel = GetKernel(*device, "runParallel", filename);
 
-        std::unique_lock<std::mutex> mylock(std::move(parallel_kernel.lock()));
+        //std::unique_lock<std::mutex> mylock(std::move(parallel_kernel.lock()));
+        auto kernel_lock = parallel_kernel.AcquireLock();
         parallel_kernel.SetArgs(ops_per_thread);
 
-        parallel_kernel.Run(device, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
-        parallel_kernel.unlock(std::move(mylock));
+        parallel_kernel.Run(*device, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange,
+            std::move(kernel_lock));
+        // kernel_lock.unlock();
+        //parallel_kernel.unlock(std::move(mylock));
 
         success = true;
     } catch (const std::exception& e) {
@@ -111,15 +114,15 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
-    auto bufferA = manager_->CreateBuffer<float>(*this, matA, device);
-    auto bufferB = manager_->CreateBuffer<float>(*this, matB, device);
+    auto bufferA = manager_->CreateBuffer<float>(*this, matA, *device);
+    auto bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
     //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
-    auto result_buffer = manager_->CreateBuffer<float>(*this, matC, device);
+    auto result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
 
-    bool success = MatrixMult(*bufferA, *bufferB, *result_buffer, device);
+    bool success = MatrixMult(*bufferA, *bufferB, *result_buffer, *device);
     //auto new_matA = bufferA->ReadData(true, this);
     //auto new_matB = bufferB->ReadData(true, this);
-    matC = result_buffer->ReadData(*this, device, true);
+    matC = result_buffer->ReadData(*this, *device, true);
 
     manager_->ReleaseBuffer(*this, bufferA);
     manager_->ReleaseBuffer(*this, bufferB);
@@ -181,22 +184,26 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
 	unsigned int global_height = 0;
 	while (global_height < max_mat_height) global_height += block_length;
 
-    // TODO: Mutex this stuff
-    try {
-        matrix_kernel.SetArgs(matA, matB, matC, M, K, N, block_data_size, block_data_size);
-    } catch (const OpenCLException& ocle) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to set args for MatrixMult:\n"+std::string(ocle.what()));
-            return false;
-    }
-    
-    try {
-        matrix_kernel.Run(device, true, cl::NullRange,
-            cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length));
-    } catch (const OpenCLException& ocle) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to successfully run MatrixMult kernel"+std::string(ocle.what()));
-            return false;
+    {
+        std::unique_lock<std::mutex> kernel_lock(matrix_kernel.AcquireLock());
+
+        try {
+            matrix_kernel.SetArgs(matA, matB, matC, M, K, N, block_data_size, block_data_size);
+        } catch (const OpenCLException& ocle) {
+            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+                "Failed to set args for MatrixMult:\n"+std::string(ocle.what()));
+                return false;
+        }
+        
+        try {
+            matrix_kernel.Run(device, true, cl::NullRange,
+                cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length),
+                std::move(kernel_lock));
+        } catch (const OpenCLException& ocle) {
+            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+                "Failed to successfully run MatrixMult kernel"+std::string(ocle.what()));
+                return false;
+        }
     }
 
     return true;
@@ -227,12 +234,12 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
 bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
     
     auto device_id = load_balancer_->RequestDevice();
-    OpenCLDevice& device = manager_->GetDevices(*this)[device_id];
+    const auto& device = manager_->GetDevices(*this)[device_id];
     //auto& device = manager_->GetDevices(*this)[device_id];
 
     std::string filename = GetSourcePath("kmeans.cl");
-    auto& cluster_classify_kernel = GetKernel(device, "classifyPoints", filename);
-    auto& cluster_adjust_kernel = GetKernel(device, "adjustCentroids", filename);
+    auto& cluster_classify_kernel = GetKernel(*device, "classifyPoints", filename);
+    auto& cluster_adjust_kernel = GetKernel(*device, "adjustCentroids", filename);
 
     cl_uint num_centroids = (cl_uint) centroids.GetNumElements() / (sizeof(cl_float4) / sizeof(float));
     cl_uint num_points = (cl_uint) points.GetNumElements() / (sizeof(cl_float4) / sizeof(float));
@@ -245,6 +252,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
 
     // Calculate classification parameters
     cl::NDRange global_classify_threads(num_points);
+    std::unique_lock<std::mutex> classify_kernel_lock(cluster_classify_kernel.AcquireLock());
     try {
         cluster_classify_kernel.SetArgs(points, point_classifications, centroids, num_centroids);
     } catch (const OpenCLException& ocle) {
@@ -254,11 +262,11 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     }
     
     // Calculate adjust parameters
-    cl_uint num_compute_units = device.GetRef().getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
-    auto kernel_wg_size = cluster_adjust_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device.GetRef());
-    auto device_wg_size = device.GetRef().getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+    cl_uint num_compute_units = device->GetRef().getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+    auto kernel_wg_size = cluster_adjust_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device->GetRef());
+    auto device_wg_size = device->GetRef().getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
     // need to ensure that theres space for both the local centroid and count buffers
-    cl_ulong mem_wg_size = device.GetRef().getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() / (sizeof(cl_float4)+sizeof(cl_uint)) / num_compute_units;
+    cl_ulong mem_wg_size = device->GetRef().getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() / (sizeof(cl_float4)+sizeof(cl_uint)) / num_compute_units;
 
     auto adjust_local_size = kernel_wg_size < device_wg_size ? kernel_wg_size : device_wg_size;
     adjust_local_size = adjust_local_size < mem_wg_size ? adjust_local_size : mem_wg_size;
@@ -272,6 +280,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     OCLBuffer<float>* work_group_center_buffer = manager_->CreateBuffer<float>(*this, num_centroids*num_compute_units*4);
     OCLBuffer<cl_uint>* work_group_count_buffer = manager_->CreateBuffer<cl_uint>(*this, num_centroids*num_compute_units);
 
+
+    std::unique_lock<std::mutex> adjust_kernel_lock(cluster_adjust_kernel.AcquireLock());
     try {
         cluster_adjust_kernel.SetArgs(points, point_classifications, num_points, centroids, num_centroids,
             local_center_buffer, local_count_buffer, *work_group_center_buffer, *work_group_count_buffer);
@@ -284,7 +294,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     for (int iter=0; iter < iterations; iter++) {
         // Identify the nearest centroid for each point
         try {
-            cluster_classify_kernel.Run(device, true, cl::NullRange, global_classify_threads, cl::NullRange);
+            cluster_classify_kernel.Run(*device, true, cl::NullRange, global_classify_threads, cl::NullRange);
         } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to execute K-means classification kernel:\n"+std::string(ocle.what()));
@@ -293,7 +303,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
 
         // Find the averaged position of all the points associated with each given centroid
         try {
-            cluster_adjust_kernel.Run(device, true, cl::NullRange, adjust_global_range, adjust_local_range);
+            cluster_adjust_kernel.Run(*device, true, cl::NullRange, adjust_global_range, adjust_local_range);
         } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to execute K-means center adjustment kernel:\n"+std::string(ocle.what()));
@@ -301,8 +311,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         }
 
         //Read back the per-work-group result from the adjust kernel
-        auto wg_center_vec = work_group_center_buffer->ReadData(*this, device, true);
-        auto wg_count_vec = work_group_count_buffer->ReadData(*this, device, true);
+        auto wg_center_vec = work_group_center_buffer->ReadData(*this, *device, true);
+        auto wg_count_vec = work_group_count_buffer->ReadData(*this, *device, true);
         if (wg_center_vec.size() != wg_count_vec.size()*4) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Error reading back adjusted centroids aggregated per workgroup; center and count vector size mismatch");
@@ -344,8 +354,11 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         }
 
         // Update the centers to match
-        centroids.WriteData(*this, new_centroids, device, true);
+        centroids.WriteData(*this, new_centroids, *device, true);
     }
+
+    classify_kernel_lock.unlock();
+    adjust_kernel_lock.unlock();
 
     load_balancer_->ReleaseDevice(device_id);
 

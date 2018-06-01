@@ -65,8 +65,10 @@ private:
     std::shared_ptr<Attribute> platform_id_;
     std::shared_ptr<Attribute> device_id_;
 
-    // FFT specific members
+    // clFFT specific members
     clfftSetupData_* fftSetupData = 0;
+
+    // FPGA FFT specific members
 };
 
 

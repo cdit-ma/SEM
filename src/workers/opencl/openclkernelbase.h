@@ -29,15 +29,14 @@ public:
     OpenCLKernelBase& operator=(OpenCLKernelBase&& other) noexcept {};
 
     void Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset,
-        const cl::NDRange& global, const cl::NDRange& local);
+        const cl::NDRange& global, const cl::NDRange& local, std::unique_lock<std::mutex> lock=std::unique_lock<std::mutex>());
 
     void SetArg(unsigned int index, size_t size, const void* value);
     void SetArg(unsigned int index, const cl::Memory& mem_obj);
     void SetArg(unsigned int index, const cl::Buffer& buf_obj);
     void SetArg(unsigned int index, const cl::LocalSpaceArg& local_space);
 
-    std::unique_lock<std::mutex> lock();
-    bool unlock(std::unique_lock<std::mutex> lock);
+    std::unique_lock<std::mutex> AcquireLock();
 
     std::string GetName() const;
 

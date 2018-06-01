@@ -1,3 +1,8 @@
+/////////////////////////
+// Adapted from the fft1d project in the Intel FPGA OpenCL Design Examples by Jackson Michael
+// See comments below for original licensing information
+/////////////////////////
+
 // Copyright (C) 2013-2016 Altera Corporation, San Jose, California, USA. All rights reserved.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
@@ -21,9 +26,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 // This OpenCL application executs a 1D FFT transform on an Altera FPGA.
-// The kernel is defined in a device/fft1d.cl file.  The Altera 
-// Offline Compiler tool ('aoc') compiles the kernel source into a 'fft1d.aocx' 
-// file containing a hardware programming image for the FPGA.  The host program 
+// The Altera Offline Compiler tool ('aoc') compiles the kernel source into a 'fft1d.aocx' 
+// file containing a hardware programming image for the FPGA. The host program 
 // provides the contents of the .aocx file to the clCreateProgramWithBinary OpenCL
 // API for runtime programming of the FPGA.
 //
@@ -39,7 +43,6 @@
 #include <cstring>
 #include <iostream>
 #include <limits.h>
-//#include "CL/opencl.h"
 #include "../openclutilities.h"
 #include "../openclmanager.h"
 #include "aocl_utils.h"
@@ -62,8 +65,8 @@ Worker worker(component, "testWorker", "testWorker");
 //static cl_platform_id platform = NULL;
 //static std::vector<cl::Platform> platforms;
 //static cl_device_id device = NULL;
-static OpenCLManager* manager = NULL;
-static cl_command_queue queue = NULL;
+//static OpenCLManager* manager = NULL;
+//static cl_command_queue queue = NULL;
 static cl_command_queue queue1 = NULL;
 static cl_kernel kernel = NULL;
 static cl_kernel kernel1 = NULL;
@@ -147,13 +150,16 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	
   // Create device buffers - assign the buffers in different banks for more efficient
   // memory access 
-  d_inData = clCreateBuffer(manager->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
+  d_inData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
   checkError(status, "Failed to allocate input device buffer\n");
-  d_outData = clCreateBuffer(manager->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
+  d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
   checkError(status, "Failed to allocate output device buffer\n");
 
+  auto& device = manager_->GetDevices(*this).at(0);
+  auto& send_queue = device->GetQueue().GetRef()();
+
   // Copy data from host to device
-  status = clEnqueueWriteBuffer(queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
+  status = clEnqueueWriteBuffer(send_queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
   checkError(status, "Failed to copy data to device");
 
   // Can't pass bool to device, so convert it to int
@@ -172,7 +178,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
   checkError(status, "Failed to set kernel arg 2");
 
   // Queue the FFT task
-  status = clEnqueueTask(queue, kernel, 0, NULL, NULL);
+  status = clEnqueueTask(send_queue, kernel, 0, NULL, NULL);
   checkError(status, "Failed to launch kernel");
 
   size_t ls = N/8;
@@ -181,13 +187,13 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
   checkError(status, "Failed to launch fetch kernel");
  
   // Wait for command queue to complete pending events
-  status = clFinish(queue);
+  status = clFinish(send_queue);
   checkError(status, "Failed to finish");
   status = clFinish(queue1);
   checkError(status, "Failed to finish queue1");
 
   // Copy results from device to host
-  status = clEnqueueReadBuffer(queue, d_outData, CL_TRUE, 0, data_size, h_outData, 0, NULL, NULL);
+  status = clEnqueueReadBuffer(send_queue, d_outData, CL_TRUE, 0, data_size, h_outData, 0, NULL, NULL);
   checkError(status, "Failed to copy data from device");
 
 	//test_fft(1, false);
@@ -272,6 +278,7 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+/*
 void test_fft(int iterations, bool inverse) {
   printf("Launching");
   if (inverse) 
@@ -374,7 +381,7 @@ void test_fft(int iterations, bool inverse) {
   }
   printf("\tSignal to noise ratio on output sample: %f --> %s\n\n", fpga_snr, fpga_snr > 125 ? "PASSED" : "FAILED");
 }
-
+*/
 
 /////// HELPER FUNCTIONS ///////
 
@@ -452,7 +459,7 @@ bool OpenCL_Worker::InitFFT() {
   }*/
 
   // Get the OpenCL platform.
-  manager = manager_;
+  // /manager = manager_;
 //  OpenCLManager* manager = OpenCLManager::GetReferenceByPlatformName(worker, "Intel(R) FPGA SDK for OpenCL(TM)");
   //std::vector<cl::Platform> platforms = OpenCLManager::GetPlatforms(worker);
   //cl::Platform* platform = NULL;
@@ -470,7 +477,7 @@ bool OpenCL_Worker::InitFFT() {
   //cl_uint num_devices;
 
   //devices.reset(getDevices(platform, CL_DEVICE_TYPE_ALL, &num_devices));
-  auto& devices = manager->GetDevices(worker);
+  auto& devices = manager_->GetDevices(worker);
 
   // We'll just use the first device.
   auto& device = devices[0];
@@ -483,13 +490,13 @@ bool OpenCL_Worker::InitFFT() {
 
   // Create the command queue.
   //queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &status);
-  queue = device.GetQueue().GetRef()();
+  //queue = device->GetQueue().GetRef()();
   //checkError(status, "Failed to create command queue");
-  queue1 = clCreateCommandQueue(manager->GetContext()(), device.GetRef()(), CL_QUEUE_PROFILING_ENABLE, &status);
+  queue1 = clCreateCommandQueue(manager_->GetContext()(), device->GetRef()(), CL_QUEUE_PROFILING_ENABLE, &status);
   checkError(status, "Failed to create command queue");
 
     int kernels_found=0;
-    for (auto& ref_wrapper : device.GetKernels()){
+    for (auto& ref_wrapper : device->GetKernels()){
         auto& kernel_ = ref_wrapper.get();
         if (kernel_.GetName() == "fft1d" || kernel_.GetName() == "fetch") {
             kernels_found++;
@@ -499,7 +506,7 @@ bool OpenCL_Worker::InitFFT() {
   // Create the program.
   //std::string binary_file = getBoardBinaryFile("fft1d", device);
   if (kernels_found < 2) {
-    bool did_read_binary = device.LoadKernelsFromBinary(worker, "fft1d.aocx");
+    bool did_read_binary = device->LoadKernelsFromBinary(worker, "fft1d.aocx");
   }
   //printf("Using AOCX: %s\n\n", binary_file.c_str());
   //program = createProgramFromBinary(context, binary_file.c_str(), &device, 1);
@@ -510,14 +517,14 @@ bool OpenCL_Worker::InitFFT() {
 
   // Create the kernel - name passed in here must match kernel name in the
   // original CL file, that was compiled into an AOCX file using the AOC tool
-  auto& kernels = device.GetKernels();
-  for (auto& ref_wrapper : kernels) {
-    auto& kernel_ = ref_wrapper.get();
-    if (kernel_.GetName() == "fft1d") {
-      kernel = kernel_.GetBackingRef()();
+  auto& kernels = device->GetKernels();
+  for (OpenCLKernel& k : kernels) {
+    //auto& kernel_ = ref_wrapper.get();
+    if (k.GetName() == "fft1d") {
+      kernel = k.GetBackingRef()();
     }
-    if (kernel_.GetName() == "fetch") {
-      kernel1 = kernel_.GetBackingRef()();
+    if (k.GetName() == "fetch") {
+      kernel1 = k.GetBackingRef()();
     }
   }
   //kernel = clCreateKernel(program, "fft1d", &status);

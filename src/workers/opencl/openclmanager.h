@@ -47,7 +47,7 @@ class OpenCLManager {
 
 		std::string GetPlatformName() const;
 
-		std::vector<std::reference_wrapper<OpenCLDevice> >& GetDevices(const Worker& worker);
+		std::vector<std::unique_ptr<OpenCLDevice> > const& GetDevices(const Worker& worker);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
@@ -105,7 +105,7 @@ class OpenCLManager {
 		cl::Platform& platform_;
 		std::string platform_name_;
 		cl::Context* context_;
-		std::vector<std::reference_wrapper<OpenCLDevice> > device_list_;
+		std::vector<std::unique_ptr<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
 		cl::Program* program_;
 		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;

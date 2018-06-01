@@ -17,7 +17,8 @@ cl::Device& storeDevice(cl::Device& dev) {
 
 
 OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device) :
-    dev_(std::make_shared<cl::Device>(device)),
+    //dev_(std::make_shared<cl::Device>(device)),
+    dev_(new cl::Device(device)),
     manager_(manager),
     name_(dev_->getInfo<CL_DEVICE_NAME>())
 {
@@ -69,9 +70,9 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 
     std::vector<cl::Device> device_vec;
     //device_vec.emplace_back(*dev_);
-	for (OpenCLDevice& other_dev : manager_.GetDevices(worker)) {
-		if (other_dev.GetName() == name_) {
-			device_vec.emplace_back(other_dev.GetRef());
+	for (const auto& other_dev : manager_.GetDevices(worker)) {
+		if (other_dev->GetName() == name_) {
+			device_vec.emplace_back(other_dev->GetRef());
 		}
 	}
 	err = new_program.build(device_vec);
@@ -94,9 +95,9 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 
 		std::vector<std::string> kernel_names;
 		//std::vector<OpenCLDevice> all_devices = manager_.GetDevices(worker);
-		for (OpenCLDevice& other_dev : manager_.GetDevices(worker)) {
-			if (other_dev.GetName() == name_) {
-				for (const OpenCLKernel& kernel : other_dev.GetKernels()) {
+		for (const auto& other_dev : manager_.GetDevices(worker)) {
+			if (other_dev->GetName() == name_) {
+				for (const OpenCLKernel& kernel : other_dev->GetKernels()) {
 					kernel_names.push_back(kernel.GetName());
 				}
 			}
@@ -113,7 +114,8 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	}
 
 	for (auto& kernel : new_kernels) {
-		kernels_.emplace_back(worker, manager_, kernel);
+		//kernels_.emplace_back(worker, manager_, kernel);
+		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
 	return true;
@@ -177,7 +179,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		std::string name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
 		bool name_already_exists = false;
 		for (const auto& k : kernels_) {
-			if (k.GetName() == name) {
+			if (k->GetName() == name) {
 				name_already_exists = true;
 			}
 		}
@@ -188,7 +190,8 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 				err);
 			continue;
 		}
-		kernels_.emplace_back(worker, manager_, kernel);
+		//kernels_.emplace_back(worker, manager_, kernel);
+		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
 	return true;
@@ -197,8 +200,8 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 const std::vector<std::reference_wrapper<OpenCLKernel> > OpenCLDevice::GetKernels() {
 	std::lock_guard<std::mutex> guard(kernel_list_mutex_);
 	std::vector<std::reference_wrapper<OpenCLKernel> > kernel_refs;
-	for (OpenCLKernel& kernel : kernels_) {
-		kernel_refs.emplace_back(std::ref(kernel));
+	for (const auto& kernel : kernels_) {
+		kernel_refs.emplace_back(std::ref(*kernel));
 	}
 	return kernel_refs;
 }

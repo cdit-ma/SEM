@@ -179,8 +179,8 @@ int main(int argc, char** argv) {
 	}
 
 	printInfo("Listing available devices for platform:");
-	for (auto& device : manager->GetDevices(test_worker)) {
-		std::cout << " - " << device.GetName() << std::endl;
+	for (const auto& device : manager->GetDevices(test_worker)) {
+		std::cout << " - " << device->GetName() << std::endl;
 		/*for (auto& kernel : device.GetKernels()) {
 			std::cout << "   - " << kernel.get().GetName() << std::endl;
 		}*/
@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
 	}*/
 
 	for (auto& device : manager->GetDevices(test_worker)) {
-		testBufferReadWrite(*manager, device);
+		testBufferReadWrite(*manager, *device);
 	}
 	
 	bool firstTime = true;
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
 		} else {
 			continue;
 		}
-		testKernelPassthrough(*manager, device);
+		testKernelPassthrough(*manager, *device);
 	}
 
 	testLoadBalancer(*manager);

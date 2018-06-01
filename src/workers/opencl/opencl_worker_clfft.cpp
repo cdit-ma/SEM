@@ -78,17 +78,17 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
     unsigned int allocated_dev_index = load_balancer_->RequestDevice();
 
-    OpenCLDevice& dev = manager_->GetDevices(*this)[allocated_dev_index];
+    auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
 
     //for (auto& dev_ref : devices_) {
         //auto& dev = dev_ref.get();
         //auto& dev_queue = dev.GetQueue().GetRef()();
-        cl_command_queue dev_queue = dev.GetQueue().GetRef()();
+        cl_command_queue dev_queue = dev->GetQueue().GetRef()();
         /* Bake the plan. */
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
         /* Prepare OpenCL memory objects and place data inside them. */
-        OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
+        OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, *dev, true);
         //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
         //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
 
@@ -102,7 +102,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
         }
 
         /* Wait for calculations to be finished. */
-        err = dev.GetQueue().GetRef().finish();
+        err = dev->GetQueue().GetRef().finish();
 
         if (err != CL_SUCCESS) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
@@ -111,7 +111,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
         /* Fetch results of calculations. */
         //dev.GetQueue().enqueueReadBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
-        data = buffer->ReadData(*this, dev, true);
+        data = buffer->ReadData(*this, *dev, true);
 
         /* Release the plan. */
         err = clfftDestroyPlan( &planHandle );
