@@ -140,15 +140,7 @@
 
 
 
-    <xsl:function name="cmake:get_aggregates_middleware_file_path" as="xs:string">
-        <xsl:param name="aggregate" as="element()" />
-        <xsl:param name="middleware" as="xs:string" />
-
-        <xsl:variable name="file_path" select="cdit:get_aggregates_path($aggregate)" />
-        <xsl:variable name="file_name" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
-        
-        <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
-    </xsl:function>
+    
 
     <xsl:function name="cmake:get_middleware_generated_header_var" as="xs:string">
         <xsl:param name="middleware" as="xs:string" />
@@ -274,7 +266,7 @@
 
             <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
             
-            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'), 0)" />
+            <xsl:value-of select="cmake:find_library($worker_lib_var, $worker_lib_name, cmake:get_re_path('lib'), 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -305,9 +297,20 @@
         <xsl:param name="relative_path" as="xs:string" />
         <xsl:param name="proj_name" as="xs:string" />
 
-        <xsl:value-of select="cmake:comment('Include Top Level source dir', 0)" />
+        <xsl:value-of select="cmake:comment('Include Top Level Source Directory', 0)" />
         <xsl:variable name="required_path" select="o:join_paths((cmake:current_source_dir_var(), $relative_path))" />
         <xsl:value-of select="cmake:target_include_directories($proj_name, $required_path, 0)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
+
+    <xsl:function name="cmake:include_top_level_binary_dir">
+        <xsl:param name="relative_path" as="xs:string" />
+        <xsl:param name="proj_name" as="xs:string" />
+
+        <xsl:value-of select="cmake:comment('Include Top Level Binary Directory', 0)" />
+        <xsl:variable name="required_path" select="o:join_paths((cmake:current_binary_dir_var(), $relative_path))" />
+        <xsl:value-of select="cmake:target_include_directories($proj_name, $required_path, 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
 </xsl:stylesheet>

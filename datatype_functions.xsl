@@ -27,12 +27,9 @@
         <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
 
         <!-- Preamble -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translate_h', 0)" />
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translator_cpp', 0)" />
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
-        <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translator_cpp', 0)" />
-
         <!-- Include the translater header -->
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'translator.h')))" />
         <xsl:value-of select="o:nl(1)" />
@@ -40,101 +37,34 @@
         <!-- Include the base message type -->
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
 
-        <xsl:value-of select="cpp:comment(('Forward declare the', o:wrap_quote($middleware), 'type'), 0)" />
-        <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, cpp:get_aggregate_type_name($aggregate), 0)" />
-        <xsl:value-of select="o:nl(1)" />
-        
+        <!-- Include the base message type -->
+        <xsl:value-of select="cdit:include_middleware_aggregate_headers($middleware, $aggregate)" />
+
         <!-- Define the namespace -->
-        <xsl:value-of select="cpp:define_namespaces($aggregate_namespace)" />
+        <xsl:variable name="function_namespace" select="('Base')" />
+        <xsl:variable name="tab" select="count($function_namespace)" />
 
-        <!-- Include the translater header -->
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'translator.h')))" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cpp:define_namespaces($function_namespace)" />
 
-        <!-- Include the middleware specific header -->
-        <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
-        <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
-        <xsl:value-of select="o:nl(1)" />
 
 
         <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
-        <xsl:value-of select="cpp:namespace_start('Base', 0)" />
         
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', 1)" />
-        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, 'base', $middleware)" />
-        <xsl:value-of select="cpp:scope_end(1)" />
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', $tab)" />
+        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, 'base', $middleware, $tab + 1)" />
+        <xsl:value-of select="cpp:scope_end($tab)" />
+        
         <xsl:value-of select="o:nl(1)" />
         
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', 1)" />
-        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, $middleware, 'base')" />
-
-        
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', $tab)" />
+        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, $middleware, 'base', $tab + 1)" />
+        <xsl:value-of select="cpp:scope_end($tab)" />
 
         <!-- End the namespace -->
-        <xsl:value-of select="cpp:close_namespaces($aggregate_namespace)" />
+        <xsl:value-of select="cpp:close_namespaces($function_namespace)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
-    <!--
-        Gets the translate_cpp file
-    -->
-    <xsl:function name="cdit:get_translate_cpp">
-        <xsl:param name="aggregate" />
-        <xsl:param name="middleware" as="xs:string" />
-
-        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
-        <xsl:variable name="middleware_namespace" select="cdit:get_middleware_namespace($middleware)" />
-
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-
-        <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
-        
-
-        <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:translate_cpp', 0)" />
-
-        <!-- Include the header -->
-        <xsl:value-of select="cpp:include_local_header('translate.h')" />
-        <xsl:value-of select="cpp:comment(('Include the', o:wrap_quote('Base'), 'type'), 0)" />
-        <!-- Include the base message type -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
-        <xsl:value-of select="o:nl(1)" />
-        
-
-        <!-- Include the middleware specific header -->
-        <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
-        <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
-        <xsl:value-of select="o:nl(1)" />
-
-        <!-- Include the middleware translate functions -->
-        <xsl:for-each select="$aggregate_definitions">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Including required middleware translate functions', 0)" />
-            </xsl:if>
-            <xsl:variable name="path" select="cdit:get_aggregate_path($middleware, $aggregate)" />
-            <xsl:variable name="header_file" select="o:join_paths(($path, 'translate.h'))" />
-            
-            <xsl:value-of select="cpp:include_local_header($header_file)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
-        </xsl:for-each>
-
-
-        <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
-        <xsl:value-of select="cpp:namespace_start('Base', 0)" />
-        
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', 1)" />
-        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, 'base', $middleware)" />
-        <xsl:value-of select="cpp:scope_end(1)" />
-        <xsl:value-of select="o:nl(1)" />
-        
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', 1)" />
-        <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, $middleware, 'base')" />
-        <xsl:value-of select="cpp:scope_end(1)" />
-        <xsl:value-of select="cpp:namespace_end('Base', 0)" />
-    </xsl:function>
 
     <xsl:function name="cdit:get_proto_file">
         <xsl:param name="aggregate" />
@@ -597,7 +527,7 @@
                 <xsl:variable name="required_aggregate_namespace" select="graphml:get_data_value(., 'namespace')" />
 
                 
-                <xsl:variable name="required_file" select="o:join_paths(($relative_path, 'datatypes', $middleware, cmake:get_aggregates_middleware_file_path(., $middleware)))" />
+                <xsl:variable name="required_file" select="o:join_paths(($relative_path, 'datatypes', $middleware, cdit:get_aggregates_middleware_file_path($middleware, .)))" />
                 <xsl:value-of select="cmake:configure_file($required_file, $binary_dir_var)" />
 
                 <xsl:if test="position() = last()">
@@ -636,12 +566,10 @@
             <xsl:value-of select="o:nl(1)" />
 
             
+            <!-- Include the top level directories -->
+            <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'SHARED_LIBRARY_NAME')" />
+            <xsl:value-of select="cmake:include_top_level_binary_dir($relative_path, 'SHARED_LIBRARY_NAME')" />
 
-            <!-- Include the required aggregate files -->
-            <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
-            <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path))" />
-            <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_path, 0)" />
-            
              <!-- Set RTI specific settings -->
             <xsl:if test="$middleware = 'rti'">
 
@@ -656,26 +584,6 @@
 
             <!-- Use Windows specific settings -->
             <xsl:if test="$middleware = 'proto'">
-
-                <!-- Include the required aggregate files -->
-                <xsl:for-each select="$required_aggregates">
-                    <xsl:if test="position() = 1">
-                        <xsl:value-of select="cmake:comment(('Include aggregate'), 0)" />
-                    </xsl:if>
-
-                    <xsl:variable name="required_aggregate_label" select="graphml:get_label(.)" />
-                    <xsl:variable name="required_aggregate_namespace" select="graphml:get_data_value(., 'namespace')" />
-
-                    
-                    <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                    <xsl:variable name="required_file" select="o:join_paths(($binary_dir_var, $relative_path, cdit:get_aggregates_path(.)))" />
-                    <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_file, 0)" />
-
-                    <xsl:if test="position() = last()">
-                        <xsl:value-of select="o:nl(1)" />
-                    </xsl:if>
-                </xsl:for-each>
-
                 <xsl:value-of select="cmake:comment('Windows specific protobuf settings', 0)" />
                 <xsl:value-of select="cmake:if_start('MSVC', 0)" />
                 <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', '-DPROTOBUF_USE_DLLS', 1)" />
@@ -1348,11 +1256,10 @@
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="source_middleware" as="xs:string" />
         <xsl:param name="target_middleware" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
         <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $target_middleware)" />
-
-        <xsl:variable name="tab" select="2" />
 
         <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
 

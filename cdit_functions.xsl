@@ -1474,10 +1474,50 @@
         </xsl:for-each>
     </xsl:function>
 
+    <xsl:function name="cdit:get_aggregates_middleware_file_path" as="xs:string">
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:variable name="file_path" select="cdit:get_aggregates_path($aggregate)" />
+        <xsl:variable name="file_name" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
+        
+        <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
+    </xsl:function>
+
+        <xsl:function name="cdit:get_aggregates_generated_middleware_header_path" as="xs:string">
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:variable name="file_path" select="cdit:get_aggregates_path($aggregate)" />
+        <xsl:variable name="file_name" select="cdit:get_middleware_generated_header_name($aggregate, $middleware)" />
+        
+        <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
+    </xsl:function>
+    
+
+    <xsl:function name="cdit:include_middleware_aggregate_headers">
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="entities" as="element()*" />
+
+        <xsl:variable name="path" select="('datatypes', $middleware)" />
+
+
+
+        <xsl:for-each select="$entities">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment(('Include required', o:wrap_quote($middleware), graphml:get_kind(.), ' header files'), 0)" />
+            </xsl:if>
+            
+            <xsl:variable name="header_file" select="o:join_paths(($path, cdit:get_aggregates_generated_middleware_header_path($middleware, .)))" />
+            <xsl:value-of select="cpp:include_local_header($header_file)" />
+            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+        </xsl:for-each>
+    </xsl:function>
+
     <xsl:function name="cdit:include_enum_headers">
         <xsl:param name="enums" as="element()*" />
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $enums)" />
     </xsl:function>
+
+    
 
     
 </xsl:stylesheet>
