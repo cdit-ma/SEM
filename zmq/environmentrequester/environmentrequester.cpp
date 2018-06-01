@@ -105,20 +105,20 @@ uint64_t EnvironmentRequester::GetClock(){
     return clock_;
 }
 
-void EnvironmentRequester::HeartbeatLoop(){
-    std::unique_ptr<zmq::socket_t> initial_request_socket;
-    if(context_){
-        initial_request_socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
-    }
-    else{
+void EnvironmentRequester::HeartbeatLoop() noexcept{
+    if(!context_){
         std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
+        return;
     }
 
+    zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
+
     try{
-        initial_request_socket->connect(manager_endpoint_);
+        initial_request_socket.connect(manager_endpoint_);
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
+        return;
     }
 
     //Register this deployment with the environment manager
@@ -144,8 +144,8 @@ void EnvironmentRequester::HeartbeatLoop(){
 
     initial_message.set_experiment_id(experiment_id_);
 
-    ZMQSendRequest(*initial_request_socket, initial_message.SerializeAsString());
-    auto reply = ZMQReceiveReply(*initial_request_socket);
+    ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
+    auto reply = ZMQReceiveReply(initial_request_socket);
 
     //Get update socket address as reply
     if(!reply.empty()){
@@ -169,9 +169,9 @@ void EnvironmentRequester::HeartbeatLoop(){
     }
 
     //Connect to our update socket
+    zmq::socket_t update_socket(*context_, ZMQ_REQ);
     try{
-        update_socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
-        update_socket_->connect(manager_update_endpoint_);
+        update_socket.connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
@@ -193,8 +193,8 @@ void EnvironmentRequester::HeartbeatLoop(){
             if(trigger == std::cv_status::timeout){
                 std::string output;
                 message.SerializeToString(&output);
-                ZMQSendRequest(*update_socket_, output);
-                auto reply = ZMQReceiveReply(*update_socket_);
+                ZMQSendRequest(update_socket, output);
+                auto reply = ZMQReceiveReply(update_socket);
                 if(reply.empty()){
                     //TODO: Run shutdown callback from here!
                     std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
@@ -215,7 +215,7 @@ void EnvironmentRequester::HeartbeatLoop(){
             else if(trigger == std::cv_status::no_timeout){
                 auto request = request_queue_.front();
                 request_queue_.pop();
-                SendRequest(request);
+                SendRequest(update_socket, request);
             }
         }
 
@@ -224,7 +224,7 @@ void EnvironmentRequester::HeartbeatLoop(){
             std::unique_lock<std::mutex> lock(request_queue_lock_);
             auto request = request_queue_.front();
             request_queue_.pop();
-            SendRequest(request);
+            SendRequest(update_socket, request);
         }
     }
 }
@@ -333,9 +333,9 @@ std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& r
     return request_future;
 }
 
-void EnvironmentRequester::SendRequest(EnvironmentRequester::Request request){
-    ZMQSendRequest(*update_socket_, request.request_data_);
-    auto reply = ZMQReceiveReply(*update_socket_);
+void EnvironmentRequester::SendRequest(zmq::socket_t& update_socket, EnvironmentRequester::Request request){
+    ZMQSendRequest(update_socket, request.request_data_);
+    auto reply = ZMQReceiveReply(update_socket);
 
     //Handle response
     request.response_->set_value(reply);
