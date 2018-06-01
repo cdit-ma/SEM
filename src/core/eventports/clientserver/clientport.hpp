@@ -2,6 +2,8 @@
 #define CLIENT_EVENT_PORT_HPP
 
 #include "../eventport.h"
+#include "../../modellogger.h"
+#include "../../component.h"
 
 template <class BaseReplyType, class BaseRequestType> class ClientEventPort : public EventPort{
     public:

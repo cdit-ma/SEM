@@ -11,9 +11,9 @@
 
 namespace zmq{
     template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-    class ServerEventPort : public ::ClientEventPort<BaseReplyType, BaseRequestType>{
+    class ServerEventPort : public ::ServerEventPort<BaseReplyType, BaseRequestType>{
         public:
-            ServerEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<ReturnType (RequestType&) > server_function);
+            ServerEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
             ~ServerEventPort(){
                 Activatable::Terminate();
             }
@@ -30,8 +30,8 @@ namespace zmq{
             std::shared_ptr<Attribute> end_point_;
 
             //Translators
-            ::Proto::Translator<BaseReplyType, ReplyType> reply_translater;
-            ::Proto::Translator<BaseRequestType, RequestType> request_translater;
+            ::Proto::Translator<BaseReplyType, ReplyType> reply_translator;
+            ::Proto::Translator<BaseRequestType, RequestType> request_translator;
 
             std::mutex thread_state_mutex_;
             ThreadState thread_state_;
@@ -47,21 +47,21 @@ namespace zmq{
 
 
 template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::ServerEventPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<ReturnType (RequestType&) > server_function):
-::ServerEventPort<BaseReplyType, BaseRequestType>(component, name, server_function "zmq"){
+zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::ServerEventPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
+::ServerEventPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
-    terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*" + component_id + "*";
+    terminate_endpoint_ = "inproc://term*" + component_name + "*" + port_name + "*" + component_id + "*";
 
-    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
+    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_address").lock();
 };
 
 template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleConfigure(){
+bool zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
-    bool valid = end_points_->StringList().size() >= 0;
+    bool valid = end_point_->StringList().size() >= 0;
     if(valid && ::ServerEventPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         if(!recv_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
@@ -76,7 +76,7 @@ zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::Ha
 
 
 template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleTerminate(){
+bool zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::ServerEventPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
@@ -92,7 +92,7 @@ zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::Ha
 };
 
 template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandlePassivate(){
+bool zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::ServerEventPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
         std::lock_guard<std::mutex> lock(terminate_mutex_);
@@ -107,7 +107,7 @@ zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::Ha
 };
 
 template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::recv_loop(){
+void zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::recv_loop(){
     terminate_mutex_.lock();
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_reply_socket();
@@ -116,7 +116,7 @@ zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::re
     auto state = ThreadState::STARTED;
 
     //Bind to the Socket
-    for(auto e: end_points_->StringList()){
+    for(auto e: end_point_->StringList()){
         try{
             //connect the addresses provided
             socket->bind(e.c_str());
@@ -167,12 +167,12 @@ zmq::ServerEventPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::re
                 }
 
                 auto request_message = request_translator.StringToBase(request_string);
-                auto reply_message = rx(*request_message);
+                auto reply_message = ::ServerEventPort<BaseReplyType, BaseRequestType>::rx(*request_message);
 
                 auto reply_string = reply_translator.BaseToString(reply_message);
 
                 zmq::message_t reply_data(reply_string.c_str(), reply_string.size());
-                socket_->send(reply_data);
+                socket->send(reply_data);
             }catch(zmq::error_t ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(ex.what());
                 break;

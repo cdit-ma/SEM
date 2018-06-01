@@ -39,7 +39,7 @@ zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     return s;
 };
 
-zmq::socket_t* zmq::ZmqHelper::get_client_socket(){
+zmq::socket_t* zmq::ZmqHelper::get_request_socket(){
     auto c = get_context();
 
     //Acquire the Lock
@@ -51,7 +51,7 @@ zmq::socket_t* zmq::ZmqHelper::get_client_socket(){
     return s;
 }
 
-zmq::socket_t* zmq::ZmqHelper::get_server_socket(){
+zmq::socket_t* zmq::ZmqHelper::get_reply_socket(){
     auto c = get_context();
 
     //Acquire the Lock
