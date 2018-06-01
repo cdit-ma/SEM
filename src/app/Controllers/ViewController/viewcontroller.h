@@ -239,6 +239,10 @@ private slots:
     
 
 private:
+    void SettingChanged(SETTINGS key, QVariant value);
+    void AutosaveDurationChanged(int duration_minutes);
+    void StartAutosaveCountdown();
+    
     void StoreViewItem(ViewItem* view_item);
     QList<ViewItem*> getSearchableEntities();
 
@@ -314,9 +318,10 @@ private:
     ContextMenu* menu = 0;
     ModelController* controller = 0;
     QMutex mutex;
-    QTimer* autosave_timer_ = 0;
+    
+    QTimer autosave_timer_;
+    bool is_autosave_enabled_ = false;
     int autosave_id_ = 0;
-    bool showSearchSuggestions;
     
     bool showingWelcomeScreen = true;
 };

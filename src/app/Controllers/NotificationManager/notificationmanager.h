@@ -36,9 +36,9 @@ public:
 
     QList<QSharedPointer<NotificationObject>> getNotifications();
     
-    QList<QSharedPointer<NotificationObject>> getNotificationsOfType(Notification::Type type);
-    QList<QSharedPointer<NotificationObject>> getNotificationsOfSeverity(Notification::Severity severity);
-    QList<QSharedPointer<NotificationObject>> getNotificationsOfCategory(Notification::Category category);
+    QList<QSharedPointer<NotificationObject> > getNotificationsOfType(Notification::Type type);
+    QList<QSharedPointer<NotificationObject> > getNotificationsOfSeverity(Notification::Severity severity);
+    QList<QSharedPointer<NotificationObject> > getNotificationsOfCategory(Notification::Category category);
 
     QSharedPointer<NotificationObject> getNotification(int id);
     QSharedPointer<NotificationObject> getLatestNotification();

@@ -60,6 +60,8 @@ ViewController::ViewController(){
 
     //Initialize Settings
     SettingsController::initializeSettings();
+    auto settings_controller = SettingsController::settings();
+    connect(settings_controller, &SettingsController::settingChanged, this, &ViewController::SettingChanged);
 
     NotificationManager::construct_singleton(this);
     SearchManager::construct_singleton(this);
@@ -84,12 +86,44 @@ ViewController::ViewController(){
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 
     connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
+    
+    autosave_timer_.setSingleShot(true);
+    connect(&autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 
-    //setup auto save
-    autosave_timer_ = new QTimer(this);
-    autosave_timer_->setInterval(60000);
-    autosave_timer_->start();
-    connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
+    //Update the settings we need
+    for(auto key : {SETTINGS::GENERAL_AUTOSAVE_DURATION}){
+        SettingChanged(key, settings_controller->getSetting(key));
+    }
+}
+
+void ViewController::SettingChanged(SETTINGS key, QVariant value){
+    switch(key){
+        case SETTINGS::GENERAL_AUTOSAVE_DURATION:{
+            AutosaveDurationChanged(value.toInt());
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void ViewController::AutosaveDurationChanged(int duration_minutes){
+    is_autosave_enabled_ = duration_minutes > 0;
+    qCritical() << "Autosave:" << (is_autosave_enabled_ ? "ENABLED " : "DISABLED");
+    if(is_autosave_enabled_){
+        //Set new timer interval in milliseconds
+        autosave_timer_.setInterval(duration_minutes * 60000);
+        connect(this, &ViewController::ActionFinished, this, &ViewController::StartAutosaveCountdown, Qt::UniqueConnection);
+    }else{
+        autosave_timer_.stop();
+        disconnect(this, &ViewController::ActionFinished, this, &ViewController::StartAutosaveCountdown);
+    }
+}
+
+void ViewController::StartAutosaveCountdown(){
+    if(!autosave_timer_.isActive()){
+        autosave_timer_.start();
+    }
 }
 
 QList<ViewItem*> ViewController::ToViewItemList(QList<NodeViewItem*> &items){
@@ -1112,9 +1146,8 @@ void ViewController::setControllerReady(bool ready)
     if(ready){
         //Reset the autosave id
         autosave_id_ = 0;
-        autosave_timer_->start();
     }else{
-        autosave_timer_->stop();
+        autosave_timer_.stop();
     }
 }
 
@@ -1241,9 +1274,6 @@ void ViewController::autoSaveProject(){
             }
         }
         mutex.unlock();
-    }else{
-        //Try to autosave in 1000 ms
-        QTimer::singleShot(1000, this, &ViewController::autoSaveProject);
     }
 }
 
