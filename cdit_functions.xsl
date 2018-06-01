@@ -525,21 +525,16 @@
 
     <xsl:function name="cpp:get_aggregate_type_name" as="xs:string">
         <xsl:param name="aggregate_inst" as="element()" />
-        <!--
-        <xsl:param name="middleware" as="xs:string" />
-        <xsl:choose>
-            <xsl:when test="$middleware = 'base'">
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="namespace" select="o:title_case(graphml:get_namespace($aggregate))" />
-                <xsl:value-of select="o:join_list($namespace, $label), '_')" />
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        -->
+
         <xsl:variable name="aggregate" select="graphml:get_definition($aggregate_inst)" />
         <xsl:variable name="label" select="o:title_case(graphml:get_label($aggregate))" />
         <xsl:value-of select="$label" />
+    </xsl:function>
+
+    <xsl:function name="cpp:get_component_type_name" as="xs:string">
+        <xsl:param name="component" as="element()" />
+
+        <xsl:value-of select="cpp:get_aggregate_type_name($component)" />
     </xsl:function>
 
     <xsl:function name="cpp:get_aggregate_qualified_type" as="xs:string">
@@ -569,6 +564,16 @@
         </xsl:variable>
 
         <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_type))" />
+    </xsl:function>
+
+    <xsl:function name="cpp:get_component_qualified_type" as="xs:string">
+        <xsl:param name="component" as="element()" />
+        
+        <xsl:variable name="component_def" select="graphml:get_definition($component)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($component_def)" />
+        <xsl:variable name="type" select="cpp:get_component_type_name($component_def)" />
+        
+        <xsl:value-of select="cpp:combine_namespaces(($namespace, $type))" />
     </xsl:function>
     
     <!-- Converts from the Aggregate Types into primitive CPP types -->
@@ -747,6 +752,11 @@
         <xsl:sequence select="distinct-values($token_middlewares)"/>
     </xsl:function>
 
+    <xsl:function name="cdit:get_components_path" as="xs:string">
+        <xsl:param name="component" as="element()" />
+        <xsl:value-of select="cdit:get_aggregates_path($component)" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_aggregates_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
@@ -786,6 +796,13 @@
         <xsl:value-of select="lower-case(o:join_paths(('datatypes', $middleware, $path)))" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_component_path" as="xs:string">
+        <xsl:param name="component" as="element()" />
+
+        <xsl:variable name="path" select="cdit:get_components_path($component)" />
+        <xsl:value-of select="lower-case(o:join_paths(('components', $path)))" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_aggregate_h_path" as="xs:string">
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="aggregate" as="element()" />
@@ -798,7 +815,7 @@
     <xsl:function name="cdit:get_base_enum_h_path" as="xs:string">
         <xsl:param name="enum" as="element()" />
 
-        <xsl:variable name="path" select="cdit:get_aggregates_path($enum)" />
+        <xsl:variable name="path" select="cdit:get_aggregate_path('Base', $enum)" />
         <xsl:variable name="file" select="cdit:get_base_aggregate_h_name($enum)" />
         <xsl:value-of select="o:join_paths(('enums', $path, $file))" />
     </xsl:function>
@@ -819,6 +836,24 @@
         
         <!-- Return the Aggregates Required, which are not nested -->
         <xsl:sequence select="$aggregate_definitions except $ignored_definitions" />
+    </xsl:function>
+
+    <!-- Get all required aggregates -->
+    <xsl:function name="cdit:get_required_enums" as="element()*">
+        <xsl:param name="entity" as="element()" />
+        
+        <!-- Get All Aggregates Used in this entity -->
+        <xsl:variable name="enum_definitions" select="graphml:get_definitions(graphml:get_descendant_nodes_of_kind($entity, 'EnumInstance'))" />
+
+
+        <xsl:variable name="ignored_definitions" as="element()*">
+            <xsl:for-each select="cdit:get_required_aggregates($entity, false())">
+                <xsl:sequence select="cdit:get_required_enums(.)" />
+            </xsl:for-each>
+        </xsl:variable>
+        
+        <!-- Return the Aggregates Required, which are not nested -->
+        <xsl:sequence select="$enum_definitions except $ignored_definitions" />
     </xsl:function>
 
     <xsl:function name="cdit:get_function_name" as="xs:string">
@@ -1257,17 +1292,22 @@
 
     <xsl:function name="cdit:include_aggregate_headers">
         <xsl:param name="middleware" as="xs:string" />
-        <xsl:param name="aggregates" as="element()*" />
+        <xsl:param name="entities" as="element()*" />
 
-        <xsl:for-each select="$aggregates">
+        <xsl:for-each select="$entities">
             <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment(('Include required', o:wrap_quote($middleware), 'Aggregate header files'), 0)" />
+                <xsl:value-of select="cpp:comment(('Include required', o:wrap_quote($middleware), graphml:get_kind(.), ' header files'), 0)" />
             </xsl:if>
             
             <xsl:variable name="header_file" select="cdit:get_aggregate_h_path($middleware, .)" />
             <xsl:value-of select="cpp:include_local_header($header_file)" />
             <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:include_enum_headers">
+        <xsl:param name="enums" as="element()*" />
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $enums)" />
     </xsl:function>
 
     

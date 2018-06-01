@@ -31,10 +31,11 @@
         produces
         package "${package_name}";
     -->
-    <xsl:function name="proto:package" as="xs:string">
+    <xsl:function name="proto:package" as="xs:string?">
         <xsl:param name="package_name" as="xs:string" />
-        
-        <xsl:value-of select="concat('package ', $package_name, ';', o:nl(1))" />
+        <xsl:if test="$package_name">
+            <xsl:value-of select="concat('package ', $package_name, ';', o:nl(1))" />
+        </xsl:if>
     </xsl:function>
 
     <!--

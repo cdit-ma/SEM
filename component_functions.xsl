@@ -366,6 +366,7 @@
         
         <!-- Get the required aggregates, exclude Aggregates for the Interface -->
         <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component_impl, true()) except cdit:get_required_aggregates($component_definition, false())" />
+        <xsl:variable name="enums" select="cdit:get_required_enums($component_impl)" />
 
         <!-- Get the children required for generation -->
         <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicEvent')" />
@@ -388,6 +389,9 @@
 
         <!-- Include the Aggregates -->
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
+
+        <!-- Include the Eums -->
+        <xsl:value-of select="cdit:include_enum_headers($enums)" />
         
         <!-- Include the Worker Headers -->
         <xsl:value-of select="cdit:include_worker_headers($worker_instances)" />
@@ -1843,12 +1847,8 @@
         <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', $library_type, $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-
-        <xsl:value-of select="cmake:comment('Include top level source dirs', 0)" />
         <xsl:variable name="relative_path" select="cmake:get_relative_path(($kind, $namespace, $label))" />
-        <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path))" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'PROJ_NAME')" />
 
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />

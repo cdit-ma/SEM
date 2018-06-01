@@ -7,6 +7,7 @@
     xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
     xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
     xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
     exclude-result-prefixes="gml">
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
@@ -63,26 +64,17 @@
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">
             <xsl:variable name="component_impl" select="." />
             <xsl:variable name="component_def" select="graphml:get_definition($component_impl)" />
+            <xsl:variable name="label" select="lower-case(graphml:get_label($component_def))" />
 
-
-            <xsl:variable name="namespace" select="graphml:get_namespace($component_def)" />
-
+            <xsl:variable name="component_path" select="cdit:get_component_path($component_def)" />
+            <xsl:variable name="qualified_type" select="cpp:get_component_qualified_type($component_def)" />
             
-            
-            
-            <!-- Get the labels of the definition and impl -->
-            <xsl:variable name="component_def_label" select="graphml:get_label($component_def)" />
-            <xsl:variable name="component_impl_label" select="graphml:get_label($component_impl)" />
-            <xsl:variable name="component_int_prefix" select="lower-case($component_def_label)" />
-            <xsl:variable name="component_impl_prefix" select="lower-case($component_impl_label)" />
-            <xsl:variable name="component_path" select="o:join_paths(($output_path, cdit:get_aggregates_path($component_def)))" />
-
-            <xsl:value-of select="o:message(('Generating Component:', o:wrap_quote($component_impl_label)))" />
+            <xsl:value-of select="o:message(('Generating Component:', o:wrap_quote($qualified_type)))" />
                 
             <xsl:if test="not($preview)">
                 <!-- Only Generate the Interfaces and CMake files when we aren't in preview mode -->
-                <xsl:variable name="int_h" select="concat($component_int_prefix, 'int.h')" />
-                <xsl:variable name="int_cpp" select="concat($component_int_prefix, 'int.cpp')" />
+                <xsl:variable name="int_h" select="concat($label, 'int.h')" />
+                <xsl:variable name="int_cpp" select="concat($label, 'int.cpp')" />
 
                 <xsl:result-document href="{o:write_file(($component_path, $int_h))}">
                     <xsl:value-of select="cdit:get_component_int_h($component_def)" />
@@ -101,8 +93,8 @@
                 </xsl:result-document>
             </xsl:if>
 
-            <xsl:variable name="impl_h" select="concat($component_impl_prefix, 'impl.h')" />
-            <xsl:variable name="impl_cpp" select="concat($component_impl_prefix, 'impl.cpp')" />
+            <xsl:variable name="impl_h" select="concat($label, 'impl.h')" />
+            <xsl:variable name="impl_cpp" select="concat($label, 'impl.cpp')" />
 
             <!-- The Impl is always generated -->
             <xsl:result-document href="{o:write_file(($component_path, $impl_h))}">

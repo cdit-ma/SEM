@@ -51,14 +51,12 @@
             <xsl:for-each select="$required_middleware_aggregates">
                 <xsl:variable name="aggregate" select="." />
 
-                <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-                <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+                <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
                 <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
                 
-
-                <xsl:variable name="aggregate_path" select="o:join_paths(($middleware_path, cdit:get_aggregates_path($aggregate)))" />
+                <xsl:variable name="aggregate_path" select="cdit:get_aggregate_path($middleware, .)" />
                 
-                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote(cpp:combine_namespaces(($aggregate_namespace, $aggregate_label)))))" />
+                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($qualified_type)) )" />
 
                 <!-- Generate the Shared Library translate/middleware classes -->
                 <xsl:if test="cdit:build_shared_library($middleware)">
@@ -128,13 +126,10 @@
 
         <!-- Generate the Enum headers -->
         <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'Enum')">
-
-            <xsl:variable name="enum" select="." />
-            <xsl:variable name="enum_path" select="o:join_paths(($output_path, 'base', 'enums', cdit:get_aggregates_path($enum)))" />
-            <xsl:variable name="enum_h" select="lower-case(concat(graphml:get_label($enum), '.h'))" />
-
-            <xsl:result-document href="{o:write_file(($enum_path, $enum_h))}">
-                <xsl:value-of select="cdit:get_enum_h($enum)" />
+            <xsl:variable name="enum_h" select="cdit:get_aggregate_h_path('Base', .)" />
+            
+            <xsl:result-document href="{o:write_file($enum_h)}">
+                <xsl:value-of select="cdit:get_enum_h(.)" />
             </xsl:result-document>
         </xsl:for-each>
 

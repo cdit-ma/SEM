@@ -287,4 +287,14 @@
             </xsl:if>
         </xsl:for-each-group>
     </xsl:function>
+
+    <xsl:function name="cmake:include_top_level_source_dir">
+        <xsl:param name="relative_path" as="xs:string" />
+        <xsl:param name="proj_name" as="xs:string" />
+
+        <xsl:value-of select="cmake:comment('Include Top Level source dir', 0)" />
+        <xsl:variable name="required_path" select="o:join_paths((cmake:current_source_dir_var(), $relative_path))" />
+        <xsl:value-of select="cmake:target_include_directories($proj_name, $required_path, 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
 </xsl:stylesheet>
