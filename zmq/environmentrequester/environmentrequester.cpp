@@ -145,7 +145,7 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             break;
         }
         default:{
-            std::cerr << "Deployment type invalid in EnvironmentRequester::HeartbeatLoop" << std::end;
+            std::cerr << "Deployment type invalid in EnvironmentRequester::HeartbeatLoop" << std::endl;
             assert(true);
         }
     }
