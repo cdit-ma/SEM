@@ -59,6 +59,23 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 }
 
 void EnumInstance::parentSet(Node* parent){
+    switch(parent->getNodeKind()){
+        case NODE_KIND::AGGREGATE:{
+            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+            SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
+            break;
+        }
+        case NODE_KIND::VECTOR:
+        case NODE_KIND::VARIABLE:
+        case NODE_KIND::INPUT_PARAMETER_GROUP:
+        case NODE_KIND::RETURN_PARAMETER_GROUP:{
+            SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
+            break;
+        }
+        default:
+            break;
+    }
+
     AggregateInstance::ParentSet(this);
     DataNode::parentSet(parent);
 }

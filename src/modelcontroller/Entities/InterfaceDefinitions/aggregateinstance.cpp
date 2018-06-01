@@ -25,6 +25,8 @@ AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) 
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
 
+    
+
     if(is_temp){
         //Break out early for temporary entities
         return;

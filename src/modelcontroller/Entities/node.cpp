@@ -27,8 +27,8 @@ Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) 
 
     //Attach default data
     broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED, -1);
 }
 
 Node::~Node()

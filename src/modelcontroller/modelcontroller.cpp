@@ -1548,12 +1548,18 @@ bool ModelController::canDeleteNode(Node *node)
             case NODE_KIND::COMPONENT_INSTANCE:
                 // These node kinds can be destroyed at any time
                 break;
+            case NODE_KIND::ENUM_INSTANCE:
             case NODE_KIND::AGGREGATE_INSTANCE:{
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
                 switch(parent_node_kind){
                     case NODE_KIND::AGGREGATE:
                     case NODE_KIND::VECTOR:
+                    case NODE_KIND::VARIABLE:
+                    case NODE_KIND::INPUT_PARAMETER_GROUP:
+                    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+                    case NODE_KIND::RETURN_PARAMETER_GROUP:
+                    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
                         break;
                     default:
                         return false;
