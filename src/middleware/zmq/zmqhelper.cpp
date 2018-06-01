@@ -39,6 +39,30 @@ zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     return s;
 };
 
+zmq::socket_t* zmq::ZmqHelper::get_client_socket(){
+    auto c = get_context();
+
+    //Acquire the Lock
+    std::lock_guard<std::mutex> lock(mutex);
+    zmq::socket_t* s = 0;
+    if(c){
+        s = new zmq::socket_t(*c, ZMQ_REQ);
+    }
+    return s;
+}
+
+zmq::socket_t* zmq::ZmqHelper::get_server_socket(){
+    auto c = get_context();
+
+    //Acquire the Lock
+    std::lock_guard<std::mutex> lock(mutex);
+    zmq::socket_t* s = 0;
+    if(c){
+        s = new zmq::socket_t(*c, ZMQ_REP);
+    }
+    return s;
+}
+
 zmq::socket_t* zmq::ZmqHelper::get_subscriber_socket(){
     zmq::context_t* c = get_context();
 

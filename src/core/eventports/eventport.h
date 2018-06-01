@@ -17,7 +17,9 @@ class EventPort : public Activatable
             NONE = 0,
             TX = 1,
             RX = 2,
-            PE = 3
+            PE = 3,
+            CLIENT = 4,
+            SERVER = 5
         };
         
         EventPort(std::weak_ptr<Component> component, const std::string& port_name, const EventPort::Kind& port_kind, const std::string& port_middleware);
