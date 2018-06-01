@@ -3,6 +3,18 @@
 #include "../component.h"
 #include <iostream>
 #include <memory>
+#include <chrono>
+
+/*
+//Average Statistics over 1 Minute
+1hz: 0.983333hz
+10hz: 9.66667hz
+100hz: 88.7167hz
+1000hz: 911.883hz
+2000hz: 1791.47hz
+5000hz: 3895.85hz
+10000hz: 7545.08hz
+*/
 
 PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage&)> callback, int milliseconds):
 ::InEventPort<BaseMessage>(component, name, callback, "periodic")
@@ -91,9 +103,11 @@ void PeriodicEventPort::Loop(){
                     //Sleep indefinately
                     tick_condition_.wait(lock, [this]{return interupt_;});
                 }else{
-                    //Get the duration in milliseconds
-                    auto ms = 1000.0 / frequency;
-                    auto duration = std::chrono::milliseconds((int) ms);
+                    //Get 1 second in microseconds
+                    double us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(1)).count();
+                    int sleep_us = std::floor(us / frequency);
+                    
+                    auto duration = std::chrono::microseconds(sleep_us);
                     tick_condition_.wait_for(lock, duration, [this]{return interupt_;});
                 }
 
