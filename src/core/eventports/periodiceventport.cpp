@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
+#include <cmath>
 
 /*
 //Average Statistics over 1 Minute
