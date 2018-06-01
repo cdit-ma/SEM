@@ -247,6 +247,9 @@ void Node::setTop(int index)
     branch_ = index;
     updateTreeIndex({});
 }
+int Node::getBranch(){
+    return branch_;
+}
 
 void Node::updateTreeIndex(QList<int> parent_tree_index){
     tree_index_ = parent_tree_index;
@@ -820,6 +823,22 @@ void Node::removeEdge(Edge *edge)
         edges_.remove(edge->getEdgeKind(), edge);
     }
 }
+void Node::parentNodeUpdated(){
+
+    if(parent_node_){
+        for(auto data : getData()){
+            data->revalidateData();
+        }
+        //Update the parent tree index
+        updateTreeIndex(parent_node_->getTreeIndex());
+        updateViewAspect(parent_node_->getViewAspect());
+        parentSet(parent_node_);
+
+        for(auto child : getChildren(0)){
+            child->setParentNode(this, child->getBranch());
+        }
+    }
+}
 
 void Node::setParentNode(Node *parent, int branch)
 {
@@ -828,18 +847,8 @@ void Node::setParentNode(Node *parent, int branch)
         parent_node_ = parent;
         parent_node_kind_ = parent->getNodeKind();
         branch_ = branch;
-        for(auto data : getData()){
-            data->revalidateData();
-        }
-        
     }
-
-    if(parent_node_){
-        //Update the parent tree index
-        updateTreeIndex(parent_node_->getTreeIndex());
-        updateViewAspect(parent_node_->getViewAspect());
-        parentSet(parent_node_);
-    }
+    parentNodeUpdated();
 }
 
 QString Node::toGraphML(int indent_depth, bool functional_export)

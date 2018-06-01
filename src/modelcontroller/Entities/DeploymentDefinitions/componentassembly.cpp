@@ -13,7 +13,6 @@ void ComponentAssembly::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 }
 
 ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    //Setup State
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
 
@@ -28,7 +27,6 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
         return;
     }
 
-    //Setup Data
     broker.AttachData(this, "replicate_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
     broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
 }

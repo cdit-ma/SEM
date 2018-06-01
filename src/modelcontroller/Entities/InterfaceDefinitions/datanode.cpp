@@ -363,12 +363,13 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
 
         auto bind_source = source;
         auto source_key = "label";
+        auto target_key = "value";
 
         if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
             bind_source = source_parent;
         }
 
-        LinkData(bind_source, source_key, destination, "value", setup);
+        LinkData(bind_source, source_key, destination, target_key, setup);
 
         if(destination->getNodeKind() == NODE_KIND::VARIABLE_PARAMETER){
             TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);

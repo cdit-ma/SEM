@@ -59,7 +59,6 @@ class Node : public Entity
         bool setAsRoot(int root_index);
         
         void setParentNode(Node* parent, int branch = -1);
-        void updateOrphanedDescendants();
 
         void addEdge(Edge *edge);
         void removeEdge(Edge *edge);
@@ -86,8 +85,11 @@ class Node : public Entity
         void setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept = true);
         bool canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edgeKind, Node* dst) const;
+
+        void parentNodeUpdated();
         void updateTreeIndex(QList<int> parent_tree_index);
         virtual void updateViewAspect(VIEW_ASPECT parent_view_aspect);
+        int getBranch();
     signals:
         void acceptedEdgeKindsChanged(Node* node);
         void typesChanged();
@@ -186,7 +188,7 @@ class Node : public Entity
         QSet<EDGE_KIND> getAcceptedEdgeKind(EDGE_DIRECTION direction) const;
 
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
-
+        
         
     private:
         
@@ -194,6 +196,8 @@ class Node : public Entity
         QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
         QList<Node*> getOrderedChildNodes();
         void setTop(int index = 0);
+
+        
 
         //Variables
         QList<int> tree_index_;

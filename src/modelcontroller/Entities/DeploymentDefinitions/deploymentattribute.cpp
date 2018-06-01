@@ -38,12 +38,12 @@ bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-
-    QSet<NODE_KIND> valid_data_kinds = {NODE_KIND::ATTRIBUTE_INSTANCE, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
+    
+    QSet<NODE_KIND> valid_dst_kinds = {NODE_KIND::ATTRIBUTE_INSTANCE, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
 
     switch(edge_kind){
     case EDGE_KIND::DATA:{
-        if(!valid_data_kinds.contains(dst->getNodeKind())){
+        if(!valid_dst_kinds.contains(dst->getNodeKind())){
             return false;
         }
         break;
