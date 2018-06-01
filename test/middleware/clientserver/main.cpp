@@ -67,6 +67,7 @@ int main(int ac, char* av[])
 
     server_port->Passivate();
     client_port->Passivate();
+    
     server_port->Terminate();
     client_port->Terminate();
 
