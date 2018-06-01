@@ -37,7 +37,7 @@ Component::Component(const std::string& component_name){
 
 Component::~Component(){
     Activatable::Terminate();
-    std::lock_guard<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> lock(port_mutex_);
     //Destory Ports
     eventports_.clear();
 }
@@ -144,7 +144,7 @@ std::weak_ptr<EventPort> Component::GetEventPort(const std::string& port_name){
     if(eventports_.count(port_name)){
         return eventports_[port_name];
     }
-    std::cerr << "Component '" << get_name() << "' doesn't have an EventPort with name '" << port_name << "'" << std::endl;
+    //std::cerr << "Component '" << get_name() << "' doesn't have an EventPort with name '" << port_name << "'" << std::endl;
     return std::weak_ptr<EventPort>();
 }
 

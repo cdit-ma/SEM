@@ -36,6 +36,13 @@ set(HEADERS
 add_library(${EXECUTION_PARSER_LIB} SHARED ${SOURCE} ${HEADERS})
 add_executable(${EXECUTION_PARSER} "${CMAKE_CURRENT_SOURCE_DIR}/executionparser.cpp")
 
+if (MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    #Windows requires protobuf in DLLs
+    target_compile_definitions(${EXECUTION_PARSER_LIB} PRIVATE -DPROTOBUF_USE_DLLS)
+endif(MSVC)
+
+
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

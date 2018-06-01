@@ -295,6 +295,7 @@ bool ProtobufModelParser::Process(){
             if(hardware_id.empty() || component_id.empty() || !node_pb){
                 continue;
             }
+            auto component_def_id = GetDefinitionId(component_id);
 
             //Set component info
             auto component_pb = node_pb->add_components();
@@ -303,7 +304,12 @@ bool ProtobufModelParser::Process(){
             component_info_pb->set_id(component_uid);
             std::string component_name = graphml_parser_->GetDataValue(component_id, "label") + unique_id;
             component_info_pb->set_name(component_name);
-            component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
+            component_info_pb->set_type(graphml_parser_->GetDataValue(component_def_id, "label"));
+
+            //Copy in the new namespaces
+            for(auto ns : GetNamespace(component_def_id)){
+                component_info_pb->add_namespaces(ns);
+            }
 
             //Fill the Attributes
             FillProtobufAttributes(component_pb->mutable_attributes(), component_id, unique_id);
@@ -325,7 +331,11 @@ bool ProtobufModelParser::Process(){
                 std::string port_name = graphml_parser_->GetDataValue(port_id, "label");
                 port_info_pb->set_name(port_name);
                 port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
-                port_pb->set_namespace_name(graphml_parser_->GetDataValue(aggregate_id, "namespace"));
+
+                //Copy in the new namespaces
+                for(auto ns : GetNamespace(aggregate_id)){
+                    port_info_pb->add_namespaces(ns);
+                }
 
                 if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
                     port_pb->set_visibility(NodeManager::EventPort::PUBLIC);
@@ -721,4 +731,20 @@ void ProtobufModelParser::FillProtobufAttributes(google::protobuf::RepeatedPtrFi
 
         SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), attribute_value_map_[attribute_id]);
     }
+}
+
+
+std::list<std::string> ProtobufModelParser::GetNamespace(const std::string& id){
+    std::list<std::string> namespace_list;
+    auto current_id = id;
+
+    while(current_id.size()){
+        const auto& kind = graphml_parser_->GetDataValue(current_id, "kind");
+        if(kind == "Namespace"){
+            const auto& label = graphml_parser_->GetDataValue(current_id, "label");
+            namespace_list.emplace_front(label);
+        }
+        current_id = graphml_parser_->GetParentNode(current_id);
+    }
+    return namespace_list;
 }

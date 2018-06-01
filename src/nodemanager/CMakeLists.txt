@@ -36,7 +36,7 @@ set(HEADERS
 #Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-add_library(${RE_NODE_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})
+add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 
 add_executable(${RE_NODE_MANAGER} "${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp")
 add_executable(${RE_EXECUTION_TESTER} "${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp")

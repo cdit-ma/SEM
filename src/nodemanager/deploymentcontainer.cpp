@@ -12,7 +12,10 @@
 #include <list>
 #include <thread>
 
+#include <sstream>
+#include <iterator>
 #include <future>
+
 //Converts std::string to lower
 std::string to_lower(std::string str){
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -50,6 +53,14 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
         auto component = GetConfiguredComponent(component_pb);
         success = component ? success : false;
     }
+
+    if(!success){
+        //Teardown Components
+        for(const auto& component_pb : node.components()){
+            RemoveComponent(component_pb.info().id());
+        }
+    }
+
     if(success){
         std::cout << "* Configured DeploymentContainer: " << get_name() << std::endl;
     }
@@ -80,7 +91,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     auto component = GetComponent(component_info_pb.id()).lock();
     if(!component){
         //Construct the Component
-        component = ConstructComponent(component_info_pb.type(), component_info_pb.name(), component_info_pb.id());
+        component = ConstructComponent(component_info_pb.type(), component_info_pb.name(), GetNamespaceString(component_info_pb), component_info_pb.id());
     }
 
     if(component){
@@ -98,11 +109,25 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         for(const auto& port_pb : component_pb.workers()){
             auto worker = GetConfiguredWorker(component, port_pb);
         }
-
-        //Handle the external classes
-
+    }else{
+        std::cerr << "Cannot Construct Component: " << component_info_pb.name() << std::endl;
     }
     return component;
+}
+
+std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& info){
+    std::ostringstream concatenated_stream;
+    
+    const auto& namespaces = info.namespaces();
+    for(int i = 0; i < namespaces.size(); i++){
+        concatenated_stream << namespaces.Get(i);
+        if(i + 1 < namespaces.size()){
+            concatenated_stream << '_';
+        }
+    }
+    
+
+    return concatenated_stream.str();
 }
 
 std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb){
@@ -115,15 +140,17 @@ std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shar
         //Try get the port
         eventport = component->GetEventPort(eventport_info_pb.name()).lock();
         
+        
+        const auto namespace_str = GetNamespaceString(eventport_pb.info());
 
         if(!eventport){
             switch(eventport_pb.kind()){
                 case NodeManager::EventPort::IN_PORT:{
-                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
                     break;
                 }
                 case NodeManager::EventPort::OUT_PORT:{
-                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
                     break;
                 }
                 case NodeManager::EventPort::PERIODIC_PORT:{
@@ -172,6 +199,9 @@ bool DeploymentContainer::HandlePassivate(){
 }
 
 bool DeploymentContainer::HandleTerminate(){
+    HandlePassivate();
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+
     //Using async allows concurrent termination of components, which gives orders of magnitude improvements
     auto success = true;
     std::list<std::future<bool> > results;
@@ -180,7 +210,7 @@ bool DeploymentContainer::HandleTerminate(){
         results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
     }
     components_.clear();
-
+    
     for(auto& result : results){
         success &= result.get();
     }
@@ -202,16 +232,20 @@ bool DeploymentContainer::HandleConfigure(){
 }
 
 std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
-    if(components_.count(name) == 0){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+    if(component && components_.count(name) == 0){
         components_[name] = std::move(component);
         return components_[name];
-    }else{
+    }else if(component){
         std::cerr << "DeploymentContainer already has a Component with name '" << name << "'" << std::endl;
-        return std::weak_ptr<Component>();
+    }else{
+        std::cerr << "DeploymentContainer cannot add a Null Component with name '" << name << "'" << std::endl;
     }
+    return std::weak_ptr<Component>();
 }
 
 std::weak_ptr<Component> DeploymentContainer::GetComponent(const std::string& name){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
     if(components_.count(name)){
         return components_[name];
     }else{
@@ -220,6 +254,7 @@ std::weak_ptr<Component> DeploymentContainer::GetComponent(const std::string& na
 }
 
 std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::string& name){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
     if(components_.count(name)){
         auto component = components_[name];
         components_.erase(name);
@@ -230,17 +265,21 @@ std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::strin
     }
 }
 
-std::string DeploymentContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype){
+std::string DeploymentContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
     std::string p = middleware + "_";
-    if(!namespace_name.empty()){
-        p += namespace_name + "_";
+    if(!namespace_str.empty()){
+        p += namespace_str + "_";
     }
     p += datatype;
     
     return to_lower(p);
 }
-std::string DeploymentContainer::get_component_library_name(const std::string& component_type){
-    std::string c = "component_" + component_type;
+std::string DeploymentContainer::get_component_library_name(const std::string& component_type, const std::string& namespace_str){
+    std::string c = "component_" ;
+    if(!namespace_str.empty()){
+        c += namespace_str + "_";
+    }
+    c += component_type;
     return to_lower(c);
 }
 
@@ -292,9 +331,9 @@ std::shared_ptr<EventPort> DeploymentContainer::ConstructInEventPort(const std::
     return eventport;
 }
 
-std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id){
+std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& namespace_str, const std::string& component_id){
     std::shared_ptr<Component> component;
-    const auto& library_name = get_component_library_name(component_type);
+    const auto& library_name = get_component_library_name(component_type, namespace_str);
 
     if(!component_constructors_.count(library_name)){
         auto function = dll_loader.GetLibraryFunction<ComponentCConstructor>(library_path_, library_name, "ConstructComponent");
@@ -302,7 +341,6 @@ std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::st
             component_constructors_[library_name] = function;
         }
     }
-
     if(component_constructors_.count(library_name)){
         auto component_ptr = component_constructors_[library_name](component_name);
         if(component_ptr){

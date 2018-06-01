@@ -18,6 +18,7 @@ namespace NodeManager{
     class EventPort;
     class Worker;
     class Node;
+    class Info;
 };
 
 typedef std::function<EventPortCConstructor> EventPortConstructor;
@@ -39,6 +40,7 @@ class DeploymentContainer : public Activatable{
         bool HandleTerminate();
         bool HandleConfigure();
     private:
+        std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
         std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
@@ -46,12 +48,12 @@ class DeploymentContainer : public Activatable{
         
         //Constructor functions
         std::shared_ptr<EventPort> ConstructPeriodicEvent(std::weak_ptr<Component> component, const std::string& port_name);
-        std::shared_ptr<EventPort> ConstructOutEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
-        std::shared_ptr<EventPort> ConstructInEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
-        std::shared_ptr<Component> ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id);
+        std::shared_ptr<EventPort> ConstructOutEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
+        std::shared_ptr<EventPort> ConstructInEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
+        std::shared_ptr<Component> ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& namespace_str, const std::string& component_id);
         
         std::string get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
-        std::string get_component_library_name(const std::string& component_type);
+        std::string get_component_library_name(const std::string& component_type, const std::string& namespace_name);
 
         std::string library_path_;
 
@@ -59,6 +61,8 @@ class DeploymentContainer : public Activatable{
         std::unordered_map<std::string, EventPortConstructor> out_eventport_constructors_;
         std::unordered_map<std::string, EventPortConstructor> in_eventport_constructors_;
         std::unordered_map<std::string, ComponentConstructor> component_constructors_;
+
+        std::mutex component_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Component> > components_;
 
         DllLoader dll_loader;

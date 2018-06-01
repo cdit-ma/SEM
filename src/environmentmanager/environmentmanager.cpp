@@ -3,7 +3,7 @@
 #include <chrono>
 #include <exception>
 #include <boost/program_options.hpp>
-
+#include <signal.h>
 #include <re_common/util/execution.hpp>
 
 #include "broadcaster.h"

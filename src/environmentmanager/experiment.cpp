@@ -86,8 +86,13 @@ void Experiment::AddNode(const NodeManager::Node& node){
             event_port.port_number = environment_.GetPort(node_name);
             event_port.node_name = node_name;
 
-            //TODO: Fix this when namespace/scoping is into medea, also need to fix in protobufmodelparser
-            event_port.type = port.namespace_name() + ":" + port.info().type();
+            for(const auto& ns : port.info().namespaces()){
+                event_port.type += ns + "::";
+            }
+
+            event_port.type += port.info().type();
+
+            std::cerr << event_port.id << " " << event_port.type << std::endl;
 
             for(int a = 0; a < port.attributes_size(); a++){
                 auto attribute = port.attributes(a);
