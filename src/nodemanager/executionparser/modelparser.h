@@ -58,6 +58,9 @@ namespace Graphml{
             GraphmlParserInt* graphml_parser_;
 
             std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
+            std::string GetIiopAddress(const std::string& ip, const unsigned int port_number);
+            std::string GetNamedIiopAddress(const std::string& ip, const unsigned int port_number, const std::string& name);
+
             std::string GetDefinitionId(const std::string& id);
             std::string GetAggregateID(const std::string& id);
             std::string GetDeployedID(const std::string& id);

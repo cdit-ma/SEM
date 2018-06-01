@@ -1,7 +1,6 @@
 #ifndef OSPL_OUTEVENTPORT_H
 #define OSPL_OUTEVENTPORT_H
 
-#include <middleware/ospl/translate.h>
 #include <middleware/ospl/helper.hpp>
 #include <core/eventports/outeventport.hpp>
 
@@ -24,6 +23,8 @@ namespace ospl{
             bool tx(const T& message);
         private:
             bool setup_tx();
+
+            ::Base::Translator<T,S> translator;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
@@ -90,11 +91,13 @@ bool ospl::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(writer_ != dds::core::null){
-            auto m = ospl::translate<T, S>(message);
-            //De-reference the message and send
-            writer_.write(*m);
-            delete m;
-            return true;
+            auto m = translator.BaseToMiddleware(message);
+            if(m){
+                //De-reference the message and send
+                writer_.write(*m);
+                delete m;
+                return true;
+            }
         }else{
             Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Writer unexpectedly null");
         }

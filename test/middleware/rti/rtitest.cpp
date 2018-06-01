@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-// Include the convert functions for the port type
-#include "convert.hpp"
+#include "../base/basic.h"
+#include "basic.hpp"
 
 #include <middleware/rti/ineventport.hpp>
 #include <middleware/rti/outeventport.hpp>

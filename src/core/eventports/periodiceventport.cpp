@@ -17,6 +17,9 @@
 10000hz: 7545.08hz
 */
 
+//TODO: LOOKUP Leaky bucket model
+//TODO: HANDLE Frequency <= 5000hz
+
 PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage&)> callback, int milliseconds):
 ::InEventPort<BaseMessage>(component, name, callback, "periodic")
 {

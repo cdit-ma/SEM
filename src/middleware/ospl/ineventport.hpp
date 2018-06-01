@@ -1,7 +1,6 @@
 #ifndef OSPL_INEVENTPORT_H
 #define OSPL_INEVENTPORT_H
 
-#include <middleware/ospl/translate.h>
 #include <middleware/ospl/helper.hpp>
 #include <middleware/ospl/datareaderlistener.hpp>
 #include <core/eventports/ineventport.hpp>
@@ -28,6 +27,8 @@ namespace ospl{
         bool HandleTerminate();
     private:
         void receive_loop();
+
+        ::Base::Translator<T,S> translator;
 
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;

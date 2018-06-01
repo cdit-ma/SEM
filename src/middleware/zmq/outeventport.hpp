@@ -1,10 +1,10 @@
 #ifndef ZMQ_OUTEVENTPORT_H
 #define ZMQ_OUTEVENTPORT_H
 
-#include <middleware/proto/translate.h>
+#include <core/eventports/prototranslator.h>
 #include <core/eventports/outeventport.hpp>
-#include "zmqhelper.h"
 #include <re_common/zmq/zmqutils.hpp>
+#include "zmqhelper.h"
 
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
@@ -22,6 +22,8 @@ namespace zmq{
         private:
             bool setup_tx();
             std::mutex control_mutex_;
+
+            ::Proto::Translator<T, S> translater;
             
             zmq::socket_t* socket_ = 0;
             std::shared_ptr<Attribute> end_points_;
@@ -91,7 +93,7 @@ bool zmq::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(socket_){
-            auto str = proto::encode<T, S>(message);
+            auto str = translater.BaseToString(message);
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
             return true;

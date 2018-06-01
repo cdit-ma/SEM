@@ -4,6 +4,7 @@
 #include "eventport.h"
 #include "../modellogger.h"
 #include "../component.h"
+#include "translator.h"
 
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{

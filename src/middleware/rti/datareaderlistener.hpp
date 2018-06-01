@@ -20,8 +20,10 @@ namespace rti{
                     for(const auto& sample : reader.take()){
                         //Translate and callback into the component for each valid message we receive
                         if(sample->info().valid()){
-                            auto m = rti::translate<T, S>(sample->data());
-                            port_->EnqueueMessage(m);
+                            auto m = port_->translator.MiddlewareToBase(sample->data());
+                            if(m){
+                                port_->EnqueueMessage(m);
+                            }
                         }
                     }
                 }catch(const std::exception& ex){

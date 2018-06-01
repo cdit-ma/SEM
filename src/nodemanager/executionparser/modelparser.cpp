@@ -368,6 +368,16 @@ bool Graphml::ModelParser::Process(){
                             //Construct a TCP Address
                             port->port_address = GetTCPAddress(deployed_node->ip_address, port->port_number);
                         }
+
+                        if(port->kind == "InEventPortInstance" && deployed_node && port->middleware == "TAO"){
+                            port->port_number = ++deployed_node->port_count;
+                            //port->port_address = GetIiopAddress(deployed_node->ip_address, port->port_number);
+                            //port->named_port_address = GetNamedIiopAddress(deployed_node->ip_address, port->port_number, port->name);
+                            port->port_address = GetIiopAddress("192.168.111.90", 6009);
+                            port->named_port_address = GetNamedIiopAddress("192.168.111.90", 6009, port->name);
+                            //port->named_port_address = GetNamedIiopAddress(deployed_node->ip_address, port->port_number, port->name);
+                        }
+
                         event_ports_[p_uid] = port;
                         //Add the Attribute to the Component
                         component_inst->event_port_ids.push_back(p_uid);
@@ -683,6 +693,22 @@ std::string Graphml::ModelParser::GetTCPAddress(const std::string ip, const unsi
     std::string addr;
     if(!ip.empty()){
         addr += "tcp://" + ip + ":" + std::to_string(port_number);
+    }
+    return addr;
+}
+
+std::string Graphml::ModelParser::GetIiopAddress(const std::string& ip, const unsigned int port_number){
+    std::string addr;
+    if(!ip.empty()){
+        addr += "iiop://" + ip + ":" + std::to_string(port_number);
+    }
+    return addr;
+}
+
+std::string Graphml::ModelParser::GetNamedIiopAddress(const std::string& ip, const unsigned int port_number, const std::string& name){
+    std::string addr;
+    if(!ip.empty()){
+        addr += name + "=corbaloc:iiop:" + ip + ":" + std::to_string(port_number) + "/" + name;
     }
     return addr;
 }
