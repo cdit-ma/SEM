@@ -72,7 +72,7 @@ class ExecutionManager{
         bool parse_succeed_ = false;
 
         Execution* execution_;
-        EnvironmentRequester* requester_ = 0;
+        std::unique_ptr<EnvironmentRequester> requester_;
         
         zmq::ProtoWriter* proto_writer_;
         std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
