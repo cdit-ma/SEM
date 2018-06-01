@@ -2937,8 +2937,11 @@ int ModelController::getProjectActionCount()
 }
 
 bool ModelController::gotImplementation(Node* node){
-    auto definition = node ? node->getDefinition(true) : 0;
-    return definition ? definition->getImplementations().count() > 0 : false;
+    auto definition = node;
+    if(definition && definition->getDefinition()){
+        definition = definition->getDefinition(true);
+    }
+    return definition ? definition->getImplementations().count(): false;
 }
 
 Node* ModelController::getDefinition(Node* node){
@@ -2964,8 +2967,11 @@ int ModelController::getDefinition(int id)
 int ModelController::getImplementation(int id)
 {
     QReadLocker lock(&lock_);
-    auto definition = getDefinition(entity_factory->GetNode(id));
 
+    auto definition = entity_factory->GetNode(id);
+    if(definition->getDefinition()){
+        definition = definition->getDefinition(true);
+    }
     if(definition){
         auto impls = definition->getImplementations();
         if(impls.size()){
