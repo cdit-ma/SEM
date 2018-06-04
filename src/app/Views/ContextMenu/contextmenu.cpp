@@ -24,7 +24,7 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::MEMBER_INSTANCE] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER_IMPL] = EDGE_KIND::DEFINITION;
     
     connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
@@ -33,17 +33,17 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::EXTERNAL_TYPE] = EDGE_KIND::DEFINITION;
     
 
-    connect_node_edge_kinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;
-    connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
-    connect_node_edge_kinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
-    connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::PORT_SUBSCRIBER] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::PORT_SUBSCRIBER_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER_DELEGATE] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::EXTERNAL_ASSEMBLY] = EDGE_KIND::AGGREGATE;
 
-    connect_node_edge_kinds[NODE_KIND::SERVER_PORT] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::CLIENT_PORT] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_REPLIER] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER] = EDGE_KIND::DEFINITION;
 
-    connect_node_edge_kinds[NODE_KIND::SERVER_REQUEST] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::SERVER_PORT_IMPL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER_IMPL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;
     
 
     action_controller = view_controller->getActionController();

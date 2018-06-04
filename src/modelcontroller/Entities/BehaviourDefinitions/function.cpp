@@ -71,9 +71,9 @@ void MEDEA::Function::parentSet(Node* parent){
 
     auto parent_node_kind = parent->getNodeKind();
     if(parent_node_kind != NODE_KIND::COMPONENT_IMPL){
-        setAcceptsNodeKind(NODE_KIND::INEVENTPORT_IMPL, false);
-        setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_IMPL, false);
-        setAcceptsNodeKind(NODE_KIND::SERVER_REQUEST, false);
+        setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_IMPL, false);
+        setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER_IMPL, false);
+        setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER_IMPL, false);
     }
 
     if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INSTANCE){

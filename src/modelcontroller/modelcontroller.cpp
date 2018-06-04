@@ -1516,7 +1516,7 @@ bool ModelController::canDeleteNode(Node *node)
 
         switch(node_kind){
             case NODE_KIND::ATTRIBUTE_INSTANCE:
-                if(parent_node_kind == NODE_KIND::PERIODICEVENT){
+                if(parent_node_kind == NODE_KIND::PORT_PERIODIC){
                     return false;
                 }
                 break;
@@ -1541,10 +1541,10 @@ bool ModelController::canDeleteNode(Node *node)
             }
                 
             case NODE_KIND::FUNCTION_CALL:
-            case NODE_KIND::SERVER_REQUEST:
-            case NODE_KIND::OUTEVENTPORT_IMPL:
-            case NODE_KIND::SERVER_PORT:
-            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::PORT_REQUESTER_IMPL:
+            case NODE_KIND::PORT_PUBLISHER_IMPL:
+            case NODE_KIND::PORT_REPLIER:
+            case NODE_KIND::PORT_REQUESTER:
             case NODE_KIND::COMPONENT_INSTANCE:
                 // These node kinds can be destroyed at any time
                 break;

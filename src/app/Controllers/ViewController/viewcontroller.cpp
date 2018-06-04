@@ -576,18 +576,18 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_prefix = "EntityIcons";
             default_icon_name = "Attribute";
             break;
-        case NODE_KIND::SERVER_PORT:
-        case NODE_KIND::SERVER_PORT_IMPL:
-        case NODE_KIND::SERVER_PORT_INSTANCE:{
+        case NODE_KIND::PORT_REPLIER:
+        case NODE_KIND::PORT_REPLIER_IMPL:
+        case NODE_KIND::PORT_REPLIER_INST:{
             default_icon_prefix = "EntityIcons";
-            default_icon_name = "ReplyPort";
+            default_icon_name = "ReplierPort";
             break;
         }
-        case NODE_KIND::CLIENT_PORT:
-        case NODE_KIND::SERVER_REQUEST:
-        case NODE_KIND::CLIENT_PORT_INSTANCE:{
+        case NODE_KIND::PORT_REQUESTER:
+        case NODE_KIND::PORT_REQUESTER_IMPL:
+        case NODE_KIND::PORT_REQUESTER_INST:{
             default_icon_prefix = "EntityIcons";
-            default_icon_name = "RequestPort";
+            default_icon_name = "RequesterPort";
             break;
         }
 
@@ -638,7 +638,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "EnumMember";
             break;
         }
-        case NODE_KIND::PERIODICEVENT_INSTANCE:{
+        case NODE_KIND::PORT_PERIODIC_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "PeriodicEvent";
             break;
@@ -845,11 +845,11 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::HARDWARE_DEFINITIONS);
     constructableNodes.removeAll(NODE_KIND::HARDWARE_CLUSTER);
     constructableNodes.removeAll(NODE_KIND::HARDWARE_NODE);
-    constructableNodes.removeAll(NODE_KIND::INEVENTPORT_IMPL);
-    constructableNodes.removeAll(NODE_KIND::SERVER_PORT_IMPL);
+    constructableNodes.removeAll(NODE_KIND::PORT_SUBSCRIBER_IMPL);
+    constructableNodes.removeAll(NODE_KIND::PORT_REPLIER_IMPL);
     constructableNodes.removeAll(NODE_KIND::INTERFACE_DEFINITIONS);
     constructableNodes.removeAll(NODE_KIND::MANAGEMENT_COMPONENT);
-    constructableNodes.removeAll(NODE_KIND::OUTEVENTPORT_INSTANCE);
+    constructableNodes.removeAll(NODE_KIND::PORT_PUBLISHER_INST);
     constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);

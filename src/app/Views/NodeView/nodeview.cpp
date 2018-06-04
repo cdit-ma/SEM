@@ -836,8 +836,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::HARDWARE_CLUSTER:
                 node_item = new StackNodeItem(item, parentNode);
                 break;
-            case NODE_KIND::INEVENTPORT_DELEGATE:
-            case NODE_KIND::OUTEVENTPORT_DELEGATE:
+            case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
+            case NODE_KIND::PORT_PUBLISHER_DELEGATE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
 
@@ -845,17 +845,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
 
-            case NODE_KIND::SERVER_PORT_INSTANCE:
-            case NODE_KIND::CLIENT_PORT_INSTANCE:
-            case NODE_KIND::INEVENTPORT_INSTANCE:
-            case NODE_KIND::OUTEVENTPORT_INSTANCE:
+            case NODE_KIND::PORT_REPLIER_INST:
+            case NODE_KIND::PORT_REQUESTER_INST:
+            case NODE_KIND::PORT_SUBSCRIBER_INST:
+            case NODE_KIND::PORT_PUBLISHER_INST:
                 node_item = new CompactNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 node_item->setTertiaryTextKey("middleware");
                 node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "sliders"}, true);
 
-                if(node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE || node_kind == NODE_KIND::CLIENT_PORT_INSTANCE){
+                if(node_kind == NODE_KIND::PORT_PUBLISHER_INST || node_kind == NODE_KIND::PORT_REQUESTER_INST){
                     node_item->setRightJustified(true);
                 }
                 break;
@@ -929,7 +929,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             
-            case NODE_KIND::OUTEVENTPORT_IMPL:
+            case NODE_KIND::PORT_PUBLISHER_IMPL:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
@@ -975,9 +975,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             
             
-            case NODE_KIND::SERVER_PORT:
-            case NODE_KIND::CLIENT_PORT:
-            case NODE_KIND::SERVER_REQUEST:{
+            case NODE_KIND::PORT_REPLIER:
+            case NODE_KIND::PORT_REQUESTER:
+            case NODE_KIND::PORT_REQUESTER_IMPL:{
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
@@ -997,25 +997,25 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::RETURN_PARAMETER_GROUP:
             case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
             case NODE_KIND::CLASS_INSTANCE:
-            case NODE_KIND::PERIODICEVENT_INSTANCE:{
+            case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setMinimumHeight(node_item->getMinimumHeight() / 2);
                 node_item->setMinimumWidth(40);
                 break;
             }
 
-            case NODE_KIND::OUTEVENTPORT:
-            case NODE_KIND::INEVENTPORT:
+            case NODE_KIND::PORT_PUBLISHER:
+            case NODE_KIND::PORT_SUBSCRIBER:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
-            case NODE_KIND::INEVENTPORT_IMPL:
+            case NODE_KIND::PORT_SUBSCRIBER_IMPL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
-            case NODE_KIND::PERIODICEVENT:
+            case NODE_KIND::PORT_PERIODIC:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 break;
             

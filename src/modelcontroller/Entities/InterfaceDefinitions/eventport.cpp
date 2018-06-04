@@ -21,12 +21,12 @@ EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
 
 bool EventPort::isInPort() const
 {
-    return getNodeKind() == NODE_KIND::INEVENTPORT;
+    return getNodeKind() == NODE_KIND::PORT_SUBSCRIBER;
 }
 
 bool EventPort::isOutPort() const
 {
-    return getNodeKind() == NODE_KIND::OUTEVENTPORT;
+    return getNodeKind() == NODE_KIND::PORT_PUBLISHER;
 }
 
 void EventPort::setAggregate(Aggregate *aggregate)

@@ -13,8 +13,8 @@ void MEDEA::ExternalAssembly::RegisterWithEntityFactory(EntityFactoryRegistryBro
 
 MEDEA::ExternalAssembly::ExternalAssembly(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
     //Setup State
-    setAcceptsNodeKind(NODE_KIND::INEVENTPORT_DELEGATE);
-    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_DELEGATE);
+    setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_DELEGATE);
+    setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER_DELEGATE);
     
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
@@ -30,8 +30,8 @@ MEDEA::ExternalAssembly::ExternalAssembly(EntityFactoryBroker& broker, bool is_t
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
 
-    in_ = broker.ConstructChildNode(*this, NODE_KIND::INEVENTPORT_DELEGATE);
-    out_ = broker.ConstructChildNode(*this, NODE_KIND::OUTEVENTPORT_DELEGATE);
+    in_ = broker.ConstructChildNode(*this, NODE_KIND::PORT_SUBSCRIBER_DELEGATE);
+    out_ = broker.ConstructChildNode(*this, NODE_KIND::PORT_PUBLISHER_DELEGATE);
 
     //Disable Edge kinds
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);

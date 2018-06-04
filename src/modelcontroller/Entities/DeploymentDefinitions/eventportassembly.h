@@ -23,8 +23,8 @@ public:
     bool isOutPortAssembly() const;
 
     
-    bool isServerPortInstance() const;
-    bool isClientPortInstance() const;
+    bool isReplierPortInst() const;
+    bool isRequesterPortInst() const;
 
     
     bool isPortInstance() const;

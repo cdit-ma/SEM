@@ -20,18 +20,18 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
 
 bool EventPortAssembly::isInPortDelegate() const
 {
-    return getNodeKind() == NODE_KIND::INEVENTPORT_DELEGATE;
+    return getNodeKind() == NODE_KIND::PORT_SUBSCRIBER_DELEGATE;
 }
-bool EventPortAssembly::isServerPortInstance() const{
-    return getNodeKind() == NODE_KIND::SERVER_PORT_INSTANCE;
+bool EventPortAssembly::isReplierPortInst() const{
+    return getNodeKind() == NODE_KIND::PORT_REPLIER_INST;
 }
-bool EventPortAssembly::isClientPortInstance() const{
-    return getNodeKind() == NODE_KIND::CLIENT_PORT_INSTANCE;
+bool EventPortAssembly::isRequesterPortInst() const{
+    return getNodeKind() == NODE_KIND::PORT_REQUESTER_INST;
 }
 
 bool EventPortAssembly::isOutPortDelegate() const
 {
-    return getNodeKind() == NODE_KIND::OUTEVENTPORT_DELEGATE;
+    return getNodeKind() == NODE_KIND::PORT_PUBLISHER_DELEGATE;
 }
 
 bool EventPortAssembly::isInPortAssembly() const
@@ -57,12 +57,12 @@ bool EventPortAssembly::isPortInstance() const
 
 bool EventPortAssembly::isInPortInstance() const
 {
-    return getNodeKind() == NODE_KIND::INEVENTPORT_INSTANCE;
+    return getNodeKind() == NODE_KIND::PORT_SUBSCRIBER_INST;
 }
 
 bool EventPortAssembly::isOutPortInstance() const
 {
-    return getNodeKind() == NODE_KIND::OUTEVENTPORT_INSTANCE;
+    return getNodeKind() == NODE_KIND::PORT_PUBLISHER_INST;
 }
 
 #include <QDebug>

@@ -1003,8 +1003,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     if(instance->isInstanceImpl()){
         switch(instance_kind){
-            case NODE_KIND::SERVER_PORT:
-            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::PORT_REPLIER:
+            case NODE_KIND::PORT_REQUESTER:
             case NODE_KIND::COMPONENT_INSTANCE:{
                 bind_labels = false;
                 break;
