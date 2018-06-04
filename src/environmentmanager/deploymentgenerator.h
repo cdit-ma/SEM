@@ -20,7 +20,7 @@ class DeploymentGenerator{
         void AddExperiment(const NodeManager::ControlMessage& control_message);
         void AddNodeToExperiment(const std::string& experiment_id, const NodeManager::Node& node);
         void PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node);
-        DeploymentRule::MiddlewareType MapMiddleware(NodeManager::EventPort::Middleware middleware);
+        DeploymentRule::MiddlewareType MapMiddleware(NodeManager::Port::Middleware middleware);
 
         Environment& environment_;
         std::list<std::unique_ptr<DeploymentRule> > rules_;

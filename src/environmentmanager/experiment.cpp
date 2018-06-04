@@ -108,7 +108,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
                 connection_map_[id].push_back(event_port.id);
             }
 
-            if(port.visibility() == NodeManager::EventPort::PUBLIC){
+            if(port.visibility() == NodeManager::Port::PUBLIC){
                 environment_.AddPublicEventPort(port.port_guid(), event_port);
             }
 
@@ -184,12 +184,12 @@ std::set<std::string> Experiment::GetTopics() const{
     return topic_set_;
 }
 
-std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::EventPort& port){
+std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port& port){
 
     std::unique_lock<std::mutex> lock(mutex_);
     std::vector<std::string> publisher_addresses;
 
-    if(port.kind() == NodeManager::EventPort::IN_PORT){
+    if(port.kind() == NodeManager::Port::SUBSCRIBER || port.kind() == NodeManager::Port::REQUESTER){
 
         //Get list of connected ports
         auto publisher_port_ids = connection_map_.at(port.info().id());
@@ -226,7 +226,7 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Even
         }
     }
 
-    else if(port.kind() == NodeManager::EventPort::OUT_PORT){
+    else if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
         auto node_name = port_map_.at(port.info().id()).node_name;
         auto port_assigned_port = port_map_.at(port.info().id()).port_number;
 
@@ -234,7 +234,7 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Even
 
         publisher_addresses.push_back(addr_string);
 
-        if(port.visibility() == NodeManager::EventPort::PUBLIC){
+        if(port.visibility() == NodeManager::Port::PUBLIC){
             environment_.AddPublicEventPort(port.port_guid(), addr_string);
         }
     }

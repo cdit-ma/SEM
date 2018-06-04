@@ -3,7 +3,7 @@
 Zmq::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::ZMQ, environment){
 }
 
-void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
+void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){
 
     //set publisher_address
     auto publisher_address_attr = event_port.add_attributes();
@@ -12,20 +12,33 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
     publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
     //find deployed hardware node
-    if(event_port.kind() == NodeManager::EventPort::OUT_PORT){
-        auto publisher_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
-        publisher_address_attr->add_s(publisher_address.at(0));
-    }
-
-    //If we're an in port, add all publisher endpoints
-    else if(event_port.kind() == NodeManager::EventPort::IN_PORT){
-        auto connected_addresses = environment_.GetPublisherAddress(message.experiment_id(), event_port);
-        for(auto id : connected_addresses){
-            publisher_address_attr->add_s(id);
+    switch(event_port.kind()){
+        case NodeManager::Port::PUBLISHER:{
+            auto publisher_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            publisher_address_attr->add_s(publisher_address.at(0));
+            break;
+        }
+        //If we're an in port, add all publisher endpoints
+        case NodeManager::Port::SUBSCRIBER:{
+            auto connected_addresses = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            for(auto id : connected_addresses){
+                publisher_address_attr->add_s(id);
+            }
+            break;
+        }
+        case NodeManager::Port::REQUESTER:{
+            auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            publisher_address_attr->add_s(connected_address.at(0));
+            break;
+        }
+        case NodeManager::Port::REPLIER:{
+            auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            publisher_address_attr->add_s(connected_address.at(0));
+            break;
         }
     }
 }
-void Zmq::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
+void Zmq::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){
 
 }
 

@@ -16,8 +16,8 @@ class DeploymentRule{
             this->type = type;
         };
 
-        virtual void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port) = 0;
-        virtual void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port) = 0;
+        virtual void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port) = 0;
+        virtual void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port) = 0;
 
         MiddlewareType GetMiddlewareType() const { return type; };
     private:

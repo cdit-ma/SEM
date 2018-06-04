@@ -177,7 +177,7 @@ bool ProtobufModelParser::PreProcess(){
 
 
     //Populate port connection map using recurse edge function to follow port delegates through
-    for(const auto& port_id : graphml_parser_->FindNodes("InEventPortInstance")){
+    for(const auto& port_id : graphml_parser_->FindNodes("SubscriberPortInstance")){
         const auto& target_id = port_id;
         for(auto source_id : GetTerminalSourcesByEdgeKind(target_id, "Edge_Assembly")){
             AssemblyConnection edge;
@@ -208,14 +208,25 @@ bool ProtobufModelParser::PreProcess(){
 
 
     //Construct port fully qualified port ids
-    auto out_event_port_ids = graphml_parser_->FindNodes("OutEventPortInstance", "");
-    auto in_event_port_ids = graphml_parser_->FindNodes("InEventPortInstance", "");
+    auto publisher_port_ids = graphml_parser_->FindNodes("PublisherPortInstace", "");
+    auto subscriber_port_ids = graphml_parser_->FindNodes("SubscriberPortInstace", "");
 
-    for(const auto& port_id : out_event_port_ids){
+    auto requester_port_ids = graphml_parser_->FindNodes("RequesterPortInstace", "");
+    auto replier_port_ids = graphml_parser_->FindNodes("ReplierPortInstace", "");
+
+    for(const auto& port_id : publisher_port_ids){
         port_guid_map_[port_id] = BuildPortGuid(port_id);
     }
 
-    for(const auto& port_id : in_event_port_ids){
+    for(const auto& port_id : subscriber_port_ids){
+        port_guid_map_[port_id] = BuildPortGuid(port_id);
+    }
+
+    for(const auto& port_id : requester_port_ids){
+        port_guid_map_[port_id] = BuildPortGuid(port_id);
+    }
+
+    for(const auto& port_id : replier_port_ids){
         port_guid_map_[port_id] = BuildPortGuid(port_id);
     }
 
@@ -315,11 +326,21 @@ bool ProtobufModelParser::Process(){
             FillProtobufAttributes(component_pb->mutable_attributes(), component_id, unique_id);
 
             //Find all ports in/out of component instance
-            auto port_ids = graphml_parser_->FindImmediateChildren("OutEventPortInstance", component_id);
-            auto in_port_ids = graphml_parser_->FindImmediateChildren("InEventPortInstance", component_id);
-            auto periodic_ids = graphml_parser_->FindImmediateChildren("PeriodicEventInstance", component_id);
+            auto publisher_port_ids = graphml_parser_->FindImmediateChildren("PublisherPortInstance", component_id);
+            auto subscriber_port_ids = graphml_parser_->FindImmediateChildren("SubscriberPortInstance", component_id);
+            auto requester_port_ids = graphml_parser_->FindImmediateChildren("RequesterPortInstance", component_id);
+            auto replier_port_ids = graphml_parser_->FindImmediateChildren("ReplierPortInstance", component_id);
+
+            std::vector<std::string> port_ids;
+
+            port_ids.insert(port_ids.end(), publisher_port_ids.begin(), publisher_port_ids.end());
+            port_ids.insert(port_ids.end(), subscriber_port_ids.begin(), subscriber_port_ids.end());
+            port_ids.insert(port_ids.end(), requester_port_ids.begin(), requester_port_ids.end());
+            port_ids.insert(port_ids.end(), replier_port_ids.begin(), replier_port_ids.end());
+
+            auto periodic_ids = graphml_parser_->FindImmediateChildren("PeriodicPortInstance", component_id);
             auto class_instance_ids = graphml_parser_->FindImmediateChildren("ClassInstance", component_id);
-            port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
+            
 
             //Set port info
             for(const auto& port_id : port_ids){
@@ -337,12 +358,12 @@ bool ProtobufModelParser::Process(){
                     port_info_pb->add_namespaces(ns);
                 }
 
-                if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
-                    port_pb->set_visibility(NodeManager::EventPort::PUBLIC);
-                }
-                else{
-                    port_pb->set_visibility(NodeManager::EventPort::PRIVATE);
-                }
+                // if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
+                //     port_pb->set_visibility(NodeManager::Port::PUBLIC);
+                // }
+                // else{
+                port_pb->set_visibility(NodeManager::Port::PRIVATE);
+                // }
 
                 port_pb->set_port_guid(port_guid_map_[port_id]);
 
@@ -352,8 +373,8 @@ bool ProtobufModelParser::Process(){
 
                 //Set Middleware
                 std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
-                NodeManager::EventPort::Middleware mw;
-                if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
+                NodeManager::Port::Middleware mw;
+                if(!NodeManager::Port_Middleware_Parse(mw_string, &mw)){
                     std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
                 }
                 port_pb->set_middleware(mw);
@@ -372,7 +393,7 @@ bool ProtobufModelParser::Process(){
                 }
             }
 
-            //Handle Periodic Events
+            //Handle Periodic Ports
             for(const auto& periodic_id : periodic_ids){
                 std::string p_uid = component_uid + "_" + periodic_id;
                 auto port_pb = component_pb->add_ports();
@@ -424,7 +445,7 @@ void ProtobufModelParser::CalculateReplication(){
                     auto s_unique = GetUniquePrefix(source_component_instance_proto->replicate_id());
                     auto s_uid = ac.source_id + s_unique;
 
-                    NodeManager::EventPort* source_port_instance_proto = 0;
+                    NodeManager::Port* source_port_instance_proto = 0;
                     if(port_replicate_id_map_.count(s_uid)){
                         source_port_instance_proto = port_replicate_id_map_[s_uid];
                     }else{
@@ -438,7 +459,7 @@ void ProtobufModelParser::CalculateReplication(){
                             auto t_unique = GetUniquePrefix(target_component_instance_proto->replicate_id());
                             auto t_uid = ac.target_id + t_unique;
 
-                            NodeManager::EventPort* target_port_instance_proto = 0;
+                            NodeManager::Port* target_port_instance_proto = 0;
                             if(port_replicate_id_map_.count(t_uid)){
                                 target_port_instance_proto = port_replicate_id_map_[t_uid];
                             }else{
@@ -454,7 +475,7 @@ void ProtobufModelParser::CalculateReplication(){
                     }else{
                         //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
                         auto t_uid = ac.target_id + s_unique;
-                        NodeManager::EventPort* target_port_instance_proto = 0;
+                        NodeManager::Port* target_port_instance_proto = 0;
                         if(port_replicate_id_map_.count(t_uid)){
                             target_port_instance_proto = port_replicate_id_map_[t_uid];
                         }else{
@@ -636,17 +657,21 @@ std::string ProtobufModelParser::GetImplId(const std::string& id){
 
 }
 
-NodeManager::EventPort::Kind ProtobufModelParser::GetPortKind(const std::string& kind){
-    if(kind == "OutEventPortInstance"){
-        return NodeManager::EventPort::OUT_PORT;
-    } else if(kind == "InEventPortInstance"){
-        return NodeManager::EventPort::IN_PORT;
-    } else if(kind == "PeriodicEventInstance"){
-        return NodeManager::EventPort::PERIODIC_PORT;
+NodeManager::Port::Kind ProtobufModelParser::GetPortKind(const std::string& kind){
+    if(kind == "PublisherPortInstance"){
+        return NodeManager::Port::PUBLISHER;
+    } else if(kind == "SubscriberPortInstance"){
+        return NodeManager::Port::SUBSCRIBER;
+    } else if(kind == "PeriodicPortInstance"){
+        return NodeManager::Port::PERIODIC;
+    } else if(kind == "RequesterPortInstance"){
+        return NodeManager::Port::REQUESTER;
+    } else if(kind == "ReplierPortInstance"){
+        return NodeManager::Port::REPLIER;
     } else{
         std::cerr << "INVALID PORT KIND: " << kind << std::endl;
         //TODO: Throw exception??
-        return NodeManager::EventPort::PERIODIC_PORT;
+        return NodeManager::Port::PERIODIC;
     }
 }
 

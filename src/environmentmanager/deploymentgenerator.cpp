@@ -43,7 +43,7 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
     //Hit bottom level sub node, or finished populating all subnodes. Fill this current node
     for(auto& component : *node.mutable_components()){
         for(auto& port : *component.mutable_ports()){
-            if(port.kind() != NodeManager::EventPort::PERIODIC_PORT){
+            if(port.kind() != NodeManager::Port::PERIODIC){
                 auto& rule = GetDeploymentRule(MapMiddleware(port.middleware()));
                 try{
                     rule.ConfigureEventPort(control_message, port);
@@ -62,13 +62,13 @@ void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& contr
 
 }
 
-DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::EventPort::Middleware middleware){
+DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Port::Middleware middleware){
     switch(middleware){
-        case NodeManager::EventPort::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
-        case NodeManager::EventPort::RTI:       return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::EventPort::OSPL:      return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::EventPort::QPID:      return DeploymentRule::MiddlewareType::AMQP;
-        case NodeManager::EventPort::TAO:       return DeploymentRule::MiddlewareType::CORBA;
+        case NodeManager::Port::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
+        case NodeManager::Port::RTI:       return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::Port::OSPL:      return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::Port::QPID:      return DeploymentRule::MiddlewareType::AMQP;
+        case NodeManager::Port::TAO:       return DeploymentRule::MiddlewareType::CORBA;
         default:                                return DeploymentRule::MiddlewareType::NONE;
     }
 }

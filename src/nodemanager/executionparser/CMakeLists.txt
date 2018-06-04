@@ -1,3 +1,7 @@
+cmake_minimum_required (VERSION 2.6)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(EXECUTION_PARSER "re_execution_parser")
 set(EXECUTION_PARSER_LIB ${EXECUTION_PARSER}_lib)
 

@@ -127,7 +127,7 @@ class Experiment{
 
         std::set<std::string> GetTopics() const;
 
-        std::vector<std::string> GetPublisherAddress(const NodeManager::EventPort& port);
+        std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
 
         bool IsDirty() const;
 
