@@ -3,7 +3,7 @@
 Dds::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::DDS, environment){
 }
 
-void Dds::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
+void Dds::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){
     //Set domain
     auto domain_pb = event_port.add_attributes();
     auto domain_info_pb = domain_pb->mutable_info();
@@ -29,6 +29,6 @@ void Dds::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
         throw std::invalid_argument(event_port.port_guid() + " has no topic.");
     }
 }
-void Dds::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
+void Dds::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){
 
 }

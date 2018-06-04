@@ -42,7 +42,7 @@ class ProtobufModelParser{
 
         std::string BuildPortGuid(const std::string& port_id);
 
-        NodeManager::EventPort::Kind GetPortKind(const std::string& kind);
+        NodeManager::Port::Kind GetPortKind(const std::string& kind);
         NodeManager::Node::NodeType GetHardwareItemKind(const std::string& kind);
 
         std::string to_lower(const std::string& s);
@@ -88,7 +88,7 @@ class ProtobufModelParser{
         std::unordered_map<std::string, std::string> full_assembly_name_map_;
 
         //port replicate id -> eventport proto
-        std::unordered_map<std::string, NodeManager::EventPort*> port_replicate_id_map_;
+        std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
 
         //component id -> vector of that component's replications
         std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;

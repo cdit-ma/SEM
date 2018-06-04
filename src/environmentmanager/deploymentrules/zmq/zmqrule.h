@@ -8,8 +8,8 @@ namespace Zmq{
         public:
             DeploymentRule(Environment& environment);
 
-            void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
-            void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
+            void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port);
+            void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port);
 
         private:
             std::string GetDeploymentLocation(const NodeManager::ControlMessage& message, 

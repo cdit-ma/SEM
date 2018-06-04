@@ -46,7 +46,7 @@ class Environment{
 
         std::string GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address);
 
-        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
+        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);

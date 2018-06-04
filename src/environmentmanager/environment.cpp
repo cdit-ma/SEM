@@ -156,7 +156,7 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
     }
 }
 
-std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port){
+std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetPublisherAddress(port);
     }else{
