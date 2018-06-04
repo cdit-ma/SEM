@@ -5,7 +5,7 @@
 #include <string>
 
 #include "component.h"
-#include "eventports/eventport.h"
+#include "ports/port.h"
 
 #ifdef _WIN32
     #define GET_FUNC __FUNCTION__
@@ -22,8 +22,7 @@ namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
-    enum class Mode {OFF, LIVE, CACHED};
-        
+        enum class Mode {OFF, LIVE, CACHED};
 
         enum class LifeCycleEvent{
             STARTED = 0,
@@ -61,14 +60,14 @@ class ModelLogger{
         ~ModelLogger();
     public:
         void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
-        void LogMessageEvent(const EventPort& eventport);
+        void LogMessageEvent(const Port& port);
         void LogUserMessageEvent(const Component& component, std::string message);
         void LogUserFlagEvent(const Component& component, std::string message);
 
         
         void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
-        void LogLifecycleEvent(const EventPort& eventport, ModelLogger::LifeCycleEvent event);
-        void LogComponentEvent(const EventPort& eventport, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
+        void LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEvent event);
+        void LogComponentEvent(const Port& port, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 

@@ -140,7 +140,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup OSPL DDS Reciever") + ex.what());
-        state = ThreadState::ERROR_;
+        state = ThreadState::TERMINATED;
     }
 
     //Change the state to be Configured

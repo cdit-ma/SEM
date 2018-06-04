@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include <core/eventports/periodiceventport.h>
+#include <core/ports/periodicport.h>
 
 //Include the FSM Tester
 #include "../activatablefsmtester.h"

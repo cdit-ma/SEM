@@ -4,8 +4,8 @@
 
 #include <future>
 
-#include <middleware/zmq/clientserver/clientport.hpp>
-#include <middleware/zmq/clientserver/serverport.hpp>
+#include <middleware/zmq/requestreply/requesterport.hpp>
+#include <middleware/zmq/requestreply/replierport.hpp>
 
 Base::Basic callback(Base::Basic& message){
     std::cout << "GOT MESSAGE: " << std::endl;
@@ -18,18 +18,21 @@ Base::Basic callback(Base::Basic& message){
 
 int main(int ac, char* av[])
 {
-    auto client_port = new zmq::ClientEventPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "TEST");
-    auto server_port = new zmq::ServerEventPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "TEST", callback);
+    auto client_port = new zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "ClientEventPort");
+    auto server_port = new zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "ServerEventPort", callback);
 
     auto address = "inproc://testy";
+    auto address2 = "inproc://testy2";
 
     auto out_address = client_port->GetAttribute("server_address").lock();
     auto in_address = server_port->GetAttribute("server_address").lock();
 
     std::cout << " GOT ADDRESSES" << std::endl;
 
-    out_address->StringList().push_back(address);
-    in_address->StringList().push_back(address);
+    out_address->set_String(address);
+    std::cout << " GOT ADDRESSES" << std::endl;
+    in_address->set_String(address2);
+    std::cout << " GOT ADDRESSES" << std::endl;
 
     std::cout << "CONFIGURE" << std::endl;
     
@@ -43,17 +46,18 @@ int main(int ac, char* av[])
     std::cout << "STARTING" << std::endl;
 
     auto test = std::async(std::launch::async, [=](){
-        int send_count = 50;
+        int send_count = 20;
         //Send as fast as possible
         for(int i = 0; i < send_count; i++){
             Base::Basic b;
             b.int_val = i;
             b.str_val = std::to_string(i);
             std::cout << "SENDING: " << i << std::endl;
-            auto c = client_port->tx(b);
-            
-            std::cout << "RX: " << c.int_val << std::endl;
-            std::cout << "RX: " << c.str_val << std::endl;
+            auto c = client_port->SendRequest(b, std::chrono::milliseconds(100));
+            if(c.first){
+                std::cout << "RX: " << c.second.int_val << std::endl;
+                std::cout << "RX: " << c.second.str_val << std::endl;
+            }
         }
     });
 
@@ -64,12 +68,16 @@ int main(int ac, char* av[])
     std::cout << "KILLING: " << std::endl;
 
     
-
+    std::cout << "Passivate: " << std::endl;
     server_port->Passivate();
     client_port->Passivate();
+    std::cout << "Passivated: " << std::endl;
     
+    std::cout << "Terminate: " << std::endl;
     server_port->Terminate();
+    std::cout << "Terminate2: " << std::endl;
     client_port->Terminate();
+    std::cout << "Terminated: " << std::endl;
 
 
 

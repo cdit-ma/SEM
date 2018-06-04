@@ -20,8 +20,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/behaviourcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/eventports/eventport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/eventports/periodiceventport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
@@ -32,8 +32,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/behaviourcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/eventports/eventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/eventports/periodiceventport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h

@@ -1,10 +1,10 @@
 #include "deploymentcontainer.h"
 
+#include <core/translate.h>
 #include <core/worker.h>
 #include <core/modellogger.h>
-#include <core/eventports/periodiceventport.h>
-
-#include "../core/translate.h"
+#include <core/ports/periodicport.h>
+#include <core/ports/periodicport.h>
 
 #include <iostream>
 #include <algorithm>
@@ -34,11 +34,11 @@ void DeploymentContainer::SetLibraryPath(const std::string library_path){
     library_path_ = library_path;
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::ConstructPeriodicEvent(std::weak_ptr<Component> weak_component, const std::string& port_name){
+std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<Component> weak_component, const std::string& port_name){
     auto component = weak_component.lock();
     if(component){
-        auto u_ptr = std::unique_ptr<EventPort>(new PeriodicEventPort(weak_component, port_name, component->GetCallback(port_name), 1000));
-        return component->AddEventPort(std::move(u_ptr)).lock();
+        auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, component->GetCallback(port_name), 1000));
+        return component->AddPort(std::move(u_ptr)).lock();
     }
     return nullptr;
 }
@@ -100,9 +100,9 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
             SetAttributeFromPb(component, attr);
         }
 
-        //Handle the eventports
+        //Handle the ports
         for(const auto& port_pb : component_pb.ports()){
-            auto event_port = GetConfiguredEventPort(component, port_pb);
+            GetConfiguredPort(component, port_pb);
         }
 
         //Handle the workers
@@ -130,54 +130,62 @@ std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& inf
     return concatenated_stream.str();
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb){
-    std::shared_ptr<EventPort> eventport;
+std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& port_pb){
+    std::shared_ptr<Port> port;
 
     if(component){
-        const auto& eventport_info_pb = eventport_pb.info();
-        const auto& middleware = NodeManager::EventPort_Middleware_Name(eventport_pb.middleware());
+        const auto& port_info_pb = port_pb.info();
+        const auto& middleware = NodeManager::Port_Middleware_Name(port_pb.middleware());
         
         //Try get the port
-        eventport = component->GetEventPort(eventport_info_pb.name()).lock();
+        port = component->GetPort(port_info_pb.name()).lock();
         
         
-        const auto namespace_str = GetNamespaceString(eventport_pb.info());
+        const auto namespace_str = GetNamespaceString(port_pb.info());
 
-        if(!eventport){
-            switch(eventport_pb.kind()){
-                case NodeManager::EventPort::IN_PORT:{
-                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
+        if(!port){
+            switch(port_pb.kind()){
+                case NodeManager::Port::PERIODIC:{
+                    port = ConstructPeriodicEvent(component, port_info_pb.name());
                     break;
                 }
-                case NodeManager::EventPort::OUT_PORT:{
-                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), namespace_str);
+                case NodeManager::Port::PUBLISHER:{
+                    port = ConstructPublisherPort(middleware, port_info_pb.type(), component, port_info_pb.name(), namespace_str);
                     break;
                 }
-                case NodeManager::EventPort::PERIODIC_PORT:{
-                    eventport = ConstructPeriodicEvent(component, eventport_info_pb.name());
+                case NodeManager::Port::SUBSCRIBER:{
+                    port = ConstructSubscriberPort(middleware, port_info_pb.type(), component, port_info_pb.name(), namespace_str);
+                    break;
+                }
+                case NodeManager::Port::REQUESTER:{
+                    port = ConstructRequesterPort(middleware, port_info_pb.type(), component, port_info_pb.name(), namespace_str);
+                    break;
+                }
+                case NodeManager::Port::REPLIER:{
+                    port = ConstructReplierPort(middleware, port_info_pb.type(), component, port_info_pb.name(), namespace_str);
                     break;
                 }
                 default:
                     break;
             }
 
-            if(eventport){
-                eventport->set_id(eventport_info_pb.id());
-                eventport->set_type(eventport_info_pb.type());
+            if(port){
+                port->set_id(port_info_pb.id());
+                port->set_type(port_info_pb.type());
             }
         }
 
 
-        if(eventport){
-            for(const auto& attr : eventport_pb.attributes()){
-                SetAttributeFromPb(eventport, attr);
+        if(port){
+            for(const auto& attr : port_pb.attributes()){
+                SetAttributeFromPb(port, attr);
             }
         }else{
-            ModelLogger::get_model_logger()->LogFailedPortConstruction(eventport_info_pb.type(), eventport_info_pb.name(), eventport_info_pb.id());
+            ModelLogger::get_model_logger()->LogFailedPortConstruction(port_info_pb.type(), port_info_pb.name(), port_info_pb.id());
         }
     }
 
-    return eventport;
+    return port;
 }
 
 bool DeploymentContainer::HandleActivate(){
@@ -283,52 +291,64 @@ std::string DeploymentContainer::get_component_library_name(const std::string& c
     return to_lower(c);
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::ConstructOutEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
-    std::shared_ptr<EventPort> eventport;
+std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+    std::shared_ptr<Port> port;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
-    if(!out_eventport_constructors_.count(library_name)){
-        auto function = dll_loader.GetLibraryFunction<EventPortCConstructor>(library_path_, library_name, "ConstructOutEventPort");
+    if(!publisher_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructPublisherPort");
         if(function){
-            out_eventport_constructors_[library_name] = function;
+            publisher_port_constructors_[library_name] = function;
         }
     }
 
-    if(out_eventport_constructors_.count(library_name)){
-        auto eventport_ptr = out_eventport_constructors_[library_name](port_name, component);
+    if(publisher_port_constructors_.count(library_name)){
+        auto port_ptr = publisher_port_constructors_[library_name](port_name, component);
         auto component_shared = component.lock();
 
         if(component_shared){
-            eventport = component_shared->AddEventPort(std::unique_ptr<EventPort>(eventport_ptr)).lock();
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
-            eventport = std::shared_ptr<EventPort>(eventport_ptr);
+            port = std::shared_ptr<Port>(port_ptr);
         }
     }
-    return eventport;
+    return port;
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::ConstructInEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
-    std::shared_ptr<EventPort> eventport;
+std::shared_ptr<Port> DeploymentContainer::ConstructRequesterPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+    std::shared_ptr<Port> port;
+    //TODO:
+    return port;
+}
+
+std::shared_ptr<Port> DeploymentContainer::ConstructReplierPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+    std::shared_ptr<Port> port;
+    //TODO:
+    return port;
+}
+
+std::shared_ptr<Port> DeploymentContainer::ConstructSubscriberPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+    std::shared_ptr<Port> port;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
-    if(!in_eventport_constructors_.count(library_name)){
-        auto function = dll_loader.GetLibraryFunction<EventPortCConstructor>(library_path_, library_name, "ConstructInEventPort");
+    if(!subscriber_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructSubscriberPort");
         if(function){
-            in_eventport_constructors_[library_name] = function;
+            subscriber_port_constructors_[library_name] = function;
         }
     }
 
-    if(in_eventport_constructors_.count(library_name)){
-        auto eventport_ptr = in_eventport_constructors_[library_name](port_name, component);
+    if(subscriber_port_constructors_.count(library_name)){
+        auto port_ptr = subscriber_port_constructors_[library_name](port_name, component);
         auto component_shared = component.lock();
 
         if(component_shared){
-            eventport = component_shared->AddEventPort(std::unique_ptr<EventPort>(eventport_ptr)).lock();
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
-            eventport = std::shared_ptr<EventPort>(eventport_ptr);
+            port = std::shared_ptr<Port>(port_ptr);
         }
     }
-    return eventport;
+    return port;
 }
 
 std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& namespace_str, const std::string& component_id){

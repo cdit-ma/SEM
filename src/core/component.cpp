@@ -6,30 +6,8 @@
 #include <future>
 
 #include "modellogger.h"
-#include "eventports/eventport.h"
+#include "ports/port.h"
 #include "worker.h"
-
-int get_eventport_order(const std::shared_ptr<EventPort> a){
-    //Required Order:
-    //1. InEventPorts
-    //2. OutEventPorts
-    //3. PeriodicEventPorts
-    switch(a->get_kind()){
-        case EventPort::Kind::TX:
-            return 1;
-        case EventPort::Kind::RX:
-            return 0;
-        case EventPort::Kind::PE:
-            return 2;
-        default:
-            return 3;
-    }
-}
-
-bool compare_eventport(const std::shared_ptr<EventPort> a, const std::shared_ptr<EventPort> b){
-    return get_eventport_order(a) < get_eventport_order(b);
-}
-
 
 Component::Component(const std::string& component_name){
     set_name(component_name);
@@ -39,7 +17,7 @@ Component::~Component(){
     Activatable::Terminate();
     std::lock_guard<std::mutex> lock(port_mutex_);
     //Destory Ports
-    eventports_.clear();
+    ports_.clear();
 }
 
 bool Component::HandleActivate(){
@@ -47,7 +25,7 @@ bool Component::HandleActivate(){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     if(BehaviourContainer::HandleActivate()){
-        for(const auto& p : eventports_){
+        for(const auto& p : ports_){
             auto& a = p.second;
             if(a){
                 a->Activate();
@@ -64,7 +42,7 @@ bool Component::HandleConfigure(){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     if(BehaviourContainer::HandleConfigure()){
-        for(const auto& p : eventports_){
+        for(const auto& p : ports_){
             auto& a = p.second;
             if(a){
                 a->Configure();
@@ -80,7 +58,7 @@ bool Component::HandlePassivate(){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     if(BehaviourContainer::HandlePassivate()){
-        for(const auto& p : eventports_){
+        for(const auto& p : ports_){
             auto& a = p.second;
             if(a){
                 a->Passivate();
@@ -104,7 +82,7 @@ bool Component::HandleTerminate(){
             std::list<std::future<bool> > results;
             std::lock_guard<std::mutex> ports_lock(port_mutex_);
 
-            for(const auto& p : eventports_){
+            for(const auto& p : ports_){
                 auto& a = p.second;
                 if(a){
                     //Construct a thread to run the terminate function, which is blocking
@@ -123,41 +101,41 @@ bool Component::HandleTerminate(){
 }
 
 
-std::weak_ptr<EventPort> Component::AddEventPort(std::unique_ptr<EventPort> event_port){
+std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     if(event_port){
         const auto& port_name = event_port->get_name();
-        if(eventports_.count(port_name) == 0){
-            std::cerr << "Component '" << get_name()  << "' Added an EventPort with name '" << port_name << "'" << std::endl;
+        if(ports_.count(port_name) == 0){
+            std::cerr << "Component '" << get_name()  << "' Added an Port with name '" << port_name << "'" << std::endl;
 
-            eventports_[port_name] = std::move(event_port);
-            return eventports_[port_name];
+            ports_[port_name] = std::move(event_port);
+            return ports_[port_name];
         }else{
-            std::cerr << "Component '" << get_name()  << "' already has an EventPort with name '" << port_name << "'" << std::endl;
+            std::cerr << "Component '" << get_name()  << "' already has an Port with name '" << port_name << "'" << std::endl;
         }
     }
-    return std::weak_ptr<EventPort>();
+    return std::weak_ptr<Port>();
 }
 
-std::weak_ptr<EventPort> Component::GetEventPort(const std::string& port_name){
+std::weak_ptr<Port> Component::GetPort(const std::string& port_name){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
-    if(eventports_.count(port_name)){
-        return eventports_[port_name];
+    if(ports_.count(port_name)){
+        return ports_[port_name];
     }
-    //std::cerr << "Component '" << get_name() << "' doesn't have an EventPort with name '" << port_name << "'" << std::endl;
-    return std::weak_ptr<EventPort>();
+    //std::cerr << "Component '" << get_name() << "' doesn't have an Port with name '" << port_name << "'" << std::endl;
+    return std::weak_ptr<Port>();
 }
 
-std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& port_name){
+std::shared_ptr<Port> Component::RemovePort(const std::string& port_name){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
 
-    if(eventports_.count(port_name)){
-        auto worker = eventports_[port_name];
-        eventports_.erase(port_name);
+    if(ports_.count(port_name)){
+        auto worker = ports_[port_name];
+        ports_.erase(port_name);
         return worker;
     }
-    std::cerr << "Component '" << get_name() << "' doesn't have an EventPort with name '" << port_name << "'" << std::endl;
-    return std::shared_ptr<EventPort>();
+    std::cerr << "Component '" << get_name() << "' doesn't have an Port with name '" << port_name << "'" << std::endl;
+    return std::shared_ptr<Port>();
 }
 
 bool Component::AddCallback_(const std::string& port_name, std::function<void (::BaseMessage&)> function){

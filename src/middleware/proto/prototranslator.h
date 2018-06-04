@@ -1,8 +1,7 @@
 #ifndef PROTO_TRANSLATOR_H
 #define PROTO_TRANSLATOR_H
 
-#include <core/globalinterfaces.hpp>
-#include <core/eventports/translator.h>
+#include <core/ports/translator.h>
 
 namespace Proto{
     template <class BaseType, class ProtoType>

@@ -24,7 +24,7 @@ zmq::context_t* zmq::ZmqHelper::get_context(){
     return context_;
 };
 
-int count = 0;
+
 
 zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     zmq::context_t* c = get_context();
@@ -34,33 +34,19 @@ zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     zmq::socket_t* s = 0;
     if(c){
         s = new zmq::socket_t(*c, ZMQ_PUB);
-        count ++;
     }
     return s;
 };
 
-zmq::socket_t* zmq::ZmqHelper::get_request_socket(){
-    auto c = get_context();
 
-    //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
-    zmq::socket_t* s = 0;
-    if(c){
-        s = new zmq::socket_t(*c, ZMQ_REQ);
-    }
-    return s;
+zmq::socket_t zmq::ZmqHelper::get_request_socket(){
+    auto c = get_context();
+    return zmq::socket_t(*c, ZMQ_REQ);
 }
 
-zmq::socket_t* zmq::ZmqHelper::get_reply_socket(){
+zmq::socket_t zmq::ZmqHelper::get_reply_socket(){
     auto c = get_context();
-
-    //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
-    zmq::socket_t* s = 0;
-    if(c){
-        s = new zmq::socket_t(*c, ZMQ_REP);
-    }
-    return s;
+    return zmq::socket_t(*c, ZMQ_REP);
 }
 
 zmq::socket_t* zmq::ZmqHelper::get_subscriber_socket(){
@@ -75,3 +61,7 @@ zmq::socket_t* zmq::ZmqHelper::get_subscriber_socket(){
     }
     return s;
 };
+
+int zmq::ZmqHelper::poll_socket(zmq::socket_t& socket, std::chrono::milliseconds timeout){
+    return zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout.count());
+}

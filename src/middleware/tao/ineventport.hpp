@@ -145,7 +145,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
 
         //R* reader_impl = 0;
         if(!orb_){
-            state = ThreadState::TERMINATE;
+            state = ThreadState::TERMINATED;
             std::cerr << "CAN'T GET ORB" << std::endl;
         }else{
             auto publisher_name  = publisher_name_->String();

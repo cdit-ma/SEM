@@ -19,8 +19,10 @@ namespace zmq{
             zmq::socket_t* get_publisher_socket();
             zmq::socket_t* get_subscriber_socket();
 
-            zmq::socket_t* get_request_socket();
-            zmq::socket_t* get_reply_socket();
+            zmq::socket_t get_request_socket();
+            zmq::socket_t get_reply_socket();
+
+            int poll_socket(zmq::socket_t& socket, std::chrono::milliseconds timeout);
         private:
             std::mutex mutex;
             zmq::context_t* context_ = 0;

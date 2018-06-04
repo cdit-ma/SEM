@@ -124,7 +124,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
         receiver_ = session.createReceiver( "amq.topic/"  + topic_name_->String());
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
-        state = ThreadState::ERROR_;
+        state = ThreadState::TERMINATED;
     }
 
     //Change the state to be Configured

@@ -7,60 +7,59 @@
 #include <mutex>
 #include <vector>
 #include <memory>
-#include "eventports/eventport.h"
 #include <iostream>
+
+#include "ports/port.h"
+class Worker;
 
 #include "behaviourcontainer.h"
 #include "basemessage.h"
-
-class Worker;
-class EventPort;
 
 class Component : public BehaviourContainer{
     public:
         Component(const std::string& component_name = "");
         virtual ~Component();
 
-        //EventPort
-        std::weak_ptr<EventPort> AddEventPort(std::unique_ptr<EventPort> event_port);
-        std::weak_ptr<EventPort> GetEventPort(const std::string& event_port_name);
+        //Port
+        std::weak_ptr<Port> AddPort(std::unique_ptr<Port> port);
+        std::weak_ptr<Port> GetPort(const std::string& port_name);
         template<class T>
-        std::shared_ptr<T> GetTypedEventPort(const std::string& event_port_name);
-        std::shared_ptr<EventPort> RemoveEventPort(const std::string& event_port_name);
+        std::shared_ptr<T> GetTypedPort(const std::string& port_name);
+        std::shared_ptr<Port> RemovePort(const std::string& port_name);
         
         template<class T>
-        bool AddCallback(const std::string& event_port_name, std::function<void (T&)> function);
+        bool AddCallback(const std::string& port_name, std::function<void (T&)> function);
         
-        bool AddPeriodicCallback(const std::string& event_port_name, std::function<void()> function);
+        bool AddPeriodicCallback(const std::string& port_name, std::function<void()> function);
 
-        std::function<void (::BaseMessage&)> GetCallback(const std::string& event_port_name);
-        bool RemoveCallback(const std::string& event_port_name);
+        std::function<void (::BaseMessage&)> GetCallback(const std::string& port_name);
+        bool RemoveCallback(const std::string& port_name);
     protected:
         virtual bool HandleActivate();
         virtual bool HandleConfigure();
         virtual bool HandlePassivate();
         virtual bool HandleTerminate();
     private:
-        bool AddCallback_(const std::string& event_port_name, std::function<void (::BaseMessage&)> function);
+        bool AddCallback_(const std::string& port_name, std::function<void (::BaseMessage&)> function);
         std::mutex state_mutex_;
         std::mutex port_mutex_;
 
-        std::unordered_map<std::string, std::shared_ptr<EventPort> > eventports_;
+        std::unordered_map<std::string, std::shared_ptr<Port> > ports_;
         std::unordered_map<std::string, std::function<void (::BaseMessage&)> > callback_functions_;
 };
 
 template<class T>
-std::shared_ptr<T> Component::GetTypedEventPort(const std::string& event_port_name){
-    static_assert(std::is_base_of<EventPort, T>::value, "T must inherit from EventPort");
-    auto p = GetEventPort(event_port_name).lock();
+std::shared_ptr<T> Component::GetTypedPort(const std::string& port_name){
+    static_assert(std::is_base_of<Port, T>::value, "T must inherit from Port");
+    auto p = GetPort(port_name).lock();
     return std::dynamic_pointer_cast<T>(p);
 };
 
 template<class T>
-bool Component::AddCallback(const std::string& event_port_name, std::function<void (T&)> function){
+bool Component::AddCallback(const std::string& port_name, std::function<void (T&)> function){
     static_assert(std::is_base_of<::BaseMessage, T>::value, "T must inherit from ::BaseMessage");
 
-    return AddCallback_(event_port_name, [this, function] (::BaseMessage& message){
+    return AddCallback_(port_name, [this, function] (::BaseMessage& message){
             function((T&) message);
         });
 };
