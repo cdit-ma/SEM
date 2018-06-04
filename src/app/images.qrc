@@ -65,7 +65,7 @@
         <file alias="PublisherPortDelegate">Resources/EntityIcons/PublisherPortDelegate.png</file>
         <file alias="PublisherPortImpl">Resources/EntityIcons/PublisherPortImpl.png</file>
         <file alias="PublisherPortInstance">Resources/EntityIcons/PublisherPortInstance.png</file>
-        <file alias="PeriodicEvent">Resources/EntityIcons/PeriodicEvent.png</file>
+        <file alias="PeriodicPort">Resources/EntityIcons/PeriodicPort.png</file>
         <file alias="QOSProfile">Resources/EntityIcons/QOSProfile.png</file>
         <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
         <file alias="SharedDatatypesLocked">Resources/EntityIcons/SharedDatatypesLocked.png</file>
