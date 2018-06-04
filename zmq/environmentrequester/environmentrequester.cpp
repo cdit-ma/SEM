@@ -12,9 +12,6 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
     }
     experiment_id_ = experiment_id;
 
-    if(deployment_type != DeploymentType::RE_MASTER && deployment_type != DeploymentType::LOGAN_CLIENT){
-        throw std::invalid_argument("Invalid deployment type");
-    }
     deployment_type_ = deployment_type;
 }
 
