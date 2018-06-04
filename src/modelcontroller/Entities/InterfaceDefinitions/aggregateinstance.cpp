@@ -68,9 +68,9 @@ void AggregateInstance::ParentSet(DataNode* child){
         bool got_valid_receiver = false;
 
         QSet<NODE_KIND> valid_producer_parents;
-        QSet<NODE_KIND> valid_receiver_parents = {NODE_KIND::OUTEVENTPORT_IMPL};
+        QSet<NODE_KIND> valid_receiver_parents = {NODE_KIND::PORT_PUBLISHER_IMPL};
         
-        QSet<NODE_KIND> inverse_parents = {NODE_KIND::FUNCTION_CALL, NODE_KIND::SERVER_REQUEST};
+        QSet<NODE_KIND> inverse_parents = {NODE_KIND::FUNCTION_CALL, NODE_KIND::PORT_REQUESTER_IMPL};
         QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE};//, NODE_KIND::VARIABLE};
         
 
@@ -91,7 +91,7 @@ void AggregateInstance::ParentSet(DataNode* child){
         }
 
         if(!ancestor_kinds.intersects(valid_receiver_parents)){
-            valid_producer_parents += {NODE_KIND::INEVENTPORT_IMPL};
+            valid_producer_parents += {NODE_KIND::PORT_SUBSCRIBER_IMPL};
         }
 
         if(!ancestor_kinds.intersects(invalid_parents)){
@@ -109,7 +109,7 @@ void AggregateInstance::ParentSet(DataNode* child){
 }
 void AggregateInstance::parentSet(Node* parent){
     switch(parent->getNodeKind()){
-        case NODE_KIND::INEVENTPORT_IMPL:{
+        case NODE_KIND::PORT_SUBSCRIBER_IMPL:{
             getFactoryBroker().AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
             getFactoryBroker().AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
             break;

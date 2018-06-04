@@ -19,10 +19,11 @@ Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     addInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
     addImplKind(NODE_KIND::COMPONENT_IMPL);
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
-    setAcceptsNodeKind(NODE_KIND::INEVENTPORT);
-    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT);
-    setAcceptsNodeKind(NODE_KIND::SERVER_PORT);
-    setAcceptsNodeKind(NODE_KIND::CLIENT_PORT);
+    
+    setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER);
+    setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER);
+    setAcceptsNodeKind(NODE_KIND::PORT_REPLIER);
+    setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER);
 
     if(is_temp){
         //Break out early for temporary entities

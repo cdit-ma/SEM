@@ -2,8 +2,8 @@
 
 QSet<NODE_KIND> ContainerNode::getAcceptedNodeKinds(){
     return {
-        NODE_KIND::OUTEVENTPORT_IMPL,
-        NODE_KIND::SERVER_REQUEST,
+        NODE_KIND::PORT_PUBLISHER_IMPL,
+        NODE_KIND::PORT_REQUESTER_IMPL,
         NODE_KIND::IF_STATEMENT,
         NODE_KIND::FOR_LOOP,
         NODE_KIND::VARIABLE,

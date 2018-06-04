@@ -20,12 +20,12 @@ ComponentInstance::ComponentInstance(EntityFactoryBroker& broker, bool is_temp) 
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::INEVENTPORT_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_INST);
+    setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER_INST);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::PERIODICEVENT_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::SERVER_PORT_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::CLIENT_PORT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::PORT_PERIODIC_INST);
+    setAcceptsNodeKind(NODE_KIND::PORT_REPLIER_INST);
+    setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER_INST);
 
     if(is_temp){
         //Break out early for temporary entities

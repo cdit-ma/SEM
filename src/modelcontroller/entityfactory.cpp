@@ -41,8 +41,8 @@
 //Impl Elements
 #include "Entities/BehaviourDefinitions/componentimpl.h"
 #include "Entities/BehaviourDefinitions/attributeimpl.h"
-#include "Entities/BehaviourDefinitions/ineventportimpl.h"
-#include "Entities/BehaviourDefinitions/outeventportimpl.h"
+#include "Entities/BehaviourDefinitions/subscriberportimpl.h"
+#include "Entities/BehaviourDefinitions/publisherportimpl.h"
 
 //Behaviour Elements
 #include "Entities/BehaviourDefinitions/IfStatement/ifstatement.h"
@@ -59,7 +59,7 @@
 #include "Entities/BehaviourDefinitions/code.h"
 #include "Entities/BehaviourDefinitions/header.h"
 #include "Entities/BehaviourDefinitions/inputparameter.h"
-#include "Entities/BehaviourDefinitions/periodicevent.h"
+#include "Entities/BehaviourDefinitions/periodicport.h"
 #include "Entities/BehaviourDefinitions/returnparameter.h"
 #include "Entities/BehaviourDefinitions/setter.h"
 #include "Entities/BehaviourDefinitions/variable.h"
@@ -72,9 +72,9 @@
 //Instance Elements
 #include "Entities/DeploymentDefinitions/componentinstance.h"
 #include "Entities/DeploymentDefinitions/attributeinstance.h"
-#include "Entities/DeploymentDefinitions/ineventportinstance.h"
-#include "Entities/DeploymentDefinitions/outeventportinstance.h"
-#include "Entities/DeploymentDefinitions/periodiceventinstance.h"
+#include "Entities/DeploymentDefinitions/subscriberportinst.h"
+#include "Entities/DeploymentDefinitions/publisherportinst.h"
+#include "Entities/DeploymentDefinitions/periodicportinst.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
@@ -92,8 +92,10 @@
 #include "Entities/DeploymentDefinitions/componentassembly.h"
 #include "Entities/DeploymentDefinitions/hardwarecluster.h"
 #include "Entities/DeploymentDefinitions/hardwarenode.h"
-#include "Entities/DeploymentDefinitions/ineventportdelegate.h"
-#include "Entities/DeploymentDefinitions/outeventportdelegate.h"
+
+#include "Entities/DeploymentDefinitions/subscriberportdelegate.h"
+#include "Entities/DeploymentDefinitions/publisherportdelegate.h"
+
 #include "Entities/DeploymentDefinitions/loggingprofile.h"
 #include "Entities/DeploymentDefinitions/loggingserver.h"
 #include "Entities/DeploymentDefinitions/openclplatform.h"
@@ -104,9 +106,9 @@
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/attribute.h"
 #include "Entities/InterfaceDefinitions/component.h"
-#include "Entities/InterfaceDefinitions/ineventport.h"
+#include "Entities/InterfaceDefinitions/subscriberport.h"
 #include "Entities/InterfaceDefinitions/member.h"
-#include "Entities/InterfaceDefinitions/outeventport.h"
+#include "Entities/InterfaceDefinitions/publisherport.h"
 #include "Entities/InterfaceDefinitions/vector.h"
 
 //Elements
@@ -117,15 +119,15 @@
 #include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
 
-#include "Entities/InterfaceDefinitions/ClientServer/serverinterface.h"
-#include "Entities/InterfaceDefinitions/ClientServer/clientport.h"
-#include "Entities/InterfaceDefinitions/ClientServer/serverport.h"
+#include "Entities/InterfaceDefinitions/requestreply/serverinterface.h"
+#include "Entities/InterfaceDefinitions/requestreply/replierport.h"
+#include "Entities/InterfaceDefinitions/requestreply/requesterport.h"
 
-#include "Entities/BehaviourDefinitions/ClientServer/serverrequest.h"
-#include "Entities/BehaviourDefinitions/ClientServer/serverportimpl.h"
+#include "Entities/BehaviourDefinitions/requestreply/replierportimpl.h"
+#include "Entities/BehaviourDefinitions/requestreply/requesterportimpl.h"
 
-#include "Entities/DeploymentDefinitions/ClientServer/serverportinstance.h"
-#include "Entities/DeploymentDefinitions/ClientServer/clientportinstance.h"
+#include "Entities/DeploymentDefinitions/requestreply/replierportinst.h"
+#include "Entities/DeploymentDefinitions/requestreply/requesterportinst.h"
 
 #include "Entities/InterfaceDefinitions/inputparametergroup.h"
 #include "Entities/InterfaceDefinitions/returnparametergroup.h"
@@ -343,8 +345,8 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     //Impl Elements
     ComponentImpl::RegisterWithEntityFactory(registry_broker);
     AttributeImpl::RegisterWithEntityFactory(registry_broker);
-    InEventPortImpl::RegisterWithEntityFactory(registry_broker);
-    OutEventPortImpl::RegisterWithEntityFactory(registry_broker);
+    SubscriberPortImpl::RegisterWithEntityFactory(registry_broker);
+    PublisherPortImpl::RegisterWithEntityFactory(registry_broker);
 
     //Behaviour Elements
     MEDEA::IfStatement::RegisterWithEntityFactory(registry_broker);
@@ -360,7 +362,7 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     Header::RegisterWithEntityFactory(registry_broker);
     InputParameter::RegisterWithEntityFactory(registry_broker);
     PeriodicEvent::RegisterWithEntityFactory(registry_broker);
-    PeriodicEventInstance::RegisterWithEntityFactory(registry_broker);
+    PeriodicPortInst::RegisterWithEntityFactory(registry_broker);
     ReturnParameter::RegisterWithEntityFactory(registry_broker);
     Setter::RegisterWithEntityFactory(registry_broker);
     Variable::RegisterWithEntityFactory(registry_broker);
@@ -373,8 +375,8 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     //Instance Elements
     ComponentInstance::RegisterWithEntityFactory(registry_broker);
     AttributeInstance::RegisterWithEntityFactory(registry_broker);
-    InEventPortInstance::RegisterWithEntityFactory(registry_broker);
-    OutEventPortInstance::RegisterWithEntityFactory(registry_broker);
+    SubscriberPortInst::RegisterWithEntityFactory(registry_broker);
+    PublisherPortInst::RegisterWithEntityFactory(registry_broker);
     AggregateInstance::RegisterWithEntityFactory(registry_broker);
     MemberInstance::RegisterWithEntityFactory(registry_broker);
     VectorInstance::RegisterWithEntityFactory(registry_broker);
@@ -383,8 +385,8 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     ComponentAssembly::RegisterWithEntityFactory(registry_broker);
     HardwareNode::RegisterWithEntityFactory(registry_broker);
     HardwareCluster::RegisterWithEntityFactory(registry_broker);
-    InEventPortDelegate::RegisterWithEntityFactory(registry_broker);
-    OutEventPortDelegate::RegisterWithEntityFactory(registry_broker);
+    SubscriberPortDelegate::RegisterWithEntityFactory(registry_broker);
+    PublisherPortDelegate::RegisterWithEntityFactory(registry_broker);
     LoggingProfile::RegisterWithEntityFactory(registry_broker);
     LoggingServer::RegisterWithEntityFactory(registry_broker);
     
@@ -395,9 +397,9 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     Aggregate::RegisterWithEntityFactory(registry_broker);
     Attribute::RegisterWithEntityFactory(registry_broker);
     Component::RegisterWithEntityFactory(registry_broker);
-    InEventPort::RegisterWithEntityFactory(registry_broker);
+    SubscriberPort::RegisterWithEntityFactory(registry_broker);
     Member::RegisterWithEntityFactory(registry_broker);
-    OutEventPort::RegisterWithEntityFactory(registry_broker);
+    PublisherPort::RegisterWithEntityFactory(registry_broker);
     Vector::RegisterWithEntityFactory(registry_broker);
 
 
@@ -440,14 +442,14 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     Namespace::RegisterWithEntityFactory(registry_broker);
 
     MEDEA::ServerInterface::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ServerPort::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ClientPort::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ReplierPort::RegisterWithEntityFactory(registry_broker);
+    MEDEA::RequesterPort::RegisterWithEntityFactory(registry_broker);
 
-    MEDEA::ServerPortInstance::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ClientPortInstance::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ReplierPortInst::RegisterWithEntityFactory(registry_broker);
+    MEDEA::RequesterPortInst::RegisterWithEntityFactory(registry_broker);
 
-    MEDEA::ServerPortImpl::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ServerRequest::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ReplierPortImpl::RegisterWithEntityFactory(registry_broker);
+    MEDEA::RequesterPortImpl::RegisterWithEntityFactory(registry_broker);
     
     MEDEA::BooleanExpression::RegisterWithEntityFactory(registry_broker);
 
