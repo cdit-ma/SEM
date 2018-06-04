@@ -133,8 +133,8 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	int inverse_int = 0; //false
 	int iterations = 1;
 
-	auto& fft_kernel_lock = fpga_fft_kernel_->AcquireLock();
-	auto& fetch_kernel_lock = fpga_fetch_kernel_->AcquireLock();
+	auto fft_kernel_lock = fpga_fft_kernel_->AcquireLock();
+	auto fetch_kernel_lock = fpga_fetch_kernel_->AcquireLock();
 
 	// Set the kernel arguments
 	status = clSetKernelArg(fpga_fetch_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_inData);
