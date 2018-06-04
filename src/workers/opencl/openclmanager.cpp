@@ -234,7 +234,7 @@ std::string OpenCLManager::GetPlatformName() const {
 }
 
 // TODO: Handle the !valid_ case
-std::vector<std::unique_ptr<OpenCLDevice> > const& OpenCLManager::GetDevices(const Worker& worker) {
+const std::vector<std::unique_ptr<OpenCLDevice> > & OpenCLManager::GetDevices(const Worker& worker) {
 	return device_list_;
 }
 

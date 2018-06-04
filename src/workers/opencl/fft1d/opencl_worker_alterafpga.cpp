@@ -67,11 +67,11 @@ Worker worker(component, "testWorker", "testWorker");
 //static cl_device_id device = NULL;
 //static OpenCLManager* manager = NULL;
 //static cl_command_queue queue = NULL;
-static cl_command_queue queue1 = NULL;
-static cl_kernel kernel = NULL;
-static cl_kernel kernel1 = NULL;
-static cl_program program = NULL;
-static cl_int status = 0;
+//static cl_command_queue queue1 = NULL;
+//static cl_kernel kernel = NULL;
+//static cl_kernel kernel1 = NULL;
+//static cl_program program = NULL;
+//static cl_int status = 0;
 
 // FFT operates with complex numbers - store them in a struct
 typedef struct {
@@ -94,11 +94,11 @@ static void fourier_transform_gold(bool inverse, int lognr_points, double2 * dat
 static void fourier_stage(int lognr_points, double2 * data);
 
 // Host memory buffers
-float2 *h_inData, *h_outData;
-double2 *h_verify;
+//float2 *h_inData, *h_outData;
+//double2 *h_verify;
 
 // Device memory buffers
-cl_mem d_inData, d_outData;
+//cl_mem d_inData, d_outData;
 
 /*bool OpenCL_Worker::InitFFT() {
 	return InitFFT();
@@ -135,6 +135,8 @@ void bit_reverse(float2* src, float2* dst, size_t num_elements) {
 }
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
+  cl_int status = 0;
+
 	if (data.size() != N*2) {
          Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
                  "FFT implementation for FPGA requires data of length "+std::to_string(N)+", skipping calculation");
@@ -142,17 +144,17 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     }
     
     size_t data_size = sizeof(float2) * data.size() / 2;
-	h_inData = (float2 *)alignedMalloc(data_size);
+	float2* h_inData = (float2 *)alignedMalloc(data_size);
     memset(h_inData, 0, data_size);
-	h_outData =  (float2 *)alignedMalloc(data_size);//h_inData;
+	float2* h_outData =  (float2 *)alignedMalloc(data_size);//h_inData;
     //h_verify = (double2 *)alignedMalloc(data_size);
 	memcpy(h_inData, data.data(), data_size);
 	
   // Create device buffers - assign the buffers in different banks for more efficient
   // memory access 
-  d_inData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
+  cl_mem d_inData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
   checkError(status, "Failed to allocate input device buffer\n");
-  d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
+  cl_mem d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
   checkError(status, "Failed to allocate output device buffer\n");
 
   auto& device = manager_->GetDevices(*this).at(0);
@@ -167,29 +169,29 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
   int iterations = 1;
 
   // Set the kernel arguments
-  status = clSetKernelArg(kernel1, 0, sizeof(cl_mem), (void *)&d_inData);
+  status = clSetKernelArg(fpga_fetch_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_inData);
   checkError(status, "Failed to set kernel arg 0");
 
-  status = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&d_outData);
+  status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_outData);
   checkError(status, "Failed to set kernel arg 0");
-  status = clSetKernelArg(kernel, 1, sizeof(cl_int), (void*)&iterations);
+  status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 1, sizeof(cl_int), (void*)&iterations);
   checkError(status, "Failed to set kernel arg 1");
-  status = clSetKernelArg(kernel, 2, sizeof(cl_int), (void*)&inverse_int);
+  status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 2, sizeof(cl_int), (void*)&inverse_int);
   checkError(status, "Failed to set kernel arg 2");
 
   // Queue the FFT task
-  status = clEnqueueTask(send_queue, kernel, 0, NULL, NULL);
+  status = clEnqueueTask(send_queue, fpga_fft_kernel_->GetBackingRef()(), 0, NULL, NULL);
   checkError(status, "Failed to launch kernel");
 
   size_t ls = N/8;
   size_t gs = iterations * ls;
-  status = clEnqueueNDRangeKernel(queue1, kernel1, 1, NULL, &gs, &ls, 0, NULL, NULL);
+  status = clEnqueueNDRangeKernel(fetch_queue->GetRef()(), fpga_fetch_kernel_->GetBackingRef()(), 1, NULL, &gs, &ls, 0, NULL, NULL);
   checkError(status, "Failed to launch fetch kernel");
  
   // Wait for command queue to complete pending events
   status = clFinish(send_queue);
   checkError(status, "Failed to finish");
-  status = clFinish(queue1);
+  status = clFinish(fetch_queue->GetRef()());
   checkError(status, "Failed to finish queue1");
 
   // Copy results from device to host
@@ -199,6 +201,9 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	//test_fft(1, false);
 	//memcpy(data.data(), h_outData, data_size);
     bit_reverse(h_outData, (float2*)data.data(), data.size()/2);
+
+    clReleaseMemObject(d_inData);
+    clReleaseMemObject(d_outData);
     alignedFree(h_inData);
     alignedFree(h_outData);
     h_inData = NULL;
@@ -261,13 +266,13 @@ int main(int argc, char **argv) {
   int iterations = 2000;
 
   // Allocate host memory
-  h_inData = (float2 *)alignedMalloc(sizeof(float2) * N * iterations);
+  /*h_inData = (float2 *)alignedMalloc(sizeof(float2) * N * iterations);
   h_outData = (float2 *)alignedMalloc(sizeof(float2) * N * iterations);
   h_verify = (double2 *)alignedMalloc(sizeof(double2) * N * iterations);
   if (!(h_inData && h_outData && h_verify)) {
     printf("ERROR: Couldn't create host buffers\n");
     return false;
-  }
+  }*/
 
   test_fft(iterations, false); // test FFT transform running a sequence of iterations x 4k points transforms
   test_fft(iterations, true); // test inverse FFT transform - same setup as above
@@ -480,7 +485,7 @@ bool OpenCL_Worker::InitFFT() {
   auto& devices = manager_->GetDevices(worker);
 
   // We'll just use the first device.
-  auto& device = devices[0];
+  auto& device = devices.at(0);
 
   // Create the context.
   //auto call = (void(_stdcall*) (const char *, const void*, size_t, void *)) &oclContextCallback; 
@@ -492,7 +497,8 @@ bool OpenCL_Worker::InitFFT() {
   //queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &status);
   //queue = device->GetQueue().GetRef()();
   //checkError(status, "Failed to create command queue");
-  queue1 = clCreateCommandQueue(manager_->GetContext()(), device->GetRef()(), CL_QUEUE_PROFILING_ENABLE, &status);
+  //queue1 = clCreateCommandQueue(manager_->GetContext()(), device->GetRef()(), CL_QUEUE_PROFILING_ENABLE, &status);
+  fetch_queue = new OpenCLQueue(*manager_, *device);
   checkError(status, "Failed to create command queue");
 
     int kernels_found=0;
@@ -521,10 +527,12 @@ bool OpenCL_Worker::InitFFT() {
   for (OpenCLKernel& k : kernels) {
     //auto& kernel_ = ref_wrapper.get();
     if (k.GetName() == "fft1d") {
-      kernel = k.GetBackingRef()();
+      fpga_fft_kernel_ = &k;
+      //kernel = k.GetBackingRef()();
     }
     if (k.GetName() == "fetch") {
-      kernel1 = k.GetBackingRef()();
+      fpga_fetch_kernel_ = &k;
+      //kernel1 = k.GetBackingRef()();
     }
   }
   //kernel = clCreateKernel(program, "fft1d", &status);
@@ -539,19 +547,20 @@ bool OpenCL_Worker::InitFFT() {
 // Free the resources allocated during initialization
 bool OpenCL_Worker::CleanupFFT() {
     
-  if(queue1) 
-    clReleaseCommandQueue(queue1);
-  if (h_verify) {
+  if(fetch_queue) 
+    delete fetch_queue;
+    //clReleaseCommandQueue(queue1);
+  /*if (h_verify) {
 	  alignedFree(h_verify);
-  }
-  if (d_inData) {      
+  }*/
+  /*if (d_inData) {      
 	clReleaseMemObject(d_inData);
     d_inData = NULL;
   }
   if (d_outData) {
 	clReleaseMemObject(d_outData);
     d_outData = NULL;
-  }
+  }*/
 
   return true;
 }
