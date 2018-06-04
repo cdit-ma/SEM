@@ -8,14 +8,14 @@
 
 void empty_callback(BaseMessage& b){};
 
-class PeriodicEventPort_0hz_FSMTester : public ActivatableFSMTester{
+class PeriodicPort_0hz_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             c = std::make_shared<Component>();
             
-            auto port = new PeriodicEventPort(c, port_name, empty_callback);
+            auto port = new PeriodicPort(c, port_name, empty_callback);
             port->SetFrequency(0);
             a = port;
             ASSERT_TRUE(a);
@@ -24,13 +24,13 @@ class PeriodicEventPort_0hz_FSMTester : public ActivatableFSMTester{
         std::shared_ptr<Component> c;
 };
 
-class PeriodicEventPort_1hz_FSMTester : public ActivatableFSMTester{
+class PeriodicPort_1hz_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             c = std::make_shared<Component>();
-            auto port = new PeriodicEventPort(c, port_name, empty_callback);
+            auto port = new PeriodicPort(c, port_name, empty_callback);
             port->SetFrequency(1);
             a = port;
             ASSERT_TRUE(a);
@@ -91,7 +91,7 @@ TEST_P(PeriodicEventTest, TickCount)
    int callback_tick_count = 0;
    {
        auto c = std::make_shared<Component>("Test");
-       PeriodicEventPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage& m){
+       PeriodicPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage& m){
                std::this_thread::sleep_for(std::chrono::milliseconds(p.callback_time_ms));
                callback_tick_count ++;
            });
@@ -136,11 +136,11 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
 };
 
 
-#define TEST_FSM_CLASS PeriodicEventPort_1hz_FSMTester
+#define TEST_FSM_CLASS PeriodicPort_1hz_FSMTester
 #include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS PeriodicEventPort_0hz_FSMTester
+#define TEST_FSM_CLASS PeriodicPort_0hz_FSMTester
 #include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 

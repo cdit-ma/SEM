@@ -1,10 +1,10 @@
-#ifndef ZMQ_INEVENTPORT_H
-#define ZMQ_INEVENTPORT_H
+#ifndef ZMQ_PORT_SUBSCRIBER_HPP
+#define ZMQ_PORT_SUBSCRIBER_HPP
 
-#include <core/eventports/prototranslator.h>
-#include <core/eventports/ineventport.hpp>
+#include <core/ports/pubsub/subscriberport.hpp>
+#include <middleware/proto/prototranslator.h>
+#include <middleware/zmq/zmqhelper.h>
 #include <re_common/zmq/zmqutils.hpp>
-#include "zmqhelper.h"
 
 #include <thread>
 #include <mutex>
@@ -12,10 +12,11 @@
 
 
 namespace zmq{
-     template <typename T, typename S> class InEventPort: public ::InEventPort<T>{
+    template <class BaseType, class ProtoType>
+    class SubscriberPort : public ::SubscriberPort<BaseType>{
         public:
-            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
-            ~InEventPort(){
+            SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+            ~SubscriberPort(){
                 Activatable::Terminate();
             }
         protected:
@@ -25,9 +26,7 @@ namespace zmq{
         private:
             void recv_loop();
             
-
-            
-            ::Proto::Translator<T, S> translater;
+            ::Proto::Translator<BaseType, ProtoType> translater;
 
             std::thread* recv_thread_ = 0;
             std::string terminate_endpoint_;
@@ -47,9 +46,9 @@ namespace zmq{
 //
 
 
-template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
-::InEventPort<T>(component, name, callback_function, "zmq"){
+template <class BaseType, class ProtoType>
+zmq::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
+::SubscriberPort<BaseType>(component, name, callback_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
@@ -58,16 +57,16 @@ zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::str
     end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };
 
-template <class T, class S>
-bool zmq::InEventPort<T, S>::HandleConfigure(){
+template <class BaseType, class ProtoType>
+bool zmq::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = end_points_->StringList().size() >= 0;
-    if(valid && ::InEventPort<T>::HandleConfigure()){
+    if(valid && ::SubscriberPort<BaseType>::HandleConfigure()){
         if(!recv_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(&zmq::InEventPort<T, S>::recv_loop, this);
+            recv_thread_ = new std::thread(&zmq::SubscriberPort<BaseType, ProtoType>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -76,11 +75,11 @@ bool zmq::InEventPort<T, S>::HandleConfigure(){
 }
 
 
-template <class T, class S>
-bool zmq::InEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class ProtoType>
+bool zmq::SubscriberPort<BaseType, ProtoType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandleTerminate()){
+    if(::SubscriberPort<BaseType>::HandleTerminate()){
         if(recv_thread_){
             //Join our zmq_thread
             recv_thread_->join();
@@ -92,10 +91,10 @@ bool zmq::InEventPort<T, S>::HandleTerminate(){
     return false;
 };
 
-template <class T, class S>
-bool zmq::InEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class ProtoType>
+bool zmq::SubscriberPort<BaseType, ProtoType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandlePassivate()){
+    if(::SubscriberPort<BaseType>::HandlePassivate()){
         std::lock_guard<std::mutex> lock(terminate_mutex_);
         if(term_socket_){
             zmq::message_t term_msg(terminate_str.c_str(), terminate_str.size());
@@ -107,8 +106,8 @@ bool zmq::InEventPort<T, S>::HandlePassivate(){
     return false;
 };
 
-template <class T, class S>
-void zmq::InEventPort<T, S>::recv_loop(){
+template <class BaseType, class ProtoType>
+void zmq::SubscriberPort<BaseType, ProtoType>::recv_loop(){
     terminate_mutex_.lock();
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_subscriber_socket();
@@ -151,7 +150,7 @@ void zmq::InEventPort<T, S>::recv_loop(){
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
-        EventPort::LogActivation();
+        ::Port::LogActivation();
     
         while(true){
             try{
@@ -172,7 +171,7 @@ void zmq::InEventPort<T, S>::recv_loop(){
                 break;
             }
         }
-        EventPort::LogPassivation();
+        ::Port::LogPassivation();
     }
 
     delete socket;
@@ -185,4 +184,4 @@ void zmq::InEventPort<T, S>::recv_loop(){
 };
 
 
-#endif //ZMQ_INEVENTPORT_H
+#endif // ZMQ_PORT_SUBSCRIBER_HPP

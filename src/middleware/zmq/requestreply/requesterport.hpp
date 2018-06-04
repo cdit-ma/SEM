@@ -7,7 +7,7 @@
 #include <re_common/zmq/zmqutils.hpp>
 
 namespace zmq{
-    template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
+    template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
     class RequesterPort : public ::RequesterPort<BaseReplyType, BaseRequestType>{
         public:
             RequesterPort(std::weak_ptr<Component> component, const std::string& port_name);
@@ -19,19 +19,19 @@ namespace zmq{
             std::shared_ptr<Attribute> end_point_;
 
             //Translators
-            ::Proto::Translator<BaseReplyType, ReplyType> reply_translator;
-            ::Proto::Translator<BaseRequestType, RequestType> request_translator;
+            ::Proto::Translator<BaseReplyType, ProtoReplyType> reply_translator;
+            ::Proto::Translator<BaseRequestType, ProtoRequestType> request_translator;
     }; 
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::RequesterPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "zmq"){
     end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-BaseReplyType* zmq::RequesterPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+BaseReplyType* zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
     //Get the address
     const auto address = end_point_->String();
     try{

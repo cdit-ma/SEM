@@ -1,6 +1,6 @@
 // Include the proto convert functions for the port type
-#include "../base/basic.h"
-#include "../proto/basic.pb.h"
+#include "../../base/basic.h"
+#include "../../proto/basic.pb.h"
 
 #include <future>
 
@@ -8,9 +8,9 @@
 #include <middleware/zmq/requestreply/replierport.hpp>
 
 Base::Basic callback(Base::Basic& message){
-    std::cout << "GOT MESSAGE: " << std::endl;
-    std::cout << "Int: " << message.int_val << std::endl;
-    std::cout << "str_val: " << message.str_val << std::endl;
+    std::cout << "REPLIER: GOT MESSAGE: " << std::endl;
+    //std::cout << "Int: " << message.int_val << std::endl;
+    //std::cout << "str_val: " << message.str_val << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
     message.int_val *= 10;
     return message;
@@ -22,7 +22,7 @@ int main(int ac, char* av[])
     auto server_port = new zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "ServerEventPort", callback);
 
     auto address = "inproc://testy";
-    auto address2 = "inproc://testy2";
+    auto address2 = "inproc://testy";
 
     auto out_address = client_port->GetAttribute("server_address").lock();
     auto in_address = server_port->GetAttribute("server_address").lock();
@@ -57,6 +57,8 @@ int main(int ac, char* av[])
             if(c.first){
                 std::cout << "RX: " << c.second.int_val << std::endl;
                 std::cout << "RX: " << c.second.str_val << std::endl;
+            }else{
+                std::cout << " <<<<<<<<<<<<<< GOT TIMEOUT" << std::endl;
             }
         }
     });

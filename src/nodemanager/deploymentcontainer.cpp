@@ -146,7 +146,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
         if(!port){
             switch(port_pb.kind()){
                 case NodeManager::Port::PERIODIC:{
-                    port = ConstructPeriodicEvent(component, port_info_pb.name());
+                    port = ConstructPeriodicPort(component, port_info_pb.name());
                     break;
                 }
                 case NodeManager::Port::PUBLISHER:{

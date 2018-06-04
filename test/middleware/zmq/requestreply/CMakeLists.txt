@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_zmq_client_server)
+set(PROJ_NAME test_zmq_requestreply)
 project(${PROJ_NAME})
 
 # Find package ZMQ

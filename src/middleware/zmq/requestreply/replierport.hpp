@@ -10,13 +10,13 @@
 #include <mutex>
 
 namespace zmq{
-    template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
+    template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
     class ReplierPort : public ::ReplierPort<BaseReplyType, BaseRequestType>{
         public:
             ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
             ~ReplierPort(){
                 Activatable::Terminate();
-            }
+            };
         protected:
             bool HandleConfigure();
             bool HandlePassivate();
@@ -31,8 +31,8 @@ namespace zmq{
             std::shared_ptr<Attribute> end_point_;
 
             //Translators
-            ::Proto::Translator<BaseReplyType, ReplyType> reply_translator;
-            ::Proto::Translator<BaseRequestType, RequestType> request_translator;
+            ::Proto::Translator<BaseReplyType, ProtoReplyType> reply_translator;
+            ::Proto::Translator<BaseRequestType, ProtoRequestType> request_translator;
 
             std::mutex thread_state_mutex_;
             ThreadState thread_state_ = ThreadState::TERMINATED;
@@ -46,8 +46,8 @@ namespace zmq{
 };
 
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
 ::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
@@ -57,8 +57,8 @@ zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::Replie
     end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleConfigure(){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = end_point_->String().size() >= 0;
@@ -67,7 +67,7 @@ bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::H
             //Construct the thread, and wait for the thread state to be changed
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(&zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::recv_loop, this);
+            recv_thread_ = new std::thread(&zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -76,8 +76,8 @@ bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::H
 }
 
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandleTerminate(){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Call into the base class
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
@@ -95,8 +95,8 @@ bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::H
     return false;
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::HandlePassivate(){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Call into the base Handle Passivate
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
@@ -105,8 +105,8 @@ bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::H
     return false;
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-void zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::recv_loop(){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::recv_loop(){
     auto socket = ZmqHelper::get_zmq_helper()->get_reply_socket();
     auto state = ThreadState::STARTED;
 
@@ -181,8 +181,8 @@ void zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::r
     thread_state_ = ThreadState::TERMINATED;
 };
 
-template <class BaseReplyType, class ReplyType, class BaseRequestType, class RequestType>
-bool zmq::ReplierPort<BaseReplyType, ReplyType, BaseRequestType, RequestType>::TerminateThread(){
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::TerminateThread(){
     std::lock_guard<std::mutex> lock(thread_state_mutex_);
 
     switch(thread_state_){

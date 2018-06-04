@@ -18,7 +18,7 @@ void sleep_ms(int ms){
 
 class ActivatableFSMTester : public ::testing::Test {
     protected:
-        EventPort* a = 0;
+        Port* a = 0;
         std::default_random_engine random_generator;
 
         virtual void SetUp(){

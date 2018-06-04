@@ -1,16 +1,20 @@
-#ifndef ZMQ_OUTEVENTPORT_H
-#define ZMQ_OUTEVENTPORT_H
+#ifndef ZMQ_PORT_PUBLISHER_HPP
+#define ZMQ_PORT_PUBLISHER_HPP
 
-#include <core/eventports/prototranslator.h>
-#include <core/eventports/outeventport.hpp>
+#include <thread>
+
+#include <core/ports/pubsub/publisherport.hpp>
+#include <middleware/proto/prototranslator.h>
+#include <middleware/zmq/zmqhelper.h>
 #include <re_common/zmq/zmqutils.hpp>
-#include "zmqhelper.h"
+
 
 namespace zmq{
-     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
+    template <class BaseType, class ProtoType>
+     class PublisherPort : public ::PublisherPort<BaseType>{
         public:
-            OutEventPort(std::weak_ptr<Component> component, std::string name);
-            ~OutEventPort(){
+            PublisherPort(std::weak_ptr<Component> component, std::string name);
+            ~PublisherPort(){
                 Activatable::Terminate();
             }
         protected:
@@ -18,40 +22,40 @@ namespace zmq{
             bool HandlePassivate();
             bool HandleTerminate();
         public:
-            bool tx(const T& message);
+            bool Send(const BaseType& t);
         private:
             bool setup_tx();
             std::mutex control_mutex_;
 
-            ::Proto::Translator<T, S> translater;
+            ::Proto::Translator<BaseType, ProtoType> translater;
             
             zmq::socket_t* socket_ = 0;
             std::shared_ptr<Attribute> end_points_;
     }; 
 };
 
-template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
+template <class BaseType, class ProtoType>
+zmq::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> component, std::string name): ::PublisherPort<BaseType>(component, name, "zmq"){
     end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };
 
 
 
-template <class T, class S>
-bool zmq::OutEventPort<T, S>::HandleConfigure(){
+template <class BaseType, class ProtoType>
+bool zmq::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     bool valid = end_points_->StringList().size() > 0;
 
-    if(valid && ::OutEventPort<T>::HandleConfigure()){
+    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
         return setup_tx();
     }
     return false;
 };
 
-template <class T, class S>
-bool zmq::OutEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class ProtoType>
+bool zmq::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::OutEventPort<T>::HandlePassivate()){
+    if(::PublisherPort<BaseType>::HandlePassivate()){
         if(socket_){
             delete socket_;
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -63,15 +67,15 @@ bool zmq::OutEventPort<T, S>::HandlePassivate(){
     return false;
 };
 
-template <class T, class S>
-bool zmq::OutEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class ProtoType>
+bool zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::OutEventPort<T>::HandleTerminate();
+    return ::PublisherPort<BaseType>::HandleTerminate();
 };
 
-template <class T, class S>
-bool zmq::OutEventPort<T, S>::setup_tx(){
+template <class BaseType, class ProtoType>
+bool zmq::PublisherPort<BaseType, ProtoType>::setup_tx(){
     auto helper = ZmqHelper::get_zmq_helper();
     this->socket_ = helper->get_publisher_socket();
     for(auto e: end_points_->StringList()){
@@ -86,10 +90,11 @@ bool zmq::OutEventPort<T, S>::setup_tx(){
     return true;
 };
 
-template <class T, class S>
-bool zmq::OutEventPort<T, S>::tx(const T& message){
+template <class BaseType, class ProtoType>
+bool zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    bool should_send = ::OutEventPort<T>::tx(message);
+    
+    bool should_send = ::PublisherPort<BaseType>::Send(message);
 
     if(should_send){
         if(socket_){
@@ -104,5 +109,5 @@ bool zmq::OutEventPort<T, S>::tx(const T& message){
     return false;
 };
 
-#endif //ZMQ_INEVENTPORT_H
+#endif //ZMQ_PORT_PUBLISHER_HPP
 
