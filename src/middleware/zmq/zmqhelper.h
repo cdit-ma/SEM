@@ -18,6 +18,9 @@ namespace zmq{
             zmq::context_t* get_context();
             zmq::socket_t* get_publisher_socket();
             zmq::socket_t* get_subscriber_socket();
+
+            zmq::socket_t* get_request_socket();
+            zmq::socket_t* get_reply_socket();
         private:
             std::mutex mutex;
             zmq::context_t* context_ = 0;
