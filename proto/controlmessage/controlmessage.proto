@@ -4,8 +4,8 @@ package NodeManager;
 message ControlMessage{
     enum Type{
         NO_TYPE = 0;
-        STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/Eventports
-        TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and Eventports.
+        STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/ports
+        TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and ports.
         CONFIGURE = 3;
         ACTIVATE = 4;       //Start executing a Component, Requires Startup first
         PASSIVATE = 5;      //Stop executing a Component, Requires Startup and Passivate
@@ -81,21 +81,29 @@ message Node{
 
 message Component{
     Info info = 1;
-    repeated EventPort ports = 2;
+    repeated Port ports = 2;
     repeated Attribute attributes = 3;
     repeated Worker workers = 4;
     uint32 replicate_id = 5;
 }
 
-message EventPort{
+message Port{
     enum Kind{
-        IN_PORT = 0;
-        OUT_PORT = 1;
-        PERIODIC_PORT = 2;
+        NO_KIND = 0;
+        //
+        PERIODIC = 1;
+        //
+        PUBLISHER = 2;
+        //
+        SUBSCRIBER = 3;
+        //
+        REQUESTER = 4;
+        //
+        REPLIER = 5;
     }
 
     enum Middleware{
-        NONE = 0;
+        NO_MIDDLEWARE = 0;
         ZMQ = 1;
         RTI = 2;
         OSPL = 3;
