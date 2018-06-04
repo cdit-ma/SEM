@@ -91,11 +91,12 @@ void fill_info(re_common::Info& info){
     info.set_timestamp(get_current_time().count() / 1000.0);
 }
 
-void fill_component(re_common::Component& c, const Component& component){
+void fill_component(re_common::Component& c, const BehaviourContainer& component){
     c.set_name(component.get_name());
     c.set_id(component.get_id());
     c.set_type(component.get_type());
 }
+
 
 void fill_component(re_common::Component& c, std::weak_ptr<Component>& c_wp){
     auto component = c_wp.lock();
@@ -154,10 +155,10 @@ void ModelLogger::LogLifecycleEvent(const EventPort& eventport, ModelLogger::Lif
 void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
     auto e = new re_common::WorkloadEvent();
 
-    const auto& component = worker.get_component();
+    const auto& container = worker.get_container();
     
     fill_info(*e->mutable_info());
-    fill_component(*e->mutable_component(), component);
+    fill_component(*e->mutable_component(), container);
 
     //Set Type, Name
     e->set_type(worker.get_worker_name());

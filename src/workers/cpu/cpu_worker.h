@@ -8,7 +8,7 @@ class Cpu_Worker_Impl;
 
 class Cpu_Worker : public Worker{
     public:
-        Cpu_Worker(const Component& component, const std::string& inst_name);
+        Cpu_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Cpu_Worker();
 
         int IntOp(double loops);

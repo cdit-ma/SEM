@@ -14,6 +14,7 @@ find_package(ZMQ REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/behaviourcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/eventports/eventport.cpp
@@ -25,6 +26,7 @@ set(SOURCE
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/behaviourcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
     ${CMAKE_CURRENT_SOURCE_DIR}/eventports/eventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/eventports/periodiceventport.h
