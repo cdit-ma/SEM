@@ -3,8 +3,8 @@
 #include "../base/basic.h"
 #include "basic_DCPS.hpp"
 
-#include <middleware/ospl/ineventport.hpp>
-#include <middleware/ospl/outeventport.hpp>
+#include <middleware/ospl/pubsub/subscriberport.hpp>
+#include <middleware/ospl/pubsub/publisherport.hpp>
 
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
@@ -18,7 +18,7 @@
 
 void empty_callback(Base::Basic& b){};
 
-bool setup_port(EventPort& port, int domain, std::string topic_name){
+bool setup_port(Port& port, int domain, std::string topic_name){
     auto d = port.GetAttribute("domain_id").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
@@ -31,12 +31,12 @@ bool setup_port(EventPort& port, int domain, std::string topic_name){
 }
 
 //Define an In/Out Port FSM Tester
-class OSPL_InEventPort_FSMTester : public ActivatableFSMTester{
+class OSPL_SubscriberPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new ospl::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new ospl::SubscriberPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             
             EXPECT_TRUE(setup_port(*port, 0, port_name));
 
@@ -45,12 +45,12 @@ class OSPL_InEventPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-class OSPL_OutEventPort_FSMTester : public ActivatableFSMTester{
+class OSPL_PublisherPort_FSMTester : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new ospl::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new ospl::PublisherPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
         EXPECT_TRUE(setup_port(*port, 0, port_name));
         a = port;
         ASSERT_TRUE(a);
@@ -58,11 +58,11 @@ protected:
 };
 
 
-#define TEST_FSM_CLASS OSPL_InEventPort_FSMTester
+#define TEST_FSM_CLASS OSPL_SubscriberPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS OSPL_OutEventPort_FSMTester
+#define TEST_FSM_CLASS OSPL_PublisherPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
@@ -79,8 +79,8 @@ TEST(OSPL_EventportPair, Stable100){
     std::set<std::string> expected_guids = guids;
 
     auto c = std::make_shared<Component>("Test");
-    ospl::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    ospl::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+    ospl::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    ospl::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
         expected_guids.erase(message.guid_val);
     });
 
@@ -99,7 +99,7 @@ TEST(OSPL_EventportPair, Stable100){
         b.int_val = counter++;
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
-        out_port.tx(b);
+        out_port.Send(b);
     }
 
     sleep_ms(100);
@@ -138,8 +138,8 @@ TEST(OSPL_EventportPair, Busy100){
     std::set<std::string> expected_guids = guids;
 
     auto c = std::make_shared<Component>("Test");
-    ospl::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    ospl::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+    ospl::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    ospl::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
         //Only sleep on messages we're meant to receive
         if(expected_guids.erase(message.guid_val)){
             sleep_ms(2000);
@@ -161,7 +161,7 @@ TEST(OSPL_EventportPair, Busy100){
         b.int_val = counter++;
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
-        out_port.tx(b);
+        out_port.Send(b);
         sleep_ms(1);
     }
 

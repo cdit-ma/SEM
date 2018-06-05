@@ -1,18 +1,19 @@
-#ifndef OSPL_OUTEVENTPORT_H
-#define OSPL_OUTEVENTPORT_H
+#ifndef RTI_PORT_PUBLISHER_HPP
+#define RTI_PORT_PUBLISHER_HPP
 
-#include <middleware/ospl/helper.hpp>
-#include <core/eventports/outeventport.hpp>
+#include <middleware/rti/helper.hpp>
+#include <core/ports/pubsub/publisherport.hpp>
+
 
 #include <string>
 #include <mutex>
 #include <exception>
 
-namespace ospl{
-    template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
+namespace rti{
+    template <class BaseType, class RtiType> class PublisherPort: public ::PublisherPort<BaseType>{
        public:
-            OutEventPort(std::weak_ptr<Component> component, std::string name);
-           ~OutEventPort(){
+            PublisherPort(std::weak_ptr<Component> component, std::string name);
+            ~PublisherPort(){
                 Activatable::Terminate();
             }
         protected:
@@ -20,11 +21,12 @@ namespace ospl{
             bool HandlePassivate();
             bool HandleTerminate();
         public:
-            bool tx(const T& message);
+            bool Send(const BaseType& message);
         private:
             bool setup_tx();
+            int count = 0;
 
-            ::Base::Translator<T,S> translator;
+            ::Base::Translator<BaseType, RtiType> translator;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
@@ -35,13 +37,13 @@ namespace ospl{
             std::shared_ptr<Attribute> qos_name_;
 
             std::mutex control_mutex_;
-            dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
+            dds::pub::DataWriter<RtiType> writer_ = dds::pub::DataWriter<RtiType>(dds::core::null);
    }; 
 };
 
 
-template <class T, class S>
-ospl::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "ospl"){
+template <class BaseType, class RtiType>
+rti::PublisherPort<BaseType, RtiType>::PublisherPort(std::weak_ptr<Component> component, std::string name): ::PublisherPort<BaseType>(component, name, "rti"){
     publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
@@ -52,42 +54,44 @@ ospl::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::
     publisher_name_->set_String("In_" + this->get_name());
 };
 
-template <class T, class S>
-bool ospl::OutEventPort<T, S>::HandleConfigure(){
+
+template <class BaseType, class RtiType>
+bool rti::PublisherPort<BaseType, RtiType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     bool valid = topic_name_->String().length() > 0;
 
-    if(valid && ::OutEventPort<T>::HandleConfigure()){
+    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
 
         return setup_tx();
     }
     return false;
 };
 
-template <class T, class S>
-bool ospl::OutEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class RtiType>
+bool rti::PublisherPort<BaseType, RtiType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::OutEventPort<T>::HandlePassivate()){
+    if(::PublisherPort<BaseType>::HandlePassivate()){
         if(writer_ != dds::core::null){
             writer_.close();
-            writer_ = dds::pub::DataWriter<S>(dds::core::null);
+            writer_ = dds::pub::DataWriter<RtiType>(dds::core::null);
         }
         return true;
     }
     return false;
 };
 
-template <class T, class S>
-bool ospl::OutEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class RtiType>
+bool rti::PublisherPort<BaseType, RtiType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::OutEventPort<T>::HandleTerminate();
+    return ::PublisherPort<BaseType>::HandleTerminate();
 };
 
-template <class T, class S>
-bool ospl::OutEventPort<T, S>::tx(const T& message){
+
+template <class BaseType, class RtiType>
+bool rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    bool should_send = ::OutEventPort<T>::tx(message);
+    bool should_send = ::PublisherPort<BaseType>::Send(message);
 
     if(should_send){
         if(writer_ != dds::core::null){
@@ -105,15 +109,15 @@ bool ospl::OutEventPort<T, S>::tx(const T& message){
     return false;
 };
 
-template <class T, class S>
-bool ospl::OutEventPort<T, S>::setup_tx(){
+template <class BaseType, class RtiType>
+bool rti::PublisherPort<BaseType, RtiType>::setup_tx(){
     if(writer_ == dds::core::null){
-        //Construct a DDS Paosplcipant, Publisher, Topic and Writer
+        //Construct a DDS Participant, Publisher, Topic and Writer
         auto helper = DdsHelper::get_dds_helper();   
         auto participant = helper->get_participant(domain_id_->Integer());
-        auto topic = get_topic<S>(participant, topic_name_->String());
+        auto topic = get_topic<RtiType>(participant, topic_name_->String());
         auto publisher = helper->get_publisher(participant, publisher_name_->String());
-        writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        writer_ = get_data_writer<RtiType>(publisher, topic, qos_path_->String(), qos_name_->String());
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         return true;
     }
@@ -121,4 +125,4 @@ bool ospl::OutEventPort<T, S>::setup_tx(){
 };
 
 
-#endif //OSPL_OUTEVENTPORT_H
+#endif //RTI_PORT_PUBLISHER_HPP

@@ -3,8 +3,8 @@
 #include "../base/basic.h"
 #include "basic.hpp"
 
-#include <middleware/rti/ineventport.hpp>
-#include <middleware/rti/outeventport.hpp>
+#include <middleware/rti/pubsub/subscriberport.hpp>
+#include <middleware/rti/pubsub/publisherport.hpp>
 
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
@@ -18,7 +18,7 @@
 
 void empty_callback(Base::Basic& b){};
 
-bool setup_port(EventPort& port, int domain, std::string topic_name){
+bool setup_port(Port& port, int domain, std::string topic_name){
     auto d = port.GetAttribute("domain_id").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
@@ -31,12 +31,12 @@ bool setup_port(EventPort& port, int domain, std::string topic_name){
 }
 
 //Define an In/Out Port FSM Tester
-class RTI_InEventPort_FSMTester : public ActivatableFSMTester{
+class RTI_SubscriberPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new rti::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new rti::SubscriberPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             
             EXPECT_TRUE(setup_port(*port, 0, port_name));
 
@@ -45,23 +45,23 @@ class RTI_InEventPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-class RTI_OutEventPort_FSMTester : public ActivatableFSMTester{
+class RTI_PublisherPort_FSMTester : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new rti::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new rti::PublisherPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
         EXPECT_TRUE(setup_port(*port, 0, port_name));
         a = port;
         ASSERT_TRUE(a);
     }
 };
 
-#define TEST_FSM_CLASS RTI_InEventPort_FSMTester
+#define TEST_FSM_CLASS RTI_SubscriberPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS RTI_OutEventPort_FSMTester
+#define TEST_FSM_CLASS RTI_PublisherPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
@@ -78,8 +78,8 @@ TEST(rti_EventportPair, Stable100){
     std::set<std::string> expected_guids = guids;
 
     auto c = std::make_shared<Component>("Test");
-    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+    rti::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
         expected_guids.erase(message.guid_val);
     });
 
@@ -98,7 +98,7 @@ TEST(rti_EventportPair, Stable100){
         b.int_val = counter++;
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
-        out_port.tx(b);
+        out_port.Send(b);
     }
 
     sleep_ms(500);
@@ -136,8 +136,8 @@ TEST(rti_EventportPair, Busy100){
     std::set<std::string> expected_guids = guids;
 
     auto c = std::make_shared<Component>("Test");
-    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+    rti::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
         //Only sleep on messages we're meant to receive
         if(expected_guids.erase(message.guid_val)){
             sleep_ms(2000);
@@ -159,7 +159,7 @@ TEST(rti_EventportPair, Busy100){
         b.int_val = counter++;
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
-        out_port.tx(b);
+        out_port.Send(b);
     }
 
     //Sleep for a reasonable time (Bigger than the callback work)

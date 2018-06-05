@@ -1,9 +1,9 @@
-#ifndef RTI_INEVENTPORT_H
-#define RTI_INEVENTPORT_H
+#ifndef OSPL_PORTSUBSCRIBER_HPP
+#define OSPL_PORTSUBSCRIBER_HPP
 
-#include <middleware/rti/helper.hpp>
-#include <middleware/rti/datareaderlistener.hpp>
-#include <core/eventports/ineventport.hpp>
+#include <middleware/ospl/helper.hpp>
+#include <middleware/ospl/pubsub/datareaderlistener.hpp>
+#include <core/ports/pubsub/subscriberport.hpp>
 
 #include <string>
 #include <thread>
@@ -11,12 +11,13 @@
 #include <condition_variable>
 #include <exception>
 
-namespace rti{
-    template <class T, class S> class InEventPort: public ::InEventPort<T>{
-        friend class DataReaderListener<T,S>;
+
+namespace ospl{
+    template <class BaseType, class OsplType> class SubscriberPort: public ::SubscriberPort<BaseType>{
+        friend class DataReaderListener<BaseType, OsplType>;
     public:
-        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
-        ~InEventPort(){
+        SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+        ~SubscriberPort(){
             Activatable::Terminate();
         };
         void notify();
@@ -25,9 +26,9 @@ namespace rti{
         bool HandlePassivate();
         bool HandleTerminate();
     private:
-        void recv_loop();
+        void receive_loop();
 
-        ::Base::Translator<T,S> translator;
+        ::Base::Translator<BaseType, OsplType> translator;
 
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;
@@ -40,20 +41,18 @@ namespace rti{
         std::mutex thread_state_mutex_;
         ThreadState thread_state_;
         std::condition_variable thread_state_condition_;
-
         
         bool interupt_ = false;
-        int data_available_count = 0;
         std::mutex control_mutex_;
-        std::thread* recv_thread_ = 0;
+        std::thread* rec_thread_ = 0;
         std::mutex notify_mutex_;
         std::condition_variable notify_lock_condition_;
    };
 };
 
-template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
-::InEventPort<T>(component, name, callback_function, "rti"){
+template <class BaseType, class OsplType>
+ospl::SubscriberPort<BaseType, OsplType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
+::SubscriberPort<BaseType>(component, name, callback_function, "ospl"){
     subscriber_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "subscriber_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
@@ -64,20 +63,21 @@ rti::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::str
     subscriber_name_->set_String("In_" + this->get_name());
 };
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::HandleConfigure(){
+template <class BaseType, class OsplType>
+bool ospl::SubscriberPort<BaseType, OsplType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = topic_name_->String().length() >= 0;
-    if(valid && ::InEventPort<T>::HandleConfigure()){
-        if(!recv_thread_){
+
+    if(valid && ::SubscriberPort<BaseType>::HandleConfigure()){
+        if(!rec_thread_){
             {
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 interupt_ = false;
             }
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(&rti::InEventPort<T, S>::recv_loop, this);
+            rec_thread_ = new std::thread(&ospl::SubscriberPort<BaseType, OsplType>::receive_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -85,58 +85,57 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
     return false;
 };
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class OsplType>
+bool ospl::SubscriberPort<BaseType, OsplType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandlePassivate()){ 
+    if(::SubscriberPort<BaseType>::HandlePassivate()){ 
         //Set the terminate state in the passivation
-        {
-            std::lock_guard<std::mutex> lock(notify_mutex_);
-            interupt_ = true;
-        }
+        std::lock_guard<std::mutex> lock(notify_mutex_);
+        interupt_ = true;
         notify();
         return true;
     }
     return false;
 };
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class OsplType>
+bool ospl::SubscriberPort<BaseType, OsplType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandleTerminate()){
-        if(recv_thread_){
-            //Join our rti_thread
-            recv_thread_->join();
-            delete recv_thread_;
-            recv_thread_ = 0;
+    if(::SubscriberPort<BaseType>::HandleTerminate()){
+        if(rec_thread_){
+            //Join our ospl_thread
+            rec_thread_->join();
+            delete rec_thread_;
+            rec_thread_ = 0;
         }
         return true;
     }
     return false;
 };
 
-template <class T, class S>
-void rti::InEventPort<T, S>::notify(){
-    notify_lock_condition_.notify_all();
+template <class BaseType, class OsplType>
+void ospl::SubscriberPort<BaseType, OsplType>::notify(){
+   //Called by the DataReaderListener to notify our SubscriberPort thread to get new data
+   notify_lock_condition_.notify_all();
 };
 
-template <class T, class S>
-void rti::InEventPort<T, S>::recv_loop(){
-    dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
-    rti::DataReaderListener<T, S> listener(this);
+template <class BaseType, class OsplType>
+void ospl::SubscriberPort<BaseType, OsplType>::receive_loop(){
+    dds::sub::DataReader<OsplType> reader_ = dds::sub::DataReader<OsplType>(dds::core::null);
+    ospl::DataReaderListener<BaseType, OsplType> listener(this);
 
     auto state = ThreadState::STARTED;
 
     try{
-       //Construct a DDS Participant, Subscriber, Topic and Reader
+       //Construct a DDS Paosplcipant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
        auto participant = helper->get_participant(domain_id_->Integer());
-       auto topic = get_topic<S>(participant, topic_name_->String());
+       auto topic = get_topic<OsplType>(participant, topic_name_->String());
 
        auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
-       reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
-       
+       reader_ = get_data_reader<OsplType>(subscriber, topic, qos_path_->String(), qos_name_->String());
+
        //Attach listener to only respond to data_available()
        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
@@ -151,12 +150,12 @@ void rti::InEventPort<T, S>::recv_loop(){
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    
+
     thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
-        EventPort::LogActivation();
+        Port::LogActivation();
         
         while(true){ 
             {
@@ -170,10 +169,10 @@ void rti::InEventPort<T, S>::recv_loop(){
                 }
             }
         }
-        EventPort::LogPassivation();
+        Port::LogPassivation();
     }
     //Blocks for the DataReaderListener to finish
     reader_.close();
 };
 
-#endif //RTI_INEVENTPORT_H
+#endif //OSPL_PORTSUBSCRIBER_HPP
