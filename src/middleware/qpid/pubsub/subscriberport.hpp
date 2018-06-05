@@ -1,8 +1,8 @@
-#ifndef QPID_INEVENTPORT_H
-#define QPID_INEVENTPORT_H
+#ifndef QPID_PORT_SUBSCRIBER_HPP
+#define QPID_PORT_SUBSCRIBER_HPP
 
-#include <core/eventports/prototranslator.h>
-#include <core/eventports/ineventport.hpp>
+#include <middleware/proto/prototranslator.h>
+#include <core/ports/pubsub/subscriberport.hpp>
 
 #include <vector>
 #include <iostream>
@@ -23,10 +23,10 @@
 
 
 namespace qpid{
-    template <class T, class S> class InEventPort: public ::InEventPort<T>{
+    template <class BaseType, class ProtoType> class SubscriberPort: public ::SubscriberPort<BaseType>{
         public:
-            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
-            ~InEventPort(){
+            SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+            ~SubscriberPort(){
                 Activatable::Terminate();
             }
 
@@ -36,6 +36,9 @@ namespace qpid{
             bool HandleTerminate();
         private:
             void recv_loop();
+
+            ::Proto::Translator<BaseType, ProtoType> translator;
+
             std::mutex connection_mutex_;
             qpid::messaging::Connection connection_ = 0;
             qpid::messaging::Receiver receiver_ = 0;
@@ -52,23 +55,23 @@ namespace qpid{
     };
 };
 
-template <class T, class S>
-qpid::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
-::InEventPort<T>(component, name, callback_function, "qpid"){
+template <class BaseType, class ProtoType>
+qpid::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
+::SubscriberPort<BaseType>(component, name, callback_function, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };
 
-template <class T, class S>
-bool qpid::InEventPort<T, S>::HandleConfigure(){
+template <class BaseType, class ProtoType>
+bool qpid::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
-    if(valid && ::InEventPort<T>::HandleConfigure()){
+    if(valid && ::SubscriberPort<BaseType>::HandleConfigure()){
         if(!recv_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(&qpid::InEventPort<T, S>::recv_loop, this);
+            recv_thread_ = new std::thread(&qpid::SubscriberPort<BaseType, ProtoType>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -76,10 +79,10 @@ bool qpid::InEventPort<T, S>::HandleConfigure(){
     return false;
 };
 
-template <class T, class S>
-bool qpid::InEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class ProtoType>
+bool qpid::SubscriberPort<BaseType, ProtoType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandlePassivate()){ 
+    if(::SubscriberPort<BaseType>::HandlePassivate()){ 
         //Set the terminate state in the passivation
         std::lock_guard<std::mutex> lock(connection_mutex_);
         if(connection_.isOpen()){
@@ -91,11 +94,11 @@ bool qpid::InEventPort<T, S>::HandlePassivate(){
     return false;
 };
 
-template <class T, class S>
-bool qpid::InEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class ProtoType>
+bool qpid::SubscriberPort<BaseType, ProtoType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::HandleTerminate()){
+    if(::SubscriberPort<BaseType>::HandleTerminate()){
         if(recv_thread_){
             //Join our rti_thread
             recv_thread_->join();
@@ -111,8 +114,8 @@ bool qpid::InEventPort<T, S>::HandleTerminate(){
     return false;
 };
 
-template <class T, class S>
-void qpid::InEventPort<T, S>::recv_loop(){
+template <class BaseType, class ProtoType>
+void qpid::SubscriberPort<BaseType, ProtoType>::recv_loop(){
     auto state = ThreadState::STARTED;
     try{
         std::lock_guard<std::mutex> lock(connection_mutex_);
@@ -139,7 +142,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
-        EventPort::LogActivation();
+        Port::LogActivation();
         bool run = true;
         while(run){
             try{
@@ -148,7 +151,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
                     run = false;
                 }
                 std::string str = sample.getContent();
-                auto m = proto::decode<S>(str);
+                auto m = translator.StringToBase(str);
                 this->EnqueueMessage(m);
             }
             catch(const std::exception& ex){
@@ -156,8 +159,8 @@ void qpid::InEventPort<T, S>::recv_loop(){
                 run = false;
             }
         }
-        EventPort::LogPassivation();
+        Port::LogPassivation();
     }
 };
 
-#endif //QPID_INEVENTPORT_H
+#endif //QPID_PORT_SUBSCRIBER_HPP
