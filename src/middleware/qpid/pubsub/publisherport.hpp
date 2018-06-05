@@ -109,7 +109,7 @@ bool qpid::PublisherPort<BaseType, ProtoType>::setup_tx(){
             connection_ = qpid::messaging::Connection(broker_->String());
             connection_.open();
             auto session = connection_.createSession();
-            std::string tn = "amq.topic/" + topic_name_->String();
+            std::string tn = "amq.topic/pubsub/" + topic_name_->String();
             sender_ = session.createSender(tn);
             return true;
         }

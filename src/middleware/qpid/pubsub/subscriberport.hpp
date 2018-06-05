@@ -13,7 +13,6 @@
 #include <string>
 #include <functional>
 
-
 #include <qpid/messaging/Address.h>
 #include <qpid/messaging/Connection.h>
 #include <qpid/messaging/Message.h>
@@ -124,7 +123,7 @@ void qpid::SubscriberPort<BaseType, ProtoType>::recv_loop(){
         //Open the connection
         connection_.open();
         auto session = connection_.createSession();
-        receiver_ = session.createReceiver( "amq.topic/"  + topic_name_->String());
+        receiver_ = session.createReceiver( "amq.topic/pubsub/"  + topic_name_->String());
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
         state = ThreadState::TERMINATED;
