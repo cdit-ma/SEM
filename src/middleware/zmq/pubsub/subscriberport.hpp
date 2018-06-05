@@ -15,10 +15,10 @@ namespace zmq{
     template <class BaseType, class ProtoType>
     class SubscriberPort : public ::SubscriberPort<BaseType>{
         public:
-            SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+            SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseType&) > callback_function);
             ~SubscriberPort(){
                 Activatable::Terminate();
-            }
+            };
         protected:
             bool HandleConfigure();
             bool HandlePassivate();
@@ -47,12 +47,12 @@ namespace zmq{
 
 
 template <class BaseType, class ProtoType>
-zmq::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
-::SubscriberPort<BaseType>(component, name, callback_function, "zmq"){
+zmq::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseType&) > callback_function):
+::SubscriberPort<BaseType>(component, port_name, callback_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
-    terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*" + component_id + "*";
+    terminate_endpoint_ = "inproc://term*" + component_name + "*" + port_name + "*" + component_id + "*";
 
     end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };

@@ -37,8 +37,8 @@ void DeploymentContainer::SetLibraryPath(const std::string library_path){
 std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<Component> weak_component, const std::string& port_name){
     auto component = weak_component.lock();
     if(component){
-        auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, component->GetCallback(port_name), 1000));
-        return component->AddPort(std::move(u_ptr)).lock();
+    //    auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, component->GetCallback<::BaseMessage>(port_name), 1000));
+        //return component->AddPort(std::move(u_ptr)).lock();
     }
     return nullptr;
 }

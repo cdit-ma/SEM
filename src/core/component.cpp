@@ -137,25 +137,72 @@ std::shared_ptr<Port> Component::RemovePort(const std::string& port_name){
     std::cerr << "Component '" << get_name() << "' doesn't have an Port with name '" << port_name << "'" << std::endl;
     return std::shared_ptr<Port>();
 }
-
-bool Component::AddCallback_(const std::string& port_name, std::function<void (::BaseMessage&)> function){
+bool Component::GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
-    
-    if(callback_functions_.count(port_name) == 0){
-        //Store the callback
-        callback_functions_[port_name] = function;
+
+    //Check for this port_name
+    if(callback_type_hash_.count(port_name)){
+        const auto& value = callback_type_hash_.at(port_name);
+        const auto& stored_request_type = value.first.get();
+        const auto& stored_reply_type = value.second.get();
+
+        if(stored_request_type != request_type){
+            std::cerr << "Stored Callback for Port '" << port_name << "' has Request Type: '" << stored_request_type.name() << "' vs Requested '" << request_type.name() << "'" << std::endl;
+            return false;
+        }
+
+        if(stored_reply_type != reply_type){
+            std::cerr << "Stored Callback for Port '" << port_name << "' has Reply Type: '" << stored_reply_type.name() << "' vs Requested '" << reply_type.name() << "'" << std::endl;
+            return false;
+        }
         return true;
     }
-
-    std::cerr << "Component '" << get_name() << "' already has a callback with name '" << port_name << "'" << std::endl;
     return false;
 }
 
+
+
+void Component::AddCallback_(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::function<std::shared_ptr<BaseMessage> (BaseMessage*)> function){
+    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    
+    //Check for this port_name
+    if(callback_type_hash_.count(port_name) || callback_functions_.count(port_name)){
+        throw std::runtime_error("Component: '" + get_name() + "' Already registered Port Callback: '" + port_name + "'");
+    }
+
+    std::reference_wrapper<const std::type_info> request_type_ref = request_type;
+    std::reference_wrapper<const std::type_info> reply_type_ref = reply_type;
+
+    //Insert types into map
+    callback_type_hash_.emplace(std::make_pair(port_name, std::make_pair(request_type_ref, reply_type_ref)));
+    callback_functions_[port_name] = function;
+}
+/*
+void Component::AddVoidCallback_(const std::string& port_name, const std::type_info& request_type, std::function<void (::BaseMessage*)> function){
+    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    
+    //Check for this port_name
+    if(callback_type_hash_.count(port_name) || callback_functions_.count(port_name)){
+        throw std::runtime_error("Component: '" + get_name() + "' Already registered Port Callback: '" + port_name + "'");
+    }
+
+    std::reference_wrapper<const std::type_info> request_type_ref = request_type;
+    std::reference_wrapper<const std::type_info> reply_type_ref = typeid(void);
+
+    //Insert types into map
+    callback_type_hash_.emplace(std::make_pair(port_name, std::make_pair(request_type_ref, reply_type_ref)));
+    void_callback_functions_[port_name] = function;
+}*/
+
+
 bool Component::AddPeriodicCallback(const std::string& port_name, std::function<void()> function){
-    return AddCallback_(port_name, [function](::BaseMessage& bm){function();});
+    //return AddVoidCallback_(port_name, [function](::BaseMessage& bm){function();});
 }
 
-std::function<void (::BaseMessage&)> Component::GetCallback(const std::string& port_name){
+
+
+
+std::function<std::shared_ptr<::BaseMessage> (::BaseMessage*)> Component::GetBaseCallback(const std::string& port_name){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     if(callback_functions_.count(port_name)){
         return callback_functions_[port_name];
@@ -164,6 +211,17 @@ std::function<void (::BaseMessage&)> Component::GetCallback(const std::string& p
     }
     return nullptr;
 }
+
+std::function<void (::BaseMessage*)> Component::GetVoidCallback(const std::string& port_name){
+    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    if(void_callback_functions_.count(port_name)){
+        return void_callback_functions_[port_name];
+    }else{
+        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << port_name << "'" << std::endl;
+    }
+    return nullptr;
+}
+
 
 bool Component::RemoveCallback(const std::string& port_name){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);

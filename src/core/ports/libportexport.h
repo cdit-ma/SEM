@@ -14,19 +14,24 @@ typedef Port* (PortCConstructor) (const std::string& port_name, std::weak_ptr<Co
 extern "C"{
     EXPORT_FUNC Port* ConstructPublisherPort(const std::string& port_name, std::weak_ptr<Component> component);
     EXPORT_FUNC Port* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Component> component);
+    EXPORT_FUNC Port* ConstructRequestPort(const std::string& port_name, std::weak_ptr<Component> component);
+    EXPORT_FUNC Port* ConstructReplyPort(const std::string& port_name, std::weak_ptr<Component> component);
 };
 
-template<class T>
-T* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Component> component){
-    static_assert(std::is_base_of<Port, T>::value, "T must inherit from Port");
 
-    std::function<void(::BaseMessage&)> fn;
+template<class PortType, class BaseType>
+PortType* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Component> component){
+    //static_assert(std::is_base_of< ::SubscriberPort<BaseType>, PortType>::value, "PortType must inherit from SubscriberPort");
+    //static_assert(std::is_base_of<::BaseMessage, BaseType>::value, "BaseType must inherit from BaseMessage");
+    
+    std::function<void (BaseType &)> fn;
     
     auto component_sp = component.lock();
 	if(component_sp){
-		fn = component_sp->GetCallback(port_name);
+		fn = component_sp->GetCallback<BaseType>(port_name);
     }
-    return new T(component, port_name, fn);
+
+    return new PortType(component, port_name, fn);
 };
 
 template<class T>
