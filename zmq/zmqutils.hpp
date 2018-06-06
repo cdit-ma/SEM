@@ -15,6 +15,11 @@ namespace zmq{
     inline std::string Zmq2String(const zmq::message_t& message){
         return std::string(static_cast<const char*>(message.data()), message.size());
     };
+
+    inline zmq::message_t String2Zmq(const std::string& str){
+        return zmq::message_t(str.c_str(), str.size());
+    };
+
 }
 
 #endif //RE_COMMON_ZMQ_UTILS_HPP
