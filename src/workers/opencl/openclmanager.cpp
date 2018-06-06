@@ -7,11 +7,13 @@
 #include <core/worker.h>
 
 #include <string>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
 #include <unordered_set>
 
+std::mutex reference_list_mutex_;
 std::vector<OpenCLManager*> OpenCLManager::reference_list_;
 std::vector<cl::Platform> OpenCLManager::platform_list_;
 
@@ -28,8 +30,10 @@ std::vector<cl::Platform> OpenCLManager::platform_list_;
 /* Static functions                                                     */
 /************************************************************************/
 
-
 OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int platform_id) {
+	
+    std::lock_guard<std::mutex> guard(reference_list_mutex_);
+
 	// If we haven't initialized the length of the reference list yet do so now
 	if (reference_list_.empty()) {
 		/*cl_int errCode = cl::Platform::get(&platform_list_);
@@ -72,6 +76,56 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 
 }
 
+OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, std::string platform_name) {
+	
+    std::lock_guard<std::mutex> guard(reference_list_mutex_);
+	cl_int err;
+
+	// If we haven't initialized the length of the reference list yet do so now
+	if (reference_list_.empty()) {
+		GetPlatforms(worker);
+		reference_list_.resize(platform_list_.size(), NULL);
+	}
+
+	// Find the index of the platform with the requested name
+	unsigned int platform_id = 0;
+	bool found_match = false;
+	for (auto& platform : platform_list_) {
+		std::string name = platform.getInfo<CL_PLATFORM_NAME>(&err);
+		if (err != CL_SUCCESS) {
+			throw OpenCLException("Unable to query OpenCL platform for name", err);
+		}
+		if (name == platform_name) {
+			found_match = true;
+			break;
+		}
+		platform_id++;
+	}
+	if (!found_match) {
+		throw std::runtime_error("Unable to find an OpenCL platform with the name " + platform_name);
+	}
+
+	
+	// If we haven't created an OpenCLManager for the specified platform do so now
+	if (reference_list_[platform_id] == NULL) {
+		OpenCLManager* new_manager = new OpenCLManager(worker, platform_list_[platform_id]);
+
+		if (!new_manager->IsValid()) {
+			LogError(worker,
+					std::string(__func__),
+					"Unable to create OpenCLManager for platform " + std::to_string(platform_id));
+			delete new_manager;
+			return NULL;
+		}
+
+		reference_list_[platform_id] = new_manager;
+	}
+
+	// Return the relevant reference
+	return reference_list_[platform_id];
+
+}
+
 const std::vector<cl::Platform> OpenCLManager::GetPlatforms(const Worker& worker) {
 	cl_int err_code = cl::Platform::get(&platform_list_);
 	if (err_code != CL_SUCCESS) {
@@ -89,7 +143,11 @@ const std::vector<cl::Platform> OpenCLManager::GetPlatforms(const Worker& worker
 /* Public Functions                                                     */
 /************************************************************************/
 
-
+/**
+ * Construct an OpenCLManager for the specified OpenCL platform, creating a context
+ * to hold all of its devices and then attempt to load pre-compiled binaries for
+ * each device.
+ */
 OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : platform_(platform_) {
 	cl_int err;
 
@@ -104,6 +162,13 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 			err);
 
 	}
+
+	// Flag the platofmr as conatianing FPGAs if it constains the string FPGA in the name
+    std::string lower_name(platform_name_);
+    std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+    if (lower_name.find("fpga") != std::string::npos) {
+        is_fpga_ = true;
+    }
 
 	// Pull out all OpenCL devices in the platform (don't distinguish between CPU, GPU, etc)
 	std::vector<cl::Device> devices;
@@ -135,41 +200,59 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 
 	// Create a representation for each of the devices
 	for(auto& d : devices) {
-		device_list_.emplace_back(worker, *this, d);
+		//device_list_.emplace_back(worker, *this, d);
+		device_list_.emplace_back(new OpenCLDevice(worker, *this, d));
 		//device_list_.push_back(std::move(OpenCLDevice(*context_, d, *worker_reference)));
 	}
 
 	LoadAllBinaries(worker);
 
+    if (is_fpga_) {
+        for (const auto& dev : device_list_) {
+            try {
+                dev->LoadKernelsFromBinary(worker, "fft1d.aocx");
+            } catch (const OpenCLException& ocle) {
+                //LogOpenCLError(worker, "OpenCLManager::"+std::string(__func__),
+				throw OpenCLException("Failed to load FFT implementation for FPGA: "+std::string(ocle.what()), ocle.ErrorCode());
+            }
+        }
+            
+    }
+
 	// Mark the manager as having been properly initialized
 	valid_ = true;
 }
 
+// TODO: Handle the !valid_ case
 const cl::Context& OpenCLManager::GetContext() const {
 	return *context_;
 }
 
+// TODO: Handle the !valid_ case
 std::string OpenCLManager::GetPlatformName() const {
 	return platform_name_;
 }
 
-std::vector<OpenCLDevice>& OpenCLManager::GetDevices(const Worker& worker) {
+// TODO: Handle the !valid_ case
+const std::vector<std::unique_ptr<OpenCLDevice> > & OpenCLManager::GetDevices(const Worker& worker) {
 	return device_list_;
 }
 
+// TODO: Handle the !valid_ case
 const std::vector<std::shared_ptr<cl::CommandQueue> > OpenCLManager::GetQueues() const {
 	return queues_;
 }
 
 // May throw
 const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(const Worker& worker, const std::vector<std::string>& filenames) {
+    std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
 	std::vector<OpenCLKernel> kernels;
 
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
-	for (auto& device : device_list_) {
-		device.LoadKernelsFromSource(worker, filenames);
+	for (const auto& device : device_list_) {
+		device->LoadKernelsFromSource(worker, filenames);
 	}
 
 	return kernels;
@@ -179,6 +262,9 @@ bool OpenCLManager::IsValid() const {
 	return valid_;
 }
 
+bool OpenCLManager::IsFPGA() const {
+    return is_fpga_;
+}
 
 /************************************************************************/
 /* Private Functions                                                    */
@@ -186,6 +272,7 @@ bool OpenCLManager::IsValid() const {
 
 
 int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
+    std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
 	auto success = false;
 	//auto worker = buffer->GetInitialWorker();
 	
@@ -197,6 +284,7 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 
 	//TODO: See Dan for how to C++11 mutex good bruh
 	if (!buffer_store_.count(buffer_id)){
+    	std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
 		buffer_store_.insert({buffer_id, buffer});
 		success = true;
 	} else {
@@ -207,11 +295,11 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 }
 
 void OpenCLManager::UntrackBuffer(int buffer_id) {
+    std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
 	buffer_store_.erase(buffer_id);
 }
 
 bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
-
     /*if (load_balancer_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Trying to load binaries when no load balancer is specified");
@@ -221,8 +309,8 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
     //std::string plat_name = manager_->GetPlatformName();
 
     bool did_all_succeed = true;
-    for (auto& device : device_list_) {
-        std::string dev_name = SanitisePathString(device.GetName()).substr(0, 15);
+    for (const auto& device : device_list_) {
+        std::string dev_name = SanitisePathString(device->GetName()).substr(0, 15);
 		std::string plat_name = SanitisePathString(platform_name_).substr(0, 15);
 
 		std::string filename = plat_name+"-"+dev_name+".clbin";
@@ -230,7 +318,7 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
         std::string binary_path = GetSourcePath("binaries/"+filename);
         bool success = false;
 		try {
-			success = device.LoadKernelsFromBinary(worker, binary_path);
+			success = device->LoadKernelsFromBinary(worker, binary_path);
 		} catch (const std::exception& e) {
 			LogError(worker, __func__,
                 "Failed to load binary for device "+dev_name+":\n"+e.what());
@@ -242,8 +330,8 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
             did_all_succeed = false;
         } else {
 			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
-			for (auto& kernel : device.GetKernels()) {
-				std::cout << " - " << kernel.get().GetName() << std::endl;
+			for (OpenCLKernel& kernel : device->GetKernels()) {
+				std::cout << " - " << kernel.GetName() << std::endl;
 			}
 		}
     }

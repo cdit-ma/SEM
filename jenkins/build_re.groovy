@@ -32,12 +32,16 @@ for(n in re_nodes){
                 deleteDir()
             }
             unstash "source_code"
-            generator = "Ninja"
-            build_dir = PROJECT_NAME + "/build_" + generator
-            
-            dir(build_dir){
+            dir(PROJECT_NAME + "/build"){
+                //remove deleteDir for performance
+                deleteDir()
                 //Build the entire project 
-                def success = utils.buildProject(generator, "-DBUILD_TEST=ON")
+                def success = utils.buildProject("Ninja", "-DBUILD_TEST=ON")
+                if(!success){
+                    // If we failed, try clear out the folder and build again
+                    deleteDir()
+                    success = utils.buildProject("Ninja", "-DBUILD_TEST=ON")
+                }
                 if(!success){
                     error("Cannot Compile")
                 }
@@ -47,43 +51,32 @@ for(n in re_nodes){
 
     step_test[node_name] = {
         node(node_name){
-            path = "${PATH}"
-            //Append bin and lib directories for this build of re into the path for windows to find dlls
-            abs_re_path = pwd() + "/" + PROJECT_NAME + "/"
-            path = abs_re_path + "bin;" + abs_re_path + "lib;" + path
+            dir(PROJECT_NAME + "/bin/test"){
+                def globstr = "*"
 
-            withEnv(['path=' + path]){
-                dir(PROJECT_NAME + "/bin/test"){
-                    def globstr = "test_*"
-                    if(!isUnix()){
-                        //If windows search for exe only
-                        globstr += ".exe"
-                    }
+                //Find all executables
+                def test_list = findFiles glob: globstr
 
-                    //Find all executables
-                    def test_list = findFiles glob: globstr
+                def test_count = 0;
+                def test_error_count = 0;
 
-                    def test_count = 0;
-                    def test_error_count = 0;
+                dir("results"){
+                    for(def file : test_list){
+                        def file_path = file.name
+                        def file_name = utils.trimExtension(file_path)
+                        def test_output = file_name + "_" + node_name + ".xml"
+                        print("Running Test: " + file_path)
+                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
-                    dir("results"){
-                        for(def file : test_list){
-                            def file_path = file.name
-                            def file_name = utils.trimExtension(file_path)
-                            def test_output = file_name + "_" + node_name + ".xml"
-                            print("Running Test: " + file_path)
-                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
-
-                            if(test_error_code != 0){
-                                print("Test: " + file_path + " Failed!")
-                                currentBuild.result = 'FAILURE'
-                            }
+                        if(test_error_code != 0){
+                            print("Test: " + file_path + " Failed!")
+                            currentBuild.result = 'FAILURE'
                         }
-                        stash includes: "*.xml", name: node_name + "_test_cases"
-                        //Clean up the directory after
-                        deleteDir()
                     }
+                    stash includes: "*.xml", name: node_name + "_test_cases"
                 }
+                //Clean up the directory after
+                deleteDir()
             }
         }
     }
