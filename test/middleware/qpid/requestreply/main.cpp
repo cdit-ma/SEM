@@ -35,6 +35,11 @@ Base::Basic busy_callback(Base::Basic& message){
     return message;
 }
 
+
+void busy_callback_no_reply(Base::Basic& message){
+    sleep_ms(100);
+}
+
 bool setup_port(Port& port, std::string topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
@@ -73,63 +78,17 @@ class QPID_ReplierPort_FSMTester : public ActivatableFSMTester{
 };
 
 
-// #define TEST_FSM_CLASS QPID_RequesterPort_FSMTester
-// #include "../../../core/activatablefsmtestcases.h"
-// #undef TEST_FSM_CLASS
+#define TEST_FSM_CLASS QPID_RequesterPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
+#undef TEST_FSM_CLASS
 
-// #define TEST_FSM_CLASS QPID_ReplierPort_FSMTester
-// #include "../../../core/activatablefsmtestcases.h"
-// #undef TEST_FSM_CLASS
-
-TEST(QPID_EventportPair, Stable100){
-    std::string test_name = get_long_test_name();
-
-    
-    auto c = std::make_shared<Component>("Test");
-    qpid::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic> out_port(c, test_name);
-    qpid::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic> in_port(c, test_name, callback);
-
-    EXPECT_TRUE(setup_port(out_port, test_name));
-    EXPECT_TRUE(setup_port(in_port, test_name));
-    
-
-    EXPECT_TRUE(in_port.Configure());
-    EXPECT_TRUE(out_port.Configure());
-    EXPECT_TRUE(in_port.Activate());
-    EXPECT_TRUE(out_port.Activate());
-
-    int send_count = 100;
-
-    //Send as fast as possible
-    for(int i = 0; i < send_count; i++){
-        Base::Basic b;
-        b.int_val = i;
-        b.str_val = std::to_string(i);
-        auto rep = out_port.ProcessRequest(b, std::chrono::milliseconds(20));
-        sleep_ms(1);
-    }
-
-
-    EXPECT_TRUE(in_port.Passivate());
-    EXPECT_TRUE(out_port.Passivate());
-    EXPECT_TRUE(in_port.Terminate());
-    EXPECT_TRUE(out_port.Terminate());
-
-    auto total_rxd = in_port.GetEventsReceived();
-    auto proc_rxd = in_port.GetEventsProcessed();
-
-    auto total_txd = out_port.GetEventsReceived();
-    auto total_sent = out_port.GetEventsProcessed();
-
-    EXPECT_EQ(total_txd, send_count);
-    EXPECT_EQ(total_sent, send_count);
-    EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, send_count);
-}
+#define TEST_FSM_CLASS QPID_ReplierPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
+#undef TEST_FSM_CLASS
 
 //Run a blocking callback which runs for 1 second,
 //During that one second, send maximum num
-TEST(QPID_EventportPair, Busy100){
+TEST(QPID_ReqRep, Req_Basic_Rep_Basic_Busy100){
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -156,15 +115,61 @@ TEST(QPID_EventportPair, Busy100){
         b.int_val = i;
         b.str_val = std::to_string(i);
         auto c = requester_port->SendRequest(b, std::chrono::milliseconds(200));
-        if(c.first){
-            std::cerr << c.second.int_val << std::endl;
-            std::cerr << c.second.str_val << std::endl;
-        }
+        EXPECT_TRUE(c.first);
     }
+    
+    EXPECT_TRUE(requester_port->Passivate());
+    EXPECT_TRUE(replier_port->Passivate());
 
-    //Sleep for a reasonable time (Bigger than the callback work)
-    sleep_ms(500);
+    EXPECT_TRUE(requester_port->Terminate());
+    EXPECT_TRUE(replier_port->Terminate());
 
+    auto total_rxd = replier_port->GetEventsReceived();
+    auto proc_rxd = replier_port->GetEventsProcessed();
+
+    auto total_txd = requester_port->GetEventsReceived();
+    auto total_sent = requester_port->GetEventsProcessed();
+
+    EXPECT_EQ(total_txd, send_count);
+    EXPECT_EQ(total_sent, send_count);
+    EXPECT_EQ(total_rxd, send_count);
+    EXPECT_EQ(proc_rxd, send_count);
+    delete requester_port;
+    delete replier_port;
+}
+
+//Run a blocking callback which runs for 1 second,
+//During that one second, send maximum num
+TEST(QPID_ReqRep, Req_Basic_Rep_Void_Busy100){
+    const auto test_name = get_long_test_name();
+    const auto req_name = "rq_" + test_name;
+    const auto rep_name = "rp_" + test_name;
+
+    auto component = std::make_shared<Component>(test_name);
+    component->AddCallback<void, Base::Basic>(rep_name, new CallbackWrapper<void, Base::Basic>(busy_callback_no_reply));
+
+    auto requester_port = ConstructRequesterPort<qpid::RequesterPort<void, void, Base::Basic, ::Basic>>(req_name, component);
+    auto replier_port = ConstructReplierPort<qpid::ReplierPort<void, void, Base::Basic, ::Basic>>(rep_name, component);
+    
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
+
+    EXPECT_TRUE(requester_port->Configure());
+    EXPECT_TRUE(replier_port->Configure());
+    EXPECT_TRUE(requester_port->Activate());
+    EXPECT_TRUE(replier_port->Activate());
+
+    int send_count = 100;
+
+    //Send as fast as possible
+    for(int i = 0; i < send_count; i++){
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
+        auto c = requester_port->SendRequest(b, std::chrono::milliseconds(200));
+        EXPECT_TRUE(c);
+    }
+    
     EXPECT_TRUE(requester_port->Passivate());
     EXPECT_TRUE(replier_port->Passivate());
 

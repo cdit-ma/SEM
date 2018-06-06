@@ -47,7 +47,7 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::Se
         EventProcessed(base_request, true);
         return {true, std::move(base_reply)};
     }catch(const std::exception& e){
-        //TODO:
+        //std::cerr << e.what() << std::endl;
     }
     return {false, BaseReplyType()};
 };
@@ -68,7 +68,7 @@ bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& ba
         EventProcessed(base_request, true);
         return true;
     }catch(const std::exception& e){
-        //TODO:
+        //std::cerr << e.what() << std::endl;
     }
     EventProcessed(base_request, false);
     return false;
