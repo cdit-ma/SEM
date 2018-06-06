@@ -12,7 +12,7 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     registration_port_ = registration_port;
 
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-    environment_ = std::unique_ptr<Environment>(new Environment(portrange_min, portrange_max));
+    environment_ = std::unique_ptr<Environment>(new Environment(ip_addr, portrange_min, portrange_max));
 
     execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 

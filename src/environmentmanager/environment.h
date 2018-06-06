@@ -21,7 +21,7 @@ class Environment{
             LOGAN_SERVER
         };
 
-        Environment(int portrange_min = 30000, int portrange_max = 50000);
+        Environment(const std::string& address, int portrange_min = 30000, int portrange_max = 50000);
 
         std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
 
@@ -72,6 +72,8 @@ class Environment{
         std::set<std::string> GetDependentExperiments(const std::string& port_id);
         void AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id);
 
+        std::string GetAmqpBrokerAddress();
+
         uint64_t GetClock();
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
@@ -85,6 +87,8 @@ class Environment{
 
         int MANAGER_PORT_RANGE_MIN;
         int MANAGER_PORT_RANGE_MAX;
+
+        std::string address_;
 
         //Returns management port for logan client
         std::string AddLoganClient(const std::string& model_name, const std::string& ip_address);

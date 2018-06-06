@@ -4,6 +4,7 @@
 #include "environmentmanager/deploymentrule.h"
 #include "environmentmanager/deploymentrules/zmq/zmqrule.h"
 #include "environmentmanager/deploymentrules/dds/ddsrule.h"
+#include "environmentmanager/deploymentrules/amqp/amqprule.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -95,7 +96,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
 
 bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
-        Environment* environment = new Environment();
+        Environment* environment = new Environment("");
 
         environment->AddDeployment(deployment_message_->experiment_id(), "", Environment::DeploymentType::EXECUTION_MASTER);
 
@@ -103,6 +104,7 @@ bool ExecutionManager::PopulateDeployment(){
         //TODO: Add other middlewares.
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
+        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
 
         generator.PopulateDeployment(*deployment_message_);
     }

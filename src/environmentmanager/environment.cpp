@@ -3,9 +3,10 @@
 #include <cassert>
 #include <queue>
 
-Environment::Environment(int port_range_min, int port_range_max){
+Environment::Environment(const std::string& address, int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
+    address_ = address;
 
     MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
     MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
@@ -362,6 +363,10 @@ std::set<std::string> Environment::GetDependentExperiments(const std::string& po
 
 void Environment::AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id){
     pending_port_map_.at(port_id).insert(model_name);
+}
+
+std::string Environment::GetAmqpBrokerAddress(){
+    return address_ + ":5672";
 }
 
 /*
