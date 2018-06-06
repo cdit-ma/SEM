@@ -40,15 +40,17 @@ ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component
 };
 
 template <class BaseReplyType, class BaseRequestType>
-BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRequestType& request){
+BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRequestType& base_request){
+    EventRecieved(base_request);
     auto process_message = is_running() && callback_function_;
     if(process_message){
-        logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::STARTED_FUNC);
-        auto base_reply = callback_function_(request);
-        logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(request, process_message);
+        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
+        auto base_reply = callback_function_(base_request);
+        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(base_request, process_message);
         return base_reply;
     }
+    EventProcessed(base_request, false);
     return BaseReplyType();
 };
 

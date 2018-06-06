@@ -4,6 +4,7 @@
 #include "deploymentgenerator.h"
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
+#include "deploymentrules/amqp/amqprule.h"
 
 DeploymentHandler::DeploymentHandler(Environment& env,
                                     zmq::context_t& context,
@@ -166,6 +167,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
                 DeploymentGenerator generator(environment_);
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(environment_)));
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(environment_)));
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(environment_)));
                 generator.PopulateDeployment(*(message.mutable_control_message()));
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;

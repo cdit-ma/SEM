@@ -51,6 +51,7 @@ template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, clas
 BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     const auto address = end_point_->String();
     try{
+        ::Port::EventRecieved(base_request);
         auto helper = ZmqHelper::get_zmq_helper();
         auto socket = helper->get_request_socket();
         
@@ -67,8 +68,11 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
         auto events = helper->poll_socket(socket, timeout);
 
         if(events == 0){
-            throw std::runtime_error("Timeout waiting for response");
+            ::Port::EventProcessed(base_request, false);
+            throw std::runtime_error("Timeout");
         }
+
+        ::Port::EventProcessed(base_request, true);
 
         //Block and wait for the reply message
         zmq::message_t zmq_reply;

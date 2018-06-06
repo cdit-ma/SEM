@@ -1,21 +1,21 @@
 #ifndef OSPL_DATAREADERLISTENER_H
 #define OSPL_DATAREADERLISTENER_H
 
-#include "../../core/eventports/ineventport.hpp"
+#include <core/ports/pubsub/subscriberport.hpp>
 
 #include <dds/dds.hpp>
 
 namespace ospl{
     //Forward Declare
-    template <class T, class S> class InEventPort;
+    template <class BaseType, class OsplType> class SubscriberPort;
 
-    template <class T, class S> class DataReaderListener: public dds::sub::NoOpDataReaderListener<S>
+    template <class BaseType, class OsplType> class DataReaderListener: public dds::sub::NoOpDataReaderListener<OsplType>
     {
         public:
-            DataReaderListener(ospl::InEventPort<T, S> *port){
+            DataReaderListener(ospl::SubscriberPort<BaseType, OsplType> *port){
                 this->port_ = port;
             };
-            void on_data_available(dds::sub::DataReader<S> &reader){
+            void on_data_available(dds::sub::DataReader<OsplType> &reader){
                 try{
                     for(const auto& sample : reader.take()){
                         //Translate and callback into the component for each valid message we receive
@@ -31,7 +31,7 @@ namespace ospl{
                 }
             };
         private:
-            ospl::InEventPort<T,S>* port_;
+            ospl::SubscriberPort<BaseType, OsplType>* port_;
     };
 };
 

@@ -4,13 +4,13 @@
 #include "environmentmanager/deploymentrule.h"
 #include "environmentmanager/deploymentrules/zmq/zmqrule.h"
 #include "environmentmanager/deploymentrules/dds/ddsrule.h"
+#include "environmentmanager/deploymentrules/amqp/amqprule.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
 #include <unordered_map>
 
 #include <proto/controlmessage/controlmessage.pb.h>
-
 
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
@@ -20,25 +20,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <cctype>
-
-bool str2bool(std::string str) {
-    try{
-        return std::stoi(str);
-    }catch(std::invalid_argument){
-
-    }
-
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    std::istringstream is(str);
-    bool b;
-    is >> std::boolalpha >> b;
-    int int_val = 0;
-    return b;
-}
-
-void set_attr_string(NodeManager::Attribute* attr, const std::string& val){
-    attr->add_s(val);
-}
 
 ExecutionManager::ExecutionManager(const std::string& endpoint,
                                     const std::string& graphml_path,
@@ -95,7 +76,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
 
 bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
-        Environment* environment = new Environment();
+        Environment* environment = new Environment("");
 
         environment->AddDeployment(deployment_message_->experiment_id(), "", Environment::DeploymentType::EXECUTION_MASTER);
 
@@ -103,6 +84,7 @@ bool ExecutionManager::PopulateDeployment(){
         //TODO: Add other middlewares.
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
+        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
 
         generator.PopulateDeployment(*deployment_message_);
     }

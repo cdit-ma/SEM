@@ -1,18 +1,20 @@
 #include "gtest/gtest.h"
 
 // Include the proto convert functions for the port type
-#include "convert.hpp"
-#include <middleware/qpid/ineventport.hpp>
-#include <middleware/qpid/outeventport.hpp>
+#include "../../base/basic.h"
+#include "../../proto/basic.pb.h"
+
+#include <middleware/qpid/pubsub/subscriberport.hpp>
+#include <middleware/qpid/pubsub/publisherport.hpp>
 
 //Include the FSM Tester
-#include "../../core/activatablefsmtester.h"
+#include "../../../core/activatablefsmtester.h"
 
 void empty_callback(Base::Basic& b){};
 
 std::string broker("127.0.0.1:5672");
 
-bool setup_port(EventPort& port, std::string topic_name){
+bool setup_port(Port& port, std::string topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
@@ -25,24 +27,24 @@ bool setup_port(EventPort& port, std::string topic_name){
 }
 
 //Define an In/Out Port FSM Tester
-class QPID_InEventPort_FSMTester : public ActivatableFSMTester{
+class QPID_SubscriberPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new qpid::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new qpid::SubscriberPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
 };
 
-class QPID_OutEventPort_FSMTester : public ActivatableFSMTester{
+class QPID_PublisherPort_FSMTester : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new qpid::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new qpid::PublisherPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
         EXPECT_TRUE(setup_port(*port, port_name));
         a = port;
         ASSERT_TRUE(a);
@@ -50,12 +52,12 @@ protected:
 };
 
 
-#define TEST_FSM_CLASS QPID_InEventPort_FSMTester
-#include "../../core/activatablefsmtestcases.h"
+#define TEST_FSM_CLASS QPID_SubscriberPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS QPID_OutEventPort_FSMTester
-#include "../../core/activatablefsmtestcases.h"
+#define TEST_FSM_CLASS QPID_PublisherPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(QPID_EventportPair, Stable100){
@@ -64,8 +66,8 @@ TEST(QPID_EventportPair, Stable100){
 
     
     auto c = std::make_shared<Component>("Test");
-    qpid::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    qpid::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
+    qpid::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    qpid::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -85,7 +87,7 @@ TEST(QPID_EventportPair, Stable100){
        Base::Basic b;
         b.int_val = i;
         b.str_val = std::to_string(i);
-        out_port.tx(b);
+        out_port.Send(b);
         sleep_ms(1);
     }
 
@@ -115,8 +117,8 @@ TEST(QPID_EventportPair, Busy100){
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    qpid::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    qpid::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
+    qpid::PublisherPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    qpid::SubscriberPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(1000);
     });
@@ -137,7 +139,7 @@ TEST(QPID_EventportPair, Busy100){
         Base::Basic b;
         b.int_val = i;
         b.str_val = std::to_string(i);
-        out_port.tx(b);
+        out_port.Send(b);
     }
 
     //Sleep for a reasonable time (Bigger than the callback work)

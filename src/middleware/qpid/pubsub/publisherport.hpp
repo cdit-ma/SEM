@@ -1,8 +1,8 @@
-#ifndef QPID_OUTEVENTPORT_H
-#define QPID_OUTEVENTPORT_H
+#ifndef QPID_PORT_PUBLISHER_HPP
+#define QPID_PORT_PUBLISHER_HPP
 
-#include <core/eventports/prototranslator.h>
-#include <core/eventports/ineventport.hpp>
+#include <middleware/proto/prototranslator.h>
+#include <core/ports/pubsub/publisherport.hpp>
 
 #include <vector>
 #include <iostream>
@@ -18,10 +18,10 @@
 #include <qpid/messaging/Duration.h>
 
 namespace qpid{
-    template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
+    template <class BaseType, class ProtoType> class PublisherPort: public ::PublisherPort<BaseType>{
         public:
-            OutEventPort(std::weak_ptr<Component> component, std::string name);
-           ~OutEventPort(){
+            PublisherPort(std::weak_ptr<Component> component, std::string name);
+           ~PublisherPort(){
                 Activatable::Terminate();
             }
         protected:
@@ -29,9 +29,11 @@ namespace qpid{
             bool HandlePassivate();
             bool HandleTerminate();
         public:
-            bool tx(const T& message);
+            bool Send(const BaseType& message);
         private:
             bool setup_tx();
+
+            ::Proto::Translator<BaseType, ProtoType> translator;
 
             std::mutex control_mutex_;
             qpid::messaging::Connection connection_ = 0;
@@ -45,28 +47,28 @@ namespace qpid{
 };
 
 
-template <class T, class S>
-qpid::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name):
-::OutEventPort<T>(component, name, "qpid"){
+template <class BaseType, class ProtoType>
+qpid::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> component, std::string name):
+::PublisherPort<BaseType>(component, name, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };
 
 
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::HandleConfigure(){
+template <class BaseType, class ProtoType>
+bool qpid::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
-    if(valid && ::OutEventPort<T>::HandleConfigure()){
+    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
         return setup_tx();
     }
     return false;
 };
 
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::HandlePassivate(){
+template <class BaseType, class ProtoType>
+bool qpid::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::OutEventPort<T>::HandlePassivate()){
+    if(::PublisherPort<BaseType>::HandlePassivate()){
         if(connection_ && connection_.isOpen()){
             connection_.close();
             connection_ = 0;
@@ -77,20 +79,20 @@ bool qpid::OutEventPort<T, S>::HandlePassivate(){
     return false;
 };
 
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::HandleTerminate(){
+template <class BaseType, class ProtoType>
+bool qpid::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::OutEventPort<T>::HandleTerminate();
+    return ::PublisherPort<BaseType>::HandleTerminate();
 };
 
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::tx(const T& message){
+template <class BaseType, class ProtoType>
+bool qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    bool should_send = ::OutEventPort<T>::tx(message);
+    bool should_send = ::PublisherPort<BaseType>::Send(message);
 
     if(should_send && sender_){
-        auto str = proto::encode(message);
+        auto str = translator.BaseToString(message);
         qpid::messaging::Message m;
         m.setContentObject(str);
         sender_.send(m);
@@ -100,14 +102,14 @@ bool qpid::OutEventPort<T, S>::tx(const T& message){
 };
 
 
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::setup_tx(){
+template <class BaseType, class ProtoType>
+bool qpid::PublisherPort<BaseType, ProtoType>::setup_tx(){
     try{
         if(!connection_){
             connection_ = qpid::messaging::Connection(broker_->String());
             connection_.open();
             auto session = connection_.createSession();
-            std::string tn = "amq.topic/" + topic_name_->String();
+            std::string tn = "amq.topic/pubsub/" + topic_name_->String();
             sender_ = session.createSender(tn);
             return true;
         }
@@ -117,4 +119,4 @@ bool qpid::OutEventPort<T, S>::setup_tx(){
     return false;
 };
 
-#endif //QPID_OUTEVENTPORT_H
+#endif //QPID_PORT_PUBLISHER_HPP

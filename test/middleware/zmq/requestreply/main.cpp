@@ -1,3 +1,5 @@
+#include "gtest/gtest.h"
+
 // Include the proto convert functions for the port type
 #include "../../base/basic.h"
 #include "../../proto/basic.pb.h"
@@ -131,14 +133,4 @@ int main(int ac, char* av[])
 
     requester_port2->Terminate();
     replier_port2->Terminate();
-
-
-
-    delete requester_port;
-    delete replier_port;
-    delete requester_port2;
-    delete replier_port2;
-
-
-    return 0;
 }

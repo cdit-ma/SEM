@@ -1,5 +1,6 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rti")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ospl")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rti")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ospl")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/qpid")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tao")

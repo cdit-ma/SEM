@@ -14,41 +14,6 @@ import hudson.model.Computer.ListPossibleNames
 
 def utils = new Utils(this);
 
-def runScriptPid(String script){
-    def out = ""
-    if(isUnix()){
-        //Evil bash magic to supress output and scrape the pid of the last command run
-        def command = script + " > /dev/null 2>&1 & echo \$!"
-        withEnv(['JENKINS_NODE_COOKIE=do_not_kill']){
-            out = sh(returnStdout: true, script: command)
-        }
-        return out.trim()
-    }
-    else{
-        //TODO: do windows things here
-    }
-}
-
-def blockingKill(String pid){
-    if(isUnix()){
-        def out = sh(returnStatus: true, script:"kill " + pid)
-        for(def i = 0; i<5; i++){
-            out = sh(returnStatus: true, script: "kill " + pid)
-            if(out != 0){
-                break;
-            }
-            sleep(1)
-        }
-        if(out == 0){
-            def out2 = sh(returnStatus: true, script:"kill -s 0 " + pid)
-            print(out2)
-        }
-    }
-    else{
-        //TODO: do windows things here
-    }
-}
-
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
 def experimentNameArg = "${EXPERIMENT_NAME}"
@@ -136,6 +101,8 @@ withEnv(["model=''"]){
                 }
             }
         }
+
+        //Archive code gen and add to build artifacts
         stage('Archive'){
             dir(buildPath){
                 stash includes: '**', name: 'codeGen'
@@ -149,7 +116,7 @@ withEnv(["model=''"]){
             def nodeName = reNodes[i];
             def ipAddr = addrMap[nodeName]
 
-            //Update the map to include the compile
+            //Populate map of scripts to run compilation on all nodes
             compileCode[nodeName] = {
                 node(nodeName){
                     dir(buildDir){
@@ -165,6 +132,7 @@ withEnv(["model=''"]){
                 }
             }
 
+            //Populate map of scripts to run re_node_manager on all nodes
             nodeManagers[nodeName] = {
                 node(nodeName){
                     def buildPath = libLocationMap[nodeName] + "/lib"
@@ -173,12 +141,13 @@ withEnv(["model=''"]){
                     def shared_args = ""
                     def command = "${RE_PATH}" + "/bin/re_node_manager"
 
+                    //Set args required for both slaves and masters
                     shared_args += " -n " + experimentName
                     shared_args += " -e " + environmentManagerAddress
                     shared_args += " -a " + ipAddr
-
                     slave_args += " -l . "
 
+                    //If we are a master, set exectuion time and deployment file location
                     if(nodeName == masterNode){
                         master_args += " -t " + executionTime
                         master_args += " -d " + file
@@ -202,10 +171,12 @@ withEnv(["model=''"]){
         }
     }
 
+    //Run compilation scripts
     stage("Compiling C++"){
         parallel compileCode
     }
 
+    //Run re_node_manager scripts
     stage("Execute Model"){
         if(!fail_flag){
             parallel nodeManagers
