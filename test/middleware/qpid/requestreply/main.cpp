@@ -4,32 +4,24 @@
 #include "../../base/basic.h"
 #include "../../proto/basic.pb.h"
 
+#include <core/ports/libportexport.h>
 #include <middleware/qpid/requestreply/replierport.hpp>
 #include <middleware/qpid/requestreply/requesterport.hpp>
 
-#include <core/ports/libportexport.h>
 //Include the FSM Tester
 #include "../../../core/activatablefsmtester.h"
 
 
 void empty_callback(Base::Basic& b){};
 
-std::string broker("127.0.0.1:5672");
+const std::string broker("127.0.0.1:5672");
 
 Base::Basic callback(Base::Basic& message){
-    //std::cout << "REPLIER: GOT MESSAGE: " << std::endl;
-    //std::cout << "Int: " << message.int_val << std::endl;
-    //std::cout << "str_val: " << message.str_val << std::endl;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
     message.int_val *= 10;
     return message;
 }
 
 Base::Basic busy_callback(Base::Basic& message){
-    //std::cout << "REPLIER: GOT MESSAGE: " << std::endl;
-    //std::cout << "Int: " << message.int_val << std::endl;
-    //std::cout << "str_val: " << message.str_val << std::endl;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
     message.int_val *= 10;
     sleep_ms(100);
     return message;
@@ -86,8 +78,6 @@ class QPID_ReplierPort_FSMTester : public ActivatableFSMTester{
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-//Run a blocking callback which runs for 1 second,
-//During that one second, send maximum num
 TEST(QPID_ReqRep, Req_Basic_Rep_Basic_Busy100){
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
@@ -138,8 +128,6 @@ TEST(QPID_ReqRep, Req_Basic_Rep_Basic_Busy100){
     delete replier_port;
 }
 
-//Run a blocking callback which runs for 1 second,
-//During that one second, send maximum num
 TEST(QPID_ReqRep, Req_Basic_Rep_Void_Busy100){
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
