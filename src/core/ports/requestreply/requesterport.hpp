@@ -39,10 +39,13 @@ RequesterPort<BaseReplyType, BaseRequestType>::RequesterPort(std::weak_ptr<Compo
 };
 
 template  <class BaseReplyType, class BaseRequestType>
-std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& request, std::chrono::milliseconds timeout)
+std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
     try{
-        return {true, ProcessRequest(request, timeout)};
+        EventRecieved(base_request);
+        auto base_reply = std::move(ProcessRequest(base_request, timeout));
+        EventProcessed(base_request, true);
+        return {true, std::move(base_reply)};
     }catch(const std::exception& e){
         //TODO:
     }
@@ -57,14 +60,17 @@ RequesterPort<void, BaseRequestType>::RequesterPort(std::weak_ptr<Component> com
 };
 
 template  <class BaseRequestType>
-bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& request, std::chrono::milliseconds timeout)
+bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
     try{
-        ProcessRequest(request, timeout);
+        EventRecieved(base_request);
+        ProcessRequest(base_request, timeout);
+        EventProcessed(base_request, true);
         return true;
     }catch(const std::exception& e){
         //TODO:
     }
+    EventProcessed(base_request, false);
     return false;
 };
 
