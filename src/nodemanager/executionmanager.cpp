@@ -12,7 +12,6 @@
 
 #include <proto/controlmessage/controlmessage.pb.h>
 
-
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
 
@@ -21,25 +20,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <cctype>
-
-bool str2bool(std::string str) {
-    try{
-        return std::stoi(str);
-    }catch(std::invalid_argument){
-
-    }
-
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    std::istringstream is(str);
-    bool b;
-    is >> std::boolalpha >> b;
-    int int_val = 0;
-    return b;
-}
-
-void set_attr_string(NodeManager::Attribute* attr, const std::string& val){
-    attr->add_s(val);
-}
 
 ExecutionManager::ExecutionManager(const std::string& endpoint,
                                     const std::string& graphml_path,
