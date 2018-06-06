@@ -48,11 +48,11 @@ qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequest
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
     try{
-
+        ::Port::EventRecieved(request);
         qpid::messaging::Connection connection(broker_->String());
         connection.open();
         auto session = connection.createSession();
-        auto sender = session.createSender(topic_name_->String());
+        auto sender = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
 
         qpid::messaging::Address responseQueue("#response-queue; {create: always, delete:always}");
         auto receiver = session.createReceiver(responseQueue);
@@ -64,16 +64,23 @@ BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestTyp
 
         sender.send(request_message);
 
-        qpid::messaging::Message reply_message = receiver.fetch();
+        
+        qpid::messaging::Duration qpid_timeout(timeout.count());
+        if(timeout.count() == -1){
+            qpid_timeout = qpid::messaging::Duration::FOREVER;
+        }
+
+        qpid::messaging::Message reply_message = receiver.fetch(qpid_timeout);
 
         std::string reply_str = reply_message.getContent();
+        ::Port::EventProcessed(request, true);
         auto m = reply_translator.StringToBase(reply_str);
 
         return m;
 
         
     }catch(const std::exception& ex){
-        return 0;
+        Log(Severity::ERROR_).Context(this).Func(__func__);
     }
     return 0;
 };

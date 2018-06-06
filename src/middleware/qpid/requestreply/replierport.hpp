@@ -128,8 +128,8 @@ void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
         connection_ = qpid::messaging::Connection(broker_->String());
         //Open the connection
         connection_.open();
-        auto session = connection_.createSession();
-        receiver_ = session.createReceiver( "amq.topic/reqrep/"  + topic_name_->String());
+        session = connection_.createSession();
+        receiver_ = session.createReceiver("amq.topic/reqrep/"  + topic_name_->String());
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
         state = ThreadState::TERMINATED;
@@ -162,21 +162,26 @@ void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
                 }
                 const auto& address = request.getReplyTo();
                 if(address){
-                    std::string request_string = request.getContent();
+                    const auto& request_string = request.getContent();
                     auto request_message = request_translator.StringToBase(request_string);
+                    ::Port::EventRecieved(*request_message);
+                    
 
                     auto reply_message = ::ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(*request_message);
                     auto reply_string = reply_translator.BaseToString(reply_message);
 
-                    qpid::messaging::Sender reply_sender = session.createSender(address);
+                    auto reply_sender = session.createSender(address);
 
                     qpid::messaging::Message reply;
+                    
                     reply.setContentObject(reply_string);
+                    
                     reply_sender.send(reply);
+                    
                     session.acknowledge();
                 }
             }catch(const std::exception& ex){
-                std::cerr << "ERROR qpid::ReplierPort::recv_loop()" << std::endl;
+                //std::cerr << "ERROR qpid::ReplierPort::recv_loop()" << std::endl;
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(ex.what());
                 run = false;
             }

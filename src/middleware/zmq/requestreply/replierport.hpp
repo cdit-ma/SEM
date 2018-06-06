@@ -149,7 +149,7 @@ void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
                 zmq::message_t zmq_request;
                 socket.recv(&zmq_request);
                 const auto& request_str = Zmq2String(zmq_request);
-                
+
                 if(request_str == terminate_str){
                     std::cerr << "GOT TERMINATE" << std::endl;
                     //Send back a Terminate
@@ -158,6 +158,7 @@ void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
                 }
                 //Translate the request string into a Base Message
                 auto request_message = request_translator.StringToBase(request_str);
+                ::Port::EventRecieved(*request_message);
 
                 //Run through the callback
                 auto reply_message = ::ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(*request_message);

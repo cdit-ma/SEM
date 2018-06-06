@@ -35,6 +35,7 @@ BaseReplyType* zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
     //Get the address
     const auto address = end_point_->String();
     try{
+        ::Port::EventRecieved(request);
         auto helper = ZmqHelper::get_zmq_helper();
         auto socket = helper->get_request_socket();
         
@@ -49,8 +50,10 @@ BaseReplyType* zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
         auto events = ZmqHelper::get_zmq_helper()->poll_socket(socket, timeout);
 
         if(events == 0){
+            ::Port::EventProcessed(request, false);
             throw std::runtime_error("Timeout");
         }
+        ::Port::EventProcessed(request, true);
 
         zmq::message_t zmq_reply;
         socket.recv(&zmq_reply);
