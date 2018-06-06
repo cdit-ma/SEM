@@ -193,7 +193,7 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
                 
                 const auto& address = request.getReplyTo();
                 if(address){
-                    const auto& request_string = request.getContent();
+                    const auto& request_str = request.getContent();
                     auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
                     //Call through the base ProcessRequest function, which calls any attached callback
                     auto base_reply = port.ProcessRequest(*base_request_ptr);
@@ -261,10 +261,14 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(q
                 
                 const auto& address = request.getReplyTo();
                 if(address){
-                    const auto& request_string = request.getContent();
+                    const auto& request_str = request.getContent();
                     auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
                     //Call through the base ProcessRequest function, which calls any attached callback
                     port.ProcessRequest(*base_request_ptr);
+
+                    //Send a blank reply
+                    auto reply_sender = session.createSender(address);
+                    reply_sender.send(qpid::messaging::Message(""));
                     session.acknowledge();
                 }
             }catch(const std::exception& ex){

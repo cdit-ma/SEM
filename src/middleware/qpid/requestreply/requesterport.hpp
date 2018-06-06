@@ -22,7 +22,7 @@ namespace qpid{
             ~RequesterPort(){
                 Activatable::Terminate();
             }
-            BaseReplyType* ProcessRequest(const BaseRequestType& type, std::chrono::milliseconds timeout);
+            BaseReplyType ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
 
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
@@ -61,10 +61,8 @@ qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequest
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
+BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     try{
-        ::Port::EventRecieved(request);
-
         //Construct qpid connection and session with broker info and constructed topic name
         qpid::messaging::Connection connection(broker_->String());
         connection.open();
@@ -72,17 +70,18 @@ BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestTyp
         auto sender = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
 
         //Construct receiver
-        qpid::messaging::Address responseQueue("#response-queue; {create: always, delete:always}");
-        auto receiver = session.createReceiver(responseQueue);
+        qpid::messaging::Address response_queue("#response-queue; {create: always, delete:always}");
+        auto receiver = session.createReceiver(response_queue);
+
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
 
         //Convert request
-        qpid::messaging::Message request_message;
-        request_message.setReplyTo(responseQueue);
-        auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(request);
-        request_message.setContent(request_str);
+        qpid::messaging::Message qpid_request(request_str);
+        qpid_request.setReplyTo(response_queue);
 
-        //Send
-        sender.send(request_message);
+        //Send the request
+        sender.send(qpid_request);
 
         //Convert -1 timeout to qpid forever duration
         qpid::messaging::Duration qpid_timeout(timeout.count());
@@ -90,10 +89,10 @@ BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestTyp
             qpid_timeout = qpid::messaging::Duration::FOREVER;
         }
 
-        //Fetch response message with timeout
-        qpid::messaging::Message reply_message = receiver.fetch(qpid_timeout);
-        std::string reply_str = reply_message.getContent();
-        ::Port::EventProcessed(request, true);
+        //Get the reply message
+        qpid::messaging::Message qpid_reply = receiver.fetch(qpid_timeout);
+        const auto& reply_str = qpid_reply.getContent();
+        
         auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
 
         //Copy the message into a heap allocated object
@@ -106,9 +105,8 @@ BaseReplyType* qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestTyp
         return base_reply;
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__);
-        throw std::runtime_error("Cannot connect to endpoint: '" + address + "' ");
+        throw std::runtime_error(ex.what());
     }
-    return 0;
 };
 
 //Specialised templated RequesterPort for void returning
@@ -121,28 +119,27 @@ qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::RequesterPor
 };
 
 template <class BaseRequestType, class ProtoRequestType>
-BaseReplyType* qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
+void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     try{
-        ::Port::EventRecieved(request);
-
         //Construct qpid connection and session with broker info and constructed topic name
         qpid::messaging::Connection connection(broker_->String());
         connection.open();
         auto session = connection.createSession();
-        auto sender = session.createSender("amq.topic/reqrep/" + topic_name_->String());
+        auto sender = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
 
         //Construct receiver
-        qpid::messaging::Address responseQueue("#response-queue; {create: always, delete:always}");
-        auto receiver = session.createReceiver(responseQueue);
+        qpid::messaging::Address response_queue("#response-queue; {create: always, delete:always}");
+        auto receiver = session.createReceiver(response_queue);
+
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
 
         //Convert request
-        qpid::messaging::Message request_message;
-        request_message.setReplyTo(responseQueue);
-        auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(request);
-        request_message.setContent(request_str);
+        qpid::messaging::Message qpid_request(request_str);
+        qpid_request.setReplyTo(response_queue);
 
-        //Send
-        sender.send(request_message);
+        //Send the request
+        sender.send(qpid_request);
 
         //Convert -1 timeout to qpid forever duration
         qpid::messaging::Duration qpid_timeout(timeout.count());
@@ -150,13 +147,12 @@ BaseReplyType* qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType
             qpid_timeout = qpid::messaging::Duration::FOREVER;
         }
 
-        //Fetch response message with timeout
-        qpid::messaging::Message reply_message = receiver.fetch(qpid_timeout);
+        //Get the reply message
+        qpid::messaging::Message qpid_reply = receiver.fetch(qpid_timeout);
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__);
-        throw std::runtime_error("Cannot connect to endpoint: '" + address + "' ");
+        throw std::runtime_error(ex.what());
     }
-    return 0;
 };
 
 #endif //QPID_PORT_REQUESTER_HPP
