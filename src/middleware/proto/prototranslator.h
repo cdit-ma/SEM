@@ -21,6 +21,19 @@ namespace Proto{
                 return str_value;
             };
     };
+
+    template <>
+    class Translator<void, void>{
+        public:
+            static void StringToBase(const std::string& message){
+                return;
+            };
+
+            static std::string BaseToString(){
+                std::string str_value;
+                return str_value;
+            };
+    };
 };
 
 #endif // PROTO_TRANSLATOR_H

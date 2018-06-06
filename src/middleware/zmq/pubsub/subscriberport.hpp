@@ -19,6 +19,8 @@ namespace zmq{
             ~SubscriberPort(){
                 Activatable::Terminate();
             };
+            using middleware_type = ProtoType;
+            
         protected:
             bool HandleConfigure();
             bool HandlePassivate();

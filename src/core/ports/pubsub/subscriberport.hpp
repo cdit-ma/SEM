@@ -20,6 +20,8 @@ class SubscriberPort : public Port{
         SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseType&) > callback_function, const std::string& middleware);
         ~SubscriberPort();
         void SetMaxQueueSize(const int max_queue_size);
+
+        using base_type = BaseType;
     protected:
         virtual bool HandleConfigure();
         virtual bool HandlePassivate();

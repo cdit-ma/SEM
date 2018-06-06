@@ -12,6 +12,7 @@ class PublisherPort : public Port{
     public:
         PublisherPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
         virtual bool Send(const BaseType& t);
+        using base_type = BaseType;
 };
 
 template <class BaseType>

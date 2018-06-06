@@ -7,23 +7,40 @@
 #include <re_common/zmq/zmqutils.hpp>
 
 namespace zmq{
+    //Generic templated RequesterPort
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
     class RequesterPort : public ::RequesterPort<BaseReplyType, BaseRequestType>{
         public:
             RequesterPort(std::weak_ptr<Component> component, const std::string& port_name);
             ~RequesterPort(){
                 Activatable::Terminate();
-            }
-            BaseReplyType* ProcessRequest(const BaseRequestType& type, std::chrono::milliseconds timeout);
+            };
+            BaseReplyType ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
+            
+            using middleware_reply_type = ProtoReplyType;
+            using middleware_request_type = ProtoRequestType;
         private:
             std::shared_ptr<Attribute> end_point_;
+    };
 
-            //Translators
-            ::Proto::Translator<BaseReplyType, ProtoReplyType> reply_translator;
-            ::Proto::Translator<BaseRequestType, ProtoRequestType> request_translator;
-    }; 
+    //Specialised templated RequesterPort for void returning
+    template <class BaseRequestType, class ProtoRequestType>
+    class RequesterPort<void, void, BaseRequestType, ProtoRequestType> : public ::RequesterPort<void, BaseRequestType>{
+        public:
+            RequesterPort(std::weak_ptr<Component> component, const std::string& port_name);
+            ~RequesterPort(){
+                Activatable::Terminate();
+            }
+            void ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
+            
+            using middleware_reply_type = void;
+            using middleware_request_type = ProtoRequestType;
+        private:
+            std::shared_ptr<Attribute> end_point_;
+    };
 };
 
+//Generic templated RequesterPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "zmq"){
@@ -31,8 +48,7 @@ zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestT
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-BaseReplyType* zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& request, std::chrono::milliseconds timeout){
-    //Get the address
+BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     const auto address = end_point_->String();
     try{
         auto helper = ZmqHelper::get_zmq_helper();
@@ -41,26 +57,80 @@ BaseReplyType* zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
         //Connect to the address
         socket.connect(address.c_str());
 
-        const auto request_str = request_translator.BaseToString(request);
-        zmq::message_t zmq_request(request_str.c_str(), request_str.size());
-        socket.send(zmq_request);
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+        
+        //Send the message
+        socket.send(String2Zmq(request_str));
 
-        //Poll
-        auto events = ZmqHelper::get_zmq_helper()->poll_socket(socket, timeout);
+        //Poll for our timeout
+        auto events = helper->poll_socket(socket, timeout);
 
         if(events == 0){
-            throw std::runtime_error("Timeout");
+            throw std::runtime_error("Timeout waiting for response");
         }
 
+        //Block and wait for the reply message
         zmq::message_t zmq_reply;
         socket.recv(&zmq_reply);
+        
+        //Get the string
         const auto reply_str = Zmq2String(zmq_reply);
         
-        return reply_translator.StringToBase(reply_str);
+        //Translate the string to a base_reply_ptr
+        auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
+        
+        //Copy the message into a heap allocated object
+        BaseReplyType base_reply(*base_reply_ptr);
+        
+        //Clean up the memory from the base_reply_ptr
+        delete base_reply_ptr;
+
+        //Return the reply object
+        return base_reply;
     }catch(const zmq::error_t& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + address + "' " + ex.what());
+        throw std::runtime_error("Cannot connect to endpoint: '" + address + "' ");
     }
-    return 0;
+};
+
+//Specialised templated RequesterPort for void returning
+template <class BaseRequestType, class ProtoRequestType>
+zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
+::RequesterPort<void, BaseRequestType>(component, port_name, "zmq"){
+    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+};
+
+template <class BaseRequestType, class ProtoRequestType>
+void zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
+    const auto address = end_point_->String();
+    try{
+        auto helper = ZmqHelper::get_zmq_helper();
+        auto socket = helper->get_request_socket();
+        
+        //Connect to the address
+        socket.connect(address.c_str());
+
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+        
+        //Send the message
+        socket.send(String2Zmq(request_str));
+
+        //Poll for our timeout
+        auto events = helper->poll_socket(socket, timeout);
+
+        if(events == 0){
+            throw std::runtime_error("Timeout waiting for response");
+        }
+
+        //Block and wait for the reply message
+        zmq::message_t zmq_reply;
+        socket.recv(&zmq_reply);
+    }catch(const zmq::error_t& ex){
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + address + "' " + ex.what());
+        throw std::runtime_error("Cannot connect to endpoint: '" + address + "' ");
+    }
 };
 
 #endif //ZMQ_PORT_REQUESTER_HPP

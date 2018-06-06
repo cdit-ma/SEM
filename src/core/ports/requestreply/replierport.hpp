@@ -5,38 +5,69 @@
 #include "../../modellogger.h"
 #include "../../component.h"
 
+//Generic templated ReplierPort
 template <class BaseReplyType, class BaseRequestType>
 class ReplierPort : public Port{
     public:
         ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > callback_function, const std::string& middleware);
+
+        using base_reply_type = BaseReplyType;
+        using base_request_type = BaseRequestType;
     protected:
         BaseReplyType ProcessRequest(BaseRequestType& type);
     private:
         std::function<BaseReplyType (BaseRequestType&) > callback_function_;
 };
 
-template  <class BaseReplyType, class BaseRequestType>
+//Specialised templated ReplierPort for void returning
+template <class BaseRequestType>
+class ReplierPort<void, BaseRequestType> : public Port{
+    public:
+        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseRequestType&) > callback_function, const std::string& middleware);
+        using base_reply_type = void;
+        using base_request_type = BaseRequestType;
+    protected:
+        void ProcessRequest(BaseRequestType& type);
+    private:
+        std::function<void (BaseRequestType&) > callback_function_;
+};
+
+//Generic templated ReplierPort
+template <class BaseReplyType, class BaseRequestType>
 ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > callback_function, const std::string& middleware)
 : Port(component, port_name, Port::Kind::REPLIER, middleware){
     callback_function_ = callback_function;
 };
 
-template  <class BaseReplyType, class BaseRequestType>
+template <class BaseReplyType, class BaseRequestType>
 BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRequestType& request){
-    BaseReplyType return_val;
-
     auto process_message = is_running() && callback_function_;
-    
     if(process_message){
         logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::STARTED_FUNC);
-        //Call into the function and log
-        return_val = callback_function_(request);
+        auto base_reply = callback_function_(request);
         logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(request, process_message);
+        return base_reply;
     }
+    return BaseReplyType();
+};
 
-    EventProcessed(request, process_message);
+//Specialised templated ReplierPort for void returning
+template <class BaseRequestType>
+ReplierPort<void, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseRequestType&) > callback_function, const std::string& middleware)
+: Port(component, port_name, Port::Kind::REPLIER, middleware){
+    callback_function_ = callback_function;
+};
 
-    return return_val;
+template <class BaseRequestType>
+void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& request){
+    auto process_message = is_running() && callback_function_;
+    if(process_message){
+        logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::STARTED_FUNC);
+        callback_function_(request);
+        logger()->LogComponentEvent(*this, request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(request, process_message);
+    }
 };
 
 #endif // BASE_PORT_REPLIER_HPP

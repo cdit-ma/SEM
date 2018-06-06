@@ -12,21 +12,31 @@
 
 Base::Basic callback(Base::Basic& message){
     std::cout << "RUNNING: callback" << std::endl;
-    //std::cout << "Int: " << message.int_val << std::endl;
-    //std::cout << "str_val: " << message.str_val << std::endl;
+    std::cout << "Int: " << message.int_val << std::endl;
+    std::cout << "str_val: " << message.str_val << std::endl;
+    
     std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
+    
     //Base::Basic m2;
     message.int_val *= 10;
+    message.str_val = "10asdasd";
     return message;
 }
 
 void callback2(Base::Basic& message){
-    std::cout << "RUNNING: callback" << std::endl;
+    std::cout << "RUNNING: callback2" << std::endl;
     //std::cout << "Int: " << message.int_val << std::endl;
     //std::cout << "str_val: " << message.str_val << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
+    
     //Base::Basic m2;
     message.int_val *= 10;
+}
+
+Base::Basic callback3(){
+    Base::Basic m2;
+    m2.int_val *= 10;
+    return m2;
 }
 
 
@@ -34,100 +44,101 @@ void print_base(const Base::Basic& m){
     std::cerr << "Base::Basic(" << m.get_base_message_id() << ")" << std::endl;
     std::cerr << "\tint_val: " << m.int_val << std::endl;
     std::cerr << "\tstr_val: " << m.str_val << std::endl;
+    if(m.int_val == 5){
+        //std::cerr << "\tsleepybois" << std::endl;
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+}
+
+void print_base2(){
+    std::cerr << "" << std::endl;
+}
+
+void configure_port(Port& port, const std::string& port_address){
+    auto address = port.GetAttribute("server_address").lock();
+    address->set_String(port_address);
 }
 
 int main(int ac, char* av[])
 {
     auto component = std::make_shared<Component>("Test");
+    component->AddCallback<Base::Basic, Base::Basic>("asdasd2", new CallbackWrapper<Base::Basic, Base::Basic>(callback));
+    component->AddCallback<void, Base::Basic>("asdasd", new CallbackWrapper<void, Base::Basic>(callback2));
+    component->AddCallback<Base::Basic, void>("asdasd3", new CallbackWrapper<Base::Basic, void>(callback3));
+    //component->AddCallback<Base::Basic>("asdasd", print_base);
     
+    auto requester_port = ConstructRequesterPort<zmq::RequesterPort<void, void, Base::Basic, ::Basic>>("Test23", component);
+    auto replier_port = ConstructReplierPort<zmq::ReplierPort<void, void, Base::Basic, ::Basic>>("asdasd", component);
+
+    auto requester_port2 = ConstructRequesterPort<zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>("Test24", component);
+    auto replier_port2 = ConstructReplierPort<zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>("asdasd2", component);
     
-    component->AddCallback<Base::Basic, Base::Basic>("TEST", callback);
-    component->AddCallback<Base::Basic>("TEST2", callback2);
 
-    ConstructSubscriberPort<zmq::SubscriberPort<Base::Basic, ::Basic>, Base::Basic>("TEST2", component);
-    
-    auto callbackt = component->GetCallback<Base::Basic, Base::Basic>("TEST");
-    auto callbackt_2 = component->GetCallback<Base::Basic>("TEST2");
-    auto callbackt_3 = component->GetCallbackParameterless<Base::Basic>("TEST3");
-
-    Base::Basic a;
-    a.int_val = 11;
-    a.str_val = "LEL";
-
-    callbackt_2(a);
-    auto c = callbackt_3();
-    auto b = callbackt(a);
-
-
-    return 0;
-
-    auto client_port = new zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "ClientEventPort");
-    auto server_port = new zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), "ServerEventPort", callback);
 
     auto address = "inproc://testy";
-    auto address2 = "inproc://testy";
+    auto address2 = "inproc://testy2";
 
-    auto out_address = client_port->GetAttribute("server_address").lock();
-    auto in_address = server_port->GetAttribute("server_address").lock();
+    configure_port(*requester_port, address);
+    configure_port(*replier_port, address);
 
-    std::cout << " GOT ADDRESSES" << std::endl;
+    configure_port(*requester_port2, address2);
+    configure_port(*replier_port2, address2);
 
-    out_address->set_String(address);
-    std::cout << " GOT ADDRESSES" << std::endl;
-    in_address->set_String(address2);
-    std::cout << " GOT ADDRESSES" << std::endl;
+    requester_port->Configure();
+    replier_port->Configure();
 
-    std::cout << "CONFIGURE" << std::endl;
-    
-    server_port->Configure();
-    client_port->Configure();
+    requester_port2->Configure();
+    replier_port2->Configure();
 
-    std::cout << "ACTIVATE" << std::endl;
-    server_port->Activate();
-    client_port->Activate();
+    requester_port->Activate();
+    replier_port->Activate();
 
-    std::cout << "STARTING" << std::endl;
+    requester_port2->Activate();
+    replier_port2->Activate();
 
-    auto test = std::async(std::launch::async, [=](){
-        int send_count = 20;
-        //Send as fast as possible
-        for(int i = 0; i < send_count; i++){
-            Base::Basic b;
-            b.int_val = i;
-            b.str_val = std::to_string(i);
-            std::cout << "SENDING: " << i << std::endl;
-            auto c = client_port->SendRequest(b, std::chrono::milliseconds(100));
-            if(c.first){
-                std::cout << "RX: " << c.second.int_val << std::endl;
-                std::cout << "RX: " << c.second.str_val << std::endl;
-            }else{
-                std::cout << " <<<<<<<<<<<<<< GOT TIMEOUT" << std::endl;
-            }
+
+    for(int i = 0; i < 1; i++){
+        Base::Basic a;
+        a.int_val = i;
+        a.str_val = "LEL" + std::to_string(i);
+        std::cerr << "Sending A" << std::endl;
+        print_base(a);
+
+        
+        auto response = requester_port->SendRequest(a, std::chrono::milliseconds(100));
+        auto response2 = requester_port2->SendRequest(a, std::chrono::milliseconds(100));
+
+        if(response){
+            std::cerr << "Got Response1" << std::endl;
         }
-    });
+        
 
+        if(response2.first){
+            std::cerr << "Got Response 2: " << std::endl;
+            print_base(response2.second);
+        }
+        std::cerr << std::endl;
+    }
+
+    requester_port->Passivate();
+    replier_port->Passivate();
+
+    requester_port2->Passivate();
+    replier_port2->Passivate();
     
-    test.wait();
+    requester_port->Terminate();
+    replier_port->Terminate();
 
-    //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "KILLING: " << std::endl;
-
-    
-    std::cout << "Passivate: " << std::endl;
-    server_port->Passivate();
-    client_port->Passivate();
-    std::cout << "Passivated: " << std::endl;
-    
-    std::cout << "Terminate: " << std::endl;
-    server_port->Terminate();
-    std::cout << "Terminate2: " << std::endl;
-    client_port->Terminate();
-    std::cout << "Terminated: " << std::endl;
+    requester_port2->Terminate();
+    replier_port2->Terminate();
 
 
 
-    delete client_port;
-    delete server_port;
+    delete requester_port;
+    delete replier_port;
+    delete requester_port2;
+    delete replier_port2;
+
 
     return 0;
 }

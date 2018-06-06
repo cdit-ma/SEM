@@ -12,14 +12,18 @@ BaseMessage::BaseMessage(){
     //std::cerr << "\t\tCONSTRUCTOR: " << get_base_message_id() << " " << this << std::endl;
 };
 
+//BaseMessage::~BaseMessage(){
+    //std::cerr << "\t\tDESTRUCTOR: " << get_base_message_id() << " " << this << std::endl;
+//}
+
 
 BaseMessage::BaseMessage(const BaseMessage& other)
 : BaseMessage::BaseMessage(){
-    //std::cerr << "COPYING: " << &other << " " << other.get_base_message_id() << " INTO " << this << " " << get_base_message_id() << std::endl;
+    //std::cerr << "Copy Constructc: " << &other << " " << other.get_base_message_id() << " INTO " << this << " " << get_base_message_id() << std::endl;
 };
 
 BaseMessage BaseMessage::operator=(const BaseMessage& other){
-    //std::cerr << "COPYING: " << other.get_base_message_id() << " INTO " << get_base_message_id() << std::endl;
+    //std::cerr << "Copy Assign: " << other.get_base_message_id() << " INTO " << get_base_message_id() << std::endl;
     return BaseMessage(other);
 }
 
@@ -29,10 +33,10 @@ int BaseMessage::get_base_message_id() const{
 
 BaseMessage::BaseMessage(BaseMessage&& other){
     id_ = other.id_;
-    //std::cerr << "MOVING: " " " << &other << " " << other.get_base_message_id() << " INTO " << get_base_message_id() << " " << this << std::endl;
+    //std::cerr << "Move Construct: " " " << &other << " " << other.get_base_message_id() << " INTO " << get_base_message_id() << " " << this << std::endl;
 }
 
 BaseMessage& BaseMessage::operator=(BaseMessage&& other){
     id_ = other.id_;
-    //std::cerr << "MOVING: " << other.get_base_message_id() << " INTO " << get_base_message_id() << std::endl;
+    //std::cerr << "Move Assign: " " " << &other << " " << other.get_base_message_id() << " INTO " << get_base_message_id() << " " << this << std::endl;
 }
