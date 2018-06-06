@@ -16,10 +16,9 @@ typedef Port* (PortCConstructor) (const std::string& port_name, std::weak_ptr<Co
 extern "C"{
     EXPORT_FUNC Port* ConstructPublisherPort(const std::string& port_name, std::weak_ptr<Component> component);
     EXPORT_FUNC Port* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Component> component);
-    EXPORT_FUNC Port* ConstructRequestPort(const std::string& port_name, std::weak_ptr<Component> component);
-    EXPORT_FUNC Port* ConstructReplyPort(const std::string& port_name, std::weak_ptr<Component> component);
+    EXPORT_FUNC Port* ConstructRequesterPort(const std::string& port_name, std::weak_ptr<Component> component);
+    EXPORT_FUNC Port* ConstructReplierPort(const std::string& port_name, std::weak_ptr<Component> component);
 };
-
 
 template<class PortType>
 PortType* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Component> component){
