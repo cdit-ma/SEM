@@ -25,6 +25,13 @@ OpenCL_Worker::~OpenCL_Worker() {
 }
 
 bool OpenCL_Worker::HandleConfigure() {
+
+    if (!Worker::HandleConfigure()) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            "Unable to configure OpenCLWorker due to underlying worker configureation failing");
+        return false;
+    }
+
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();

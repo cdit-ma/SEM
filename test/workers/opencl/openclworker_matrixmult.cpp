@@ -213,6 +213,9 @@ std::vector<MatrixMultParam> getRectTests(){
     //Invalid Tests
     //TODO: Add more invalid tests
     invalid_tests.emplace_back(std::vector<int>({1,2,3,4}));
+    invalid_tests.emplace_back(std::vector<int>({4,2,3,4}));
+    invalid_tests.emplace_back(std::vector<int>({1,0,0,1}));
+    invalid_tests.emplace_back(std::vector<int>({0,0,0,0}));
 
     auto valid_params = getMatrixTests(devices, valid_tests, true);
     auto invalid_params = getMatrixTests(devices, invalid_tests, false);
