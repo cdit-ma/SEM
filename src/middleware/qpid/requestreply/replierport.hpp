@@ -82,7 +82,7 @@ bool qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
             thread_manager_ = new ThreadManager();
             auto thread = std::unique_ptr<std::thread>(new std::thread(qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this)));
             thread_manager_->SetThread(std::move(thread));
-            return thread_manager_->Configure();;
+            return thread_manager_->Configure();
         }else{
             std::cerr << "Have extra thread manager" << std::endl;
         }
