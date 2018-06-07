@@ -44,9 +44,19 @@ zmq::socket_t zmq::ZmqHelper::get_request_socket(){
     return zmq::socket_t(*c, ZMQ_REQ);
 }
 
+zmq::socket_t* zmq::ZmqHelper::get_request_socket2(){
+    auto c = get_context();
+    return new zmq::socket_t(*c, ZMQ_REQ);
+}
+
 zmq::socket_t zmq::ZmqHelper::get_reply_socket(){
     auto c = get_context();
     return zmq::socket_t(*c, ZMQ_REP);
+}
+
+zmq::socket_t* zmq::ZmqHelper::get_reply_socket2(){
+    auto c = get_context();
+    return new zmq::socket_t(*c, ZMQ_REP);
 }
 
 zmq::socket_t* zmq::ZmqHelper::get_subscriber_socket(){

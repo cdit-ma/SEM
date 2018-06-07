@@ -3,6 +3,34 @@
 #include <iostream>
 #include <typeinfo>
 
+const std::string Activatable::ToString(const Activatable::Transition& transition){
+    switch(transition){
+        case Transition::NO_TRANSITION:
+            return "NO_TRANSITION";
+        case Transition::CONFIGURE:
+            return "CONFIGURE";
+        case Transition::ACTIVATE:
+            return "ACTIVATE";
+        case Transition::PASSIVATE:
+            return "PASSIVATE";
+        case Transition::TERMINATE:
+            return "TERMINATE";
+    }
+};
+
+const std::string Activatable::ToString(const Activatable::State& state){
+    switch(state){
+        case State::NOT_CONFIGURED:
+            return "NOT_CONFIGURED";
+        case State::CONFIGURED:
+            return "CONFIGURED";
+        case State::RUNNING:
+            return "RUNNING";
+        case State::NOT_RUNNING:
+            return "NOT_RUNNING";
+    }
+};
+
 std::string Activatable::get_name() const{
     return name_;
 }
@@ -146,11 +174,11 @@ bool Activatable::transition_state(Transition transition){
             state_condition_.notify_all();
             return true;
         }else{
-            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg(get_name() + ": Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
+            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg(get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
             return false;
         }
     }else{
-        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg(get_name() + " :Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
+        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg(get_name() + " :Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
     }
     return false;
 }

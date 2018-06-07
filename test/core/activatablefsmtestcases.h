@@ -176,7 +176,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTCAPT)
 
 TEST_F(TEST_FSM_CLASS, Valid_CAPTx10)
 {
-    int count = 10;
+    int count = 1000;
     while(count-- > 0){
         ASSERT_TRUE(a->Configure());
         ASSERT_TRUE(a->Activate());
