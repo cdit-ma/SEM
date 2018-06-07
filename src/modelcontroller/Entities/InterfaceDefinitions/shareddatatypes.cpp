@@ -17,6 +17,7 @@ SharedDatatypes::SharedDatatypes(EntityFactoryBroker& broker, bool is_temp) : No
     setAcceptsNodeKind(NODE_KIND::AGGREGATE);
     setAcceptsNodeKind(NODE_KIND::ENUM);
     setAcceptsNodeKind(NODE_KIND::NAMESPACE);
+    setAcceptsNodeKind(NODE_KIND::SERVER_INTERFACE);
 
     if(is_temp){
         //Break out early for temporary entities
