@@ -16,14 +16,11 @@ namespace zmq{
         
         public:
             zmq::context_t* get_context();
-            zmq::socket_t* get_publisher_socket();
-            zmq::socket_t* get_subscriber_socket();
+            zmq::socket_t get_publisher_socket();
+            zmq::socket_t get_subscriber_socket();
 
             zmq::socket_t get_request_socket();
-            zmq::socket_t* get_request_socket2();
-            
             zmq::socket_t get_reply_socket();
-            zmq::socket_t* get_reply_socket2();
 
             int poll_socket(zmq::socket_t& socket, std::chrono::milliseconds timeout);
         private:
