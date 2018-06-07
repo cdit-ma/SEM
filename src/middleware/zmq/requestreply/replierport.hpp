@@ -26,15 +26,15 @@ namespace zmq{
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
         protected:
+            bool HandleActivate();
             bool HandleConfigure();
             bool HandlePassivate();
             bool HandleTerminate();
-            bool HandleActivate();
         private:
             bool TerminateThread();
 
-            ThreadManager* thread_manager_ = 0;    
-            
+            ThreadManager* thread_manager_ = 0;
+
             std::shared_ptr<Attribute> end_point_;
 
             std::mutex control_mutex_;
@@ -146,15 +146,11 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
                 socket.send(term_msg);
                 //Wait for the response
                 socket.recv(&term_msg);
-                
-                return thread_manager_->Terminate();
             }catch(const zmq::error_t& ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to Terminate ZMQ Server Port") + ex.what());
             }
-        }else{
-            auto term = thread_manager_->Terminate();
-            return term;
         }
+        return thread_manager_->Terminate();
     }
     return true;
 }
@@ -189,6 +185,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
         thread_manager.Thread_Configured();
 
         if(thread_manager.Thread_WaitForActivate()){
+            port.LogActivation();
             thread_manager.Thread_Activated();
             while(true){
                 try{

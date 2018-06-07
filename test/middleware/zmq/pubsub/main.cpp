@@ -4,6 +4,7 @@
 #include "../../base/basic.h"
 #include "../../proto/basic.pb.h"
 
+#include <core/ports/libportexport.h>
 #include <middleware/zmq/pubsub/publisherport.hpp>
 #include <middleware/zmq/pubsub/subscriberport.hpp>
 
@@ -12,21 +13,27 @@
 
 void empty_callback(Base::Basic& b){};
 
+bool setup_port(Port& port, const std::vector<std::string>& port_address){
+    auto address = port.GetAttribute("publisher_address").lock();
+    if(address){
+        for(const auto& endpoint : port_address){
+            address->StringList().emplace_back("inproc://zmq" + endpoint);
+        }
+        return true;
+    }
+    return false;
+}
+
+
 //Define an In/Out Port FSM Tester
 class ZeroMQ_SubscriberPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new zmq::SubscriberPort<Base::Basic, ::Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
-            {
-                auto address = port->GetAttribute("publisher_address").lock();
-                EXPECT_TRUE(address);
-                if(address){
-                    address->StringList().push_back("inproc://zmq" + port_name);
-                }
-            }
-
+            component->AddCallback<void, Base::Basic>(port_name, empty_callback);
+            auto port = ConstructSubscriberPort<zmq::SubscriberPort<Base::Basic, ::Basic> >(port_name, component);
+            EXPECT_TRUE(setup_port(*port, {port_name}));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -37,14 +44,8 @@ protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new zmq::PublisherPort<Base::Basic, ::Basic>(std::weak_ptr<Component>(), port_name);
-        {
-            auto address = port->GetAttribute("publisher_address").lock();
-            EXPECT_TRUE(address);
-            if(address){
-                address->StringList().push_back("inproc://zmq" + port_name);
-            }
-        }
+        auto port = ConstructPublisherPort<zmq::PublisherPort<Base::Basic, ::Basic> >(port_name, component);
+        EXPECT_TRUE(setup_port(*port, {port_name}));
         a = port;
         ASSERT_TRUE(a);
     }
@@ -52,11 +53,11 @@ protected:
 
 
 #define TEST_FSM_CLASS ZeroMQ_SubscriberPort_FSMTester
-#include "../../../core/activatablefsmtester.h"
+#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 #define TEST_FSM_CLASS ZeroMQ_PublisherPort_FSMTester
-#include "../../../core/activatablefsmtester.h"
+#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(ZeroMQ_EventportPair, Stable100){
