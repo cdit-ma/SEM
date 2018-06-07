@@ -106,7 +106,9 @@ TEST(zmq_ReqRep, Req_Basic_Rep_Basic_Busy100){
         b.str_val = std::to_string(i);
         auto c = requester_port->SendRequest(b, std::chrono::milliseconds(200));
         EXPECT_TRUE(c.first);
-        EXPECT_EQ(b.int_val * 10, c.second.int_val);
+        if(c.first){
+            EXPECT_EQ(b.int_val * 10, c.second.int_val);
+        }
     }
     
     EXPECT_TRUE(requester_port->Passivate());

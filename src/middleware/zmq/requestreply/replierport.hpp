@@ -1,13 +1,11 @@
 #ifndef ZMQ_PORT_REPLIER_HPP
 #define ZMQ_PORT_REPLIER_HPP
 
+#include <core/threadmanager.h>
 #include <core/ports/requestreply/replierport.hpp>
 #include <middleware/proto/prototranslator.h>
 #include <middleware/zmq/zmqhelper.h>
 #include <re_common/zmq/zmqutils.hpp>
-
-#include <thread>
-#include <mutex>
 
 namespace zmq{
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
@@ -31,16 +29,14 @@ namespace zmq{
             bool HandleConfigure();
             bool HandlePassivate();
             bool HandleTerminate();
+            bool HandleActivate();
         private:
             bool TerminateThread();
+
+            ThreadManager* thread_manager_ = 0;    
             
-            std::thread* recv_thread_ = 0;
             std::shared_ptr<Attribute> end_point_;
 
-            std::mutex thread_state_mutex_;
-            ThreadState thread_state_ = ThreadState::TERMINATED;
-            std::condition_variable thread_state_condition_;
-            
             std::mutex control_mutex_;
             
             std::string terminate_endpoint_;
@@ -50,13 +46,13 @@ namespace zmq{
     //Generic templated RequesterHandler
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
     struct RequestHandler{
-        static void Loop(zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>& port);
+        static void Loop(ThreadManager& thread_manager, zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>& port, const std::string terminate_address, const std::string server_address);
     };
     
     //Specialised templated RequesterHandler for void returning
     template <class BaseRequestType, class ProtoRequestType>
     struct RequestHandler<void, void, BaseRequestType, ProtoRequestType>{
-        static void Loop(zmq::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port);
+        static void Loop(ThreadManager& thread_manager, zmq::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port, const std::string terminate_address, const std::string server_address);
     };
 };
 
@@ -67,42 +63,56 @@ zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestTyp
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
-    terminate_endpoint_ = "inproc://term*" + component_name + "*" + port_name + "*" + component_id + "*";
+    auto port_id = ::Activatable::get_id();
+    terminate_endpoint_ = "inproc://term*" + component_name + "*" + component_id + "*" + port_name + "*" + port_id;
 
     end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
+    //std::cerr << "HandleConfigure" << std::endl;
     std::lock_guard<std::mutex> lock(control_mutex_);
-    
-    bool valid = end_point_->String().size() >= 0;
+    const auto server_address = end_point_->String();
+
+    bool valid = server_address.size() > 0;
     if(valid && ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
-        if(!recv_thread_){
-            //Construct the thread, and wait for the thread state to be changed
-            std::unique_lock<std::mutex> lock(thread_state_mutex_);
-            thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*this));
-            thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
-            return thread_state_ == ThreadState::STARTED;
+        if(!thread_manager_){
+            thread_manager_ = new ThreadManager();
+            auto thread = std::unique_ptr<std::thread>(new std::thread(zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), terminate_endpoint_, server_address));
+            thread_manager_->SetThread(std::move(thread));
+            return thread_manager_->Configure();
+        }else{
+            std::cerr << "STILL GOT THREAD" << std::endl;
         }
     }
     return false;
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleActivate(){
+    //std::cerr << "HandleActivate" << std::endl;
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    
+    if(::ReplierPort<BaseReplyType, BaseRequestType>::HandleActivate()){
+        return thread_manager_->Activate();
+    }
+    return false;
+};
+
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleTerminate(){
+    //std::cerr << "HandleTerminate" << std::endl;
+    
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Call into the base class
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
         //Terminate the thread
         TerminateThread();
 
-        if(recv_thread_){
-            //Join our zmq_thread
-            recv_thread_->join();
-            delete recv_thread_;
-            recv_thread_ = 0;
+        if(thread_manager_){
+            delete thread_manager_;
+            thread_manager_ = 0;
         }
         return true;
     }
@@ -111,6 +121,7 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
+    //std::cerr << "HandlePassivate" << std::endl;
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Call into the base Handle Passivate
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
@@ -121,16 +132,8 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::TerminateThread(){
-    ThreadState state;
-    {
-        std::lock_guard<std::mutex> lock(thread_state_mutex_);
-        state = thread_state_;
-    }
-
-
-    switch(state){
-
-        case ThreadState::ACTIVE:{
+    if(thread_manager_){
+        if(thread_manager_->GetState() == ThreadManager::State::ACTIVE){
             try{
                 auto socket = ZmqHelper::get_zmq_helper()->get_request_socket();
             
@@ -142,173 +145,145 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
                 
                 socket.send(term_msg);
                 //Wait for the response
-                std::cerr << "WIAITING " << std::endl;
                 socket.recv(&term_msg);
-                return true;
+                
+                return thread_manager_->Terminate();
             }catch(const zmq::error_t& ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to Terminate ZMQ Server Port") + ex.what());
             }
-            break;
+        }else{
+            auto term = thread_manager_->Terminate();
+            return term;
         }
-        case ThreadState::STARTED:{
-            return true;
-        }
-        case ThreadState::TERMINATED:{
-            return true;
-        }
-        default:
-            break;
     }
-    return false;
+    return true;
 }
 
 
 //Generic templated RequestHandler
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop(zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>& port){
+void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop(ThreadManager& thread_manager, zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>& port, const std::string terminate_address, const std::string server_address){
     auto socket = ZmqHelper::get_zmq_helper()->get_reply_socket();
-    auto state = ThreadState::STARTED;
-
-    const auto& terminate_address = port.terminate_endpoint_;
+    bool success = true;
     try{
         //Bind the Terminate address
         socket.bind(terminate_address.c_str());
     }catch(const zmq::error_t& ex){
+        std::cerr << "ERR" << std::endl;
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind terminate endpoint: '" + terminate_address + "' " + ex.what());
-        state = ThreadState::TERMINATED;
+        success = false;
     }
 
-    const auto address = port.end_point_->String();
     try{
         //Bind the Outgoing address
-        socket.bind(address.c_str());
+        socket.bind(server_address.c_str());
     }catch(const zmq::error_t& ex){
-        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + address + "' " + ex.what());
-        state = ThreadState::TERMINATED;
+        std::cerr << "ERR" << std::endl;
+        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + server_address + "' " + ex.what());
+        success = false;
     }
 
-    {
-        //Update the Port's state variable 
-        std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
-        port.thread_state_ = state;
-        port.thread_state_condition_.notify_all();
-    }
+    if(success){
+        //XXX: DO NOT REMOVE THE SLEEP ZMQ NEEDS HIS REST
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        thread_manager.Thread_Configured();
 
-    if(state == ThreadState::STARTED && port.BlockUntilStateChanged(Activatable::State::RUNNING)){
-        {
-            //Update the Port's state variable 
-            std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
-            port.thread_state_ = ThreadState::ACTIVE;
-        }
-        //Log the port becoming online
-        port.LogActivation();
+        if(thread_manager.Thread_WaitForActivate()){
+            thread_manager.Thread_Activated();
+            while(true){
+                try{
+                    //Wait for next message
+                    zmq::message_t zmq_request;
+                    socket.recv(&zmq_request);
 
-        while(true){
-            try{
-                //Wait for next message
-                zmq::message_t zmq_request;
-                socket.recv(&zmq_request);
-
-                const auto& request_str = Zmq2String(zmq_request);
-                
-                if(request_str == port.terminate_str){
-                    //Send back a Terminate
-                    socket.send(zmq_request);
+                    const auto& request_str = Zmq2String(zmq_request);
+                    
+                    if(request_str == port.terminate_str){
+                        //Send back a Terminate
+                        socket.send(zmq_request);
+                        break;
+                    }
+                    
+                    auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
+                    
+                    //Call through the base ProcessRequest function, which calls any attached callback
+                    auto base_reply = port.ProcessRequest(*base_request_ptr);
+                    auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                    
+                    //Send reply
+                    socket.send(String2Zmq(reply_str));
+                }catch(const zmq::error_t& ex){
+                    Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
                     break;
                 }
-                
-                auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
-                
-                //Call through the base ProcessRequest function, which calls any attached callback
-                auto base_reply = port.ProcessRequest(*base_request_ptr);
-                auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
-                
-                //Send reply
-                socket.send(String2Zmq(reply_str));
-            }catch(const zmq::error_t& ex){
-                Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
-                break;
             }
+            //Log that the port has been passivated
+            port.LogPassivation();
         }
-        
-        //Log that the port has been passivated
-        port.LogPassivation();
     }
-    
-    //Change the state to be Terminated
-    std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
-    port.thread_state_ = ThreadState::TERMINATED;
+    thread_manager.Thread_Terminated();
 };
 
 //Specialised templated RequestHandler for void returning
 template <class BaseRequestType, class ProtoRequestType>
-void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(zmq::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port){
+void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(ThreadManager& thread_manager, zmq::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port, const std::string terminate_address, const std::string server_address){
     auto socket = ZmqHelper::get_zmq_helper()->get_reply_socket();
-    auto state = ThreadState::STARTED;
-
-    const auto& terminate_address = port.terminate_endpoint_;
+    bool success = true;
     try{
         //Bind the Terminate address
         socket.bind(terminate_address.c_str());
     }catch(const zmq::error_t& ex){
+        std::cerr << "ERR" << std::endl;
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind terminate endpoint: '" + terminate_address + "' " + ex.what());
-        state = ThreadState::TERMINATED;
+        success = false;
     }
 
-    const auto address = port.end_point_->String();
     try{
         //Bind the Outgoing address
-        socket.bind(address.c_str());
+        socket.bind(server_address.c_str());
     }catch(const zmq::error_t& ex){
-        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + address + "' " + ex.what());
-        state = ThreadState::TERMINATED;
+        std::cerr << "ERR" << std::endl;
+        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + server_address + "' " + ex.what());
+        success = false;
     }
 
-    {
-        //Update the Port's state variable 
-        std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
-        port.thread_state_ = state;
-        port.thread_state_condition_.notify_all();
-    }
+    if(success){
+        //XXX: DO NOT REMOVE THE SLEEP ZMQ NEEDS HIS REST
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        thread_manager.Thread_Configured();
 
-    if(state == ThreadState::STARTED && port.BlockUntilStateChanged(Activatable::State::RUNNING)){
-        //Log the port becoming online
-        port.LogActivation();
+        if(thread_manager.Thread_WaitForActivate()){
+            thread_manager.Thread_Activated();
+            while(true){
+                try{
+                    //Wait for next message
+                    zmq::message_t zmq_request;
+                    socket.recv(&zmq_request);
 
-        while(true){
-            try{
-                //Wait for next message
-                zmq::message_t zmq_request;
-                socket.recv(&zmq_request);
-
-                const auto& request_str = Zmq2String(zmq_request);
-                
-                if(request_str == port.terminate_str){
-                    //Send back a Terminate
-                    socket.send(zmq_request);
+                    const auto& request_str = Zmq2String(zmq_request);
+                    
+                    if(request_str == port.terminate_str){
+                        //Send back a Terminate
+                        socket.send(zmq_request);
+                        break;
+                    }
+                    
+                    auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
+                    
+                    //Call through the base ProcessRequest function, which calls any attached callback
+                    port.ProcessRequest(*base_request_ptr);
+                    //Send reply
+                    socket.send(String2Zmq(""));
+                }catch(const zmq::error_t& ex){
+                    Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
                     break;
                 }
-                
-                auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
-                
-                //Call through the base ProcessRequest function, which calls any attached callback
-                port.ProcessRequest(*base_request_ptr);
-
-                //Send blank response
-                socket.send(String2Zmq(""));
-            }catch(const zmq::error_t& ex){
-                Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
-                break;
             }
+            //Log that the port has been passivated
+            port.LogPassivation();
         }
-        
-        //Log that the port has been passivated
-        port.LogPassivation();
     }
-
-    //Change the state to be Terminated
-    std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
-    port.thread_state_ = ThreadState::TERMINATED;
+    thread_manager.Thread_Terminated();
 }
 
 

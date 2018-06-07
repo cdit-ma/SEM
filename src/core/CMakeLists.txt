@@ -26,6 +26,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/threadmanager.cpp
 	)
 
 set(HEADERS
@@ -39,6 +40,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/threadmanager.h
 	)
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
