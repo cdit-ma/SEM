@@ -121,10 +121,16 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::TerminateThread(){
-    std::lock_guard<std::mutex> lock(thread_state_mutex_);
+    ThreadState state;
+    {
+        std::lock_guard<std::mutex> lock(thread_state_mutex_);
+        state = thread_state_;
+    }
 
-    switch(thread_state_){
-        case ThreadState::STARTED:{
+
+    switch(state){
+
+        case ThreadState::ACTIVE:{
             try{
                 auto socket = ZmqHelper::get_zmq_helper()->get_request_socket();
             
@@ -133,14 +139,19 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
                 
                 //Send the special terminate message
                 zmq::message_t term_msg(terminate_str.c_str(), terminate_str.size());
+                
                 socket.send(term_msg);
                 //Wait for the response
+                std::cerr << "WIAITING " << std::endl;
                 socket.recv(&term_msg);
                 return true;
             }catch(const zmq::error_t& ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to Terminate ZMQ Server Port") + ex.what());
             }
             break;
+        }
+        case ThreadState::STARTED:{
+            return true;
         }
         case ThreadState::TERMINATED:{
             return true;
@@ -184,6 +195,11 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     }
 
     if(state == ThreadState::STARTED && port.BlockUntilStateChanged(Activatable::State::RUNNING)){
+        {
+            //Update the Port's state variable 
+            std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
+            port.thread_state_ = ThreadState::ACTIVE;
+        }
         //Log the port becoming online
         port.LogActivation();
 
@@ -218,7 +234,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
         //Log that the port has been passivated
         port.LogPassivation();
     }
-
+    
     //Change the state to be Terminated
     std::lock_guard<std::mutex> lock(port.thread_state_mutex_);
     port.thread_state_ = ThreadState::TERMINATED;

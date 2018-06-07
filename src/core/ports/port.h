@@ -7,7 +7,7 @@
 //Forward declare
 class Component;
 
-enum class ThreadState{WAITING, STARTED, TERMINATED};
+enum class ThreadState{WAITING, STARTED, ACTIVE, TERMINATED};
 
 //Interface for a standard Port
 class Port : public Activatable
