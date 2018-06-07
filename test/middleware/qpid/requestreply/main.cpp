@@ -12,9 +12,9 @@
 #include "../../../core/activatablefsmtester.h"
 
 
-void empty_callback(Base::Basic& b){};
-
 const std::string broker("127.0.0.1:5672");
+
+void empty_callback(Base::Basic& b){};
 
 Base::Basic callback(Base::Basic& message){
     message.int_val *= 10;
@@ -50,7 +50,8 @@ class QPID_RequesterPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new qpid::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(),  port_name);
+            auto port = ConstructRequesterPort<qpid::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
+
             EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
@@ -62,7 +63,8 @@ class QPID_ReplierPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new qpid::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>(std::weak_ptr<Component>(), port_name, callback);
+            component->AddCallback<Base::Basic, Base::Basic>(port_name, callback);
+            auto port = ConstructReplierPort<qpid::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
             EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
@@ -84,7 +86,7 @@ TEST(QPID_ReqRep, Req_Basic_Rep_Basic_Busy100){
     const auto rep_name = "rp_" + test_name;
 
     auto component = std::make_shared<Component>(test_name);
-    component->AddCallback<Base::Basic, Base::Basic>(rep_name, new CallbackWrapper<Base::Basic, Base::Basic>(busy_callback));
+    component->AddCallback<Base::Basic, Base::Basic>(rep_name, busy_callback);
 
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(rep_name, component);
@@ -134,7 +136,7 @@ TEST(QPID_ReqRep, Req_Basic_Rep_Void_Busy100){
     const auto rep_name = "rp_" + test_name;
 
     auto component = std::make_shared<Component>(test_name);
-    component->AddCallback<void, Base::Basic>(rep_name, new CallbackWrapper<void, Base::Basic>(busy_callback_no_reply));
+    component->AddCallback<void, Base::Basic>(rep_name, busy_callback_no_reply);
 
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<void, void, Base::Basic, ::Basic>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<void, void, Base::Basic, ::Basic>>(rep_name, component);
