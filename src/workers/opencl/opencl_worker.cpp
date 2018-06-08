@@ -21,7 +21,8 @@ OpenCL_Worker::OpenCL_Worker(const Component& component, std::string inst_name)
 }
 
 OpenCL_Worker::~OpenCL_Worker() {
-    
+    CleanupFFT();
+    delete load_balancer_;
 }
 
 bool OpenCL_Worker::HandleConfigure() {
@@ -74,12 +75,6 @@ bool OpenCL_Worker::HandleConfigure() {
     InitFFT();
 
     is_valid_ = true;
-    return true;
-}
-
-bool OpenCL_Worker::HandleTerminate() {
-    CleanupFFT();
-    delete load_balancer_;
     return true;
 }
 
