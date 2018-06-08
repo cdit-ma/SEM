@@ -118,6 +118,7 @@ void Component::AddCallback(const std::string& port_name, std::function<ReplyTyp
 
 template<class ReplyType, class RequestType>
 void Component::AddCallback(const std::string& port_name, std::function<ReplyType (void)> fn){
+    static_assert(std::is_void<RequestType>::value, "RequestType must be void");
     AddCallback<ReplyType, RequestType>(port_name, new CallbackWrapper<ReplyType, RequestType>(fn));
 };
 
