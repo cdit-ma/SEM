@@ -12,6 +12,8 @@
 #include <QStyleOptionGraphicsItem>
 #include "statictextitem.h"
 
+#include <functional>
+
 #define DEFAULT_SIZE 80
 
 #define SELECTED_LINE_WIDTH 3
