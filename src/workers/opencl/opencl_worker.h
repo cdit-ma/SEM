@@ -70,7 +70,7 @@ private:
     clfftSetupData_* fftSetupData = 0;
 
     // FPGA FFT specific members
-    OpenCLQueue* fetch_queue;
+    std::vector<OpenCLQueue> fetch_queues_;
     //cl_command_queue* fetch_queue_ = 0;
     OpenCLKernel* fpga_fft_kernel_ = 0;
     OpenCLKernel* fpga_fetch_kernel_ = 0;

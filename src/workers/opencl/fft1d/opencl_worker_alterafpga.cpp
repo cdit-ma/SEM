@@ -122,8 +122,12 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	cl_mem d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
 	checkError(status, "Failed to allocate output device buffer\n");
 
-	auto& device = devices_.at(0).get();
+	// TODO: update to pull the device index from the load balancer
+	int device_index = 0;
+
+	auto& device = devices_.at(device_index).get();
 	auto& send_queue = device.GetQueue().GetRef()();
+	auto& fetch_queue = fetch_queues_.at(device_index);
 
 	// Copy data from host to device
 	status = clEnqueueWriteBuffer(send_queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
@@ -153,13 +157,13 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	size_t ls = N/8;
 	size_t gs = iterations * ls;
-	status = clEnqueueNDRangeKernel(fetch_queue->GetRef()(), fpga_fetch_kernel_->GetBackingRef()(), 1, NULL, &gs, &ls, 0, NULL, NULL);
+	status = clEnqueueNDRangeKernel(fetch_queue.GetRef()(), fpga_fetch_kernel_->GetBackingRef()(), 1, NULL, &gs, &ls, 0, NULL, NULL);
 	checkError(status, "Failed to launch fetch kernel");
 
 	// Wait for command queue to complete pending events
 	status = clFinish(send_queue);
 	checkError(status, "Failed to finish");
-	status = clFinish(fetch_queue->GetRef()());
+	status = clFinish(fetch_queue.GetRef()());
 	checkError(status, "Failed to finish queue1");
 
 	fft_kernel_lock.unlock();
@@ -185,35 +189,39 @@ bool OpenCL_Worker::InitFFT() {
     cl_int status;
 
     // We'll just use the first device for now
-    auto& device = devices_.at(0).get();
+    //auto& device = devices_.at(0).get();
+	for (auto& d_ref : devices_) {
+		auto& device = d_ref.get();
 
-    // Create the fetch queue.
-    fetch_queue = new OpenCLQueue(*manager_, device);
-    checkError(status, "Failed to create command queue");
+		// Create the fetch queue.
+		fetch_queues_.emplace_back(*manager_, device);// = new OpenCLQueue(*manager_, device);
+		checkError(status, "Failed to create command queue");
 
-    int kernels_found=0;
-    for (auto& ref_wrapper : device.GetKernels()){
-        auto& kernel_ = ref_wrapper.get();
-        if (kernel_.GetName() == "fft1d" || kernel_.GetName() == "fetch") {
-            kernels_found++;
-        }
-    }
-
-	// Recreate the program from a binary if either kernel isn't present
-	if (kernels_found < 2) {
-		bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
-	}
-
-	// Create the kernel - name passed in here must match kernel name in the
-	// original CL file, that was compiled into an AOCX file using the AOC tool
-	auto& kernels = device.GetKernels();
-	for (OpenCLKernel& k : kernels) {
-		if (k.GetName() == "fft1d") {
-			fpga_fft_kernel_ = &k;
+		int kernels_found=0;
+		for (auto& ref_wrapper : device.GetKernels()){
+			auto& kernel_ = ref_wrapper.get();
+			if (kernel_.GetName() == "fft1d" || kernel_.GetName() == "fetch") {
+				kernels_found++;
+			}
 		}
-		if (k.GetName() == "fetch") {
-			fpga_fetch_kernel_ = &k;
+
+		// Recreate the program from a binary if either kernel isn't present
+		if (kernels_found < 2) {
+			bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
 		}
+
+		// Create the kernel - name passed in here must match kernel name in the
+		// original CL file, that was compiled into an AOCX file using the AOC tool
+		auto& kernels = device.GetKernels();
+		for (OpenCLKernel& k : kernels) {
+			if (k.GetName() == "fft1d") {
+				fpga_fft_kernel_ = &k;
+			}
+			if (k.GetName() == "fetch") {
+				fpga_fetch_kernel_ = &k;
+			}
+		}
+
 	}
 
 	return true;
@@ -222,8 +230,8 @@ bool OpenCL_Worker::InitFFT() {
 // Free the resources allocated during initialization
 bool OpenCL_Worker::CleanupFFT() {
 
-	if(fetch_queue) 
-		delete fetch_queue;
+	/*if(fetch_queue) 
+		delete fetch_queue;*/
 
 	return true;
 }
