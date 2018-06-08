@@ -122,8 +122,8 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	cl_mem d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
 	checkError(status, "Failed to allocate output device buffer\n");
 
-	auto& device = manager_->GetDevices(*this).at(0);
-	auto& send_queue = device->GetQueue().GetRef()();
+	auto& device = devices_.at(0).get();
+	auto& send_queue = device.GetQueue().GetRef()();
 
 	// Copy data from host to device
 	status = clEnqueueWriteBuffer(send_queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
@@ -184,18 +184,15 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 bool OpenCL_Worker::InitFFT() {
     cl_int status;
 
-    // Query the available OpenCL devices.
-    auto& devices = manager_->GetDevices(*this);
-
     // We'll just use the first device for now
-    auto& device = devices.at(0);
+    auto& device = devices_.at(0).get();
 
     // Create the fetch queue.
-    fetch_queue = new OpenCLQueue(*manager_, *device);
+    fetch_queue = new OpenCLQueue(*manager_, device);
     checkError(status, "Failed to create command queue");
 
     int kernels_found=0;
-    for (auto& ref_wrapper : device->GetKernels()){
+    for (auto& ref_wrapper : device.GetKernels()){
         auto& kernel_ = ref_wrapper.get();
         if (kernel_.GetName() == "fft1d" || kernel_.GetName() == "fetch") {
             kernels_found++;
@@ -204,12 +201,12 @@ bool OpenCL_Worker::InitFFT() {
 
 	// Recreate the program from a binary if either kernel isn't present
 	if (kernels_found < 2) {
-		bool did_read_binary = device->LoadKernelsFromBinary(*this, "fft1d.aocx");
+		bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
 	}
 
 	// Create the kernel - name passed in here must match kernel name in the
 	// original CL file, that was compiled into an AOCX file using the AOC tool
-	auto& kernels = device->GetKernels();
+	auto& kernels = device.GetKernels();
 	for (OpenCLKernel& k : kernels) {
 		if (k.GetName() == "fft1d") {
 			fpga_fft_kernel_ = &k;
