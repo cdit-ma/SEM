@@ -17,7 +17,7 @@ public:
     ~OpenCL_Worker();
 
     bool HandleConfigure() override;
-    bool HandleTerminate() override;
+    //bool HandleTerminate() override;
     bool IsValid() const;
 
     // Base/Utility functions
