@@ -22,6 +22,7 @@ class ThreadManager{
         void Thread_Terminated();
         void Thread_Activated();
         bool Thread_WaitForActivate();
+        void Thread_WaitForTerminate();
     private:
         std::unique_ptr<std::thread> thread_;
 

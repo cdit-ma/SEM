@@ -101,9 +101,19 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    //Call into the base Handle Passivate
+    if(::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
+        return TerminateThread();
+    }
+    return false;
+};
+
+
+
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleTerminate(){
-    //std::cerr << "HandleTerminate" << std::endl;
-    
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Call into the base class
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
@@ -119,16 +129,6 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
     return false;
 };
 
-template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
-    //std::cerr << "HandlePassivate" << std::endl;
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    //Call into the base Handle Passivate
-    if(::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
-        return TerminateThread();
-    }
-    return false;
-};
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::TerminateThread(){

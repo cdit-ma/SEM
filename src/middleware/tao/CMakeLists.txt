@@ -12,11 +12,11 @@ if(NOT TAO_FOUND)
 endif()
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/taohelper.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/taohelper.h
 )
 
 if (MSVC)

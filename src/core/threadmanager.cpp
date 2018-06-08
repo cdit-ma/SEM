@@ -39,13 +39,13 @@ void ThreadManager::Thread_Activated(){
 bool ThreadManager::Thread_WaitForActivate(){
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);
     transition_condition_.wait(transition_lock, [this]{return transition_ != Transition::NONE;});
-    auto activate_trans = transition_ == Transition::ACTIVATE;
-    if(activate_trans){
-        //Thread_Activated();
-        return true;
-    }
-    return false;
+    return transition_ == Transition::ACTIVATE;
 };
+
+void ThreadManager::Thread_WaitForTerminate(){
+    std::unique_lock<std::mutex> transition_lock(transition_mutex_);
+    transition_condition_.wait(transition_lock, [this]{return transition_ == Transition::TERMINATE;});
+}
 
 bool ThreadManager::Configure(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
