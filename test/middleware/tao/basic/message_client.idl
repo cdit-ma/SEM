@@ -12,10 +12,8 @@ module Test
 	};
 
 struct Message2{
-	long time2;
-	string inst_name2;
-	long long_bois[25];
-	UnionEnum test;
+	string inst_name;
+	long time;
 };
 
 	/// A very simple interface
@@ -26,7 +24,7 @@ struct Message2{
 		};
 
 		//void send(in Test::Message message);
-		void send22(in Test::Message2 message);// raises(TestException);
+		void send(in Test::Message2 message);// raises(TestException);
 	};
 };
 

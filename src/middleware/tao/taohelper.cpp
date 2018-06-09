@@ -1,4 +1,4 @@
-#include "helper.h"
+#include "taohelper.h"
 #include <iostream>
 #include <tao/IORTable/IORTable.h>
 
@@ -44,6 +44,7 @@ tao::TaoHelper::~TaoHelper(){
 }
 
 void tao::TaoHelper::OrbThread(CORBA::ORB_ptr orb){
+    std::cerr << "tao::TaoHelper::OrbThread:" << orb << std::endl;
     try{
         orb->run();
         orb->destroy();
@@ -55,17 +56,20 @@ void tao::TaoHelper::OrbThread(CORBA::ORB_ptr orb){
 }
 
 CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool debug_mode){
+    std::cerr << __func__ << ": GETTING ORB: " << orb_endpoint << std::endl;
     std::unique_lock<std::mutex> lock(global_mutex_);
     if(orb_lookup_.count(orb_endpoint)){
+        std::cerr << "FOUND EXISTENT ORB" << orb_endpoint << std::endl;
         return orb_lookup_[orb_endpoint];
     }else{
         CORBA::ORB_ptr orb = 0;
         try{
             auto endpoint = strdup(orb_endpoint.c_str());
+            auto orb_id = strdup(orb_endpoint.c_str());
             auto debug_str = strdup(debug_mode ? "10" : "0");
-            int argc = 4;
+            int argc = 6;
             std::cerr << "CONSTRUCTING ORB: " << endpoint << std::endl;
-            char* argv[4] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str};
+            char* argv[6] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str, "-ORBId", orb_id};
             orb = CORBA::ORB_init (argc, argv);
             
             delete[] endpoint;
@@ -76,8 +80,10 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
         }
 
         if(!CORBA::is_nil(orb)){
+            std::cerr << "CREATING THREAD FOR ORB: ORB:" << orb << std::endl;
+            //CORBA::ORB::_duplicate(orb)
             //Start an async task to run the ORB
-            auto orb_future = std::async(std::launch::async, OrbThread, CORBA::ORB::_duplicate(orb));
+            auto orb_future = std::async(std::launch::async, OrbThread, std::move(orb));
 
             bool is_async_running = false;
             while(!is_async_running){
@@ -111,10 +117,12 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
             if(orb){
                 orb_lookup_[orb_endpoint] = orb;
                 orb_run_futures_[orb_endpoint] = std::move(orb_future);
-                std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
+                std::cout << "          tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
             }else{
                 std::cerr << "tao::TaoHelper::get_orb(): Failed to construct Orb: '" << orb_endpoint << "'" << std::endl;
             }
+        }else{
+            std::cerr << "IS NILL? " << std::endl;
         }
         return orb;
     }
@@ -195,6 +203,7 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
         if(ior_table){
             std::cout << "Binding: " << object_name << std::endl;
             ior_table->rebind(object_name.c_str(), ior);
+            std::cout << "Bound: " << object_name << std::endl;
             return true;
         }
     }
@@ -226,8 +235,8 @@ void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::s
         try{
             auto object = orb->string_to_object(corba_str.c_str());
             orb->register_initial_reference(obj_id.c_str(), object);
-        }catch(...){
-
+        }catch(const CORBA::Exception& e){
+            std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
         }
     }
 }

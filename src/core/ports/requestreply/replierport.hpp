@@ -13,8 +13,8 @@ class ReplierPort : public Port{
 
         using base_reply_type = BaseReplyType;
         using base_request_type = BaseRequestType;
-    protected:
         BaseReplyType ProcessRequest(BaseRequestType& type);
+    protected:
     private:
         std::function<BaseReplyType (BaseRequestType&) > callback_function_;
 };
@@ -26,8 +26,8 @@ class ReplierPort<void, BaseRequestType> : public Port{
         ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseRequestType&) > callback_function, const std::string& middleware);
         using base_reply_type = void;
         using base_request_type = BaseRequestType;
-    protected:
         void ProcessRequest(BaseRequestType& type);
+    protected:
     private:
         std::function<void (BaseRequestType&) > callback_function_;
 };

@@ -9,9 +9,18 @@ module Test
 		
 	};
 
-	struct Message{
-		long time;
+	struct Message2{
 		string inst_name;
+		long time;
+		//long long_bois[25];
+		//UnionEnum test;
+		//sequence<long, 50> long_bois; 
+	};
+	
+
+	struct Message{
+		string inst_name;
+		long time;
 		long long_bois[25];
 		UnionEnum test;
 		//sequence<long, 50> long_bois; 
@@ -24,7 +33,7 @@ module Test
 			string message;
 		};
 
-		void send(in Test::Message message);
+		void send(in Test::Message2 message);
 		void send22(in Test::Message message) raises(TestException);
 	};
 };

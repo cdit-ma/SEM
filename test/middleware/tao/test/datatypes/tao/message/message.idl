@@ -9,6 +9,6 @@ module Test
 	/// A very simple interface
 	interface Hello
 	{
-		oneway void send(in Test::Message message);
+		void send(in Test::Message message);
 	};
 };

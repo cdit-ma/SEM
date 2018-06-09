@@ -134,7 +134,6 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     try{
         auto state = ThreadState::STARTED;
         
-        
         auto orb_endpoint  = orb_endpoint_->String();
         auto& helper = tao::TaoHelper::get_tao_helper();
         std::cout << "IN ORB ENDPOINT: " << orb_endpoint << std::endl;
@@ -144,7 +143,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
 
         //R* reader_impl = 0;
         if(!orb_){
-            state = ThreadState::TERMINATED;
+            state = ThreadState::TERMINATE;
             std::cerr << "CAN'T GET ORB" << std::endl;
         }else{
             auto publisher_name  = publisher_name_->String();
@@ -219,5 +218,6 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         std::cerr << "exceptiopn" << std::endl;
     }
 };
+
 
 #endif //TAO_INEVENTPORT_H

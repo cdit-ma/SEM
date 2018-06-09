@@ -2,21 +2,33 @@
 #ifndef HELLOIMPL_H
 #define HELLOIMPL_H
 
-#include <middleware/tao/ineventport.hpp>
+#include "base/message/message.h"
+#include <core/ports/translator.h>
 #include "messageS.h"
 
-namespace Test{
-    class HelloImpl : public POA_Test::Hello{
-        public:
-            HelloImpl(tao::Enqueuer<Test::Message>& eventport):
-                eventport(eventport){
-            };
-        void send(const Test::Message& message){
-            eventport.enqueue(message);
+
+
+#include <middleware/tao/requestreply/replierport.hpp>
+
+
+
+class Hello : public virtual POA_Test::Hello{
+    public:
+        Hello(tao::ReplierPort<void, void, ::Base::Message, ::Test::Message, ::Hello>& port):
+            eventport(port){
+                std::cerr << __func__ << std::endl;
         };
-        private:
-            tao::Enqueuer<Test::Message> &eventport;
+        ~Hello(){};
+    void send(const Test::Message& message){
+        std::cerr << "TRYING TO LISTEN" << std::endl;
+        auto base_message = Base::Translator<::Base::Message, ::Test::Message>::MiddlewareToBase(message);
+        eventport.ProcessRequest(*base_message);
+        return;
     };
+    private:
+        tao::ReplierPort<void, void, ::Base::Message, ::Test::Message, ::Hello>& eventport;
 };
+
+
 
 #endif //TAO_HELLOIMPL_H

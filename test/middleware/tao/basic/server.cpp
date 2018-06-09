@@ -3,7 +3,7 @@
 #include <thread>
 #include <signal.h>
 
-#include <middleware/tao/helper.h>
+#include <middleware/tao/taohelper.h>
 #include <nodemanager/execution.hpp>
 
 #include "global.h"
@@ -19,6 +19,12 @@ void signal_handler(int sig)
     std::lock_guard<std::mutex> lock(global_mutex_);
     exe->Interrupt();
 }
+void print_message(const Test::Message2& message){
+    std::lock_guard<std::mutex> lock(global_mutex_);
+    std::cout << "\ttime: " << message.time << std::endl;
+    std::cout << "\tinst_name: " << message.inst_name << std::endl;
+}
+
 
 void print_message(const Test::Message& message){
     std::lock_guard<std::mutex> lock(global_mutex_);
@@ -55,7 +61,7 @@ void print_message(const Test::Message& message){
     std::cout << "\tDone" << std::endl;
 }
 
-void Hello::send(const Test::Message& message){
+void Hello::send(const Test::Message2& message){
     std::cout << "GOT send: " << std::endl;
     print_message(message);
 }
@@ -74,8 +80,6 @@ int main(int argc, char ** argv){
 	signal(SIGTERM, signal_handler);
     exe = new Execution();
 
-    int i = 5;
-    std::cerr << std::endl << "===== COUNT: " << i << "=====" << std::endl;
     auto& helper = tao::TaoHelper::get_tao_helper();
     {
         auto orb = helper.get_orb("iiop://" + sender_orb_endpoint);
@@ -84,7 +88,7 @@ int main(int argc, char ** argv){
             return -1;
         }
         
-        std::string Sender1("Sender1");
+        std::string Sender1("S1");
         
         // Create the child POA for the test logger factory servants.
 

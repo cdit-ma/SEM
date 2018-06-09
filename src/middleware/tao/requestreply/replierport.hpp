@@ -10,7 +10,12 @@
 
 namespace tao{
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerImpl>
+    struct RequestHandler;
+
+    template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerImpl>
     class ReplierPort : public ::ReplierPort<BaseReplyType, BaseRequestType>{
+        //The Request Handle needs to be able to modify and change state of the Port
+        friend class RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>;
         public:
             ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
             ~ReplierPort(){
@@ -62,12 +67,14 @@ bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
     if(valid && ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         if(!thread_manager_){
             thread_manager_ = new ThreadManager();
-            auto thread = std::unique_ptr<std::thread>(new std::thread(tao::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), orb_endpoint, publisher_name));
+            auto thread = std::unique_ptr<std::thread>(new std::thread(tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>::Loop, std::ref(*thread_manager_), std::ref(*this), orb_endpoint, publisher_name));
             thread_manager_->SetThread(std::move(thread));
             return thread_manager_->Configure();
         }else{
             std::cerr << "STILL GOT THREAD" << std::endl;
         }
+    }else{
+        std::cerr << "WAITING MY FRIEND " << std::endl;
     }
     return false;
 };
@@ -92,18 +99,6 @@ bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
     }
     return false;
 };
-
-template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerImpl>
-bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    //Call into the base Handle Passivate
-    if(::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate()){
-        return TerminateThread();
-    }
-    return false;
-};
-
-
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerImpl>
 bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>::HandleTerminate(){
@@ -135,7 +130,7 @@ bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
 
 //Generic templated RequestHandler
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerImpl>
-void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>::Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>& port, const std::string orb_endpoint, const std::string publisher_address){
+void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>::Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerImpl>& port, const std::string orb_endpoint, const std::string publisher_name){
     auto& helper = tao::TaoHelper::get_tao_helper();
 
     bool success = true;
@@ -145,33 +140,43 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
     if(!orb){
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot get TAO Orb for endpoint: '" + orb_endpoint + "' ");
         success = false;
+    }else{
+        std::cerr << "GOT ORB: " << std::endl;
     }
-
+    
+    std::cerr << "GETTING POA: " << publisher_name << std::endl;
     auto poa = helper.get_poa(orb, publisher_name);
-    auto tao_server = new TaoServerImpl(*this);
+    auto tao_server = new TaoServerImpl(port);
             
     //Activate WITH ID
     //Convert our string into an object_id
     helper.register_servant(orb, poa, tao_server, publisher_name);
-    poa->the_POAManager()->activate();
 
     if(success){
         thread_manager.Thread_Configured();
+        std::cerr << "CONFIGURED MY FRIEND" << std::endl;
 
         if(thread_manager.Thread_WaitForActivate()){
             port.LogActivation();
+            std::cerr << "ACTIVATED MY FRIEND" << std::endl;
             thread_manager.Thread_Activated();
+            std::cerr << "ACTIVATING" << std::endl;
 
+            std::cerr << "Thread_WaitForTerminate" << std::endl;
             thread_manager.Thread_WaitForTerminate();
+            std::cerr << "Thread_WaitForTerminated" << std::endl;
         }
 
-        PortableServer::POA_var poa = recv->_default_POA ();
-        PortableServer::ObjectId_var id = poa->servant_to_id (recv);
+        PortableServer::POA_var poa = tao_server->_default_POA ();
+        PortableServer::ObjectId_var id = poa->servant_to_id (tao_server);
         poa->deactivate_object (id.in ());
         poa->destroy (true, true);
         //Log that the port has been passivated
         port.LogPassivation();
+    }else{
+        std::cerr << "ERROR MY FRIEND" << std::endl;
     }
+    std::cerr << "TERMINATING MY FRIEND" << std::endl;
 
     thread_manager.Thread_Terminated();
 };

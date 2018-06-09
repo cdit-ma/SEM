@@ -8,7 +8,6 @@
 #include <mutex>
 #include <iostream>
 #include <unordered_map>
-#include <middleware/tao/helper.h>
 #include <set>
 
 namespace tao{
@@ -23,7 +22,7 @@ namespace tao{
                 Activatable::Terminate();
             };
             
-            BaseReplyType ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
+            void ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
 
             using middleware_reply_type = TaoReplyType;
             using middleware_request_type = TaoRequestType;
@@ -32,13 +31,14 @@ namespace tao{
             bool HandleTerminate();
             static bool SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, const std::string& orb_endpoint, const std::string& publisher_address, const std::string& publisher_name);
         private:
-            std::shared_ptr<Attribute> end_points_;
-            std::shared_ptr<Attribute> publisher_names_;
+            std::shared_ptr<Attribute> publisher_address_;
+            std::shared_ptr<Attribute> publisher_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
+            
+            std::mutex control_mutex_;
 
             CORBA::ORB_var orb_ = 0;
             std::mutex client_mutex_;
-            TaoClientImpl* tao_client_ = 0;
     };
 
     //Specialised templated RequesterPort for void returning
@@ -68,7 +68,7 @@ tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType,
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
-    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
+    publisher_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
 };
 
 
@@ -77,12 +77,15 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
     const auto publisher_name = publisher_name_->String();
-    const auto publisher_address = end_point_->String();
+    const auto publisher_address = publisher_address_->String();
 
     bool valid = orb_endpoint.size() > 0 && publisher_address.size() > 0 && publisher_name.size() > 0;
 
     if(valid && ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         return SetupRequester(*this, orb_endpoint, publisher_address, publisher_name);
+        return true;
+    }else{
+        std::cerr << "NO VALID BOIS" << std::endl;
     }
     return false;
 };
@@ -91,10 +94,8 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::RequesterPort<Base ReplyType, BaseRequestType>::HandleTerminate()){
+    if(::RequesterPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
         std::lock_guard<std::mutex> client_lock(client_mutex_);
-        delete tao_client_;
-        tao_client_ = 0;
         return true; 
     }
     return false;
@@ -107,26 +108,19 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
     const std::string& publisher_address,
     const std::string& publisher_name)
 {
+    std::cerr << "SETUP REQUESTER PORT" << std::endl;
     std::lock_guard<std::mutex> client_lock(port.client_mutex_);
     auto& helper = tao::TaoHelper::get_tao_helper();
 
-    port.orb_ = helper.get_orb(orb_endpoint);
 
-    helper.register_initial_reference(port.orb_, publisher_name, publisher_endpoint);
-    std::cerr << "Registered: " << publisher_name << " to addr " << publisher_endpoint << std::endl;
-    auto& helper = tao::TaoHelper::get_tao_helper();
+    std::cerr << "GOT ORB: " << orb_endpoint << std::endl;
+
+    port.orb_ = helper.get_orb(orb_endpoint);
+    helper.register_initial_reference(port.orb_, publisher_name, publisher_address);
+    std::cerr << "Registered: " << publisher_name << " to addr " << publisher_address << std::endl;
+    return true;
     
-    try{
-        auto ptr = helper.resolve_initial_references(port.orb_, publisher_name);
-        if(ptr){
-            port.tao_client_ = TaoClientImpl::_narrow(ptr);
-            std::cout << "Registered: " << publisher_name << std::endl;
-            return true;
-        }catch(...){
-            std::cerr << "ERROR";
-        }
-    }
-    return false;
+       
 };
 
 
