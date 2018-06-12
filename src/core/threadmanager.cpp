@@ -5,10 +5,18 @@ ThreadManager::~ThreadManager(){
         //Shutdown our thread
         thread_->join();
     }
+    if(future_.valid()){
+        //Shutdown our thread
+        future_.wait();
+    }
 };
 
 void ThreadManager::SetThread(std::unique_ptr<std::thread> thread){
     thread_ = std::move(thread);
+};
+
+void ThreadManager::SetFuture(std::future<void> async_future){
+    future_ = std::move(async_future);
 };
 
 void ThreadManager::Thread_Configured(){
@@ -41,6 +49,13 @@ bool ThreadManager::Thread_WaitForActivate(){
     transition_condition_.wait(transition_lock, [this]{return transition_ != Transition::NONE;});
     return transition_ == Transition::ACTIVATE;
 };
+
+bool ThreadManager::WaitForActivated(){
+    std::unique_lock<std::mutex> state_lock(state_mutex_);
+    state_condition_.wait(state_lock, [this]{return state_ == State::ACTIVE || state_ == State::TERMINATED;});
+    return state_ == State::ACTIVE;
+
+}
 
 void ThreadManager::Thread_WaitForTerminate(){
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);

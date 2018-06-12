@@ -11,4 +11,10 @@ module Test
 	{
 		void send(in Test::Message message);
 	};
+
+	/// A very simple interface
+	interface Hello2
+	{
+		Test::Message send(in Test::Message message);
+	};
 };

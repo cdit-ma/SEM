@@ -20,7 +20,6 @@ TAO_GENERATE_CPP(TAO_SOURCES TAO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/message.idl)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/helloclient.cpp
 )
 
 add_library(${SHARED_LIBRARY_NAME} SHARED ${SOURCE} ${HEADERS} ${TAO_SOURCES} ${TAO_HEADERS})
@@ -51,4 +50,5 @@ target_link_libraries(${SHARED_LIBRARY_NAME} "tao_base_message_lib")
 #target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} "tao_message_lib")
+target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
 

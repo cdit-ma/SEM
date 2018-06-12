@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <future>
 
 class ThreadManager{
     public:
@@ -12,10 +13,13 @@ class ThreadManager{
         
         ~ThreadManager();
         void SetThread(std::unique_ptr<std::thread> thread);
+        void SetFuture(std::future<void> async_future);
         bool Configure();
         bool Activate();
         bool Terminate();
         State GetState();
+
+        bool WaitForActivated();
     public:
         //TODO: Maybe should add access control
         void Thread_Configured();
@@ -25,6 +29,7 @@ class ThreadManager{
         void Thread_WaitForTerminate();
     private:
         std::unique_ptr<std::thread> thread_;
+        std::future<void> future_;
 
         std::mutex state_mutex_;
         std::condition_variable state_condition_;
