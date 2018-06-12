@@ -41,6 +41,7 @@ message EnvironmentMessage{
         LOGAN_RESPONSE = 15;
         ADD_LOGAN_CLIENT = 16;
         REMOVE_LOGAN_CLIENT = 17;
+        LOGAN_CLIENT_LIST_QUERY = 18;
     }
 
     Type type = 1;
@@ -48,7 +49,7 @@ message EnvironmentMessage{
 
     string experiment_id = 3;
     ControlMessage control_message = 4;
-    Logger logger = 5;
+    repeated Logger logger = 5;
 
     repeated string error_messages = 6;
 

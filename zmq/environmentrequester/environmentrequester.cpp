@@ -302,7 +302,7 @@ std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_
     request_message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
     request_message.set_experiment_id(experiment_id_);
 
-    auto logger = request_message.mutable_logger();
+    auto logger = request_message.add_logger();
 
     logger->set_publisher_address(node_ip_address);
 
@@ -321,7 +321,7 @@ std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_
         throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
     }
 
-    std::string port_string = reply_message.logger().publisher_port();
+    std::string port_string = reply_message.logger(0).publisher_port();
 
     return port_string;
 }
