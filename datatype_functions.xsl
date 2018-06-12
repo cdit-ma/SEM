@@ -31,7 +31,7 @@
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
         <!-- Include the translater header -->
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'translator.h')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'translator.h')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the base message type -->
@@ -451,257 +451,6 @@
     </xsl:function>
 
 
-    <!--
-        Gets the translate_cmake file
-    -->
-    <xsl:function name="cdit:get_translate_cmake">
-        <xsl:param name="aggregate"/>
-        <xsl:param name="middleware" as="xs:string" />
-
-        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-
-        <!-- Get all required aggregates -->
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, false())" />
-        
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="middleware_namespace" select="lower-case($middleware)" />
-
-        
-        <xsl:variable name="module_lib_name" select="cmake:get_aggregates_middleware_module_library_name($aggregate, $middleware)" />
-        <xsl:variable name="shared_lib_name" select="cmake:get_aggregates_middleware_shared_library_name($aggregate, $middleware)" />
-        
-        <xsl:variable name="proj_name" select="$module_lib_name" />
-        <xsl:variable name="base_lib_name" select="cmake:get_aggregates_middleware_shared_library_name($aggregate, 'base')" />
-
-        <xsl:variable name="middleware_sources" select="cmake:get_middleware_generated_source_var($middleware)" />
-        <xsl:variable name="middleware_headers" select="cmake:get_middleware_generated_header_var($middleware)" />
-        
-        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="middleware_helper_library" select="concat($middleware_package, '_HELPER_LIBRARIES')" />
-
-        <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
-
-        <xsl:variable name="build_module_library" select="cdit:build_module_library($middleware) " />
-        <xsl:variable name="build_shared_library" select="cdit:build_shared_library($middleware)" />
-
-        <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
-        <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
-
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', $middleware, $aggregate_namespace, $aggregate_label))" />
-
-
-        <!-- Version Number -->
-        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_translate_cmake', 0)" />
-
-        <xsl:value-of select="cmake:set_project_name($proj_name)" />
-
-        <!-- Find the Middleware specific package -->
-        <xsl:value-of select="cmake:find_middleware_package($middleware)" />
-
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
-
-        <!-- Find the middleware helper -->
-        <xsl:if test="$build_module_library">
-            <xsl:value-of select="cmake:find_middleware_helper($middleware)" />
-        </xsl:if>
-
-        <!-- Do the things to generate required files for the middleware shared library-->
-        <xsl:if test="$build_shared_library">
-            <xsl:value-of select="cmake:set_variable('SHARED_LIBRARY_NAME', $shared_lib_name, 0)" />
-            <xsl:value-of select="cmake:comment(('Copy the', o:wrap_angle($middleware_extension), 'file into the binary directory so it can be used by the middleware compilers'), 0)" />
-
-            <xsl:variable name="middleware_file" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
-
-            <xsl:value-of select="cmake:configure_file($middleware_file, $binary_dir_var)" />
-            <xsl:value-of select="o:nl(1)" />
-
-            <!-- Include the required aggregate files -->
-            <xsl:for-each select="$required_aggregates">
-                <xsl:if test="position() = 1">
-                    <xsl:value-of select="cmake:comment(('Copy imported', o:wrap_angle($middleware_extension), 'files into the binary directory so it can be used by the middleware compilers'), 0)" />
-                </xsl:if>
-                <xsl:variable name="required_aggregate_label" select="graphml:get_label(.)" />
-                <xsl:variable name="required_aggregate_namespace" select="graphml:get_data_value(., 'namespace')" />
-
-                
-                <xsl:variable name="required_file" select="o:join_paths(($relative_path, 'datatypes', $middleware, cdit:get_aggregates_middleware_file_path($middleware, .)))" />
-                <xsl:value-of select="cmake:configure_file($required_file, $binary_dir_var)" />
-
-                <xsl:if test="position() = last()">
-                    <xsl:value-of select="o:nl(1)" />
-                </xsl:if>
-            </xsl:for-each>
-
-            <!-- Run the middlewares compiler over the middleware artefacts-->
-            <xsl:value-of select="cmake:generate_middleware_compiler(o:join_paths(($binary_dir_var, $middleware_file)), $middleware)" />
-            <xsl:value-of select="o:nl(1)" />
-
-            <!-- Set Source files -->
-            <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
-            <xsl:value-of select="concat(o:t(1), $source_dir_var, '/translator.cpp', o:nl(1))" />
-            <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
-            <xsl:value-of select="o:nl(1)" />
-        </xsl:if>
-
-        <xsl:if test="$build_shared_library">
-            <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS'), cmake:wrap_variable($middleware_sources), cmake:wrap_variable($middleware_headers)), ' ')" />
-            <xsl:value-of select="cmake:add_shared_library('SHARED_LIBRARY_NAME', 'SHARED', $args)" />
-        </xsl:if>
-        <xsl:if test="$build_module_library">
-           <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', o:join_paths(($source_dir_var, 'libportexport.cpp')))" />
-        </xsl:if>
-
-        
-        <xsl:if test="$build_shared_library">
-            <!-- Include re_path -->
-            <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
-            <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', cmake:get_re_path('src'), 0)" />
-            <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
-            <xsl:value-of select="cmake:target_include_middleware_directories('SHARED_LIBRARY_NAME', $middleware, 0)" />
-            <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
-            <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $binary_dir_var, 0)" />
-            <xsl:value-of select="o:nl(1)" />
-
-            
-            <!-- Include the top level directories -->
-            <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'SHARED_LIBRARY_NAME')" />
-            <xsl:value-of select="cmake:include_top_level_binary_dir($relative_path, 'SHARED_LIBRARY_NAME')" />
-
-             <!-- Set RTI specific settings -->
-            <xsl:if test="$middleware = 'rti'">
-
-                <xsl:value-of select="cmake:comment('Set RTI Definitions', 0)" />
-                <xsl:variable name="rti_definitions" select="cmake:wrap_variable(concat(cmake:get_middleware_package($middleware), '_DEFINITIONS'))" />
-
-
-                <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', $rti_definitions, 0)" />
-                <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', $rti_definitions, 0)" />
-            </xsl:if>
-
-
-            <!-- Use Windows specific settings -->
-            <xsl:if test="$middleware = 'proto'">
-                <xsl:value-of select="cmake:comment('Windows specific protobuf settings', 0)" />
-                <xsl:value-of select="cmake:if_start('MSVC', 0)" />
-                <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', '-DPROTOBUF_USE_DLLS', 1)" />
-                <xsl:value-of select="cmake:if_end('MSVC', 0)" />
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-
-            <xsl:value-of select="cmake:comment('Link against runtime environment', 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('SHARED_LIBRARY_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-            <xsl:value-of select="cmake:comment('Link against the middleware libraries', 0)" />
-            <xsl:value-of select="cmake:target_link_middleware_libraries('SHARED_LIBRARY_NAME', $middleware, 0)" />
-
-            <xsl:if test="$middleware != 'base'">
-                <xsl:value-of select="cmake:comment('Link against the base aggregate', 0)" />
-                <xsl:value-of select="cmake:target_link_libraries('SHARED_LIBRARY_NAME', $base_lib_name, 0)" />
-            </xsl:if>
-
-            
-             <!-- Include the required aggregate files -->
-            <xsl:for-each select="$required_aggregates">
-                <xsl:if test="position() = 1">
-                    <xsl:value-of select="cmake:comment(('Link against', o:wrap_angle($middleware_extension), 'libraries'), 0)" />
-                </xsl:if>
-                <xsl:variable name="required_lib" select="cmake:get_aggregates_middleware_shared_library_name(., $middleware)" />
-                <xsl:value-of select="cmake:target_link_libraries('SHARED_LIBRARY_NAME', $required_lib, 0)" />
-                <xsl:if test="position() = last()">
-                    <xsl:value-of select="o:nl(1)" />
-                </xsl:if>
-            </xsl:for-each>
-
-            <!-- Include the generated code folders for all required_aggregates -->
-            <xsl:for-each select="$required_aggregates">
-                <xsl:if test="position() = 1">
-                    <xsl:value-of select="cmake:comment(('Include binary directory of each required aggregate so it can be used by the middleware compilers'), 0)" />
-                </xsl:if>
-                <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                <xsl:variable name="aggregate_path" select="cdit:get_aggregates_path(.)" />
-                <xsl:variable name="required_path" select="o:join_paths(($binary_dir_var, $relative_path, $aggregate_path))" />
-                <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_path, 0)" />
-
-                <xsl:if test="position() = last()">
-                    <xsl:value-of select="o:nl(1)" />
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
-        <xsl:if test="$build_module_library">
-            <!-- Include re_path -->
-            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
-
-            <xsl:variable name="required_source_dir" select="o:join_paths(($source_dir_var, $relative_path))" />
-            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_source_dir, 0)" />
-            <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
-
-            <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
-            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $binary_dir_var, 0)" />
-
-            
-
-            <xsl:variable name="aggregates_to_binary_include" as="element()*">
-                <xsl:if test="cdit:middleware_uses_protobuf($middleware)">
-                    <!-- ProtoBuf using middlewares need to include the protobuf binary directory 1-->
-                    <xsl:sequence select="$aggregate" />
-                </xsl:if>
-                <!-- use all required_aggregates -->
-                <xsl:sequence select="$required_aggregates" />
-            </xsl:variable>
-
-            <!-- Include the generated code folders for all required_aggregates -->
-            <xsl:for-each select="$aggregates_to_binary_include">
-                <xsl:if test="position() = 1">
-                    <xsl:value-of select="cmake:comment(('Include binary directory of each required aggregate so it can be used by the middleware compilers'), 0)" />
-                </xsl:if>
-
-                <xsl:variable name="relative_path">
-                    <xsl:choose>
-                        <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                            <!-- ProtoBuf using middlewares need to navigate back up to the top level datetype folder -->
-                            <xsl:value-of select="cmake:get_relative_path(('proto', $aggregate_namespace, $aggregate_label))" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- Other middlewares don't need to look outside their middleware folders -->
-                            <xsl:value-of select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-
-                <xsl:variable name="aggregate_path">
-                    <xsl:choose>
-                        <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                            <!-- ProtoBuf using middlewares need to navigate back up to the top level datetype folder -->
-                            <xsl:value-of select="o:join_paths(('proto', cdit:get_aggregates_path(.)))" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- Other middlewares don't need to look outside their middleware folders -->
-                            <xsl:value-of select="cdit:get_aggregates_path(.)" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                
-                <xsl:variable name="required_path" select="o:join_paths(($binary_dir_var, $relative_path, $aggregate_path))" />
-                <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
-
-                <xsl:if test="position() = last()">
-                    <xsl:value-of select="o:nl(1)" />
-                </xsl:if>
-            </xsl:for-each>
-
-            
-
-            <xsl:value-of select="cmake:target_link_middleware_libraries('PROJ_NAME', $middleware, 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($middleware_helper_library), 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $shared_lib_name, 0)" />
-    
-            
-            <xsl:value-of select="o:nl(1)" />
-        </xsl:if>
-    </xsl:function>
 
     <xsl:function name="cdit:get_aggregate_base_h">
         <xsl:param name="aggregate" as="element()" />
@@ -776,46 +525,30 @@
 
     
 
-    <xsl:function name="cdit:get_port_export">
+    <xsl:function name="cdit:get_port_pubsub_export">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
-
         <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="datatype_middleware" select="cdit:get_datatype_middleware($middleware)" />
         
 
         <!-- Preamble -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_port_export', 0)" />
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_port_pubsub_export', 0)" />
         
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'libportexport.h')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'libportexport.h')))" />
         <xsl:value-of select="o:nl(1)" />
         <!-- TODO -->
 
-         <!-- Include the base message type -->
+        <!-- Include the base message type -->
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
-
-        <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
-
-        <xsl:choose>
-            <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, 'proto'))" />
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- Include the middleware specific header -->
-                <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path('proto', $aggregate))" />
         <xsl:value-of select="o:nl(1)" />
 
-        
-
-        
-        
-
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'ineventport.hpp')))" />
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'outeventport.hpp')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'pubsub', 'publisherport.hpp')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'pubsub', 'subscriberport.hpp')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
@@ -825,17 +558,121 @@
         <xsl:variable name="func_args" select="cpp:join_args((cpp:const_ref_var_def('std::string', 'port_name'), cpp:declare_variable(cpp:weak_ptr('Component'), 'component', '', 0)))" />
 
 
-        <xsl:variable name="inport_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'InEventPort')), $port_type)" />
-        <xsl:variable name="outport_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'OutEventPort')), $port_type)" />
+        <xsl:variable name="subscriber_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'SubscriberPort')), $port_type)" />
+        <xsl:variable name="publisher_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'PublisherPort')), $port_type)" />
 
-        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('EventPort', ''), '', 'ConstructInEventPort', $func_args, cpp:scope_start(0))" />
-        <xsl:variable name="inport_func" select="cpp:invoke_templated_static_function($inport_type, 'ConstructInEventPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Port', ''), '', 'ConstructSubscriberPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="inport_func" select="cpp:invoke_templated_static_function($subscriber_port_type, 'ConstructSubscriberPort', cpp:join_args(('port_name', 'component')), '', 0)" />
         <xsl:value-of select="cpp:return($inport_func, 1)" />
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('EventPort', ''), '', 'ConstructOutEventPort', $func_args, cpp:scope_start(0))" />
-        <xsl:variable name="outport_func" select="cpp:invoke_templated_static_function($outport_type, 'ConstructOutEventPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Port', ''), '', 'ConstructPublisherPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="outport_func" select="cpp:invoke_templated_static_function($publisher_port_type, 'ConstructPublisherPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:return($outport_func, 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_server_interface_request_aggregates">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'InputParameterGroup')" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_server_interface_reply_aggregates">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'InputParameterGroup')" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_port_requestreply_export">
+        <xsl:param name="server_interface" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        
+        <xsl:variable name="datatype_middleware" select="cdit:get_datatype_middleware($middleware)" />
+
+        <xsl:variable name="server_label" select="lower-case(graphml:get_label($server_interface))" />
+        <xsl:variable name="server_namespace" select="graphml:get_namespace($server_interface)" />
+
+        <xsl:variable name="server_requests" select="cdit:get_server_interface_request_aggregates($server_interface)" />
+        <xsl:variable name="server_replies" select="cdit:get_server_interface_reply_aggregates($server_interface)" />
+
+        <xsl:variable name="aggregate_instances" select="graphml:get_definitions(($server_requests, $server_replies))" />
+
+        
+        <!-- Preamble -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_port_requestreply_export', 0)" />
+        
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'libportexport.h')))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        
+        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate_instances)" />
+        
+        <xsl:for-each select="$aggregate_instances">
+            <!-- Include the base message types -->
+            <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path($datatype_middleware, .))" />
+        </xsl:for-each>
+
+        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'requestreply', 'requesterport.hpp')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'requestreply', 'replierport.hpp')))" />
+        <xsl:value-of select="o:nl(1)" />
+
+         <!--
+        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        $base_type, $middleware_type))" /> -->
+        
+        <xsl:variable name="port_types" as="xs:string*">
+            <xsl:choose>
+                <xsl:when test="count($server_replies) = 1">
+                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_replies[1], 'base')" />
+                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_replies[1], $datatype_middleware)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="'void'" />
+                    <xsl:sequence select="'void'" />
+                </xsl:otherwise>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="count($server_requests) = 1">
+                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_requests[1], 'base')" />
+                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_requests[1], $datatype_middleware)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="'void'" />
+                    <xsl:sequence select="'void'" />
+                </xsl:otherwise>
+            </xsl:choose>
+            
+            <!-- DO EXTRA -->
+            <xsl:if test="$datatype_middleware = 'tao'">
+
+            </xsl:if>
+        </xsl:variable>
+
+
+        <xsl:variable name="port_type" select="cpp:join_args($port_types)" />
+        <xsl:variable name="func_args" select="cpp:join_args((cpp:const_ref_var_def('std::string', 'port_name'), cpp:declare_variable(cpp:weak_ptr('Component'), 'component', '', 0)))" />
+
+
+        <xsl:variable name="requester_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'RequesterPort')), $port_type)" />
+        <xsl:variable name="replier_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'ReplierPort')), $port_type)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Port', ''), '', 'ConstructRequesterPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="inport_func" select="cpp:invoke_templated_static_function($requester_port_type, 'ConstructRequesterPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:return($inport_func, 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Port', ''), '', 'ConstructReplierPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="outport_func" select="cpp:invoke_templated_static_function($replier_port_type, 'ConstructReplierPort', cpp:join_args(('port_name', 'component')), '', 0)" />
         <xsl:value-of select="cpp:return($outport_func, 1)" />
         <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
@@ -883,7 +720,7 @@
         <xsl:variable name="aggregate_h" select="concat(lower-case($aggregate_label), '.h')" />
         <xsl:variable name="aggregate_cpp" select="concat(lower-case($aggregate_label), '.cpp')" />
 
-        <xsl:variable name="shared_lib_name" select="cmake:get_aggregates_middleware_shared_library_name($aggregate, 'base')" />
+        <xsl:variable name="shared_lib_name" select="cmake:get_aggregate_shared_library_name($aggregate, 'base')" />
         <xsl:variable name="proj_name" select="$shared_lib_name" />
 
         <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />
@@ -898,7 +735,7 @@
         <!-- Find re_core -->
         <xsl:value-of select="cmake:find_re_core_library()" />
 
-         <!-- Set Source files -->
+        <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
         <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $aggregate_cpp)), o:nl(1))" />
         <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
@@ -914,29 +751,21 @@
         <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'SHARED', $args)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(('ports', 'datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
+
             
-        
-
-
-        <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
-
-        <xsl:value-of select="cmake:comment('Link against runtime environment', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'PROJ_NAME')" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, true())" />
-
-        
-        <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'PROJ_NAME')" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
 
         <!-- Include the required aggregate files -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="cdit:get_required_aggregates($aggregate, true())">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment('Link against required aggregates libraries', 0)" />
             </xsl:if>
-            <xsl:variable name="required_lib_name" select="cmake:get_aggregates_middleware_shared_library_name(., 'base')" />
+            <xsl:variable name="required_lib_name" select="cmake:get_aggregate_shared_library_name(., 'base')" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $required_lib_name, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -960,13 +789,13 @@
         <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_datatypes_cmake">
-        <xsl:param name="middlewares" as="xs:string*" />
+    <xsl:function name="cdit:get_directories_cmake">
+        <xsl:param name="folders" as="xs:string*" />
 
         <!-- Version Number -->
-        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_datatypes_cmake', 0)" />
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_directories_cmake', 0)" />
 
-        <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
+        <xsl:value-of select="cmake:add_subdirectories($folders)" />
     </xsl:function>
     
 

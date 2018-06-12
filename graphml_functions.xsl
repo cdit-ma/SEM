@@ -177,9 +177,9 @@
         Gets the child nodes of the node provided. Sorted by 'index'
     -->
     <xsl:function name="graphml:get_child_nodes" as="element(gml:node)*">
-        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="nodes" as="element(gml:node)*" />
 
-        <xsl:for-each select="$node/gml:graph/gml:node">
+        <xsl:for-each select="$nodes/gml:graph/gml:node">
             <!-- Sort by the index -->
             <xsl:sort select="graphml:get_index(.)"/>
             <xsl:sequence select="." />
@@ -190,11 +190,13 @@
         Gets child nodes of the node of the node provided, of a particular 'kind'(s). Sorted by 'index'
     -->
     <xsl:function name="graphml:get_child_nodes_of_kind" as="element(gml:node)*">
-        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="nodes" as="element(gml:node)*" />
         <xsl:param name="kind" as="xs:string*" />
 
-        <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
-        <xsl:sequence select="graphml:get_child_nodes($node)/gml:data[@key=$kind_id and text() = $kind]/.." />
+        <xsl:if test="count($nodes)">
+            <xsl:variable name="kind_id" select="graphml:get_key_id($nodes[1], 'kind')" />
+            <xsl:sequence select="graphml:get_child_nodes($nodes)/gml:data[@key=$kind_id and text() = $kind]/.." />
+        </xsl:if>
     </xsl:function>
 
     <!--
@@ -474,6 +476,24 @@
                 <xsl:sequence select="graphml:get_label(.)" />
             </xsl:if>
         </xsl:for-each>
+    </xsl:function>
+
+    <!--
+        Checks to see if the entity is deployed
+    -->
+    <xsl:function name="graphml:is_deployed" as="xs:boolean">
+        <xsl:param name="entity" as="element(gml:node)" />
+        
+        <xsl:variable name="deployed_nodes" select="graphml:get_targets($entity, 'Edge_Deployment')" />
+        <xsl:variable name="parent_deployed_nodes" as="element()*">
+            <xsl:for-each select="graphml:get_ancestor_nodes_of_kind($entity, 'ComponentAssembly')">
+                <xsl:for-each select="graphml:get_targets(., 'Edge_Deployment')">
+                    <xsl:sequence select="." />
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="count(($deployed_nodes, $parent_deployed_nodes)) > 0" />
     </xsl:function>
 
    

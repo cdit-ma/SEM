@@ -18,7 +18,7 @@
     <xsl:import href="component_functions.xsl"/>
 
     <xsl:import href="general_functions.xsl"/>
-    <xsl:import href="tao_functions.xsl"/>
+    <!--<xsl:import href="tao_functions.xsl"/>-->
     <xsl:import href="cpp_functions.xsl"/>
     <xsl:import href="cmake_functions.xsl"/>
     <xsl:import href="graphml_functions.xsl"/>
@@ -37,116 +37,165 @@
 
         <xsl:variable name="parsed_middlewares" select="cdit:get_deployed_middlewares($model, $sparse)" as="xs:string*" />
 
-        <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
+        <xsl:variable name="deployed_port_instances" select="cdit:get_deployed_port_instances($model)" />
         
-        <xsl:variable name="output_path" select="'datatypes'" />
+        <xsl:variable name="output_path" select="'ports'" />
+        <xsl:variable name="datatype_path" select="o:join_paths(($output_path, 'datatypes'))" />
+
 
         <!-- Itterate through all middlewares-->
         <xsl:for-each select="$parsed_middlewares">
             <xsl:variable name="middleware" select="lower-case(.)" />
-            <xsl:variable name="middleware_path" select="o:join_paths(($output_path, $middleware))" />
             <xsl:value-of select="o:message(('Generating Middleware:', o:wrap_quote($middleware)))" />
 
-            <xsl:variable name="required_middleware_aggregates" select="cdit:get_required_aggregates_for_middleware($model, $middleware)" />
-            
-            <xsl:for-each select="$required_middleware_aggregates">
-                <xsl:variable name="aggregate" select="." />
+            <xsl:variable name="datatype_aggregates" select="cdit:get_required_aggregates_for_middleware($model, $middleware)" />
+            <xsl:variable name="pubsub_aggregates" select="cdit:get_required_pubsub_aggregates_for_middleware($model, $middleware)" />
+            <xsl:variable name="server_interfaces" select="cdit:get_required_serverinterfaces_for_middleware($model, $middleware)" />
 
-                <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-                <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+            <!-- Generate the Shared Library translate/middleware classes -->
+            <xsl:if test="cdit:build_shared_library($middleware)">
+                <xsl:for-each select="$datatype_aggregates">
+                    <xsl:variable name="aggregate" select="." />
+                    
+                    <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+                    <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+                    <xsl:variable name="aggregate_path" select="cdit:get_aggregate_path($middleware, .)" />
                 
-                <xsl:variable name="aggregate_path" select="cdit:get_aggregate_path($middleware, .)" />
-                
-                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($qualified_type)) )" />
+                    <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($qualified_type)) )" />
 
-                <!-- Generate the Shared Library translate/middleware classes -->
-                <xsl:if test="cdit:build_shared_library($middleware)">
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translator.cpp'))}">
-                        <xsl:value-of select="cdit:get_translator_cpp($aggregate, $middleware)" />
-                    </xsl:result-document>
+                    <xsl:if test="$middleware != 'base'">
+                        <xsl:result-document href="{o:write_file(($aggregate_path, 'translator.cpp'))}">
+                            <xsl:value-of select="cdit:get_translator_cpp($aggregate, $middleware)" />
+                        </xsl:result-document>
 
-                    <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
-                        <xsl:variable name="proto_file" select="concat($file_label, '.proto')" />
-                        <xsl:result-document href="{o:write_file(($aggregate_path, $proto_file))}">
-                            <xsl:value-of select="cdit:get_proto_file($aggregate)" />
+                        <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
+                            <xsl:variable name="proto_file" select="concat($file_label, '.proto')" />
+                            <xsl:result-document href="{o:write_file(($aggregate_path, $proto_file))}">
+                                <xsl:value-of select="cdit:get_proto_file($aggregate)" />
+                            </xsl:result-document>
+                        </xsl:if>
+
+                        <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
+                            <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
+                            <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
+                                <xsl:value-of select="cdit:get_idl_datatype($aggregate, $middleware)" />
+                            </xsl:result-document>
+                        </xsl:if>
+
+                        <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
+                            <xsl:value-of select="cdit:get_datatype_cmake($aggregate, $middleware)" />
                         </xsl:result-document>
                     </xsl:if>
 
-                    <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
-                        <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
-                        <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
-                            <xsl:value-of select="cdit:get_idl_datatype($aggregate, $middleware)" />
+                    <!-- Generate the Base representation for the Aggregate -->
+                    <xsl:if test="$middleware = 'base'">
+                        <xsl:variable name="base_h" select="concat($file_label, '.h')" />
+                        <xsl:variable name="base_cpp" select="concat($file_label, '.cpp')" />
+
+                        <xsl:result-document href="{o:write_file(($aggregate_path, $base_h))}">
+                            <xsl:value-of select="cdit:get_aggregate_base_h($aggregate)" />
+                        </xsl:result-document>
+
+                        <xsl:result-document href="{o:write_file(($aggregate_path, $base_cpp))}">
+                            <xsl:value-of select="cdit:get_aggregate_base_cpp($aggregate)" />
+                        </xsl:result-document>
+
+                        <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
+                            <xsl:value-of select="cdit:get_aggregate_base_cmake($aggregate)" />
                         </xsl:result-document>
                     </xsl:if>
-                </xsl:if>
-
-                <xsl:if test="$middleware = 'tao'">
-                    <xsl:for-each-group select="cdit:get_eventports_for_aggregate($aggregate)" group-by="cdit:get_tao_eventport_path(., $aggregate_path)">
-                        <xsl:variable name="eventport" select="." />
-                        <xsl:variable name="tao_aggregate_path" select="current-grouping-key()" />
-
-                        <xsl:variable name="idl_interface_name" select="lower-case(graphml:get_data_value($eventport, 'idl_interface_name'))" />
-
-                        <xsl:variable name="idl_function_file" select="concat($file_label, '_functions.idl')" />
-                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, $idl_function_file))}">
-                            <xsl:value-of select="cdit:get_tao_idl_function($aggregate, $middleware)" />
-                        </xsl:result-document>
-
-                        <xsl:variable name="idl_impl_file" select="concat($idl_interface_name, 'impl.hpp')" />
-                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, $idl_impl_file))}">
-                            <xsl:value-of select="cdit:get_tao_port_impl_hpp($eventport, $aggregate)" />
-                        </xsl:result-document>
-
-                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, 'libportexport.cpp'))}">
-                            <xsl:value-of select="cdit:get_tao_port_export($eventport, $aggregate, $middleware)" />
-                        </xsl:result-document>
-
-                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, cmake:cmake_file()))}">
-                            <xsl:value-of select="cdit:get_tao_translate_cmake($eventport, $aggregate, $middleware)" />
-                        </xsl:result-document>
-                    </xsl:for-each-group>
-                </xsl:if>
+                </xsl:for-each>
                 
+                <!-- Generate the middleware CMakeFile -->
+                <xsl:result-document href="{o:write_file((('ports', 'datatypes', $middleware), cmake:cmake_file()))}">
+                    <xsl:value-of select="cdit:get_middleware_cmake($datatype_aggregates)" />
+                </xsl:result-document>
+            </xsl:if>
 
-
-                <!-- Generate the Module(dll) port export class-->
-                <xsl:if test="cdit:build_module_library($middleware)">
+            <!-- Generate the Pub/Sub Ports -->
+            <xsl:if test="cdit:build_module_library($middleware)">
+                <xsl:for-each select="$pubsub_aggregates">
+                    <xsl:variable name="aggregate" select="." />
+                    <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+                    <xsl:variable name="aggregate_path" select="cdit:get_pubsub_path($middleware, $aggregate)" />
+                    <xsl:value-of select="o:message(('Generating Pub/Sub Port:', o:wrap_quote($qualified_type)) )" />
+                
+                    <!-- Generate the Module(dll) port export class-->
                     <xsl:result-document href="{o:write_file(($aggregate_path, 'libportexport.cpp'))}">
-                        <xsl:value-of select="cdit:get_port_export($aggregate, $middleware)" />
-                    </xsl:result-document>
-                </xsl:if>
-
-                <!-- Generate the CMake file for this middleware's aggregate implementation -->
-                <xsl:if test="cdit:build_module_library($middleware) or cdit:build_shared_library($middleware)">
-                    <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
-                        <xsl:value-of select="cdit:get_translate_cmake($aggregate, $middleware)" />
-                    </xsl:result-document>
-                </xsl:if>
-
-                <!-- Generate the Base representation for the aggregate -->
-                <xsl:if test="$middleware = 'base'">
-                    <xsl:variable name="base_h" select="concat($file_label, '.h')" />
-                    <xsl:variable name="base_cpp" select="concat($file_label, '.cpp')" />
-
-                    <xsl:result-document href="{o:write_file(($aggregate_path, $base_h))}">
-                        <xsl:value-of select="cdit:get_aggregate_base_h($aggregate)" />
-                    </xsl:result-document>
-
-                    <xsl:result-document href="{o:write_file(($aggregate_path, $base_cpp))}">
-                        <xsl:value-of select="cdit:get_aggregate_base_cpp($aggregate)" />
+                        <xsl:value-of select="cdit:get_port_pubsub_export($aggregate, $middleware)" />
                     </xsl:result-document>
 
                     <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
-                        <xsl:value-of select="cdit:get_aggregate_base_cmake($aggregate)" />
+                        <xsl:value-of select="cdit:get_pubsub_cmake($aggregate, $middleware)" />
                     </xsl:result-document>
-                </xsl:if>
-            </xsl:for-each>
-            
-            <!-- Generate the middleware CMakeFile -->
-            <xsl:result-document href="{o:write_file(($middleware_path, cmake:cmake_file()))}">
-                <xsl:value-of select="cdit:get_middleware_cmake($required_middleware_aggregates)" />
-            </xsl:result-document>
+                </xsl:for-each>
+
+                <!-- Generate the middleware CMakeFile -->
+                <xsl:result-document href="{o:write_file((('ports', 'pubsub', $middleware), cmake:cmake_file()))}">
+                    <xsl:value-of select="cdit:get_middleware_cmake($pubsub_aggregates)" />
+                </xsl:result-document>
+            </xsl:if>
+
+            <!-- Generate the Request/Reply Ports -->
+            <xsl:if test="cdit:build_module_library($middleware)">
+                <xsl:for-each select="$server_interfaces">
+                    <xsl:variable name="server_interface" select="." />
+                    <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($server_interface, $middleware)" />
+                    <xsl:variable name="reqrep_path" select="cdit:get_reqrep_path($middleware, $server_interface)" />
+                    <xsl:value-of select="o:message(('Generating Req/Rep Port:', o:wrap_quote($qualified_type)) )" />
+
+                    <!-- Generate the Module(dll) port export class-->
+                    <xsl:result-document href="{o:write_file(($reqrep_path, 'libportexport.cpp'))}">
+                        <xsl:value-of select="cdit:get_port_requestreply_export($server_interface, $middleware)" />
+                    </xsl:result-document>
+
+                    <xsl:result-document href="{o:write_file(($reqrep_path, cmake:cmake_file()))}">
+                        <xsl:value-of select="cdit:get_requestreply_cmake($server_interface, $middleware)" />
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <!-- Generate the middleware CMakeFile -->
+                <xsl:result-document href="{o:write_file((('ports', 'requestreply', $middleware), cmake:cmake_file()))}">
+                    <xsl:value-of select="cdit:get_middleware_cmake($server_interfaces)" />
+                </xsl:result-document>
+            </xsl:if>
         </xsl:for-each>
+
+        <!-- Generate the middleware CMakeFile -->
+        <xsl:result-document href="{o:write_file((('ports', 'datatypes'), cmake:cmake_file()))}">
+            <xsl:variable name="datatype_middlewares" as="xs:string*">
+                <xsl:for-each select="$parsed_middlewares">
+                    <xsl:if test="cdit:build_shared_library(.)">
+                        <xsl:sequence select="." />
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:variable>
+            <xsl:value-of select="cdit:get_directories_cmake($datatype_middlewares)" />
+        </xsl:result-document>
+
+
+        <!-- Generate the middleware CMakeFile -->
+        <xsl:result-document href="{o:write_file((('ports', 'pubsub'), cmake:cmake_file()))}">
+            <xsl:variable name="pubsub_middlewares" as="xs:string*">
+                <xsl:for-each select="$parsed_middlewares">
+                    <xsl:if test="cdit:build_module_library(.)">
+                        <xsl:sequence select="." />
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:variable>
+            <xsl:value-of select="cdit:get_directories_cmake($pubsub_middlewares)" />
+        </xsl:result-document>
+
+        <xsl:result-document href="{o:write_file((('ports', 'requestreply'), cmake:cmake_file()))}">
+            <xsl:variable name="reqrep_middlewares" as="xs:string*">
+                <xsl:for-each select="$parsed_middlewares">
+                    <xsl:if test="cdit:build_module_library(.)">
+                        <xsl:sequence select="." />
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:variable>
+            <xsl:value-of select="cdit:get_directories_cmake($reqrep_middlewares)" />
+        </xsl:result-document>
 
         <xsl:value-of select="o:message(('Generating Enums'))" />
 
@@ -161,7 +210,7 @@
 
         <!-- Generate the datatypes CMakeFile -->
         <xsl:result-document href="{o:write_file(($output_path, cmake:cmake_file()))}">
-            <xsl:value-of select="cdit:get_datatypes_cmake($parsed_middlewares)" />
+            <xsl:value-of select="cdit:get_directories_cmake(('datatypes', 'pubsub', 'requestreply'))" />
         </xsl:result-document>
 
         <!-- Generate the top level cmake file -->

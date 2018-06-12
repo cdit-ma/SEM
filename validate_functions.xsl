@@ -282,7 +282,7 @@
 
         <xsl:variable name="results">
             <xsl:for-each select="$component_impls">
-                <xsl:variable name="outeventportimpls" select="graphml:get_descendant_nodes_of_kind(., ('OutEventPortImpl'))" />
+                <xsl:variable name="outeventportimpls" select="graphml:get_descendant_nodes_of_kind(., ('PublisherPortImpl'))" />
                     
                 <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter'))" />
                 <xsl:variable name="out_members" select="graphml:get_descendant_nodes($outeventportimpls)" />
@@ -301,7 +301,7 @@
 
                     <xsl:variable name="is_valid_kind" select="($kind = 'AggregateInstance' or $kind = 'VectorInstance' or $kind = 'Vector') = false()"/>
                     <xsl:variable name="in_vector" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
-                    <xsl:variable name="in_outevent" select="count(graphml:get_ancestor_nodes_of_kind(., ('OutEventPortImpl'))) > 0"/>
+                    <xsl:variable name="in_outevent" select="count(graphml:get_ancestor_nodes_of_kind(., ('PublisherPortImpl'))) > 0"/>
                     
                     <!-- Don't want to check inside vectors, as they do not need data -->
                     <xsl:if test="$is_valid_kind and $in_vector = false()">
@@ -333,7 +333,7 @@
                     <xsl:variable name="label" select="graphml:get_label(.)" />
                     <xsl:variable name="kind" select="graphml:get_kind(.)" />
                     
-                    <xsl:variable name="ignored_kinds" select="('PeriodicEvent', 'InEventPortImpl', 'Variable', 'AttributeImpl', 'Header')" />
+                    <xsl:variable name="ignored_kinds" select="('PeriodicPort', 'SubscriberPortImpl', 'Variable', 'AttributeImpl', 'Header')" />
 
                     <!-- Check if the $kind is to be ignored -->
                     <xsl:variable name="ignored" select="$kind = $ignored_kinds" />
@@ -477,7 +477,7 @@
     <xsl:function name="cdit:test_eventport_delegates">
         <xsl:param name="model" as="element(gml:node)"/>
 
-        <xsl:variable name="delegates" select="graphml:get_descendant_nodes_of_kind($model, ('InEventPortDelegate', 'OutEventPortDelegate'))" />
+        <xsl:variable name="delegates" select="graphml:get_descendant_nodes_of_kind($model, ('SubscriberPortDelegate', 'PublisherPortDelegate'))" />
 
         <xsl:variable name="results">
             <xsl:for-each select="$delegates">
@@ -485,7 +485,7 @@
                 <xsl:variable name="label" select="graphml:get_label(.)" />
 
                 <xsl:variable name="port_aggregate_targets" select="graphml:get_targets(., 'Edge_Aggregate')" />
-                <xsl:value-of select="cdit:output_result($id, count($port_aggregate_targets) = 1, o:join_list(('EventPortDelegate', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, count($port_aggregate_targets) = 1, o:join_list(('PortDelegate', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
         
@@ -495,7 +495,7 @@
     <xsl:function name="cdit:test_eventport_instances">
         <xsl:param name="model" as="element(gml:node)"/>
 
-        <xsl:variable name="instances" select="graphml:get_descendant_nodes_of_kind($model, ('InEventPortInstance', 'OutEventPortInstance'))" />
+        <xsl:variable name="instances" select="graphml:get_descendant_nodes_of_kind($model, ('SubscriberPortInstance', 'PublisherPortInstance'))" />
 
         <xsl:variable name="results">
             <xsl:for-each select="$instances">
@@ -519,7 +519,7 @@
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:value-of select="cdit:output_test('EventPortInstances established correctly', $results, 1)" />
+        <xsl:value-of select="cdit:output_test('PortInstances established correctly', $results, 1)" />
     </xsl:function>
 
     
@@ -530,7 +530,7 @@
 
         <xsl:variable name="results">
             <xsl:for-each select="$components">
-                <xsl:variable name="eventports" select="graphml:get_descendant_nodes_of_kind(., ('InEventPort', 'OutEventPort'))" />
+                <xsl:variable name="eventports" select="graphml:get_descendant_nodes_of_kind(., ('SubscriberPort', 'PublisherPort'))" />
                 
                 <xsl:for-each select="$eventports">
                     <xsl:variable name="id" select="graphml:get_id(.)" />
@@ -546,13 +546,13 @@
                             <!-- Compare the Definition ID of the Aggregate contained in the EventPort to the Aggregate the EventPort is connected to via Edge_Aggregate -->
                             <xsl:variable name="aggregate_def" select="graphml:get_definition($aggregates[1])" />
 
-                            <xsl:value-of select="cdit:output_result($id, $aggregate_def = $linked_aggregates[1], o:join_list(('EventPort', o:wrap_quote($label), 'is connected to an Aggregate different to the AggregateInstance it contains'), ' '), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, $aggregate_def = $linked_aggregates[1], o:join_list(('Port', o:wrap_quote($label), 'is connected to an Aggregate different to the AggregateInstance it contains'), ' '), false(), 2)" />        
                         </xsl:when>
                         <xsl:when test="count($linked_aggregates) = 0">
-                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('EventPort', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('Port', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
                         </xsl:when>
                         <xsl:when test="count($aggregates) = 0">
-                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('EventPort', o:wrap_quote($label), 'does not contain an instance of an Aggregate'), ' '), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('Port', o:wrap_quote($label), 'does not contain an instance of an Aggregate'), ' '), false(), 2)" />        
                         </xsl:when>
                     </xsl:choose>
                 </xsl:for-each>
@@ -568,7 +568,7 @@
 
         <xsl:variable name="results">
             <xsl:for-each select="$component_instances">
-                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'OutEventPortInstance')">
+                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'PublisherPortInstance')">
                     <xsl:variable name="src" select="." />
                     <xsl:variable name="src_id" select="graphml:get_id($src)" />
                     <xsl:variable name="src_label" select="graphml:get_label($src)" />
@@ -590,7 +590,7 @@
                         <xsl:variable name="dst_middleware" select="graphml:get_data_value($dst, 'middleware')" />
                         <xsl:variable name="dst_topic" select="graphml:get_data_value($dst, 'topicName')" />
                         
-                        <xsl:if test="$dst_kind = 'InEventPortInstance'">
+                        <xsl:if test="$dst_kind = 'SubscriberPortInstance'">
                             <xsl:variable name="match_middleware" select="cdit:middlewares_match($src_middleware, $dst_middleware)" />
                             
                             <xsl:if test="$requires_topic">
@@ -646,7 +646,7 @@
     </xsl:function>
 
     <xsl:function name="cdit:get_re_reserved_words" as="xs:string*">
-        <xsl:sequence select="('Aggregate', 'Component', 'BaseMessage', 'Activatable', 'Attribute', 'ModelLogger', 'Worker', 'InEventPort', 'OutEventPort')" />
+        <xsl:sequence select="('Aggregate', 'Component', 'BaseMessage', 'Activatable', 'Attribute', 'ModelLogger', 'Worker', 'SubscriberPort', 'PublisherPort')" />
     </xsl:function>
     
     <xsl:function name="cdit:test_invalid_label">
@@ -738,7 +738,7 @@
         <xsl:param name="model" as="element(gml:node)*"/>
 
         <xsl:variable name="component_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
-        <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('OutEventPortInstance', 'InEventPortInstance'))" />
+        <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('PublisherPortInstance', 'SubscriberPortInstance'))" />
         
         <xsl:value-of select="cdit:test_assembly_connections($component_instances)" />
         <xsl:value-of select="cdit:test_eventport_instances($model)" />

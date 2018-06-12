@@ -242,7 +242,9 @@
         <xsl:param name="sub_directories" as="xs:string*"/>
 
         <xsl:for-each select="$sub_directories">
-            <xsl:value-of select="cmake:add_subdirectory(o:join_paths((cmake:current_source_dir_var(), .)))" />
+            <xsl:if test=". != ''">
+                <xsl:value-of select="cmake:add_subdirectory(o:join_paths((cmake:current_source_dir_var(), .)))" />
+            </xsl:if>
         </xsl:for-each>
     </xsl:function>
 

@@ -36,7 +36,7 @@
 
         <xsl:variable name="return_parameter">
             <xsl:choose>
-                <xsl:when test="$kind = 'InEventPortImpl' or $kind = 'PeriodicEvent'">
+                <xsl:when test="$kind = 'SubscriberPortImpl' or $kind = 'PeriodicPort'">
                     <xsl:value-of select="cpp:void()" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Function'">
@@ -50,11 +50,11 @@
 
         <xsl:variable name="input_parameters">
             <xsl:choose>
-                <xsl:when test="$kind = 'InEventPortImpl'">
+                <xsl:when test="$kind = 'SubscriberPortImpl'">
                     <xsl:variable name="parameter_type" select="cpp:get_qualified_type(graphml:get_port_aggregate($entity))" />
                     <xsl:value-of select="cpp:ref_var_def($parameter_type, 'm')" />
                 </xsl:when>
-                <xsl:when test="$kind = 'PeriodicEvent'">
+                <xsl:when test="$kind = 'PeriodicPort'">
                     <xsl:value-of select="''" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Function'">
@@ -168,8 +168,8 @@
         <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component, true())" />
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'InEventPort')" />
-        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'OutEventPort')" />
+        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
+        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
         <xsl:variable name="attributes" select="graphml:get_child_nodes_of_kind($component, 'Attribute')" />
 
         <!-- Preamble -->
@@ -181,15 +181,15 @@
         <!-- Include the Component header -->
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'component.h')))" />
         
-        <!-- Conditionally include the InEventPort header -->
+        <!-- Conditionally include the Subscriber Port header -->
         <xsl:if test="count($in_ports) > 0">
-            <xsl:variable name="header_file" select="o:join_paths(('core', 'eventports', 'ineventport.hpp'))" />
+            <xsl:variable name="header_file" select="o:join_paths(('core', 'ports', 'pubsub', 'subscriberport.hpp'))" />
             <xsl:value-of select="cpp:include_library_header($header_file)" />
         </xsl:if>
         
-        <!-- Conditionally include outeventport header -->
+        <!-- Conditionally include Publisher Port header -->
         <xsl:if test="count($out_ports) > 0">
-            <xsl:variable name="header_file" select="o:join_paths(('core', 'eventports', 'outeventport.hpp'))" />
+            <xsl:variable name="header_file" select="o:join_paths(('core', 'ports','pubsub', 'publisherport.hpp'))" />
             <xsl:value-of select="cpp:include_library_header($header_file)" />
         </xsl:if>
 
@@ -267,8 +267,8 @@
         <xsl:variable name="qualified_class_type" select="cpp:combine_namespaces(($namespaces, $class_type))" />
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'InEventPort')" />
-        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'OutEventPort')" />
+        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
+        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
         <xsl:variable name="attributes" select="graphml:get_child_nodes_of_kind($component, 'Attribute')" />
 
         <!-- Preamble -->
@@ -317,13 +317,13 @@
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
-            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('OutEventPort', $port_type), 'GetTypedEventPort', o:wrap_dblquote($port_label), '', 0) " />
+            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('PublisherPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
 
-            <!-- Define the tx function -->
+            <!-- Define the Send function -->
             <xsl:value-of select="cpp:define_function('bool', $qualified_class_type, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), 'p', $get_port, cpp:nl(), $tab + 1)" />
                 <xsl:value-of select="cpp:if('p', cpp:scope_start(0), $tab + 1)" />
-                    <xsl:value-of select="cpp:invoke_function('p', cpp:arrow(), 'tx', 'm', $tab + 2)" />
+                    <xsl:value-of select="cpp:invoke_function('p', cpp:arrow(), 'Send', 'm', $tab + 2)" />
                     <xsl:value-of select="cpp:nl()" />
                     <xsl:value-of select="cpp:return('true', $tab + 2)" />
                 <xsl:value-of select="cpp:scope_end($tab + 1)" />
@@ -369,8 +369,8 @@
         <xsl:variable name="enums" select="cdit:get_required_enums($component_impl)" />
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicEvent')" />
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'InEventPortImpl')" />
+        <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicPort')" />
+        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
         <xsl:variable name="worker_instances" select="graphml:get_worker_instances($component_impl)" />
@@ -739,8 +739,8 @@
 
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicEvent')" />
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'InEventPortImpl')" />
+        <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicPort')" />
+        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
         <xsl:variable name="worker_instances" select="graphml:get_worker_instances($component_impl)" />
         <xsl:variable name="custom_class_instances" select="graphml:get_custom_class_instances($component_impl)" />
@@ -1476,7 +1476,7 @@
                 </xsl:when>
                 <xsl:when test="$kind= 'AggregateInstance'">
                      <xsl:choose>
-                        <xsl:when test="$parent_kind = 'OutEventPortImpl'">
+                        <xsl:when test="$parent_kind = 'PublisherPortImpl'">
                             <!-- We have defined a variable based on the Top Level Aggregate -->
                             <xsl:value-of select="cdit:get_variable_name($node)" />
                         </xsl:when>
@@ -1484,7 +1484,7 @@
                             <!-- We have defined a variable based on the Top Level Aggregate -->
                             <xsl:value-of select="graphml:get_label($node)" />
                         </xsl:when>
-                        <xsl:when test="$parent_kind = 'InEventPortImpl'" />
+                        <xsl:when test="$parent_kind = 'SubscriberPortImpl'" />
                         <xsl:when test="$parent_kind = 'Variable'" />
                         <xsl:otherwise>
                             <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
@@ -1513,7 +1513,7 @@
                 <xsl:when test="$kind = 'ReturnParameter'">
                     <xsl:value-of select="cdit:get_variable_name($node)" />
                 </xsl:when>
-                <xsl:when test="$kind = 'InEventPortImpl'">
+                <xsl:when test="$kind = 'SubscriberPortImpl'">
                     <xsl:value-of select="'m'" />
                 </xsl:when>
                 <xsl:otherwise>
@@ -1647,7 +1647,7 @@
         </xsl:if>
         
         <xsl:choose>
-            <xsl:when test="$kind = 'PeriodicEvent' or $kind = 'InEventPortImpl' or $kind = 'IfStatement' or $kind = 'Function'">
+            <xsl:when test="$kind = 'PeriodicPort' or $kind = 'SubscriberPortImpl' or $kind = 'IfStatement' or $kind = 'Function'">
                 <xsl:value-of select="cdit:generate_scoped_variables($node, $tab)" />
                 <xsl:for-each select="graphml:get_child_nodes($node)">
                     <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
@@ -1678,7 +1678,7 @@
 
             
 
-            <xsl:when test="$kind = 'InEventPortImpl'" />
+            <xsl:when test="$kind = 'SubscriberPortImpl'" />
             <xsl:when test="$kind = 'MemberInstance'" />
             <xsl:when test="$kind = 'VectorInstance'" />
             <xsl:when test="$kind = 'EnumInstance'" />
@@ -1693,7 +1693,7 @@
             <xsl:when test="$kind = 'Header'">
                 <xsl:value-of select="cdit:generate_header_code($node, $tab)" />
             </xsl:when>
-            <xsl:when test="$kind = 'OutEventPortImpl'">
+            <xsl:when test="$kind = 'PublisherPortImpl'">
                 <xsl:value-of select="cdit:generate_outeventportimpl_code($node, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'AggregateInstance'">
