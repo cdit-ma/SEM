@@ -25,6 +25,8 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
+#include <re_common/zmq/environmentrequester/environmentrequester.cpp>
+
 #include "cmakevars.h"
 
 #include "server.h"
@@ -44,88 +46,112 @@ std::string DEFAULT_FILE = "out.sql";
 
 void signal_handler(int sig)
 {
-	//Gain the lock so we can notify to terminate
-	std::unique_lock<std::mutex> lock(mutex_);
-	lock_condition_.notify_all();
+    //Gain the lock so we can notify to terminate
+    std::unique_lock<std::mutex> lock(mutex_);
+    lock_condition_.notify_all();
 }
 
 int main(int ac, char** av)
 {
-	//Connect the SIGINT/SIGTERM signals to our handler.
-	signal(SIGINT, signal_handler);
-	signal(SIGTERM, signal_handler);
+    //Connect the SIGINT/SIGTERM signals to our handler.
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
 
-	//Variables to store the input parameters
-	std::string database_path;	
-	std::vector<std::string> client_addresses;
+    //Variables to store the input parameters
+    std::string database_path;
+    std::string experiment_id;
+    std::string environment_manager_address;
+    std::vector<std::string> client_addresses;
 
-	//Parse command line options
-	boost::program_options::options_description desc(LONG_VERSION " Options");
-	desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
-	desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
-	desc.add_options()("help,h", "Display help");
+    //Parse command line options
+    boost::program_options::options_description desc(LONG_VERSION " Options");
+    desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
+    desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
+    desc.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "Experiment ID to log");
+    desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_address), "Address of environment manager to connect to.");
+    desc.add_options()("help,h", "Display help");
 
-	//Construct a variable_map
-	boost::program_options::variables_map vm;
-	
-	try{
-		//Parse Argument variables
-		boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
-		boost::program_options::notify(vm);
-	}catch(boost::program_options::error& e) {
+    //Construct a variable_map
+    boost::program_options::variables_map vm;
+
+    try{
+        //Parse Argument variables
+        boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
+        boost::program_options::notify(vm);
+    }catch(boost::program_options::error& e) {
         std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
-		std::cout << desc << std::endl;
+        std::cout << desc << std::endl;
         return 1;
     }
-	
-	bool valid_args = client_addresses.size();
 
-	if(!valid_args || vm.count("help")){
-		std::cout << desc << std::endl;
-		return 0;
-	}
-	
-	//Print output
-	std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
-	std::cout << "* Database: " << database_path << std::endl;
-	for(int i = 0; i < client_addresses.size(); i++){
-		if(i == 0){
-			std::cout << "* Clients:" << std::endl;
-		}
-		std::cout <<"** " << client_addresses[i] << std::endl;
-	}
-	std::cout << "---------------------------------" << std::endl;
+    bool valid_args = true;
+    bool env_managed = false;
 
-	{
-		//Construct a Server to interface between our ZMQ messaging infrastructure and SQLite
-		Server server(database_path, client_addresses);
+    //Check that we have both or neither experiment-id and environment manager address.
+    if(!(vm.count("experiment-id") == vm.count("environment-manager"))){
+        valid_args = false;
+    }
+    env_managed = vm.count("environment-manager");
 
-		//Add our proto handlers and start the server
-		#ifndef DISABLE_HARDWARE_HANDLER
-		{
-			server.AddProtoHandler(new HardwareProtoHandler());
-		}
-		#endif
+    //If we're not meant to be managed by the environment manager and we have no list of clients, args are invalid
+    if(!env_managed && !client_addresses.size()){
+        valid_args = false;
+    }
 
-		#ifndef DISABLE_MODEL_HANDLER
-		{
-			server.AddProtoHandler(new ModelProtoHandler());
-		}
-		#endif
+    if(!valid_args || vm.count("help")){
+        std::cout << desc << std::endl;
+        return 0;
+    }
 
-		if(!server.Start()){
-			return 1;
-		}
+    //Use environment requester to get list of clients for this experiment.
+    if(env_managed){
+        EnvironmentRequester requester(environment_manager_address, experiment_id, EnvironmentRequester::DeploymentType::LOGAN_SERVER);
+        requester.Init(environment_manager_address);
+        client_addresses = requester.GetLoganClientList();
 
-		std::cout << "* Started Logging." << std::endl;
-		std::unique_lock<std::mutex> lock(mutex_);
-		//Wait for the signal_handler to notify for exit
-		lock_condition_.wait(lock);
-		std::cout << "* Stopping Logging." << std::endl;
+    }
 
-		if(!server.Terminate()){
-			return 1;
-		}
-	}
-	return 0;
+    //Print output
+    std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
+    std::cout << "* Database: " << database_path << std::endl;
+    for(int i = 0; i < client_addresses.size(); i++){
+        if(i == 0){
+            std::cout << "* Clients:" << std::endl;
+        }
+        std::cout <<"** " << client_addresses[i] << std::endl;
+    }
+    std::cout << "---------------------------------" << std::endl;
+
+    {
+        //Construct a Server to interface between our ZMQ messaging infrastructure and SQLite
+        Server server(database_path, client_addresses);
+
+        //Add our proto handlers and start the server
+        #ifndef DISABLE_HARDWARE_HANDLER
+        {
+            server.AddProtoHandler(new HardwareProtoHandler());
+        }
+        #endif
+
+        #ifndef DISABLE_MODEL_HANDLER
+        {
+            server.AddProtoHandler(new ModelProtoHandler());
+        }
+        #endif
+
+        if(!server.Start()){
+            return 1;
+        }
+
+        std::cout << "* Started Logging." << std::endl;
+        std::unique_lock<std::mutex> lock(mutex_);
+        //Wait for the signal_handler to notify for exit
+        lock_condition_.wait(lock);
+        std::cout << "* Stopping Logging." << std::endl;
+
+        if(!server.Terminate()){
+            return 1;
+        }
+    }
+    return 0;
 }
