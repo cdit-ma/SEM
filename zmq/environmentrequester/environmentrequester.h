@@ -40,6 +40,8 @@ class EnvironmentRequester{
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
         std::string GetLoganClientInfo(const std::string& node_ip_address);
 
+        std::vector<std::string> GetLoganClientList();
+
     private:
         struct Request{
             std::string request_data_;

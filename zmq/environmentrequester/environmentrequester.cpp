@@ -86,6 +86,32 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     return reply_message.control_message();
 }
 
+std::vector<std::string> EnvironmentRequester::GetLoganClientList(){
+    NodeManager::EnvironmentMessage message;
+
+    message.set_experiment_id(experiment_id_);
+    message.set_type(NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY);
+
+    zmq::socket_t socket(*context_, ZMQ_REQ);
+    socket.connect(manager_address_);
+
+    ZMQSendRequest(socket, message.SerializeAsString());
+    auto reply = ZMQReceiveReply(socket);
+
+    if(reply.empty()){
+        throw std::runtime_error("Request timed out when getting logan clients.");
+    }
+
+    NodeManager::EnvironmentMessage reply_message;
+    reply_message.ParseFromString(reply);
+
+    std::vector<std::string> out;
+
+    for(int i = 0; i < reply_message.logger_size(); i++){
+        out.push_back(reply_message.logger(i).publisher_address());
+    }
+}
+
 void EnvironmentRequester::Start(){
     try{
         heartbeat_thread_ = std::unique_ptr<std::thread>(new std::thread(&EnvironmentRequester::HeartbeatLoop, this));
