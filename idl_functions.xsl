@@ -23,9 +23,22 @@
         Produces a module element
         ie. module ${label} {
     -->
-    <xsl:function name="idl:module" as="xs:string">
-        <xsl:param name="label" as="xs:string" />
-        <xsl:value-of select="concat('module ', $label, cpp:scope_start(0))" />
+    <xsl:function name="idl:module_start" as="xs:string">
+        <xsl:param name="namespace" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:value-of select="concat(o:t($tab), 'module ', $namespace, cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Used to close a module
+        ie };
+    -->
+    <xsl:function name="idl:module_end">
+        <xsl:param name="namespace" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:value-of select="concat(o:t($tab), '}; ', cpp:comment($namespace, 0))" />
     </xsl:function>
 
     <!--
@@ -185,7 +198,7 @@
     </xsl:function>
 
     <xsl:function name="idl:get_enum">
-        <xsl:param name="enum_namespace" as="xs:string" />
+        <xsl:param name="enum_namespace" as="xs:string*" />
         <xsl:param name="enum_label" as="xs:string" />
         <xsl:param name="enum_members" as="xs:string*" />
         <xsl:param name="tab" />
@@ -199,9 +212,10 @@
         <xsl:variable name="enum_tab" select="if($enum_namespace = '') then $tab else $tab + 1" />
 
 
-        <xsl:if test="$enum_namespace != ''">
-            <xsl:value-of select="idl:module($enum_namespace)" />
-        </xsl:if>
+        <!-- Define Namespaces -->
+        <xsl:for-each select="$enum_namespace">
+            <xsl:value-of select="idl:module_start(., position() - 1)" />
+        </xsl:for-each>
 
         <xsl:value-of select="idl:enum($enum_label, $enum_tab)" />
             <xsl:for-each select="$enum_members">
@@ -210,9 +224,10 @@
             </xsl:for-each>
         <xsl:value-of select="cpp:scope_end($tab)" />
 
-        <xsl:if test="$enum_namespace != ''">
-            <xsl:value-of select="cpp:scope_end($enum_tab)" />
-        </xsl:if>
+        <!-- Define Namespaces -->
+        <xsl:for-each select="$enum_namespace">
+            <xsl:value-of select="idl:module_end(., position() - 1)" />
+        </xsl:for-each>
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />

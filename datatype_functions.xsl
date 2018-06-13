@@ -213,7 +213,7 @@
 
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'DATATYPE_IDL'), '_'))" />
 
-        <!-- Version Number -->
+        <!-- Preamble -->
         <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_datatype', 0)" />
 
         <!-- Define Guard -->
@@ -245,11 +245,12 @@
             </xsl:if>
         </xsl:for-each>
 
-        <xsl:variable name="tab" select="if($aggregate_namespace = '') then 0 else 1" />
+        <xsl:variable name="tab" select="count($aggregate_namespace)" />
 
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="idl:module($aggregate_namespace)" />
-        </xsl:if>
+        <!-- Define Namespaces -->
+        <xsl:for-each select="$aggregate_namespace">
+            <xsl:value-of select="idl:module_start(., position() - 1)" />
+        </xsl:for-each>
 
 
         <xsl:choose>
@@ -261,9 +262,9 @@
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="cpp:scope_end(0)" />
-        </xsl:if>
+        <xsl:for-each select="$aggregate_namespace">
+            <xsl:value-of select="idl:module_end(., position() - 1)" />
+        </xsl:for-each>
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
@@ -543,7 +544,7 @@
 
         <!-- Include the base message type -->
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
-        <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path('proto', $aggregate))" />
+        <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path($datatype_middleware, $aggregate))" />
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
@@ -583,7 +584,7 @@
     <xsl:function name="cdit:get_server_interface_reply_aggregates">
         <xsl:param name="server_interface" as="element()" />
 
-        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'InputParameterGroup')" />
+        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'ReturnParameterGroup')" />
         <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
     </xsl:function>
 
@@ -618,11 +619,27 @@
             <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path($datatype_middleware, .))" />
         </xsl:for-each>
 
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:variable name="server_header" select="cdit:get_middleware_generated_header_name($server_interface, $middleware)" />
+            <xsl:value-of select="cpp:include_local_header($server_header)" />
+        </xsl:if>
+
+
+
+
         <xsl:value-of select="o:nl(1)" />
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:variable name="function_name" select="graphml:get_data_value($server_interface, 'function_name')" />
+            <xsl:value-of select="cpp:define('TAO_SERVER_FUNC_NAME', $function_name)" />
+        </xsl:if>
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'requestreply', 'requesterport.hpp')))" />
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'requestreply', 'replierport.hpp')))" />
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:value-of select="cpp:undef('TAO_SERVER_FUNC_NAME')" />
+        </xsl:if>
         <xsl:value-of select="o:nl(1)" />
+
 
          <!--
         <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
@@ -650,20 +667,33 @@
                     <xsl:sequence select="'void'" />
                 </xsl:otherwise>
             </xsl:choose>
-            
-            <!-- DO EXTRA -->
-            <xsl:if test="$datatype_middleware = 'tao'">
+        </xsl:variable>
 
+        <xsl:variable name="requester_port_types" as="xs:string*">
+            <xsl:sequence select="$port_types" />
+
+            <xsl:if test="$middleware = 'tao'">
+                <xsl:sequence select="cpp:get_aggregate_qualified_type($server_interface, $datatype_middleware)" />
             </xsl:if>
         </xsl:variable>
+        
+        <xsl:variable name="replier_port_types" as="xs:string*">
+            <xsl:sequence select="$port_types" />
+
+            <xsl:if test="$middleware = 'tao'">
+                <xsl:sequence select="cpp:get_server_qualified_type($server_interface, $datatype_middleware)" />
+            </xsl:if>
+        </xsl:variable>
+
+        
 
 
         <xsl:variable name="port_type" select="cpp:join_args($port_types)" />
         <xsl:variable name="func_args" select="cpp:join_args((cpp:const_ref_var_def('std::string', 'port_name'), cpp:declare_variable(cpp:weak_ptr('Component'), 'component', '', 0)))" />
 
 
-        <xsl:variable name="requester_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'RequesterPort')), $port_type)" />
-        <xsl:variable name="replier_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'ReplierPort')), $port_type)" />
+        <xsl:variable name="requester_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'RequesterPort')), cpp:join_args($requester_port_types))" />
+        <xsl:variable name="replier_port_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'ReplierPort')),cpp:join_args($replier_port_types))" />
 
         <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Port', ''), '', 'ConstructRequesterPort', $func_args, cpp:scope_start(0))" />
         <xsl:variable name="inport_func" select="cpp:invoke_templated_static_function($requester_port_type, 'ConstructRequesterPort', cpp:join_args(('port_name', 'component')), '', 0)" />
@@ -1140,5 +1170,97 @@
         </xsl:if>
 
         <xsl:value-of select="cpp:return('out', $tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_server_interface_idl">
+        <xsl:param name="server_interface" />
+        <xsl:param name="middleware" />
+
+        <xsl:variable name="label" select="o:title_case(graphml:get_label($server_interface))" />
+        <xsl:variable name="namespaces" select="graphml:get_namespace($server_interface)" />
+        <xsl:variable name="function_name" select="graphml:get_data_value($server_interface, 'function_name')" />
+        <xsl:variable name="tab" select="count($namespaces)" />
+
+        <!-- Compute the define guard -->
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $namespaces, $label, 'SERVER_IDL'), '_'))" />
+
+        <!-- Preamble -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_server_interface_idl', 0)" />
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
+
+        <xsl:variable name="server_requests" select="cdit:get_server_interface_request_aggregates($server_interface)" />
+        <xsl:variable name="server_replies" select="cdit:get_server_interface_reply_aggregates($server_interface)" />
+        <xsl:variable name="aggregate_instances" select="graphml:get_definitions(($server_requests, $server_replies))" />
+
+        <xsl:for-each select="$aggregate_instances">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
+            </xsl:if>
+            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., $middleware)" />
+            <xsl:value-of select="idl:include($required_file)" />
+            
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
+
+        <xsl:variable name="tab" select="count($namespaces)" />
+
+        <!-- Define Namespaces -->
+        <xsl:for-each select="$namespaces">
+            <xsl:value-of select="idl:module_start(., position() - 1)" />
+        </xsl:for-each>
+        
+        <!-- Define the Interface -->
+        <xsl:value-of select="idl:interface($label, $tab)" />
+
+        <xsl:variable name="aggregate_instances" select="graphml:get_definitions(($server_requests, $server_replies))" />
+
+        <xsl:variable name="qualified_reply_type" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="count($server_replies) = 1">
+                    <xsl:value-of select="idl:get_aggregate_qualified_type($server_replies[1])" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="'void'" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:variable name="qualified_request_type" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="count($server_requests) = 1">
+                    <xsl:value-of select="idl:get_aggregate_qualified_type($server_requests[1])" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="''" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:variable name="function_args" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="$qualified_request_type != ''">
+                    <xsl:value-of select="concat('in ', $qualified_request_type, ' message')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="''" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:declare_function($qualified_reply_type, $function_name, $function_args, ';', $tab + 1)" />
+
+        <xsl:value-of select="cpp:scope_end($tab)" />
+
+         <!-- Define Namespaces -->
+        <xsl:for-each select="$namespaces">
+            <xsl:value-of select="idl:module_end(., position() - 1)" />
+        </xsl:for-each>
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
     </xsl:function>
 </xsl:stylesheet>

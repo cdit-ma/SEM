@@ -18,7 +18,6 @@
     <xsl:import href="component_functions.xsl"/>
 
     <xsl:import href="general_functions.xsl"/>
-    <!--<xsl:import href="tao_functions.xsl"/>-->
     <xsl:import href="cpp_functions.xsl"/>
     <xsl:import href="cmake_functions.xsl"/>
     <xsl:import href="graphml_functions.xsl"/>
@@ -152,6 +151,14 @@
                     <xsl:result-document href="{o:write_file(($reqrep_path, cmake:cmake_file()))}">
                         <xsl:value-of select="cdit:get_requestreply_cmake($server_interface, $middleware)" />
                     </xsl:result-document>
+
+                    <xsl:if test="$middleware = 'tao'">
+                        <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($server_interface, $middleware)" />
+                        <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
+                        <xsl:result-document href="{o:write_file(($reqrep_path, $idl_file))}">
+                            <xsl:value-of select="cdit:get_server_interface_idl($server_interface, $middleware)" />
+                        </xsl:result-document>
+                    </xsl:if>
                 </xsl:for-each>
 
                 <!-- Generate the middleware CMakeFile -->

@@ -486,6 +486,8 @@
         <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
     </xsl:function>
 
+
+
     <xsl:function name="cdit:get_middleware_extension" as="xs:string">
         <xsl:param name="middleware" as="xs:string"/>
 
@@ -585,6 +587,19 @@
         <xsl:value-of select="cpp:get_aggregate_type_name($component)" />
     </xsl:function>
 
+    <xsl:function name="cpp:get_server_qualified_type" as="xs:string">
+        <xsl:param name="server_inst" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="namespace" select="graphml:get_namespace($server_inst)" />
+        <xsl:variable name="label" select="cpp:get_aggregate_type_name($server_inst)" />
+
+
+
+        <xsl:variable name="combined_namespace" select="cpp:combine_namespaces(($namespace, $label))" />
+        <xsl:value-of select="concat('::', 'POA_', $combined_namespace)" />
+    </xsl:function>
+
     <xsl:function name="cpp:get_aggregate_qualified_type" as="xs:string">
         <xsl:param name="aggregate_inst" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -592,11 +607,8 @@
         <xsl:variable name="aggregate" select="graphml:get_definition($aggregate_inst)" />
 
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-        
-
         <xsl:variable name="aggregate_label" select="cpp:get_aggregate_type_name($aggregate)" />
 
-        
         <xsl:variable name="extra_namespace" as="xs:string*">
             <xsl:if test="$middleware = 'base'">
                 <xsl:value-of select="'Base'" />
@@ -761,7 +773,7 @@
                 <xsl:if test="$middleware = $port_middleware or (cdit:middleware_uses_protobuf($port_middleware) and $middleware='proto') or $middleware = 'base'">
                     <!-- Get all the Aggregate Instances for this particular Port -->
                     <xsl:variable name="definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($definition, 'AggregateInstance')" />
+                    <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates($definition, false())" />
 
                     <!-- Get all the Definitions used by this aggregate instance -->
                     <xsl:sequence select="$aggregate_instances"/>
@@ -769,14 +781,18 @@
 
                 <xsl:if test="$middleware = 'base'">
                     <xsl:variable name="component_impl" select="graphml:get_impl(.)" />
-                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind(., 'AggregateInstance')" />
+                    <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates(., false())" />
                     <!-- Get all the Definitions used by this aggregate instance -->
                     <xsl:sequence select="$aggregate_instances" />
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:sequence select="graphml:get_definitions($required_aggregates)" />
+        <xsl:for-each select="graphml:get_definitions($required_aggregates)">
+            <xsl:if test="graphml:get_kind(.) = 'Aggregate'">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
     <!--
@@ -803,7 +819,11 @@
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:sequence select="graphml:get_definitions($required_aggregates)" />
+        <xsl:for-each select="graphml:get_definitions($required_aggregates)">
+            <xsl:if test="graphml:get_kind(.) = 'Aggregate'">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
     <!--
@@ -891,6 +911,15 @@
     </xsl:function>
 
     <xsl:function name="cdit:get_aggregates_path" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        
+        <xsl:value-of select="lower-case(o:join_paths(($aggregate_namespace, $aggregate_label)))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_server_interface_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
@@ -1563,7 +1592,7 @@
         <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
     </xsl:function>
 
-        <xsl:function name="cdit:get_aggregates_generated_middleware_header_path" as="xs:string">
+    <xsl:function name="cdit:get_aggregates_generated_middleware_header_path" as="xs:string">
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="aggregate" as="element()" />
 
@@ -1572,6 +1601,8 @@
         
         <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
     </xsl:function>
+
+
     
 
     <xsl:function name="cdit:include_middleware_aggregate_headers">

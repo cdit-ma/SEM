@@ -122,6 +122,29 @@
     </xsl:function>
 
     <!--
+        Produces a define 
+        #define ${define_name} ${define_val}
+    -->
+    <xsl:function name="cpp:define">
+        <xsl:param name="define_name"/>
+        <xsl:param name="define_val"/>
+
+        <xsl:value-of select="o:join_list(('#define', $define_name, $define_val), ' ')" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+     <!--
+        Produces a undef 
+        #undef ${define_name}
+    -->
+    <xsl:function name="cpp:undef">
+        <xsl:param name="define_name"/>
+
+        <xsl:value-of select="o:join_list(('#undef', $define_name), ' ')" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <!--
         Terminates a define guard
         #endif ${CLASS_NAME}_H
     -->

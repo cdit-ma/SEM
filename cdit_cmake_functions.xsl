@@ -30,7 +30,7 @@
                 <xsl:value-of select="'TAO'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'proto'">
-                <xsl:value-of select="'PROTOBUF'" />
+                <xsl:value-of select="'Protobuf'" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message>Warning: Unknown Middleware<xsl:value-of select="$middleware" /></xsl:message>
@@ -104,7 +104,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base' or $middleware_lc = 'tao'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base'">
                 <xsl:value-of select="false()" />
             </xsl:when>
             <xsl:otherwise>
@@ -190,12 +190,29 @@
     </xsl:function>
 
     <xsl:function name="cmake:generate_middleware_compiler">
-        <xsl:param name="file" as="xs:string" />
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="required_aggregates" as="element()*" />
         <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
-        
+
+        <xsl:for-each select="$required_aggregates">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment(('Inform middleware compiler', o:wrap_angle($middleware_extension), 'of directories to look for relative files.'), 0)" />
+                <xsl:value-of select="concat('set(', upper-case(concat($middleware_package, '_IMPORT_DIRS')), o:nl(1))" />
+            </xsl:if>
+            <xsl:variable name="import_path" select="o:join_paths((cmake:wrap_variable('TOP_SOURCE_DIR'), 'ports', 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:value-of select="concat(o:t(1), $import_path, o:nl(1))" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
+
+        <!-- Run the middlewares compiler over the middleware file-->
+        <xsl:variable name="middleware_file" select="o:join_paths((cmake:current_source_dir_var(), cdit:get_aggregates_middleware_file_name($aggregate, $middleware)))" />
+
         <xsl:variable name="source" select="cmake:get_middleware_generated_source_var($middleware)" />
         <xsl:variable name="header" select="cmake:get_middleware_generated_header_var($middleware)" />
 
@@ -214,7 +231,7 @@
                 <xsl:sequence select="'__attribute__((visibility("default")))'" />-->
             </xsl:if>
 
-            <xsl:sequence select="$file" />
+            <xsl:sequence select="$middleware_file" />
         </xsl:variable>
         <xsl:variable name="compiler_arg" select="o:join_list($compiler_args, ' ')" />
         
@@ -373,7 +390,6 @@
         <xsl:variable name="middleware_headers" select="cmake:get_middleware_generated_header_var($middleware)" />
         
         <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="middleware_helper_library" select="concat($middleware_package, '_HELPER_LIBRARIES')" />
 
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
 
@@ -401,26 +417,7 @@
         <!-- Find the Middleware specific package -->
         <xsl:value-of select="cmake:find_middleware_package($middleware)" />
 
-        <!-- TODO: Test FINDRTI AND FIND OSPL TO add Include directories -->
-
-        <!-- Set Import Dirs -->
-        <xsl:for-each select="$required_aggregates">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cmake:comment(('Inform middleware compiler', o:wrap_angle($middleware_extension), 'of directories to look for relative files.'), 0)" />
-                <xsl:value-of select="concat('set(', upper-case(concat($middleware_package, '_IMPORT_DIRS')), o:nl(1))" />
-            </xsl:if>
-            <xsl:variable name="import_path" select="o:join_paths(($top_source_dir, 'ports', 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
-            <xsl:value-of select="concat(o:t(1), $import_path, o:nl(1))" />
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
-
-        <!-- Run the middlewares compiler over the middleware file-->
-        <xsl:variable name="middleware_file" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
-        <xsl:value-of select="cmake:generate_middleware_compiler(o:join_paths(($source_dir_var, $middleware_file)), $middleware)" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $required_aggregates, $middleware)" />
 
         <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
@@ -636,8 +633,24 @@
         <xsl:value-of select="cmake:find_middleware_helper($middleware)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <xsl:if test="$middleware = 'tao'">
+            <!-- Run the middlewares compiler over the middleware file-->
+            <xsl:value-of select="cmake:generate_middleware_compiler($server_interface, $required_aggregates, $middleware)" />
+            <xsl:value-of select="o:nl(1)" />
+        </xsl:if>
+
+         <!-- Set Source files -->
+        <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), $source_dir_var, '/libportexport.cpp', o:nl(1))" />
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:value-of select="concat(o:t(1), cmake:wrap_variable('TAO_SOURCES'), o:nl(1))" />
+            <xsl:value-of select="concat(o:t(1), cmake:wrap_variable('TAO_HEADER'), o:nl(1))" />
+        </xsl:if>
+        <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
+        <xsl:value-of select="o:nl(1)" />
+
         <!-- Add the Library -->
-        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', o:join_paths(($source_dir_var, 'libportexport.cpp')))" />
+        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', cmake:wrap_variable('SOURCE'))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Include Directories -->
@@ -647,6 +660,10 @@
         <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
         <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
         
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $binary_dir_var, 0)" />
+        </xsl:if>
+
         <!-- Include the top level directories -->
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $top_binary_dir, 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $top_source_dir, 0)" />
