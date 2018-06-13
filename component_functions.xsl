@@ -932,13 +932,12 @@
                 <xsl:variable name="port_label" select="graphml:get_label(.)" />
                 
                 <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_impl_class_type, cdit:get_function_name(.)))" />
-                <xsl:variable name="port_type" select="cpp:join_args(('void', 'void'))" />
 
                 <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this')), '', 0)" />
                 <xsl:variable name="args" select="cpp:join_args((o:wrap_dblquote($port_label), $call_back))" />
                 
                 <xsl:value-of select="cdit:comment_graphml_node(., $tab + 1)" />
-                <xsl:value-of select="cpp:invoke_templated_static_function($port_type, 'AddCallback', $args, cpp:nl(), $tab + 1) " />
+                <xsl:value-of select="cpp:invoke_static_function('', 'AddPeriodicEventCallback', $args, cpp:nl(), $tab + 1) " />
                 <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
             </xsl:for-each>
 
@@ -1462,6 +1461,16 @@
         </xsl:if>
     </xsl:function>
 
+    
+
+    <xsl:function name="cdit:generate_requester_code">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+        <!-- TODO -->
+    </xsl:function>
+
+
+
         
     <xsl:function name="cdit:generate_function_call_code">
         <xsl:param name="node" as="element()"/>
@@ -1841,6 +1850,9 @@
             </xsl:when>
             <xsl:when test="$kind = 'FunctionCall'">
                 <xsl:value-of select="cdit:generate_function_call_code($node, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'RequesterPortImpl'">
+                <xsl:value-of select="cdit:generate_requester_code($node, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'ReturnParameterGroup' or $kind = 'ReturnParameterGroupInstance'">
                 <xsl:value-of select="cdit:generate_return_parameter_code($node, $tab)" />
