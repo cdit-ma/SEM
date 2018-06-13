@@ -32,6 +32,7 @@
         
         <!-- Include the translater header -->
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'translator.h')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'primitivetranslator.hpp')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the base message type -->
@@ -898,6 +899,35 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cdit:translate_primitive_member">
+        <xsl:param name="member" as="element()" />
+        <xsl:param name="get_func" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="source_middleware" as="xs:string" />
+        <xsl:param name="target_middleware" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($member)" />
+
+        <xsl:variable name="primitive_type" select="graphml:get_data_value($member, 'primitive_type')" />
+        
+        <xsl:variable name="base_type" select="cpp:get_primitive_type(graphml:get_type($member))" />
+        <xsl:variable name="other_type" select="cpp:get_corba_primitive_type($primitive_type)" />
+        
+        <xsl:variable name="value">
+            <xsl:choose>
+                <xsl:when test="$base_type != $other_type and $other_type != ''">
+                    <xsl:variable name="func_type" select="if($source_middleware = 'base') then cpp:join_args(($base_type, $other_type)) else cpp:join_args(($other_type, $base_type))" />
+                    <xsl:value-of select="cpp:invoke_templated_static_function($func_type, 'TranslatePrimitive', $get_func, '', 0)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$get_func" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        
+        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $value, cpp:nl(), $tab)" />
+    </xsl:function>
 
 
     <xsl:function name="cdit:translate_member">
@@ -906,10 +936,12 @@
         <xsl:param name="source_middleware" as="xs:string" />
         <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
-
+        
+        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($member)" />
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $member, $source_middleware)" />
-        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $member, $target_middleware, $get_func)" />
+        <xsl:value-of select="cdit:translate_primitive_member($member, $get_func, $middleware, $source_middleware, $target_middleware, $tab)" />
 
+        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $member, $target_middleware, $temp_variable)" />
         <xsl:value-of select="concat(o:t($tab), $set_func, cpp:nl())" />
     </xsl:function>
 

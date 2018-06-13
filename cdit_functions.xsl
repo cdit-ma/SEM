@@ -663,6 +663,47 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cpp:get_corba_primitive_type" as="xs:string">
+        <xsl:param name="type" as="xs:string"  />
+        <xsl:choose>
+            <xsl:when test="$type = 'short'">
+                <xsl:value-of select="'int16_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'unsigned short'">
+                <xsl:value-of select="'uint16_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'long'">
+                <xsl:value-of select="'int32_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'long long'">
+                <xsl:value-of select="'int64_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'unsigned long'">
+                <xsl:value-of select="'uint32_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'unsigned long long'">
+                <xsl:value-of select="'uint64_t'" />
+            </xsl:when>
+            <xsl:when test="$type = 'float' or $type = 'double' or $type = 'char'">
+                <xsl:value-of select="$type" />
+            </xsl:when>
+            <xsl:when test="$type = 'string'">
+                <xsl:value-of select="'std::string'" />
+            </xsl:when>
+            <xsl:when test="$type = 'boolean'">
+                <xsl:value-of select="'bool'" />
+            </xsl:when>
+            <xsl:when test="$type = 'octet'">
+                <xsl:value-of select="'uint8_t'" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="''" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    
+
     <xsl:function name="proto:get_aggregate_qualified_type" as="xs:string">
         <xsl:param name="aggregate" as="element()"/>
 

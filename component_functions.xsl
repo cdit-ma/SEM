@@ -259,7 +259,7 @@
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
             
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function('bool', $function_name, cpp:ref_var_def($port_type, 'm'), ';', $tab + 2)" />
+            <xsl:value-of select="cpp:declare_function('bool', $function_name, cpp:const_ref_var_def($port_type, 'm'), ';', $tab + 2)" />
             <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
@@ -1039,19 +1039,16 @@
         <xsl:param name="tab" as="xs:integer"/>
 
         <!-- Get the list of InputParameters-->
-        <xsl:variable name="input_parameters" select="graphml:get_child_nodes_of_kind($node, 'InputParameter')" />
+        <xsl:variable name="input_parameters" select="graphml:get_child_nodes(graphml:get_child_nodes_of_kind($node, 'InputParameterGroupInstance'))" />
         <!-- Get the list of ReturnParameters-->
-        <xsl:variable name="return_parameters" select="graphml:get_child_nodes_of_kind($node, 'ReturnParameter')" />
+        <xsl:variable name="return_parameters" select="graphml:get_child_nodes(graphml:get_child_nodes_of_kind($node, 'ReturnParameterGroupInstance'))" />
 
-        <xsl:variable name="operation" select="graphml:get_data_value($node, 'operation')" />
+        <xsl:variable name="operation" select="graphml:get_label($node)" />
 
         <!-- The Vector is always the first Parameter-->
         <xsl:variable name="vector" select="$input_parameters[1]" />
-
-        <xsl:variable name="return_variable_name" select="cdit:get_variable_name($return_parameters[1])" />
-
         
-
+        <xsl:variable name="return_variable_name" select="cdit:get_unique_variable_name($return_parameters[1])" />
         
         <xsl:variable name="vector_var" select="cdit:get_resolved_getter_function($vector, true(), false())" />
         
@@ -1465,6 +1462,7 @@
         <xsl:choose>
             <!-- Handle Vector Operations -->
             <xsl:when test="$worker_type = 'Vector_Operations'">
+                <xsl:value-of select="cdit:generate_vector_operation($node, $tab)" />
             <!-- TODO -->
             </xsl:when>
             <xsl:otherwise>
