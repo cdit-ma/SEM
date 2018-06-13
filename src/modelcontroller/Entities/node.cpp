@@ -833,6 +833,7 @@ void Node::parentNodeUpdated(){
 
     if(parent_node_){
         revalidateData();
+
         //Update the parent tree index
         updateTreeIndex(parent_node_->getTreeIndex());
         updateViewAspect(parent_node_->getViewAspect());

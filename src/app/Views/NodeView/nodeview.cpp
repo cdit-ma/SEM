@@ -976,11 +976,23 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             
             
             case NODE_KIND::PORT_REPLIER:
-            case NODE_KIND::PORT_REQUESTER:
-            case NODE_KIND::PORT_REQUESTER_IMPL:{
+            case NODE_KIND::PORT_REQUESTER:{
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                break;
+            }
+            case NODE_KIND::PORT_REQUESTER_IMPL:{
+                auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item = stack_item;
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                
+                stack_item->SetRenderCellArea(0, -1, true, true);
+                stack_item->SetCellOrientation(0, -1, Qt::Vertical);
+                stack_item->SetRenderCellArea(0, 1, true, true);
+                stack_item->SetCellOrientation(0, 1, Qt::Vertical);
+
                 break;
             }
             case NODE_KIND::VOID_TYPE:{

@@ -21,6 +21,8 @@ MEDEA::RequesterPortImpl::RequesterPortImpl(::EntityFactoryBroker& broker, bool 
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
 
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
@@ -32,6 +34,27 @@ MEDEA::RequesterPortImpl::RequesterPortImpl(::EntityFactoryBroker& broker, bool 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+
+    auto timeout_param = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    broker.AttachData(timeout_param, "label", QVariant::String, ProtectedState::PROTECTED, "Timeout (MS)");
+    broker.AttachData(timeout_param, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
+    broker.AttachData(timeout_param, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(timeout_param, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(timeout_param, "index", QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(timeout_param, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(timeout_param, "icon", QVariant::String, ProtectedState::PROTECTED, "clockAlarm");
+    broker.AttachData(timeout_param, "value", QVariant::String, ProtectedState::UNPROTECTED, 1000);
+
+
+    auto success_param = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER);
+    broker.AttachData(success_param, "label", QVariant::String, ProtectedState::PROTECTED, "Success");
+    broker.AttachData(success_param, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Boolean");
+    broker.AttachData(success_param, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(success_param, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(success_param, "index", QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(success_param, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(success_param, "icon", QVariant::String, ProtectedState::PROTECTED, "circleTickDark");
+
 }
 
 
@@ -40,6 +63,8 @@ bool MEDEA::RequesterPortImpl::canAdoptChild(Node* child)
    auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
+        case NODE_KIND::INPUT_PARAMETER:
+        case NODE_KIND::RETURN_PARAMETER:
         case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
             if(getChildrenOfKindCount(child_node_kind) > 0){
