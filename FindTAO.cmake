@@ -22,12 +22,22 @@ function(TAO_GENERATE_CPP SRCS HDRS)
         # Append the current srcs/headers into the big list
         list(APPEND SOURCES "${CURRENT_SRCS}")
         list(APPEND HEADERS "${CURRENT_HDRS}")
+
+        if(DEFINED TAO_IMPORT_DIRS)
+            foreach(DIR ${TAO_IMPORT_DIRS})
+                get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
+                list(FIND tao_include_path ${ABS_PATH} _contains_already)
+                if(${_contains_already} EQUAL -1)
+                    list(APPEND tao_include_path -I ${ABS_PATH})
+                endif()
+            endforeach()
+        endif()
         
         add_custom_command(
             OUTPUT  ${CURRENT_SRCS}
                     ${CURRENT_HDRS}
             COMMAND ${TAO_GEN_EXECUTABLE}
-            ARGS -o ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
+            ARGS ${tao_include_path} -o ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
             DEPENDS ${ABS_FILE} ${TAO_GEN_EXECUTABLE} 
             COMMENT "Running tao_idl on ${FILE}"
             VERBATIM)
