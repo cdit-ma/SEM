@@ -45,12 +45,23 @@ function(OSPL_DDS_GENERATE_CPP SRCS HDRS)
         # Append the current srcs/headers into the big list
         list(APPEND SOURCES "${CURRENT_SRCS}")
         list(APPEND HEADERS "${CURRENT_HDRS}")
+
+        if(DEFINED OSPL_DDS_IMPORT_DIRS)
+            foreach(DIR ${OSPL_DDS_IMPORT_DIRS})
+                get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
+                list(FIND ospl_include_path ${ABS_PATH} _contains_already)
+                if(${_contains_already} EQUAL -1)
+                    list(APPEND ospl_include_path -I ${ABS_PATH})
+                endif()
+            endforeach()
+        endif()
         
         add_custom_command(
             OUTPUT  ${CURRENT_SRCS}
                     ${CURRENT_HDRS}
             COMMAND ${OSPL_DDS_GEN_EXECUTABLE}
             ARGS -l isocpp -S ${ABS_FILE} -d ${CMAKE_CURRENT_BINARY_DIR}
+            ${ospl_include_path}
             DEPENDS ${ABS_FILE} ${OSPL_DDS_GEN_EXECUTABLE} 
             COMMENT "Running C++ ospl dds on ${FILE}"
             VERBATIM)

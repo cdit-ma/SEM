@@ -48,12 +48,23 @@ function(RTI_DDS_GENERATE_CPP SRCS HDRS)
         # Append the current srcs/headers into the big list
         list(APPEND SOURCES "${CURRENT_SRCS}")
         list(APPEND HEADERS "${CURRENT_HDRS}")
+
+        if(DEFINED RTI_DDS_IMPORT_DIRS)
+            foreach(DIR ${RTI_DDS_IMPORT_DIRS})
+                get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
+                list(FIND rti_include_path ${ABS_PATH} _contains_already)
+                if(${_contains_already} EQUAL -1)
+                    list(APPEND rti_include_path -I ${ABS_PATH})
+                endif()
+            endforeach()
+        endif()
+
         
         add_custom_command(
             OUTPUT  ${CURRENT_SRCS}
                     ${CURRENT_HDRS}
             COMMAND ${RTI_DDS_GEN_EXECUTABLE}
-            ARGS -language C++11 -unboundedSupport -namespace -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
+            ARGS -language C++11 -unboundedSupport -update typefiles ${rti_include_path} -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
             DEPENDS ${ABS_FILE} ${RTI_DDS_GEN_EXECUTABLE} 
             COMMENT "Running C++ rtiddsgen on ${FILE}"
             VERBATIM)
