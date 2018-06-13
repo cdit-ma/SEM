@@ -28,8 +28,9 @@ ToType TranslatePrimitive(const FromType& value){
         except += std::string(typeid(ToType).name());
         except += "'";
         throw std::invalid_argument(except);
-    }else
-    return translated_type;
+    }else{
+        return translated_type;
+    }
 };
 
 
