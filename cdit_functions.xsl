@@ -955,7 +955,7 @@
         <xsl:param name="aggregate" as="element()" />
 
         <xsl:variable name="path" select="cdit:get_aggregates_path($aggregate)" />
-        <xsl:value-of select="lower-case(o:join_paths(('ports', 'datatypes', $middleware, $path)))" />
+        <xsl:value-of select="lower-case(o:join_paths(('datatypes', $middleware, $path)))" />
     </xsl:function>
 
     <xsl:function name="cdit:get_pubsub_path" as="xs:string">
@@ -1014,7 +1014,11 @@
         </xsl:variable>
         
         <!-- Return the Aggregates Required, which are not nested -->
-        <xsl:sequence select="$aggregate_definitions except $ignored_definitions" />
+         <xsl:for-each select="$aggregate_definitions except $ignored_definitions">
+            <xsl:if test="graphml:get_kind(.) = 'Aggregate'">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
     <!-- Get all required aggregates -->
@@ -1038,25 +1042,42 @@
     <xsl:function name="cdit:get_function_name" as="xs:string">
         <xsl:param name="port" as="element()"/>
         <xsl:variable name="port_def" select="graphml:get_definition($port)" />
-        <xsl:variable name="label" select="graphml:get_label($port_def)" />
-        <xsl:variable name="kind" select="graphml:get_kind($port_def)" />
+        <xsl:variable name="def_kind" select="graphml:get_kind($port_def)" />
+        <xsl:variable name="def_label" select="graphml:get_label($port_def)" />
+        
+        <xsl:variable name="port_label" select="graphml:get_label($port)" />
+        <xsl:variable name="port_kind" select="graphml:get_kind($port)" />
 
         <xsl:variable name="prefix">
             <xsl:choose>
-                <xsl:when test="$kind = 'SubscriberPort'">
+                <xsl:when test="$def_kind = 'SubscriberPort'">
                     <xsl:value-of select="'Sub'" />
                 </xsl:when>
-                <xsl:when test="$kind = 'PublisherPort'">
-                    <xsl:value-of select="'Pub_'" />
+                <xsl:when test="$def_kind = 'PublisherPort'">
+                    <xsl:value-of select="'Pub'" />
                 </xsl:when>
-                <xsl:when test="$kind = 'PeriodicPort'">
+                <xsl:when test="$port_kind = 'ReplierPort' or $port_kind = 'ReplierPortImpl'">
+                    <xsl:value-of select="'Rep'" />
+                </xsl:when>
+                <xsl:when test="$port_kind = 'RequesterPort' or $port_kind = 'RequesterPortImpl'">
+                    <xsl:value-of select="'Req'" />
+                </xsl:when>
+                <xsl:when test="$def_kind = 'PeriodicPort'">
                     <xsl:value-of select="'Periodic'" />
                 </xsl:when>
-                <xsl:when test="$kind = 'Function'">
+                <xsl:when test="$def_kind = 'Function'">
                     <xsl:value-of select="'Fn'" />
                 </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:variable name="label">
+            <xsl:choose>
+                <xsl:when test="$def_kind = 'ServerInterface' ">
+                    <xsl:value-of select="$port_label" />
+                </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="o:warning(('Kind:', $kind, 'Not supported'))" />
+                    <xsl:value-of select="$def_label" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -1498,7 +1519,7 @@
         <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
         <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
         
-        <xsl:value-of select="cmake:add_subdirectories(('components', 'ports', 'classes'))" />
+        <xsl:value-of select="cmake:add_subdirectories(('components', 'ports', 'classes', 'datatypes'))" />
     </xsl:function>
 
     <xsl:function name="cdit:middleware_requires_topic" as="xs:boolean">
@@ -1535,15 +1556,14 @@
  <xsl:function name="cdit:get_function_input_parameter_declarations" as="xs:string*">
         <xsl:param name="node" as="element()"/>
 
-        <xsl:variable name="input_parameter_group" select="graphml:get_child_nodes_of_kind($node, 'InputParameterGroup')" />
+        <xsl:variable name="input_parameter_group" select="graphml:get_child_nodes_of_kind($node, ('InputParameterGroup', 'InputParameterGroupInstance'))" />
 
         <xsl:variable name="resolved_args" as="xs:string*">
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
                 <xsl:variable name="var_label" select="graphml:get_label(.)" />
                 
-
-                <xsl:value-of select="cpp:const_ref_var_def($cpp_type, $var_label)" />
+                <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
             </xsl:for-each>
         </xsl:variable>
 
@@ -1553,7 +1573,7 @@
     <xsl:function name="cdit:get_function_return_parameter_declarations" as="xs:string*">
         <xsl:param name="node" as="element()"/>
 
-        <xsl:variable name="return_parameter_group" select="graphml:get_child_nodes_of_kind($node, 'ReturnParameterGroup')" />
+        <xsl:variable name="return_parameter_group" select="graphml:get_child_nodes_of_kind($node, ('ReturnParameterGroup', 'ReturnParameterGroupInstance'))" />
         <xsl:variable name="return_parameters" select="graphml:get_child_nodes($return_parameter_group[1])" />
 
 
@@ -1624,6 +1644,56 @@
         <xsl:param name="enums" as="element()*" />
         <xsl:value-of select="cdit:include_aggregate_headers('Base', $enums)" />
     </xsl:function>
+
+
+    <xsl:function name="cdit:get_qualified_server_interface_request_type">
+        <xsl:param name="server_interface" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="server_requests" select="cdit:get_server_interface_request_aggregates($server_interface)" />
+        
+        <xsl:choose>
+            <xsl:when test="count($server_requests) = 1">
+                <xsl:value-of select="cpp:get_aggregate_qualified_type($server_requests[1], $middleware)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="'void'" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_qualified_server_interface_reply_type">
+        <xsl:param name="server_interface" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="server_replies" select="cdit:get_server_interface_reply_aggregates($server_interface)" />
+        
+        <xsl:choose>
+            <xsl:when test="count($server_replies) = 1">
+                <xsl:value-of select="cpp:get_aggregate_qualified_type($server_replies[1], $middleware)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="'void'" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+     <xsl:function name="cdit:get_server_interface_request_aggregates">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'InputParameterGroup')" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_server_interface_reply_aggregates">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'ReturnParameterGroup')" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
+    </xsl:function>
+
+
+
 
     
 

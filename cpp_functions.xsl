@@ -877,4 +877,15 @@
         
         <xsl:value-of select="concat(o:t($tab), 'std::cerr', $pipe, o:join_list($message, $pipe), $pipe, 'std::endl', cpp:nl())" />
     </xsl:function>
+
+
+    <!--
+        Produces a std::pair statement
+    -->
+    <xsl:function name="cpp:define_pair" as="xs:string">
+        <xsl:param name="type_1" as="xs:string"/>
+        <xsl:param name="type_2" as="xs:string"/>
+
+        <xsl:value-of select="concat('std::pair', o:wrap_angle(cpp:join_args(($type_1, $type_2))))" />
+    </xsl:function>
 </xsl:stylesheet>

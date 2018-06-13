@@ -522,7 +522,9 @@
 
         <xsl:value-of select="o:nl(1)" />
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
-    </xsl:function> 
+    </xsl:function>
+
+    
 
     
 
@@ -574,21 +576,7 @@
         <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_server_interface_request_aggregates">
-        <xsl:param name="server_interface" as="element()" />
-
-        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'InputParameterGroup')" />
-        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
-    </xsl:function>
-
-    <xsl:function name="cdit:get_server_interface_reply_aggregates">
-        <xsl:param name="server_interface" as="element()" />
-
-        <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'ReturnParameterGroup')" />
-        <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
-    </xsl:function>
-
-
+   
     <xsl:function name="cdit:get_port_requestreply_export">
         <xsl:param name="server_interface" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -647,26 +635,10 @@
         $base_type, $middleware_type))" /> -->
         
         <xsl:variable name="port_types" as="xs:string*">
-            <xsl:choose>
-                <xsl:when test="count($server_replies) = 1">
-                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_replies[1], 'base')" />
-                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_replies[1], $datatype_middleware)" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="'void'" />
-                    <xsl:sequence select="'void'" />
-                </xsl:otherwise>
-            </xsl:choose>
-            <xsl:choose>
-                <xsl:when test="count($server_requests) = 1">
-                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_requests[1], 'base')" />
-                    <xsl:sequence select="cpp:get_aggregate_qualified_type($server_requests[1], $datatype_middleware)" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="'void'" />
-                    <xsl:sequence select="'void'" />
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:sequence select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
+            <xsl:sequence select="cdit:get_qualified_server_interface_reply_type($server_interface, $datatype_middleware)" />
+            <xsl:sequence select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+            <xsl:sequence select="cdit:get_qualified_server_interface_request_type($server_interface, $datatype_middleware)" />
         </xsl:variable>
 
         <xsl:variable name="requester_port_types" as="xs:string*">
@@ -781,7 +753,7 @@
         <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'SHARED', $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(('ports', 'datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
 
             
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />

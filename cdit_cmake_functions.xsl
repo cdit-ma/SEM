@@ -202,7 +202,7 @@
                 <xsl:value-of select="cmake:comment(('Inform middleware compiler', o:wrap_angle($middleware_extension), 'of directories to look for relative files.'), 0)" />
                 <xsl:value-of select="concat('set(', upper-case(concat($middleware_package, '_IMPORT_DIRS')), o:nl(1))" />
             </xsl:if>
-            <xsl:variable name="import_path" select="o:join_paths((cmake:wrap_variable('TOP_SOURCE_DIR'), 'ports', 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="import_path" select="o:join_paths((cmake:wrap_variable('TOP_SOURCE_DIR'), 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
             <xsl:value-of select="concat(o:t(1), $import_path, o:nl(1))" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
@@ -366,9 +366,14 @@
     </xsl:function>
 
 
-    <xsl:function name="cdit:get_relative_path_to_top_level">
+    <xsl:function name="cdit:get_datatype_relative_path_to_top_level">
         <xsl:param name="aggregate"/>
-        <xsl:value-of select="cmake:get_relative_path(('ports', 'datatypes', 'middleware', graphml:get_namespace($aggregate), 'LABEL'))" />
+        <xsl:value-of select="cmake:get_relative_path(('datatypes', 'middleware', graphml:get_namespace($aggregate), 'LABEL'))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_port_relative_path_to_top_level">
+        <xsl:param name="aggregate"/>
+        <xsl:value-of select="cmake:get_relative_path(('ports', 'requestreply', 'middleware', graphml:get_namespace($aggregate), 'LABEL'))" />
     </xsl:function>
 
     <!--
@@ -396,7 +401,7 @@
 
         <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select="cmake:current_source_dir_var()" />
-        <xsl:variable name="relative_path" select="cdit:get_relative_path_to_top_level($aggregate)" />
+        <xsl:variable name="relative_path" select="cdit:get_datatype_relative_path_to_top_level($aggregate)" />
 
         <xsl:variable name="top_source_dir" select="cmake:wrap_variable('TOP_SOURCE_DIR')" />
         <xsl:variable name="top_binary_dir" select="cmake:wrap_variable('TOP_BINARY_DIR')" />
@@ -446,7 +451,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'ports', 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -512,7 +517,7 @@
 
         <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select="cmake:current_source_dir_var()" />
-        <xsl:variable name="relative_path" select="cdit:get_relative_path_to_top_level($aggregate)" />
+        <xsl:variable name="relative_path" select="cdit:get_port_relative_path_to_top_level($aggregate)" />
 
         <xsl:variable name="top_source_dir" select="cmake:wrap_variable('TOP_SOURCE_DIR')" />
         <xsl:variable name="top_binary_dir" select="cmake:wrap_variable('TOP_BINARY_DIR')" />
@@ -558,7 +563,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'ports', 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -608,7 +613,7 @@
 
         <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select="cmake:current_source_dir_var()" />
-        <xsl:variable name="relative_path" select="cdit:get_relative_path_to_top_level($server_interface)" />
+        <xsl:variable name="relative_path" select="cdit:get_port_relative_path_to_top_level($server_interface)" />
 
         <xsl:variable name="top_source_dir" select="cmake:wrap_variable('TOP_SOURCE_DIR')" />
         <xsl:variable name="top_binary_dir" select="cmake:wrap_variable('TOP_BINARY_DIR')" />
@@ -674,7 +679,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'ports', 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />

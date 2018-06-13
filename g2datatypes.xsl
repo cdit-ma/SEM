@@ -106,7 +106,7 @@
                 </xsl:for-each>
                 
                 <!-- Generate the middleware CMakeFile -->
-                <xsl:result-document href="{o:write_file((('ports', 'datatypes', $middleware), cmake:cmake_file()))}">
+                <xsl:result-document href="{o:write_file((('datatypes', $middleware), cmake:cmake_file()))}">
                     <xsl:value-of select="cdit:get_middleware_cmake($datatype_aggregates)" />
                 </xsl:result-document>
             </xsl:if>
@@ -169,7 +169,7 @@
         </xsl:for-each>
 
         <!-- Generate the middleware CMakeFile -->
-        <xsl:result-document href="{o:write_file((('ports', 'datatypes'), cmake:cmake_file()))}">
+        <xsl:result-document href="{o:write_file((('datatypes'), cmake:cmake_file()))}">
             <xsl:variable name="datatype_middlewares" as="xs:string*">
                 <xsl:for-each select="$parsed_middlewares">
                     <xsl:if test="cdit:build_shared_library(.)">
@@ -217,7 +217,7 @@
 
         <!-- Generate the datatypes CMakeFile -->
         <xsl:result-document href="{o:write_file(($output_path, cmake:cmake_file()))}">
-            <xsl:value-of select="cdit:get_directories_cmake(('datatypes', 'pubsub', 'requestreply'))" />
+            <xsl:value-of select="cdit:get_directories_cmake(('pubsub', 'requestreply'))" />
         </xsl:result-document>
 
         <!-- Generate the top level cmake file -->
