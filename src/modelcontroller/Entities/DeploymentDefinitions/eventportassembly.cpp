@@ -66,6 +66,7 @@ bool EventPortAssembly::isOutPortInstance() const
 }
 
 #include <QDebug>
+
 bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

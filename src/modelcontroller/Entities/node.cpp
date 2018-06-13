@@ -779,8 +779,14 @@ QSet<Node *> Node::getImplementations() const
 
 QSet<Node *> Node::getNestedDependants()
 {
-    auto dependants = getDependants();
+    QSet<Node*> dependants;
+
     
+    for(auto dependant : getDependants()){
+        dependants += dependant;
+        dependants += dependant->getNestedDependants();
+    }
+
     for(auto child : getChildren(0)){
         dependants += child;
         dependants += child->getNestedDependants();
@@ -826,9 +832,7 @@ void Node::removeEdge(Edge *edge)
 void Node::parentNodeUpdated(){
 
     if(parent_node_){
-        for(auto data : getData()){
-            data->revalidateData();
-        }
+        revalidateData();
         //Update the parent tree index
         updateTreeIndex(parent_node_->getTreeIndex());
         updateViewAspect(parent_node_->getViewAspect());

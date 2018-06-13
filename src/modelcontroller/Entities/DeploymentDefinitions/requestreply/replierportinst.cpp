@@ -28,8 +28,11 @@ MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_t
     
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
     
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED, true);
-    data_middleware->addValidValues({"TAO"});
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
+    data_middleware->addValidValues({"TAO", "ZMQ", "AMQP"});
+
+    //connect(data_middleware, &Data::dataChanged, this, &SubscriberPortInst::MiddlewareUpdated);
+    //MiddlewareUpdated();
 }
 
 

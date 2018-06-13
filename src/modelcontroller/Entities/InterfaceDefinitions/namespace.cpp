@@ -14,10 +14,6 @@ void Namespace::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Namespace::Namespace(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    //Setup State
-    addInstancesDefinitionKind(NODE_KIND::MEMBER);
-    setChainableDefinition();
-
     if(is_temp){
         //Break out early for temporary entities
         return;

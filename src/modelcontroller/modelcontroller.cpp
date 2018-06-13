@@ -1300,14 +1300,12 @@ bool ModelController::destructEntities(QList<Entity*> entities)
             }
         }
     }
-
   
     //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
 
     //Get all the edges
     for(auto n : sorted_nodes){
-        
         auto node = (Node*) n;
         for(auto edge : node->getEdges()){
             edges.insert(edge);

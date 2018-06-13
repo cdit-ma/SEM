@@ -30,6 +30,7 @@ MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_t
     auto return_params = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
 
     broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "function_name", QVariant::String, ProtectedState::UNPROTECTED, "send");
     broker.AttachData(input_params, "label", QVariant::String, ProtectedState::PROTECTED, "Request Type");
     broker.AttachData(return_params, "label", QVariant::String, ProtectedState::PROTECTED, "Reply Type");
     TypeKey::BindNamespaceAndLabelToType(this, true);

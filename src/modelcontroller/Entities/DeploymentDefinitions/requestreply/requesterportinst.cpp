@@ -29,8 +29,8 @@ MEDEA::RequesterPortInst::RequesterPortInst(::EntityFactoryBroker& broker, bool 
 
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
     
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED, true);
-    data_middleware->addValidValues({"TAO"});
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
+    data_middleware->addValidValues({"TAO", "ZMQ", "AMQP"});
 }
 
 

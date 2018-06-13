@@ -20,6 +20,7 @@ protected:
     Entity(EntityFactoryBroker& factory, GRAPHML_KIND graphml_kind);
     ~Entity();
     virtual void DataAdded(Data* data){};
+    void revalidateData();
 public:
     QList<Key *> getKeys() const;
 
@@ -32,6 +33,8 @@ public:
     bool removeData(Key* key);
     bool removeData(Data* data);
     bool removeData(QString keyName);
+
+    
     
     bool isLabelFunctional() const;
     bool isImplicitlyConstructed() const;

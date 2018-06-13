@@ -302,8 +302,17 @@ bool Entity::isLabelFunctional() const{
     return is_label_functional_;
 }
 
+void Entity::revalidateData(){
+    for(auto data : getData()){
+        data->revalidateData();
+    }
+}
+
 void Entity::setLabelFunctional(bool functional){
-    is_label_functional_ = functional;
+    if(is_label_functional_ != functional){
+        is_label_functional_ = functional;
+        revalidateData();
+    }
 }
 
 bool Entity::isImplicitlyConstructed() const{
