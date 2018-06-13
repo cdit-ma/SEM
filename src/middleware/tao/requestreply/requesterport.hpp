@@ -35,12 +35,12 @@ namespace tao{
             bool HandleConfigure();
             bool HandleTerminate();
         public:
-            std::shared_ptr<Attribute> publisher_address_;
-            std::shared_ptr<Attribute> publisher_name_;
+            std::shared_ptr<Attribute> server_address_;
+            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
             
             int count = 0;
-            std::string current_publisher_name_;
+            std::string current_server_name_;
             
             std::mutex control_mutex_;
 
@@ -65,12 +65,12 @@ namespace tao{
             using middleware_reply_type = void;
             using middleware_request_type = TaoRequestType;
         public:
-            std::shared_ptr<Attribute> publisher_address_;
-            std::shared_ptr<Attribute> publisher_name_;
+            std::shared_ptr<Attribute> server_address_;
+            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
             
             int count = 0;
-            std::string current_publisher_name_;
+            std::string current_server_name_;
             
             std::mutex control_mutex_;
 
@@ -79,7 +79,7 @@ namespace tao{
     };
 
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-    static bool SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, const std::string& orb_endpoint, const std::string& publisher_address, const std::string& publisher_name);
+    static bool SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, const std::string& orb_endpoint, const std::string& server_address, const std::string& server_name);
 };
 
 
@@ -88,8 +88,8 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
-    publisher_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
+    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 
@@ -97,13 +97,13 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto publisher_name = publisher_name_->String();
-    const auto publisher_address = publisher_address_->String();
+    const auto server_name = server_name_->String();
+    const auto server_address = server_address_->String();
 
-    bool valid = orb_endpoint.size() > 0 && publisher_address.size() > 0 && publisher_name.size() > 0;
+    bool valid = orb_endpoint.size() > 0 && server_name.size() > 0 && server_address.size() > 0;
 
     if(valid && ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
-        return tao::SetupRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, publisher_address, publisher_name);
+        return tao::SetupRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
     }else{
         std::cerr << "NO VALID BOIS" << std::endl;
     }
@@ -125,16 +125,16 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 bool tao::SetupRequester(
     tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, 
     const std::string& orb_endpoint,
-    const std::string& publisher_address,
-    const std::string& publisher_name)
+    const std::string& server_address,
+    const std::string& server_name)
 {
     std::lock_guard<std::mutex> client_lock(port.client_mutex_);
     auto& helper = tao::TaoHelper::get_tao_helper();
     port.orb_ = helper.get_orb(orb_endpoint);
     auto count = port.count ++;
-    port.current_publisher_name_ = port.get_id() + "_" + publisher_name + "_" + std::to_string(count);
+    port.current_server_name_ = port.get_id() + "_" + server_name + "_" + std::to_string(count);
 
-    helper.register_initial_reference(port.orb_, port.current_publisher_name_, publisher_address);
+    helper.register_initial_reference(port.orb_, port.current_server_name_, server_address);
     //std::cerr << "Registered: " << port.current_publisher_name_ << " to addr " << publisher_address << std::endl;
     return true;
 };
@@ -144,7 +144,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto& cached_server_name = current_publisher_name_;
+    const auto& cached_server_name = current_server_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
@@ -200,22 +200,21 @@ template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<void, BaseRequestType>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
-    publisher_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
+    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 bool tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto publisher_name = publisher_name_->String();
-    const auto publisher_address = publisher_address_->String();
+    const auto server_name = server_name_->String();
+    const auto server_address = server_address_->String();
 
-    bool valid = orb_endpoint.size() > 0 && publisher_address.size() > 0 && publisher_name.size() > 0;
+    bool valid = orb_endpoint.size() > 0 && server_name.size() > 0 && server_address.size() > 0;
 
     if(valid && ::RequesterPort<void, BaseRequestType>::HandleConfigure()){
-        return tao::SetupRequester<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, publisher_address, publisher_name);
-        //return SetupRequester(*this, orb_endpoint, publisher_address, publisher_name);
+        return tao::SetupRequester<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
         return true;
     }else{
         std::cerr << "NO VALID BOIS" << std::endl;
@@ -239,7 +238,7 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto& cached_server_name = current_publisher_name_;
+    const auto& cached_server_name = current_server_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_initial_references(orb_, cached_server_name);

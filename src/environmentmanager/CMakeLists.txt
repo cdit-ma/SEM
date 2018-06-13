@@ -20,6 +20,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/amqp/amqprule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/tao/taorule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
@@ -32,6 +33,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/amqp/amqprule.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/tao/taorule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h

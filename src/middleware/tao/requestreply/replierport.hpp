@@ -42,14 +42,14 @@ namespace tao{
             
             std::mutex control_mutex_;
             
-            std::shared_ptr<Attribute> publisher_name_;
+            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
     };
 
     //Generic templated RequesterHandler
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
     struct RequestHandler{
-        static void Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& port, const std::string orb_endpoint, const std::string publisher_name);
+        static void Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& port, const std::string orb_endpoint, const std::string server_name);
     };
 
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
@@ -89,7 +89,7 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
 ::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
 };
 
 
@@ -97,13 +97,13 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto publisher_name = publisher_name_->String();
+    const auto server_name = server_name_->String();
 
-    bool valid = orb_endpoint.size() > 0 && publisher_name.size() > 0;
+    bool valid = orb_endpoint.size() > 0 && server_name.size() > 0;
     if(valid && ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         if(!thread_manager_){
             thread_manager_ = new ThreadManager();
-            auto thread = std::unique_ptr<std::thread>(new std::thread(tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::ref(*this), orb_endpoint, publisher_name));
+            auto thread = std::unique_ptr<std::thread>(new std::thread(tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::ref(*this), orb_endpoint, server_name));
             thread_manager_->SetThread(std::move(thread));
             return thread_manager_->Configure();
         }else{
@@ -166,7 +166,7 @@ bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
 
 //Generic templated RequestHandler
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
-void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& port, const std::string orb_endpoint, const std::string publisher_name){
+void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& port, const std::string orb_endpoint, const std::string server_name){
     auto& helper = tao::TaoHelper::get_tao_helper();
 
     bool success = true;
@@ -179,9 +179,9 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
     }
     
     if(success){
-        auto poa = helper.get_poa(orb, publisher_name);
+        auto poa = helper.get_poa(orb, server_name);
         auto tao_server = new tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>(port);
-        if(helper.register_servant(orb, poa, tao_server, publisher_name)){
+        if(helper.register_servant(orb, poa, tao_server, server_name)){
             thread_manager.Thread_Configured();
         
             if(thread_manager.Thread_WaitForActivate()){
@@ -189,7 +189,7 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
                 thread_manager.Thread_Activated();
                 thread_manager.Thread_WaitForTerminate();
             }
-            helper.deregister_servant(orb, poa, tao_server, publisher_name);
+            helper.deregister_servant(orb, poa, tao_server, server_name);
             port.LogPassivation();
         }
     }

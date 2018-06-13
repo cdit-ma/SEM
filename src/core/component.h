@@ -55,6 +55,17 @@ struct CallbackWrapper<ReplyType, void> : GenericCallbackWrapper{
     std::function<ReplyType ()> callback_fn;
 };
 
+template <>
+struct CallbackWrapper<void, void> : GenericCallbackWrapper{
+    CallbackWrapper(std::function<void ()> fn)
+    : callback_fn(fn){};
+
+    using reply_type = void;
+    using request_type = void;
+
+    std::function<void ()> callback_fn;
+};
+
 class Component : public BehaviourContainer{
     public:
         Component(const std::string& component_name = "");
@@ -73,6 +84,11 @@ class Component : public BehaviourContainer{
 
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::function<ReplyType (void)> fn);
+
+        
+        void AddPeriodicEventCallback(const std::string& port_name, std::function<void ()> fn){
+            AddCallback<void, BaseMessage>(port_name, [=](BaseMessage&){fn();});
+        }
         
         template<class ReplyType, class RequestType>
         CallbackWrapper<ReplyType, RequestType>* GetCallback(const std::string& port_name);

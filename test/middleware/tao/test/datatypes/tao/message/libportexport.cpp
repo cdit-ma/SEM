@@ -16,7 +16,7 @@
 
 
 bool setup_replier_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
-	auto pn = port.GetAttribute("publisher_name").lock();
+	auto pn = port.GetAttribute("server_name").lock();
 	auto oa = port.GetAttribute("orb_endpoint").lock();
 	if(pn && oa){
 		oa->set_String(orb_address);
@@ -28,8 +28,8 @@ bool setup_replier_port(Port& port, const std::string& orb_address, const std::s
 
 bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name, const std::string& publisher_address){
 	auto oa = port.GetAttribute("orb_endpoint").lock();
-	auto pa = port.GetAttribute("publisher_address").lock();
-	auto pn = port.GetAttribute("publisher_name").lock();
+	auto pa = port.GetAttribute("server_address").lock();
+	auto pn = port.GetAttribute("server_name").lock();
 	if(pa && pn && oa){
 		oa->set_String(orb_address);
 		pn->set_String(publisher_name);

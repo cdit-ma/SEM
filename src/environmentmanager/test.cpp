@@ -10,6 +10,7 @@
 #include "environment.h"
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
+#include "deploymentrules/tao/taorule.h"
 
 #include "../nodemanager/executionparser/protobufmodelparser.h"
 
@@ -31,6 +32,7 @@ int main(int argc, char **argv){
     DeploymentGenerator generator(*environment);
     generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
     generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
+    generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(*environment)));
 
     generator.PopulateDeployment(*message);
 
