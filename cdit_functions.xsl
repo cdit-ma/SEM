@@ -279,7 +279,7 @@
                             <!-- Vectors with Objects in it can use a mutable_swap function -->
                             <xsl:value-of select="concat(cpp:invoke_function('', '', concat('add_', $variable_syntax), '', 0), cpp:arrow(), 'Swap')" />
                         </xsl:when>
-                        <xsl:when test="$vector_kind = 'Member'">
+                        <xsl:when test="$vector_kind = 'Member' or $vector_kind = 'EnumInstance'">
                             <!-- Protobuf uses swap for Instances -->
                             <xsl:value-of select="concat('add_', $variable_syntax)" />
                         </xsl:when>
@@ -544,14 +544,7 @@
 
         <xsl:variable name="qualified_type" select="cpp:combine_namespaces(($namespace, $label, $suffix))" />
 
-        <xsl:choose>
-            <xsl:when test="$namespace = ''">
-                <xsl:value-of select="concat('::', $qualified_type)" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$qualified_type" />
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:value-of select="concat('::', $qualified_type)" />
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
@@ -1745,6 +1738,12 @@
 
         <xsl:variable name="request_type" select="graphml:get_child_nodes_of_kind($server_interface, 'ReturnParameterGroup')" />
         <xsl:sequence select="graphml:get_child_nodes_of_kind($request_type, 'AggregateInstance')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_unique_variable_name">
+        <xsl:param name="node" as="element()*"/>
+        <xsl:variable name="id" select="graphml:get_id($node)" />
+        <xsl:value-of select="lower-case(o:join_list((graphml:get_label($node), $id), '_'))"/>
     </xsl:function>
 
 

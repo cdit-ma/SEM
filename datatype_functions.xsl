@@ -70,7 +70,7 @@
         <xsl:param name="aggregate" />
 
         <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_definitions" select="cdit:get_required_aggregates($aggregate, true())" />
+        <xsl:variable name="aggregate_definitions" select="cdit:get_required_aggregates($aggregate, false())" />
         <xsl:variable name="enums" select="cdit:get_required_enums($aggregate)" />
 
         
@@ -920,38 +920,35 @@
         <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="aggregate" select="graphml:get_parent_node($enum_instance)" />
-        
-        <!-- The namespace of the enum is dependant on its target middleware -->
-        <xsl:variable name="enum_namespace">
-            <xsl:choose>
-                <xsl:when test="$target_middleware = 'base'">
-                    <!-- All Enums exist in the Base namespace -->
-                    <xsl:value-of select="'Base'" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <!-- Enums are defined in the generated namespace for the middlewares -->
-                    <xsl:value-of select="graphml:get_data_value($aggregate, 'namespace')" />
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-
         <!-- Get the type of the Enum -->
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $enum_instance, $source_middleware)" />
+        <xsl:value-of select="cpp:scope_start($tab)" />
+        
+        <xsl:value-of select="cdit:cast_enum_instance($enum_instance, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 1)" />
+        
+        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($enum_instance)" />
+        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $temp_variable)" />
+        <xsl:value-of select="concat(o:t($tab + 1), $set_func, cpp:nl())" />
+        <xsl:value-of select="cpp:scope_end($tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:cast_enum_instance">
+        <xsl:param name="enum_instance" as="element()" />
+        <xsl:param name="get_func" as="xs:string" />
+
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="source_middleware" as="xs:string" />
+        <xsl:param name="target_middleware" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <!-- Get the type of the Enum -->
         <xsl:variable name="enum_cast_type" select="cpp:get_enum_qualified_type($enum_instance, $target_middleware)" />
 
         <xsl:variable name="cast_enum_value" select="o:join_list((o:wrap_bracket($enum_cast_type), cpp:static_cast('int', $get_func)), ' ')" />
-        <xsl:variable name="temp_variable" select="lower-case(concat('enum_', graphml:get_label($enum_instance)))" />
+        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($enum_instance)" />
 
-
-        
-        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $temp_variable)" />
-        
-        <xsl:value-of select="cpp:scope_start($tab)" />
-        <xsl:value-of select="cpp:comment('Cast the enums integer representation', $tab + 1)" />
-        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $cast_enum_value, cpp:nl(), $tab + 1)" />
-        <xsl:value-of select="concat(o:t($tab + 1), $set_func, cpp:nl())" />
-        <xsl:value-of select="cpp:scope_end($tab)" />
+        <xsl:value-of select="cpp:comment('Cast the enums integer representation', $tab)" />
+        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $cast_enum_value, cpp:nl(), $tab)" />
     </xsl:function>
 
 
@@ -1028,9 +1025,6 @@
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $vector, $source_middleware)" />
         <xsl:variable name="temp_variable" select="'element'" />
         <xsl:variable name="temp_element_variable" select="o:join_list(($target_middleware, $temp_variable), '_')" />
-        <xsl:variable name="temp_size_variable" select="o:join_list(($temp_variable, 'size'), '_')" />
-        <xsl:variable name="get_size" select="cpp:invoke_function($temp_variable, cpp:dot(), 'size', '', 0)" />
-        <xsl:variable name="get_value" select="cpp:array_get($temp_variable, 'i')" />
 
         <xsl:variable name="set_func">
             <xsl:choose>
@@ -1039,6 +1033,11 @@
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'Member'">
                     <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable)" />
+                </xsl:when>
+                <xsl:when test="$vector_child_kind = 'EnumInstance'">
+                    <xsl:variable name="variable_name" select="cdit:get_unique_variable_name($vector_child)" />
+
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
@@ -1058,6 +1057,12 @@
                 <xsl:value-of select="cpp:delete($temp_element_variable, $tab + 2)" />
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'Member'">
+                <!-- Member aggregates require translation -->
+                <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$vector_child_kind = 'EnumInstance'">
+                <xsl:value-of select="cdit:cast_enum_instance($vector_child, 'element', $middleware, $source_middleware, $target_middleware, $tab + 2)" />
+                
                 <!-- Member aggregates require translation -->
                 <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
             </xsl:when>

@@ -1693,6 +1693,7 @@
         <xsl:value-of select="concat('set_', graphml:get_label($node))" />
     </xsl:function>
 
+    
 
     <xsl:function name="cdit:get_variable_name">
         <xsl:param name="node" as="element()*"/>
@@ -1720,8 +1721,7 @@
             </xsl:when>
 
             <xsl:otherwise>
-                <xsl:variable name="id" select="graphml:get_id($node)" />
-                <xsl:value-of select="lower-case(o:join_list((graphml:get_label($node), $id), '_'))"/>
+                <xsl:value-of select="cdit:get_unique_variable_name($node)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
