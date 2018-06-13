@@ -1662,6 +1662,60 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cdit:get_requester_port_return_type">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
+        <xsl:choose>
+            <xsl:when test="$reply_type = 'void'">
+                <xsl:value-of select="'bool'" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cpp:define_pair('bool', $reply_type)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_base_server_interface_type">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
+        <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+
+        <xsl:value-of select="cpp:join_args(($reply_type, $request_type))" />
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_replier_port_return_type">
+        <xsl:param name="server_interface" as="element()" />
+        <xsl:value-of select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_replier_port_parameters">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+
+        <xsl:if test="$request_type != 'void'">
+            <xsl:value-of select="cpp:ref_var_def($request_type, 'm')" />
+        </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_requester_port_parameters">
+        <xsl:param name="server_interface" as="element()" />
+
+        <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+        
+        <xsl:variable name="args" as="xs:string*">
+            <xsl:if test="$request_type != 'void'">
+                <xsl:sequence select="cpp:ref_var_def($request_type, 'm')" />
+            </xsl:if>
+            <xsl:sequence select="cpp:const_ref_var_def('std::chrono::milliseconds', 'timeout')" />
+        </xsl:variable>
+        <xsl:value-of select="cpp:join_args($args)" />
+    </xsl:function>
+
+
     <xsl:function name="cdit:get_qualified_server_interface_reply_type">
         <xsl:param name="server_interface" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -1677,6 +1731,7 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
+    
 
      <xsl:function name="cdit:get_server_interface_request_aggregates">
         <xsl:param name="server_interface" as="element()" />

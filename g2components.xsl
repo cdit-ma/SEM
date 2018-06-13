@@ -27,7 +27,7 @@
     <xsl:param name="components" as="xs:string" select="''" />
     <xsl:param name="preview" as="xs:boolean" select="false()" />
     <xsl:param name="sparse" as="xs:boolean" select="true()" />
-    <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
+    <xsl:param name="debug_mode" as="xs:boolean" select="false()" />
     
 
     <xsl:template match="/*">

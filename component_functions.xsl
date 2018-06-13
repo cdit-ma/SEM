@@ -174,8 +174,8 @@
         <xsl:variable name="aggregates" select="cdit:get_required_aggregates($component, true())" />
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
-        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
+        <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
+        <xsl:variable name="pub_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
         <xsl:variable name="req_ports" select="graphml:get_child_nodes_of_kind($component, 'RequesterPort')" />
         <xsl:variable name="rep_ports" select="graphml:get_child_nodes_of_kind($component, 'ReplierPort')" />
 
@@ -191,13 +191,13 @@
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'component.h')))" />
         
         <!-- Conditionally include the Subscriber Port header -->
-        <xsl:if test="count($in_ports) > 0">
+        <xsl:if test="count($sub_ports) > 0">
             <xsl:variable name="header_file" select="o:join_paths(('core', 'ports', 'pubsub', 'subscriberport.hpp'))" />
             <xsl:value-of select="cpp:include_library_header($header_file)" />
         </xsl:if>
         
         <!-- Conditionally include Publisher Port header -->
-        <xsl:if test="count($out_ports) > 0">
+        <xsl:if test="count($pub_ports) > 0">
             <xsl:variable name="header_file" select="o:join_paths(('core', 'ports','pubsub', 'publisherport.hpp'))" />
             <xsl:value-of select="cpp:include_library_header($header_file)" />
         </xsl:if>
@@ -213,9 +213,7 @@
             <xsl:variable name="header_file" select="o:join_paths(('core', 'ports', 'requestreply', 'replierport.hpp'))" />
             <xsl:value-of select="cpp:include_library_header($header_file)" />
         </xsl:if>
-
         
-
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
@@ -235,78 +233,67 @@
         <xsl:value-of select="cpp:declare_function('', $class_type, cpp:const_ref_var_def('std::string', 'name'), ';', $tab + 2)" />
 
         <!-- Protected -->
-        <xsl:if test="count(($in_ports, $out_ports)) > 0">
+        <xsl:if test="count(($sub_ports, $pub_ports)) > 0">
             <xsl:value-of select="cpp:protected($tab + 1)" />
         </xsl:if>
 
-        <!-- In Event Port Declarations -->
-        <xsl:for-each select="$in_ports">
+        <!-- Subscriber Ports -->
+        <xsl:for-each select="$sub_ports">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('SubscriberPort callback declarations', $tab + 2)" />
+            </xsl:if>
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
 
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
             <xsl:value-of select="cpp:declare_function('virtual void', $function_name, cpp:ref_var_def($port_type, 'm'), ' = 0;', $tab + 2)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+            <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
-        <!-- Out Event Port Declarations -->
-        <xsl:for-each select="$out_ports">
+        <!-- Publisher Ports -->
+        <xsl:for-each select="$pub_ports">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('PublisherPort declarations', $tab + 2)" />
+            </xsl:if>
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
             
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function('bool', $function_name, cpp:const_ref_var_def($port_type, 'm'), ';', $tab + 2)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+            <xsl:value-of select="cpp:declare_function('bool', $function_name, cpp:ref_var_def($port_type, 'm'), ';', $tab + 2)" />
+            <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
-        <!-- Requester Port Declarations -->
+        <!-- Requester Ports -->
         <xsl:for-each select="$req_ports">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('RequesterPort declarations', $tab + 2)" />
+            </xsl:if>
+            
             <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
-            <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
-            <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
-
-            <xsl:variable name="return_args">
-                <xsl:choose>
-                    <xsl:when test="$reply_type = 'void'">
-                        <xsl:value-of select="'bool'" />
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="cpp:define_pair('bool', $reply_type)" />
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:variable>
-
-            <xsl:variable name="args" as="xs:string*">
-                <xsl:if test="$request_type != 'void'">
-                    <xsl:sequence select="cpp:const_ref_var_def($request_type, 'm')" />
-                </xsl:if>
-                <xsl:sequence select="'std::chrono::milliseconds timeout'" />
-            </xsl:variable>
+            <xsl:variable name="return_type" select="cdit:get_requester_port_return_type($server_interface)" />
+            <xsl:variable name="request_params" select="cdit:get_requester_port_parameters($server_interface)" />
 
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function($return_args, $function_name, cpp:join_args($args), ';', $tab + 2)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+            <xsl:value-of select="cpp:declare_function($return_type, $function_name, $request_params, ';', $tab + 2)" />
+            <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
-        <!-- Replier Event Port Declarations -->
+        <!-- Replier Ports -->
         <xsl:for-each select="$rep_ports">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('ReplierPort callback declarations', $tab + 2)" />
+            </xsl:if>
             <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
-            <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
-            <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
-
-            <xsl:variable name="args">
-                <xsl:if test="$request_type != 'void'">
-                    <xsl:value-of select="cpp:ref_var_def($request_type, 'm')" />
-                </xsl:if>
-            </xsl:variable>
+            <xsl:variable name="return_type" select="cdit:get_replier_port_return_type($server_interface)" />
+            <xsl:variable name="request_params" select="cdit:get_replier_port_parameters($server_interface)" />
 
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function(concat('virtual ', $reply_type), $function_name, $args, ' = 0;', $tab + 2)" />
-            <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+            <xsl:value-of select="cpp:declare_function(concat('virtual ', $return_type), $function_name, $request_params, ' = 0;', $tab + 2)" />
+            <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
         <!-- Attributes Declarations -->
@@ -340,8 +327,8 @@
         <xsl:variable name="qualified_class_type" select="cpp:combine_namespaces(($namespaces, $class_type))" />
 
         <!-- Get the children required for generation -->
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
-        <xsl:variable name="out_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
+        <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component, 'SubscriberPort')" />
+        <xsl:variable name="pub_ports" select="graphml:get_child_nodes_of_kind($component, 'PublisherPort')" />
         <xsl:variable name="req_ports" select="graphml:get_child_nodes_of_kind($component, 'RequesterPort')" />
         <xsl:variable name="attributes" select="graphml:get_child_nodes_of_kind($component, 'Attribute')" />
 
@@ -358,7 +345,7 @@
         <xsl:value-of select="cpp:define_function('', $qualified_class_type, $class_type, cpp:const_ref_var_def('std::string', 'name'), concat($inherited_constructor, cpp:scope_start(0)))" />
         
             <!-- Attach In Event Port Callback Functions -->
-            <xsl:for-each select="$in_ports">
+            <xsl:for-each select="$sub_ports">
                 <xsl:if test="position() = 1">
                     <xsl:value-of select="cpp:comment('Attach In Event Port Callbacks', $tab + 1)" />
                 </xsl:if>
@@ -386,8 +373,8 @@
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <!-- Define Out Event Port Definitions -->
-        <xsl:for-each select="$out_ports">
+        <!-- Publisher Ports -->
+        <xsl:for-each select="$pub_ports">
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
@@ -405,7 +392,7 @@
             <xsl:value-of select="o:nl(1)" />
         </xsl:for-each>
 
-        <!-- Requester Port Declarations -->
+        <!-- Requester Ports -->
         <xsl:for-each select="$req_ports">
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
@@ -413,20 +400,13 @@
 
             <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
             <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
-            <xsl:variable name="port_type" select="cpp:join_args(($reply_type, $request_type))" />
+
+            <xsl:variable name="return_type" select="cdit:get_requester_port_return_type($server_interface)" />
+            <xsl:variable name="request_params" select="cdit:get_requester_port_parameters($server_interface)" />
+
+            <xsl:variable name="port_type" select="cdit:get_base_server_interface_type($server_interface)" />
             
             <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('RequesterPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
-
-            <xsl:variable name="return_args">
-                <xsl:choose>
-                    <xsl:when test="$reply_type = 'void'">
-                        <xsl:value-of select="'bool'" />
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="cpp:define_pair('bool', $reply_type)" />
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:variable>
 
             <xsl:variable name="failed_return">
                 <xsl:choose>
@@ -440,13 +420,6 @@
                 </xsl:choose>
             </xsl:variable>
 
-            <xsl:variable name="args" as="xs:string*">
-                <xsl:if test="$request_type != 'void'">
-                    <xsl:sequence select="cpp:const_ref_var_def($request_type, 'm')" />
-                </xsl:if>
-                <xsl:sequence select="'std::chrono::milliseconds timeout'" />
-            </xsl:variable>
-
             <xsl:variable name="send_args" as="xs:string*">
                 <xsl:if test="$request_type != 'void'">
                     <xsl:sequence select="'m'" />
@@ -455,7 +428,7 @@
             </xsl:variable>
 
             <!-- Define the Send function -->
-            <xsl:value-of select="cpp:define_function($return_args, $qualified_class_type, $function_name, cpp:join_args($args), cpp:scope_start(0))" />
+            <xsl:value-of select="cpp:define_function($return_type, $qualified_class_type, $function_name, $request_params, cpp:scope_start(0))" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), 'p', $get_port, cpp:nl(), $tab + 1)" />
                 <xsl:value-of select="cpp:if('p', cpp:scope_start(0), $tab + 1)" />
                     <xsl:variable name="send_request" select="cpp:invoke_function('p', cpp:arrow(), 'SendRequest', cpp:join_args($send_args), 0)" />
@@ -505,7 +478,7 @@
 
         <!-- Get the children required for generation -->
         <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicPort')" />
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
+        <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="rep_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'ReplierPortImpl')" />
 
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
@@ -559,7 +532,7 @@
         <xsl:value-of select="cpp:declare_function('', $impl_class_type, cpp:const_ref_var_def('std::string', 'name'), ';', $tab + 2)" />
 
         <!-- Protected -->
-        <xsl:if test="count(($in_ports, $periodic_events, $functions)) > 0">
+        <xsl:if test="count(($sub_ports, $periodic_events, $functions)) > 0">
             <xsl:value-of select="cpp:protected($tab + 1)" />
         </xsl:if>
 
@@ -573,7 +546,7 @@
         </xsl:for-each>
 
         <!-- In Event Port Declarations -->
-        <xsl:for-each select="$in_ports">
+        <xsl:for-each select="$sub_ports">
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
 
@@ -896,7 +869,7 @@
 
         <!-- Get the children required for generation -->
         <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicPort')" />
-        <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
+        <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="rep_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'ReplierPortImpl')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
         <xsl:variable name="worker_instances" select="graphml:get_worker_instances($component_impl)" />
@@ -963,7 +936,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- In Event Port Callback Definitions -->
-        <xsl:for-each select="$in_ports">
+        <xsl:for-each select="$sub_ports">
             <xsl:value-of select="cdit:define_workload_function(., $qualified_impl_class_type)" />
         </xsl:for-each>
 
