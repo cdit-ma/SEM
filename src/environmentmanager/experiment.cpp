@@ -25,6 +25,10 @@ Experiment::~Experiment(){
                 auto modellogger_port = modellogger_port_map_.at(node.first);
                 environment_.FreePort(name, modellogger_port);
             }
+            if(orb_port_map_.count(node.first)){
+                auto orb_port = orb_port_map_.at(node.first);
+                environment_.FreePort(name, orb_port);
+            }
         }
         environment_.FreeManagerPort(manager_port_);
         std::string master_node_name = node_id_map_.at(master_ip_address_);
@@ -62,6 +66,9 @@ void Experiment::AddNode(const NodeManager::Node& node){
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
     auto node_name = node.info().name();
     node_map_.emplace(node_name, std::move(temp));
+
+    auto orb_port = environment_.GetPort(node_name);
+    orb_port_map_.insert({node_name, orb_port});
 
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
@@ -143,6 +150,7 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
 
         modellogger_port_map_.insert({node_name, logger_port});
         management_port_map_.insert({node_name, management_port});
+
     }
 
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
@@ -246,6 +254,12 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
         }
     }
     return publisher_addresses;
+}
+
+std::string Experiment::GetOrbEndpoint(const std::string& port_id){
+    auto node_name = port_map_.at(port_id).node_name;
+
+    return node_address_map_.at(node_name) + ":" + orb_port_map_.at(node_name);
 }
 
 bool Experiment::IsDirty() const{

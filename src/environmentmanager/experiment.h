@@ -129,6 +129,7 @@ class Experiment{
         std::set<std::string> GetTopics() const;
 
         std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
+        std::string GetOrbEndpoint(const std::string& port_id);
 
         bool IsDirty() const;
 
@@ -171,6 +172,9 @@ class Experiment{
 
         //node_id -> model_logger_port
         std::unordered_map<std::string, std::string> modellogger_port_map_;
+
+        //node_id -> orb port
+        std::unordered_map<std::string, std::string> orb_port_map_;
 
         //list of topics used in this experiment
         std::set<std::string> topic_set_;

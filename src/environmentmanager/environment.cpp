@@ -173,6 +173,12 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
 
 }
 
+std::string Environment::GetOrbEndpoint(const std::string& model_name, const std::string& port_id){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
+    }
+}
+
 //Return list of experiments using the topic name provided
 std::vector<std::string> Environment::CheckTopic(const std::string& model_name, const std::string& topic){
     std::vector<std::string> out;
@@ -374,6 +380,7 @@ void Environment::AddPendingPublicEventPort(const std::string& model_name, const
     pending_port_map_.at(port_id).insert(model_name);
 }
 
+//XXX: Hardcoded
 std::string Environment::GetAmqpBrokerAddress(){
     return address_ + ":5672";
 }
