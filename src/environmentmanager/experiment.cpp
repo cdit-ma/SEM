@@ -67,9 +67,6 @@ void Experiment::AddNode(const NodeManager::Node& node){
     auto node_name = node.info().name();
     node_map_.emplace(node_name, std::move(temp));
 
-    auto orb_port = environment_.GetPort(node_name);
-    orb_port_map_.insert({node_name, orb_port});
-
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
@@ -98,9 +95,12 @@ void Experiment::AddNode(const NodeManager::Node& node){
                 }
             }
             else if(port.middleware() == NodeManager::Port::TAO){
-                if(port.kind() == NodeManager::Port::REPLIER){
-                    event_port.port_number = environment_.GetPort(node_name);
+                if(!orb_port_map_.count(node_name)){
+                    auto orb_port = environment_.GetPort(node_name);
+                    orb_port_map_.insert({node_name, orb_port});    
                 }
+
+                event_port.port_number = orb_port_map_.at(node_name);
                 //Make a unique name
                 event_port.topic = port.info().name() + "_" + event_port.id;
             }
