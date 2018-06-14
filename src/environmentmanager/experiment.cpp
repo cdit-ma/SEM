@@ -10,7 +10,9 @@ Experiment::Experiment(Environment& environment, const std::string name) : envir
 Experiment::~Experiment(){
     try{
         for(const auto& port : port_map_){
-            environment_.FreePort(port.second.node_name, port.second.port_number);
+            if(!port.second.port_number.empty()){
+                environment_.FreePort(port.second.node_name, port.second.port_number);
+            }
         }
         for(const auto& node : node_map_){
             auto node_struct = *node.second;
@@ -110,9 +112,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
             }
 
             event_port.type += port.info().type();
-
-            std::cerr << event_port.id << " " << event_port.type << std::endl;
-
+            
             for(int a = 0; a < port.attributes_size(); a++){
                 auto attribute = port.attributes(a);
                 if(attribute.info().name() == "topic"){
@@ -134,7 +134,11 @@ void Experiment::AddNode(const NodeManager::Node& node){
             port_map_.insert({event_port.id, event_port});
         }
         deployment_map_.at(node_name)++;
-        std::cout << node_name << " deployment count: " << deployment_map_.at(node_name) << std::endl;
+    }
+    
+    auto deploy_count = deployment_map_.at(node_name);
+    if(deploy_count > 0){
+        std::cout << "Experiment[" << model_name_ << "] Node: " <<node_name << " Deployed: " << deploy_count << std::endl;
     }
 }
 

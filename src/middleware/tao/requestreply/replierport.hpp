@@ -106,11 +106,7 @@ bool tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
             auto thread = std::unique_ptr<std::thread>(new std::thread(tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::ref(*this), orb_endpoint, server_name));
             thread_manager_->SetThread(std::move(thread));
             return thread_manager_->Configure();
-        }else{
-            std::cerr << "STILL GOT THREAD" << std::endl;
         }
-    }else{
-        std::cerr << "WAITING MY FRIEND " << std::endl;
     }
     return false;
 };
@@ -181,6 +177,7 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
     if(success){
         auto poa = helper.get_poa(orb, server_name);
         auto tao_server = new tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>(port);
+
         if(helper.register_servant(orb, poa, tao_server, server_name)){
             thread_manager.Thread_Configured();
         

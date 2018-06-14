@@ -104,8 +104,6 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
 
     if(valid && ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         return tao::SetupRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
-    }else{
-        std::cerr << "NO VALID BOIS" << std::endl;
     }
     return false;
 };
@@ -135,7 +133,6 @@ bool tao::SetupRequester(
     port.current_server_name_ = port.get_id() + "_" + server_name + "_" + std::to_string(count);
 
     helper.register_initial_reference(port.orb_, port.current_server_name_, server_address);
-    //std::cerr << "Registered: " << port.current_publisher_name_ << " to addr " << publisher_address << std::endl;
     return true;
 };
 
@@ -148,7 +145,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
-        auto client = TaoClientImpl::_narrow(ptr);
+        auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         /*
         Timed Request
@@ -215,9 +212,6 @@ bool tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
 
     if(valid && ::RequesterPort<void, BaseRequestType>::HandleConfigure()){
         return tao::SetupRequester<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
-        return true;
-    }else{
-        std::cerr << "NO VALID BOIS" << std::endl;
     }
     return false;
 };
@@ -242,7 +236,7 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
-        auto client = TaoClientImpl::_narrow(ptr);
+        auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         //Another interesting TAO feature is the support for _unchecked_narrow()
         //This is part of the CORBA Messaging specification and essentially performs the same work as _narrow(),
@@ -250,7 +244,6 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
         //it is more efficient to use the unchecked version.
         if(client){
             auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
-            std::cerr << "SENDING TIMED REQUIEST?" << std::endl;
             client->TAO_SERVER_FUNC_NAME(*request_ptr);
             CORBA::release(client);
             return;

@@ -400,7 +400,6 @@ bool ProtobufModelParser::Process(){
 
             for(const auto& port_id : reqrep_port_ids){
                 auto server_id = GetRecursiveDefinitionId(port_id);
-                std::cerr << port_id << " DEF " << server_id << std::endl;
 
                 auto port_pb = component_pb->add_ports();
                 auto port_info_pb = port_pb->mutable_info();
@@ -408,8 +407,6 @@ bool ProtobufModelParser::Process(){
                 port_info_pb->set_id(port_id + unique_id);
                 port_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
                 port_info_pb->set_type(graphml_parser_->GetDataValue(server_id, "label"));
-
-                std::cerr << port_info_pb->DebugString() << std::endl;
 
                 //Copy in the new namespaces
                 for(auto ns : GetNamespace(server_id)){

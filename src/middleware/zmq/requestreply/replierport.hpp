@@ -71,7 +71,6 @@ zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestTyp
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
-    //std::cerr << "HandleConfigure" << std::endl;
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto server_address = server_address_->String();
 
@@ -79,12 +78,9 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
     if(valid && ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         if(!thread_manager_){
             thread_manager_ = new ThreadManager();
-            std::cerr << "Binding: "  << server_address << std::endl;
             auto thread = std::unique_ptr<std::thread>(new std::thread(zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), terminate_endpoint_, server_address));
             thread_manager_->SetThread(std::move(thread));
             return thread_manager_->Configure();
-        }else{
-            std::cerr << "STILL GOT THREAD" << std::endl;
         }
     }
     return false;
@@ -92,7 +88,6 @@ bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleActivate(){
-    //std::cerr << "HandleActivate" << std::endl;
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     if(::ReplierPort<BaseReplyType, BaseRequestType>::HandleActivate()){
@@ -166,7 +161,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
         //Bind the Terminate address
         socket.bind(terminate_address.c_str());
     }catch(const zmq::error_t& ex){
-        std::cerr << "ERR" << std::endl;
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind terminate endpoint: '" + terminate_address + "' " + ex.what());
         success = false;
     }
@@ -174,9 +168,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     try{
         //Bind the Outgoing address
         socket.bind(server_address.c_str());
-        std::cerr << "Binding: "  << server_address << std::endl;
     }catch(const zmq::error_t& ex){
-        std::cerr << "ERR" << std::endl;
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + server_address + "' " + ex.what());
         success = false;
     }

@@ -103,9 +103,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
 
         //Handle the ports
         for(const auto& port_pb : component_pb.ports()){
-            std::cerr << port_pb.DebugString() << std::endl;
             auto port = GetConfiguredPort(component, port_pb);
-            std::cerr << port << std::endl;
         }
 
         //Handle the workers

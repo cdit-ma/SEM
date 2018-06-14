@@ -89,7 +89,7 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
             if(success){
                 orb_lookup_[orb_endpoint] = orb;
                 orb_run_futures_[orb_endpoint] = thread_manager;
-                std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
+                //std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
             }else{
                 std::cerr << "tao::TaoHelper::get_orb(): Failed to construct Orb: '" << orb_endpoint << "'" << std::endl;
                 //Destroy the Orb, which should interupt our async task
@@ -173,6 +173,7 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
         auto ior_table = GetIORTable(orb);
        
         if(ior_table){
+            
             ior_table->rebind(object_name.c_str(), ior);
             return true;
         }

@@ -58,8 +58,6 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
         //Connect to the address
         socket.connect(address.c_str());
 
-        std::cerr << "Connecting: "  << address << std::endl;
-
         //Translate the base_request object into a string
         const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
         

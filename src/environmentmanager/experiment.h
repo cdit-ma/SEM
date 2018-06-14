@@ -31,6 +31,7 @@ class Node{
             auto port = available_ports_.front();
             available_ports_.pop();
             auto port_str =  std::to_string(port);
+            std::cout << "Port Acquired: " << name_ << " : " << port_str << std::endl;
             return port_str;
         };
 
@@ -39,7 +40,9 @@ class Node{
             int port_number;
             try{
                 port_number = std::stoi(port);
-                available_ports_.push(port_number);
+                if(available_ports_.push(port_number)){
+                    std::cout << "Port Freed: " << name_ << " : " << port << std::endl;
+                }
             }
             catch(const std::invalid_argument& ex){
                 std::cerr << "Could not free port <\'" << port <<"\'>, port string could not be converted to int." << std::endl;

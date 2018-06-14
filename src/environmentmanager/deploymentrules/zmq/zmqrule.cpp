@@ -38,7 +38,6 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
 
             auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
             server_address_attr->add_s(connected_address.at(0));
-            std::cerr << "SERVER ADDRESS: " << connected_address.at(0) << std::endl;
             break;
         }
     }

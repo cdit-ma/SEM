@@ -231,7 +231,6 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 std::string Environment::GetPort(const std::string& node_name){
     //Get first available port, store then erase it
     if(node_map_.count(node_name)){
-        std::cout << "Get port " << node_name << std::endl;
         return node_map_.at(node_name)->GetPort();
     }
     else{
@@ -242,7 +241,6 @@ std::string Environment::GetPort(const std::string& node_name){
 //Free port specified from node specified
 void Environment::FreePort(const std::string& node_name, const std::string& port_number){
     if(node_map_.count(node_name)){
-        std::cout << "Free port " << node_name << ":" << port_number << std::endl;
         node_map_.at(node_name)->FreePort(port_number);
     }
 }

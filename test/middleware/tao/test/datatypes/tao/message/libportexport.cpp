@@ -31,6 +31,8 @@ bool setup_requester_port(Port& port, const std::string& orb_address, const std:
 	auto pa = port.GetAttribute("server_address").lock();
 	auto pn = port.GetAttribute("server_name").lock();
 	if(pa && pn && oa){
+		std::cerr << "server_name: " << publisher_name << std::endl;
+		std::cerr << "server_address: " << publisher_address << std::endl;
 		oa->set_String(orb_address);
 		pn->set_String(publisher_name);
 		pa->set_String(publisher_address);

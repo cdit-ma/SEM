@@ -96,11 +96,8 @@ bool ExecutionManager::PopulateDeployment(){
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
         NodeManager::ControlMessage response;
-        //std::cerr << deployment_message_->DebugString() << std::endl;
-        //std::cerr << "SEPERATION" << std::endl;
         try{
             response = requester_->AddDeployment(*deployment_message_);
-            //std::cerr << response.DebugString() << std::endl;
         }catch(const std::runtime_error& ex){
             //If anything goes wrong, we've failed to populate our deployment. Return false
             std::cerr << "Failed to populate deployment." << std::endl;

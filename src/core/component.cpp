@@ -106,8 +106,6 @@ std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
     if(event_port){
         const auto& port_name = event_port->get_name();
         if(ports_.count(port_name) == 0){
-            std::cerr << "Component '" << get_name()  << "' Added an Port with name '" << port_name << "'" << std::endl;
-
             ports_[port_name] = std::move(event_port);
             return ports_[port_name];
         }else{
