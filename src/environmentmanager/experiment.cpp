@@ -165,6 +165,13 @@ void Experiment::AddLoganClient(const std::string& model_name,
     logan_clients_.push_back(std::unique_ptr<LoganClient>(new LoganClient{model_name, ip_address, management_port, logging_port}));
 }
 
+std::vector<std::string> Experiment::GetLoganClientList(){
+    std::vector<std::string> out;
+    for(const auto& client : logan_clients_){
+        out.push_back("tcp://" + client->ip_address + ":" + client->logging_port);
+    }
+}
+
 std::string Experiment::GetMasterPublisherPort(){
     if(master_port_.empty()){
         master_port_ = environment_.GetPort(node_id_map_.at(master_ip_address_));

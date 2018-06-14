@@ -295,6 +295,15 @@ std::string Environment::GetLoganPublisherPort(const std::string& model_name, co
     return "";
 }
 
+std::vector<std::string> Environment::GetLoganClientList(const std::string& model_name){
+
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetLoganClientList();
+    }
+
+    return {};
+}
+
 bool Environment::ExperimentIsDirty(const std::string& model_name){
     try{
         return experiment_map_.at(model_name)->IsDirty();

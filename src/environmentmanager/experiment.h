@@ -120,7 +120,8 @@ class Experiment{
                             const std::string& ip_address,
                             const std::string& management_port,
                             const std::string& logging_port);
-                            
+
+        std::vector<std::string> GetLoganClientList();
         std::string GetMasterPublisherPort();
         std::string GetNodeManagementPort(const std::string& ip) const;
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
