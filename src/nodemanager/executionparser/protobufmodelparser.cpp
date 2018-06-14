@@ -331,26 +331,28 @@ bool ProtobufModelParser::Process(){
             auto requester_port_ids = graphml_parser_->FindImmediateChildren("RequesterPortInstance", component_id);
             auto replier_port_ids = graphml_parser_->FindImmediateChildren("ReplierPortInstance", component_id);
 
-            std::vector<std::string> port_ids;
+            std::vector<std::string> pubsub_port_ids;
+            std::vector<std::string> reqrep_port_ids;
 
-            port_ids.insert(port_ids.end(), publisher_port_ids.begin(), publisher_port_ids.end());
-            port_ids.insert(port_ids.end(), subscriber_port_ids.begin(), subscriber_port_ids.end());
-            port_ids.insert(port_ids.end(), requester_port_ids.begin(), requester_port_ids.end());
-            port_ids.insert(port_ids.end(), replier_port_ids.begin(), replier_port_ids.end());
+            pubsub_port_ids.insert(pubsub_port_ids.end(), publisher_port_ids.begin(), publisher_port_ids.end());
+            pubsub_port_ids.insert(pubsub_port_ids.end(), subscriber_port_ids.begin(), subscriber_port_ids.end());
+
+            reqrep_port_ids.insert(reqrep_port_ids.end(), requester_port_ids.begin(), requester_port_ids.end());
+            reqrep_port_ids.insert(reqrep_port_ids.end(), replier_port_ids.begin(), replier_port_ids.end());
 
             auto periodic_ids = graphml_parser_->FindImmediateChildren("PeriodicPortInstance", component_id);
             auto class_instance_ids = graphml_parser_->FindImmediateChildren("ClassInstance", component_id);
             
 
             //Set port info
-            for(const auto& port_id : port_ids){
+            for(const auto& port_id : pubsub_port_ids){
                 auto aggregate_id = GetAggregateId(GetDefinitionId(port_id));
                 auto port_pb = component_pb->add_ports();
                 auto port_info_pb = port_pb->mutable_info();
 
                 port_info_pb->set_id(port_id + unique_id);
-                std::string port_name = graphml_parser_->GetDataValue(port_id, "label");
-                port_info_pb->set_name(port_name);
+                
+                port_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
                 port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
 
                 //Copy in the new namespaces
@@ -358,12 +360,7 @@ bool ProtobufModelParser::Process(){
                     port_info_pb->add_namespaces(ns);
                 }
 
-                // if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
-                //     port_pb->set_visibility(NodeManager::Port::PUBLIC);
-                // }
-                // else{
                 port_pb->set_visibility(NodeManager::Port::PRIVATE);
-                // }
 
                 port_pb->set_port_guid(port_guid_map_[port_id]);
 
@@ -381,7 +378,7 @@ bool ProtobufModelParser::Process(){
 
                 //Set the topic_name
                 std::string topic_name;
-                topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
+                topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
 
                 if(!topic_name.empty()){
                     auto topic_pb = port_pb->add_attributes();
@@ -391,6 +388,40 @@ bool ProtobufModelParser::Process(){
                     //Only set if we actually have a topic name
                     topic_pb->add_s(topic_name);
                 }
+            }
+
+            for(const auto& port_id : reqrep_port_ids){
+                auto server_id = GetRecursiveDefinitionId(port_id);
+                std::cerr << port_id << " DEF " << server_id << std::endl;
+
+                auto port_pb = component_pb->add_ports();
+                auto port_info_pb = port_pb->mutable_info();
+
+                port_info_pb->set_id(port_id + unique_id);
+                port_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
+                port_info_pb->set_type(graphml_parser_->GetDataValue(server_id, "label"));
+
+                std::cerr << port_info_pb->DebugString() << std::endl;
+
+                //Copy in the new namespaces
+                for(auto ns : GetNamespace(server_id)){
+                    port_info_pb->add_namespaces(ns);
+                }
+
+                port_pb->set_visibility(NodeManager::Port::PRIVATE);
+                port_pb->set_port_guid(port_guid_map_[port_id]);
+
+                port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(port_id, "kind")));
+
+                port_replicate_id_map_[port_id + unique_id] = port_pb;
+
+                //Set Middleware
+                auto mw_str = graphml_parser_->GetDataValue(port_id, "middleware");
+                NodeManager::Port::Middleware mw;
+                if(!NodeManager::Port_Middleware_Parse(mw_str, &mw)){
+                    std::cerr << "Cannot parse middleware: " << mw_str << std::endl;
+                }
+                port_pb->set_middleware(mw);
             }
 
             //Handle Periodic Ports
@@ -604,6 +635,19 @@ std::string ProtobufModelParser::GetDefinitionId(const std::string& id){
         definition_ids_[id] = def_id;
     }
     return def_id;
+}
+
+std::string ProtobufModelParser::GetRecursiveDefinitionId(const std::string& id){
+    auto current_id = id;
+    while(true){
+        auto def_id = GetDefinitionId(current_id);
+
+        if(def_id == current_id || def_id == ""){
+            return current_id;
+        }else{
+            current_id = def_id;
+        }
+    }
 }
 
 std::string ProtobufModelParser::GetAggregateId(const std::string& id){

@@ -12,11 +12,11 @@ if(NOT TAO_FOUND)
 endif()
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/taohelper.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/taohelper.h
 )
 
 if (MSVC)
@@ -27,5 +27,7 @@ endif()
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
 target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
+target_link_libraries(${PROJ_NAME} re_core)

@@ -37,6 +37,7 @@ class ProtobufModelParser{
         std::string GetDeployedID(const std::string& id);
         void SetAttributePb(NodeManager::Attribute*, const std::string& type, const std::string& value);
         std::string GetDefinitionId(const std::string& id);
+        std::string GetRecursiveDefinitionId(const std::string& id);
         std::string GetAggregateId(const std::string& id);
         std::string GetImplId(const std::string& id);
 

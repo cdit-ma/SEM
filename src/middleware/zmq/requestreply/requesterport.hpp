@@ -17,6 +17,7 @@ namespace zmq{
             };
             BaseReplyType ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
             
+            
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
         private:

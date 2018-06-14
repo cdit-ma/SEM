@@ -57,8 +57,8 @@ class DeploymentContainer : public Activatable{
         std::shared_ptr<Port> ConstructReplierPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
 
         std::shared_ptr<Component> ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& namespace_str, const std::string& component_id);
-        
-        std::string get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
+
+        std::string get_port_library_name(const std::string& port_type, const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
         std::string get_component_library_name(const std::string& component_type, const std::string& namespace_name);
 
         std::string library_path_;

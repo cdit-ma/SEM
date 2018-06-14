@@ -8,6 +8,6 @@ class Hello: public virtual POA_Test::Hello
     protected:
         ~Hello(){};
     public:
-        void send(const Test::Message& message);
+        void send(const Test::Message2& message);
         void send22(const Test::Message& message);
 };

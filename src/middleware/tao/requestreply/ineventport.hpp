@@ -1,25 +1,24 @@
-#ifndef TAO_INEVENTPORT_H
-#define TAO_INEVENTPORT_H
+#ifndef TAO_PORT_REPLIER_HPP
+#define TAO_PORT_REPLIER_HPP
 
-#include <core/eventports/ineventport.hpp>
-
-#include <string>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <sstream>
-#include <middleware/tao/helper.h>
+#include <core/threadmanager.h>
+#include <core/ports/requestreply/replierport.hpp>
+#include <middleware/tao/taohelper.h>
 
 //Inspired by
 //https://www.codeproject.com/Articles/24863/A-Simple-C-Client-Server-in-CORBA
 
 namespace tao{
-    template <class S> class Enqueuer{
+
+    template <class TaoReplyType, class TaoRequestType> class PortBroker{
         public:
-            virtual void enqueue(const S& message) = 0;
+            virtual TaoReplyType enqueue(const S& message) = 0;
     };
 
-     template <class T, class S, class R> class InEventPort: public ::InEventPort<T>, public Enqueuer<S>{
+    template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType>
+    class ReplierPort : public ::ReplierPort<BaseReplyType, BaseRequestType>{
+
+    template <class T, class S, class R> class InEventPort: public ::InEventPort<T>, public Enqueuer<S>{
         public:
             InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
             ~InEventPort(){
@@ -135,7 +134,6 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     try{
         auto state = ThreadState::STARTED;
         
-        
         auto orb_endpoint  = orb_endpoint_->String();
         auto& helper = tao::TaoHelper::get_tao_helper();
         std::cout << "IN ORB ENDPOINT: " << orb_endpoint << std::endl;
@@ -145,7 +143,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
 
         //R* reader_impl = 0;
         if(!orb_){
-            state = ThreadState::TERMINATED;
+            state = ThreadState::TERMINATE;
             std::cerr << "CAN'T GET ORB" << std::endl;
         }else{
             auto publisher_name  = publisher_name_->String();
@@ -220,5 +218,6 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         std::cerr << "exceptiopn" << std::endl;
     }
 };
+
 
 #endif //TAO_INEVENTPORT_H

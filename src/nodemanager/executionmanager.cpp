@@ -5,6 +5,7 @@
 #include "environmentmanager/deploymentrules/zmq/zmqrule.h"
 #include "environmentmanager/deploymentrules/dds/ddsrule.h"
 #include "environmentmanager/deploymentrules/amqp/amqprule.h"
+#include "environmentmanager/deploymentrules/tao/taorule.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -85,6 +86,7 @@ bool ExecutionManager::PopulateDeployment(){
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
+        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(*environment)));
 
         generator.PopulateDeployment(*deployment_message_);
     }
@@ -94,9 +96,10 @@ bool ExecutionManager::PopulateDeployment(){
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
         NodeManager::ControlMessage response;
+        //std::cerr << deployment_message_->DebugString() << std::endl;
         try{
             response = requester_->AddDeployment(*deployment_message_);
-
+            //std::cerr << response.DebugString() << std::endl;
         }catch(const std::runtime_error& ex){
             //If anything goes wrong, we've failed to populate our deployment. Return false
             std::cerr << "Failed to populate deployment." << std::endl;

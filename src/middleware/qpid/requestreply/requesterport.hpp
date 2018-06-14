@@ -22,6 +22,7 @@ namespace qpid{
             ~RequesterPort(){
                 Activatable::Terminate();
             }
+            
             BaseReplyType ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
 
             using middleware_reply_type = ProtoReplyType;

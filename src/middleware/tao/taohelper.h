@@ -10,6 +10,9 @@
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
 #include <tao/IORTable/IORTable.h>
+#include <tao/Messaging/Messaging.h>
+#include <core/threadmanager.h>
+
 
 
 namespace tao{
@@ -17,7 +20,6 @@ namespace tao{
     public:
         static TaoHelper& get_tao_helper();
     protected:
-        TaoHelper();
         ~TaoHelper();
     public:
         CORBA::ORB_ptr get_orb(const std::string& orb_endpoint, bool debug_mode = false);
@@ -28,7 +30,7 @@ namespace tao{
         bool register_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name);
         bool deregister_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name);
     private:
-        static void OrbThread(CORBA::ORB_ptr orb);
+        static void OrbThread(ThreadManager& thread_manager, CORBA::ORB_ptr orb);
         IORTable::Table_var GetIORTable(CORBA::ORB_ptr orb);
         PortableServer::POA_var get_root_poa(CORBA::ORB_ptr orb);
 
@@ -37,7 +39,7 @@ namespace tao{
         std::mutex global_mutex_;
         
         std::unordered_map<std::string, CORBA::ORB_ptr> orb_lookup_;
-        std::unordered_map<std::string, std::future<void>> orb_run_futures_;
+        std::unordered_map<std::string, ThreadManager*> orb_run_futures_;
         std::unordered_set<PortableServer::POA_ptr> registered_poas_;
     };
 };

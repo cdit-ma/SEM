@@ -68,7 +68,7 @@ DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::P
         case NodeManager::Port::RTI:       return DeploymentRule::MiddlewareType::DDS;
         case NodeManager::Port::OSPL:      return DeploymentRule::MiddlewareType::DDS;
         case NodeManager::Port::QPID:      return DeploymentRule::MiddlewareType::AMQP;
-        case NodeManager::Port::TAO:       return DeploymentRule::MiddlewareType::CORBA;
+        case NodeManager::Port::TAO:       return DeploymentRule::MiddlewareType::TAO;
         default:                                return DeploymentRule::MiddlewareType::NONE;
     }
 }

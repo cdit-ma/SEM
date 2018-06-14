@@ -10,7 +10,7 @@ class DeploymentRule{
             ZMQ = 1,
             DDS = 2,
             AMQP = 3,
-            CORBA = 4
+            TAO = 4
         };
         DeploymentRule(MiddlewareType type, Environment& environment) : environment_(environment){
             this->type = type;

@@ -37,8 +37,9 @@ void DeploymentContainer::SetLibraryPath(const std::string library_path){
 std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<Component> weak_component, const std::string& port_name){
     auto component = weak_component.lock();
     if(component){
-    //    auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, component->GetCallback<::BaseMessage>(port_name), 1000));
-        //return component->AddPort(std::move(u_ptr)).lock();
+        auto callback = component->GetCallback<void, BaseMessage>(port_name);
+        auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, callback->callback_fn, 1000));
+        return component->AddPort(std::move(u_ptr)).lock();
     }
     return nullptr;
 }
@@ -273,8 +274,10 @@ std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::strin
     }
 }
 
-std::string DeploymentContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
-    std::string p = middleware + "_";
+std::string DeploymentContainer::get_port_library_name(const std::string& port_type, const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
+    std::string p = "port_";
+    p += port_type + "_";
+    p += middleware + "_";
     if(!namespace_str.empty()){
         p += namespace_str + "_";
     }
@@ -293,7 +296,7 @@ std::string DeploymentContainer::get_component_library_name(const std::string& c
 
 std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
+    const auto& library_name = get_port_library_name("pubsub", middleware, namespace_name, datatype);
 
     if(!publisher_port_constructors_.count(library_name)){
         auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructPublisherPort");
@@ -317,19 +320,55 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::str
 
 std::shared_ptr<Port> DeploymentContainer::ConstructRequesterPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    //TODO:
+    const auto& library_name = get_port_library_name("requestreply", middleware, namespace_name, datatype);
+
+    if(!requester_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructRequesterPort");
+        if(function){
+            requester_port_constructors_[library_name] = function;
+        }
+    }
+
+    if(requester_port_constructors_.count(library_name)){
+        auto port_ptr = requester_port_constructors_[library_name](port_name, component);
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+        }else{
+            port = std::shared_ptr<Port>(port_ptr);
+        }
+    }
     return port;
 }
 
 std::shared_ptr<Port> DeploymentContainer::ConstructReplierPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    //TODO:
+    const auto& library_name = get_port_library_name("requestreply", middleware, namespace_name, datatype);
+
+    if(!replier_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructReplierPort");
+        if(function){
+            replier_port_constructors_[library_name] = function;
+        }
+    }
+
+    if(replier_port_constructors_.count(library_name)){
+        auto port_ptr = replier_port_constructors_[library_name](port_name, component);
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+        }else{
+            port = std::shared_ptr<Port>(port_ptr);
+        }
+    }
     return port;
 }
 
 std::shared_ptr<Port> DeploymentContainer::ConstructSubscriberPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
+    const auto& library_name = get_port_library_name("pubsub", middleware, namespace_name, datatype);
 
     if(!subscriber_port_constructors_.count(library_name)){
         auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructSubscriberPort");
