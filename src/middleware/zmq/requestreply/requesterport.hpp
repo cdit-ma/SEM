@@ -21,7 +21,7 @@ namespace zmq{
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
         private:
-            std::shared_ptr<Attribute> end_point_;
+            std::shared_ptr<Attribute> server_address_;
     };
 
     //Specialised templated RequesterPort for void returning
@@ -37,7 +37,7 @@ namespace zmq{
             using middleware_reply_type = void;
             using middleware_request_type = ProtoRequestType;
         private:
-            std::shared_ptr<Attribute> end_point_;
+            std::shared_ptr<Attribute> server_address_;
     };
 };
 
@@ -45,18 +45,20 @@ namespace zmq{
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "zmq"){
-    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
-    const auto address = end_point_->String();
+    const auto address = server_address_->String();
     try{
         auto helper = ZmqHelper::get_zmq_helper();
         auto socket = helper->get_request_socket();
         
         //Connect to the address
         socket.connect(address.c_str());
+
+        std::cerr << "Connecting: "  << address << std::endl;
 
         //Translate the base_request object into a string
         const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
@@ -99,12 +101,12 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
 template <class BaseRequestType, class ProtoRequestType>
 zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<void, BaseRequestType>(component, port_name, "zmq"){
-    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 template <class BaseRequestType, class ProtoRequestType>
 void zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
-    const auto address = end_point_->String();
+    const auto address = server_address_->String();
     try{
         auto helper = ZmqHelper::get_zmq_helper();
         auto socket = helper->get_request_socket();
