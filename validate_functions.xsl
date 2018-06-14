@@ -25,7 +25,8 @@
 
         <xsl:variable name="args" as="xs:string*">
             <xsl:sequence select="xmlo:attribute('name', $test_name)" />
-            <xsl:sequence select="xmlo:attribute('tests', string(count($passed_tests)))" />
+            <xsl:sequence select="xmlo:attribute('tests', string(count($tests)))" />
+            <xsl:sequence select="xmlo:attribute('passed', string(count($passed_tests)))" />
             <xsl:sequence select="xmlo:attribute('failed', string(count($failed_tests)))" />
             <xsl:sequence select="xmlo:attribute('warnings', string(count($warning_tests)))" />
         </xsl:variable>
