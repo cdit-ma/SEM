@@ -257,15 +257,37 @@
         <xsl:value-of select="$node_2 = graphml:get_descendant_nodes($node_1)" />
     </xsl:function>
 
+    <!--
+        Gets descendant edges of the node provided, of a particular 'kind'(s)
+    -->
+    <xsl:function name="graphml:get_edges_of_kind" as="element(gml:edge)*">
+        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="kinds" as="xs:string+" />
+        
+        <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
+        <xsl:sequence select="root($node)//gml:edge/gml:data[@key=$kind_id and text() = $kinds]/.." />
+    </xsl:function>
+
+    <!--
+        Gets descendant edges of the node provided, of a particular 'kind'(s)
+    -->
+    <xsl:function name="graphml:get_nodes_of_kind" as="element(gml:node)*">
+        <xsl:param name="node" as="element(gml:node)+" />
+        <xsl:param name="kinds" as="xs:string+" />
+        
+        <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
+        <xsl:sequence select="root($node)//gml:node/gml:data[@key=$kind_id and text() = $kinds]/.." />
+    </xsl:function>
+
 
     <!--
         Gets descendant nodes of the node provided, of a particular 'kind'(s)
     -->
     <xsl:function name="graphml:get_descendant_nodes_of_kind" as="element(gml:node)*">
-        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="node" as="element(gml:node)*" />
         <xsl:param name="kinds" as="xs:string+" />
         
-        <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
+        <xsl:variable name="kind_id" select="graphml:get_key_id($node[1], 'kind')" />
         <xsl:sequence select="$node//gml:node/gml:data[@key=$kind_id and text() = $kinds]/.." />
     </xsl:function>
 
@@ -325,6 +347,18 @@
             <xsl:sequence select="graphml:get_targets_recurse(., $edge_kinds)" />
         </xsl:for-each>
    </xsl:function>
+
+   <xsl:function name="graphml:filter_nodes_which_have_data_value" as="element(gml:node)*">
+        <xsl:param name="nodes" as="element(gml:node)*" />
+        <xsl:param name="data_key" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+
+        <xsl:for-each select="$nodes">
+            <xsl:if test="graphml:get_data_value(., $data_key) = $value">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
 
 
     <!--
@@ -494,6 +528,19 @@
         </xsl:variable>
 
         <xsl:value-of select="count(($deployed_nodes, $parent_deployed_nodes)) > 0" />
+    </xsl:function>
+
+    <!--
+        Gets a child node of the node provided, by 'index' (Starting at 1)
+    -->
+    <xsl:function name="graphml:get_edges_source" as="element(gml:node)?">
+        <xsl:param name="edge" as="element(gml:edge)?" />
+        <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@source)" />
+    </xsl:function>
+
+    <xsl:function name="graphml:get_edges_target" as="element(gml:node)?">
+        <xsl:param name="edge" as="element(gml:edge)?" />
+        <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@target)" />
     </xsl:function>
 
    

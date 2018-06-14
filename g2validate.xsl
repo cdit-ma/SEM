@@ -6,6 +6,7 @@
     xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
     xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
     xmlns:xmlo="http://github.com/cdit-ma/re_gen/xmlo"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
     exclude-result-prefixes="gml">
 		
     <!-- Load in Functions -->
@@ -19,6 +20,7 @@
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
     <xsl:param name="debug_mode" as="xs:boolean" select="false()" />
+    <xsl:param name="write_file" as="xs:boolean" select="true()" />
 
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
@@ -28,6 +30,17 @@
             <xsl:value-of select="cdit:deployment_tests($model)" />
         </xsl:variable>
 
-        <xsl:value-of select="xmlo:wrap_tag('validation_report', '', $results, 0)" />
+        <xsl:variable name="xml_result" select="xmlo:wrap_tag('validation_report', '', $results, 0)" />
+
+        <xsl:choose>
+            <xsl:when test="$write_file">
+                <xsl:result-document href="{o:write_file('validation_report.xml')}">
+                    <xsl:value-of select="$xml_result" />
+                </xsl:result-document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$xml_result" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>

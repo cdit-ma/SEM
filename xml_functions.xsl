@@ -28,6 +28,21 @@
         <xsl:value-of select="concat(o:t($tab), o:wrap_angle(concat('/', $tag_name)))" />
     </xsl:function>
 
+    <xsl:function name="xmlo:sanitize_xml">
+        <xsl:param name="contents" as="xs:string"/>
+        <xsl:variable name="no_gt" select="replace($contents, o:gt(), 'GT')"/>
+        <xsl:variable name="no_lt" select="replace($no_gt, o:lt(), 'LT')"/>
+        <xsl:variable name="no_and" select="replace($no_lt, o:and(), 'AND')"/>
+        
+        <xsl:value-of select="$no_and" />
+    </xsl:function>
+
+    <xsl:function name="xmlo:attribute">
+        <xsl:param name="attr_name" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:value-of select=" concat($attr_name, '=', o:wrap_dblquote($value))" />
+    </xsl:function>
+
     <!--
         Wraps an xml tag element
     -->
@@ -38,7 +53,7 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="flat_val" select="string-join($value, '')" />
-
+        
         <xsl:choose>
             <xsl:when test="contains($flat_val, o:nl(1))">
                 <!-- Multiline -->

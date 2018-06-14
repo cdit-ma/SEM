@@ -663,6 +663,39 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cdit:is_number_type" as="xs:boolean">
+        <xsl:param name="type" as="xs:string"  />
+
+        <xsl:value-of select="  $type = 'Boolean' or
+                                $type = 'Character' or
+                                $type = 'Float' or
+                                $type = 'Double' or
+                                $type = 'Integer'" />
+    </xsl:function>
+
+    <xsl:function name="cdit:compare_nodes_types" as="xs:boolean">
+        <xsl:param name="source" as="element()"/>
+        <xsl:param name="target" as="element()"/>
+
+        <xsl:variable name="type_1" select="graphml:get_type($source)" />
+        <xsl:variable name="type_2" select="graphml:get_type($target)" />
+
+        <xsl:choose>
+            <xsl:when test="$type_1 = $type_2">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="cdit:is_number_type($type_1) and cdit:is_number_type($type_2)">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="graphml:get_kind($target) = 'VariadicParameter'">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="false()" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="cpp:get_corba_primitive_type" as="xs:string">
         <xsl:param name="type" as="xs:string"  />
         <xsl:choose>

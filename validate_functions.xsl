@@ -15,7 +15,29 @@
         <xsl:param name="contents" as="xs:string"/>
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="xmlo:wrap_tag('test', concat('name=', o:wrap_dblquote($test_name)), $contents, $tab)" />
+        <xsl:variable name="test_results" select="xmlo:wrap_tag('results', '', $contents, $tab)" as="xs:string"/>
+        <xsl:variable name="results" select="parse-xml-fragment($contents)" as="document-node()" />
+
+        <xsl:variable name="tests" select="$results//result" />
+        <xsl:variable name="failed_tests" select="$tests[@success='false']" />
+        <xsl:variable name="warning_tests" select="$tests[@success='false' and @warning='true']" />
+        <xsl:variable name="passed_tests" select="$tests[@success='true']" />
+
+        <xsl:variable name="args" as="xs:string*">
+            <xsl:sequence select="xmlo:attribute('name', $test_name)" />
+            <xsl:sequence select="xmlo:attribute('tests', string(count($passed_tests)))" />
+            <xsl:sequence select="xmlo:attribute('failed', string(count($failed_tests)))" />
+            <xsl:sequence select="xmlo:attribute('warnings', string(count($warning_tests)))" />
+        </xsl:variable>
+
+        <xsl:variable name="failed_test_string" as="xs:string*">
+            <xsl:for-each select="$failed_tests,$warning_tests">
+                <xsl:sequence select="concat(o:t($tab + 1), serialize(.), o:nl(1))" />
+            </xsl:for-each>
+        </xsl:variable>
+
+
+        <xsl:value-of select="xmlo:wrap_tag('test', o:join_list($args, ' '), $failed_test_string, $tab)" />
     </xsl:function>
 
     <xsl:function name="cdit:output_result">
@@ -28,8 +50,11 @@
         <xsl:variable name="warning_string" select="if($warning = true()) then concat(' warning=', o:wrap_dblquote(string($warning))) else ''" />
         <xsl:variable name="success_string" select="concat(' success=', o:wrap_dblquote(string($result)))" />
         <xsl:variable name="id_string" select="concat('id=', o:wrap_dblquote($id))" />
+        <xsl:variable name="sanitized_error" select="xmlo:sanitize_xml($error_string)" />
 
-        <xsl:value-of select="xmlo:wrap_tag('result', concat($id_string, $success_string, $warning_string), if($result = false()) then $error_string else '', $tab)" />
+        
+
+        <xsl:value-of select="xmlo:wrap_tag('result', concat($id_string, $success_string, $warning_string), if($result = false()) then $sanitized_error else '', $tab)" />
     </xsl:function>
 
     <xsl:function name="cdit:test_aggregate_requires_key">
@@ -86,55 +111,58 @@
 
     <!-- Tests that all aggregates have unique member labels -->
     <xsl:function name="cdit:test_unique_child_labels">
+        <xsl:param name="test" as="xs:string"/>
         <xsl:param name="entities" as="element(gml:node)*"/>
 
-        <xsl:for-each select="$entities">
-            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)), 'has a non-unique label within its scope.', false())" />
-        </xsl:for-each>
+        <xsl:variable name="results">
+            <xsl:for-each select="$entities">
+                <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)), 'has a non-unique label within its scope.', false())" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test($test, $results, 1)" />
     </xsl:function>
 
     <!-- Tests that all entities in list have unique member labels -->
-    <xsl:function name="cdit:test_unique_labels">
+    <xsl:function name="cdit:test_unique_labels" as="xs:string*">
         <xsl:param name="entities" as="element(gml:node)*"/>
         <xsl:param name="error_str" as="xs:string"/>
         <xsl:param name="warning" as="xs:boolean"/>
 
 
-        <xsl:variable name="results">  
-            <xsl:variable name="all_labels" select="graphml:get_data_values($entities, 'label')" />
+        <xsl:variable name="all_labels" select="graphml:get_data_values($entities, 'label')" />
 
-            <xsl:for-each select="$entities">
-                <xsl:variable name="id" select="graphml:get_id(.)" />
-                <xsl:variable name="kind" select="graphml:get_kind(.)" />
-                <xsl:variable name="label" select="graphml:get_label(.)" />
+        <xsl:for-each select="$entities">
+            <xsl:variable name="id" select="graphml:get_id(.)" />
+            <xsl:variable name="kind" select="graphml:get_kind(.)" />
+            <xsl:variable name="label" select="graphml:get_label(.)" />
 
-                <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels, true())" />
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), $warning, 2)" />
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:value-of select="cdit:output_test('Entities require an unique label.', $results, 1)" />
+            <!-- Check the number of times the type is in the list of all types-->
+            <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels, true())" />
+            <xsl:sequence select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), $warning, 2)" />
+        </xsl:for-each>
     </xsl:function>
 
     <!-- Tests that all aggregates have unique types-->
-    <xsl:function name="cdit:test_aggregate_unique_type">
-        <xsl:param name="aggregates" as="element(gml:node)*"/>
+    <xsl:function name="cdit:test_unique_types">
+        <xsl:param name="test" as="xs:string"/>
+        <xsl:param name="entities" as="element(gml:node)*"/>
 
-        <xsl:variable name="all_types" select="graphml:get_data_values($aggregates, 'type')" as="xs:string*" />
+        <xsl:variable name="all_types" select="graphml:get_data_values($entities, 'type')" as="xs:string*" />
         
         <xsl:variable name="results">  
-            <xsl:for-each select="$aggregates">
+            <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="type" select="graphml:get_type(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="match_count" select="o:string_in_list_count($type, $all_types, true())" />
 
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(('Aggregate', o:wrap_quote($type), ' does not have a unique type'), ' '), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($type), ' does not have a unique qualifed class name'), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
-        <xsl:value-of select="cdit:output_test('All Aggregate entities require unique type', $results, 1)" />
+        <xsl:value-of select="cdit:output_test($test, $results, 1)" />
     </xsl:function>
 
     <xsl:function name="cdit:test_components_unique_name">
@@ -443,37 +471,49 @@
         <xsl:value-of select="cdit:output_test('EventportDelegates established correctly', $results, 1)" />
     </xsl:function>
 
-    <xsl:function name="cdit:test_eventport_instances">
+
+    <xsl:function name="cdit:test_unique_topic_names">
         <xsl:param name="model" as="element(gml:node)"/>
 
-        <xsl:variable name="instances" select="graphml:get_descendant_nodes_of_kind($model, ('SubscriberPortInstance', 'PublisherPortInstance'))" />
+        <xsl:variable name="port_instances" select="graphml:get_nodes_of_kind($model, ('SubscriberPortInstance', 'PublisherPortInstance', 'RequesterPortInstance', 'ReplierPortInstance'))" />
+        <xsl:variable name="topic_names" select="graphml:get_data_values($port_instances, 'topic_name')" as="xs:string*" />
 
         <xsl:variable name="results">
-            <xsl:for-each select="$instances">
-                <xsl:variable name="id" select="graphml:get_id(.)" />
-                <xsl:variable name="label" select="graphml:get_label(.)" />
-                <xsl:variable name="middleware" select="graphml:get_data_value(., 'middleware')" />
+            <xsl:for-each-group select="$topic_names" group-by=".">
+                <xsl:variable name="topic_name" select="." />
+                    <xsl:if test="$topic_name != ''">
+                        <xsl:variable name="topics_ports" select="graphml:filter_nodes_which_have_data_value($port_instances, 'topic_name', $topic_name)" />
+                        <xsl:variable name="topics_ports_types" select="graphml:get_data_values($topics_ports, 'type')" as="xs:string*" />
+                        <xsl:variable name="topic_name_is_valid" select="count(distinct-values($topics_ports_types)) = 1" />
 
-                <xsl:if test="lower-case($middleware) = 'ospl'">
-                    <xsl:variable name="port_def" select="graphml:get_definition(.)" />
-                    <!-- Get all AggregateInstances used by the port definition -->
-                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($port_def, 'AggregateInstance')" />
-                    <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
-
-                    <xsl:for-each select="$aggregate_definitions">
-                        <xsl:variable name="aggregate_id" select="graphml:get_id(.)" />
-                        <xsl:variable name="aggregate_keys" select="graphml:get_keys(.)" />
-                        <xsl:variable name="got_key" select="count($aggregate_keys) > 0" />        
-                        <xsl:variable name="type" select="graphml:get_type(.)" />        
-                        <xsl:value-of select="cdit:output_result($aggregate_id, $got_key, o:join_list(('OpenSplice requires that Aggregate ', o:wrap_quote($type), 'has a child with data', o:wrap_quote('is_key'), 'set to true'), ' '), false(), 2)" />        
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
+                        <xsl:for-each select="$topics_ports">
+                            <xsl:variable name="id" select="graphml:get_id(.)" />
+                            <xsl:value-of select="cdit:output_result($id, $topic_name_is_valid, o:join_list(('topic_name', o:wrap_quote($topic_name), 'has multiple types utilising it'), ' '), false(), 2)" />        
+                        </xsl:for-each>
+                    </xsl:if>
+            </xsl:for-each-group>
         </xsl:variable>
-        <xsl:value-of select="cdit:output_test('PortInstances established correctly', $results, 1)" />
+        <xsl:value-of select="cdit:output_test('topic_names are unique', $results, 1)" />
     </xsl:function>
 
-    
+    <xsl:function name="cdit:test_data_edges">
+        <xsl:param name="model" as="element(gml:node)*"/>
+
+        <xsl:variable name="results">
+            <xsl:for-each select="graphml:get_edges_of_kind($model, 'Edge_Data')">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="source" select="graphml:get_edges_source(.)" />
+                <xsl:variable name="target" select="graphml:get_edges_target(.)" />
+
+                <xsl:variable name="source_type" select="graphml:get_type($source)" />
+                <xsl:variable name="target_type" select="graphml:get_type($target)" />
+                <xsl:variable name="comparable_types" select="cdit:compare_nodes_types($source, $target)" />
+
+                <xsl:value-of select="cdit:output_result($id, $comparable_types, o:join_list(('Data_Edge has differing types on endpoints', o:wrap_quote($source_type), 'vs', o:wrap_quote($target_type)), ' '), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="cdit:output_test('Data Edges established correctly', $results, 1)" />
+    </xsl:function>
 
     
     <xsl:function name="cdit:test_eventport_aggregates">
@@ -601,13 +641,15 @@
     </xsl:function>
     
     <xsl:function name="cdit:test_invalid_label">
-        <xsl:param name="entities" as="element(gml:node)*"/>
-        <xsl:param name="test"/>
+        <xsl:param name="test" as="xs:string*" />
+        <xsl:param name="entities" as="element(gml:node)*" />
 
         <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| '"  />
 
         <xsl:variable name="replace_map">
-             <xsl:for-each select="1 to string-length($invalid_characters)">*</xsl:for-each>
+             <xsl:for-each select="1 to string-length($invalid_characters)">
+             <xsl:value-of select="'*'"/>
+             </xsl:for-each>
         </xsl:variable>
 
         <xsl:variable name="invalid_labels" select="(cdit:get_re_reserved_words(), cdit:get_cpp_reserved_words())"  />
@@ -619,7 +661,7 @@
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 
                 <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
-                <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
+                <xsl:variable name="label_print" select="translate($label, $invalid_characters, '*')" />   
                 <xsl:variable name="invalid_count" select="count($invalid_labels[$label = .])" />
 
                 <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label), 'has an invalid characters in label', o:wrap_quote($label_print), '(Replaced with *)'), ' '), false(), 2)"/> 
@@ -639,7 +681,7 @@
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
         <xsl:variable name="enums" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Enum')" />
 
-        <xsl:variable name="members" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Member')" />
+        <xsl:variable name="members" as="element()*" select="graphml:get_descendant_nodes_of_kind($aggregates, 'Member')" />
 
         <xsl:variable name="aggregate_descendants" as="element()*">
             <xsl:sequence select="$aggregates" />
@@ -650,37 +692,40 @@
 
         
         <xsl:value-of select="cdit:test_namespace_collisions($aggregates)" />
-        <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
+        <xsl:value-of select="cdit:test_invalid_label('Descendants of an Aggregate require valid labels', $aggregate_descendants)" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
         <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
-        <xsl:value-of select="cdit:test_invalid_label($enums, 'Enum valid names')" />
-        <xsl:value-of select="cdit:test_invalid_label($members, 'Member valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums)" />
 
         <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->
         
-        <xsl:value-of select="cdit:test_unique_child_labels($aggregates)" />
-        <xsl:value-of select="cdit:test_aggregate_unique_type($aggregates)" />
+        <xsl:value-of select="cdit:test_unique_child_labels('Aggregates must have unique labels', $aggregates)" />
+        
 
         <xsl:variable name="vectors" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('Vector', 'VectorInstance'))" />
-        <xsl:value-of select="cdit:test_unique_child_labels($vectors)" />
+        <xsl:value-of select="cdit:test_unique_child_labels('Vectors must have unique labels', $vectors)" />
     </xsl:function>
 
     <xsl:function name="cdit:component_tests">
         <xsl:param name="model" as="element(gml:node)*"/>
 
-        <xsl:variable name="components" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Component')" />
-        <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('ComponentImpl', 'Class'))" />
+        <xsl:variable name="aggregates" as="element()*" select="graphml:get_nodes_of_kind($model, 'Aggregates')" />
+        <xsl:variable name="components" as="element()*" select="graphml:get_nodes_of_kind($model, 'Component')" />
+        <xsl:variable name="classes" as="element()*" select="graphml:get_nodes_of_kind($model, 'Class')" />
+        <xsl:variable name="component_impls" as="element()*" select="graphml:get_nodes_of_kind($model, 'ComponentImpl')" />
 
-        <xsl:value-of select="cdit:test_unique_labels($components, 'require to have unique labels', false())" />
-        <xsl:value-of select="cdit:test_invalid_label($components, 'Component valid names')" />
-        <xsl:value-of select="cdit:test_invalid_label(graphml:get_descendant_nodes_of_kind($model, 'Variable'), 'Variable valid names')" />
+        <xsl:value-of select="cdit:test_unique_types('All Compilable Elements Must have unique kinds', ($aggregates, $components, $classes))" />
+        <xsl:value-of select="cdit:test_invalid_label('Compilable Elements must have valid names', ($aggregates, $components))" />
+        
+
         <xsl:value-of select="cdit:test_component_relations($components)" />
         <xsl:value-of select="cdit:test_eventport_aggregates($components)" />
 
 
+        <xsl:value-of select="cdit:test_data_edges($model)" />
 
-        <xsl:value-of select="cdit:test_componentimpl_data($component_impls)" />
-        <xsl:value-of select="cdit:test_log_function($component_impls)" />
+        <xsl:value-of select="cdit:test_componentimpl_data(($classes, $component_impls))" />
+        <xsl:value-of select="cdit:test_log_function(($classes, $component_impls))" />
         
     </xsl:function>
 
@@ -690,8 +735,9 @@
         <xsl:variable name="component_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
         <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('PublisherPortInstance', 'SubscriberPortInstance'))" />
         
+        
         <xsl:value-of select="cdit:test_assembly_connections($component_instances)" />
-        <xsl:value-of select="cdit:test_eventport_instances($model)" />
+        <xsl:value-of select="cdit:test_unique_topic_names($model)" />
         <xsl:value-of select="cdit:test_eventport_delegates($model)" />
         <xsl:value-of select="cdit:test_deployment($component_instances)" />
     </xsl:function>
