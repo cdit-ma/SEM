@@ -1595,13 +1595,18 @@
         <xsl:variable name="resolved_args" as="xs:string*">
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
-                <xsl:variable name="var_label" select="graphml:get_label(.)" />
+                <xsl:variable name="var_label" select="cdit:get_unique_variable_name(.)" />
                 
                 <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:sequence select="cpp:join_args($resolved_args)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:does_function_return_void" as="xs:boolean">
+        <xsl:param name="function" as="element()"/>
+        <xsl:value-of select="cdit:get_function_return_parameter_declarations($function) = 'void'" />
     </xsl:function>
 
     <xsl:function name="cdit:get_function_return_parameter_declarations" as="xs:string*">

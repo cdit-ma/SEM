@@ -20,7 +20,7 @@
             <xsl:when test="$middleware_lc = 'ospl'">
                 <xsl:value-of select="'OSPL_DDS'" />
             </xsl:when>
-            <xsl:when test="$middleware_lc = 'qpid'">
+            <xsl:when test="$middleware_lc = 'qpid' or $middleware_lc ='amqp'">
                 <xsl:value-of select="'QPID'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'zmq'">

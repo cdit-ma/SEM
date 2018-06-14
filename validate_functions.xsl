@@ -193,30 +193,6 @@
     </xsl:function>
 
 
-    <!-- Tests that all entities in list have unique member labels 
-    <xsl:function name="cdit:test_aggregate_namespace_collisions">
-        <xsl:param name="aggregates" as="element(gml:node)*"/>
-
-        <xsl:variable name="results">  
-            <xsl:variable name="aggregate_labels" select="graphml:get_data_values($aggregates, 'label')" />
-
-            <xsl:for-each select="$aggregates">
-                <xsl:variable name="id" select="graphml:get_id(.)" />
-                <xsl:variable name="kind" select="graphml:get_kind(.)" />
-                <xsl:variable name="label" select="graphml:get_label(.)" />
-                <xsl:variable name="namespace" select="graphml:get_namespace(.)" />
-
-                <xsl:variable name="match_count" select="o:string_in_list_count($label, $aggregate_labels)" />
-                <xsl:variable name="is_used_by_dds" select="true()" />
-
-                <xsl:if test="$match_count > 1 and $is_used_by_dds and $namespace = ''">
-                    <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($kind, o:wrap_quote($label), 'will collide with other Aggregates that have the same label, as it is defined in the global namespace (only idl driven middlewares). Consider adding a unique namespace.'), ' '), false(), 2)" />
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:value-of select="cdit:output_test('Aggregate Namespace Collisions.', $results, 1)" />
-    </xsl:function>-->
 
     <!-- Tests that all entities in list have unique member labels -->
     <xsl:function name="cdit:test_namespace_collisions">
@@ -323,32 +299,7 @@
 
     
 
-    <xsl:function name="cdit:test_logfunction">
-        <xsl:param name="component_impls" as="element(gml:node)*"/>
-
-        <xsl:variable name="results">
-            <xsl:for-each select="$component_impls">
-                <xsl:for-each select="graphml:get_child_nodes(.)">
-                   <xsl:variable name="id" select="graphml:get_id(.)" />
-                    <xsl:variable name="label" select="graphml:get_label(.)" />
-                    <xsl:variable name="kind" select="graphml:get_kind(.)" />
-                    
-                    <xsl:variable name="ignored_kinds" select="('PeriodicPort', 'SubscriberPortImpl', 'Variable', 'AttributeImpl', 'Header')" />
-
-                    <!-- Check if the $kind is to be ignored -->
-                    <xsl:variable name="ignored" select="$kind = $ignored_kinds" />
-
-                    <xsl:if test="not($ignored)">
-                        <xsl:variable name="workflow_sources" select="graphml:get_sources(., 'Edge_Workflow')" />
-                        <xsl:value-of select="cdit:output_result($id, count($workflow_sources) > 0, o:join_list(($kind, o:wrap_quote($label), 'does not have a Workflow connection (Edge_Workflow)'), ' '), true(), 2)" />        
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:value-of select="cdit:output_test('ComponentImpl workflow tests', $results, 1)" />
-    </xsl:function>
-
+    
     <xsl:function name="cdit:compare_type_to_printf" as="xs:boolean">
         <xsl:param name="type" as="xs:string"/>
         <xsl:param name="printf_arg" as="xs:string"/>
@@ -401,7 +352,7 @@
         </xsl:if>
     </xsl:function>
 
-    <xsl:function name="cdit:test_componentimpl_workflow">
+    <xsl:function name="cdit:test_log_function">
         <xsl:param name="component_impls" as="element(gml:node)*"/>
 
         <!--<xsl:variable name="results">-->
@@ -718,7 +669,7 @@
         <xsl:param name="model" as="element(gml:node)*"/>
 
         <xsl:variable name="components" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Component')" />
-        <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')" />
+        <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('ComponentImpl', 'Class'))" />
 
         <xsl:value-of select="cdit:test_unique_labels($components, 'require to have unique labels', false())" />
         <xsl:value-of select="cdit:test_invalid_label($components, 'Component valid names')" />
@@ -729,8 +680,7 @@
 
 
         <xsl:value-of select="cdit:test_componentimpl_data($component_impls)" />
-        <xsl:value-of select="cdit:test_logfunction($component_impls)" />
-        <xsl:value-of select="cdit:test_componentimpl_workflow($component_impls)" />
+        <xsl:value-of select="cdit:test_log_function($component_impls)" />
         
     </xsl:function>
 

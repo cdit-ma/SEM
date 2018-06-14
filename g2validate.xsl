@@ -18,6 +18,7 @@
     <xsl:import href="validate_functions.xsl"/>
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
+    <xsl:param name="debug_mode" as="xs:boolean" select="false()" />
 
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
