@@ -566,7 +566,7 @@
                     <xsl:variable name="src_label" select="graphml:get_label($src)" />
                     <xsl:variable name="src_kind" select="graphml:get_kind($src)" />
                     <xsl:variable name="src_middleware" select="graphml:get_data_value($src, 'middleware')" />
-                    <xsl:variable name="src_topic" select="graphml:get_data_value($src, 'topicName')" />
+                    <xsl:variable name="src_topic" select="graphml:get_data_value($src, 'topic_name')" />
                     
                     <xsl:variable name="requires_topic" select="cdit:middleware_requires_topic($src_middleware)" />
 
@@ -580,7 +580,7 @@
                         <xsl:variable name="dst_label" select="graphml:get_label($dst)" />
                         <xsl:variable name="dst_kind" select="graphml:get_kind($dst)" />
                         <xsl:variable name="dst_middleware" select="graphml:get_data_value($dst, 'middleware')" />
-                        <xsl:variable name="dst_topic" select="graphml:get_data_value($dst, 'topicName')" />
+                        <xsl:variable name="dst_topic" select="graphml:get_data_value($dst, 'topic_name')" />
                         
                         <xsl:if test="$dst_kind = 'SubscriberPortInstance'">
                             <xsl:variable name="match_middleware" select="cdit:middlewares_match($src_middleware, $dst_middleware)" />
