@@ -33,11 +33,12 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
         case NodeManager::Port::REPLIER:{
             auto server_address_attr = event_port.add_attributes();
             auto server_address_attr_info = server_address_attr->mutable_info();
-            server_address_attr_info->set_name("publisher_address");
-            server_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
+            server_address_attr_info->set_name("server_address");
+            server_address_attr->set_kind(NodeManager::Attribute::STRING);
 
             auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
             server_address_attr->add_s(connected_address.at(0));
+            std::cerr << "SERVER ADDRESS: " << connected_address.at(0) << std::endl;
             break;
         }
     }

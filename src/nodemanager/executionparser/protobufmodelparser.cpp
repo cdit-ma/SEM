@@ -176,8 +176,16 @@ bool ProtobufModelParser::PreProcess(){
     }
 
 
+    std::vector<std::string> endpoint_ids;
+
+    auto sub_port_ids = graphml_parser_->FindNodes("SubscriberPortInstance");
+    auto rep_port_ids = graphml_parser_->FindNodes("ReplierPortInstance");
+
+    endpoint_ids.insert(endpoint_ids.end(), sub_port_ids.begin(), sub_port_ids.end());
+    endpoint_ids.insert(endpoint_ids.end(), rep_port_ids.begin(), rep_port_ids.end());
+
     //Populate port connection map using recurse edge function to follow port delegates through
-    for(const auto& port_id : graphml_parser_->FindNodes("SubscriberPortInstance")){
+    for(const auto& port_id : endpoint_ids){
         const auto& target_id = port_id;
         for(auto source_id : GetTerminalSourcesByEdgeKind(target_id, "Edge_Assembly")){
             AssemblyConnection edge;

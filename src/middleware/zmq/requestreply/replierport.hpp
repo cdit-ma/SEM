@@ -35,7 +35,7 @@ namespace zmq{
 
             ThreadManager* thread_manager_ = 0;
 
-            std::shared_ptr<Attribute> end_point_;
+            std::shared_ptr<Attribute> server_address_;
 
             std::mutex control_mutex_;
             
@@ -66,19 +66,20 @@ zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestTyp
     auto port_id = ::Activatable::get_id();
     terminate_endpoint_ = "inproc://term*" + component_name + "*" + component_id + "*" + port_name + "*" + port_id;
 
-    end_point_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 bool zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
     //std::cerr << "HandleConfigure" << std::endl;
     std::lock_guard<std::mutex> lock(control_mutex_);
-    const auto server_address = end_point_->String();
+    const auto server_address = server_address_->String();
 
     bool valid = server_address.size() > 0;
     if(valid && ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
         if(!thread_manager_){
             thread_manager_ = new ThreadManager();
+            std::cerr << "Binding: "  << server_address << std::endl;
             auto thread = std::unique_ptr<std::thread>(new std::thread(zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), terminate_endpoint_, server_address));
             thread_manager_->SetThread(std::move(thread));
             return thread_manager_->Configure();
@@ -173,6 +174,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     try{
         //Bind the Outgoing address
         socket.bind(server_address.c_str());
+        std::cerr << "Binding: "  << server_address << std::endl;
     }catch(const zmq::error_t& ex){
         std::cerr << "ERR" << std::endl;
         Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + server_address + "' " + ex.what());

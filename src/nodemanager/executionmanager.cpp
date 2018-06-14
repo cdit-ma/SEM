@@ -97,6 +97,7 @@ bool ExecutionManager::PopulateDeployment(){
         std::this_thread::sleep_for(std::chrono::seconds(1));
         NodeManager::ControlMessage response;
         //std::cerr << deployment_message_->DebugString() << std::endl;
+        //std::cerr << "SEPERATION" << std::endl;
         try{
             response = requester_->AddDeployment(*deployment_message_);
             //std::cerr << response.DebugString() << std::endl;
