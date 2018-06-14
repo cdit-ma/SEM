@@ -44,6 +44,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
     catch(zmq::error_t& e){
         std::cerr << "Could not bind reply socket in registration loop. IP_ADDR: " << ip_addr_ <<
                                         " Port: " << registration_port_ << std::endl;
+        execution_.Interrupt();
         return;
     }
 
