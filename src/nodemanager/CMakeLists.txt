@@ -34,7 +34,7 @@ set(HEADERS
     )
 
 #Pass Version info into cmakevars.h
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 

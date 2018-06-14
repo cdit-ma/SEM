@@ -40,6 +40,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
     )
 
+#Pass Version info into cmakevars.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
+
 add_library(${ENVIRONMENT_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 
 add_executable(${ENVIRONMENT_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp)
