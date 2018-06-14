@@ -1,6 +1,7 @@
 #include "class.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
+#include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS;
 const QString kind_string = "Class";
@@ -31,4 +32,7 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
 
     broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    TypeKey::BindNamespaceAndLabelToType(this, true);
 };

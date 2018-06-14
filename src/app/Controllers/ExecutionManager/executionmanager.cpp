@@ -84,7 +84,9 @@ void ExecutionManager::ValidateModel_(QString model_path)
 
     if (results.success) {
         int test_count = 0;
-        int success_count = 0;
+        int failed_count = 0;
+        int warnings_count = 0;
+        int passed_count = 0;
 
         QString report = results.standard_output.join("\n");
         QXmlStreamReader xml(report);
@@ -95,7 +97,6 @@ void ExecutionManager::ValidateModel_(QString model_path)
             xml.readNext();
             if(xml.isStartElement()){
                 if(xml.name() == "result"){
-                    test_count ++;
                     auto result = get_xml_attribute(xml, "success");
 
                     if(result == "false"){
@@ -104,9 +105,12 @@ void ExecutionManager::ValidateModel_(QString model_path)
                         auto result_text = xml.readElementText();
                         auto severity = is_warning ? Notification::Severity::WARNING : Notification::Severity::ERROR;
                         manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, entity_id, false);
-                    }else if(result == "true"){
-                        success_count ++;
                     }
+                }else if(xml.name() == "test"){
+                    test_count +=  get_xml_attribute(xml, "tests").toInt();
+                    passed_count +=  get_xml_attribute(xml, "passed").toInt();
+                    warnings_count +=  get_xml_attribute(xml, "warnings").toInt();
+                    failed_count +=  get_xml_attribute(xml, "failed").toInt();
                 }
             }
         }
@@ -115,13 +119,13 @@ void ExecutionManager::ValidateModel_(QString model_path)
         
 
         // Show the notification panel on validation failure
-        if (success_count < test_count) {
+        if (passed_count < test_count) {
             emit manager->showNotificationPanel();
         }
 
         ///Update the original notification
-        validation_noti->setTitle("Model validation - [" + QString::number(success_count) + "/" + QString::number(test_count) + "] tests passed");
-        validation_noti->setSeverity(test_count == success_count ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+        validation_noti->setTitle("Model validation - Passed [" + QString::number(passed_count) + "/" + QString::number(test_count) + "] test cases");
+        validation_noti->setSeverity(test_count == passed_count ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     } else {
         ///Update the original notification
         validation_noti->setTitle("Model validation failed to execute");

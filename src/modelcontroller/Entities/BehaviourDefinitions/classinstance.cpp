@@ -69,13 +69,8 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
                         return false;
                     }
                 }else{
-                    switch (dst->getParentNode()->getNodeKind()) {
-                        // Should only be able to have top level parents
-                        case NODE_KIND::BEHAVIOUR_DEFINITIONS:
-                        case NODE_KIND::WORKER_DEFINITIONS:
-                            break;
-                        default:
-                            return false;
+                    if(dst->getNodeKind() != NODE_KIND::CLASS){
+                        return false;
                     }
                 }
                 break;
