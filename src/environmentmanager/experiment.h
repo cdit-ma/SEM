@@ -131,6 +131,9 @@ class Experiment{
         std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
         std::string GetOrbEndpoint(const std::string& port_id);
 
+        std::string GetTaoReplierServerAddress(const NodeManager::Port& port);
+        std::string GetTaoServerName(const NodeManager::Port& port);
+
         bool IsDirty() const;
 
         void UpdatePort(const std::string& port_guid);

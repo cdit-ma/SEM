@@ -44,6 +44,9 @@ class Environment{
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
+        std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);
+        std::string GetTaoServerName(const std::string& model_name, const NodeManager::Port& port);
+
         std::string GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address);
 
         std::vector<std::string> GetLoganClientList(const std::string& model_name);

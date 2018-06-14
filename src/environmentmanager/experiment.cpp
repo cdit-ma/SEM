@@ -90,8 +90,20 @@ void Experiment::AddNode(const NodeManager::Node& node){
             EventPort event_port;
             event_port.id = port.info().id();
             event_port.guid = port.port_guid();
-            event_port.port_number = environment_.GetPort(node_name);
             event_port.node_name = node_name;
+
+            if(port.middleware() == NodeManager::Port::ZMQ){
+                if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
+                    event_port.port_number = environment_.GetPort(node_name);
+                }
+            }
+            else if(port.middleware() == NodeManager::Port::TAO){
+                if(port.kind() == NodeManager::Port::REPLIER){
+                    event_port.port_number = environment_.GetPort(node_name);
+                }
+                //Make a unique name
+                event_port.topic = port.info().name() + "_" + event_port.id;
+            }
 
             for(const auto& ns : port.info().namespaces()){
                 event_port.type += ns + "::";
@@ -255,6 +267,39 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
     }
     return publisher_addresses;
 }
+
+std::string Experiment::GetTaoReplierServerAddress(const NodeManager::Port& port){
+    std::unique_lock<std::mutex> lock(mutex_);
+    std::string server_address;
+
+    if(port.kind() == NodeManager::Port::REQUESTER){
+
+        //Get list of connected ports
+        auto replier_port_ids = connection_map_.at(port.info().id());
+
+        //Get those ports addresses
+        for(auto id : replier_port_ids){
+            auto& replier_port = port_map_.at(id);
+            auto node_name = replier_port.node_name;
+            auto port_assigned_port = replier_port.port_number;
+            auto port_server_name = replier_port.topic;
+            server_address = "corbaloc:iiop:" + node_address_map_.at(node_name) + ":" + port_assigned_port + "/" +  port_server_name;
+        }
+    }
+
+    return server_address;
+}
+
+std::string Experiment::GetTaoServerName(const NodeManager::Port& port){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(port.kind() == NodeManager::Port::REQUESTER || port.kind() == NodeManager::Port::REPLIER){
+        //Get those ports addresses
+        auto& replier_port = port_map_.at(port.info().id());
+        return replier_port.topic;
+    }
+    return std::string();
+}
+
 
 std::string Experiment::GetOrbEndpoint(const std::string& port_id){
     auto node_name = port_map_.at(port_id).node_name;

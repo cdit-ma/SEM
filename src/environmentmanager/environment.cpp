@@ -177,6 +177,20 @@ std::string Environment::GetOrbEndpoint(const std::string& model_name, const std
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
     }
+    return std::string();
+}
+
+std::string Environment::GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetTaoReplierServerAddress(port);
+    }
+    return std::string();
+}
+std::string Environment::GetTaoServerName(const std::string& model_name, const NodeManager::Port& port){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetTaoServerName(port);
+    }
+    return std::string();
 }
 
 //Return list of experiments using the topic name provided
