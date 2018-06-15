@@ -191,6 +191,8 @@ bool ProtobufModelParser::PreProcess(){
 
     endpoint_ids.insert(endpoint_ids.end(), sub_port_ids.begin(), sub_port_ids.end());
     endpoint_ids.insert(endpoint_ids.end(), rep_port_ids.begin(), rep_port_ids.end());
+    endpoint_ids.insert(endpoint_ids.end(), delegates_pubsub_ids_.begin(), delegates_pubsub_ids_.end());
+    endpoint_ids.insert(endpoint_ids.end(), delegates_server_ids_.begin(), delegates_server_ids_.end());
 
     //Populate port connection map using recurse edge function to follow port delegates through
     for(const auto& port_id : endpoint_ids){
@@ -301,16 +303,18 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
     delegate_ids.insert(delegate_ids.end(), delegates_server_ids_.begin(), delegates_server_ids_.end());
 
     for(const auto& port_id : delegate_ids){
+        auto parent_id = graphml_parser_->GetParentNode(port_id);
         auto eport_pb = control_message->add_external_ports();
         auto eport_info_pb = eport_pb->mutable_info();
         eport_info_pb->set_id(port_id);
-        eport_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
+        auto label = graphml_parser_->GetDataValue(parent_id, "label");
+        eport_info_pb->set_name(label);
         eport_info_pb->set_type(graphml_parser_->GetDataValue(port_id, "type"));
         
         auto port_kind = GetExternalPortKind(graphml_parser_->GetDataValue(port_id, "kind"));
         eport_pb->set_kind(port_kind);
 
-        bool is_blackbox = graphml_parser_->GetDataValue(port_id, "blackbox") == "true";
+        bool is_blackbox = graphml_parser_->GetDataValue(parent_id, "blackbox") == "true";
         eport_pb->set_is_blackbox(is_blackbox);
         
         
@@ -412,6 +416,10 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                 default:
                     break;
             }
+        }
+
+        if(!external_port_id_map_.count(port_id)){
+            external_port_id_map_[port_id] = eport_pb;
         }
     }
     return true;
@@ -570,17 +578,19 @@ bool ProtobufModelParser::Process(){
                 }
                 port_pb->set_middleware(middleware);
 
-                //Set the topic_name
-                std::string topic_name;
-                topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                if(middleware == NodeManager::RTI || middleware == NodeManager::OSPL || middleware == NodeManager::QPID){
+                    //Set the topic_name
+                    std::string topic_name;
+                    topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
 
-                if(!topic_name.empty()){
-                    auto topic_pb = port_pb->add_attributes();
-                    auto topic_info_pb = topic_pb->mutable_info();
-                    topic_info_pb->set_name("topic_name");
-                    topic_pb->set_kind(NodeManager::Attribute::STRING);
-                    //Only set if we actually have a topic name
-                    topic_pb->add_s(topic_name);
+                    if(!topic_name.empty()){
+                        auto topic_pb = port_pb->add_attributes();
+                        auto topic_info_pb = topic_pb->mutable_info();
+                        topic_info_pb->set_name("topic_name");
+                        topic_pb->set_kind(NodeManager::Attribute::STRING);
+                        //Only set if we actually have a topic name
+                        topic_pb->add_s(topic_name);
+                    }
                 }
             }
 
@@ -657,56 +667,116 @@ void ProtobufModelParser::CalculateReplication(){
             auto source_port_id = ac.source_id;
             auto target_port_id = ac.target_id;
 
+            bool is_source_delegate = external_port_id_map_.count(source_port_id) > 0;
+            bool is_target_delegate = external_port_id_map_.count(target_port_id) > 0;
+
             auto source_component_id = graphml_parser_->GetParentNode(source_port_id);
             auto target_component_id = graphml_parser_->GetParentNode(target_port_id);
 
 
-            if(component_replications_.count(source_component_id) && component_replications_.count(source_component_id)){
-                //Get all ComponentInstances from the Replication
-                for(auto source_component_instance_proto : component_replications_[source_component_id]){
-                    auto s_unique = GetUniquePrefix(source_component_instance_proto->replicate_id());
-                    auto s_uid = ac.source_id + s_unique;
 
-                    NodeManager::Port* source_port_instance_proto = 0;
-                    if(port_replicate_id_map_.count(s_uid)){
-                        source_port_instance_proto = port_replicate_id_map_[s_uid];
-                    }else{
+            //Port to Port
+            if(!is_source_delegate && !is_target_delegate){
+                if(component_replications_.count(source_component_id) && component_replications_.count(target_component_id)){
+                    //Get all ComponentInstances from the Replication
+                    for(auto source_component_instance_proto : component_replications_[source_component_id]){
+                        auto s_unique = GetUniquePrefix(source_component_instance_proto->replicate_id());
+                        auto s_uid = ac.source_id + s_unique;
 
-                    }
+                        NodeManager::Port* source_port_instance_proto = 0;
+                        if(port_replicate_id_map_.count(s_uid)){
+                            source_port_instance_proto = port_replicate_id_map_[s_uid];
+                        }else{
+                            std::cerr << "Cant Find Source Port: " << s_uid << std::endl;
+                            continue;
+                        }
 
-                    //If we are an inter_assembly edge, we need to connect every outeventport instance to every ineventport instance
-                    if(ac.inter_assembly){
-                        //Connect to all!
-                        for(auto target_component_instance_proto : component_replications_[target_component_id]){
-                            auto t_unique = GetUniquePrefix(target_component_instance_proto->replicate_id());
-                            auto t_uid = ac.target_id + t_unique;
+                        //If we are an inter_assembly edge, we need to connect every outeventport instance to every ineventport instance
+                        if(ac.inter_assembly){
+                            //Connect to all!
+                            for(auto target_component_instance_proto : component_replications_[target_component_id]){
+                                auto t_unique = GetUniquePrefix(target_component_instance_proto->replicate_id());
+                                auto t_uid = ac.target_id + t_unique;
 
+                                NodeManager::Port* target_port_instance_proto = 0;
+                                if(port_replicate_id_map_.count(t_uid)){
+                                    target_port_instance_proto = port_replicate_id_map_[t_uid];
+                                }else{
+                                    std::cerr << "Cant Find Target Port: " << t_uid << std::endl;
+                                    continue;
+                                }
+
+                                //Append the connection to our list
+                                if(source_port_instance_proto && target_port_instance_proto){
+                                    source_port_instance_proto->add_connected_ports(t_uid);
+                                    target_port_instance_proto->add_connected_ports(s_uid);
+                                }
+                            }
+                        }else{
+                            //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
+                            auto t_uid = ac.target_id + s_unique;
+                            
                             NodeManager::Port* target_port_instance_proto = 0;
+                            
                             if(port_replicate_id_map_.count(t_uid)){
                                 target_port_instance_proto = port_replicate_id_map_[t_uid];
                             }else{
-
+                                std::cerr << "Cant Find Target Port: " << t_uid << std::endl;
+                                continue;
                             }
 
-                            //Append the connection to our list
                             if(source_port_instance_proto && target_port_instance_proto){
                                 source_port_instance_proto->add_connected_ports(t_uid);
                                 target_port_instance_proto->add_connected_ports(s_uid);
                             }
                         }
-                    }else{
-                        //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
-                        auto t_uid = ac.target_id + s_unique;
+                    }
+                }
+            }else if(is_source_delegate && !is_target_delegate){
+                auto source_eport_proto = external_port_id_map_[source_port_id];
+
+                if(component_replications_.count(target_component_id)){
+                    for(auto target_component_instance_proto : component_replications_[target_component_id]){
+                        auto t_unique = GetUniquePrefix(target_component_instance_proto->replicate_id());
+                        auto t_uid = target_port_id + t_unique;
+
                         NodeManager::Port* target_port_instance_proto = 0;
                         if(port_replicate_id_map_.count(t_uid)){
+                            
                             target_port_instance_proto = port_replicate_id_map_[t_uid];
                         }else{
-
+                            std::cerr << "Cant Find Target Port: " << t_uid << std::endl;
+                            continue;
                         }
 
-                        if(source_port_instance_proto && target_port_instance_proto){
-                            source_port_instance_proto->add_connected_ports(t_uid);
-                            target_port_instance_proto->add_connected_ports(s_uid);
+                        //Append the connection to our list
+                        if(source_eport_proto && target_port_instance_proto){
+                            source_eport_proto->add_connected_ports(t_uid);
+                            target_port_instance_proto->add_connected_external_ports(source_port_id);
+                        }
+                    }
+                }
+            }else if(!is_source_delegate && is_target_delegate){
+                auto target_eport_proto = external_port_id_map_[target_port_id];
+
+                
+                if(component_replications_.count(source_component_id)){
+                    for(auto source_component_instance_proto : component_replications_[source_component_id]){
+                        auto s_unique = GetUniquePrefix(source_component_instance_proto->replicate_id());
+                        auto s_uid = source_port_id + s_unique;
+
+                        NodeManager::Port* source_port_instance_proto = 0;
+                        if(port_replicate_id_map_.count(s_uid)){
+                            source_port_instance_proto = port_replicate_id_map_[s_uid];
+                        }else{
+                            std::cerr << "Cant Find Source Port: " << s_uid << std::endl;
+                            continue;
+                        }
+
+                        //Append the connection to our list
+                        if(source_port_instance_proto && target_eport_proto){
+                            source_port_instance_proto->add_connected_external_ports(target_port_id);
+                            target_eport_proto->add_connected_ports(s_uid);
                         }
                     }
                 }

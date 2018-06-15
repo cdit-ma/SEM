@@ -188,7 +188,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
                 bool dirty = true;
                 try{
-                    dirty = environment_.ExperimentIsDirty(experiment_id_)
+                    dirty = environment_.ExperimentIsDirty(experiment_id_);
                 }
                 catch(const std::invalid_argument& ex){
 

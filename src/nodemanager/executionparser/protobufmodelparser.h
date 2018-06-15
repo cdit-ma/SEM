@@ -94,6 +94,8 @@ class ProtobufModelParser{
 
         //port replicate id -> eventport proto
         std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
+        //external port id -> ExternalPort Proto
+        std::unordered_map<std::string, NodeManager::ExternalPort*> external_port_id_map_;
 
         //component id -> vector of that component's replications
         std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
