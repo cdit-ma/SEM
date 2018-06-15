@@ -12,9 +12,21 @@ namespace EnvironmentManager{
 
 struct LoganClient{
     std::string experiment_name;
+    std::string id;
     std::string ip_address;
-    std::string management_port;
     std::string logging_port;
+    double frequency;
+    bool live_mode;
+    std::vector<std::string> processes;
+};
+
+struct LoganServer{
+    std::string experiment_name;
+    std::string id;
+    std::string ip_address;
+    std::string db_file_name;
+    std::vector<std::string> client_ids;
+    std::vector<std::string> client_addresses;
 };
 
 class Node{
@@ -119,12 +131,8 @@ class Experiment{
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
-        void AddLoganClient(const std::string& model_name,
-                            const std::string& ip_address,
-                            const std::string& management_port,
-                            const std::string& logging_port);
+        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string& ip_address);
 
-        std::vector<std::string> GetLoganClientList();
         std::string GetMasterPublisherPort();
         std::string GetNodeManagementPort(const std::string& ip) const;
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
@@ -188,7 +196,8 @@ class Experiment{
         //map of node id -> deployed component count
         std::unordered_map<std::string, int> deployment_map_;
 
-        std::vector<std::unique_ptr<LoganClient> > logan_clients_;
+        std::unordered_map<std::string, std::unique_ptr<LoganClient> > logan_client_map_;
+        std::unordered_map<std::string, std::unique_ptr<LoganServer> > logan_server_map_;
 
         uint64_t time_added_;
         ExperimentState state_;

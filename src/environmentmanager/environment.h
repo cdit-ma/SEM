@@ -26,7 +26,11 @@ class Environment{
         std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
 
         void RemoveExperiment(const std::string& model_name, uint64_t time);
-        void RemoveLoganClient(const std::string& model_name, const std::string& ip_address);
+        void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
+
+
+        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
+
         void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
@@ -46,10 +50,6 @@ class Environment{
 
         std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTaoServerName(const std::string& model_name, const NodeManager::Port& port);
-
-        std::string GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address);
-
-        std::vector<std::string> GetLoganClientList(const std::string& model_name);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
@@ -98,7 +98,7 @@ class Environment{
         std::string address_;
 
         //Returns management port for logan client
-        std::string AddLoganClient(const std::string& model_name, const std::string& ip_address);
+        std::string AddLoganClientServer(const std::string& model_name, const std::string& ip_address);
 
         bool AddExperiment(const std::string& model_name);
         //model_name -> experiment data structure

@@ -41,7 +41,7 @@ std::string Environment::AddDeployment(const std::string& model_name,
         return experiment_map_.at(model_name)->GetManagerPort();
     }
     if(deployment_type == DeploymentType::LOGAN_CLIENT){
-        return AddLoganClient(model_name, ip_address);
+        return AddLoganClientServer(model_name, ip_address);
     }
 }
 
@@ -58,7 +58,7 @@ bool Environment::AddExperiment(const std::string& model_name){
     return true;
 }
 
-std::string Environment::AddLoganClient(const std::string& model_name, const std::string& ip_address){
+std::string Environment::AddLoganClientServer(const std::string& model_name, const std::string& ip_address){
     
     if(!experiment_map_.count(model_name)){
         throw std::invalid_argument("No experiment found called " + model_name);
@@ -70,15 +70,17 @@ std::string Environment::AddLoganClient(const std::string& model_name, const std
     }catch(const std::exception& ex){
         port = "";
     }
-
-    //TODO: populate this properly
-    std::string logging_port = "45454";
-
-    experiment_map_.at(model_name)->AddLoganClient(model_name, ip_address, port, logging_port);
+    //experiment_map_.at(model_name)->AddLoganClient(model_name, ip_address, port, logging_port);
 
     return port;
-
 }
+
+NodeManager::EnvironmentMessage Environment::GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetLoganDeploymentMessage(ip_address);
+    }
+}
+
 
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
@@ -86,8 +88,8 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
     std::cout << "Remaining experiments: " << experiment_map_.size() << std::endl;
 }
 
-void Environment::RemoveLoganClient(const std::string& model_name, const std::string& ip_address){
-    //TODO: complete this.
+void Environment::RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address){
+
 }
 
 void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
@@ -115,10 +117,23 @@ void Environment::DeclusterNode(NodeManager::Node& node){
     //TODO: change this to have 2nd mode for distribution (reflecting components running on nodes from other experiments)
     if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
         std::queue<NodeManager::Component> component_queue;
+        std::queue<NodeManager::Logger> logging_servers;
+        std::vector<NodeManager::Logger> logging_clients;
         for(int i = 0; i < node.components_size(); i++){
             component_queue.push(NodeManager::Component(node.components(i)));
         }
         node.clear_components();
+
+        for(int i = 0; i < node.loggers_size(); i++){
+            if(node.loggers(i).type() == NodeManager::Logger::SERVER){
+                logging_servers.push(NodeManager::Logger(node.loggers(i)));
+            }
+            else{
+                logging_clients.push_back(NodeManager::Logger(node.loggers(i)));
+            }
+
+        }
+        node.clear_loggers();
 
         int child_node_count = node.nodes_size();
         int counter = 0;
@@ -131,6 +146,26 @@ void Environment::DeclusterNode(NodeManager::Node& node){
             *new_component = component;
             counter++;
         }
+
+        counter = 0;
+        //put one logging server on a node
+        while(!logging_servers.empty()){
+            auto server = logging_servers.front();
+            logging_servers.pop();
+
+            auto new_server = node.mutable_nodes(counter % child_node_count)->add_loggers();
+            *new_server = server;
+            counter++;
+        }
+
+        //put a copy of all logging clients on all child nodes
+        for(int i = 0; i < node.nodes_size(); i++){
+            for(const auto& logger : logging_clients){
+                auto new_logger = node.mutable_nodes(i)->add_loggers();
+                *new_logger = logger;
+            }
+        }
+
     }
     for(int i = 0; i < node.nodes_size(); i++){
         DeclusterNode(*(node.mutable_nodes(i)));
@@ -230,6 +265,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 //Get port from node specified.
 std::string Environment::GetPort(const std::string& node_name){
     //Get first available port, store then erase it
+    std::cout << node_name << std::endl;
     if(node_map_.count(node_name)){
         return node_map_.at(node_name)->GetPort();
     }
@@ -286,7 +322,7 @@ std::string Environment::GetMasterPublisherPort(const std::string& model_name, c
             experiment_map_.at(model_name)->SetMasterPublisherIp(master_ip_address);
             return experiment_map_.at(model_name)->GetMasterPublisherPort();
         }catch(std::runtime_error ex){
-            
+            std::cerr << "Could not find experiment " << model_name << std::endl;
             return "";
         }
     }
@@ -304,22 +340,6 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
         return experiment_map_.at(model_name)->GetNodeModelLoggerPort(node_name_map_.at(ip_address));
     }
     return "";
-}
-
-std::string Environment::GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(ip_address);
-    }
-    return "";
-}
-
-std::vector<std::string> Environment::GetLoganClientList(const std::string& model_name){
-
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetLoganClientList();
-    }
-
-    return {};
 }
 
 bool Environment::ExperimentIsDirty(const std::string& model_name){

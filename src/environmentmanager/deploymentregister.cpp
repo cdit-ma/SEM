@@ -132,7 +132,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
                                                     *context_,
                                                     ip_addr_,
                                                     Environment::DeploymentType::EXECUTION_MASTER,
-                                                    "",
+                                                    message.update_endpoint(),
                                                     port_promise.get(),
                                                     message.experiment_id()));
 
@@ -152,7 +152,6 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
 
 void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& message){
     std::string experiment_id = message.experiment_id();
-    std::string node_ip_address = message.logger(0).publisher_address();
 
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
@@ -161,7 +160,7 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
                                                     *context_,
                                                     ip_addr_,
                                                     Environment::DeploymentType::LOGAN_CLIENT,
-                                                    node_ip_address,
+                                                    "",
                                                     port_promise.get(),
                                                     experiment_id));
 
@@ -236,14 +235,14 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
 }
 
 void DeploymentRegister::HandleLoganClientListQuery(NodeManager::EnvironmentMessage& message){
-    std::string experiment_id = message.experiment_id();
+    // std::string experiment_id = message.experiment_id();
 
-    auto client_addresses = environment_->GetLoganClientList(experiment_id);
+    // auto client_addresses = environment_->GetLoganClientList(experiment_id);
 
-    for(const auto& client_address : client_addresses){
-        auto logger = message.add_logger();
-        logger->set_publisher_address(client_address);
-    }
+    // for(const auto& client_address : client_addresses){
+    //     auto logger = message.add_logger();
+    //     logger->set_publisher_address(client_address);
+    // }
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{

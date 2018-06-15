@@ -103,6 +103,9 @@ bool ProtobufModelParser::PreProcess(){
     hardware_node_ids_ = graphml_parser_->FindNodes("HardwareNode");
     hardware_cluster_ids_ = graphml_parser_->FindNodes("HardwareCluster");
 
+    logging_server_ids_ = graphml_parser_->FindNodes("LoggingServer");
+    logging_client_ids_ = graphml_parser_->FindNodes("LoggingProfile");
+
     component_ids_ = graphml_parser_->FindNodes("Component");
 
     component_instance_ids_ = graphml_parser_->FindNodes("ComponentInstance");
@@ -238,6 +241,14 @@ bool ProtobufModelParser::PreProcess(){
         port_guid_map_[port_id] = BuildPortGuid(port_id);
     }
 
+    for(const auto& edge_id : assembly_edge_ids_){
+        auto target_id = graphml_parser_->GetAttribute(edge_id, "target");
+        auto source_id = graphml_parser_->GetAttribute(edge_id, "source");
+        if(std::find(logging_server_ids_.begin(), logging_server_ids_.end(), target_id) !=logging_server_ids_.end()){
+            logging_server_client_map_[target_id].push_back(source_id);
+        }
+    }
+
     return true;
 }
 
@@ -288,6 +299,50 @@ bool ProtobufModelParser::Process(){
 
     //populate environment message's hardware fields. Fills local node_message_map_
     ParseHardwareItems(control_message_);
+
+    for(const auto& client_id : logging_client_ids_){
+        //Get hardware node pb message that this logger is deployed to
+        auto hardware_id = deployed_entities_map_[client_id];
+        NodeManager::Node* node_pb = 0;
+        if(node_message_map_.count(hardware_id)){
+            node_pb = node_message_map_.at(hardware_id);
+        }
+
+        auto logger_pb = node_pb->add_loggers();
+
+        logger_pb->set_type(NodeManager::Logger::CLIENT);
+        logger_pb->set_id(client_id);
+        logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
+
+        if(graphml_parser_->GetDataValue(client_id, "mode") == "LIVE"){
+            logger_pb->set_mode(NodeManager::Logger::LIVE);
+        }else if(graphml_parser_->GetDataValue(client_id, "mode") == "CACHED"){
+            logger_pb->set_mode(NodeManager::Logger::CACHED);
+        }
+    }
+
+    for(const auto& server_id : logging_server_ids_){
+        //Get hardware node pb message that this logger is deployed to
+        auto hardware_id = deployed_entities_map_[server_id];
+        NodeManager::Node* node_pb = 0;
+        if(node_message_map_.count(hardware_id)){
+            node_pb = node_message_map_.at(hardware_id);
+        }
+
+        auto logger_pb = node_pb->add_loggers();
+
+        logger_pb->set_type(NodeManager::Logger::SERVER);
+        logger_pb->set_id(server_id);
+        logger_pb->set_db_file_name(graphml_parser_->GetDataValue(server_id, "database"));
+
+        //get connected log client ids
+        if(logging_server_client_map_.count(server_id)){
+            for(const auto& client_id : logging_server_client_map_.at(server_id)){
+                logger_pb->add_client_ids(client_id);
+            }
+        }
+
+    }
 
     //Construct and fill component instances
     for(const auto& component_id : component_instance_ids_){
@@ -359,7 +414,6 @@ bool ProtobufModelParser::Process(){
                 auto port_info_pb = port_pb->mutable_info();
 
                 port_info_pb->set_id(port_id + unique_id);
-                
                 port_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
                 port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
 
