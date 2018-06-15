@@ -1215,7 +1215,11 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
             //TODO: SUBCLASS FOR THAT ONE TO ONE RELATIONSHIP
             return true;
         }
-        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::DEPLOYMENT:{
+            if(IsEdgeRuleActive(EdgeRule::ALLOW_MULTIPLE_DEPLOYMENT_EDGES)){
+                return true;
+            }
+        }
         case EDGE_KIND::AGGREGATE:
         case EDGE_KIND::QOS:{
             //Can only have 1 Edge is Source

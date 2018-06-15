@@ -46,6 +46,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/popupdataeditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.cpp
@@ -141,6 +142,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/popupdataeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h

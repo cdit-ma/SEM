@@ -105,6 +105,8 @@ public:
     void ShowJenkinsBuildDialog(QString job_name, QList<Jenkins_Job_Parameter> paramaters);
     void ShowJenkinsBuildDialog(QStringList jobs);
 
+    void EditDataValue(int ID, QString key_name);
+
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
     void setController(ModelController* c);

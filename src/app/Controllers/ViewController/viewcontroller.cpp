@@ -13,6 +13,7 @@
 #include "../../Widgets/Monitors/jobmonitor.h"
 #include "../../Widgets/Monitors/consolemonitor.h"
 #include "../../Widgets/Monitors/jenkinsmonitor.h"
+//#include "../../Views/Table/popupdataeditor.h"
 
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -90,6 +91,8 @@ ViewController::ViewController(){
     connect(actionController->edit_search, &QAction::triggered, search_manager, &SearchManager::PopupSearch);
     connect(actionController->edit_goto, &QAction::triggered, search_manager, &SearchManager::PopupGoto);
     connect(search_manager, &SearchManager::GotoID, this, &ViewController::centerOnID);
+
+    //connect(this, &ViewController::vc_editTableCell, this, &ViewController::EditDataValue);
     
     autosave_timer_.setSingleShot(true);
     connect(&autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
@@ -110,6 +113,17 @@ void ViewController::SettingChanged(SETTINGS key, QVariant value){
             break;
     }
 }
+/*
+void ViewController::EditDataValue(int ID, QString key_name){
+    qCritical() << "ID: " << ID << " " << key_name;
+    auto popup_editor = new PopupDataEditor();
+    auto item = getViewItem(ID);
+    if(item){
+        qCritical() << item;
+        popup_editor->edit(item, key_name);
+        WindowManager::MoveWidget(popup_editor);
+    }
+}*/
 
 void ViewController::AutosaveDurationChanged(int duration_minutes){
     is_autosave_enabled_ = duration_minutes > 0;

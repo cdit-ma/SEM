@@ -17,6 +17,7 @@ LoggingProfile::LoggingProfile(EntityFactoryBroker& broker, bool is_temp) : Node
     setNodeType(NODE_TYPE::LOGGING);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
+    SetEdgeRuleActive(EdgeRule::ALLOW_MULTIPLE_DEPLOYMENT_EDGES, true);
 
     if(is_temp){
         //Break out early for temporary entities
