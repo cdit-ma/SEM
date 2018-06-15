@@ -19,6 +19,16 @@ message ControlMessage{
     repeated Node nodes = 4;
     string experiment_id = 5;
     repeated Attribute attributes = 6;
+    repeated ExternalPort external_ports = 7;
+}
+
+enum Middleware{
+    NO_MIDDLEWARE = 0;
+    ZMQ = 1;
+    RTI = 2;
+    OSPL = 3;
+    QPID = 4;
+    TAO = 5;
 }
 
 message EnvironmentMessage{
@@ -82,6 +92,21 @@ message Node{
 
 }
 
+message ExternalPort{
+    enum Kind{
+        NO_KIND = 0;
+        PUBSUB = 1;
+        SERVER = 2;
+    }
+
+    Info info = 1;
+    Kind kind = 2;
+    Middleware middleware = 3;
+    repeated Attribute attributes = 4;
+    repeated string connected_ports = 5;
+    bool is_blackbox = 6;
+}
+
 message Component{
     Info info = 1;
     repeated Port ports = 2;
@@ -105,30 +130,12 @@ message Port{
         REPLIER = 5;
     }
 
-    enum Middleware{
-        NO_MIDDLEWARE = 0;
-        ZMQ = 1;
-        RTI = 2;
-        OSPL = 3;
-        QPID = 4;
-        TAO = 5;
-    }
-
-    enum Visibility{
-        UNSET_VISIBILITY = 0;
-        PUBLIC = 1;
-        PRIVATE = 2;
-    }
-
     Info info = 1;
     Kind kind = 2;
     Middleware middleware = 3;
     repeated Attribute attributes = 4;
-
-    
     string port_guid = 6;
     repeated string connected_ports = 7;
-    Visibility visibility = 8;
 }
 
 message Worker{
