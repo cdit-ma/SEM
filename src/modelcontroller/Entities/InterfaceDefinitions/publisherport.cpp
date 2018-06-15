@@ -11,7 +11,7 @@ void PublisherPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
     });
 }
 
-PublisherPort::PublisherPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp){
+PublisherPort::PublisherPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp, true){
     //Setup State
     addImplKind(NODE_KIND::PORT_PUBLISHER_IMPL);
 	addInstanceKind(NODE_KIND::PORT_PUBLISHER_INST);

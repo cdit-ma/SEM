@@ -11,7 +11,7 @@ void SubscriberPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
     });
 }
 
-SubscriberPort::SubscriberPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp){
+SubscriberPort::SubscriberPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp, true){
     //Setup State
     addImplKind(NODE_KIND::PORT_SUBSCRIBER_IMPL);
 	addInstanceKind(NODE_KIND::PORT_SUBSCRIBER_INST);

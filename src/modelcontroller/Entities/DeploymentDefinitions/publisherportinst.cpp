@@ -12,10 +12,10 @@ void PublisherPortInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
     });
 }
 
-PublisherPortInst::PublisherPortInst(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
+PublisherPortInst::PublisherPortInst(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp, true){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::PORT_PUBLISHER);
-    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -26,7 +26,7 @@ PublisherPortInst::PublisherPortInst(EntityFactoryBroker& broker, bool is_temp) 
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::UNPROTECTED, 2);
 
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
-    data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
+    data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "QPID"});
 
     connect(data_middleware, &Data::dataChanged, this, &PublisherPortInst::MiddlewareUpdated);
     MiddlewareUpdated();

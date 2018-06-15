@@ -1749,37 +1749,49 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
  */
 bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setup)
 {
-    if(src && dst && src->isNodeOfType(NODE_TYPE::EVENTPORT) && dst->getNodeKind() == NODE_KIND::AGGREGATE){
+    if(src && dst && src->isNodeOfType(NODE_TYPE::EVENTPORT)){
         auto eventport = (EventPort*) src;
-        auto aggregate = (Aggregate*) dst;
+        auto dst_nodekind = dst->getNodeKind();
 
 
         bool construct_instance = setup && isUserAction() && !eventport->IsEdgeRuleActive(Node::EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
         //Only auto construct if we are processing a user action.
         if(construct_instance){
-            Node* aggregate_instance = 0;
             
-            //Check for a child of kind AggregateInstance
-            for(auto child : eventport->getChildrenOfKind(NODE_KIND::AGGREGATE_INSTANCE, 0)){
-                aggregate_instance = child;
-                break;
+            QList<Node*> instances_to_make;
+            if(dst_nodekind == NODE_KIND::AGGREGATE){
+                instances_to_make += dst;
+            }else{
+                instances_to_make += dst->getChildren(0);
             }
 
-            if(!aggregate_instance){
-                //Construct a connected AggregateInstance inside the eventport, connected to the aggregate (The instance section will)
-                aggregate_instance = construct_connected_node(eventport, NODE_KIND::AGGREGATE_INSTANCE, aggregate, EDGE_KIND::DEFINITION);
-            }
-            
-            //If we have an aggregate instance
-            if(aggregate_instance){
-                if(!aggregate_instance->gotEdgeTo(aggregate, EDGE_KIND::DEFINITION)){
-                    //Try and construct an edge between the AggregateInstance and it's Instance
-                    construct_edge(EDGE_KIND::DEFINITION, aggregate_instance, aggregate);
+
+            //Make Instances of all things
+            for(auto definition : instances_to_make){
+                auto instance_kind = *(definition->getInstanceKinds().begin());
+
+                Node* instance_node = 0;
+                for(auto child : eventport->getChildrenOfKind(instance_kind, 0)){
+                    instance_node = child;
+                    break;
+                }
+
+                if(!instance_node){
+                    //Construct a connected AggregateInstance inside the eventport, connected to the aggregate (The instance section will)
+                    instance_node = construct_connected_node(eventport, instance_kind, definition, EDGE_KIND::DEFINITION);
+                }
+
+                //If we have an aggregate instance
+                if(definition){
+                    if(!instance_node->gotEdgeTo(definition, EDGE_KIND::DEFINITION)){
+                        //Try and construct an edge between the AggregateInstance and it's Instance
+                        construct_edge(EDGE_KIND::DEFINITION, instance_node, definition);
+                    }
                 }
             }
         }
 
-        if(eventport->getNodeKind() == NODE_KIND::EXTERNAL_ASSEMBLY){
+        if(eventport->getNodeKind() == NODE_KIND::EXTERNAL_PUBSUB_DELEGATE || eventport->getNodeKind() == NODE_KIND::EXTERNAL_SERVER_DELEGATE){
             //Connect our children
             for(auto child : eventport->getChildren()){
                 construct_edge(EDGE_KIND::AGGREGATE, child, dst);
@@ -1787,13 +1799,13 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         }
 
         //Check for an edge between the EventPort and the Aggregate
-        if(eventport->gotEdgeTo(aggregate, EDGE_KIND::AGGREGATE)){
+        if(eventport->gotEdgeTo(dst, EDGE_KIND::AGGREGATE)){
             if(setup){
                 //Edge Created Set Aggregate relation.
-                eventport->setAggregate(aggregate);
+                eventport->setPortType(dst);
             }else{
                 //Unset the Aggregate
-                eventport->unsetAggregate();
+                eventport->unsetPortType();
             }
             return true;
         }

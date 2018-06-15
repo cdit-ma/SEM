@@ -11,6 +11,9 @@ void PublisherPortDelegate::RegisterWithEntityFactory(EntityFactoryRegistryBroke
     });
 }
 
-PublisherPortDelegate::PublisherPortDelegate(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
+PublisherPortDelegate::PublisherPortDelegate(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp, true){
+
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
 
 }

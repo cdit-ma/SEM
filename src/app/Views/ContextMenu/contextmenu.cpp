@@ -37,10 +37,11 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::PORT_SUBSCRIBER_DELEGATE] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER_DELEGATE] = EDGE_KIND::AGGREGATE;
-    connect_node_edge_kinds[NODE_KIND::EXTERNAL_ASSEMBLY] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::EXTERNAL_PUBSUB_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::EXTERNAL_SERVER_DELEGATE] = EDGE_KIND::AGGREGATE;
 
-    connect_node_edge_kinds[NODE_KIND::PORT_REPLIER] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::PORT_REPLIER] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER] = EDGE_KIND::AGGREGATE;
 
     connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;

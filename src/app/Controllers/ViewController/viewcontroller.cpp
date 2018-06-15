@@ -604,7 +604,8 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             break;
         case NODE_KIND::PORT_REPLIER:
         case NODE_KIND::PORT_REPLIER_IMPL:
-        case NODE_KIND::PORT_REPLIER_INST:{
+        case NODE_KIND::PORT_REPLIER_INST:
+        {
             default_icon_prefix = "EntityIcons";
             default_icon_name = "ReplierPort";
             break;
@@ -614,6 +615,12 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
         case NODE_KIND::PORT_REQUESTER_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "RequesterPort";
+            break;
+        }
+        case NODE_KIND::PORT_PUBSUB_DELEGATE:
+        case NODE_KIND::PORT_REQUEST_DELEGATE:{
+            default_icon_prefix = "Icons";
+            default_icon_name = "arrowsLeftRightDark";
             break;
         }
 
@@ -662,6 +669,12 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
         case NODE_KIND::ENUM_INSTANCE:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "EnumMember";
+            break;
+        }
+        case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE:
+        case NODE_KIND::EXTERNAL_SERVER_DELEGATE:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "ExternalAssembly";
             break;
         }
         case NODE_KIND::PORT_PERIODIC_INST:{

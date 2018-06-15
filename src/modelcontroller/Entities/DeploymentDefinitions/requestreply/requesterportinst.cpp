@@ -12,7 +12,7 @@ void MEDEA::RequesterPortInst::RegisterWithEntityFactory(::EntityFactoryRegistry
         });
 }
 
-MEDEA::RequesterPortInst::RequesterPortInst(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+MEDEA::RequesterPortInst::RequesterPortInst(::EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp, false){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::PORT_REQUESTER);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
@@ -30,7 +30,7 @@ MEDEA::RequesterPortInst::RequesterPortInst(::EntityFactoryBroker& broker, bool 
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
     
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
-    data_middleware->addValidValues({"TAO", "ZMQ", "AMQP"});
+    data_middleware->addValidValues({"TAO", "ZMQ", "QPID"});
 }
 
 
@@ -42,19 +42,6 @@ bool MEDEA::RequesterPortInst::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 
     switch(edge_kind){
     case EDGE_KIND::ASSEMBLY:{
-        if(dst->getNodeKind() != NODE_KIND::PORT_REPLIER_INST){
-            return false;
-        }
-
-        if(!getDefinition()){
-            return false;
-        }
-        
-        //Can't connect different aggregates
-        if(getDefinition(true) != dst->getDefinition(true)){
-            return false;
-        }
-        
         if(getEdgeOfKindCount(edge_kind)){
             return false;
         }
@@ -63,5 +50,5 @@ bool MEDEA::RequesterPortInst::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
     default:
         break;
     }
-    return Node::canAcceptEdge(edge_kind, dst);
+    return EventPortAssembly::canAcceptEdge(edge_kind, dst);
 }

@@ -67,6 +67,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/opencldevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportdelegate.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/pubsubportdelegate.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
@@ -158,7 +162,9 @@ set(SOURCE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalassembly.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
 )
 

@@ -29,6 +29,10 @@ Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) 
     broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
     broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED, -1);
+
+    connect(this, &Node::acceptedEdgeKindsChanged, [=](Node* node){
+        getFactoryBroker().AcceptedEdgeKindsChanged(node);
+    });
 }
 
 Node::~Node()
@@ -1136,7 +1140,6 @@ QList<Node*> Node::getRequiredInstanceDefinitions(){
     return adoptable_nodes;
 }
 
-
 void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept){
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
     
@@ -1148,7 +1151,7 @@ void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, boo
     }
     auto post_size = direction_set.size();
     if(size != post_size){
-        getFactoryBroker().AcceptedEdgeKindsChanged(this);
+        emit acceptedEdgeKindsChanged(this);
     }
 }
 

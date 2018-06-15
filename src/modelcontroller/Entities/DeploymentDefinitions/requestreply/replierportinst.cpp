@@ -1,7 +1,6 @@
 #include "replierportinst.h"
 #include "../../../entityfactorybroker.h"
 #include "../../../entityfactoryregistrybroker.h"
-#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::PORT_REPLIER_INST;
 const QString kind_string = "Replier Port Instance";
@@ -12,7 +11,7 @@ void MEDEA::ReplierPortInst::RegisterWithEntityFactory(::EntityFactoryRegistryBr
         });
 }
 
-MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp, false){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::PORT_REPLIER);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
@@ -29,32 +28,9 @@ MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_t
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
     
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
-    data_middleware->addValidValues({"TAO", "ZMQ", "AMQP"});
+    data_middleware->addValidValues({"TAO", "ZMQ", "QPID"});
 
     //connect(data_middleware, &Data::dataChanged, this, &SubscriberPortInst::MiddlewareUpdated);
     //MiddlewareUpdated();
 }
 
-
-bool MEDEA::ReplierPortInst::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::ASSEMBLY:{
-        //Can't connect different aggregates
-        if(getDefinition() != dst->getDefinition()){
-            return false;
-        }
-        if(!getDefinition()){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return Node::canAcceptEdge(edge_kind, dst);
-}

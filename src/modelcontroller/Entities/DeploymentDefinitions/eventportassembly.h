@@ -10,27 +10,27 @@ class EventPortAssembly: public EventPort
     Q_OBJECT
 
 protected:
-    EventPortAssembly(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
+    EventPortAssembly(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp, bool is_pubsub_port = true);
     void MiddlewareUpdated();
 
 public:
     bool isPortDelegate() const;
 
-    bool isInPortDelegate() const;
-    bool isOutPortDelegate() const;
+    bool isPubPortDelegate() const;
+    bool isSubPortDelegate() const;
+    bool isReqPortDelegate() const;
+    bool isPubSubPortDelegate() const;
 
-    bool isInPortAssembly() const;
-    bool isOutPortAssembly() const;
-
-    
-    bool isReplierPortInst() const;
-    bool isRequesterPortInst() const;
+    bool isSubPortAssembly() const;
+    bool isPubPortAssembly() const;
 
     
     bool isPortInstance() const;
 
-    bool isInPortInstance() const;
-    bool isOutPortInstance() const;
+    bool isRepPortInstance() const;
+    bool isReqPortInstance() const;
+    bool isSubPortInstance() const;
+    bool isPubPortInstance() const;
 
     
 

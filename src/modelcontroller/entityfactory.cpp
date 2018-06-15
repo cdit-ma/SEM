@@ -95,12 +95,15 @@
 
 #include "Entities/DeploymentDefinitions/subscriberportdelegate.h"
 #include "Entities/DeploymentDefinitions/publisherportdelegate.h"
+#include "Entities/DeploymentDefinitions/requestportdelegate.h"
+#include "Entities/DeploymentDefinitions/pubsubportdelegate.h"
 
 #include "Entities/DeploymentDefinitions/loggingprofile.h"
 #include "Entities/DeploymentDefinitions/loggingserver.h"
 #include "Entities/DeploymentDefinitions/openclplatform.h"
 #include "Entities/DeploymentDefinitions/opencldevice.h"
-#include "Entities/DeploymentDefinitions/externalassembly.h"
+#include "Entities/DeploymentDefinitions/externalpubsubdelegate.h"
+#include "Entities/DeploymentDefinitions/externalserverdelegate.h"
 
 //Definition Elements
 #include "Entities/InterfaceDefinitions/aggregate.h"
@@ -459,7 +462,14 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
 
     MEDEA::InputParameterGroupInstance::RegisterWithEntityFactory(registry_broker);
     MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ExternalAssembly::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ExternalPubSubDelegate::RegisterWithEntityFactory(registry_broker);
+
+
+    MEDEA::ExternalServerDelegate::RegisterWithEntityFactory(registry_broker);
+
+    RequestPortDelegate::RegisterWithEntityFactory(registry_broker);
+    PubSubPortDelegate::RegisterWithEntityFactory(registry_broker);
+
 
     VoidType::RegisterWithEntityFactory(registry_broker);
 

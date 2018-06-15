@@ -5,11 +5,13 @@
 #include "../../entityfactorybroker.h"
 
 
-EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
+EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp, bool is_pubsub_port) : Node(broker, node_kind, is_temp){
     //Setup State
     setNodeType(NODE_TYPE::EVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+
+    this->is_pubsub_port = is_pubsub_port;
 
     if(is_temp){
         //Break out early for temporary entities
@@ -29,33 +31,41 @@ bool EventPort::isOutPort() const
     return getNodeKind() == NODE_KIND::PORT_PUBLISHER;
 }
 
-void EventPort::setAggregate(Aggregate *aggregate)
-{
-    if(!getAggregate()){
-        this->aggregate = aggregate;
+bool EventPort::isPubSubPort() const{
+    return is_pubsub_port;
+}
+
+bool EventPort::isReqRepPort() const{
+    return !is_pubsub_port;
+}
+
+
+void EventPort::setPortType(Node* port_type){
+    if(!getPortType()){
+        this->port_type = port_type;
         //Do binding!
-        TypeKey::BindTypes(aggregate, this, true);
+        TypeKey::BindTypes(port_type, this, true);
     }
 }
 
 
-Aggregate* EventPort::getAggregate(){
+Node* EventPort::getPortType(){
     //Special case.
     if(isInstance()){
         auto definition = getDefinition(true);
 
         if(definition && definition->isNodeOfType(NODE_TYPE::EVENTPORT)){
-            return ((EventPort*)definition)->getAggregate();
+            return ((EventPort*)definition)->getPortType();
         }
     }
-    return this->aggregate;
+    return this->port_type;
 }
 
-void EventPort::unsetAggregate()
+void EventPort::unsetPortType()
 {
-    if(aggregate){
-        TypeKey::BindTypes(aggregate, this, false);
-        aggregate = 0;
+    if(port_type){
+        TypeKey::BindTypes(port_type, this, false);
+        port_type = 0;
     }
 }
 
@@ -82,12 +92,18 @@ bool EventPort::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             return false;
         }
 
-        if(getAggregate()){
+        if(getPortType()){
             //Don't allow multiple instances.
             return false;
         }
 
-        if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
+        auto dst_kind = dst->getNodeKind();
+
+        if(isPubSubPort() && dst_kind != NODE_KIND::AGGREGATE){
+            return false;
+        }
+
+        if(isReqRepPort() && dst_kind != NODE_KIND::SERVER_INTERFACE){
             return false;
         }
 

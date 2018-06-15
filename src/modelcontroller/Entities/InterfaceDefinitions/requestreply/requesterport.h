@@ -1,11 +1,11 @@
 #ifndef MEDEA_PORT_REQUESTER_H
 #define MEDEA_PORT_REQUESTER_H
-#include "../../node.h"
+#include "../eventport.h"
 
 
 class EntityFactoryRegistryBroker;
 namespace MEDEA{
-    class RequesterPort : public Node{
+    class RequesterPort : public EventPort{
 
    
     friend class ::EntityFactory;

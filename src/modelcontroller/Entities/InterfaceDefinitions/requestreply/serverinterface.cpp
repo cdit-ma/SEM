@@ -15,10 +15,9 @@ void MEDEA::ServerInterface::RegisterWithEntityFactory(::EntityFactoryRegistryBr
 
 MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
-    addInstanceKind(NODE_KIND::PORT_REPLIER);
-    addInstanceKind(NODE_KIND::PORT_REQUESTER);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
     
     if(is_temp){
         //Break out early for temporary entities
@@ -31,6 +30,7 @@ MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_t
 
     broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "function_name", QVariant::String, ProtectedState::UNPROTECTED, "send");
+    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(input_params, "label", QVariant::String, ProtectedState::PROTECTED, "Request Type");
     broker.AttachData(return_params, "label", QVariant::String, ProtectedState::PROTECTED, "Reply Type");
     TypeKey::BindNamespaceAndLabelToType(this, true);

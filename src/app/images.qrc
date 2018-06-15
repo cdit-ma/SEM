@@ -375,5 +375,7 @@
         <file alias="octagonCriticalDark">Resources/Icons/octagonCriticalDark.png</file>
         <file alias="circleArrowDownDark">Resources/Icons/circleArrowDownDark.png</file>
         <file alias="circleArrowRightDark">Resources/Icons/circleArrowRightDark.png</file>
+        <file alias="cloud">Resources/Icons/cloud.png</file>
+        <file alias="cloudCircle">Resources/Icons/cloudCircle.png</file>
     </qresource>
 </RCC>

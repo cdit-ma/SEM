@@ -826,7 +826,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::COMPONENT_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
                 node_item = new DefaultNodeItem(item, parentNode);
@@ -836,13 +836,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::HARDWARE_CLUSTER:
                 node_item = new StackNodeItem(item, parentNode);
                 break;
-            case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
-            case NODE_KIND::PORT_PUBLISHER_DELEGATE:
+            case NODE_KIND::PORT_REQUEST_DELEGATE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
 
                 node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
+                break;
+            case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
+            case NODE_KIND::PORT_PUBLISHER_DELEGATE:
+            case NODE_KIND::PORT_PUBSUB_DELEGATE:
+                node_item = new DefaultNodeItem(item, parentNode);
+                node_item->setExpandEnabled(false);
+
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 break;
 
             case NODE_KIND::PORT_REPLIER_INST:
@@ -859,10 +867,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     node_item->setRightJustified(true);
                 }
                 break;
-            case NODE_KIND::EXTERNAL_ASSEMBLY:{
+            case NODE_KIND::EXTERNAL_SERVER_DELEGATE:{
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
+                break;
+            }
+            case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE:{
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:

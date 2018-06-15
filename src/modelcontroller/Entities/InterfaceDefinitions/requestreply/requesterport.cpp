@@ -14,9 +14,8 @@ void MEDEA::RequesterPort::RegisterWithEntityFactory(::EntityFactoryRegistryBrok
         });
 };
 
-MEDEA::RequesterPort::RequesterPort(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+MEDEA::RequesterPort::RequesterPort(::EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp, false){
     //Setup State
-    addInstancesDefinitionKind(NODE_KIND::SERVER_INTERFACE);
     addInstanceKind(NODE_KIND::PORT_REQUESTER_INST);
     addImplKind(NODE_KIND::PORT_REQUESTER_IMPL);
 

@@ -1,11 +1,11 @@
 #ifndef MEDEA_PORT_REPLIER_H
 #define MEDEA_PORT_REPLIER_H
-#include "../../node.h"
+#include "../eventport.h"
 
 
 class EntityFactoryRegistryBroker;
 namespace MEDEA{
-    class ReplierPort : public Node{
+    class ReplierPort : public EventPort{
 
    
     friend class ::EntityFactory;

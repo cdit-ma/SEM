@@ -3,10 +3,9 @@
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : EventPort(broker, node_kind, is_temp){
+EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp, bool is_pubsub_port) : EventPort(broker, node_kind, is_temp, is_pubsub_port){
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
-    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
-    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
+    
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE, false);
 
@@ -18,51 +17,62 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
     broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 };
 
-bool EventPortAssembly::isInPortDelegate() const
+bool EventPortAssembly::isSubPortDelegate() const
 {
     return getNodeKind() == NODE_KIND::PORT_SUBSCRIBER_DELEGATE;
 }
-bool EventPortAssembly::isReplierPortInst() const{
-    return getNodeKind() == NODE_KIND::PORT_REPLIER_INST;
-}
-bool EventPortAssembly::isRequesterPortInst() const{
-    return getNodeKind() == NODE_KIND::PORT_REQUESTER_INST;
-}
 
-bool EventPortAssembly::isOutPortDelegate() const
+bool EventPortAssembly::isPubPortDelegate() const
 {
     return getNodeKind() == NODE_KIND::PORT_PUBLISHER_DELEGATE;
 }
 
-bool EventPortAssembly::isInPortAssembly() const
+bool EventPortAssembly::isSubPortAssembly() const
 {
-    return isInPortDelegate() || isInPortInstance();
+    return isSubPortDelegate() || isSubPortInstance();;
 }
 
-bool EventPortAssembly::isOutPortAssembly() const
+bool EventPortAssembly::isPubPortAssembly() const
 {
-    return isOutPortDelegate() || isOutPortInstance();
-
+    return isPubPortDelegate() || isPubPortInstance() ;
 }
 
 bool EventPortAssembly::isPortDelegate() const
 {
-    return isInPortDelegate() || isOutPortDelegate();
+    return isSubPortDelegate() || isPubPortDelegate() || isReqPortDelegate();
 }
 
 bool EventPortAssembly::isPortInstance() const
 {
-    return isInPortInstance() || isOutPortInstance();
+    return isSubPortInstance() || isPubPortInstance() || isReqPortInstance()  || isRepPortInstance();
 }
 
-bool EventPortAssembly::isInPortInstance() const
+bool EventPortAssembly::isReqPortDelegate() const{
+    return getNodeKind() == NODE_KIND::PORT_REQUEST_DELEGATE;
+}
+
+bool EventPortAssembly::isPubSubPortDelegate() const{
+    return getNodeKind() == NODE_KIND::PORT_PUBSUB_DELEGATE;
+}
+
+bool EventPortAssembly::isSubPortInstance() const
 {
     return getNodeKind() == NODE_KIND::PORT_SUBSCRIBER_INST;
 }
 
-bool EventPortAssembly::isOutPortInstance() const
+bool EventPortAssembly::isPubPortInstance() const
 {
     return getNodeKind() == NODE_KIND::PORT_PUBLISHER_INST;
+}
+
+bool EventPortAssembly::isRepPortInstance() const
+{
+    return getNodeKind() == NODE_KIND::PORT_REPLIER_INST;
+}
+
+bool EventPortAssembly::isReqPortInstance() const
+{
+    return getNodeKind() == NODE_KIND::PORT_REQUESTER_INST;
 }
 
 #include <QDebug>
@@ -81,83 +91,97 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         }
 
         //Can't have an assembly link without an aggregate.
-        if(!getAggregate()){
+        if(!getPortType()){
             return false;
         }
 
         EventPortAssembly* port = (EventPortAssembly*) dst;
 
         //Can't connect different aggregates
-        if(getAggregate() != port->getAggregate()){
+        if(getPortType() != port->getPortType()){
             return false;
         }
 
-        int depthToAncestor = getDepthFromCommonAncestor(port);
-        int depthToAncestorReverse = port->getDepthFromCommonAncestor(this);
-        int delta = depthToAncestor - depthToAncestorReverse;
-        int abs_difference = abs(delta);
-        int totalDepth = depthToAncestor + depthToAncestorReverse;
-
-        //Can connect in either the same Assembly or 1 different higher.
-        if(abs_difference > 1){
-            return false;
-        }
-        if(totalDepth > 4){
+        //Can't connect different aggregates
+        if(isPubSubPort() != port->isPubSubPort()){
             return false;
         }
 
-        if(delta < 0 && !isInPortAssembly()){
+        //Can't connect different aggregates
+        if(isReqRepPort() != port->isReqRepPort()){
             return false;
         }
 
-        if(abs_difference == 0){
-            //Different Parents
-            if(depthToAncestor == 2){
-                //Don't allow connections from the same type, inter assembly.
-                if(isOutPortDelegate() && !port->isInPortAssembly()){
-                    return false;
-                }
-                if(isOutPortInstance() && !port->isInPortAssembly()){
-                    return false;
-                }
-            }else if(depthToAncestor == 1){
-                if(isPortInstance() && port->isPortInstance()){
-                    //Dont allow cycles into the same component
-                    return false;
-                }else if(isPortDelegate() && port->isPortDelegate()){
-                    //No delegate to delegate.
-                    return false;
-                }else{
-                    if(isInPortAssembly() != port->isInPortAssembly()){
-                        return false;
-                    }
-                }
-            }
-        }else if(abs_difference == 1){
-            if(isInPortAssembly() != port->isInPortAssembly()){
-                return false;
-            }
-        }
+        if(isPubSubPort()){
+            int src_depth_to_ancestor = getDepthFromCommonAncestor(port);
+            int dst_depth_to_ancestor = port->getDepthFromCommonAncestor(this);
+            int depth_delta = src_depth_to_ancestor - dst_depth_to_ancestor;
+            int abs_depth_delta = abs(depth_delta);
+            int total_depth = src_depth_to_ancestor + dst_depth_to_ancestor;
 
-        if(isOutPortInstance()){
-            if(!(port->isInPortInstance() || port->isPortDelegate())){
+            if(total_depth > 4){
+                //Can't ever go outside our Assembly
                 return false;
             }
-        }
-        if(isOutPortDelegate()){
-            if(!(port->isInPortInstance() || port->isPortDelegate())){
-                return false;
-            }
-        }
-        if(isInPortAssembly()){
-            if(port->isInPortAssembly()){
-                if(depthToAncestor >= depthToAncestorReverse){
-                    return false;
+
+            bool valid = false;
+
+            if(isPubPortInstance()){
+                if(port->isSubPortInstance()){
+                    //Only Sub Ports in our same Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }else if(port->isPubPortDelegate()){
+                    //Only Pub Delegates within our Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 1;
+                }else if(port->isSubPortDelegate()){
+                    //Only Sub Delegates At the Same Depth as Us within our Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }else if(port->isPubSubPortDelegate()){
+                    //Only PubSub Delegates in our same Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
                 }
-            }else{
+            }else if(isPubPortDelegate()){
+                if(port->isSubPortInstance()){
+                    //Only Sub Ports in our same Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }else if(port->isPubPortDelegate()){
+                    //Only Pub Delegates within our Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 1;
+                }else if(port->isSubPortDelegate()){
+                    //Only Sub Delegates within our Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }else if(port->isPubSubPortDelegate()){
+                    //Only PubSub Delegates
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }
+            }else if(isSubPortDelegate()){
+                if(port->isSubPortInstance()){
+                    //Only Sub Ports in our same Component Assembly
+                    valid = src_depth_to_ancestor == 1 && depth_delta == -1;
+                }else if(port->isPubPortDelegate()){
+                    //Only Pub Delegates within our Component Assembly
+                    valid = src_depth_to_ancestor == 1 && depth_delta == 0;
+                }else if(port->isSubPortDelegate()){
+                    //Only Sub Delegates In other Assemblies
+                    valid = src_depth_to_ancestor == 1 && depth_delta == -1;
+                }
+            }else if(isPubSubPortDelegate()){
+                if(port->isSubPortInstance()){
+                    //Only Sub Ports in our same Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }else if(port->isSubPortDelegate()){
+                    //Only Sub Delegates within our Component Assembly
+                    valid = src_depth_to_ancestor == 2 && depth_delta == 0;
+                }
+            }
+            if(!valid){
                 return false;
             }
         }
+        
+
+        
+        
 
         break;
     }
@@ -171,7 +195,7 @@ void EventPortAssembly::MiddlewareUpdated(){
     const auto& middleware = getDataValue("middleware").toString();
 
     QSet<QString> qos_middlewares = {"RTI", "OSPL"};
-    QSet<QString> topic_middlewares = {"RTI", "OSPL", "AMQP"};
+    QSet<QString> topic_middlewares = {"RTI", "OSPL", "QPID"};
 
 
     auto topic_key = getFactoryBroker().GetKey("topic_name", QVariant::String);
