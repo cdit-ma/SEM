@@ -47,6 +47,14 @@ void EnvironmentRequester::Init(const std::string& manager_endpoint){
     manager_endpoint_ = manager_endpoint;
 }
 
+void EnvironmentRequester::AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){
+    update_callback_ = callback_func;
+}
+
+void EnvironmentRequester::SetIPAddress(const std::string& ip_addr){
+    ip_address_ = ip_addr;
+}
+
 NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& node_endpoint){
     //Construct query message
 
@@ -86,6 +94,33 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     return reply_message.control_message();
 }
 
+std::vector<std::string> EnvironmentRequester::GetLoganClientList(){
+    NodeManager::EnvironmentMessage message;
+
+    message.set_experiment_id(experiment_id_);
+    message.set_type(NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY);
+
+    zmq::socket_t socket(*context_, ZMQ_REQ);
+    socket.connect(manager_address_);
+
+    ZMQSendRequest(socket, message.SerializeAsString());
+    auto reply = ZMQReceiveReply(socket);
+
+    if(reply.empty()){
+        throw std::runtime_error("Request timed out when getting logan clients.");
+    }
+
+    NodeManager::EnvironmentMessage reply_message;
+    reply_message.ParseFromString(reply);
+
+    std::vector<std::string> out;
+
+    for(int i = 0; i < reply_message.logger_size(); i++){
+        out.push_back(reply_message.logger(i).publisher_address());
+    }
+    return out;
+}
+
 void EnvironmentRequester::Start(){
     try{
         heartbeat_thread_ = std::unique_ptr<std::thread>(new std::thread(&EnvironmentRequester::HeartbeatLoop, this));
@@ -123,7 +158,7 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
         initial_request_socket.connect(manager_endpoint_);
     }
     catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop manager endpoint" << std::endl;
         return;
     }
 
@@ -136,9 +171,9 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
             break;
         }
-
-        case DeploymentType::LOGAN_CLIENT:{
+        case DeploymentType::LOGAN:{
             initial_message.set_type(NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT);
+            initial_message.set_update_endpoint(ip_address_);
             break;
         }
         default:{
@@ -179,7 +214,7 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
         update_socket.connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop update socket" << std::endl;
     }
 
     //Start heartbeat loop
@@ -274,7 +309,7 @@ void EnvironmentRequester::RemoveDeployment(){
         message.set_type(NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
     }
 
-    if(deployment_type_ == EnvironmentRequester::DeploymentType::LOGAN_CLIENT){
+    if(deployment_type_ == EnvironmentRequester::DeploymentType::LOGAN){
         message.set_type(NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT);
     }
 
@@ -292,7 +327,7 @@ void EnvironmentRequester::RemoveDeployment(){
     }
 }
 
-std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_address){
+NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::string& node_ip_address){
     if(environment_manager_not_found_){
         throw std::runtime_error("Could not add deployment as environment manager was not found.");
     }
@@ -301,10 +336,7 @@ std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_
 
     request_message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
     request_message.set_experiment_id(experiment_id_);
-
-    auto logger = request_message.add_logger();
-
-    logger->set_publisher_address(node_ip_address);
+    request_message.set_update_endpoint(ip_address_);
 
     NodeManager::EnvironmentMessage reply_message;
 
@@ -321,9 +353,7 @@ std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_
         throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
     }
 
-    std::string port_string = reply_message.logger(0).publisher_port();
-
-    return port_string;
+    return reply_message;
 }
 std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){
 
@@ -398,22 +428,17 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t& socket){
 }
 
 void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
-    switch(message.type()){
-        case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
-            //NO-OP
-            break;
-        }
-        case NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT:{
-            //TODO:
-            //Parse control message and give to node manager to update it's endpoint
-            
-            break;
-        }
-        default:{
-            throw std::runtime_error("Got invalid reply type from environment manager.");
-        }
 
+    if(message.type() == NodeManager::EnvironmentMessage::HEARTBEAT_ACK){
+        //no-op
+        return;
+    }else{
+        if(update_callback_){
+            update_callback_(message);
+            return;
+        }else{
+            throw std::runtime_error("Update callback not set");
+        }
     }
-    return;
 }
 

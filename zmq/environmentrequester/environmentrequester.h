@@ -7,7 +7,6 @@
 #include <queue>
 #include <future>
 
-
 namespace NodeManager{
     class ControlMessage;
     class EnvironmentMessage;
@@ -18,14 +17,12 @@ namespace zmq{
     class socket_t;
 }
 
-
 class EnvironmentRequester{
     public:
         enum class DeploymentType{
             RE_MASTER,
             RE_SLAVE,
-            LOGAN_CLIENT,
-            LOGAN_SERVER
+            LOGAN
         };
         EnvironmentRequester(const std::string& manager_address,
                                 const std::string& deployment_id,
@@ -36,9 +33,15 @@ class EnvironmentRequester{
         void Start();
         void End();
         NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
+
         void RemoveDeployment();
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
-        std::string GetLoganClientInfo(const std::string& node_ip_address);
+        
+        NodeManager::EnvironmentMessage GetLoganInfo(const std::string& node_ip_address);
+        std::vector<std::string> GetLoganClientList();
+        void SetIPAddress(const std::string& ip_address);
+
+        void AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
 
     private:
         struct Request{
@@ -57,6 +60,8 @@ class EnvironmentRequester{
         std::string manager_endpoint_;
         std::string manager_update_endpoint_;
 
+        std::string ip_address_;
+
         bool environment_manager_not_found_ = false;
         
         //Threads
@@ -70,6 +75,9 @@ class EnvironmentRequester{
         void HandleReply(NodeManager::EnvironmentMessage& message);
 
         std::string experiment_id_;
+
+        //Callback
+        std::function<void (NodeManager::EnvironmentMessage&)> update_callback_;
 
         //Local clock
         std::mutex clock_mutex_;
