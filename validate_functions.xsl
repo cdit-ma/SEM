@@ -560,13 +560,24 @@
 
         <xsl:variable name="results">
             <xsl:for-each select="$component_instances">
-                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'PublisherPortInstance')">
+                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., ('PublisherPortInstance', 'RequesterPortInstance'))">
                     <xsl:variable name="src" select="." />
                     <xsl:variable name="src_id" select="graphml:get_id($src)" />
                     <xsl:variable name="src_label" select="graphml:get_label($src)" />
                     <xsl:variable name="src_kind" select="graphml:get_kind($src)" />
                     <xsl:variable name="src_middleware" select="graphml:get_data_value($src, 'middleware')" />
                     <xsl:variable name="src_topic" select="graphml:get_data_value($src, 'topic_name')" />
+
+                    <xsl:variable name="valid_dst_kinds" as="xs:string*">
+                        <xsl:if test="$src_kind = 'PublisherPortInstance'">
+                            <xsl:sequence select="'SubscriberPortInstance'" />
+                            <xsl:sequence select="'PubSubPortDelegate'" />
+                        </xsl:if>
+                        <xsl:if test="$src_kind = 'RequesterPortInstance'">
+                            <xsl:sequence select="'ReplierPortInstance'" />
+                            <xsl:sequence select="'RequestPortDelegate'" />
+                        </xsl:if>
+                    </xsl:variable>
                     
                     <xsl:variable name="requires_topic" select="cdit:middleware_requires_topic($src_middleware)" />
 
@@ -582,7 +593,7 @@
                         <xsl:variable name="dst_middleware" select="graphml:get_data_value($dst, 'middleware')" />
                         <xsl:variable name="dst_topic" select="graphml:get_data_value($dst, 'topic_name')" />
                         
-                        <xsl:if test="$dst_kind = 'SubscriberPortInstance'">
+                        <xsl:if test="$dst_kind = $valid_dst_kinds">
                             <xsl:variable name="match_middleware" select="cdit:middlewares_match($src_middleware, $dst_middleware)" />
                             
                             <xsl:if test="$requires_topic">
