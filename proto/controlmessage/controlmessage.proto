@@ -78,6 +78,8 @@ message Node{
     repeated Component components = 4;
     repeated Attribute attributes = 5;
 
+    repeated Logger loggers = 6;
+
 }
 
 message Component{
@@ -157,10 +159,30 @@ message Logger{
         LIVE = 1;
         CACHED = 2;
     }
+
+    enum Type{
+        NONE = 0;
+        CLIENT = 1;
+        SERVER = 2;
+        BOTH = 3;
+    }
     
-    string publisher_address = 1;
-    string publisher_port = 2;
-    Mode mode = 3;
+    Type type = 1;
+    string id = 2;
+
+    //client args
+    string publisher_address = 3;
+    string publisher_port = 4;
+    Mode mode = 5;
+    double frequency = 6;
+
+    //server args
+    repeated string client_ids = 7;
+    string db_file_name = 8;
+    repeated string client_addresses = 9;
+
+    //processes to log
+    repeated string processes = 10;
 }
 
 message Startup{
