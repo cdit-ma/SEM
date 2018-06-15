@@ -136,6 +136,7 @@ message Port{
     repeated Attribute attributes = 4;
     string port_guid = 6;
     repeated string connected_ports = 7;
+    repeated string connected_external_ports = 8;
 }
 
 message Worker{
