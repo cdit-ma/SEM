@@ -65,6 +65,8 @@ class ProtobufModelParser{
         std::vector<std::string> hardware_cluster_ids_;
         std::vector<std::string> component_assembly_ids_;
         std::vector<std::string> qos_edge_ids_;
+        std::vector<std::string> logging_server_ids_;
+        std::vector<std::string> logging_client_ids_;
 
         //source/target id -> set of all edge id's attached to source/target
         std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
@@ -118,5 +120,7 @@ class ProtobufModelParser{
         };
 
         std::unordered_map<std::string, std::vector<AssemblyConnection> > assembly_map_;
+
+        std::unordered_map<std::string, std::vector<std::string> > logging_server_client_map_;
 };
 #endif //PROTOBUFMODELPARSER_H

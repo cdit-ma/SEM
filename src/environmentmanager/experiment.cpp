@@ -69,16 +69,50 @@ void Experiment::AddNode(const NodeManager::Node& node){
     auto node_name = node.info().name();
     node_map_.emplace(node_name, std::move(temp));
 
+    std::string ip_address;
+
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
-            node_address_map_.insert({node_name, attribute.s(0)});
-            node_id_map_.insert({attribute.s(0), node_name});
+            ip_address = attribute.s(0);
+            node_address_map_.insert({node_name, ip_address});
+            node_id_map_.insert({ip_address, node_name});
             break;
         }
     }
 
     deployment_map_.insert({node_name, 0});
+
+    for(int i = 0; i < node.loggers_size(); i++){
+        auto logger = node.loggers(i);
+        if(logger.type() == NodeManager::Logger::CLIENT){
+
+            auto logan_client = new LoganClient();
+            logan_client->ip_address = ip_address;
+            logan_client->id = logger.id();
+            logan_client->frequency = logger.frequency();
+            for(int j = 0; j < logger.processes_size(); j++){
+                logan_client->processes.push_back(logger.processes(j));
+            }
+            logan_client->live_mode = logger.mode() == NodeManager::Logger::LIVE;
+            logan_client->logging_port = environment_.GetPort(node_name);
+
+            logan_client_map_[logger.id()] = std::unique_ptr<LoganClient>(logan_client);
+        }
+
+        if(logger.type() == NodeManager::Logger::SERVER){
+            auto logan_server = new LoganServer();
+
+            logan_server->ip_address = ip_address;
+            logan_server->db_file_name = logger.db_file_name();
+            logan_server->id = logger.id();
+            for(int j = 0; j < logger.client_ids_size(); j++){
+                logan_server->client_ids.push_back(logger.client_ids(j));
+            }
+
+            logan_server_map_[logger.id()] = std::unique_ptr<LoganServer>(logan_server);
+        }
+    }
 
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
@@ -162,7 +196,23 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
 
         modellogger_port_map_.insert({node_name, logger_port});
         management_port_map_.insert({node_name, management_port});
+    }
 
+    if(node.loggers_size() > 0){
+        for(int i = 0; i < node.loggers_size(); i++){
+            if(node.loggers(i).type() == NodeManager::Logger::SERVER){
+                auto server = node.mutable_loggers(i);
+                for(int j = 0; j < server->client_ids_size(); j++){
+                    auto client_id = server->client_ids(j);
+                    auto client_address = logan_client_map_[client_id]->ip_address;
+                    auto client_port = logan_client_map_[client_id]->logging_port;
+                    std::string full_address = "tcp://" + client_address + ":" + client_port;
+                    server->add_client_addresses(full_address);
+
+                    logan_server_map_[server->id()]->client_addresses.push_back(full_address);
+                }
+            }
+        }
     }
 
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
@@ -178,23 +228,42 @@ bool Experiment::HasDeploymentOn(const std::string& node_name) const {
     }
 }
 
-void Experiment::AddLoganClient(const std::string& model_name,
-                                const std::string& ip_address,
-                                const std::string& management_port,
-                                const std::string& logging_port){
-    logan_clients_.push_back(std::unique_ptr<LoganClient>(new LoganClient{model_name, ip_address, management_port, logging_port}));
-}
+NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
+    NodeManager::EnvironmentMessage message;
 
-std::vector<std::string> Experiment::GetLoganClientList(){
-    std::vector<std::string> out;
-    for(const auto& client : logan_clients_){
-        out.push_back("tcp://" + client->ip_address + ":" + client->logging_port);
+    for(const auto& server_pair : logan_server_map_){
+        auto& server = server_pair.second;
+        if(server->ip_address == ip_address){
+            auto logger_message = message.add_logger();
+            for(const auto& client_addr : server->client_addresses){
+                logger_message->add_client_addresses(client_addr);
+            }
+            logger_message->set_db_file_name(server->db_file_name);
+            logger_message->set_type(NodeManager::Logger::SERVER);
+        }
     }
+
+    for(const auto& client_pair : logan_client_map_){
+        auto& client = client_pair.second;
+        if(client->ip_address == ip_address){
+            auto logger_message = message.add_logger();
+            for(const auto& process : client->processes){
+                logger_message->add_processes(process);
+            }
+            logger_message->set_frequency(client->frequency);
+            logger_message->set_publisher_address(client->ip_address);
+            logger_message->set_publisher_port(client->logging_port);
+            logger_message->set_type(NodeManager::Logger::CLIENT);
+        }
+    }
+
+    return message;
 }
 
 std::string Experiment::GetMasterPublisherPort(){
     if(master_port_.empty()){
-        master_port_ = environment_.GetPort(node_id_map_.at(master_ip_address_));
+        std::string node_name = node_id_map_.at(master_ip_address_);
+        master_port_ = environment_.GetPort(node_name);
     }
     return master_port_;
 }
@@ -327,7 +396,7 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
 
         //Iterate through all ports and check for connections to updated ports.
         //When we find one, add the new port endpoint to it's list of connecitons.
-        //XXX: Jeez, this is pretty terrible...
+        //XXX:this is pretty terrible...
         for(int i = 0; i < control_message.nodes_size(); i++){
             auto node = control_message.nodes(i);
             for(int j = 0; j < node.components_size(); j++){

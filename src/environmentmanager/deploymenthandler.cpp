@@ -114,7 +114,7 @@ void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
                 environment_.RemoveExperiment(experiment_id_, call_time);
             }
             if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
-                environment_.RemoveLoganClient(experiment_id_, deployment_ip_address_);
+                environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
             }
             removed_flag_ = true;
         }
@@ -186,7 +186,14 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                if(environment_.ExperimentIsDirty(experiment_id_)){
+                bool dirty = true;
+                try{
+                    dirty = environment_.ExperimentIsDirty(experiment_id_)
+                }
+                catch(const std::invalid_argument& ex){
+
+                }
+                if(dirty){
                     HandleDirtyExperiment(message);
                 }else{
                     message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
@@ -226,10 +233,14 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-    auto logger_message = message.mutable_logger(0);
-    auto ip_address = logger_message->publisher_address();
-    auto logger_port = environment_.GetLoganPublisherPort(experiment_id_, ip_address);
-    logger_message->set_publisher_port(logger_port);
+
+std::cout << "logan query" << std::endl;
+
+    std::cout << environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).DebugString() << std::endl;
+
+    auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
+
+    *message.mutable_logger() = {loggers.begin(), loggers.end()};
 
     message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
 }

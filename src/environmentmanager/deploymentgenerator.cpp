@@ -27,7 +27,13 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
     master_publisher_port_attribute_info->set_name("master_publisher_port");
     master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
-    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.experiment_id(), master_ip_address));
+    std::cout << "here"<< std::endl;
+    std::string test = environment_.GetMasterPublisherPort(control_message.experiment_id(), master_ip_address);
+    std::cout << "here"<< std::endl;
+
+    std::cout << test << std::endl;
+    master_publisher_port_attribute->add_s(test);
+
     environment_.StoreControlMessage(control_message);
 }
 
