@@ -98,6 +98,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/iconpicker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/gotopopup.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 

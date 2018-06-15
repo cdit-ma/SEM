@@ -493,6 +493,8 @@ void ActionController::updateActions()
     model_generateModelWorkspace->setEnabled(controller_ready);
 
     edit_search->setEnabled(controller_ready);
+    edit_goto->setEnabled(controller_ready);
+    
     view_fitView->setEnabled(controller_ready);
     view_fitAllViews->setEnabled(controller_ready);
 
@@ -704,6 +706,12 @@ void ActionController::setupActions()
     edit_search->setToolTip("Search model.");
     edit_search->setShortcutContext(Qt::ApplicationShortcut);
     edit_search->setShortcut(QKeySequence::Find);
+
+
+    edit_goto = createRootAction("Edit", "Goto", "Root_Search", "Icons", "crosshair");
+    edit_goto->setToolTip("Goto a particular ID");
+    edit_goto->setShortcutContext(Qt::ApplicationShortcut);
+    edit_goto->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
 
 
 
@@ -970,6 +978,8 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_renameActiveSelection);
 
     menu_edit->addAction(edit_search);
+    menu_edit->addAction(edit_goto);
+    
     menu_edit->addSeparator();
     //menu_edit->addAction(edit_sort);
     menu_edit->addAction(edit_alignHorizontal);

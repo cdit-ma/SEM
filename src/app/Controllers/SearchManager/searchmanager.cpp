@@ -2,6 +2,7 @@
 #include "../ViewController/viewcontroller.h"
 #include "../../Views/Search/searchdialog.h"
 #include "../../Views/Search/searchpopup.h"
+#include "../../Views/Search/gotopopup.h"
 #include "../WindowManager/windowmanager.h"
 
 #include <QApplication>
@@ -48,11 +49,22 @@ void SearchManager::Search(QString query){
     qCritical() << "Panel rendering search results: " <<  search_display - search_finish << "MS. Returned: " << search_results.size();
 }
 
+
 void SearchManager::PopupSearch(){
     auto popup = getSearchPopup();
     if(popup){
         auto search_suggestions = viewController->_getSearchSuggestions();
         popup->updateSearchSuggestions(search_suggestions);
+        WindowManager::MoveWidget(popup);
+        popup->show();
+        popup->takeFocus();
+    }
+}
+void SearchManager::PopupGoto(){
+    auto popup = getGotoPopup();
+    if(popup){
+        auto ids = viewController->_getIDs();
+        popup->updateIDs(ids);
         WindowManager::MoveWidget(popup);
         popup->show();
         popup->takeFocus();
@@ -65,7 +77,12 @@ SearchPopup* SearchManager::getSearchPopup(){
     }
     return search_popup;
 }
-
+GotoPopup* SearchManager::getGotoPopup(){
+    if(!goto_popup){
+        goto_popup = new GotoPopup();
+    }
+    return goto_popup;
+}
 
 SearchDialog* SearchManager::getSearchDialog(){
     if(!search_dialog){

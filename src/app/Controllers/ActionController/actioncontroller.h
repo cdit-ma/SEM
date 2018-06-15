@@ -114,6 +114,8 @@ public:
     RootAction* edit_replicate;
     RootAction* edit_delete;
     RootAction* edit_search;
+    RootAction* edit_goto;
+    
 
     RootAction* dock_addPart;
     RootAction* dock_deploy;

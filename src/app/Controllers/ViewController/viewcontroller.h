@@ -56,6 +56,8 @@ public:
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
     QStringList _getSearchSuggestions();
+    QStringList _getIDs();
+    
 
     QMap<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
     QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
@@ -300,6 +302,7 @@ private:
     QMultiMap<EDGE_KIND, int> edgeKindLookups;
 
     QHash<int, ViewItem*> viewItems;
+    
     QList<int> topLevelItems;
     ViewItem* rootItem;
 

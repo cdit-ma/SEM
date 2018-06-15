@@ -85,7 +85,11 @@ ViewController::ViewController(){
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 
-    connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
+    auto search_manager = SearchManager::manager();
+
+    connect(actionController->edit_search, &QAction::triggered, search_manager, &SearchManager::PopupSearch);
+    connect(actionController->edit_goto, &QAction::triggered, search_manager, &SearchManager::PopupGoto);
+    connect(search_manager, &SearchManager::GotoID, this, &ViewController::centerOnID);
     
     autosave_timer_.setSingleShot(true);
     connect(&autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
@@ -359,6 +363,14 @@ QList<ViewItem*> ViewController::getSearchableEntities(){
         items.append(item);
     }
     return items;
+}
+
+QStringList ViewController::_getIDs(){
+    QStringList ids;
+    for(auto id : viewItems.keys()){
+        ids += QString::number(id);
+    }
+    return ids;
 }
 
 QStringList ViewController::_getSearchSuggestions()

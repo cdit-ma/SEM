@@ -150,7 +150,11 @@ QDialog* DataTableDelegate::get_editor_dialog(){
         layout->addWidget(submit_button, 0, Qt::AlignRight);
 
         connect(editor_dialog, &QDialog::rejected, [=](){emit closeEditor(editor_dialog);});
-        connect(submit_button, &QPushButton::clicked, [=](){emit commitData(editor_dialog);});
+        connect(submit_button, &QPushButton::clicked, [=](){
+            emit commitData(editor_dialog);
+            emit closeEditor(editor_dialog);
+            });
+        
     }
     code_editor->clear();
     return editor_dialog;
