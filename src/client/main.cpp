@@ -27,7 +27,6 @@
 #include <iostream>
 
 #include "cmakevars.h"
-#include <re_common/zmq/environmentrequester/environmentrequester.cpp>
 
 #include "logcontroller.h"
 
@@ -58,7 +57,6 @@ int main(int ac, char** av){
     boost::program_options::options_description desc(LONG_VERSION " Options");
     desc.add_options()("address,a", boost::program_options::value<std::string>(&address), "IP address of logging client node.");
     desc.add_options()("port,p", boost::program_options::value<std::string>(&port), "Local port to attach logging client to.");
-    desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_address), "Fully qualified address of environment manager. eg(tcp://192.168.111.1:5555)");
     desc.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "Experiment id, if using environment manager.");
     desc.add_options()("frequency,f", boost::program_options::value<double>(&log_frequency)->default_value(log_frequency), "Logging frequency (Hz)");
     desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Process names to log (ie logan_client)");
@@ -95,31 +93,8 @@ int main(int ac, char** av){
         return valid_args;
     }
 
-    EnvironmentRequester requester(environment_manager_address, experiment_id, EnvironmentRequester::DeploymentType::LOGAN_CLIENT);
-    bool registered = false;
-    std::string logger_endpoint;
-    //If we have a port, use it. Otherwise connect to environment manager and receive assigned port.
-    if(port.empty()){
-        std::string assigned_port;
 
-        requester.Init(environment_manager_address);
-        requester.Start();
-
-        try{
-            assigned_port = requester.GetLoganClientInfo(address);
-            registered = true;
-        }
-        catch(const std::exception& ex){
-            std::cerr << "Failed to get logging port from environment manager." << std::endl;
-            return 1;
-        }
-
-        logger_endpoint = "tcp://" + address + ":" + assigned_port;
-    }
-    else{
-        logger_endpoint = "tcp://" + address + ":" + port;
-    }
-
+    std::string logger_endpoint = "tcp://" + address + ":" + port;
     {
         //Print output
         std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
@@ -145,11 +120,6 @@ int main(int ac, char** av){
             lock_condition_.wait(lock);
         }
 
-
-        if(registered){
-            requester.RemoveDeployment();
-            requester.End();
-        }
 
         if(!log_controller.Stop()){
             

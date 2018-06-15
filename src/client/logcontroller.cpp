@@ -164,7 +164,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     }
     writer->Terminate();
     std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
-    writer.reset();
+    //writer.reset();
 }
 
 

@@ -25,8 +25,6 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include <re_common/zmq/environmentrequester/environmentrequester.cpp>
-
 #include "cmakevars.h"
 
 #include "server.h"
@@ -68,7 +66,6 @@ int main(int ac, char** av)
     desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
     desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
     desc.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "Experiment ID to log");
-    desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_address), "Address of environment manager to connect to.");
     desc.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -85,30 +82,20 @@ int main(int ac, char** av)
     }
 
     bool valid_args = true;
-    bool env_managed = false;
 
     //Check that we have both or neither experiment-id and environment manager address.
     if(!(vm.count("experiment-id") == vm.count("environment-manager"))){
         valid_args = false;
     }
-    env_managed = vm.count("environment-manager");
 
-    //If we're not meant to be managed by the environment manager and we have no list of clients, args are invalid
-    if(!env_managed && !client_addresses.size()){
+    //If we have no list of clients, args are invalid
+    if(!client_addresses.size()){
         valid_args = false;
     }
 
     if(!valid_args || vm.count("help")){
         std::cout << desc << std::endl;
         return 0;
-    }
-
-    //Use environment requester to get list of clients for this experiment.
-    if(env_managed){
-        EnvironmentRequester requester(environment_manager_address, experiment_id, EnvironmentRequester::DeploymentType::LOGAN_SERVER);
-        requester.Init(environment_manager_address);
-        client_addresses = requester.GetLoganClientList();
-
     }
 
     //Print output
