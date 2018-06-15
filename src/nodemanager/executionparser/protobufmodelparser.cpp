@@ -107,6 +107,11 @@ bool ProtobufModelParser::PreProcess(){
 
     component_instance_ids_ = graphml_parser_->FindNodes("ComponentInstance");
     component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
+
+    delegates_pubsub_ids_ = graphml_parser_->FindNodes("PubSubPortDelegate");
+    delegates_server_ids_ = graphml_parser_->FindNodes("RequestPortDelegate");
+
+    
     model_id_ = graphml_parser_->FindNodes("Model")[0];
 
     //Get the ID's of the edges
@@ -278,6 +283,129 @@ bool ProtobufModelParser::ParseHardwareItems(NodeManager::ControlMessage* contro
     return true;
 }
 
+bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* control_message){
+
+    std::vector<std::string> delegate_ids;
+    delegate_ids.insert(delegate_ids.end(), delegates_pubsub_ids_.begin(), delegates_pubsub_ids_.end());
+    delegate_ids.insert(delegate_ids.end(), delegates_server_ids_.begin(), delegates_server_ids_.end());
+
+    for(const auto& port_id : delegate_ids){
+        auto eport_pb = control_message->add_external_ports();
+        auto eport_info_pb = eport_pb->mutable_info();
+        eport_info_pb->set_id(port_id);
+        eport_info_pb->set_name(graphml_parser_->GetDataValue(port_id, "label"));
+        eport_info_pb->set_type(graphml_parser_->GetDataValue(port_id, "type"));
+        
+        auto port_kind = GetExternalPortKind(graphml_parser_->GetDataValue(port_id, "kind"));
+        eport_pb->set_kind(port_kind);
+
+        bool is_blackbox = graphml_parser_->GetDataValue(port_id, "blackbox") == "true";
+        eport_pb->set_is_blackbox(is_blackbox);
+        
+        
+        //Set Middleware
+        auto middleware_str = graphml_parser_->GetDataValue(port_id, "middleware");
+        auto middleware = NodeManager::NO_MIDDLEWARE;
+
+        if(!NodeManager::Middleware_Parse(middleware_str, &middleware)){
+            std::cerr << "Cannot parse middleware: " << middleware_str << std::endl;
+        }
+        eport_pb->set_middleware(middleware);
+
+        if(is_blackbox){
+            switch(middleware){
+                case NodeManager::QPID:{
+                    //QPID Requires Topic and Broker Addresss
+                    auto topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                    auto broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker");
+                    
+                    //Set Topic Name
+                    auto topic_pb = eport_pb->add_attributes();
+                    auto topic_info_pb = topic_pb->mutable_info();
+                    topic_info_pb->set_name("topic_name");
+                    topic_pb->set_kind(NodeManager::Attribute::STRING);
+                    topic_pb->add_s(topic_name);
+
+                    //Set qpid_broker
+                    auto broker_pb = eport_pb->add_attributes();
+                    auto broker_info_pb = broker_pb->mutable_info();
+                    broker_info_pb->set_name("topic_name");
+                    broker_pb->set_kind(NodeManager::Attribute::STRING);
+                    broker_pb->add_s(broker_addr);
+                    break;
+                }
+                case NodeManager::ZMQ:{
+                    //ZMQ Requires zmq_publisher_address (PUBSUB) or zmq_server_address (SERVER)
+                    if(port_kind == NodeManager::ExternalPort::PUBSUB){
+                        auto pub_addr = graphml_parser_->GetDataValue(port_id, "zmq_publisher_address");
+
+                        //Set publisher address
+                        auto pub_pb = eport_pb->add_attributes();
+                        auto pub_info_pb = pub_pb->mutable_info();
+                        pub_info_pb->set_name("publisher_address");
+                        pub_pb->set_kind(NodeManager::Attribute::STRING);
+                        pub_pb->add_s(pub_addr);
+                    }else if(port_kind == NodeManager::ExternalPort::SERVER){
+                        auto serv_addr = graphml_parser_->GetDataValue(port_id, "zmq_server_address");
+
+                        //Set server address
+                        auto serv_pb = eport_pb->add_attributes();
+                        auto serv_info_pb = serv_pb->mutable_info();
+                        serv_info_pb->set_name("server_address");
+                        serv_pb->set_kind(NodeManager::Attribute::STRING);
+                        serv_pb->add_s(serv_addr);
+                    }
+                    break;
+                }
+                case NodeManager::RTI:
+                case NodeManager::OSPL:{
+                    //DDS Requires domain_id and topic
+                    auto topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                    auto domain_id = std::stoi(graphml_parser_->GetDataValue(port_id, "dds_domain_id"));
+
+                    //Set Topic Name
+                    auto topic_pb = eport_pb->add_attributes();
+                    auto topic_info_pb = topic_pb->mutable_info();
+                    topic_info_pb->set_name("topic_name");
+                    topic_pb->set_kind(NodeManager::Attribute::STRING);
+                    topic_pb->add_s(topic_name);
+
+                    //Set Topic Name
+                    auto domain_id_pb = eport_pb->add_attributes();
+                    auto domain_id_info_pb = domain_id_pb->mutable_info();
+                    domain_id_info_pb->set_name("domain_id");
+                    domain_id_pb->set_kind(NodeManager::Attribute::INTEGER);
+                    domain_id_pb->set_i(domain_id);
+                    break;
+                }
+                case NodeManager::TAO:{
+                    //TAO Requires tao_orb_endpoint
+                    auto server_address = graphml_parser_->GetDataValue(port_id, "tao_orb_endpoint");
+                    auto server_name = graphml_parser_->GetDataValue(port_id, "label");
+
+                    //Set publisher address
+                    auto serv_addr_pb = eport_pb->add_attributes();
+                    auto serv_addr_info_pb = serv_addr_pb->mutable_info();
+                    serv_addr_info_pb->set_name("server_address");
+                    serv_addr_pb->set_kind(NodeManager::Attribute::STRING);
+                    serv_addr_pb->add_s(server_address);
+
+                    //Set publisher address
+                    auto serv_name_pb = eport_pb->add_attributes();
+                    auto serv_name_info_pb = serv_name_pb->mutable_info();
+                    serv_name_info_pb->set_name("server_name");
+                    serv_name_pb->set_kind(NodeManager::Attribute::STRING);
+                    serv_name_pb->add_s(server_name);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
+    return true;
+}
+
 bool ProtobufModelParser::Process(){
     if(!graphml_parser_){
         return false;
@@ -288,6 +416,10 @@ bool ProtobufModelParser::Process(){
 
     //populate environment message's hardware fields. Fills local node_message_map_
     ParseHardwareItems(control_message_);
+    ParseExternalDelegates(control_message_);
+
+    
+
 
     //Construct and fill component instances
     for(const auto& component_id : component_instance_ids_){
@@ -368,7 +500,6 @@ bool ProtobufModelParser::Process(){
                     port_info_pb->add_namespaces(ns);
                 }
 
-                port_pb->set_visibility(NodeManager::Port::PRIVATE);
 
                 port_pb->set_port_guid(port_guid_map_[port_id]);
 
@@ -377,12 +508,13 @@ bool ProtobufModelParser::Process(){
                 port_replicate_id_map_[port_id + unique_id] = port_pb;
 
                 //Set Middleware
-                std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
-                NodeManager::Port::Middleware mw;
-                if(!NodeManager::Port_Middleware_Parse(mw_string, &mw)){
-                    std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
+                auto middleware_str = graphml_parser_->GetDataValue(port_id, "middleware");
+                auto middleware = NodeManager::NO_MIDDLEWARE;
+
+                if(!NodeManager::Middleware_Parse(middleware_str, &middleware)){
+                    std::cerr << "Cannot parse middleware: " << middleware_str << std::endl;
                 }
-                port_pb->set_middleware(mw);
+                port_pb->set_middleware(middleware);
 
                 //Set the topic_name
                 std::string topic_name;
@@ -413,7 +545,6 @@ bool ProtobufModelParser::Process(){
                     port_info_pb->add_namespaces(ns);
                 }
 
-                port_pb->set_visibility(NodeManager::Port::PRIVATE);
                 port_pb->set_port_guid(port_guid_map_[port_id]);
 
                 port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(port_id, "kind")));
@@ -421,12 +552,13 @@ bool ProtobufModelParser::Process(){
                 port_replicate_id_map_[port_id + unique_id] = port_pb;
 
                 //Set Middleware
-                auto mw_str = graphml_parser_->GetDataValue(port_id, "middleware");
-                NodeManager::Port::Middleware mw;
-                if(!NodeManager::Port_Middleware_Parse(mw_str, &mw)){
-                    std::cerr << "Cannot parse middleware: " << mw_str << std::endl;
+                auto middleware_str = graphml_parser_->GetDataValue(port_id, "middleware");
+                auto middleware = NodeManager::NO_MIDDLEWARE;
+
+                if(!NodeManager::Middleware_Parse(middleware_str, &middleware)){
+                    std::cerr << "Cannot parse middleware: " << middleware_str << std::endl;
                 }
-                port_pb->set_middleware(mw);
+                port_pb->set_middleware(middleware);
             }
 
             //Handle Periodic Ports
@@ -528,16 +660,6 @@ void ProtobufModelParser::CalculateReplication(){
         }
     }
 }
-
-
-// std::string connected_guid;
-// if(graphml_parser_->GetDataValue(connected_id, "port_visibility") == "public"){
-//     connected_guid = port_guid_map_[connected_id];
-// }
-// else{
-//     connected_guid = connected_id;
-// }
-// port_pb->add_connected_ports(connected_guid);
 
 std::string ProtobufModelParser::GetDeployedID(const std::string& id){
     std::string d_id;
@@ -717,11 +839,18 @@ NodeManager::Port::Kind ProtobufModelParser::GetPortKind(const std::string& kind
         return NodeManager::Port::REQUESTER;
     } else if(kind == "ReplierPortInstance"){
         return NodeManager::Port::REPLIER;
-    } else{
-        std::cerr << "INVALID PORT KIND: " << kind << std::endl;
-        //TODO: Throw exception??
-        return NodeManager::Port::PERIODIC;
     }
+    std::cerr << "INVALID PORT KIND: " << kind << std::endl;
+    return NodeManager::Port::NO_KIND;
+}
+
+NodeManager::ExternalPort::Kind ProtobufModelParser::GetExternalPortKind(const std::string& kind){
+    if(kind == "PubSubPortDelegate"){
+        return NodeManager::ExternalPort::PUBSUB;
+    } else if(kind == "ServerPortDelegate"){
+        return NodeManager::ExternalPort::SERVER;
+    }
+    return NodeManager::ExternalPort::NO_KIND;
 }
 
 //Converts std::string to lower

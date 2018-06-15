@@ -24,6 +24,7 @@ class ProtobufModelParser{
         bool process_success_;
         bool PreProcess();
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
+        bool ParseExternalDelegates(NodeManager::ControlMessage* control_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
         
@@ -44,6 +45,7 @@ class ProtobufModelParser{
         std::string BuildPortGuid(const std::string& port_id);
 
         NodeManager::Port::Kind GetPortKind(const std::string& kind);
+        NodeManager::ExternalPort::Kind GetExternalPortKind(const std::string& kind);
         NodeManager::Node::NodeType GetHardwareItemKind(const std::string& kind);
 
         std::string to_lower(const std::string& s);
@@ -98,6 +100,9 @@ class ProtobufModelParser{
         std::vector<std::string> component_ids_;
         std::vector<std::string> component_impl_ids_;
         std::vector<std::string> component_instance_ids_;
+
+        std::vector<std::string> delegates_pubsub_ids_;
+        std::vector<std::string> delegates_server_ids_;
 
         //event port id -> fully qualified event port guid
         std::unordered_map<std::string, std::string> port_guid_map_;

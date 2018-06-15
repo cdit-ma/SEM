@@ -91,12 +91,12 @@ void Experiment::AddNode(const NodeManager::Node& node){
             event_port.guid = port.port_guid();
             event_port.node_name = node_name;
 
-            if(port.middleware() == NodeManager::Port::ZMQ){
+            if(port.middleware() == NodeManager::ZMQ){
                 if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
                     event_port.port_number = environment_.GetPort(node_name);
                 }
             }
-            else if(port.middleware() == NodeManager::Port::TAO){
+            else if(port.middleware() == NodeManager::TAO){
                 if(!orb_port_map_.count(node_name)){
                     auto orb_port = environment_.GetPort(node_name);
                     orb_port_map_.insert({node_name, orb_port});    
@@ -125,10 +125,6 @@ void Experiment::AddNode(const NodeManager::Node& node){
             for(int k = 0; k < port.connected_ports_size(); k++){
                 auto id = port.connected_ports(k);
                 connection_map_[id].push_back(event_port.id);
-            }
-
-            if(port.visibility() == NodeManager::Port::PUBLIC){
-                environment_.AddPublicEventPort(port.port_guid(), event_port);
             }
 
             port_map_.insert({event_port.id, event_port});
@@ -264,10 +260,6 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
         std::string addr_string = "tcp://" + node_address_map_.at(node_name) + ":" + port_assigned_port;
 
         publisher_addresses.push_back(addr_string);
-
-        if(port.visibility() == NodeManager::Port::PUBLIC){
-            environment_.AddPublicEventPort(port.port_guid(), addr_string);
-        }
     }
     return publisher_addresses;
 }

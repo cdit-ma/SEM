@@ -136,7 +136,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
 
     if(component){
         const auto& port_info_pb = port_pb.info();
-        const auto& middleware = NodeManager::Port_Middleware_Name(port_pb.middleware());
+        const auto& middleware = NodeManager::Middleware_Name(port_pb.middleware());
         
         //Try get the port
         port = component->GetPort(port_info_pb.name()).lock();

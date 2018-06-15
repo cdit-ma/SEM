@@ -62,14 +62,14 @@ void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& contr
 
 }
 
-DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Port::Middleware middleware){
+DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Middleware middleware){
     switch(middleware){
-        case NodeManager::Port::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
-        case NodeManager::Port::RTI:       return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::Port::OSPL:      return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::Port::QPID:      return DeploymentRule::MiddlewareType::AMQP;
-        case NodeManager::Port::TAO:       return DeploymentRule::MiddlewareType::TAO;
-        default:                                return DeploymentRule::MiddlewareType::NONE;
+        case NodeManager::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
+        case NodeManager::RTI:       return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::OSPL:      return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::QPID:      return DeploymentRule::MiddlewareType::AMQP;
+        case NodeManager::TAO:       return DeploymentRule::MiddlewareType::TAO;
+        default:                     return DeploymentRule::MiddlewareType::NONE;
     }
 }
 
