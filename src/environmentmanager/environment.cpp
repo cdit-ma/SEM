@@ -265,7 +265,6 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 //Get port from node specified.
 std::string Environment::GetPort(const std::string& node_name){
     //Get first available port, store then erase it
-    std::cout << node_name << std::endl;
     if(node_map_.count(node_name)){
         return node_map_.at(node_name)->GetPort();
     }

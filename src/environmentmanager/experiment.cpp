@@ -103,6 +103,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
         if(logger.type() == NodeManager::Logger::SERVER){
             auto logan_server = new LoganServer();
 
+            logan_server->ip_address = ip_address;
             logan_server->db_file_name = logger.db_file_name();
             logan_server->id = logger.id();
             for(int j = 0; j < logger.client_ids_size(); j++){
@@ -264,18 +265,9 @@ NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std:
 }
 
 std::string Experiment::GetMasterPublisherPort(){
-    std::cout << "HERE" << std::endl;
-    std::cout << master_ip_address_ << std::endl;
-    std::cout <<"aa" << master_port_ <<"aa" << std::endl;
     if(master_port_.empty()){
-        std::cout << "affdsaafds" << std::endl;
-        if(node_id_map_.count(master_ip_address_)){
-            std::cout << "dfafdadsfafdsfads" << std::endl;
-        }
         std::string node_name = node_id_map_.at(master_ip_address_);
-        std::cout << node_name << std::endl;
         master_port_ = environment_.GetPort(node_name);
-        std::cout << master_port_ << std::endl;
     }
     return master_port_;
 }
