@@ -15,7 +15,7 @@ DllLoader::~DllLoader(){
 
     for(auto& l : loaded_libraries_){
         if(!CloseLibrary(l.second)){
-            throw std::runtime_error("DLL Error: Cannot Close " + l.first + " : " + GetLibraryError());
+            std::cerr << "DLL Error: Cannot Close " << l.first + " : " << GetLibraryError() << std::endl;
         }
     }
     loaded_libraries_.clear();
