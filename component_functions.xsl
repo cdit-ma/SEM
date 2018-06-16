@@ -269,7 +269,7 @@
                 <xsl:value-of select="cpp:comment('RequesterPort declarations', $tab + 2)" />
             </xsl:if>
             
-            <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
+            <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
             <xsl:variable name="return_type" select="cdit:get_requester_port_return_type($server_interface)" />
@@ -285,7 +285,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('ReplierPort callback declarations', $tab + 2)" />
             </xsl:if>
-            <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
+            <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
             <xsl:variable name="return_type" select="cdit:get_replier_port_return_type($server_interface)" />
@@ -368,7 +368,7 @@
                     <xsl:value-of select="cpp:comment('Attach Replier Port Callbacks', $tab + 1)" />
                 </xsl:if>
                 <xsl:variable name="port_label" select="graphml:get_label(.)" />
-                <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
+                <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
 
                 <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_class_type, cdit:get_function_name(.)))" />
                 <xsl:variable name="port_type" select="cdit:get_base_server_interface_type($server_interface)" />
@@ -414,7 +414,7 @@
         <!-- Requester Ports -->
         <xsl:for-each select="$req_ports">
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
-            <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
+            <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
             <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
@@ -576,7 +576,7 @@
 
         <!-- Replier vent Port Declarations -->
         <xsl:for-each select="$rep_ports">
-            <xsl:variable name="server_interface" select="graphml:get_definition(.)" />
+            <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
             <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />

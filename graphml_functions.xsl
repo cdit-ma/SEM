@@ -461,8 +461,13 @@
         <xsl:param name="port" as="element(gml:node)?" />
 
         <xsl:variable name="port_definition" select="graphml:get_definition($port)" />
-        <xsl:variable name="aggregate_instance" select="graphml:get_child_node($port_definition, 1)" />
-        <xsl:sequence select="graphml:get_definition($aggregate_instance)" />
+        <!-- Check for an Aggregate Edge -->
+
+        <xsl:variable name="aggregates" select="graphml:get_targets($port_definition, 'Edge_Aggregate')" />
+
+        <xsl:if test="count($aggregates) = 1">
+            <xsl:sequence select="$aggregates[1]" />
+        </xsl:if>
     </xsl:function>
 
     <xsl:function name="graphml:is_class_instance_worker" as="xs:boolean">
