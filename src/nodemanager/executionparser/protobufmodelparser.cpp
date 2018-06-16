@@ -595,7 +595,7 @@ bool ProtobufModelParser::Process(){
             }
 
             for(const auto& port_id : reqrep_port_ids){
-                auto server_id = GetRecursiveDefinitionId(port_id);
+                auto server_id = GetAggregateId(GetDefinitionId(port_id));
 
                 auto port_pb = component_pb->add_ports();
                 auto port_info_pb = port_pb->mutable_info();
