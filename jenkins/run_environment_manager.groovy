@@ -12,7 +12,7 @@ stage("Run Environment Manager"){
         def port = env.PORT;
 
         if (re_path && ip_addr && port){
-            sh re_path + "/bin/environment_manager -a " + ip_addr + " -r " + port
+            sh re_path + "/bin/re_environment_manager -a " + ip_addr + " -r " + port
         }else{
             print("Missing Parameters/Environment Variables")
         }
