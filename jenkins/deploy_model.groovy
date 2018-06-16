@@ -82,7 +82,7 @@ node(builder_nodes[0]){
             }
 
             //Construct a zip file with the code
-            zip(zipFile: '../codegen.zip', archive: true)
+            zip(zipFile: "codegen.zip", archive: true)
 
             //Stash the generated code
             stash includes: '**', name: 'codegen'
@@ -91,8 +91,6 @@ node(builder_nodes[0]){
             archiveArtifacts MODEL_FILE
             //Archive the validation report
             archiveArtifacts 'validation_report.xml'
-            
-            
 
             //Delete the Dir
             deleteDir()
@@ -121,7 +119,7 @@ for(node_name in builder_nodes){
                 }
             }
             //Delete the Dir
-            //deleteDir()
+            deleteDir()
         }
     }
 }
@@ -135,42 +133,44 @@ for(node_name in nodes){
                 def ip_addr = utils.getNodeIpAddress(node_name)
                 
                 dir("lib"){
-                    //Unstash the required libraries for this node
+                    //Unstash the required libraries for this node.
+                    //Have to run in the lib directory due to dll linker paths
                     unstash "code_" + utils.getNodeOSVersion(node_name)
-                }
-                def args = ""
-                args += " -n " + experiment_name
-                args += " -e " + env_manager_addr
-                args += " -a " + ip_addr
-                args += " -l lib"
                     
-                if(node_name == master_node){
-                    unstash 'model'
-                    args += " -t " + execution_time
-                    args += " -d " + MODEL_FILE
-                }
+                    def args = " -n " + experiment_name
+                    args += " -e " + env_manager_addr
+                    args += " -a " + ip_addr
+                    args += " -l ."
 
-                //Run re_node_manager
-                if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                    FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
-                    FAILED = true
-                }
+                    if(node_name == master_node){
+                        unstash 'model'
+                        args += " -t " + execution_time
+                        args += " -d " + MODEL_FILE
+                    }
 
-                /*
-                LOGAN PARAMETERS
-                def logan_args = ""
-                logan_args += " -n " + experiment_name
-                logan_args += " -e " + env_manager_addr
-                logan_args += " -a " + ip_addr
-                if(utils.runScript("${RE_PATH}/../logan/bin/logan_clientserver" + logan_args) != 0){
-                    FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
-                    FAILED = true
-                }*/
+                    //Run re_node_manager
+                    if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                        FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                        FAILED = true
+                    }
+                }
                 deleteDir()
             }
         }
     }
 }
+
+ /*
+LOGAN PARAMETERS
+def logan_args = ""
+logan_args += " -n " + experiment_name
+logan_args += " -e " + env_manager_addr
+logan_args += " -a " + ip_addr
+if(utils.runScript("${RE_PATH}/../logan/bin/logan_clientserver" + logan_args) != 0){
+    FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+    FAILED = true
+}*/
+                
 
 //Run compilation scripts
 stage("Compiling C++"){
