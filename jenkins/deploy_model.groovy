@@ -30,7 +30,8 @@ def execution_map = [:]
 
 def FAILED = false
 def FAILURE_LIST = []
-final MODEL_FILE = experiment_name + "_" + build_id + ".graphml"
+final UNIQUE_ID =  experiment_name + "_" + build_id
+final MODEL_FILE = UNIQUE_ID + ".graphml"
 
 def builder_nodes = []
 def nodes = utils.getLabelledNodes("re")
@@ -82,16 +83,14 @@ node(builder_nodes[0]){
             }
 
             //Construct a zip file with the code
-            zip(zipFile: "codegen.zip", archive: true)
+            zip(zipFile: UNIQUE_ID + ".zip", archive: true)
 
             //Stash the generated code
             stash includes: '**', name: 'codegen'
             
             //Archive the model
             archiveArtifacts MODEL_FILE
-            //Archive the validation report
-            archiveArtifacts 'validation_report.xml'
-
+            
             //Delete the Dir
             deleteDir()
         }
