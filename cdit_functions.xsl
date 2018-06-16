@@ -909,8 +909,9 @@
                 <xsl:if test="$middleware = $port_middleware">
                     <!-- Get all the Aggregate Instances for this particular Port -->
                     <xsl:variable name="definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="definition_kind" select="graphml:get_kind($definition)" />
-                    <xsl:if test="$definition_kind = 'ServerInterface'">
+                    <xsl:variable name="port_type" select="graphml:get_port_aggregate(.)" />
+                    <xsl:variable name="port_kind" select="graphml:get_kind($port_type)" />
+                    <xsl:if test="$port_kind = 'ServerInterface'">
                         <xsl:sequence select="." />
                     </xsl:if>
                 </xsl:if>
