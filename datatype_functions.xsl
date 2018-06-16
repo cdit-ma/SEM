@@ -1252,7 +1252,7 @@
         <xsl:variable name="function_args" as="xs:string">
             <xsl:choose>
                 <xsl:when test="$qualified_request_type != ''">
-                    <xsl:value-of select="concat('in ', $qualified_request_type, ' message')" />
+                    <xsl:value-of select="concat('in ', $qualified_request_type, ' message_')" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="''" />
