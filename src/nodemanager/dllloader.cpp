@@ -15,7 +15,7 @@ DllLoader::~DllLoader(){
 
     for(auto& l : loaded_libraries_){
         if(!CloseLibrary(l.second)){
-            std::cerr << "* Closed DLL Error: '"  << l.first << ": " << GetLibraryError() << std::endl;
+            throw std::runtime_error("DLL Error: Cannot Close " + l.first + " : " + GetLibraryError());
         }
     }
     loaded_libraries_.clear();
@@ -85,7 +85,7 @@ void* DllLoader::GetLibrary(const std::string& dll_path){
             std::cout << "* Loaded DLL: '" << dll_path <<  "' In: " << ms.count() << " us" << std::endl;
             loaded_libraries_[dll_path] = library;
         }else{
-            std::cerr << "DLL Error Loading: " << dll_path << " : "<< error << std::endl;
+            throw std::runtime_error( "DLL Error: Cannot load '" + dll_path + "' : " + error);
             library = 0;
         }
     }else{
@@ -129,7 +129,7 @@ void* DllLoader::GetLibraryFunction_(const std::string& dll_path, const std::str
                 loaded_library_functions_[lookup_str] = function;
                 library_func = function;
             }else{
-                std::cerr << "DLL Error Linking '" + function_name + "': " << error << std::endl;
+                throw std::runtime_error("DLL Error: Linking '" + function_name + "' " + error);
             }
         }
     }
