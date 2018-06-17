@@ -289,7 +289,7 @@
             <xsl:for-each select="$component_impls">
                 <xsl:variable name="outeventportimpls" select="graphml:get_descendant_nodes_of_kind(., ('PublisherPortImpl'))" />
                     
-                <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter', 'MemberInstance'))" />
+                <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter', 'MemberInstance', 'Member'))" />
                 <xsl:variable name="out_members" select="graphml:get_descendant_nodes($outeventportimpls)" />
 
 
@@ -307,11 +307,11 @@
                     
                     <xsl:variable name="is_valid_kind" select="$kind != 'AggregateInstance' and $kind != 'VectorInstance' and $kind != 'Vector'"/>
 
-                    <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'ReturnParameterGroup', 'VectorInstance', 'Vector'))) == 0"/>
+                    <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'InputParameterGroup', 'VectorInstance', 'Vector', 'Variable'))) = 0"/>
                     <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance'))) > 0"/>
                     
                     <!-- Don't want to check inside vectors, as they do not need data -->
-                    <xsl:if test="$is_valid_kind and $in_valid_kind and">
+                    <xsl:if test="$is_valid_kind and $in_valid_kind">
                         <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
                         <xsl:value-of select="cdit:output_result($id, $value != '' or $allowed_empty, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), false(), 2)" />        
                         
@@ -725,8 +725,11 @@
 
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_nodes_of_kind($model, 'Aggregates')" />
         <xsl:variable name="components" as="element()*" select="graphml:get_nodes_of_kind($model, 'Component')" />
-        <xsl:variable name="classes" as="element()*" select="graphml:get_nodes_of_kind($model, 'Class')" />
-        <xsl:variable name="component_impls" as="element()*" select="graphml:get_nodes_of_kind($model, 'ComponentImpl')" />
+
+        <xsl:variable name="behaviour_definitions" as="element()*" select="graphml:get_nodes_of_kind($model, 'BehaviourDefinitions')" />
+        
+        <xsl:variable name="classes" as="element()*" select="graphml:get_descendant_nodes_of_kind($behaviour_definitions, 'Class')" />
+        <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($behaviour_definitions, 'ComponentImpl')" />
 
         <xsl:value-of select="cdit:test_unique_types('All Compilable Elements Must have unique kinds', ($aggregates, $components, $classes))" />
         <xsl:value-of select="cdit:test_invalid_label('Compilable Elements must have valid names', ($aggregates, $components))" />
