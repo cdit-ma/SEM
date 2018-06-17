@@ -289,7 +289,7 @@
             <xsl:for-each select="$component_impls">
                 <xsl:variable name="outeventportimpls" select="graphml:get_descendant_nodes_of_kind(., ('PublisherPortImpl'))" />
                     
-                <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter'))" />
+                <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter', 'MemberInstance'))" />
                 <xsl:variable name="out_members" select="graphml:get_descendant_nodes($outeventportimpls)" />
 
 
@@ -304,7 +304,7 @@
 
                     <xsl:variable name="children_linked" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
 
-                    <xsl:variable name="is_valid_kind" select="($kind = 'AggregateInstance' or $kind = 'VectorInstance' or $kind = 'Vector') = false()"/>
+                    <xsl:variable name="is_valid_kind" select="$kind != 'AggregateInstance' and $kind != 'VectorInstance' and $kind != 'Vector'"/>
                     <xsl:variable name="in_vector" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
                     <xsl:variable name="in_outevent" select="count(graphml:get_ancestor_nodes_of_kind(., ('PublisherPortImpl'))) > 0"/>
                     
