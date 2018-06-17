@@ -35,8 +35,7 @@ namespace tao{
         PortableServer::POA_var get_root_poa(CORBA::ORB_ptr orb);
 
         
-        static std::shared_ptr<TaoHelper> singleton_;
-        std::mutex global_mutex_;
+        std::mutex orb_mutex_;
         
         std::unordered_map<std::string, CORBA::ORB_ptr> orb_lookup_;
         std::unordered_map<std::string, ThreadManager*> orb_run_futures_;
