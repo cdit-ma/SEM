@@ -25,12 +25,12 @@ TempEntity::~TempEntity()
 {
 }
 
-bool TempEntity::isNode()
+bool TempEntity::isNode() const
 {
     return graphml_kind == GRAPHML_KIND::NODE;
 }
 
-bool TempEntity::isEdge()
+bool TempEntity::isEdge() const
 {
     return graphml_kind == GRAPHML_KIND::EDGE;
 }
@@ -138,7 +138,7 @@ void TempEntity::setTargetID(int id)
     target_id = id;
 }
 
-int TempEntity::getTargetID()
+int TempEntity::getTargetID() const
 {
     return target_id;
 }

@@ -15,8 +15,8 @@ public:
     TempEntity(GRAPHML_KIND kind, TempEntity* parent = 0);
     ~TempEntity();
 
-    bool isNode();
-    bool isEdge();
+    bool isNode() const;
+    bool isEdge() const;
     
     void setLineNumber(int line_number);
     int getLineNumber();
@@ -44,8 +44,8 @@ public:
 
     void setSourceIDStr(QString id);
     QString getSourceIDStr();
-    int getSourceIDInt();
-    int getTargetIDInt();
+    int getSourceIDInt();;
+    int getTargetIDInt();;
     
     void setTargetIDStr(QString id);
     QString getTargetIDStr();
@@ -54,7 +54,7 @@ public:
     int getSourceID();
     
     void setTargetID(int id);
-    int getTargetID();
+    int getTargetID() const;
 
     bool isUUIDMatched();
     void setUUIDMatched(bool uuid_matched);

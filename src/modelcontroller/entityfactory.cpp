@@ -706,7 +706,7 @@ void EntityFactory::DestructEntity(GraphML* graphml){
 }
 
 
-GraphML* EntityFactory::getGraphML(int id){
+GraphML* EntityFactory::getGraphML(int id) const{
     if(hash_.contains(id)){
         return hash_.value(id);
     }else if(unregistered_hash_.contains(id)){
@@ -715,7 +715,7 @@ GraphML* EntityFactory::getGraphML(int id){
     return 0;
 }
 
-Entity* EntityFactory::GetEntity(int id){
+Entity* EntityFactory::GetEntity(int id) const{
     auto item = getGraphML(id);
     if(item){
         switch(item->getGraphMLKind()){
@@ -734,7 +734,7 @@ Entity* EntityFactory::GetEntityByUUID(QString uuid){
     return GetEntity(id);
 }
 
-Node* EntityFactory::GetNode(int id){
+Node* EntityFactory::GetNode(int id) const{
     auto item = getGraphML(id);
     if(item && item->getGraphMLKind() == GRAPHML_KIND::NODE){
         return (Node*) item;

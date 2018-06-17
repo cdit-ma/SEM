@@ -101,8 +101,8 @@ protected:
     void DeregisterEdge(Edge* edge);
     void DeregisterGraphML(GraphML* graphml);
     //Getters
-    Entity* GetEntity(int id);
-    Node* GetNode(int id);
+    Entity* GetEntity(int id) const;
+    Node* GetNode(int id) const;
     Edge* GetEdge(int id);
     Data* GetData(int id);
     
@@ -133,7 +133,7 @@ private:
     void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
     
-    GraphML* getGraphML(int id);
+    GraphML* getGraphML(int id) const;
 
     
     Node* _createNode(NODE_KIND kind, bool is_temporary = false, bool complex = true);

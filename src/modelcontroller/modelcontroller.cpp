@@ -1869,6 +1869,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
         //Do Special GUI related things
         switch(edge->getEdgeKind()){
         case EDGE_KIND::DEFINITION:{
+            qCritical() << "EDGE: " << edge->toString();
             setupDefinitionRelationship(src, dst, true);
             break;
         }
@@ -2495,6 +2496,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
     QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
+    QList<TempEntity*> edges_list;
+    //QHash<QString, TempEntity*> entity_hash;
+
+
 
     for(auto id : edge_ids){
         auto entity = entity_hash.value(id, 0);
@@ -2541,9 +2546,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
             }
 
             if(entity->gotEdgeKind()){
-                auto next_edge_kind = entity->getEdgeKind();
-                //Insert the item in the lookup
-                edge_map.insertMulti(next_edge_kind, entity);
+                edges_list.append(entity);
+                
             }else{
                 QString title = "Cannot create edge";
                 QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nNo valid edge kinds";
@@ -2557,6 +2561,35 @@ bool ModelController::importGraphML(QString document, Node *parent)
             emit Notification(MODEL_SEVERITY::ERROR, title, description);
         }
     }
+
+    auto entity_fac = entity_factory;
+
+    //Have to sort edges so the higher a Edge's Target is, the sooner that edge gets processed
+    std::sort(edges_list.begin(), edges_list.end(), [entity_fac](const TempEntity* a, const TempEntity* b){
+        auto is_a_edge = a->isEdge();
+        auto is_b_edge = b->isEdge();
+
+        if(is_a_edge && is_b_edge){
+            auto a_node = entity_fac->GetNode(a->getTargetID());
+            auto b_node = entity_fac->GetNode(b->getTargetID());
+            
+            //Proper depth
+            auto a_depth = a_node->getDepth();
+            auto b_depth = b_node->getDepth();
+            return a_depth > b_depth;
+        }else{
+            throw std::runtime_error("Got a Node in an Edge List");
+        }
+    });
+
+    for(auto edge : edges_list){
+        if(edge->gotEdgeKind()){
+            auto next_edge_kind = edge->getEdgeKind();
+            //Insert the item in the lookup
+            edge_map.insertMulti(next_edge_kind, edge);
+        }
+    }
+
 
     if(UPDATE_PROGRESS){
         ProgressUpdated_("Constructing Edges");
