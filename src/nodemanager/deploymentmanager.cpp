@@ -181,6 +181,7 @@ bool DeploymentManager::TeardownModelLogger(){
 }
 
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){
+    std::cerr << "GOT MESSAGE: " << std::endl;
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(notify_mutex_);
     //Have to copy the message

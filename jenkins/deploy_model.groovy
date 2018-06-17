@@ -17,6 +17,7 @@ final master_node = "${MASTER_NODE}"
 final execution_time = "${EXECUTION_TIME}"
 final env_manager_addr = "${ENVIRONMENT_MANAGER_ADDRESS}"
 final build_id = env.BUILD_ID
+final CLEANUP = false
 
 def experiment_name = "${EXPERIMENT_NAME}"
 if(experiment_name.isEmpty()){
@@ -95,13 +96,16 @@ node(builder_nodes[0]){
             archiveArtifacts MODEL_FILE
             
             //Delete the Dir
-            //deleteDir()
+            if(CLEANUP){
+                deleteDir()
+            }
         }
     }
 }
 
 //Run Compilation
-for(node_name in builder_nodes){
+for(def i = 0; i < builder_nodes.size(); i++){
+    def node_name = builder_nodes[i];
     //Define the Builder instructions
     builder_map[node_name] = {
         node(node_name){
@@ -121,13 +125,16 @@ for(node_name in builder_nodes){
                 }
             }
             //Delete the Dir
-            //deleteDir()
+            if(CLEANUP){
+                deleteDir()
+            }
         }
     }
 }
 
 //Produce the execution map
-for(node_name in nodes){
+for(def i = 0; i < nodes.size(); i++){
+    def node_name = nodes[i];
     execution_map[node_name] = {
         node(node_name){
             dir(build_id){
@@ -156,7 +163,10 @@ for(node_name in nodes){
                         FAILED = true
                     }
                 }
-                //deleteDir()
+                //Delete the Dir
+                if(CLEANUP){
+                    deleteDir()
+                }
             }
         }
     }
