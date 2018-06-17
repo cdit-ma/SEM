@@ -46,7 +46,7 @@ void tao::TaoHelper::OrbThread(ThreadManager& thread_manager, CORBA::ORB_ptr orb
 }
 
 CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool debug_mode){
-    std::unique_lock<std::mutex> lock(global_mutex_);
+    std::unique_lock<std::mutex> lock(orb_mutex_);
     if(orb_lookup_.count(orb_endpoint)){
         return orb_lookup_[orb_endpoint];
     }else{
