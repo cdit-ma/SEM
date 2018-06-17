@@ -30,7 +30,7 @@ MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_t
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"TAO", "ZMQ", "QPID"});
 
-    //connect(data_middleware, &Data::dataChanged, this, &SubscriberPortInst::MiddlewareUpdated);
-    //MiddlewareUpdated();
+    connect(data_middleware, &Data::dataChanged, this, &MEDEA::ReplierPortInst::MiddlewareUpdated);
+    MiddlewareUpdated();
 }
 

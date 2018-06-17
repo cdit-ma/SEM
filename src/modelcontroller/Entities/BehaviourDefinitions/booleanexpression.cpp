@@ -49,14 +49,18 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     //Setup Comparator
     comparator_->setDataReceiver(false);
     comparator_->setDataProducer(false);
-    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, ProtectedState::UNPROTECTED);//, "==");
+    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
+
 
 
     broker.AttachData(comparator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circleQuestionDark");
     broker.AttachData(comparator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
     broker.AttachData(comparator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.RemoveData(comparator_, "value");
+    broker.AttachData(comparator_, "value", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(comparator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
+    LinkData(comparator_, "label", comparator_, "value", true);
+
     broker.RemoveData(comparator_, "type");
     broker.RemoveData(comparator_, "inner_type");
     broker.RemoveData(comparator_, "outer_type");

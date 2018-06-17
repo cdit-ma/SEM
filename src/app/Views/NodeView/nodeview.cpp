@@ -963,12 +963,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
 
-                if(item->hasData("value")){
-                    node_item->setSecondaryTextKey("value");
-                }else{
+                if(item->hasData("editable_key")){
                     node_item->setPrimaryTextKey("");
-                    node_item->setSecondaryTextKey("label");
+                    node_item->setSecondaryTextKey(item->getData("editable_key").toString());
+                }else{
+                    node_item->setPrimaryTextKey("label");
+                    node_item->setSecondaryTextKey("value");
                 }
+
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             }

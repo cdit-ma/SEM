@@ -31,6 +31,9 @@ MEDEA::RequesterPortInst::RequesterPortInst(::EntityFactoryBroker& broker, bool 
     
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"TAO", "ZMQ", "QPID"});
+
+    connect(data_middleware, &Data::dataChanged, this, &MEDEA::RequesterPortInst::MiddlewareUpdated);
+    MiddlewareUpdated();
 }
 
 

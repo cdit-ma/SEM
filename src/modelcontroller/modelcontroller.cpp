@@ -1250,7 +1250,7 @@ void ModelController::destructEdge_(Edge *edge){
         if(src && dst){
             switch(edge_kind){
             case EDGE_KIND::DEFINITION:{
-                setupDefinitionRelationship2(src, dst, false);
+                setupDefinitionRelationship(src, dst, false);
                 break;
             }
             case EDGE_KIND::AGGREGATE:{
@@ -1665,7 +1665,7 @@ void ModelController::setupModel()
 }
 
 
-bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definition, bool setup){
+bool ModelController::setupDefinitionRelationship(Node* instance, Node* definition, bool setup){
     if(!(instance && definition)){
         return false;
     }
@@ -1870,7 +1870,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
         //Do Special GUI related things
         switch(edge->getEdgeKind()){
         case EDGE_KIND::DEFINITION:{
-            setupDefinitionRelationship2(src, dst, true);
+            setupDefinitionRelationship(src, dst, true);
             break;
         }
         case EDGE_KIND::AGGREGATE:{

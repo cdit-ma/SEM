@@ -976,11 +976,14 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
 
     QMultiMap<QString, QString> bind_values;
+    QMultiMap<QString, QString> copy_values;
     QSet<QString> required_instance_keys;
     bind_values.insert("key", "key");
 
     bind_values.insert("icon", "icon");
     bind_values.insert("icon_prefix", "icon_prefix");
+    
+    copy_values.insert("value", "value");
 
     required_instance_keys.insert("icon");
     required_instance_keys.insert("icon_prefix");
@@ -996,7 +999,6 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_index = false;
     bool bind_labels = true;
     bool bind_types = true;
-    bool copy_labels = false;
 
     switch(instance_kind){
         case NODE_KIND::MEMBER_INSTANCE:
@@ -1030,8 +1032,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
-                    bind_labels = false;
-                    copy_labels = true;
+                    copy_values.insert("value", "value");
                     if(definition->gotData("worker")){
                         bind_values.insert("worker", "type");
                         bind_types = false;
@@ -1114,14 +1115,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     for(auto definition_key : bind_values.uniqueKeys()){
         for(auto instance_key : bind_values.values(definition_key)){
-            //
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 
-    if(copy_labels){
-        auto def_label = definition->getDataValue("label");
-        instance->setDataValue("label", def_label);
+    if(setup){
+        for(auto definition_key : copy_values.uniqueKeys()){
+            for(auto instance_key : copy_values.values(definition_key)){
+                auto def_data = definition->getData(definition_key);
+                auto inst_data = instance->getData(instance_key);
+
+                if(def_data && inst_data){
+                    //Check if empty
+                    if(inst_data->getValue().isNull()){
+                        inst_data->setValue(def_data->getValue());
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -52,7 +52,11 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     broker.AttachData(operator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
     broker.AttachData(operator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
     broker.AttachData(operator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.RemoveData(operator_, "value");
+    broker.AttachData(operator_, "value", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(operator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
+
+    LinkData(operator_, "label", operator_, "value", true);
+
     broker.RemoveData(operator_, "type");
     broker.RemoveData(operator_, "inner_type");
     broker.RemoveData(operator_, "outer_type");
