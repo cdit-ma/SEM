@@ -5,7 +5,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #Find rti library
 find_package(QPID)
 
-set(PROJ_NAME qpid_dds_helper)
+set(PROJ_NAME qpid_helper)
 project (${PROJ_NAME})
 set(QPID_HELPER_LIBRARIES ${PROJ_NAME})
 
