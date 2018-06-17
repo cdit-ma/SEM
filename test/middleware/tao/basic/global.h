@@ -5,6 +5,6 @@
 #include <string>
 
 //std::string sender_orb_endpoint("192.168.111.90:50005");
-std::string sender_orb_endpoint("192.168.1.108:50005");
+std::string sender_orb_endpoint("192.168.1.110:50005");
 
 #endif //TAO_BASIC_GLOBAL_H

@@ -77,9 +77,9 @@ int main(int argc, char** argv){
 	auto replier2_port = ConstructReplierPort<tao::ReplierPort<void, void, Base::Message, Test::Message, POA_Test::Hello>>(rep_name, component2);
 	auto replier3_port = ConstructReplierPort<tao::ReplierPort<Base::Message, Test::Message, Base::Message, Test::Message, POA_Test::Hello2>>(rep3_name, component);
 
-	std::string replier_addr("192.168.111.90:50005");
-	std::string replier2_addr("192.168.111.90:50006");
-	std::string requester_addr("192.168.111.90:50005");
+	std::string replier_addr("192.168.1.110:50005");
+	std::string replier2_addr("192.168.1.110:50006");
+	std::string requester_addr("192.168.1.110:50005");
 
 	std::string replier_orb_addr("iiop://" + replier_addr);
 	std::string replier2_orb_addr("iiop://" + replier2_addr);

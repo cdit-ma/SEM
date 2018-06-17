@@ -56,12 +56,15 @@ if(nodes.size() == 0){
 node(builder_nodes[0]){
     //Unstash the model from parameter
     unstashParam "model", MODEL_FILE
+    sleep(1)
     //Stash the model file
     stash includes: MODEL_FILE, name: 'model'
 
     stage('C++ Generation'){
         dir(build_id + "/Codegen"){
             unstash 'model'
+            sleep(1)
+            
             def re_gen_path = '${RE_PATH}/re_gen/'
             def saxon_call = 'java -jar ' + re_gen_path + '/saxon.jar -xsl:' + re_gen_path
             def file_parameter = ' -s:' + MODEL_FILE
@@ -92,7 +95,7 @@ node(builder_nodes[0]){
             archiveArtifacts MODEL_FILE
             
             //Delete the Dir
-            deleteDir()
+            //deleteDir()
         }
     }
 }
@@ -118,7 +121,7 @@ for(node_name in builder_nodes){
                 }
             }
             //Delete the Dir
-            deleteDir()
+            //deleteDir()
         }
     }
 }
@@ -153,7 +156,7 @@ for(node_name in nodes){
                         FAILED = true
                     }
                 }
-                deleteDir()
+                //deleteDir()
             }
         }
     }
