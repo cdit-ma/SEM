@@ -1871,19 +1871,12 @@
             <xsl:when test="$kind = 'PublisherPortImpl'">
                 <xsl:value-of select="cdit:generate_publisherportimpl_code($node, $tab)" />
             </xsl:when>
-            
             <xsl:when test="$kind = 'AggregateInstance'">
                 <xsl:value-of select="cdit:generate_aggregateinstance_code($node, $tab)" />
             </xsl:when>
-            
-            <!--
-            <xsl:when test="$kind = 'Member' or $kind = 'MemberInstance'">
+            <xsl:when test="$kind = 'Member'">
                 <xsl:value-of select="cdit:generate_member_code($node, $tab)" />
             </xsl:when>
-            <xsl:when test="$kind = 'Vector' or $kind = 'VectorInstance'">
-                <xsl:value-of select="cdit:generate_member_code($node, $tab)" />
-            </xsl:when>-->
-
 
             <xsl:when test="$kind = 'InputParameterGroupInstance'" />
             <xsl:when test="$kind = 'SubscriberPortImpl'" />
