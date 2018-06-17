@@ -679,7 +679,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
         }
         case NODE_KIND::PORT_PERIODIC_INST:{
             default_icon_prefix = "EntityIcons";
-            default_icon_name = "PeriodicEvent";
+            default_icon_name = "PeriodicPort";
             break;
         }
         case NODE_KIND::SHARED_DATATYPES:{

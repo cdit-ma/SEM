@@ -296,9 +296,15 @@ void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& p
     node->constructor = constructor;
 
     if(!node_kind_lookup.contains(kind_string)){
-        //qCritical() << "EntityFactory: Registered Node Kind [" << (uint)node_kind << "]: " << kind_string;
-        //Insert into our reverse lookup
-        node_kind_lookup.insert(kind_string, node_kind);
+        auto values = node_kind_lookup.values().toSet();
+
+        if(!values.contains(node_kind)){
+            //qCritical() << "EntityFactory: Registered Node Kind [" << (uint)node_kind << "]: " << kind_string;
+            //Insert into our reverse lookup
+            node_kind_lookup.insert(kind_string, node_kind);
+        }else{
+            throw std::invalid_argument("EntityFactory: Trying to register duplicate NODE_KIND with kind string '" + kind_string.toStdString() + "'");
+        }
     }else{
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Node with kind string '" + kind_string.toStdString() + "'");
     }

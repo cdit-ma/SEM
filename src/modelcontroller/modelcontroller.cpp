@@ -1669,7 +1669,6 @@ bool ModelController::setupDefinitionRelationship(Node* instance, Node* definiti
     if(!(instance && definition)){
         return false;
     }
-    
 
     auto construct_instance = instance->isInstance();
     auto construct_implementation = instance->isImpl();

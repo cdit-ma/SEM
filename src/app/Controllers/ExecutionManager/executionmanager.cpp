@@ -114,6 +114,9 @@ void ExecutionManager::ValidateModel_(QString model_path)
                 }
             }
         }
+
+        //All Warnings aren't errors
+        failed_count -= warnings_count;
         auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
         qCritical() << "Panel rendering notifications: " <<  finish - start << "MS";
         
@@ -124,8 +127,11 @@ void ExecutionManager::ValidateModel_(QString model_path)
         }
 
         ///Update the original notification
-        validation_noti->setTitle("Model validation - Passed [" + QString::number(passed_count) + "/" + QString::number(test_count) + "] test cases");
-        validation_noti->setSeverity(test_count == passed_count ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+        auto passed_string = "Passed: " + QString::number(passed_count) + " Tests. ";
+        auto warning_string = (warnings_count > 0) ? ("Warnings: " + QString::number(warnings_count) + " Tests. ") : "";
+        auto failed_string = (failed_count > 0) ? ("Failed: " + QString::number(failed_count) + " Tests. ") : "";
+        validation_noti->setTitle("Validation: " + passed_string + warning_string + failed_string);
+        validation_noti->setSeverity(test_count == (passed_count + warnings_count) ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     } else {
         ///Update the original notification
         validation_noti->setTitle("Model validation failed to execute");
