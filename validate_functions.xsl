@@ -304,14 +304,16 @@
 
                     <xsl:variable name="children_linked" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
 
+                    
                     <xsl:variable name="is_valid_kind" select="$kind != 'AggregateInstance' and $kind != 'VectorInstance' and $kind != 'Vector'"/>
-                    <xsl:variable name="in_vector" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
-                    <xsl:variable name="in_outevent" select="count(graphml:get_ancestor_nodes_of_kind(., ('PublisherPortImpl'))) > 0"/>
+
+                    <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'ReturnParameterGroup', 'VectorInstance', 'Vector'))) == 0"/>
+                    <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance'))) > 0"/>
                     
                     <!-- Don't want to check inside vectors, as they do not need data -->
-                    <xsl:if test="$is_valid_kind and $in_vector = false()">
+                    <xsl:if test="$is_valid_kind and $in_valid_kind and">
                         <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
-                        <xsl:value-of select="cdit:output_result($id, $value != '', o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), $in_outevent, 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, $value != '' or $allowed_empty, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), $in_outevent, 2)" />        
                         
                         <xsl:if test="$type = 'String' and $value != ''">
                             <!-- Check if string that is set is double-quote wrapped -->
