@@ -37,14 +37,17 @@ zmq::Registrant::~Registrant(){
     }
 }
 
+//CLient
 void zmq::Registrant::RegistrationLoop(){
     //Start a request socket, and bind endpoint
     auto socket = zmq::socket_t(*context_, ZMQ_REQ);
 
     try{
         std::string endpoint = deployment_manager_->GetSlaveEndpoint();
+        std::cerr << "GOT ENDPOINT: " << endpoint << std::endl;
         //if we're an unused node
         if(endpoint.empty()){
+            std::cerr << "zmq::Registrant::RegistrationLoop(): Doesn't have a slave endpoint" << std::endl;
             return;
         }
         std::cerr << "BINDING for : " << endpoint << std::endl;
