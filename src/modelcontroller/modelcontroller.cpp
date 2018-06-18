@@ -1869,7 +1869,6 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
         //Do Special GUI related things
         switch(edge->getEdgeKind()){
         case EDGE_KIND::DEFINITION:{
-            qCritical() << "EDGE: " << edge->toString();
             setupDefinitionRelationship(src, dst, true);
             break;
         }
