@@ -39,7 +39,7 @@ zmq::Registrant::~Registrant(){
 
 void zmq::Registrant::RegistrationLoop(){
     //Start a request socket, and bind endpoint
-    auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
+    auto socket = zmq::socket_t(*context_, ZMQ_REQ);
 
     try{
         std::string endpoint = deployment_manager_->GetSlaveEndpoint();
@@ -61,6 +61,7 @@ void zmq::Registrant::RegistrationLoop(){
 
         //Send the slave response
         socket.send(Proto2Zmq(slave_response));
+        socket.recv(&slave_startup);
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrant::RegistrationLoop():" << ex.what() << std::endl;

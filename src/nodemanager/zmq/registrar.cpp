@@ -24,7 +24,7 @@ zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& publishe
 zmq::Registrar::~Registrar(){
     //Deleting the context will interupt any blocking ZMQ calls
     if(context_){
-        delete context_;    
+        delete context_;
     }
 
     //Join all registration threads
@@ -38,7 +38,7 @@ zmq::Registrar::~Registrar(){
 bool zmq::Registrar::RegistrationLoop(const std::string& endpoint){
     //Construct a socket (Using Pair)
     try{
-        auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
+        auto socket = zmq::socket_t(*context_, ZMQ_REP);
         //Connect to the socket
         socket.connect(endpoint.c_str()); 
         zmq::message_t slave_addr;
@@ -57,6 +57,7 @@ bool zmq::Registrar::RegistrationLoop(const std::string& endpoint){
         NodeManager::StartupResponse slave_response_pb;
         slave_response_pb.ParseFromArray(slave_response.data(), slave_response.size());
         execution_manager_->HandleSlaveResponseMessage(slave_addr_str, slave_response_pb);
+        socket.send(Proto2Zmq(slave_startup_pb));
         return true;
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
