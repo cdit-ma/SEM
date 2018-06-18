@@ -723,7 +723,7 @@
     <xsl:function name="cdit:component_tests">
         <xsl:param name="model" as="element(gml:node)*"/>
 
-        <xsl:variable name="aggregates" as="element()*" select="graphml:get_nodes_of_kind($model, 'Aggregates')" />
+        <xsl:variable name="aggregates" as="element()*" select="graphml:get_nodes_of_kind($model, 'Aggregate')" />
         <xsl:variable name="components" as="element()*" select="graphml:get_nodes_of_kind($model, 'Component')" />
 
         <xsl:variable name="behaviour_definitions" as="element()*" select="graphml:get_nodes_of_kind($model, 'BehaviourDefinitions')" />
