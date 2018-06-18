@@ -415,13 +415,11 @@ void MainWindow::setupInnerWindow()
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::BEHAVIOUR), this);
     auto dockwidget_Assemblies = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::ASSEMBLIES), this);
     auto dockwidget_Hardware = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::HARDWARE), this);
-    auto dockwidget_Workers = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::WORKERS), this);
 
     dockwidget_Interfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dockwidget_Behaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
     dockwidget_Assemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
     dockwidget_Hardware->getNodeView()->setContainedViewAspect(VIEW_ASPECT::HARDWARE);
-    dockwidget_Workers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
 
     
 
@@ -432,28 +430,24 @@ void MainWindow::setupInnerWindow()
     setDockWidgetIcon(dockwidget_Behaviour, "EntityIcons", "BehaviourDefinitions", theme);
     setDockWidgetIcon(dockwidget_Assemblies, "EntityIcons", "AssemblyDefinitions", theme);
     setDockWidgetIcon(dockwidget_Hardware, "EntityIcons", "HardwareDefinitions", theme);
-    setDockWidgetIcon(dockwidget_Workers, "EntityIcons", "WorkerDefinitions", theme);
 
     //Set Icon Visibility
     dockwidget_Interfaces->setIconVisible(false);
     dockwidget_Behaviour->setIconVisible(false);
     dockwidget_Assemblies->setIconVisible(false);
     dockwidget_Hardware->setIconVisible(false);
-    dockwidget_Workers->setIconVisible(false);
 
     //Protected from deletion
     dockwidget_Interfaces->setProtected(true);
     dockwidget_Behaviour->setProtected(true);
     dockwidget_Assemblies->setProtected(true);
     dockwidget_Hardware->setProtected(true);
-    dockwidget_Workers->setProtected(true);
 
     //Set initial area
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Interfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Behaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Assemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Hardware);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);
 
     setupToolBar();
     setupMenuCornerWidget();
