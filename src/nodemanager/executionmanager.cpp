@@ -137,18 +137,17 @@ bool ExecutionManager::IsValid(){
 
 bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response){
     auto slave_state = SlaveState::ERROR_;
-    auto slave_host_name = "";//GetSlaveNameFromAddress(slave_address);
     if(response.IsInitialized()){
         slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR_;
     }
 
     if(slave_state == SlaveState::ERROR_){
-        std::cerr << "* Slave: '" << slave_host_name << "' @ " << slave_address << " Error!" << std::endl;
+        std::cerr << "* Slave: " << slave_address << " Error!" << std::endl;
         for(const auto& error_str : response.error_codes()){
             std::cerr << "* " << error_str << std::endl;
         }
     }else{
-        std::cout << "* Slave: '" << slave_host_name << "' @ " << slave_address << " Online" << std::endl;
+        std::cout << "* Slave: " << slave_address << " Online" << std::endl;
     }
 
     if(slave_states_.count(slave_address)){

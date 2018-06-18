@@ -38,6 +38,7 @@ zmq::Registrar::~Registrar(){
 bool zmq::Registrar::RegistrationLoop(const std::string& endpoint){
     //Construct a socket (Using Pair)
     try{
+        std::cerr << "Waiting for : " << endpoint << std::endl;
         auto socket = zmq::socket_t(*context_, ZMQ_REP);
         //Connect to the socket
         socket.connect(endpoint.c_str()); 
