@@ -33,7 +33,7 @@ for(n in logan_nodes){
                 deleteDir()
                 unstash "source_code"
                 dir("build"){
-                    def result = utils.buildProject("Unix Makefiles", "")
+                    def result = utils.buildProject("Ninja", "")
                     if(!result){
                         error('Failed to compile')
                     }
