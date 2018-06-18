@@ -47,6 +47,7 @@ void zmq::Registrant::RegistrationLoop(){
         if(endpoint.empty()){
             return;
         }
+        std::cerr << "BINDING for : " << endpoint << std::endl;
         socket.bind(endpoint.c_str());
         zmq::message_t slave_startup;
 
