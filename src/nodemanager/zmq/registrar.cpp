@@ -48,11 +48,12 @@ void zmq::Registrar::RegistrationLoop(){
             const auto slave_request = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_request);
             switch(slave_request.type()){
                 case NodeManager::SlaveStartupMessage::REQUEST:{
+                    NodeManager::SlaveStartupMessage slave_startup;
+                    slave_startup.set_type(NodeManager::SlaveStartupMessage::STARTUP);
+
                     //Handle a Request
                     auto slave_ip = slave_request.request().slave_ip();
-                    const auto& slave_startup = execution_manager_.GetSlaveStartupMessage(slave_ip);
-                    std::cerr << "SENDING BACK STARTUP: " << std::endl;
-                    std::cerr <<  slave_startup.DebugString() << std::endl;
+                    slave_response.set_allocated_startup(new NodeManager::SlaveStartup(execution_manager_.GetSlaveStartupMessage(slave_ip)));
                     zmq_response = Proto2Zmq(slave_startup);
                     break;
                 }
