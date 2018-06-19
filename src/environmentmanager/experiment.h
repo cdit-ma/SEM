@@ -136,7 +136,6 @@ class Experiment{
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
 
-        std::string GetNodeManagementPort(const std::string& ip) const;
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
 
         std::set<std::string> GetTopics() const;

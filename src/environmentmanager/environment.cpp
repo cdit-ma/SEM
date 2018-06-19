@@ -252,31 +252,31 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
         }
     }
 
-    if(node_map_.count(node_name)){
+    if(node_map_.count(ip)){
         return;
     }
-    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(node.info().name(), available_ports_));
+    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(ip, available_ports_));
     temp->SetName(node_name);
     node_ip_map_.insert(std::make_pair(node_name, ip));
     node_name_map_.insert(std::make_pair(ip, node_name));
-    node_map_.emplace(node_name, std::move(temp));
+    node_map_.emplace(ip, std::move(temp));
 }
 
 //Get port from node specified.
-std::string Environment::GetPort(const std::string& node_name){
+std::string Environment::GetPort(const std::string& ip_address){
     //Get first available port, store then erase it
-    if(node_map_.count(node_name)){
-        return node_map_.at(node_name)->GetPort();
+    if(node_map_.count(ip_address)){
+        return node_map_.at(ip_address)->GetPort();
     }
     else{
-        throw std::invalid_argument("Environment::GetPort No node found with name: " + node_name);
+        throw std::invalid_argument("Environment::GetPort No node found with ip address: " + ip_address);
     }
 }
 
 //Free port specified from node specified
-void Environment::FreePort(const std::string& node_name, const std::string& port_number){
-    if(node_map_.count(node_name)){
-        node_map_.at(node_name)->FreePort(port_number);
+void Environment::FreePort(const std::string& ip_address, const std::string& port_number){
+    if(node_map_.count(ip_address)){
+        node_map_.at(ip_address)->FreePort(port_number);
     }
 }
 
@@ -301,12 +301,7 @@ void Environment::FreeManagerPort(const std::string& port){
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& node_ip) const{
     if(experiment_map_.count(model_name)){
         std::string node_name;
-        try{
-            node_name = node_name_map_.at(node_ip);
-        }
-        catch(const std::exception& ex){
-        }
-        return experiment_map_.at(model_name)->HasDeploymentOn(node_name);
+        return experiment_map_.at(model_name)->HasDeploymentOn(node_ip);
     }
     return false;
 }
@@ -338,7 +333,7 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& model_n
 
 std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(node_name_map_.at(ip_address));
+        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(ip_address);
     }
     return "";
 }
