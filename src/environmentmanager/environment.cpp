@@ -307,7 +307,10 @@ bool Environment::NodeDeployedTo(const std::string& model_name, const std::strin
 }
 
 bool Environment::ModelNameExists(const std::string& model_name) const{
-    return experiment_map_.count(model_name);
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->ConfigureDone();
+    }
+    return false;
 }
 
 void Environment::SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address){
