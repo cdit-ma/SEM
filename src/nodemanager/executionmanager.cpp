@@ -135,23 +135,27 @@ bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
 
-bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response){
+bool ExecutionManager::HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response){
     auto slave_state = SlaveState::ERROR_;
+
+    const auto& slave_ip = response.slave_ip();
+    auto slave_hostname = GetSlaveHostName(slave_ip);
+
     if(response.IsInitialized()){
         slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR_;
     }
 
     if(slave_state == SlaveState::ERROR_){
-        std::cerr << "* Slave: " << slave_address << " Error!" << std::endl;
+        std::cerr << "* Slave: " << slave_hostname << " @ " << slave_ip << " Error!" << std::endl;
         for(const auto& error_str : response.error_codes()){
             std::cerr << "* " << error_str << std::endl;
         }
     }else{
-        std::cout << "* Slave: " << slave_address << " Online" << std::endl;
+        std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Online" << std::endl;
     }
 
-    if(slave_states_.count(slave_address)){
-        slave_states_[slave_address] = slave_state;
+    if(slave_states_.count(slave_ip)){
+        slave_states_[slave_ip] = slave_state;
 
         if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
             bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
@@ -162,35 +166,43 @@ bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_addre
     return false;
 }
 
-const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::string& address){
-    NodeManager::Startup startup;
+std::string ExecutionManager::GetSlaveHostName(const std::string& slave_ip){
+    if(deployment_map_.count(slave_ip)){
+        return deployment_map_[slave_ip].info().name();
+    }
+    return "Unknown Hostname";
+}
+
+const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const std::string& slave_ip){
+    NodeManager::SlaveStartup startup;
     startup.set_allocated_configure(new NodeManager::ControlMessage(*deployment_message_));
 
     auto configure = startup.mutable_configure();
     configure->clear_nodes();
     auto node = configure->add_nodes();
 
-    *node = deployment_map_[address];
+    if(deployment_map_.count(slave_ip)){
+        *node = deployment_map_[slave_ip];
+    }
 
-    std::string ip_address;
-    std::string port;
+    auto slave_name = GetSlaveHostName(slave_ip);
+
+    std::string logger_port;
     std::string master_publisher_port;
 
     for(int i = 0; i < node->attributes_size(); i++){
         auto attribute = node->attributes(i);
-        if(attribute.info().name() == "ip_address"){
-            ip_address = attribute.s(0);
-        }
+
         if(attribute.info().name() == "modellogger_port"){
-            port = attribute.s(0);
+            logger_port = attribute.s(0);
         }
     }
 
     startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
-    startup.mutable_logger()->set_publisher_address("tcp://" + ip_address + ":" + port);
+    startup.mutable_logger()->set_publisher_address("tcp://" + slave_ip + ":" + logger_port);
 
-    startup.set_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
-    startup.set_host_name(node->info().name());
+    startup.set_master_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
+    startup.set_slave_host_name(slave_name);
     return startup;
 }
 
@@ -236,7 +248,6 @@ bool ExecutionManager::ConstructControlMessages(){
 void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
 
     std::string ip_address;
-    std::string port;
 
     for(int i = 0; i<node.nodes_size(); i++){
         ConfigureNode(node.nodes(i));
@@ -247,21 +258,19 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
         if(attribute.info().name() == "ip_address"){
             ip_address = attribute.s(0);
         }
-        if(attribute.info().name() == "management_port"){
-            port = attribute.s(0);
-        }
     }
+
     if(node.components_size() > 0){
         std::cout << "* Slave: '" << node.info().name() << "' Deploys:" << std::endl;
 
-        slave_states_["tcp://" + ip_address + ":" + port] = SlaveState::OFFLINE;
+        slave_states_[ip_address] = SlaveState::OFFLINE;
         
         for(int i = 0; i < node.components_size(); i++){
             std::cout << "** " << node.components(i).info().name() << " [" << node.components(i).info().type() << "]" << std::endl;
         }
     }
     //TODO: Add fail cases
-    deployment_map_["tcp://" + ip_address + ":" + port] = node;
+    deployment_map_[ip_address] = node;
 }
 
 void ExecutionManager::TriggerExecution(bool execute){

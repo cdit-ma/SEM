@@ -2,22 +2,24 @@
 #define CORE_NODEMANAGER_ZMQ_REGISTRANT_H
 
 #include <string>
-#include <thread>
+#include <mutex>
+#include <future>
 
-#include "../deploymentmanager.h"
+class DeploymentManager;
 
 namespace zmq{
     class context_t;
     
     class Registrant{
         public:
-            Registrant(DeploymentManager* manager);
+            Registrant(DeploymentManager& deployment_manager);
             ~Registrant();
         private:
             void RegistrationLoop();
 
-            DeploymentManager* deployment_manager_ = 0;
-            std::thread* registration_thread_ = 0;
+            std::mutex mutex_;
+            DeploymentManager& deployment_manager_;
+            std::future<void> registration_loop_;
             zmq::context_t* context_ = 0;
     };
 };

@@ -30,8 +30,9 @@ class ExecutionManager{
                             Execution* execution, const std::string& experiment_id, const std::string& environment_manager_endpoint = "");
 
         std::vector<std::string> GetSlaveAddresses();
-        const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);
-        bool HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response);
+        const NodeManager::SlaveStartup GetSlaveStartupMessage(const std::string& slave_ip);
+
+        bool HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response);
         
         bool IsValid();
     private:
@@ -45,6 +46,8 @@ class ExecutionManager{
         bool Finished();
     private:
         void TriggerExecution(bool execute);
+
+        std::string GetSlaveHostName(const std::string& slave_ip);
 
         bool ConstructControlMessages();
         void ConfigureNode(const NodeManager::Node& node);

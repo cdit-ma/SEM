@@ -40,78 +40,66 @@ DeploymentManager::DeploymentManager(bool on_master_node,
     subscriber_->Start();
 }
 
-std::string DeploymentManager::GetSlaveEndpoint(){
-    std::string port;
-
-    port = QueryEnvironmentManager();
-
-    //We didn't get an endpoint shutdown
-    if(port.empty()){
-        if(!on_master_node_){
-            execution_->Interrupt();
-        }
-        return "";
-    }
-
-    std::string endpoint("tcp://" + ip_address_ + ":" + port);
-
-    return endpoint;
+std::string DeploymentManager::GetSlaveIPAddress(){
+    return ip_address_;
 }
 
-std::string DeploymentManager::QueryEnvironmentManager(){
-    std::string port;
+std::string DeploymentManager::GetMasterRegistrationEndpoint(){
+    return master_registration_endpoint_;
+}
+
+bool DeploymentManager::QueryEnvironmentManager(){
+
     EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_, EnvironmentRequester::DeploymentType::RE_SLAVE);
     requester.Init(environment_manager_endpoint_);
-    NodeManager::ControlMessage response;
-    try{
-        response = requester.NodeQuery(ip_address_);
-    }catch(const std::runtime_error& ex){
-        //Communication with environment manager has likely timed out. Return blank string.
-        std::cerr << "Response from env manager timed out, terminating" << std::endl;
-        return "";
-    }
 
-    //We dont have an experiment with this id on the environment manager, retry a few times.
-    for(int i = 0; i < RETRY_COUNT; i++){
-        //Re-try till we get a valid response message.
-        //This happens when the environment manager at least has an experiment with this slave's experiment id
-        if(response.type() == NodeManager::ControlMessage::TERMINATE){
-            std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
-            return "";
-        }
-        if(response.type() == NodeManager::ControlMessage::CONFIGURE){
-            auto node = response.nodes(0);
-
-            for(int i = 0; i < node.attributes_size(); i++){
-                auto attribute = node.attributes(i);
-                if(attribute.info().name() == "management_port"){
-                    port = attribute.s(0);
-                }
-            }
-            return port;
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+    int try_count = 0;
+    do{
+        NodeManager::ControlMessage response;
+        
         try{
             response = requester.NodeQuery(ip_address_);
-        }
-        catch(const std::runtime_error& ex){
+        }catch(const std::runtime_error& ex){
             //Communication with environment manager has likely timed out. Return blank string.
             std::cerr << "Response from env manager timed out, terminating" << std::endl;
-            return "";
+            return false;
         }
 
-        std::cout << "No response from env manager on this experiment_id, retrying. " << i << std::endl;
-    }
-    //After retrying RETRY_COUNT times, assume error and return blank string.
+        switch(response.type()){
+            case NodeManager::ControlMessage::TERMINATE:{
+                std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
+                return false;
+            }
+            case NodeManager::ControlMessage::CONFIGURE:{
+                auto& node = response.nodes(0);
+            
+                for(auto& attribute : node.attributes()){
+                    if(attribute.info().name() == "master_registration_endpoint"){
+                        master_registration_endpoint_ = attribute.s(0);
+                    }else if(attribute.info().name() == "master_publisher_endpoint"){
+                        master_publisher_endpoint_ = attribute.s(0);
+                    }
+                }
+                //Probably a success
+                return master_registration_endpoint_.size() && master_registration_endpoint_.size();
+            }
+            default:{
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+                //Please Continue
+                break;
+            }
+        }
+        try_count ++;
+    }while(try_count < RETRY_COUNT);
 
-    return "";
+    return false;
 }
 
-NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager::Startup startup){
-    NodeManager::StartupResponse slave_response;
+NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const NodeManager::SlaveStartup startup){
+    NodeManager::SlaveStartupResponse slave_response;
     bool success = true;
 
-    const auto& host_name = startup.host_name();
+    const auto& host_name = startup.slave_host_name();
     //Handle Logger setup
     {   
         const auto& logger = startup.logger();
@@ -127,10 +115,11 @@ NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager:
     //Setup our subscriber
     {
         if(subscriber_){
-            if(!subscriber_->Connect(startup.publisher_address())){
-                slave_response.add_error_codes("Subscriber couldn't connect to: '" + startup.publisher_address() + "'");
+            if(!subscriber_->Connect(master_publisher_endpoint_)){
+                slave_response.add_error_codes("Subscriber couldn't connect to: '" + master_publisher_endpoint_ + "'");
                 success = false;
             }
+
             if(!subscriber_->Filter(host_name + "*")){
                 slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
                 success = false;
@@ -147,7 +136,7 @@ NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager:
             slave_response.add_error_codes("Deployment Containers failed to be configured");
         }
     }
-    slave_response.set_host_name(host_name);
+    slave_response.set_slave_ip(ip_address_);
     slave_response.set_success(success);
     return slave_response;
 }
@@ -176,8 +165,9 @@ DeploymentManager::~DeploymentManager(){
     }
 }
 
-bool DeploymentManager::TeardownModelLogger(){
-    return ModelLogger::shutdown_logger();
+void DeploymentManager::Teardown(){
+    ModelLogger::shutdown_logger();
+    delete this;
 }
 
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){

@@ -158,7 +158,7 @@ int main(int argc, char **argv){
     if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
         auto deployment_manager = new DeploymentManager(is_master, dll_path, exe, experiment_id, address, environment_manager_endpoint);
-        slave = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(deployment_manager));
+        
     }
 
     if(success){
