@@ -51,6 +51,8 @@ void zmq::Registrar::RegistrationLoop(){
                     //Handle a Request
                     auto slave_ip = slave_request.request().slave_ip();
                     const auto& slave_startup = execution_manager_.GetSlaveStartupMessage(slave_ip);
+                    std::cerr << "SENDING BACK STARTUP: " << std::endl;
+                    std::cerr <<  slave_startup.DebugString() << std::endl;
                     zmq_response = Proto2Zmq(slave_startup);
                     break;
                 }
