@@ -207,7 +207,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             }
 
             default:{
-                std::cerr << "POOP" << message.DebugString() << std::endl;
+                std::cerr << message.DebugString() << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 break;
             }
