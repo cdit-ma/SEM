@@ -78,20 +78,21 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //      this is important as we cant destruct our context otherwise
     
     std::string reply;
-    
+    auto context2 = new zmq::context_t();
     {
-        auto initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
+        auto initial_request_socket = new zmq::socket_t(context2, ZMQ_REQ);
         //zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
         initial_request_socket->connect(manager_address_);
         ZMQSendRequest(*initial_request_socket, message.SerializeAsString());
         reply = ZMQReceiveReply(*initial_request_socket);
         delete initial_request_socket;
     }
+    delete context2;
 
     if(reply.empty()){
         std::cerr << "HELLO MY FRIEND" << std::endl;
         //BY CONTEXt
-        context_.reset();
+        //context_.reset();
         throw std::runtime_error("Environment manager request timed out.");
     }
 
