@@ -16,7 +16,7 @@ DeploymentManager::DeploymentManager(bool on_master_node,
     std::unique_lock<std::mutex> lock(mutex_);
 
 
-    registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
+    
 
     on_master_node_ = on_master_node;
     library_path_ = library_path;
@@ -42,6 +42,8 @@ DeploymentManager::DeploymentManager(bool on_master_node,
     }
 
     subscriber_->Start();
+    
+    registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
 }
 
 std::string DeploymentManager::GetSlaveIPAddress(){
