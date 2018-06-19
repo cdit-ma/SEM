@@ -101,7 +101,7 @@ class Environment{
         std::string address_;
 
         //Returns management port for logan client
-        std::string AddLoganClientServer(const std::string& model_name, const std::string& ip_address);
+        std::string AddLoganClientServer();
 
         bool AddExperiment(const std::string& model_name);
         //model_name -> experiment data structure
