@@ -65,8 +65,7 @@ bool DeploymentManager::QueryEnvironmentManager(){
         try{
             response = requester.NodeQuery(ip_address_);
         }catch(const std::runtime_error& ex){
-            std::cerr << ex.what() << std::endl;
-            //Communication with environment manager has likely timed out. Return blank string.
+            //Commlunication with environment manager has likely timed out. Return blank string.
             std::cerr << "Response from env manager timed out, terminating" << std::endl;
             return false;
         }
@@ -171,10 +170,10 @@ DeploymentManager::~DeploymentManager(){
 }
 
 void DeploymentManager::Teardown(){
-    std::cerr << "LOL" << std::endl;
     ModelLogger::shutdown_logger();
-    InteruptQueueThread();
-    std::cerr << "LOL2" << std::endl;
+    if(!on_master_node_){
+        execution_->Interrupt();
+    }
 }
 
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){

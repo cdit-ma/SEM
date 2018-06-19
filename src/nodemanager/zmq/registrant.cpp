@@ -27,6 +27,7 @@ zmq::Registrant::~Registrant(){
     }
 
     registration_loop_.get();
+    deployment_manager_.Teardown();
 }
 
 //CLient
@@ -35,14 +36,8 @@ void zmq::Registrant::RegistrationLoop(){
     auto socket = zmq::socket_t(*context_, ZMQ_REQ);
 
     try{
-        std::cerr << "deployment_manager_.QueryEnvironmentManager()" << std::endl;
-        auto query_success = deployment_manager_.QueryEnvironmentManager();
-        std::cerr << "query_success: " << (query_success ? " TRUE " : " FALSE ") << std::endl;
-
-        if(!query_success){
-            std::cerr << "deployment_manager_.Teardown()" << std::endl;
+        if(!deployment_manager_.QueryEnvironmentManager()){
             deployment_manager_.Teardown();
-            std::cerr << "deployment_manager_.Teardown()d" << std::endl;
             return;
         }
 
