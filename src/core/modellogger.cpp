@@ -73,8 +73,9 @@ bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
 }
 
 ModelLogger::~ModelLogger(){
-    //Flushes writer
-    delete writer_;
+    if(writer_){
+        delete writer_;
+    }
 }
 const std::string ModelLogger::get_hostname(){
     return host_name_;

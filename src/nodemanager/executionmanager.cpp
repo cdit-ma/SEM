@@ -305,7 +305,12 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
 void ExecutionManager::TriggerExecution(bool execute){
     //Obtain lock
     std::unique_lock<std::mutex> lock(execution_mutex_);
-    terminate_flag_ = !execute;
+    if(execute){
+        execute_flag_ = true;
+    }else{
+        terminate_flag_ = true;
+    }
+
     //Notify
     execution_lock_condition_.notify_all();
 }
@@ -322,13 +327,14 @@ void ExecutionManager::TerminateExecution(){
 void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     auto execution_duration = std::chrono::duration<double>(duration_sec);
     
-    bool execute = true;
+    bool execute = false;
     {
         //Wait to be executed or terminated
         std::unique_lock<std::mutex> lock(execution_mutex_);
-        execution_lock_condition_.wait(lock);
-        if(terminate_flag_){
-            execute = false;
+        execution_lock_condition_.wait(lock, [this]{return terminate_flag_ || execute_flag_;});
+
+        if(execute_flag_){
+            execute = true;
         }
     }
 
@@ -347,9 +353,9 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
             std::unique_lock<std::mutex> lock(execution_mutex_);
             if(duration_sec == -1){
                 //Wait indefinately
-                execution_lock_condition_.wait(lock, [this]{return this->terminate_flag_;});
+                execution_lock_condition_.wait(lock, [this]{return terminate_flag_;});
             }else{
-                execution_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+                execution_lock_condition_.wait_for(lock, execution_duration, [this]{return terminate_flag_;});
             }
         }
 

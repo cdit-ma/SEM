@@ -164,7 +164,7 @@ for(def i = 0; i < nodes.size(); i++){
 
                     parallel(
                         ("LOGAN_ " + node_name): {
-                            //Run re_node_manager
+                            //Run Logan
                             if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
                                 FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
                                 FAILED = true
@@ -179,7 +179,7 @@ for(def i = 0; i < nodes.size(); i++){
                         }
                     )
 
-                    archiveArtifacts artifacts: '**.sql'
+                    archiveArtifacts artifacts: '**.sql', allowEmptyArchive: true
                 }
                 //Delete the Dir
                 if(CLEANUP){
@@ -189,18 +189,6 @@ for(def i = 0; i < nodes.size(); i++){
         }
     }
 }
-
- /*
-LOGAN PARAMETERS
-def logan_args = ""
-logan_args += " -n " + experiment_name
-logan_args += " -e " + env_manager_addr
-logan_args += " -a " + ip_addr
-if(utils.runScript("${RE_PATH}/../logan/bin/logan_clientserver" + logan_args) != 0){
-    FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
-    FAILED = true
-}*/
-                
 
 //Run compilation scripts
 stage("Compiling C++"){

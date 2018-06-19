@@ -78,6 +78,7 @@ class ExecutionManager{
         std::mutex execution_mutex_;
         std::condition_variable execution_lock_condition_;
         bool terminate_flag_ = false;
+        bool execute_flag_ = false;
 
         bool local_mode_ = false;
 
