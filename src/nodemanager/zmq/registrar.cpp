@@ -5,14 +5,11 @@
 #include "../../re_common/zmq/zmqutils.hpp"
 
 //MASTER
-zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& endpoint){
+zmq::Registrar::Registrar(ExecutionManager& execution_manager):
+    execution_manager_(execution_manager)
+{
     //Construct a context for creating sockets
     context_ = new zmq::context_t();
-
-    endpoint_ = endpoint;
-    
-    //Set our execution manager    
-    execution_manager_ = manager;
 
     //Construct a new thread for each slave
     registration_loop_ = std::async(std::launch::async, &zmq::Registrar::RegistrationLoop, this);
@@ -31,11 +28,13 @@ void zmq::Registrar::RegistrationLoop(){
     //Construct a socket ZMQ_REP
     auto socket = zmq::socket_t(*context_, ZMQ_REP);
 
+    auto endpoint = execution_manager_.GetMasterRegistrationEndpoint();
+
     //Bind
     try{
-        socket.bind(endpoint_.c_str());
+        socket.bind(endpoint.c_str());
     }catch(const zmq::error_t& ex){
-        std::cerr << "zmq::Registrar::RegistrationLoop():" << ex.what() << std::endl;
+        std::cerr << "zmq::Registrar::RegistrationLoop(): Faield to Bind: " << endpoint << " " << ex.what() << std::endl;
         return;
     }
     
@@ -51,13 +50,13 @@ void zmq::Registrar::RegistrationLoop(){
                 case NodeManager::SlaveStartupMessage::REQUEST:{
                     //Handle a Request
                     auto slave_ip = slave_request.request().slave_ip();
-                    const auto& slave_startup = execution_manager_->GetSlaveStartupMessage(slave_ip);
+                    const auto& slave_startup = execution_manager_.GetSlaveStartupMessage(slave_ip);
                     zmq_response = Proto2Zmq(slave_startup);
                     break;
                 }
                 case NodeManager::SlaveStartupMessage::RESPONSE:{
                     //Handle the response
-                    execution_manager_->HandleSlaveResponseMessage(slave_request.response());
+                    execution_manager_.HandleSlaveResponseMessage(slave_request.response());
                     //Don't really need to send anything
                     break;
                 }

@@ -14,6 +14,10 @@ DeploymentManager::DeploymentManager(bool on_master_node,
                                     const std::string& ip_address,
                                     const std::string& environment_manager_endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
+
+
+    registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
+
     on_master_node_ = on_master_node;
     library_path_ = library_path;
     execution_ = execution;

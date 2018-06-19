@@ -138,8 +138,6 @@ int main(int argc, char **argv){
     }
 
 
-    std::unique_ptr<zmq::Registrar> master;
-    std::unique_ptr<zmq::Registrant> slave;
     bool success = true;
 
     if(success && is_master){
@@ -150,15 +148,12 @@ int main(int argc, char **argv){
                                                     experiment_id,
                                                     environment_manager_endpoint);
 
-        master = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(execution_manager, address));
-
         success = execution_manager->IsValid();
     }
 
     if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
         auto deployment_manager = new DeploymentManager(is_master, dll_path, exe, experiment_id, address, environment_manager_endpoint);
-        
     }
 
     if(success){

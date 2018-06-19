@@ -14,13 +14,12 @@ namespace zmq{
 
     class Registrar{
         public:
-            Registrar(ExecutionManager* manager, const std::string& endpoint);
+            Registrar(ExecutionManager& manager);
             ~Registrar();
         private:
             void RegistrationLoop();
 
-            std::string endpoint_;
-            ExecutionManager* execution_manager_;
+            ExecutionManager& execution_manager_;
             std::future<void> registration_loop_;
             zmq::context_t* context_ = 0;
     };

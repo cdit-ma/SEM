@@ -35,6 +35,9 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
         execution_ = execution;
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
+
+    registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
+    
     master_ip_addr_ = master_ip_addr;
     experiment_id_ = experiment_id;
     environment_manager_endpoint_ = environment_manager_endpoint;
@@ -75,6 +78,10 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     }
 }
 
+std::string ExecutionManager::GetMasterRegistrationEndpoint(){
+    return master_registration_endpoint_;
+}
+
 bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
         Environment* environment = new Environment("");
@@ -107,11 +114,12 @@ bool ExecutionManager::PopulateDeployment(){
 
         *deployment_message_ = response;
 
-        for(int i = 0; i < deployment_message_->attributes_size(); i++){
-            auto attribute = deployment_message_->attributes(i);
+        for(auto& attribute : deployment_message_->attributes()){
             if(attribute.info().name() == "master_publisher_endpoint"){
                 master_publisher_endpoint_ = attribute.s(0);
-                break;
+            }
+            else if(attribute.info().name() == "master_registration_endpoint"){
+                master_registration_endpoint_= attribute.s(0);
             }
         }
     }

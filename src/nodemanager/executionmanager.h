@@ -12,6 +12,7 @@
 #include "executionparser/protobufmodelparser.h"
 #include "environmentmanager/environment.h"
 #include <re_common/zmq/environmentrequester/environmentrequester.h>
+#include "zmq/registrar.h"
 
 namespace zmq{class ProtoWriter;};
 namespace Graphml{class ModelParser;};
@@ -34,6 +35,7 @@ class ExecutionManager{
 
         bool HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response);
         
+        std::string GetMasterRegistrationEndpoint();
         bool IsValid();
     private:
         void ExecutionLoop(double duration_sec) noexcept;
@@ -57,12 +59,15 @@ class ExecutionManager{
         
         std::string master_ip_addr_;
         std::string master_publisher_endpoint_;
+        std::string master_registration_endpoint_;
         std::string experiment_id_;
         std::string environment_manager_endpoint_;
 
         std::thread* execution_thread_ = 0;
 
         NodeManager::ControlMessage* deployment_message_;
+
+        std::unique_ptr<zmq::Registrar> registrar_;
 
         std::unordered_map<std::string, NodeManager::Node> deployment_map_;
 
