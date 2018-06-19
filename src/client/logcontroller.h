@@ -23,7 +23,7 @@
 
 #include <mutex>
 #include <condition_variable>
-#include <thread>
+#include <future>
 #include <unordered_map>
 #include <vector>
 #include <google/protobuf/message_lite.h>
@@ -56,7 +56,8 @@ class LogController{
         SystemInfo* system_ = 0;
         
         std::mutex state_mutex_;
-        std::thread* logging_thread_ = 0;
+
+        std::future<void> logging_future_;
         
         std::mutex one_time_mutex_;
         bool send_onetime_info_ = false;

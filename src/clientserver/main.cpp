@@ -32,7 +32,7 @@ int main(int ac, char** av){
         //Parse Argument variables
         boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
         boost::program_options::notify(vm);
-    }catch(boost::program_options::error& e) {
+    }catch(const boost::program_options::error& e) {
         std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
         std::cout << desc << std::endl;
         return 1;
@@ -44,13 +44,13 @@ int main(int ac, char** av){
         return 1;
     }
 
-
-    ClientServer client_server(*execution, address, experiment_id, environment_manager_address);
-    std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
-
-
-    if(client_server.ShouldRun()){
+    try{
+        ClientServer client_server(*execution, address, experiment_id, environment_manager_address);
+        std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
         execution->Start();
+    }catch(const std::exception& e){
+        std::cerr << e.what() << std::endl;
+        return 1;
     }
 
     return 0;

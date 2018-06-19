@@ -35,7 +35,7 @@ bool Server::Start(){
             handler->ConstructTables(database_);
             handler->BindCallbacks(receiver_);
         }
-        database_->BlockingFlush();
+        database_->Flush(true);
         std::cout << "* Constructed tables" << std::endl;
         running_ = true;
         success = receiver_->Start();

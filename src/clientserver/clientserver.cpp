@@ -4,7 +4,6 @@
 #include "server/hardwareprotohandler/hardwareprotohandler.h"
 #include <zmq.hpp>
 
-
 ClientServer::ClientServer(Execution& execution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address) : execution_(execution)
 {
 
@@ -19,14 +18,35 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
     requester_->AddUpdateCallback(std::bind(&ClientServer::HandleUpdate, this, std::placeholders::_1));
     requester_->Init(environment_manager_address_);
     requester_->SetIPAddress(address);
-
     requester_->Start();
 
-    auto message = requester_->GetLoganInfo(address);
 
-    if(message.type() != NodeManager::EnvironmentMessage::LOGAN_RESPONSE){
-        std::cerr << "Unrecognised response from environment manager." << std::endl;
-        throw std::runtime_error("Unrecognised response from environment manager.");
+    auto retry_count = 0;
+
+    NodeManager::EnvironmentMessage message;
+
+
+    while(retry_count ++ < MAX_RETRY_COUNT){
+        try{
+            message = requester_->GetLoganInfo(address);
+
+            switch(message.type()){
+                case NodeManager::EnvironmentMessage::LOGAN_RESPONSE:{
+                    //Got a valid response
+                    break;
+                }
+                default:{
+                    throw std::runtime_error("Unknown Type");
+                }
+            }
+            break;
+        }catch(const std::exception& ex){
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
+    }
+
+    if(retry_count >= MAX_RETRY_COUNT){
+        throw std::runtime_error("Couldn't communicate with Environment Manager.");
     }
 
     for(const auto logger : message.logger()){
@@ -53,11 +73,9 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
         }
     }
 
-    should_run_ = clients_.size() || servers_.size();
-}
-
-bool ClientServer::ShouldRun(){
-    return should_run_;
+    if(!clients_.size() && !servers_.size()){
+        throw std::runtime_error("Not needed");
+    }
 }
 
 void ClientServer::Terminate(){
@@ -68,6 +86,10 @@ void ClientServer::Terminate(){
     for(const auto& server : servers_){
         server->Terminate();
     }
+    
+    clients_.clear();
+    servers_.clear();
+    execution_.Interrupt();
 }
 
 void ClientServer::HandleUpdate(NodeManager::EnvironmentMessage& message){

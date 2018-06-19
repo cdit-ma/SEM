@@ -61,13 +61,13 @@ std::string LogController::GetSystemInfoJson(){
 
 bool LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(!logging_thread_){
+    if(!logging_future_.valid()){
         //Reset
         message_id_ = 0;
         pid_updated_times_.clear();
         std::lock_guard<std::mutex> lock(interupt_mutex_);
         interupt_ = false;
-        logging_thread_ = new std::thread(&LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
+        logging_future_ = std::async(std::launch::async, &LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
         return true;
     }
     return false;
@@ -75,11 +75,9 @@ bool LogController::Start(const std::string& publisher_endpoint, const double& f
 
 bool LogController::Stop(){
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(logging_thread_){
+    if(logging_future_.valid()){
         InteruptLogThread();
-        logging_thread_->join();
-        delete logging_thread_;
-        logging_thread_ = 0;
+        logging_future_.get();
         return true;
     }
     return false;
@@ -107,8 +105,8 @@ void LogController::QueueOneTimeInfo(){
 }
 
 void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
-    auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
     zmq::Monitor monitor;
+    auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
     
     monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
     writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
@@ -164,7 +162,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     }
     writer->Terminate();
     std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
-    //writer.reset();
+    writer.reset();
 }
 
 

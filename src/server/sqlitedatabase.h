@@ -23,7 +23,7 @@
 
 #include <string>
 #include <queue>
-#include <thread>
+#include <future>
 #include <mutex>
 #include <condition_variable>
 #include "sqlite3.h"
@@ -35,13 +35,12 @@ class SQLiteDatabase{
         
         sqlite3_stmt* GetSqlStatement(const std::string& query);
         void QueueSqlStatement(sqlite3_stmt * statement);
-        void BlockingFlush();
-        void Flush();
+        void Flush(bool blocking = false);
     private:
         sqlite3* database_ = 0;
         void ProcessQueue();
 
-        std::thread* writer_thread_;
+        std::future<void> writer_future;
 
         std::queue<sqlite3_stmt*> sql_queue_;
         std::mutex queue_mutex_;
@@ -50,5 +49,6 @@ class SQLiteDatabase{
         std::condition_variable flush_lock_condition_;
         bool terminate_ = false;
         bool flush_ = false;
+        bool blocking_flushed_ = false;
 };
 #endif //SQLITEDATABASE_H

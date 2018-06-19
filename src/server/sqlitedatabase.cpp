@@ -37,8 +37,7 @@ SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
         throw std::runtime_error("SQLite Failed to Open Database");
     }
 
-    //Start a writer thread
-    writer_thread_ = new std::thread(&SQLiteDatabase::ProcessQueue, this);
+    writer_future = std::async(std::launch::async, &SQLiteDatabase::ProcessQueue, this);
 }
 
 SQLiteDatabase::~SQLiteDatabase(){
@@ -49,9 +48,9 @@ SQLiteDatabase::~SQLiteDatabase(){
         queue_lock_condition_.notify_all();
     }
 
-    //Join and then delete the thread
-    writer_thread_->join();
-    delete writer_thread_;
+    if(writer_future.valid()){
+        writer_future.get();
+    }
     
     int result = sqlite3_close_v2(database_);
     if(result != SQLITE_OK){
@@ -86,21 +85,22 @@ void SQLiteDatabase::QueueSqlStatement(sqlite3_stmt *sql){
     }
 }
 
-void SQLiteDatabase::BlockingFlush(){
-    Flush();
-    
-    //Wait for return
-    std::unique_lock<std::mutex> lock(flush_mutex_);
-    flush_lock_condition_.wait(lock);
-}
 
-void SQLiteDatabase::Flush(){
+void SQLiteDatabase::Flush(bool blocking){
     //Gain the conditional lock
     {
         std::unique_lock<std::mutex> lock(queue_mutex_);
+        if(blocking){
+            blocking_flushed_ = false;
+        }
         flush_ = true;
         //Notify the sql thread
         queue_lock_condition_.notify_all();
+    }
+
+    if(blocking){
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        flush_lock_condition_.wait(lock, [this]{return blocking_flushed_;});
     }
 }
 
@@ -112,7 +112,8 @@ void SQLiteDatabase::ProcessQueue(){
         {
             //Wait for condition, if we don't have any SQL Statements.
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            queue_lock_condition_.wait(lock);
+            queue_lock_condition_.wait(lock, [this]{return terminate_ || flush_;});
+            
             terminate = terminate_;
             force_flush = terminate || flush_;
             //Unset the flush value
@@ -163,7 +164,8 @@ void SQLiteDatabase::ProcessQueue(){
 
         //Notify the Flush Function
         if(force_flush){
-            std::unique_lock<std::mutex> lock(flush_mutex_);
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            blocking_flushed_ = true;
             flush_lock_condition_.notify_all();
         }
 
