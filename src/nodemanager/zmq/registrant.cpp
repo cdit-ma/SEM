@@ -64,7 +64,6 @@ void zmq::Registrant::RegistrationLoop(){
             
             std::cerr << "HELLO1" << std::endl;
             auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
-            std::cerr << "HELLO2" << std::endl;
 
 
             std::cerr << slave_startup.DebugString() << std::endl;
@@ -91,5 +90,7 @@ void zmq::Registrant::RegistrationLoop(){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrant::RegistrationLoop():" << ex.what() << std::endl;
         }
+    }catch(const std::exception& e){
+        std::cerr << "zmq::Registrant::RegistrationLoop():" << e.what() << std::endl;
     }
 }
