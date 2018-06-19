@@ -170,8 +170,10 @@ DeploymentManager::~DeploymentManager(){
 }
 
 void DeploymentManager::Teardown(){
+    std::cerr << "LOL" << std::endl;
     ModelLogger::shutdown_logger();
     InteruptQueueThread();
+    std::cerr << "LOL2" << std::endl;
 }
 
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){
