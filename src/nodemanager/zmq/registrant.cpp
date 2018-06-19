@@ -35,8 +35,11 @@ void zmq::Registrant::RegistrationLoop(){
     auto socket = zmq::socket_t(*context_, ZMQ_REQ);
 
     try{
+        std::cerr << "TEARDOWN NOT CALLING FRIENDO" << std::endl;
         if(!deployment_manager_.QueryEnvironmentManager()){
+            std::cerr << "TEARDOWN NOT CALLING FRIENDO" << std::endl;
             deployment_manager_.Teardown();
+            std::cerr << "TEARDOWN NOT CALLING FRIENDO" << std::endl;
             return;
         }
 
