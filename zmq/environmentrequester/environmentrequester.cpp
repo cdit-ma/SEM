@@ -330,7 +330,7 @@ void EnvironmentRequester::RemoveDeployment(){
         NodeManager::EnvironmentMessage response_msg;
         response_msg.ParseFromString(response.get());
         if(response_msg.type() == NodeManager::EnvironmentMessage::SUCCESS){
-            std::cout << "Removed from environment manager." << std::endl;
+            std::cout << "* Removed from environment manager." << std::endl;
         }
     }
     catch(std::exception& ex){
