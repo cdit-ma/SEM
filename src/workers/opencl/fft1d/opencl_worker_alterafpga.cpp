@@ -55,7 +55,7 @@
 // compute N as 2^LOGN
 #define N (1 << LOGN)
 
-using namespace aocl_utils;
+//using namespace aocl_utils;
 
 // FFT operates with complex numbers - store them in a struct
 typedef struct {
@@ -71,6 +71,10 @@ typedef struct {
 // Function prototypes
 static void bit_reverse(float2* src, float2* dst, size_t num_floats);
 
+/**
+ * Re-arrange the elements of an array so that they are in bit reversed order:
+ * [0,1,2,3,4,5,6,7] -> [0,4,2,6,1,5,3,7] where eg 3 = 011 -> 110 = 6
+ **/
 void bit_reverse(float2* src, float2* dst, size_t num_elements) {
     int bit_length = LOGN - 1;
     
@@ -97,9 +101,15 @@ void bit_reverse(float2* src, float2* dst, size_t num_elements) {
     }
 }
 
+/**
+ * Performs a Fast Fourier Transform on the provided data, overwriting the input with the result
+ * Takes in a vector of length 8192, containing 4096 complex numbers in interleaved format:
+ * [r,i,r,i,r,i,...]
+ **/
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	cl_int status = 0;
 
+	// Altera implementation requires exactly N complex numbers
 	if (data.size() != N*2) {
          Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
                  "FFT implementation for FPGA requires data of length "+std::to_string(N)+", skipping calculation");
@@ -107,23 +117,26 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     }
     
     size_t data_size = sizeof(float2) * data.size() / 2;
-	float2* h_inData = (float2 *)alignedMalloc(data_size);
+	float2* h_inData = (float2 *)aocl_utils::alignedMalloc(data_size);
 
 	// For 0 padding if sizes < N are to be supported with fixed values of LOGN
     memset(h_inData, 0, data_size);
 	
-	float2* h_outData =  (float2 *)alignedMalloc(data_size);
+	float2* h_outData =  (float2 *)aocl_utils::alignedMalloc(data_size);
 	memcpy(h_inData, data.data(), data_size);
 	
 	// Create device buffers - assign the buffers in different banks for more efficient
 	// memory access 
 	cl_mem d_inData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE, data_size, NULL, &status);
-	checkError(status, "Failed to allocate input device buffer\n");
+	aocl_utils::checkError(status, "Failed to allocate input device buffer\n");
 	cl_mem d_outData = clCreateBuffer(manager_->GetContext()(), CL_MEM_READ_WRITE | CL_MEM_BANK_2_ALTERA, data_size, NULL, &status);
-	checkError(status, "Failed to allocate output device buffer\n");
+	aocl_utils::checkError(status, "Failed to allocate output device buffer\n");
 
+	/*
 	// TODO: update to pull the device index from the load balancer
 	int device_index = 0;
+	*/
+	const auto& device_index = load_balancer_->RequestDevice();
 
 	auto& device = devices_.at(device_index).get();
 	auto& send_queue = device.GetQueue().GetRef()();
@@ -131,7 +144,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	// Copy data from host to device
 	status = clEnqueueWriteBuffer(send_queue, d_inData, CL_TRUE, 0, data_size, h_inData, 0, NULL, NULL);
-	checkError(status, "Failed to copy data to device");
+	aocl_utils::checkError(status, "Failed to copy data to device");
 
 	// Can't pass bool to device, so convert it to int
 	int inverse_int = 0; //false
@@ -141,44 +154,47 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	auto fetch_kernel_lock = fpga_fetch_kernel_->AcquireLock();
 
 	// Set the kernel arguments
-	status = clSetKernelArg(fpga_fetch_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_inData);
-	checkError(status, "Failed to set kernel arg 0");
+	/*status = clSetKernelArg(fpga_fetch_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_inData);
+	aocl_utils::checkError(status, "Failed to set kernel arg 0");*/
+	fpga_fetch_kernel_->SetArgs(d_inData);
 
-	status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_outData);
-	checkError(status, "Failed to set kernel arg 0");
+	/*status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 0, sizeof(cl_mem), (void *)&d_outData);
+	aocl_utils::checkError(status, "Failed to set kernel arg 0");
 	status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 1, sizeof(cl_int), (void*)&iterations);
-	checkError(status, "Failed to set kernel arg 1");
+	aocl_utils::checkError(status, "Failed to set kernel arg 1");
 	status = clSetKernelArg(fpga_fft_kernel_->GetBackingRef()(), 2, sizeof(cl_int), (void*)&inverse_int);
-	checkError(status, "Failed to set kernel arg 2");
+	aocl_utils::checkError(status, "Failed to set kernel arg 2");*/
+	fpga_fft_kernel_->SetArgs(d_outData, iterations, inverse_int);
 
 	// Queue the FFT task
 	status = clEnqueueTask(send_queue, fpga_fft_kernel_->GetBackingRef()(), 0, NULL, NULL);
-	checkError(status, "Failed to launch kernel");
+	aocl_utils::checkError(status, "Failed to launch kernel");
 
 	size_t ls = N/8;
 	size_t gs = iterations * ls;
 	status = clEnqueueNDRangeKernel(fetch_queue.GetRef()(), fpga_fetch_kernel_->GetBackingRef()(), 1, NULL, &gs, &ls, 0, NULL, NULL);
-	checkError(status, "Failed to launch fetch kernel");
+	aocl_utils::checkError(status, "Failed to launch fetch kernel");
 
 	// Wait for command queue to complete pending events
 	status = clFinish(send_queue);
-	checkError(status, "Failed to finish");
+	aocl_utils::checkError(status, "Failed to finish");
 	status = clFinish(fetch_queue.GetRef()());
-	checkError(status, "Failed to finish queue1");
+	aocl_utils::checkError(status, "Failed to finish queue1");
 
 	fft_kernel_lock.unlock();
 	fetch_kernel_lock.unlock();
 
 	// Copy results from device to host
 	status = clEnqueueReadBuffer(send_queue, d_outData, CL_TRUE, 0, data_size, h_outData, 0, NULL, NULL);
-	checkError(status, "Failed to copy data from device");
+	aocl_utils::checkError(status, "Failed to copy data from device");
   
+	// Altera FPGA implementation leaves out the bit reversal, so it needs to be performed now on the CPU
     bit_reverse(h_outData, (float2*)data.data(), data.size()/2);
 
     clReleaseMemObject(d_inData);
     clReleaseMemObject(d_outData);
-    alignedFree(h_inData);
-    alignedFree(h_outData);
+    aocl_utils::alignedFree(h_inData);
+    aocl_utils::alignedFree(h_outData);
     h_inData = NULL;
     h_outData = NULL;
 
@@ -188,15 +204,15 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 bool OpenCL_Worker::InitFFT() {
     cl_int status;
 
-    // We'll just use the first device for now
-    //auto& device = devices_.at(0).get();
+	// Loop through all of the devices available to the worker for initialisation
 	for (auto& d_ref : devices_) {
 		auto& device = d_ref.get();
 
 		// Create the fetch queue.
 		fetch_queues_.emplace_back(*manager_, device);// = new OpenCLQueue(*manager_, device);
-		checkError(status, "Failed to create command queue");
+		//aocl_utils::checkError(status, "Failed to create command queue");
 
+		// Check if both required fft1d and fetch kernels are in the list of available kernels
 		int kernels_found=0;
 		for (auto& ref_wrapper : device.GetKernels()){
 			auto& kernel_ = ref_wrapper.get();
@@ -208,6 +224,11 @@ bool OpenCL_Worker::InitFFT() {
 		// Recreate the program from a binary if either kernel isn't present
 		if (kernels_found < 2) {
 			bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
+			if (!did_read_binary) {
+				Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+						"Unable to load kernels from fft1d.aocx binary");
+				return false;
+			}
 		}
 
 		// Create the kernel - name passed in here must match kernel name in the
