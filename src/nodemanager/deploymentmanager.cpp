@@ -57,8 +57,7 @@ bool DeploymentManager::QueryEnvironmentManager(){
     EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_, EnvironmentRequester::DeploymentType::RE_SLAVE);
     requester.Init(environment_manager_endpoint_);
 
-    int try_count = 0;
-    do{
+    while(true){
         NodeManager::ControlMessage response;
         
         try{
@@ -71,7 +70,7 @@ bool DeploymentManager::QueryEnvironmentManager(){
 
         switch(response.type()){
             case NodeManager::ControlMessage::TERMINATE:{
-                std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
+                //Node isn't part of execution
                 return false;
             }
             case NodeManager::ControlMessage::CONFIGURE:{
@@ -88,13 +87,12 @@ bool DeploymentManager::QueryEnvironmentManager(){
                 return master_registration_endpoint_.size() && master_registration_endpoint_.size();
             }
             default:{
-                std::this_thread::sleep_for(std::chrono::seconds(3));
+                std::this_thread::sleep_for(std::chrono::seconds(5));
                 //Please Continue
                 break;
             }
         }
-        try_count ++;
-    }while(try_count < RETRY_COUNT);
+    }
 
     return false;
 }
