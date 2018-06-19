@@ -17,25 +17,25 @@ Experiment::~Experiment(){
         for(const auto& node : node_map_){
             auto node_struct = *node.second;
             auto name = node_struct.info().name();
+            auto ip_address = node.first;
 
             if(management_port_map_.count(node.first)){
                 auto management_port = management_port_map_.at(node.first);
-                environment_.FreePort(name, management_port);
+                environment_.FreePort(ip_address, management_port);
 
             }
             if(modellogger_port_map_.count(node.first)){
                 auto modellogger_port = modellogger_port_map_.at(node.first);
-                environment_.FreePort(name, modellogger_port);
+                environment_.FreePort(ip_address, modellogger_port);
             }
             if(orb_port_map_.count(node.first)){
                 auto orb_port = orb_port_map_.at(node.first);
-                environment_.FreePort(name, orb_port);
+                environment_.FreePort(ip_address, orb_port);
             }
         }
         environment_.FreeManagerPort(manager_port_);
-        std::string master_node_name = node_id_map_.at(master_ip_address_);
-        environment_.FreePort(master_node_name, master_publisher_port_);
-        environment_.FreePort(master_node_name, master_registration_port_);
+        environment_.FreePort(master_ip_address_, master_publisher_port_);
+        environment_.FreePort(master_ip_address_, master_registration_port_);
     }
     catch(...){
         std::cout << "Could not delete deployment :" << model_name_ << std::endl;
@@ -67,22 +67,21 @@ void Experiment::SetMasterIp(const std::string& ip){
 
 void Experiment::AddNode(const NodeManager::Node& node){
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
-    auto node_name = node.info().name();
-    node_map_.emplace(node_name, std::move(temp));
-
     std::string ip_address;
+    auto node_name = node.info().name();
 
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
             ip_address = attribute.s(0);
             node_address_map_.insert({node_name, ip_address});
-            node_id_map_.insert({ip_address, node_name});
             break;
         }
     }
+    node_map_.emplace(ip_address, std::move(temp));
 
-    deployment_map_.insert({node_name, 0});
+
+    deployment_map_.insert({ip_address, 0});
 
     for(int i = 0; i < node.loggers_size(); i++){
         auto logger = node.loggers(i);
@@ -128,16 +127,16 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
             if(port.middleware() == NodeManager::ZMQ){
                 if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
-                    event_port.port_number = environment_.GetPort(node_name);
+                    event_port.port_number = environment_.GetPort(ip_address);
                 }
             }
             else if(port.middleware() == NodeManager::TAO){
-                if(!orb_port_map_.count(node_name)){
-                    auto orb_port = environment_.GetPort(node_name);
-                    orb_port_map_.insert({node_name, orb_port});    
+                if(!orb_port_map_.count(ip_address)){
+                    auto orb_port = environment_.GetPort(ip_address);
+                    orb_port_map_.insert({ip_address, orb_port});
                 }
 
-                event_port.port_number = orb_port_map_.at(node_name);
+                event_port.port_number = orb_port_map_.at(ip_address);
                 //Make a unique name
                 event_port.topic = port.info().name() + "_" + event_port.id;
             }
@@ -164,10 +163,10 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
             port_map_.insert({event_port.id, event_port});
         }
-        deployment_map_.at(node_name)++;
+        deployment_map_.at(ip_address)++;
     }
     
-    auto deploy_count = deployment_map_.at(node_name);
+    auto deploy_count = deployment_map_.at(ip_address);
     if(deploy_count > 0){
         std::cout << "Experiment[" << model_name_ << "] Node: " <<node_name << " Deployed: " << deploy_count << std::endl;
     }
@@ -175,6 +174,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
 void Experiment::ConfigureNode(NodeManager::Node& node){
     std::string node_name = node.info().name();
+    std::string ip_address = node_address_map_.at(node_name);
 
     if(node.components_size() > 0){
         //set modellogger port
@@ -187,7 +187,7 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
         logger_attribute->add_s(logger_port);
 
         //set master/slave port
-        auto management_port = environment_.GetPort(node_name);
+        auto management_port = environment_.GetPort(ip_address);
 
         auto management_endpoint_attribute = node.add_attributes();
         auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
@@ -195,8 +195,8 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
         management_endpoint_attribute_info->set_name("management_port");
         management_endpoint_attribute->add_s(management_port);
 
-        modellogger_port_map_.insert({node_name, logger_port});
-        management_port_map_.insert({node_name, management_port});
+        modellogger_port_map_.insert({ip_address, logger_port});
+        management_port_map_.insert({ip_address, management_port});
     }
 
     if(node.loggers_size() > 0){
@@ -217,15 +217,15 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
     }
 
     auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
-    node_map_.at(node_name).swap(temp);
+    node_map_.at(ip_address).swap(temp);
 }
 
-bool Experiment::HasDeploymentOn(const std::string& node_name) const {
-    if(deployment_map_.count(node_name)){
-        return deployment_map_.at(node_name) > 0;
+bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
+    if(deployment_map_.count(ip_address)){
+        return deployment_map_.at(ip_address) > 0;
     }
     else{
-        throw std::invalid_argument("No node found with ip " + node_name);
+        throw std::invalid_argument("No node found with ip " + ip_address);
     }
 }
 
@@ -263,26 +263,20 @@ NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std:
 
 std::string Experiment::GetMasterPublisherAddress(){
     if(master_publisher_port_.empty()){
-        std::string node_name = node_id_map_.at(master_ip_address_);
-        master_publisher_port_ = environment_.GetPort(node_name);
+        master_publisher_port_ = environment_.GetPort(master_ip_address_);
     }
     return "tcp://" + master_ip_address_ + ":" + master_publisher_port_;
 }
 
 std::string Experiment::GetMasterRegistrationAddress(){
     if(master_registration_port_.empty()){
-        std::string node_name = node_id_map_.at(master_ip_address_);
-        master_registration_port_ = environment_.GetPort(node_name);
+        master_registration_port_ = environment_.GetPort(master_ip_address_);
     }
     return "tcp://" + master_ip_address_ + ":" + master_registration_port_;
 }
 
-std::string Experiment::GetNodeManagementPort(const std::string& node_name) const{
-    return management_port_map_.at(node_name);
-}
-
-std::string Experiment::GetNodeModelLoggerPort(const std::string& node_name) const{
-    return modellogger_port_map_.at(node_name);
+std::string Experiment::GetNodeModelLoggerPort(const std::string& ip_address) const{
+    return modellogger_port_map_.at(ip_address);
 }
 
 std::set<std::string> Experiment::GetTopics() const{
