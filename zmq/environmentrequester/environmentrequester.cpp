@@ -80,13 +80,18 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     std::string reply;
     
     {
-        zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
-        initial_request_socket.connect(manager_address_);
-        ZMQSendRequest(initial_request_socket, message.SerializeAsString());
-        reply = ZMQReceiveReply(initial_request_socket);
+        auto initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
+        //zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
+        initial_request_socket->connect(manager_address_);
+        ZMQSendRequest(*initial_request_socket, message.SerializeAsString());
+        reply = ZMQReceiveReply(*initial_request_socket);
+        delete initial_request_socket;
     }
 
     if(reply.empty()){
+        std::cerr << "HELLO MY FRIEND" << std::endl;
+        //BY CONTEXt
+        context_.reset();
         throw std::runtime_error("Environment manager request timed out.");
     }
 
