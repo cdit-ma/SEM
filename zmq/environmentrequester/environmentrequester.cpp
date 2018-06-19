@@ -88,11 +88,8 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     }
 
     NodeManager::EnvironmentMessage reply_message;
-
     reply_message.ParseFromString(reply);
-
-    std::cerr << reply_message.DebugString() << std::endl;
-
+    
     return reply_message.control_message();
 }
 
