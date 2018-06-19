@@ -53,7 +53,9 @@ void zmq::Registrar::RegistrationLoop(){
 
                     //Handle a Request
                     auto slave_ip = slave_request.request().slave_ip();
-                    slave_response.set_allocated_startup(new NodeManager::SlaveStartup(execution_manager_.GetSlaveStartupMessage(slave_ip)));
+                    const auto slave_startup_ = execution_manager_.GetSlaveStartupMessage(slave_ip);
+
+                    slave_startup.set_allocated_startup(new NodeManager::SlaveStartup(slave_startup_));
                     zmq_response = Proto2Zmq(slave_startup);
                     break;
                 }
