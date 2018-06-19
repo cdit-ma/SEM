@@ -60,6 +60,7 @@ void zmq::Registrant::RegistrationLoop(){
             socket.recv(&zmq_slave_startup);
 
             auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
+            std::cerr << slave_startup.DebugString() << std::endl;
 
             if(slave_startup.type() == NodeManager::SlaveStartupMessage::STARTUP){
                 auto slave_response = deployment_manager_.HandleSlaveStartup(slave_startup.startup());
