@@ -11,25 +11,26 @@ Experiment::~Experiment(){
     try{
         for(const auto& port : port_map_){
             if(!port.second.port_number.empty()){
-                environment_.FreePort(port.second.node_name, port.second.port_number);
+                const auto& ip_address = port.second.node_ip;
+                environment_.FreePort(ip_address, port.second.port_number);
             }
         }
         for(const auto& node : node_map_){
             auto node_struct = *node.second;
             auto name = node_struct.info().name();
-            auto ip_address = node.first;
+            const auto& ip_address = node.first;
 
-            if(management_port_map_.count(node.first)){
-                auto management_port = management_port_map_.at(node.first);
+            if(management_port_map_.count(ip_address)){
+                auto management_port = management_port_map_.at(ip_address);
                 environment_.FreePort(ip_address, management_port);
 
             }
-            if(modellogger_port_map_.count(node.first)){
-                auto modellogger_port = modellogger_port_map_.at(node.first);
+            if(modellogger_port_map_.count(ip_address)){
+                auto modellogger_port = modellogger_port_map_.at(ip_address);
                 environment_.FreePort(ip_address, modellogger_port);
             }
-            if(orb_port_map_.count(node.first)){
-                auto orb_port = orb_port_map_.at(node.first);
+            if(orb_port_map_.count(ip_address)){
+                auto orb_port = orb_port_map_.at(ip_address);
                 environment_.FreePort(ip_address, orb_port);
             }
         }
@@ -38,7 +39,7 @@ Experiment::~Experiment(){
         environment_.FreePort(master_ip_address_, master_registration_port_);
     }
     catch(...){
-        std::cout << "Could not delete deployment :" << model_name_ << std::endl;
+        std::cerr << "Could not delete deployment :" << model_name_ << std::endl;
     }
     std::cout << "Removed experiment: " << model_name_ << std::endl;
 }
@@ -75,7 +76,6 @@ void Experiment::AddNode(const NodeManager::Node& node){
         if(attribute.info().name() == "ip_address"){
             ip_address = attribute.s(0);
             node_address_map_.insert({node_name, ip_address});
-            std::cout << "adding" << ip_address << "@" << node_name << std::endl;
             break;
         }
     }
@@ -115,8 +115,6 @@ void Experiment::AddNode(const NodeManager::Node& node){
         }
     }
 
-    std::cout << "comps" << std::endl;
-
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
         for(int j = 0; j < component.ports_size(); j++){
@@ -126,7 +124,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
             EventPort event_port;
             event_port.id = port.info().id();
             event_port.guid = port.port_guid();
-            event_port.node_name = node_name;
+            event_port.node_ip = ip_address;
 
             if(port.middleware() == NodeManager::ZMQ){
                 if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
@@ -168,9 +166,6 @@ void Experiment::AddNode(const NodeManager::Node& node){
         }
         deployment_map_.at(ip_address)++;
     }
-
-    std::cout << "end" << std::endl;
-
     
     auto deploy_count = deployment_map_.at(ip_address);
     if(deploy_count > 0){
@@ -180,7 +175,17 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
 void Experiment::ConfigureNode(NodeManager::Node& node){
     std::string node_name = node.info().name();
-    std::string ip_address = GetNodeIpByName(node_name);
+
+    std::string ip_address;
+
+    try{
+        ip_address = GetNodeIpByName(node_name);
+    }catch(const std::runtime_error& ex){
+        if(node.components_size() || node.loggers_size()){
+            throw std::runtime_error("Deployed to unknown node: " + node_name);
+        }
+    }
+
 
     if(node.components_size() > 0){
         //set modellogger port
@@ -313,10 +318,9 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
             }
 
             if(local_port){
-                auto node_name = port_map_.at(id).node_name;
+                auto node_ip = port_map_.at(id).node_ip;
                 auto port_assigned_port = port_map_.at(id).port_number;
-                std::cout << node_name << std::endl;
-                publisher_addresses.push_back("tcp://" + GetNodeIpByName(node_name) + ":" + port_assigned_port);
+                publisher_addresses.push_back("tcp://" + node_ip + ":" + port_assigned_port);
             }
             else{
                 //Check environment for public ports with this id
@@ -333,11 +337,11 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
     }
 
     else if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
-        auto node_name = port_map_.at(port.info().id()).node_name;
+        auto node_ip = port_map_.at(port.info().id()).node_ip;
 
         auto port_assigned_port = port_map_.at(port.info().id()).port_number;
 
-        std::string addr_string = "tcp://" + GetNodeIpByName(node_name) + ":" + port_assigned_port;
+        std::string addr_string = "tcp://" + node_ip + ":" + port_assigned_port;
 
         publisher_addresses.push_back(addr_string);
     }
@@ -356,10 +360,10 @@ std::string Experiment::GetTaoReplierServerAddress(const NodeManager::Port& port
         //Get those ports addresses
         for(auto id : replier_port_ids){
             auto& replier_port = port_map_.at(id);
-            auto node_name = replier_port.node_name;
+            auto node_ip = replier_port.node_ip;
             auto port_assigned_port = replier_port.port_number;
             auto port_server_name = replier_port.topic;
-            server_address = "corbaloc:iiop:" + GetNodeIpByName(node_name) + ":" + port_assigned_port + "/" +  port_server_name;
+            server_address = "corbaloc:iiop:" + node_ip + ":" + port_assigned_port + "/" +  port_server_name;
         }
     }
 
@@ -378,9 +382,9 @@ std::string Experiment::GetTaoServerName(const NodeManager::Port& port){
 
 
 std::string Experiment::GetOrbEndpoint(const std::string& port_id){
-    auto node_name = port_map_.at(port_id).node_name;
+    auto node_ip = port_map_.at(port_id).node_ip;
 
-    return GetNodeIpByName(node_name) + ":" + orb_port_map_.at(node_name);
+    return node_ip + ":" + orb_port_map_.at(node_ip);
 }
 
 bool Experiment::IsDirty() const{
@@ -438,14 +442,10 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
 }
 
 std::string Experiment::GetNodeIpByName(const std::string& node_name){
-    std::string out;
     try{
-        out = node_address_map_.at(node_name);
+        return node_address_map_.at(node_name);
     }
     catch(const std::exception& ex){
-        int a = 10/0;
-        std::cerr << "No node " << node_name << std::endl;
-
+        throw std::runtime_error(model_name_ + " has no registered node: '" + node_name + "'");
     }
-    return out;
 }

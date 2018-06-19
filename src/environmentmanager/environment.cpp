@@ -84,6 +84,7 @@ NodeManager::EnvironmentMessage Environment::GetLoganDeploymentMessage(const std
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetLoganDeploymentMessage(ip_address);
     }
+    throw std::invalid_argument("No experiment found called " + model_name);
 }
 
 
@@ -270,7 +271,6 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 //Get port from node specified.
 std::string Environment::GetPort(const std::string& ip_address){
     //Get first available port, store then erase it
-    std::cout << ip_address  << std::endl;
     if(node_map_.count(ip_address)){
         return node_map_.at(ip_address)->GetPort();
     }

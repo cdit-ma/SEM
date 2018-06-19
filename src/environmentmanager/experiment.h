@@ -96,7 +96,7 @@ struct EventPort{
     std::string id;
     std::string guid;
     std::string type;
-    std::string node_name;
+    std::string node_ip;
     std::string port_number;
     std::string topic;
 
