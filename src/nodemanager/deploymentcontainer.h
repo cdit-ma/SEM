@@ -43,9 +43,10 @@ class DeploymentContainer : public Activatable{
         std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
+        std::shared_ptr<Port> GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& eventport_pb);
+        
         std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
         
-        std::shared_ptr<Port> GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& eventport_pb);
         
         //Constructor functions
         std::shared_ptr<Port> ConstructPeriodicPort(std::weak_ptr<Component> component, const std::string& port_name);

@@ -157,7 +157,7 @@ bool ExecutionManager::HandleSlaveResponseMessage(const NodeManager::SlaveStartu
     if(slave_state == SlaveState::ERROR_){
         std::cerr << "* Slave: " << slave_hostname << " @ " << slave_ip << " Error!" << std::endl;
         for(const auto& error_str : response.error_codes()){
-            std::cerr << "* " << error_str << std::endl;
+            std::cerr << "* [" << slave_hostname << "]: " << error_str << std::endl;
         }
     }else{
         std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Online" << std::endl;

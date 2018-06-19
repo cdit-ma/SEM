@@ -104,42 +104,39 @@ NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const No
     bool success = true;
 
     const auto& host_name = startup.slave_host_name();
-    //Handle Logger setup
-    {   
-        const auto& logger = startup.logger();
+    
+    const auto& logger = startup.logger();
         
-        bool setup_logger = ModelLogger::setup_model_logger(host_name, logger.publisher_address(), (ModelLogger::Mode)logger.mode());
-        success = setup_logger ? success : false;
-
-        if(!setup_logger){
-            slave_response.add_error_codes("Setting Model Logger Failed");
-        }
+    //Handle Logger setup
+    if(!ModelLogger::setup_model_logger(host_name, logger.publisher_address(), (ModelLogger::Mode)logger.mode())){
+        slave_response.add_error_codes("Setting Model Logger Failed");
+        success = false;
     }
 
     //Setup our subscriber
-    {
-        if(subscriber_){
-            if(!subscriber_->Connect(master_publisher_endpoint_)){
-                slave_response.add_error_codes("Subscriber couldn't connect to: '" + master_publisher_endpoint_ + "'");
-                success = false;
-            }
-
-            if(!subscriber_->Filter(host_name + "*")){
-                slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
-                success = false;
-            }
-        }else{
+    if(subscriber_){
+        if(!subscriber_->Connect(master_publisher_endpoint_)){
+            slave_response.add_error_codes("Subscriber couldn't connect to: '" + master_publisher_endpoint_ + "'");
             success = false;
         }
+
+        if(!subscriber_->Filter(host_name + "*")){
+            slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
+            success = false;
+        }
+    }else{
+        success = false;
     }
 
-    {
-        bool configure_deployment = ConfigureDeploymentContainers(startup.configure());
-        success = configure_deployment ? success : false;
-        if(!configure_deployment){
-            slave_response.add_error_codes("Deployment Containers failed to be configured");
+    try{
+        if(success){
+            ConfigureDeploymentContainers(startup.configure());
         }
+    }catch(const std::exception& ex){
+        slave_response.add_error_codes(ex.what());
+        success = false;
     }
+
     slave_response.set_slave_ip(ip_address_);
     slave_response.set_success(success);
     return slave_response;
@@ -184,8 +181,7 @@ void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& con
     notify_lock_condition_.notify_all();
 }
 
-bool DeploymentManager::ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message){
-    bool success = true;
+void DeploymentManager::ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message){
     for(const auto& node : control_message.nodes()){
         const auto& node_name = node.info().name();
         
@@ -200,12 +196,11 @@ bool DeploymentManager::ConfigureDeploymentContainers(const NodeManager::Control
         }
         
         if(node_container){
-            success = node_container->Configure(node) ? success : false;
+            node_container->Configure(node);
         }else{
-            std::cerr << "DeploymentManager: Cannot find node '" << node_name << "'" << std::endl;
+            throw std::runtime_error("DeploymentManager: Cannot find node: " + node_name);
         }
     }
-    return success;
 }
 
 std::shared_ptr<DeploymentContainer> DeploymentManager::GetDeploymentContainer(const std::string& node_name){
@@ -241,7 +236,7 @@ void DeploymentManager::ProcessControlQueue(){
             switch(control_message.type()){
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
-                    auto success = ConfigureDeploymentContainers(control_message);
+                    ConfigureDeploymentContainers(control_message);
                     break;
                 }
                 case NodeManager::ControlMessage::ACTIVATE:{

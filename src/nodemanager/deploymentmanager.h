@@ -41,7 +41,7 @@ class DeploymentManager{
     private:
         std::shared_ptr<DeploymentContainer> GetDeploymentContainer(const std::string& node_name);
         void GotControlMessage(const NodeManager::ControlMessage& control_message);
-        bool ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message);
+        void ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message);
         void InteruptQueueThread();
 
         void ProcessControlQueue();
