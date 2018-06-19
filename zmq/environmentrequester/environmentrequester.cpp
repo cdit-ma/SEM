@@ -81,6 +81,8 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     auto context2 = new zmq::context_t();
     {
         auto initial_request_socket = new zmq::socket_t(*context2, ZMQ_REQ);
+        initial_request_socket->setsockopt(ZMQ_LINGER, 0);
+        
         //zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
         initial_request_socket->connect(manager_address_);
         ZMQSendRequest(*initial_request_socket, message.SerializeAsString());
