@@ -144,6 +144,17 @@ bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
 
+void ExecutionManager::GotSlaveTerminated(const std::string& slave_ip){
+    std::lock_guard<std::mutex> lock(slave_state_mutex_);
+
+    if(slave_states_.count(slave_ip)){
+        auto slave_hostname = GetSlaveHostName(slave_ip);
+        slave_states_[slave_ip] = SlaveState::OFFLINE;
+        std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Offline" << std::endl;
+        slave_state_cv_.notify_all();
+    }
+}
+
 bool ExecutionManager::HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response){
     auto slave_state = SlaveState::ERROR_;
 
@@ -163,16 +174,19 @@ bool ExecutionManager::HandleSlaveResponseMessage(const NodeManager::SlaveStartu
         std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Online" << std::endl;
     }
 
-    if(slave_states_.count(slave_ip)){
-        slave_states_[slave_ip] = slave_state;
-
-        if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
-            bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
-            TriggerExecution(should_execute);
+    {
+        std::lock_guard<std::mutex> lock(slave_state_mutex_);
+        if(slave_states_.count(slave_ip)){
+            slave_states_[slave_ip] = slave_state;
         }
-        return true;
     }
-    return false;
+
+    if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
+        bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
+        
+        TriggerExecution(should_execute);
+    }
+    return true;
 }
 
 std::string ExecutionManager::GetSlaveHostName(const std::string& slave_ip){
@@ -216,6 +230,11 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
 }
 
 int ExecutionManager::GetSlaveStateCount(const SlaveState& state){
+    std::lock_guard<std::mutex> lock(slave_state_mutex_);
+    return GetSlaveStateCountTS(state);
+}
+
+int ExecutionManager::GetSlaveStateCountTS(const SlaveState& state){
     int count = 0;
     for(const auto& ss : slave_states_){
         if(ss.second == state){
@@ -269,6 +288,7 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
         }
     }
 
+    std::lock_guard<std::mutex> lock(slave_state_mutex_);
     if(node.components_size() > 0){
         std::cout << "* Slave: '" << node.info().name() << "' Deploys:" << std::endl;
 
@@ -346,6 +366,21 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
 
+
+    std::cout << "--------[Slave De-registration]--------" << std::endl;
+    //Actively polling for our nodes to be dead
+    while(true){
+        std::unique_lock<std::mutex> lock(slave_state_mutex_);
+        
+        auto all_offline = slave_state_cv_.wait_for(lock, std::chrono::seconds(1), [this]{
+            return GetSlaveStateCountTS(SlaveState::ONLINE) == 0;
+        });
+
+        if(all_offline){
+            break;
+        }
+    }
+    
     if(!local_mode_){
         requester_->RemoveDeployment();
     }

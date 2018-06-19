@@ -65,6 +65,11 @@ void zmq::Registrar::RegistrationLoop(){
                     //Don't really need to send anything
                     break;
                 }
+                case NodeManager::SlaveStartupMessage::TERMINATED:{
+                    auto slave_ip = slave_request.request().slave_ip();
+                    execution_manager_.GotSlaveTerminated(slave_ip);
+                    break;
+                }
                 default:{
                     std::cerr << "zmq::Registrar::RegistrationLoop(): Unexceptected Slave Startup Message" << std::endl;
                     break;

@@ -19,15 +19,17 @@ zmq::Registrant::Registrant(DeploymentManager& deployment_manager):
 }
 
 zmq::Registrant::~Registrant(){
-    std::lock_guard<std::mutex> lock(mutex_);
-    
     if(context_){
         delete context_;
         context_ = 0;
     }
-
     registration_loop_.get();
-    deployment_manager_.Teardown();
+}
+
+void  zmq::Registrant::SendTerminated(){
+    std::unique_lock<std::mutex> lock(terminated_mutex_);
+    terminated_ = true;
+    terminated_cv_.notify_all();
 }
 
 //CLient
@@ -79,6 +81,17 @@ void zmq::Registrant::RegistrationLoop(){
             zmq::message_t zmq_master_response;
             socket.recv(&zmq_master_response);
         }
+        
+        std::unique_lock<std::mutex> lock(terminated_mutex_);
+        terminated_cv_.wait(lock, [this]{return terminated_;});
+
+        NodeManager::SlaveStartupMessage slave_request;
+        slave_request.set_type(NodeManager::SlaveStartupMessage::TERMINATED);
+        slave_request.mutable_request()->set_slave_ip(slave_ip_address);
+        socket.send(Proto2Zmq(slave_request));
+
+        zmq::message_t zmq_master_response;
+        socket.recv(&zmq_master_response);
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrant::RegistrationLoop():" << ex.what() << std::endl;

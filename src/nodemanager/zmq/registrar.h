@@ -19,6 +19,7 @@ namespace zmq{
         private:
             void RegistrationLoop();
 
+
             ExecutionManager& execution_manager_;
             std::future<void> registration_loop_;
             zmq::context_t* context_ = 0;

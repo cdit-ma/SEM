@@ -36,11 +36,9 @@ DeploymentManager::DeploymentManager(bool on_master_node,
     //Subscribe to NodeManager::ControlMessage Types
     subscriber_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
 
-    if(!control_queue_thread_){
-        //Construct a thread to process the control queue
-        control_queue_thread_ = new std::thread(&DeploymentManager::ProcessControlQueue, this);
-    }
-
+    //Construct a thread to process the control queue
+    control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
+    
     subscriber_->Start();
     
     registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
@@ -89,7 +87,7 @@ bool DeploymentManager::QueryEnvironmentManager(){
                 return master_registration_endpoint_.size() && master_registration_endpoint_.size();
             }
             default:{
-                std::this_thread::sleep_for(std::chrono::seconds(5));
+                std::this_thread::sleep_for(std::chrono::seconds(1));
                 //Please Continue
                 break;
             }
@@ -159,11 +157,8 @@ DeploymentManager::~DeploymentManager(){
         subscriber_ =  0;
     }
 
-    if(control_queue_thread_){
-        control_queue_thread_->join();
-        delete control_queue_thread_;
-        control_queue_thread_ = 0;
-    }
+
+    control_queue_future_.get();
 }
 
 void DeploymentManager::Teardown(){
@@ -259,6 +254,13 @@ void DeploymentManager::ProcessControlQueue(){
                     for(const auto& c : deployment_containers_){
                         success = c.second->Terminate() ? success : false;
                     }
+                    
+                    //Shutdown the Logger
+                    ModelLogger::shutdown_logger();
+                    //Send the NodeManagerMaster that we are dead
+                    registrant_->SendTerminated();
+                    
+                    //Interupt and die
                     InteruptQueueThread();
                     if(!on_master_node_){
                         execution_->Interrupt();

@@ -33,6 +33,8 @@ class ExecutionManager{
         std::vector<std::string> GetSlaveAddresses();
         const NodeManager::SlaveStartup GetSlaveStartupMessage(const std::string& slave_ip);
 
+        void GotSlaveTerminated(const std::string& slave_ip);
+
         bool HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response);
         
         std::string GetMasterRegistrationEndpoint();
@@ -44,9 +46,11 @@ class ExecutionManager{
         void TerminateExecution();
 
         int GetSlaveStateCount(const SlaveState& state);
+        
         void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
         bool Finished();
     private:
+        int GetSlaveStateCountTS(const SlaveState& state);
         void TriggerExecution(bool execute);
 
         std::string GetSlaveHostName(const std::string& slave_ip);
@@ -86,7 +90,10 @@ class ExecutionManager{
         zmq::ProtoWriter* proto_writer_;
         std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
 
+        std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
+        std::condition_variable slave_state_cv_;
+
 };
 
 #endif //EXECUTIONMANAGER_H

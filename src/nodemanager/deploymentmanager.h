@@ -75,7 +75,7 @@ class DeploymentManager{
         bool terminate_ = false;
         std::mutex notify_mutex_;
         
-        std::thread* control_queue_thread_ = 0;
+        std::future<void> control_queue_future_;
         std::condition_variable notify_lock_condition_;
 };
 
