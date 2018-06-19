@@ -193,15 +193,33 @@ message Logger{
     repeated string processes = 10;
 }
 
-message Startup{
-    string host_name = 1;
-    string publisher_address = 2;
-    Logger logger = 3;
-    ControlMessage configure = 4;
+message SlaveStartupRequest{
+    string slave_ip = 1;
 }
 
-message StartupResponse{
-    string host_name = 1;
+message SlaveStartup{
+    string slave_host_name = 1;
+    Logger logger = 2;
+    ControlMessage configure = 3;
+
+    string master_publisher_address = 4;
+}
+
+message SlaveStartupResponse{
+    string slave_ip = 1;
     bool success = 2;
     repeated string error_codes = 3;
+}
+
+message SlaveStartupMessage{
+    enum Type{
+        REQUEST = 0;
+        STARTUP = 1;
+        RESPONSE = 2;
+        ACKNOWLEDGE = 3;
+    }
+    Type type = 1;
+    SlaveStartupRequest request = 2;
+    SlaveStartup startup = 3;
+    SlaveStartupResponse response = 4;
 }

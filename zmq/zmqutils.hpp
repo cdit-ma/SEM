@@ -20,6 +20,15 @@ namespace zmq{
         return zmq::message_t(str.c_str(), str.size());
     };
 
+    template <class ProtoType>
+    ProtoType Zmq2Proto(const zmq::message_t& message){
+        ProtoType type;
+
+        if(type.ParseFromArray(message.data(), message.size())){
+            return type;
+        }
+        throw std::runtime_error("Cannot Parse");
+    };
 }
 
 #endif //RE_COMMON_ZMQ_UTILS_HPP
