@@ -301,12 +301,7 @@ void Environment::FreeManagerPort(const std::string& port){
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& node_ip) const{
     if(experiment_map_.count(model_name)){
         std::string node_name;
-        try{
-            node_name = node_name_map_.at(node_ip);
-        }
-        catch(const std::exception& ex){
-        }
-        return experiment_map_.at(model_name)->HasDeploymentOn(node_name);
+        return experiment_map_.at(model_name)->HasDeploymentOn(node_ip);
     }
     return false;
 }
@@ -338,7 +333,7 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& model_n
 
 std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(node_name_map_.at(ip_address));
+        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(ip_address);
     }
     return "";
 }
