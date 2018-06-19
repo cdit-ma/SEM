@@ -234,8 +234,7 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
 
-    experiment_id = message.experiment_id();
-    if(environment_->ModelNameExists(experiment_id)){
+    if(environment_.ModelNameExists(message.experiment_id())){
         auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
 
         *message.mutable_logger() = {loggers.begin(), loggers.end()};
