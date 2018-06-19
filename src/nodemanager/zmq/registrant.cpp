@@ -69,12 +69,12 @@ void zmq::Registrant::RegistrationLoop(){
             std::cerr << slave_startup.DebugString() << std::endl;
 
             if(slave_startup.type() == NodeManager::SlaveStartupMessage::STARTUP){
-                auto slave_response = deployment_manager_.HandleSlaveStartup(slave_startup.startup());
+                const auto& slave_response = deployment_manager_.HandleSlaveStartup(slave_startup.startup());
 
                 //Send our NodeManager::StartupResponse
                 NodeManager::SlaveStartupMessage response;
                 response.set_type(NodeManager::SlaveStartupMessage::RESPONSE);
-                response.set_allocated_response(&slave_response);
+                response.set_allocated_response(new NodeManager::SlaveStartupResponse(slave_response));
                 socket.send(Proto2Zmq(response));
             }else{
                 return;
