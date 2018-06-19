@@ -70,7 +70,9 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
+    std::cerr  << "CACHED PROTO WRITER" << std::endl;
     Terminate();
+    std::cerr  << "!CACHED PROTO WRITER" << std::endl;
 }
 
 //Takes ownership of message

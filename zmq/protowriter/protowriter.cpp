@@ -34,7 +34,9 @@ zmq::ProtoWriter::ProtoWriter(){
 }
 
 zmq::ProtoWriter::~ProtoWriter(){
+    std::cerr  << "ProtoWriter PROTO WRITER" << std::endl;
     Terminate();
+    std::cerr  << "ProtoWriter PROTO WRITER" << std::endl;
 }
 
 bool zmq::ProtoWriter::AttachMonitor(zmq::Monitor* monitor, const int event_type){
