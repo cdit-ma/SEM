@@ -36,8 +36,8 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
 
-    registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
     
+
     master_ip_addr_ = master_ip_addr;
     experiment_id_ = experiment_id;
     environment_manager_endpoint_ = environment_manager_endpoint;
@@ -61,6 +61,7 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     parse_succeed_ = PopulateDeployment();
     if(parse_succeed_){
         ConstructControlMessages();
+        registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
     }
 
     auto end = std::chrono::steady_clock::now();
