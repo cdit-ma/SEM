@@ -151,17 +151,35 @@ for(def i = 0; i < nodes.size(); i++){
                     args += " -a " + ip_addr
                     args += " -l ."
 
+                    def logan_args = ""
+                    logan_args += " -n " + experiment_name
+                    logan_args += " -e " + env_manager_addr
+                    logan_args += " -a " + ip_addr
+
                     if(node_name == master_node){
                         unstash 'model'
                         args += " -t " + execution_time
                         args += " -d " + MODEL_FILE
                     }
 
-                    //Run re_node_manager
-                    if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                        FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
-                        FAILED = true
-                    }
+                    parallel(
+                        ("LOGAN_ " + node_name): {
+                            //Run re_node_manager
+                            if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
+                        },
+                        ("RE_ " + node_name): {
+                            //Run re_node_manager
+                            if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
+                        }
+                    )
+
+                    archiveArtifacts artifacts: '**.sql'
                 }
                 //Delete the Dir
                 if(CLEANUP){
