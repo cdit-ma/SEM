@@ -19,7 +19,6 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
             auto publisher_addresses = environment_.GetPublisherAddress(message.experiment_id(), event_port);
             if(event_port.kind() == NodeManager::Port::PUBLISHER){
                 publisher_address_attr->add_s(publisher_addresses.at(0));
-
             }
             else{
                 for(auto id : publisher_addresses){

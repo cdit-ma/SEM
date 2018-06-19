@@ -265,6 +265,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 //Get port from node specified.
 std::string Environment::GetPort(const std::string& ip_address){
     //Get first available port, store then erase it
+    std::cout << ip_address  << std::endl;
     if(node_map_.count(ip_address)){
         return node_map_.at(ip_address)->GetPort();
     }
@@ -300,7 +301,6 @@ void Environment::FreeManagerPort(const std::string& port){
 
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& node_ip) const{
     if(experiment_map_.count(model_name)){
-        std::string node_name;
         return experiment_map_.at(model_name)->HasDeploymentOn(node_ip);
     }
     return false;
