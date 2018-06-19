@@ -292,7 +292,6 @@ void EnvironmentRequester::HeartbeatLoop(){
             SendRequest(*update_socket, request);
         }
     }
-    std::cerr << "EnvironmentRequester::HeartbeatLoop !" << std::endl;
     if(retry_count >= 5){
         std::cerr << "EnvironmentRequester::HeartbeatLoop Timed out" << std::endl;
     }
@@ -351,6 +350,7 @@ void EnvironmentRequester::RemoveDeployment(){
         response_msg.ParseFromString(response.get());
         if(response_msg.type() == NodeManager::EnvironmentMessage::SUCCESS){
             std::cout << "* Removed from environment manager." << std::endl;
+            End();
         }
     }
     catch(std::exception& ex){

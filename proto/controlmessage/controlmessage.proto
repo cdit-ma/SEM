@@ -217,6 +217,7 @@ message SlaveStartupMessage{
         STARTUP = 1;
         RESPONSE = 2;
         ACKNOWLEDGE = 3;
+        TERMINATED = 4;
     }
     Type type = 1;
     SlaveStartupRequest request = 2;
