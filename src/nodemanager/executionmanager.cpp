@@ -210,7 +210,8 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
     startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
     startup.mutable_logger()->set_publisher_address("tcp://" + slave_ip + ":" + logger_port);
 
-    startup.set_master_publisher_address(master_publisher_endpoint_);
+    std::cerr  << "master_publisher_endpoint_: " <<  master_publisher_endpoint_ << std::endl;
+    startup.set_master_publisher_endpoint(master_publisher_endpoint_);
     startup.set_slave_host_name(slave_name);
     return startup;
 }
