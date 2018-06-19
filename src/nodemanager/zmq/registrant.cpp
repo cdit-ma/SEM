@@ -37,6 +37,7 @@ void zmq::Registrant::RegistrationLoop(){
 
     try{
         if(!deployment_manager_.QueryEnvironmentManager()){
+            deployment_manager_.Teardown();
             return;
         }
 
