@@ -233,8 +233,7 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-
-std::cout << "logan query" << std::endl;
+    std::cout << "logan query" << std::endl;
 
     std::cout << environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).DebugString() << std::endl;
 
