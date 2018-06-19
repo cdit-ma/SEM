@@ -40,6 +40,10 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
             server_address_attr->add_s(connected_address.at(0));
             break;
         }
+
+        default:{
+            break;
+        }
     }
 }
 void Zmq::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){

@@ -124,7 +124,7 @@ class Experiment{
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_port);
 
-        void SetMasterPublisherIp(const std::string& ip);
+        void SetMasterIp(const std::string& ip);
 
         void AddNode(const NodeManager::Node& node);
         void ConfigureNode(NodeManager::Node& node);
@@ -133,7 +133,9 @@ class Experiment{
 
         NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string& ip_address);
 
-        std::string GetMasterPublisherPort();
+        std::string GetMasterPublisherAddress();
+        std::string GetMasterRegistrationAddress();
+
         std::string GetNodeManagementPort(const std::string& ip) const;
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
 
@@ -162,7 +164,8 @@ class Experiment{
 
         NodeManager::ControlMessage deployment_message_;
         std::string model_name_;
-        std::string master_port_;
+        std::string master_publisher_port_;
+        std::string master_registration_port_;
         std::string master_ip_address_;
         std::string manager_port_;
 

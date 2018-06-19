@@ -315,25 +315,27 @@ bool Environment::ModelNameExists(const std::string& model_name) const{
     return experiment_map_.count(model_name);
 }
 
-std::string Environment::GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address){
+void Environment::SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
-        try{
-            experiment_map_.at(model_name)->SetMasterPublisherIp(master_ip_address);
-            return experiment_map_.at(model_name)->GetMasterPublisherPort();
-        }catch(std::runtime_error ex){
-            std::cerr << "Could not find experiment " << model_name << std::endl;
-            return "";
-        }
+        return experiment_map_.at(model_name)->SetMasterIp(ip_address);
+    }
+}
+
+
+std::string Environment::GetMasterPublisherAddress(const std::string& model_name){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetMasterPublisherAddress();
     }
     return "";
 }
 
-std::string Environment::GetNodeManagementPort(const std::string& model_name, const std::string& ip_address){
+std::string Environment::GetMasterRegistrationAddress(const std::string& model_name){
     if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeManagementPort(node_name_map_.at(ip_address));
+        return experiment_map_.at(model_name)->GetMasterRegistrationAddress();
     }
     return "";
 }
+
 std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetNodeModelLoggerPort(node_name_map_.at(ip_address));

@@ -44,8 +44,11 @@ class Environment{
 
         bool ModelNameExists(const std::string& model_name) const;
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;
-        std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
-        std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
+        
+        void SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address);
+
+        std::string GetMasterPublisherAddress(const std::string& model_name);
+        std::string GetMasterRegistrationAddress(const std::string& model_name);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
         std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);

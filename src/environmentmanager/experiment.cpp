@@ -34,7 +34,8 @@ Experiment::~Experiment(){
         }
         environment_.FreeManagerPort(manager_port_);
         std::string master_node_name = node_id_map_.at(master_ip_address_);
-        environment_.FreePort(master_node_name, master_port_);
+        environment_.FreePort(master_node_name, master_publisher_port_);
+        environment_.FreePort(master_node_name, master_registration_port_);
     }
     catch(...){
         std::cout << "Could not delete deployment :" << model_name_ << std::endl;
@@ -60,7 +61,7 @@ void Experiment::SetManagerPort(const std::string& manager_port){
     manager_port_ = manager_port;
 }
 
-void Experiment::SetMasterPublisherIp(const std::string& ip){
+void Experiment::SetMasterIp(const std::string& ip){
     master_ip_address_ = ip;
 }
 
@@ -260,12 +261,20 @@ NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std:
     return message;
 }
 
-std::string Experiment::GetMasterPublisherPort(){
-    if(master_port_.empty()){
+std::string Experiment::GetMasterPublisherAddress(){
+    if(master_publisher_port_.empty()){
         std::string node_name = node_id_map_.at(master_ip_address_);
-        master_port_ = environment_.GetPort(node_name);
+        master_publisher_port_ = environment_.GetPort(node_name);
     }
-    return master_port_;
+    return "tcp://" + master_ip_address_ + ":" + master_publisher_port_;
+}
+
+std::string Experiment::GetMasterRegistrationAddress(){
+    if(master_registration_port_.empty()){
+        std::string node_name = node_id_map_.at(master_ip_address_);
+        master_registration_port_ = environment_.GetPort(node_name);
+    }
+    return "tcp://" + master_ip_address_ + ":" + master_registration_port_;
 }
 
 std::string Experiment::GetNodeManagementPort(const std::string& node_name) const{
