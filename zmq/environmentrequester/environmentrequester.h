@@ -49,6 +49,8 @@ class EnvironmentRequester{
             std::promise<std::string>* response_;
         };
 
+        std::unique_ptr<zmq::socket_t> ConstructRequestPort();
+
         DeploymentType deployment_type_;
 
         //Constants

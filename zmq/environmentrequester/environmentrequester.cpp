@@ -55,6 +55,16 @@ void EnvironmentRequester::SetIPAddress(const std::string& ip_addr){
     ip_address_ = ip_addr;
 }
 
+
+std::unique_ptr<zmq::socket_t> EnvironmentRequester::ConstructRequestPort(){
+    auto socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
+    if(socket){
+        //Linger to handle shutdown of sockets which have already sent
+        socket->setsockopt(ZMQ_LINGER, 0);
+    }
+    return std::move(socket);
+}
+
 NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& node_endpoint){
     //Construct query message
 
@@ -78,23 +88,14 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //      this is important as we cant destruct our context otherwise
     
     std::string reply;
-    auto context2 = new zmq::context_t();
     {
-        auto initial_request_socket = new zmq::socket_t(*context2, ZMQ_REQ);
-        initial_request_socket->setsockopt(ZMQ_LINGER, 0);
-        
-        //zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
+        auto initial_request_socket = ConstructRequestPort();
         initial_request_socket->connect(manager_address_);
         ZMQSendRequest(*initial_request_socket, message.SerializeAsString());
         reply = ZMQReceiveReply(*initial_request_socket);
-        delete initial_request_socket;
     }
-    delete context2;
 
     if(reply.empty()){
-        std::cerr << "HELLO MY FRIEND" << std::endl;
-        //BY CONTEXt
-        //context_.reset();
         throw std::runtime_error("Environment manager request timed out.");
     }
 
@@ -110,11 +111,11 @@ std::vector<std::string> EnvironmentRequester::GetLoganClientList(){
     message.set_experiment_id(experiment_id_);
     message.set_type(NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY);
 
-    zmq::socket_t socket(*context_, ZMQ_REQ);
-    socket.connect(manager_address_);
+    auto socket = ConstructRequestPort();
+    socket->connect(manager_address_);
 
-    ZMQSendRequest(socket, message.SerializeAsString());
-    auto reply = ZMQReceiveReply(socket);
+    ZMQSendRequest(*socket, message.SerializeAsString());
+    auto reply = ZMQReceiveReply(*socket);
 
     if(reply.empty()){
         throw std::runtime_error("Request timed out when getting logan clients.");
@@ -162,10 +163,10 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
         assert(false);
     }
 
-    zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
+    auto initial_request_socket = ConstructRequestPort();
 
     try{
-        initial_request_socket.connect(manager_endpoint_);
+        initial_request_socket->connect(manager_endpoint_);
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop manager endpoint" << std::endl;
@@ -194,8 +195,8 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
 
     initial_message.set_experiment_id(experiment_id_);
 
-    ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
-    auto reply = ZMQReceiveReply(initial_request_socket);
+    ZMQSendRequest(*initial_request_socket, initial_message.SerializeAsString());
+    auto reply = ZMQReceiveReply(*initial_request_socket);
 
     //Get update socket address as reply
     if(!reply.empty()){
@@ -219,9 +220,9 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
     }
 
     //Connect to our update socket
-    zmq::socket_t update_socket(*context_, ZMQ_REQ);
+    auto update_socket = ConstructRequestPort();
     try{
-        update_socket.connect(manager_update_endpoint_);
+        update_socket->connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop update socket" << std::endl;
@@ -243,8 +244,8 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             if(trigger == std::cv_status::timeout){
                 std::string output;
                 message.SerializeToString(&output);
-                ZMQSendRequest(update_socket, output);
-                auto reply = ZMQReceiveReply(update_socket);
+                ZMQSendRequest(*update_socket, output);
+                auto reply = ZMQReceiveReply(*update_socket);
                 if(reply.empty()){
                     //TODO: Run shutdown callback from here!
                     std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
@@ -265,7 +266,7 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             else if(trigger == std::cv_status::no_timeout){
                 auto request = request_queue_.front();
                 request_queue_.pop();
-                SendRequest(update_socket, request);
+                SendRequest(*update_socket, request);
             }
         }
 
@@ -274,7 +275,7 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             std::unique_lock<std::mutex> lock(request_queue_lock_);
             auto request = request_queue_.front();
             request_queue_.pop();
-            SendRequest(update_socket, request);
+            SendRequest(*update_socket, request);
         }
     }
 }
