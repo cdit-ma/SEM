@@ -44,7 +44,6 @@ void zmq::Registrant::RegistrationLoop(){
         auto slave_ip_address = deployment_manager_.GetSlaveIPAddress();
         auto master_registration_endpoint = deployment_manager_.GetMasterRegistrationEndpoint();
 
-        std::cerr << "Connecting Master Registration Endpoint: " << master_registration_endpoint << std::endl;
         socket.connect(master_registration_endpoint.c_str());
 
         {
@@ -53,20 +52,13 @@ void zmq::Registrant::RegistrationLoop(){
             slave_request.set_type(NodeManager::SlaveStartupMessage::REQUEST);
             slave_request.mutable_request()->set_slave_ip(slave_ip_address);
             socket.send(Proto2Zmq(slave_request));
-            std::cerr << "HAVE WE SENT" << std::endl;
         }
         {
             //Recieve the startup request
             zmq::message_t zmq_slave_startup;
             socket.recv(&zmq_slave_startup);
 
-            //std::cerr << zmq_slave_startup.data() << std::endl;
-            
-            std::cerr << "HELLO1" << std::endl;
             auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
-
-
-            std::cerr << slave_startup.DebugString() << std::endl;
 
             if(slave_startup.type() == NodeManager::SlaveStartupMessage::STARTUP){
                 const auto& slave_response = deployment_manager_.HandleSlaveStartup(slave_startup.startup());

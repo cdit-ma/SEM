@@ -70,13 +70,14 @@ void zmq::Registrar::RegistrationLoop(){
                     break;
                 }
             }
-            std::cerr << "Registrar: SENDING RESPONSE " << std::endl;
-            std::cerr << zmq_response.size() << std::endl;
+            
             socket.send(zmq_response);
         }
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrar::RegistrationLoop():" << ex.what() << std::endl;
         }
+    }catch(const std::exception& e){
+        std::cerr << "zmq::Registrar::RegistrationLoop():" << e.what() << std::endl;
     }
 }
