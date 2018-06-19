@@ -53,11 +53,14 @@ void zmq::Registrant::RegistrationLoop(){
             slave_request.set_type(NodeManager::SlaveStartupMessage::REQUEST);
             slave_request.mutable_request()->set_slave_ip(slave_ip_address);
             socket.send(Proto2Zmq(slave_request));
+            std::cerr << "HAVE WE SENT" << std::endl;
         }
         {
             //Recieve the startup request
             zmq::message_t zmq_slave_startup;
             socket.recv(&zmq_slave_startup);
+
+            std::cerr << zmq_slave_startup.data() << std::endl;
 
             auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
             std::cerr << slave_startup.DebugString() << std::endl;
