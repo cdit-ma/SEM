@@ -316,6 +316,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     std::cout << "-------------[Execution]------------" << std::endl;
 
     if(execute){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         std::cout << "* Activating Deployment" << std::endl;
         
         //Send Activate function
