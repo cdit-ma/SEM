@@ -233,13 +233,17 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-    std::cout << "logan query" << std::endl;
 
-    std::cout << environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).DebugString() << std::endl;
+    experiment_id = message.experiment_id();
+    if(environment_->ModelNameExists(experiment_id)){
+        auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
 
-    auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
+        *message.mutable_logger() = {loggers.begin(), loggers.end()};
 
-    *message.mutable_logger() = {loggers.begin(), loggers.end()};
+        message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+    }
+    else{
+        message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+    }
 
-    message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
 }
