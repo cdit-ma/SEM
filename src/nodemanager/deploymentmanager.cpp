@@ -65,6 +65,7 @@ bool DeploymentManager::QueryEnvironmentManager(){
         try{
             response = requester.NodeQuery(ip_address_);
         }catch(const std::runtime_error& ex){
+            std::cerr << ex.what() << std::endl;
             //Communication with environment manager has likely timed out. Return blank string.
             std::cerr << "Response from env manager timed out, terminating" << std::endl;
             return false;
