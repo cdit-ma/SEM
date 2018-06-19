@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <cctype>
 
-ExecutionManager::ExecutionManager(const std::string& endpoint,
+ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
                                     const std::string& graphml_path,
                                     double execution_duration,
                                     Execution* execution,
@@ -35,7 +35,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
         execution_ = execution;
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
-    master_endpoint_ = endpoint;
+    master_ip_addr_ = master_ip_addr;
     experiment_id_ = experiment_id;
     environment_manager_endpoint_ = environment_manager_endpoint;
 
@@ -48,7 +48,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     auto master_ip_address_info = master_ip_address->mutable_info();
     master_ip_address_info->set_name("master_ip_address");
     master_ip_address->set_kind(NodeManager::Attribute::STRING);
-    master_ip_address->add_s(master_endpoint_);
+    master_ip_address->add_s(master_ip_addr_);
 
     if(!environment_manager_endpoint.empty()){
         requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id_,
@@ -64,7 +64,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     if(parse_succeed_){
         std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
-        proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
+        proto_writer_->BindPublisherSocket(master_publisher_endpoint_);
 
         if(parse_succeed_ && execution){
             std::cout << "--------[Slave Registration]--------" << std::endl;
@@ -109,8 +109,8 @@ bool ExecutionManager::PopulateDeployment(){
 
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
             auto attribute = deployment_message_->attributes(i);
-            if(attribute.info().name() == "master_publisher_port"){
-                master_publisher_port_ = attribute.s(0);
+            if(attribute.info().name() == "master_publisher_endpoint"){
+                master_publisher_endpoint_ = attribute.s(0);
                 break;
             }
         }
@@ -201,7 +201,7 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
     startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
     startup.mutable_logger()->set_publisher_address("tcp://" + slave_ip + ":" + logger_port);
 
-    startup.set_master_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
+    startup.set_master_publisher_address(master_publisher_endpoint_);
     startup.set_slave_host_name(slave_name);
     return startup;
 }

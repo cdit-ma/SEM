@@ -54,8 +54,9 @@ class ExecutionManager{
         bool PopulateDeployment();
 
         std::mutex mutex_;
-        std::string master_endpoint_;
-        std::string master_publisher_port_;
+        
+        std::string master_ip_addr_;
+        std::string master_publisher_endpoint_;
         std::string experiment_id_;
         std::string environment_manager_endpoint_;
 
