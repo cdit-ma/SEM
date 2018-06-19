@@ -200,7 +200,6 @@ void ModelProtoHandler::CreateComponentUtilizationTable(){
 void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& event){
     if(event.has_port() && event.has_component()){
         //Process port event
-        std::cout << "Got port lifecycle event" << std::endl;
         auto ins = table_map_[LOGAN_LIFECYCLE_PORT_TABLE]->get_insert_statement();
         ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
         ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
