@@ -24,7 +24,7 @@
 #include "protowriter.h"
 
 #include <queue>
-#include <thread>
+#include <future>
 #include <mutex>
 #include <condition_variable>
 
@@ -54,7 +54,7 @@ namespace zmq{
 
             std::string temp_file_path_;
 
-            std::thread* writer_thread_ = 0;
+            std::future<void> writer_future_;
 
 
             int log_count_ = 0;

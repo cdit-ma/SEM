@@ -15,6 +15,10 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
     deployment_type_ = deployment_type;
 }
 
+EnvironmentRequester::~EnvironmentRequester(){
+    End();
+}
+
 void EnvironmentRequester::Init(){
     try{
         context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
@@ -134,7 +138,9 @@ std::vector<std::string> EnvironmentRequester::GetLoganClientList(){
 
 void EnvironmentRequester::Start(){
     try{
-        heartbeat_thread_ = std::unique_ptr<std::thread>(new std::thread(&EnvironmentRequester::HeartbeatLoop, this));
+        
+        heartbeat_future_ = std::async(std::launch::async, &EnvironmentRequester::HeartbeatLoop, this);
+        //heartbeat_thread_ = std::unique_ptr<std::thread>(new std::thread(&EnvironmentRequester::HeartbeatLoop, this));
     }
     catch(std::exception& ex){
         std::cout << ex.what() << " in EnvironmentRequester::Start" << std::endl;
@@ -157,7 +163,7 @@ uint64_t EnvironmentRequester::GetClock(){
     return clock_;
 }
 
-void EnvironmentRequester::HeartbeatLoop() noexcept{
+void EnvironmentRequester::HeartbeatLoop(){
     if(!context_){
         std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
         assert(false);
@@ -228,16 +234,18 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop update socket" << std::endl;
     }
 
+    int retry_count = 0;
     //Start heartbeat loop
-    while(true){
+    while(retry_count < 5){
         //If our request queue is empty, wait till time for next heartbeat and send unless we get a wake up in that time
         if(request_queue_.empty()){
             std::unique_lock<std::mutex> lock(request_queue_lock_);
             auto trigger = request_queue_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD));
 
-            if(end_flag_){
+            if(end_flag_ || !context_){
                 break;
             }
+
             NodeManager::EnvironmentMessage message;
             message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
             //CV timed out, send heartbeat
@@ -247,26 +255,32 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
                 ZMQSendRequest(*update_socket, output);
                 auto reply = ZMQReceiveReply(*update_socket);
                 if(reply.empty()){
+                    retry_count ++;
                     //TODO: Run shutdown callback from here!
-                    std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
+                    std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
+                }else{
+                    retry_count = 0;
                 }
+
                 NodeManager::EnvironmentMessage reply_message;
                 reply_message.ParseFromString(reply);
 
                 try{
                     HandleReply(reply_message);
+
                 }
                 catch(const std::exception& ex){
                     //todo: call registered exception handling callback??
                     std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
                 }
-
             }
             //CV got wakeup, take from request queue
             else if(trigger == std::cv_status::no_timeout){
                 auto request = request_queue_.front();
                 request_queue_.pop();
                 SendRequest(*update_socket, request);
+                //Reset our retry
+                retry_count = 0;
             }
         }
 
@@ -278,12 +292,18 @@ void EnvironmentRequester::HeartbeatLoop() noexcept{
             SendRequest(*update_socket, request);
         }
     }
+    std::cerr << "EnvironmentRequester::HeartbeatLoop !" << std::endl;
+    if(retry_count >= 5){
+        std::cerr << "EnvironmentRequester::HeartbeatLoop Timed out" << std::endl;
+    }
 }
 
 void EnvironmentRequester::End(){
     end_flag_ = true;
     request_queue_cv_.notify_one();
-    heartbeat_thread_->join();
+    if(heartbeat_future_.valid()){
+        heartbeat_future_.get();
+    }
 }
 
 NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::ControlMessage& control_message){
@@ -395,10 +415,8 @@ void EnvironmentRequester::ZMQSendRequest(zmq::socket_t& socket, const std::stri
     try{
         socket.send(lamport_time_msg, ZMQ_SNDMORE);
         socket.send(request_msg);
-    }
-    catch(std::exception error){
-        //TODO: Handle this
-        std::cerr << error.what() << "in EnvironmentRequester::ZMQSendTwoPartRequest" << std::endl;
+    }catch(const zmq::error_t& error){
+        std::cerr << error.what() << " in EnvironmentRequester::ZMQSendTwoPartRequest" << std::endl;
     }
 }
 
@@ -408,7 +426,12 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t& socket){
 
     std::vector<zmq::pollitem_t> poll_items = {{socket, 0, ZMQ_POLLIN, 0}};
 
-    int events = zmq::poll(poll_items, REQUEST_TIMEOUT);
+    int events = 0;
+    try{
+        events = zmq::poll(poll_items, REQUEST_TIMEOUT);
+    }catch(zmq::error_t error){
+        events = 0;
+    }
 
     if(end_flag_){
         return "";

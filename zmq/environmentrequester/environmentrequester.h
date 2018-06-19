@@ -28,6 +28,7 @@ class EnvironmentRequester{
                                 const std::string& deployment_id,
                                 DeploymentType deployment_type
                                 );
+        ~EnvironmentRequester();
         void Init();
         void Init(const std::string& manager_endpoint);
         void Start();
@@ -67,8 +68,10 @@ class EnvironmentRequester{
         bool environment_manager_not_found_ = false;
         
         //Threads
-        void HeartbeatLoop() noexcept;
-        std::unique_ptr<std::thread> heartbeat_thread_;
+        void HeartbeatLoop();
+
+        std::future<void> heartbeat_future_;
+        //std::unique_ptr<std::thread> heartbeat_thread_;
         bool end_flag_ = false;
 
         //Request helpers

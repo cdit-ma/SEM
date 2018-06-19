@@ -62,11 +62,9 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     temp_file_path_ = temp.string();
-    
 
     //Start the writer thread
-    writer_thread_ = new std::thread(&zmq::CachedProtoWriter::WriteQueue, this);
-    running = true;
+    writer_future_ = std::async(&zmq::CachedProtoWriter::WriteQueue, this);
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
@@ -76,7 +74,7 @@ zmq::CachedProtoWriter::~CachedProtoWriter(){
 //Takes ownership of message
 bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(running){
+    if(writer_future_.valid()){
         if(message){
             //Gain the lock
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -97,7 +95,7 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::proto
 
 bool zmq::CachedProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(running){
+    if(writer_future_.valid()){
         {
             //Gain the lock so we can notify and set our terminate flag.
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -106,7 +104,7 @@ bool zmq::CachedProtoWriter::Terminate(){
         }
 
         //Wait for the writer_thread to finish
-        writer_thread_->join();
+        writer_future_.get();
 
         //Read the messages from the queue
         {
@@ -149,7 +147,7 @@ bool zmq::CachedProtoWriter::Terminate(){
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){
-    while(!writer_terminate_){
+    while(true){
         std::queue<std::pair<std::string, google::protobuf::MessageLite*> >replace_queue;
         {
             //Obtain lock for the queue
@@ -158,7 +156,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             queue_lock_condition_.wait(lock);
             
             if(writer_terminate_){
-                break;
+                return;
             }
             //Swap the queue
             write_queue_.swap(replace_queue);
