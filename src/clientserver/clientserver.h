@@ -14,7 +14,7 @@ namespace NodeManager{
 class ClientServer{
     public:
         ClientServer(Execution& exectution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address);
-
+        bool ShouldRun();
         void Terminate();
 
     private:
@@ -29,7 +29,7 @@ class ClientServer{
         std::vector<std::unique_ptr<LogController> > clients_;
         std::vector<std::unique_ptr<Server> > servers_;
 
-
+        bool should_run_;
 
         std::unique_ptr<std::thread> wait_thread_;
 

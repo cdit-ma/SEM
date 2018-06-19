@@ -48,7 +48,10 @@ int main(int ac, char** av){
     ClientServer client_server(*execution, address, experiment_id, environment_manager_address);
     std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
 
-    execution->Start();
+
+    if(client_server.ShouldRun()){
+        execution->Start();
+    }
 
     return 0;
 

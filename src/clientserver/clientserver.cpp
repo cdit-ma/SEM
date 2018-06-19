@@ -32,6 +32,7 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
     for(int i = 0; i < message.logger_size(); i++){
         if(message.logger(i).type() == NodeManager::Logger::SERVER){
             std::vector<std::string> client_list;
+            std::cout << "server" << std::endl;
             for(int j = 0; j <  message.logger(j).client_addresses_size(); j++){
                 client_list.push_back(message.logger(j).client_addresses(j));
                 std::cout << message.logger(j).client_addresses(j) << std::endl;
@@ -50,6 +51,12 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
             std::cout << "tcp://" << message.logger(i).publisher_address() << ":" << message.logger(i).publisher_port() << std::endl;
         }
     }
+
+    should_run_ = clients_.size() || servers_.size();
+}
+
+bool ClientServer::ShouldRun(){
+    return should_run_;
 }
 
 void ClientServer::Terminate(){
