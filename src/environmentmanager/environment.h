@@ -65,8 +65,8 @@ class Environment{
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
 
-        std::string GetPort(const std::string& node_name);
-        void FreePort(const std::string& node_name, const std::string& port_number);
+        std::string GetPort(const std::string& ip_address);
+        void FreePort(const std::string& ip_address, const std::string& port_number);
 
         
         std::string GetManagerPort();

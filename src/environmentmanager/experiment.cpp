@@ -75,6 +75,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
         if(attribute.info().name() == "ip_address"){
             ip_address = attribute.s(0);
             node_address_map_.insert({node_name, ip_address});
+            std::cout << "adding" << ip_address << "@" << node_name << std::endl;
             break;
         }
     }
@@ -95,7 +96,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
                 logan_client->processes.push_back(logger.processes(j));
             }
             logan_client->live_mode = logger.mode() == NodeManager::Logger::LIVE;
-            logan_client->logging_port = environment_.GetPort(node_name);
+            logan_client->logging_port = environment_.GetPort(ip_address);
 
             logan_client_map_[logger.id()] = std::unique_ptr<LoganClient>(logan_client);
         }
@@ -113,6 +114,8 @@ void Experiment::AddNode(const NodeManager::Node& node){
             logan_server_map_[logger.id()] = std::unique_ptr<LoganServer>(logan_server);
         }
     }
+
+    std::cout << "comps" << std::endl;
 
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
@@ -165,6 +168,9 @@ void Experiment::AddNode(const NodeManager::Node& node){
         }
         deployment_map_.at(ip_address)++;
     }
+
+    std::cout << "end" << std::endl;
+
     
     auto deploy_count = deployment_map_.at(ip_address);
     if(deploy_count > 0){
@@ -174,11 +180,11 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
 void Experiment::ConfigureNode(NodeManager::Node& node){
     std::string node_name = node.info().name();
-    std::string ip_address = node_address_map_.at(node_name);
+    std::string ip_address = GetNodeIpByName(node_name);
 
     if(node.components_size() > 0){
         //set modellogger port
-        auto logger_port = environment_.GetPort(node_name);
+        auto logger_port = environment_.GetPort(ip_address);
 
         auto logger_attribute = node.add_attributes();
         auto logger_attribute_info = logger_attribute->mutable_info();
@@ -309,7 +315,8 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
             if(local_port){
                 auto node_name = port_map_.at(id).node_name;
                 auto port_assigned_port = port_map_.at(id).port_number;
-                publisher_addresses.push_back("tcp://" + node_address_map_.at(node_name) + ":" + port_assigned_port);
+                std::cout << node_name << std::endl;
+                publisher_addresses.push_back("tcp://" + GetNodeIpByName(node_name) + ":" + port_assigned_port);
             }
             else{
                 //Check environment for public ports with this id
@@ -327,9 +334,10 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
 
     else if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
         auto node_name = port_map_.at(port.info().id()).node_name;
+
         auto port_assigned_port = port_map_.at(port.info().id()).port_number;
 
-        std::string addr_string = "tcp://" + node_address_map_.at(node_name) + ":" + port_assigned_port;
+        std::string addr_string = "tcp://" + GetNodeIpByName(node_name) + ":" + port_assigned_port;
 
         publisher_addresses.push_back(addr_string);
     }
@@ -351,7 +359,7 @@ std::string Experiment::GetTaoReplierServerAddress(const NodeManager::Port& port
             auto node_name = replier_port.node_name;
             auto port_assigned_port = replier_port.port_number;
             auto port_server_name = replier_port.topic;
-            server_address = "corbaloc:iiop:" + node_address_map_.at(node_name) + ":" + port_assigned_port + "/" +  port_server_name;
+            server_address = "corbaloc:iiop:" + GetNodeIpByName(node_name) + ":" + port_assigned_port + "/" +  port_server_name;
         }
     }
 
@@ -372,7 +380,7 @@ std::string Experiment::GetTaoServerName(const NodeManager::Port& port){
 std::string Experiment::GetOrbEndpoint(const std::string& port_id){
     auto node_name = port_map_.at(port_id).node_name;
 
-    return node_address_map_.at(node_name) + ":" + orb_port_map_.at(node_name);
+    return GetNodeIpByName(node_name) + ":" + orb_port_map_.at(node_name);
 }
 
 bool Experiment::IsDirty() const{
@@ -427,4 +435,17 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
             }
         }
     }
+}
+
+std::string Experiment::GetNodeIpByName(const std::string& node_name){
+    std::string out;
+    try{
+        out = node_address_map_.at(node_name);
+    }
+    catch(const std::exception& ex){
+        int a = 10/0;
+        std::cerr << "No node " << node_name << std::endl;
+
+    }
+    return out;
 }

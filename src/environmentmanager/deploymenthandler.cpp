@@ -215,6 +215,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
     }
     catch(std::exception& ex){
         //TODO: Add ex.what() as error message.
+        std::cerr << "DeploymentHandler::HandleRequest" << ex.what() << std::endl;
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
     }
 

@@ -155,6 +155,8 @@ class Experiment{
 
     private:
     
+        std::string GetNodeIpByName(const std::string& node_name);
+
         std::mutex mutex_;
 
         bool configure_done_;

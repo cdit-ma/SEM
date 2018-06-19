@@ -10,6 +10,8 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
 
     AddExperiment(control_message);
 
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
+
     std::string master_ip_address;
     for(int i = 0; i < control_message.attributes_size(); i++){
         auto attribute = control_message.attributes(i);
@@ -17,19 +19,24 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
             master_ip_address = attribute.s(0);
         }
     }
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
+
 
     environment_.SetExperimentMasterIp(control_message.experiment_id(), master_ip_address);
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         NodeManager::Node* node = control_message.mutable_nodes(i);
         PopulateNode(control_message, *node);
     }
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
 
     auto master_publisher_port_attribute = control_message.add_attributes();
     auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
     master_publisher_port_attribute_info->set_name("master_publisher_endpoint");
     master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
     master_publisher_port_attribute->add_s(environment_.GetMasterPublisherAddress(control_message.experiment_id()));
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
 
 
     auto master_registration_port_attribute = control_message.add_attributes();
@@ -38,7 +45,10 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     master_registration_port_attribute->set_kind(NodeManager::Attribute::STRING);
     master_registration_port_attribute->add_s(environment_.GetMasterRegistrationAddress(control_message.experiment_id()));
 
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
     environment_.StoreControlMessage(control_message);
+    std::cout <<  "SAFDADSFFDSFDSFDSFDSDSFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
+
 }
 
 void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node){
@@ -59,7 +69,7 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
                     rule.ConfigureEventPort(control_message, port);
                 }
                 catch(std::exception& ex){
-                    std::cerr << ex.what() << std::endl;
+                    std::cerr << "DeploymentGenerator::PopulateNode" << ex.what() << std::endl;
                 }
             }
         }
