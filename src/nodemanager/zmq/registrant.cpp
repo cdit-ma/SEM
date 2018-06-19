@@ -60,9 +60,13 @@ void zmq::Registrant::RegistrationLoop(){
             zmq::message_t zmq_slave_startup;
             socket.recv(&zmq_slave_startup);
 
-            std::cerr << zmq_slave_startup.data() << std::endl;
-
+            //std::cerr << zmq_slave_startup.data() << std::endl;
+            
+            std::cerr << "HELLO1" << std::endl;
             auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
+            std::cerr << "HELLO2" << std::endl;
+
+
             std::cerr << slave_startup.DebugString() << std::endl;
 
             if(slave_startup.type() == NodeManager::SlaveStartupMessage::STARTUP){
