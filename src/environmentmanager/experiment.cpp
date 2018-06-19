@@ -250,6 +250,9 @@ NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std:
             for(const auto& client_addr : server->client_addresses){
                 logger_message->add_client_addresses(client_addr);
             }
+            for(const auto& model_logger_pair : modellogger_port_map_){
+                logger_message->add_client_addresses("tcp://" + model_logger_pair.first + ":" + model_logger_pair.second);
+            }
             logger_message->set_db_file_name(server->db_file_name);
             logger_message->set_type(NodeManager::Logger::SERVER);
         }
