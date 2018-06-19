@@ -76,12 +76,15 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //Get update endpoint
     //note: This falls out of scope and self destructs at the end of this function,
     //      this is important as we cant destruct our context otherwise
-    zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
-
-    initial_request_socket.connect(manager_address_);
-
-    ZMQSendRequest(initial_request_socket, message.SerializeAsString());
-    auto reply = ZMQReceiveReply(initial_request_socket);
+    
+    std::string reply;
+    
+    {
+        zmq::socket_t initial_request_socket(*context_, ZMQ_REQ);
+        initial_request_socket.connect(manager_address_);
+        ZMQSendRequest(initial_request_socket, message.SerializeAsString());
+        reply = ZMQReceiveReply(initial_request_socket);
+    }
 
     if(reply.empty()){
         throw std::runtime_error("Environment manager request timed out.");
