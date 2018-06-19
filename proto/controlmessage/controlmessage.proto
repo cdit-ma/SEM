@@ -202,7 +202,7 @@ message SlaveStartup{
     Logger logger = 2;
     ControlMessage configure = 3;
 
-    string master_publisher_address = 4;
+    string master_publisher_endpoint = 4;
 }
 
 message SlaveStartupResponse{
