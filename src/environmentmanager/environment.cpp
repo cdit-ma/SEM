@@ -37,11 +37,16 @@ std::string Environment::AddDeployment(const std::string& model_name,
     if(!experiment_map_.count(model_name)){
         AddExperiment(model_name);
     }
-    if(deployment_type == DeploymentType::EXECUTION_MASTER){
-        return experiment_map_.at(model_name)->GetManagerPort();
-    }
-    if(deployment_type == DeploymentType::LOGAN_CLIENT){
-        return AddLoganClientServer(model_name, ip_address);
+
+    switch(deployment_type){
+        case DeploymentType::EXECUTION_MASTER:{
+            return experiment_map_.at(model_name)->GetManagerPort();
+        }
+        case DeploymentType::LOGAN_CLIENT:{
+            return AddLoganClientServer(model_name, ip_address);
+        }
+        default:
+            throw std::runtime_error("Unexpected Deployment Type");
     }
 }
 
