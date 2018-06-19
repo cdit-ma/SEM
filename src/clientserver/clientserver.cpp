@@ -24,31 +24,32 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
 
     auto message = requester_->GetLoganInfo(address);
 
-    if(!message.type() == NodeManager::EnvironmentMessage::LOGAN_RESPONSE){
+    if(message.type() != NodeManager::EnvironmentMessage::LOGAN_RESPONSE){
         std::cerr << "Unrecognised response from environment manager." << std::endl;
         throw std::runtime_error("Unrecognised response from environment manager.");
     }
 
-    for(int i = 0; i < message.logger_size(); i++){
-        if(message.logger(i).type() == NodeManager::Logger::SERVER){
+    for(const auto logger : message.logger()){
+        if(logger.type() == NodeManager::Logger::SERVER){
+            std::cout << "Server: " << std::endl;
             std::vector<std::string> client_list;
-            std::cout << "server" << std::endl;
-            for(int j = 0; j <  message.logger(j).client_addresses_size(); j++){
-                client_list.push_back(message.logger(j).client_addresses(j));
-                std::cout << message.logger(j).client_addresses(j) << std::endl;
+            for(const auto& address : logger.client_addresses()){
+                std::cerr << "\tClient: " << address << std::endl;
+                client_list.push_back(address);
             }
-            servers_.push_back(std::move(std::unique_ptr<Server>(new Server(message.logger(i).db_file_name(), client_list))));
+            servers_.push_back(std::move(std::unique_ptr<Server>(new Server(logger.db_file_name(), client_list))));
             servers_.back()->AddProtoHandler(new HardwareProtoHandler());
             servers_.back()->AddProtoHandler(new ModelProtoHandler());
             servers_.back()->Start();
         }
-        if(message.logger(i).type() == NodeManager::Logger::CLIENT){
+        if(logger.type() == NodeManager::Logger::CLIENT){
+            std::cout << "Client: " << std::endl;
             double frequency = 0;
             std::vector<std::string> processes;
-            bool live_mode = message.logger(i).mode() == NodeManager::Logger::LIVE;
+            bool live_mode = logger.mode() == NodeManager::Logger::LIVE;
             clients_.push_back(std::move(std::unique_ptr<LogController>(new LogController())));
-            clients_.back()->Start("tcp://" + message.logger(i).publisher_address() + ":" + message.logger(i).publisher_port(), frequency, processes, live_mode);
-            std::cout << "tcp://" << message.logger(i).publisher_address() << ":" << message.logger(i).publisher_port() << std::endl;
+            clients_.back()->Start("tcp://" + logger.publisher_address() + ":" + logger.publisher_port(), frequency, processes, live_mode);
+            std::cout << "Publish Address: tcp://" << logger.publisher_address() << ":" << logger.publisher_port() << std::endl;
         }
     }
 
