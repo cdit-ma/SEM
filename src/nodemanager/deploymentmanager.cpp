@@ -169,7 +169,7 @@ DeploymentManager::~DeploymentManager(){
 
 void DeploymentManager::Teardown(){
     ModelLogger::shutdown_logger();
-    delete this;
+    execution_->Interupt();
 }
 
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){

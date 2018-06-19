@@ -27,7 +27,6 @@ zmq::Registrant::~Registrant(){
     }
 
     registration_loop_.get();
-    deployment_manager_.Teardown();
 }
 
 //CLient

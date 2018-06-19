@@ -43,6 +43,7 @@ class DeploymentManager{
         void GotControlMessage(const NodeManager::ControlMessage& control_message);
         bool ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message);
         void InteruptQueueThread();
+
         void ProcessControlQueue();
 
         
