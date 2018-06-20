@@ -53,10 +53,10 @@ void StackNodeItem::ChildIndexChanged(EntityItem* item){
 StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col){
     CellIndex index(row, col);
 
-    if(cell_info.contains(index)){
-        return cell_info[index];
+    if(cell_infos.contains(index)){
+        return cell_infos[index];
     }else{
-        PersistentCellInfo& info = cell_info[index];
+        PersistentCellInfo& info = cell_infos[index];
         info.index = index;
         info.orientation = orientation;
         info.margin = getDefaultCellMargin();
@@ -73,15 +73,15 @@ QMarginsF StackNodeItem::getDefaultCellMargin() const{
 }
 
 QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
-    if(cell_info.contains(index)){
-        return cell_info[index].margin;
+    if(cell_infos.contains(index)){
+        return cell_infos[index].margin;
     }
     return getDefaultCellMargin();
 }
 
 Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index) const{
-    if(cell_info.contains(index)){
-        return cell_info[index].orientation;
+    if(cell_infos.contains(index)){
+        return cell_infos[index].orientation;
     }
     return orientation;
 }
@@ -97,8 +97,8 @@ void StackNodeItem::setDefaultCellSpacing(qreal spacing){
 qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
     auto grid_size = getGridSize();
 
-    if(cell_info.contains(index)){
-        return cell_info[index].spacing;
+    if(cell_infos.contains(index)){
+        return cell_infos[index].spacing;
     }
     return getDefaultCellSpacing();
 }
@@ -233,7 +233,7 @@ void StackNodeItem::updateCells(){
         }
 
         //Add the cells that we have persistent information for, most of these should be added already if we have children
-        for(auto& cell_info : cell_info.values()){
+        for(auto& cell_info : cell_infos.values()){
             auto& index = cell_info.index;
             bool inserted = !cells.contains(index);
             auto& cell = cells[index];
@@ -590,7 +590,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     if(state >= RENDER_STATE::BLOCK && isExpanded()){
         painter->setPen(Qt::NoPen);
         
-        for(auto& p_cell : cell_info.values()){
+        for(auto& p_cell : cell_infos.values()){
             const auto& index = p_cell.index;
             if(cells.contains(index)){
                 const auto& cell = cells[index];
@@ -654,7 +654,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 void StackNodeItem::bodyHover(bool hovered, const QPointF& pos){
     bool should_update = false;
     
-    for(auto& p_cell : cell_info.values()){
+    for(auto& p_cell : cell_infos.values()){
         if(p_cell.render_icons()){
             const auto& index = p_cell.index;
             if(cells.contains(index)){
@@ -688,7 +688,7 @@ void StackNodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
 
 void StackNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
     
-    for(auto& p_cell : cell_info.values()){
+    for(auto& p_cell : cell_infos.values()){
         const auto& index = p_cell.index;
         if(cells.contains(index) && p_cell.render_icons()){
             auto& cell = cells[index];

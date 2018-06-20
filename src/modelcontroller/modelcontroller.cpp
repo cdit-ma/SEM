@@ -1869,7 +1869,6 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
         //Do Special GUI related things
         switch(edge->getEdgeKind()){
         case EDGE_KIND::DEFINITION:{
-            qCritical() << "EDGE: " << edge->toString();
             setupDefinitionRelationship(src, dst, true);
             break;
         }
@@ -2386,8 +2385,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 }
             }
         }
-        
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
+        
+        if(!parent_node){
+            qCritical() << "ImportGraphML: Node with ID:" << id << " Gas a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
+            error_count ++;
+            continue;
+        }
+        
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
 

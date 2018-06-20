@@ -150,6 +150,6 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
     getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
     getFactoryBroker().AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
 
-    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, true);
-    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, allow_inputs);
+    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, true);
+    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, allow_inputs);
 }

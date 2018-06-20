@@ -140,7 +140,7 @@ private:
 
     bool sub_areas_dirty = true;
 
-    QMap<CellIndex, PersistentCellInfo> cell_info;
+    QMap<CellIndex, PersistentCellInfo> cell_infos;
     QMap<CellIndex, Cell> cells;
     QRectF cell_rect;
 
