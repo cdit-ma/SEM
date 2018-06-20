@@ -40,6 +40,8 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
     broker.AttachData(localhost, "os_version", QVariant::String, ProtectedState::PROTECTED, QSysInfo::productVersion());
     broker.AttachData(localhost, "architecture", QVariant::String, ProtectedState::PROTECTED,  QSysInfo::currentCpuArchitecture());
     broker.AttachData(localhost, "uuid", QVariant::String,ProtectedState::PROTECTED,  "localhost");
+
+    broker.AttachData(localhost, "readOnly", QVariant::Bool, ProtectedState::PROTECTED,  true);
 }
 
 
