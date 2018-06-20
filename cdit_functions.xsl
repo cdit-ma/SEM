@@ -783,20 +783,20 @@
     -->
     <xsl:function name="cdit:get_deployed_middlewares" as="xs:string*">
         <xsl:param name="entity" as="element(gml:node)" />
-        <xsl:param name="sparse" as="xs:boolean" />
+        <xsl:param name="generate_all" as="xs:boolean" />
         
         <xsl:variable name="port_instances" select="cdit:get_deployed_port_instances($entity)" />
         <xsl:variable name="middlewares" select="graphml:get_data_values($port_instances, 'middleware')" />
 
         <xsl:variable name="required_middlewares">
             <xsl:choose>
-                <xsl:when test="$sparse">
-                    <xsl:for-each-group select="$middlewares" group-by=".">
+                <xsl:when test="$generate_all">
+                    <xsl:for-each-group select="cdit:get_all_middlewares()" group-by=".">
                         <xsl:sequence select="lower-case(.)" />
                     </xsl:for-each-group>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each-group select="cdit:get_all_middlewares()" group-by=".">
+                    <xsl:for-each-group select="$middlewares" group-by=".">
                         <xsl:sequence select="lower-case(.)" />
                     </xsl:for-each-group>
                 </xsl:otherwise>
@@ -830,29 +830,38 @@
     <xsl:function name="cdit:get_required_aggregates_for_middleware" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)?" />
         <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="generate_all" as="xs:boolean" />
 
         <xsl:variable name="required_aggregates" as="element(gml:node)*">
-            <!-- Get the Ports -->
-            <xsl:for-each select="cdit:get_deployed_port_instances($model)">
-                <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
-                
-                <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
-                <xsl:if test="$middleware = $port_middleware or (cdit:middleware_uses_protobuf($port_middleware) and $middleware='proto') or $middleware = 'base'">
-                    <!-- Get all the Aggregate Instances for this particular Port -->
-                    <xsl:variable name="definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates($definition, false())" />
+            <xsl:choose>
+                <xsl:when test="$generate_all">
+                    <!-- Get All Aggregates -->
+                    <xsl:sequence select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- Get the Ports -->
+                    <xsl:for-each select="cdit:get_deployed_port_instances($model)">
+                        <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
+                        
+                        <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
+                        <xsl:if test="$middleware = $port_middleware or (cdit:middleware_uses_protobuf($port_middleware) and $middleware='proto') or $middleware = 'base'">
+                            <!-- Get all the Aggregate Instances for this particular Port -->
+                            <xsl:variable name="definition" select="graphml:get_definition(.)" />
+                            <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates($definition, false())" />
 
-                    <!-- Get all the Definitions used by this aggregate instance -->
-                    <xsl:sequence select="$aggregate_instances"/>
-                </xsl:if>
+                            <!-- Get all the Definitions used by this aggregate instance -->
+                            <xsl:sequence select="$aggregate_instances"/>
+                        </xsl:if>
 
-                <xsl:if test="$middleware = 'base'">
-                    <xsl:variable name="component_impl" select="graphml:get_impl(.)" />
-                    <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates(., false())" />
-                    <!-- Get all the Definitions used by this aggregate instance -->
-                    <xsl:sequence select="$aggregate_instances" />
-                </xsl:if>
-            </xsl:for-each>
+                        <xsl:if test="$middleware = 'base'">
+                            <xsl:variable name="component_impl" select="graphml:get_impl(.)" />
+                            <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates(., false())" />
+                            <!-- Get all the Definitions used by this aggregate instance -->
+                            <xsl:sequence select="$aggregate_instances" />
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:for-each select="graphml:get_definitions($required_aggregates)">
@@ -868,22 +877,31 @@
     <xsl:function name="cdit:get_required_pubsub_aggregates_for_middleware" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)?" />
         <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="generate_all" as="xs:boolean" />
 
         <xsl:variable name="required_aggregates" as="element(gml:node)*">
-            <!-- Get the Ports -->
-            <xsl:for-each select="cdit:get_deployed_port_instances($model)">
-                <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
+            <xsl:choose>
+                <xsl:when test="$generate_all">
+                    <!-- Get All Aggregates -->
+                    <xsl:sequence select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- Get the Ports -->
+                    <xsl:for-each select="cdit:get_deployed_port_instances($model)">
+                        <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
 
-                <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
-                <xsl:if test="$middleware = $port_middleware">
-                    <!-- Get all the Aggregate Instances for this particular Port -->
-                    <xsl:variable name="definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="aggregate_instances" select="graphml:get_child_nodes_of_kind($definition, 'AggregateInstance')" />
+                        <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
+                        <xsl:if test="$middleware = $port_middleware">
+                            <!-- Get all the Aggregate Instances for this particular Port -->
+                            <xsl:variable name="definition" select="graphml:get_definition(.)" />
+                            <xsl:variable name="aggregate_instances" select="graphml:get_child_nodes_of_kind($definition, 'AggregateInstance')" />
 
-                    <!-- Get all the Definitions used by this aggregate instance -->
-                    <xsl:sequence select="$aggregate_instances"/>
-                </xsl:if>
-            </xsl:for-each>
+                            <!-- Get all the Definitions used by this aggregate instance -->
+                            <xsl:sequence select="$aggregate_instances"/>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:for-each select="graphml:get_definitions($required_aggregates)">
@@ -899,23 +917,32 @@
     <xsl:function name="cdit:get_required_serverinterfaces_for_middleware" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)?" />
         <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="generate_all" as="xs:boolean" />
 
         <xsl:variable name="required_instances" as="element(gml:node)*">
-            <!-- Get the Ports -->
-            <xsl:for-each select="cdit:get_deployed_port_instances($model)">
-                <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
+            <xsl:choose>
+                <xsl:when test="$generate_all">
+                    <!-- Get All Aggregates -->
+                    <xsl:sequence select="graphml:get_descendant_nodes_of_kind($model, 'ServerInterface')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- Get the Ports -->
+                    <xsl:for-each select="cdit:get_deployed_port_instances($model)">
+                        <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
 
-                <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
-                <xsl:if test="$middleware = $port_middleware">
-                    <!-- Get all the Aggregate Instances for this particular Port -->
-                    <xsl:variable name="definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="port_type" select="graphml:get_port_aggregate($definition)" />
-                    <xsl:variable name="port_kind" select="graphml:get_kind($port_type)" />
-                    <xsl:if test="$port_kind = 'ServerInterface'">
-                        <xsl:sequence select="$port_type" />
-                    </xsl:if>
-                </xsl:if>
-            </xsl:for-each>
+                        <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
+                        <xsl:if test="$middleware = $port_middleware">
+                            <!-- Get all the Aggregate Instances for this particular Port -->
+                            <xsl:variable name="definition" select="graphml:get_definition(.)" />
+                            <xsl:variable name="port_type" select="graphml:get_port_aggregate($definition)" />
+                            <xsl:variable name="port_kind" select="graphml:get_kind($port_type)" />
+                            <xsl:if test="$port_kind = 'ServerInterface'">
+                                <xsl:sequence select="$port_type" />
+                            </xsl:if>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:sequence select="graphml:get_definitions($required_instances)" />
@@ -1826,11 +1853,14 @@
         <xsl:value-of select="lower-case(o:join_list((graphml:get_label($node), $id), '_'))"/>
     </xsl:function>
 
+    <xsl:function name="cdit:middleware_supports_requestreply" as="xs:boolean">
+        <xsl:param name="middleware" as="xs:string"/>
+        <xsl:value-of select="$middleware='zmq' or $middleware='tao' or $middleware='qpid'"/>
+    </xsl:function>
 
-
-
-    
-
-    
+    <xsl:function name="cdit:middleware_supports_pubsub" as="xs:boolean">
+        <xsl:param name="middleware" as="xs:string"/>
+        <xsl:value-of select="$middleware='zmq' or $middleware='qpid' or $middleware ='rti' or $middleware='ospl'"/>
+    </xsl:function>
 </xsl:stylesheet>
 

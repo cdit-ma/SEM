@@ -26,7 +26,7 @@
     <!-- Middleware Input Parameter-->
     <xsl:param name="components" as="xs:string" select="''" />
     <xsl:param name="preview" as="xs:boolean" select="false()" />
-    <xsl:param name="sparse" as="xs:boolean" select="true()" />
+    <xsl:param name="generate_all" as="xs:boolean" select="true()" />
     <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
     
 
@@ -42,24 +42,18 @@
 
         <!-- Construct a list of ComponentImpl Objects to code-gen -->
         <xsl:variable name="component_impls_to_generate" as="element()*">
-            <xsl:if test="$sparse">
-                <xsl:variable name="component_instances" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
-                <xsl:variable name="component_definitions" select="graphml:get_definitions($component_instances)" />
-
-                <xsl:for-each select="$component_impls">
-                    <xsl:if test="graphml:get_definition(.) = $component_definitions">
-                        <xsl:sequence select="." />
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:if>
-            <xsl:if test="$sparse = false()">
-                <xsl:for-each select="$component_impls">
-                    <xsl:variable name="component_label" select="graphml:get_label(.)" />
-                    <xsl:if test="count($parsed_components) = 0 or index-of($parsed_components, lower-case($component_label))">
-                        <xsl:sequence select="." />
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="$generate_all">
+                    <xsl:for-each select="$component_impls">
+                        <xsl:sequence select="$component_impls" />
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each select="cdit:get_deployed_component_instances($model)">
+                        <xsl:sequence select="graphml:get_impl(.)" />
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">

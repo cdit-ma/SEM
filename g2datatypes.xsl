@@ -28,13 +28,13 @@
     <xsl:import href="datatype_functions.xsl"/>
 
     <!-- Middleware Input Parameter-->
-    <xsl:param name="sparse" as="xs:boolean" select="true()" />
+    <xsl:param name="generate_all" as="xs:boolean" select="false()" />
     <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
 
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
 
-        <xsl:variable name="parsed_middlewares" select="cdit:get_deployed_middlewares($model, $sparse)" as="xs:string*" />
+        <xsl:variable name="parsed_middlewares" select="cdit:get_deployed_middlewares($model, $generate_all)" as="xs:string*" />
 
         <xsl:variable name="deployed_port_instances" select="cdit:get_deployed_port_instances($model)" />
         
@@ -47,9 +47,9 @@
             <xsl:variable name="middleware" select="lower-case(.)" />
             <xsl:value-of select="o:message(('Generating Middleware:', o:wrap_quote($middleware)))" />
 
-            <xsl:variable name="datatype_aggregates" select="cdit:get_required_aggregates_for_middleware($model, $middleware)" />
-            <xsl:variable name="pubsub_aggregates" select="cdit:get_required_pubsub_aggregates_for_middleware($model, $middleware)" />
-            <xsl:variable name="server_interfaces" select="cdit:get_required_serverinterfaces_for_middleware($model, $middleware)" />
+            <xsl:variable name="datatype_aggregates" select="cdit:get_required_aggregates_for_middleware($model, $middleware, $generate_all)" />
+            <xsl:variable name="pubsub_aggregates" select="cdit:get_required_pubsub_aggregates_for_middleware($model, $middleware, $generate_all)" />
+            <xsl:variable name="server_interfaces" select="cdit:get_required_serverinterfaces_for_middleware($model, $middleware, $generate_all)" />
 
             <!-- Generate the Shared Library translate/middleware classes -->
             <xsl:if test="cdit:build_shared_library($middleware)">
@@ -112,7 +112,7 @@
             </xsl:if>
 
             <!-- Generate the Pub/Sub Ports -->
-            <xsl:if test="cdit:build_module_library($middleware)">
+            <xsl:if test="cdit:build_module_library($middleware) and cdit:middleware_supports_pubsub($middleware)">
                 <xsl:for-each select="$pubsub_aggregates">
                     <xsl:variable name="aggregate" select="." />
                     <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
@@ -136,7 +136,7 @@
             </xsl:if>
 
             <!-- Generate the Request/Reply Ports -->
-            <xsl:if test="cdit:build_module_library($middleware)">
+            <xsl:if test="cdit:build_module_library($middleware) = true() and cdit:middleware_supports_requestreply($middleware) = true()">
                 <xsl:for-each select="$server_interfaces">
                     <xsl:variable name="server_interface" select="." />
                     <xsl:variable name="qualified_type" select="cpp:get_aggregate_qualified_type($server_interface, $middleware)" />
@@ -185,7 +185,7 @@
         <xsl:result-document href="{o:write_file((('ports', 'pubsub'), cmake:cmake_file()))}">
             <xsl:variable name="pubsub_middlewares" as="xs:string*">
                 <xsl:for-each select="$parsed_middlewares">
-                    <xsl:if test="cdit:build_module_library(.)">
+                    <xsl:if test="cdit:build_module_library(.) and cdit:middleware_supports_pubsub(.)">
                         <xsl:sequence select="." />
                     </xsl:if>
                 </xsl:for-each>
@@ -196,7 +196,7 @@
         <xsl:result-document href="{o:write_file((('ports', 'requestreply'), cmake:cmake_file()))}">
             <xsl:variable name="reqrep_middlewares" as="xs:string*">
                 <xsl:for-each select="$parsed_middlewares">
-                    <xsl:if test="cdit:build_module_library(.)">
+                    <xsl:if test="cdit:build_module_library(.)  and cdit:middleware_supports_requestreply(.)">
                         <xsl:sequence select="." />
                     </xsl:if>
                 </xsl:for-each>

@@ -1224,7 +1224,7 @@
                 <!-- XXX: Update this list -->
                 <xsl:when test="$parent_kind = 'Variable' or
                                 $parent_kind = 'PublisherPortImpl' or
-                                $parent_kind = 'InputParameterGroupInst' or
+                                $parent_kind = 'InputParameterGroupInstance' or
                                 $parent_kind = 'ReturnParameterGroupInstance'
                                 ">
                     <xsl:value-of select="true()"/>
@@ -1235,7 +1235,6 @@
             </xsl:choose>
         </xsl:variable>
 
-        
         <xsl:if test="$should_process">
             <xsl:variable name="aggregate_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
             <xsl:variable name="variable_name" select="cdit:get_variable_name($aggregate_instance)" />
@@ -1706,10 +1705,11 @@
                                         $parent_kind = 'SubscriberPortImpl'">
                             <!-- We have defined a variable based on the Top Level Aggregate -->
                             <xsl:value-of select="cdit:get_unique_variable_name($node)" />
-                            <!--<xsl:value-of select="cdit:get_variable_name($node)" />-->
                         </xsl:when>
                         <xsl:when test="$parent_kind = 'SubscriberPortImpl'" />
                         <xsl:when test="$parent_kind = 'Variable'" />
+                            <!--<xsl:value-of select="cdit:get_variable_name($parent_node)" />
+                        </xsl:when>-->
                         <xsl:otherwise>
                             <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
                         </xsl:otherwise>

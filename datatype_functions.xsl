@@ -203,7 +203,9 @@
         <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
         <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
 
-        <xsl:variable name="enum_instances" select="graphml:get_child_nodes_of_kind($aggregate, 'EnumInstance')" />
+        <xsl:variable name="vectors" select="graphml:get_child_nodes_of_kind($aggregate, 'Vector')" />
+
+        <xsl:variable name="enum_instances" select="graphml:get_child_nodes_of_kind(($vectors, $aggregate), 'EnumInstance')" />
         <xsl:variable name="enums" select="graphml:get_definitions($enum_instances)" />
         
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
@@ -833,7 +835,7 @@
 
 
         <!-- Define the Enum -->
-        <xsl:value-of select="cpp:enum($label, $tab)" />
+        <xsl:value-of select="cpp:enum($class_type, $tab)" />
 
         <xsl:for-each select="$enum_members">
             <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
@@ -954,6 +956,7 @@
 
         <!-- Get the type of the Enum -->
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $enum_instance, $source_middleware)" />
+        
         <xsl:value-of select="cpp:scope_start($tab)" />
         
         <xsl:value-of select="cdit:cast_enum_instance($enum_instance, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 1)" />
@@ -1055,7 +1058,7 @@
         <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $vector, $source_middleware)" />
-        <xsl:variable name="temp_variable" select="'element'" />
+        <xsl:variable name="temp_variable" select="concat(cdit:get_unique_variable_name($vector), '_element')" />
         <xsl:variable name="temp_element_variable" select="o:join_list(($target_middleware, $temp_variable), '_')" />
 
         <xsl:variable name="set_func">
@@ -1078,7 +1081,7 @@
         <xsl:value-of select="cpp:comment(('Vector', o:wrap_square($vector_child_kind), 'Type', o:wrap_angle($vector_child_type)), $tab + 1)" />
         <xsl:value-of select="cpp:comment('Iterate and set all elements in vector', $tab + 1)" />
         <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
-       <xsl:choose>
+        <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
                 <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $source_middleware, $target_middleware, 0)" />
 
@@ -1093,9 +1096,18 @@
                 <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'EnumInstance'">
-                <xsl:value-of select="cdit:cast_enum_instance($vector_child, 'element', $middleware, $source_middleware, $target_middleware, $tab + 2)" />
-                
-                <!-- Member aggregates require translation -->
+                <xsl:variable name="get_func">
+                    <xsl:choose>
+                        <xsl:when test="$source_middleware = 'rti'">
+                            <xsl:value-of select="concat($temp_variable, '.underlying()')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$temp_variable" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:value-of select="cdit:cast_enum_instance($vector_child, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 2)" />
                 <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
             </xsl:when>
         </xsl:choose>
