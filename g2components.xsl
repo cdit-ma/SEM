@@ -26,7 +26,7 @@
     <!-- Middleware Input Parameter-->
     <xsl:param name="components" as="xs:string" select="''" />
     <xsl:param name="preview" as="xs:boolean" select="false()" />
-    <xsl:param name="generate_all" as="xs:boolean" select="true()" />
+    <xsl:param name="generate_all" as="xs:boolean" select="false()" />
     <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
     
 
@@ -34,18 +34,20 @@
         <xsl:variable name="model" select="graphml:get_model(.)" />
         
         <!-- Parse the components parameter to produce a list of labels -->
-        <xsl:variable name="component_impls" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')" />
         <xsl:variable name="behaviour_definitions" select="graphml:get_descendant_nodes_of_kind($model, 'BehaviourDefinitions')" />
         <xsl:variable name="classes" select="graphml:get_descendant_nodes_of_kind($behaviour_definitions, 'Class')" />
-        <xsl:variable name="parsed_components" select="cdit:parse_components($components)" />
+        <xsl:variable name="parsed_components" select="cdit:parse_components($components)" as="xs:string*" />
         <xsl:variable name="output_path" select="'components'" />
-
+        
         <!-- Construct a list of ComponentImpl Objects to code-gen -->
-        <xsl:variable name="component_impls_to_generate" as="element()*">
+        <xsl:variable name="component_impls" as="element()*">
             <xsl:choose>
-                <xsl:when test="$generate_all">
-                    <xsl:for-each select="$component_impls">
-                        <xsl:sequence select="$component_impls" />
+                <xsl:when test="$generate_all = true() or $preview = true()">
+                    <xsl:for-each select="graphml:get_nodes_of_kind($model, 'ComponentImpl')">
+                        <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
+                        <xsl:if test="$generate_all or ($label = $parsed_components)">
+                            <xsl:sequence select="." />
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -55,6 +57,9 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
+
+        <xsl:variable name="component_impls_to_generate" select="graphml:remove_duplicates($component_impls)" />
+        
 
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">
             <xsl:variable name="component_impl" select="." />

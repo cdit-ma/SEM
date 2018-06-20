@@ -548,5 +548,14 @@
         <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@target)" />
     </xsl:function>
 
+    
+    <xsl:function name="graphml:remove_duplicates" as="element()*">
+        <xsl:param name="elements" as="element()*" />
+
+        <xsl:for-each-group select="$elements" group-by=".">
+            <xsl:sequence select="." />
+        </xsl:for-each-group>
+    </xsl:function>
+
    
 </xsl:stylesheet>
