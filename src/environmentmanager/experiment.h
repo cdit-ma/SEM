@@ -107,6 +107,14 @@ struct EventPort{
 
 };
 
+struct ExternalPort{
+    std::string id;
+    std::string external_label;
+    std::vector<std::string> connected_ports;
+
+    bool is_blackbox = false;
+};
+
 enum class ExperimentState{
     ACTIVE,
     TIMEOUT,
@@ -126,6 +134,7 @@ class Experiment{
 
         void SetMasterIp(const std::string& ip);
 
+        void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
         void ConfigureNode(NodeManager::Node& node);
 
@@ -199,6 +208,12 @@ class Experiment{
 
         //map of node id -> deployed component count
         std::unordered_map<std::string, int> deployment_map_;
+
+        //map of internal port_id -> external port unique label
+        std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
+
+        //external port_id -> internal port id
+        std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
         std::unordered_map<std::string, std::unique_ptr<LoganClient> > logan_client_map_;
         std::unordered_map<std::string, std::unique_ptr<LoganServer> > logan_server_map_;

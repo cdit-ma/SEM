@@ -58,7 +58,7 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
                     rule.ConfigureEventPort(control_message, port);
                 }
                 catch(std::exception& ex){
-                    std::cerr << "DeploymentGenerator::PopulateNode" << ex.what() << std::endl;
+                    std::cerr << "DeploymentGenerator::PopulateNode: " << ex.what() << " in port: " << port.info().name() << std::endl;
                 }
             }
         }
@@ -97,6 +97,8 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
     std::string experiment_id(control_message.experiment_id());
+
+    environment_.AddExternalPorts(experiment_id, control_message);
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         AddNodeToExperiment(experiment_id, control_message.nodes(i));
