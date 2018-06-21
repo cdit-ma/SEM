@@ -346,20 +346,23 @@
     <xsl:function name="cdit:get_union_descriminator_case">
         <xsl:param name="union_member" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
+        
+        <xsl:variable name="parent_node" select="graphml:get_parent_node($union_member)" />
+        <xsl:variable name="enum_type" select="cdit:get_qualified_union_descrimantor_type($parent_node, $middleware)" />
+        
+        <xsl:variable name="case_label">
+            <xsl:choose>
+                <xsl:when test="lower-case($middleware) = 'base'">
+                    <xsl:value-of select="upper-case(graphml:get_label($union_member))" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="cdit:get_idl_union_case($union_member)" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
-        <xsl:choose>
-            <xsl:when test="lower-case($middleware) = 'base'">
-                <xsl:variable name="parent_node" select="graphml:get_parent_node($union_member)" />
-                <xsl:variable name="aggregate_type" select="cpp:get_aggregate_qualified_type($parent_node, $middleware)" />
-                <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($parent_node)" />
-                <xsl:variable name="case_label" select="upper-case(graphml:get_label($union_member))" />
-                <xsl:value-of select="cpp:combine_namespaces(($aggregate_type, $descriminator_enum_type, $case_label))" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="case_label" select="cdit:get_idl_union_case($union_member)" />
-                <xsl:value-of select="cpp:combine_namespaces(($case_label))" />
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:value-of select="cpp:combine_namespaces(($enum_type, $case_label))" />
+
     </xsl:function>
 
     <xsl:function name="cdit:get_idl_union_enum_name">
@@ -1125,7 +1128,7 @@
             <xsl:when test="$middleware_lc = 'base'">
                 <xsl:value-of select="'get_descriminator'" />
             </xsl:when>
-            <xsl:when test="$middleware_lc = 'tao'">
+            <xsl:when test="$middleware_lc = 'tao' or $middleware_lc = 'rti'">
                 <xsl:value-of select="'_d'" />
             </xsl:when>
         </xsl:choose>

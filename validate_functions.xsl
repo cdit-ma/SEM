@@ -524,16 +524,14 @@
 
         <xsl:variable name="results">
             <xsl:for-each select="$components">
-                <xsl:variable name="eventports" select="graphml:get_descendant_nodes_of_kind(., ('SubscriberPort', 'PublisherPort'))" />
+                <xsl:variable name="pubsub_ports" select="graphml:get_descendant_nodes_of_kind(., ('SubscriberPort', 'PublisherPort'))" />
+                <xsl:variable name="reqrep_ports" select="graphml:get_descendant_nodes_of_kind(., ('RequesterPort', 'ReplierPort'))" />
                 
-                <xsl:for-each select="$eventports">
+                <xsl:for-each select="$pubsub_ports">
                     <xsl:variable name="id" select="graphml:get_id(.)" />
-                    <xsl:variable name="label" select="graphml:get_label(.)" />
-                    
+                    <xsl:variable name="label" select="graphml:get_label(.)" />  
                     <xsl:variable name="aggregates" select="graphml:get_child_nodes(.)" />
-                    
                     <xsl:variable name="linked_aggregates" select="graphml:get_targets(., 'Edge_Aggregate')" />
-
 
                     <xsl:choose>
                         <xsl:when test="count($linked_aggregates) = 1 and count($aggregates) = 1">
@@ -549,6 +547,16 @@
                             <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('Port', o:wrap_quote($label), 'does not contain an instance of an Aggregate'), ' '), false(), 2)" />        
                         </xsl:when>
                     </xsl:choose>
+                </xsl:for-each>
+                
+                <xsl:for-each select="$reqrep_ports">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    <xsl:variable name="label" select="graphml:get_label(.)" />
+                    <xsl:variable name="linked_server" select="graphml:get_targets(., 'Edge_Aggregate')" />
+                    <xsl:variable name="children" select="graphml:get_child_nodes(.)" />
+
+                    <xsl:value-of select="cdit:output_result($id, count($linked_server) = 1, o:join_list(('Port', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to a ServerInterface'), ' '), false(), 2)" />
+                    <xsl:value-of select="cdit:output_result($id, count($children) = 2, o:join_list(('Port', o:wrap_quote($label), 'Requires two children'), ' '), false(), 2)" />
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
@@ -709,6 +717,7 @@
         <xsl:value-of select="cdit:test_invalid_label('Descendants of an Aggregate require valid labels', $aggregate_descendants)" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
         <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
+        
         <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums)" />
 
         <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->

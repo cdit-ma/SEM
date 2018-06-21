@@ -198,20 +198,23 @@
     </xsl:function>
 
     <xsl:function name="idl:get_enum">
-        <xsl:param name="enum_namespace" as="xs:string*" />
+        <xsl:param name="enum_namespaces" as="xs:string*" />
         <xsl:param name="enum_label" as="xs:string" />
         <xsl:param name="enum_members" as="xs:string*" />
         <xsl:param name="tab" />
+
+        <xsl:variable name="enum_namespace" select="o:trim_list($enum_namespaces)" />
 
         <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label, 'IDL', 'ENUM'), '_'))" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($enum_guard_name)" />
 
+        
 
-        <xsl:variable name="enum_tab" select="if($enum_namespace = '') then $tab else $tab + 1" />
+        <xsl:variable name="enum_tab" select="$tab + count($enum_namespace)" />
 
-
+        
         <!-- Define Namespaces -->
         <xsl:for-each select="$enum_namespace">
             <xsl:value-of select="idl:module_start(., position() - 1)" />
@@ -230,7 +233,7 @@
         </xsl:for-each>
 
         <!-- Define Guard -->
-        <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />
         <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />
     </xsl:function>
 </xsl:stylesheet>

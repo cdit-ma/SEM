@@ -1303,6 +1303,27 @@
         <xsl:value-of select="concat(o:title_case($label), 'Descriminator')" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_qualified_union_descrimantor_type">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'base'">
+                <xsl:variable name="aggregate_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+                <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($aggregate)" />
+                <xsl:value-of select="cpp:combine_namespaces(($aggregate_type, $descriminator_enum_type))" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:variable name="namespace" select="graphml:get_namespace($aggregate)" />
+            <xsl:variable name="aggregate_label" select="cpp:get_aggregate_type_name($aggregate)" />
+            <xsl:variable name="descriminator_enum_type" select="concat(cdit:get_union_descrimantor_type($aggregate), '_def')" />
+
+            <xsl:variable name="enum_type" select="o:join_list(($namespace, $descriminator_enum_type), '_')" />
+            <xsl:value-of select="concat('::', cpp:combine_namespaces(($namespace, $enum_type)))" />
+          </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     
 
     
