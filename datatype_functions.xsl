@@ -884,7 +884,7 @@
         <xsl:variable name="label" select="graphml:get_label($node)" />
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($node)" />
-        <xsl:variable name="var_label" select="cdit:get_variable_label($node)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_label($label, $node)" />
 
         <xsl:value-of select="cpp:comment((o:wrap_square($kind), ':', $label, o:wrap_angle(graphml:get_id($node))), $tab)" />
         <xsl:choose>

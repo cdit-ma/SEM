@@ -23,7 +23,7 @@
         <xsl:variable name="get_attribute" select="cpp:invoke_static_function('', 'ConstructAttribute', $args, '', 0)" />
             
         <xsl:value-of select="cdit:comment_graphml_node($attribute, $tab)" />
-        <xsl:value-of select="cpp:define_variable('', cdit:get_variable_label($attribute), cpp:invoke_function($get_attribute, cpp:dot(), 'lock', '', 0), cpp:nl(), $tab)" />
+        <xsl:value-of select="cpp:define_variable('', cdit:get_variable_name($attribute), cpp:invoke_function($get_attribute, cpp:dot(), 'lock', '', 0), cpp:nl(), $tab)" />
     </xsl:function>
 
     <xsl:function name="cdit:define_workload_function">
@@ -56,7 +56,7 @@
                 <xsl:when test="$kind = 'SubscriberPortImpl'">
                     <xsl:variable name="aggregate_instance" select="graphml:get_child_node($entity, 1)" />
                     <xsl:variable name="parameter_type" select="cpp:get_qualified_type($aggregate_instance)" />
-                    <xsl:variable name="parameter_label" select="cdit:get_unique_variable_name($aggregate_instance)" />
+                    <xsl:variable name="parameter_label" select="cdit:get_variable_name($aggregate_instance)" />
 
                     <xsl:value-of select="cpp:ref_var_def($parameter_type, $parameter_label)" />
                 </xsl:when>
@@ -1027,7 +1027,7 @@
         <xsl:variable name="vector" select="$input_parameters[1]" />
         
         <!-- Construct a temp variable to store the result in -->
-        <xsl:variable name="return_variable_name" select="cdit:get_unique_variable_name($return_parameters[1])" />
+        <xsl:variable name="return_variable_name" select="cdit:get_variable_name($return_parameters[1])" />
         
         <xsl:variable name="vector_var" select="cdit:get_resolved_getter_function($vector, true(), false())" />
         
@@ -1145,8 +1145,8 @@
             <xsl:value-of select="cdit:generate_workflow_code($input_parameters[1], $node, $tab)" />
         </xsl:if>
         
-        <xsl:variable name="result_var" select="cdit:get_unique_variable_name($node)" />
-        <xsl:variable name="message_var" select="cdit:get_unique_variable_name($input_parameters[1])" />
+        <xsl:variable name="result_var" select="cdit:get_variable_name($node)" />
+        <xsl:variable name="message_var" select="cdit:get_variable_name($input_parameters[1])" />
         
         <xsl:variable name="timeout" select="concat('std::chrono::milliseconds(', cdit:get_resolved_getter_function($timeout_parameter, false(), false()), ')')" />
         <xsl:variable name="req_function" select="cdit:get_function_name($node)" />
@@ -1308,6 +1308,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Declaring scoped variables', $tab)" />
             </xsl:if>
+            
         
             <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
             <xsl:variable name="var_label" select="cdit:get_variable_name(.)" />
@@ -1704,7 +1705,7 @@
                                         $parent_kind = 'ReturnParameterGroupInstance' or
                                         $parent_kind = 'SubscriberPortImpl'">
                             <!-- We have defined a variable based on the Top Level Aggregate -->
-                            <xsl:value-of select="cdit:get_unique_variable_name($node)" />
+                            <xsl:value-of select="cdit:get_variable_name($node)" />
                         </xsl:when>
                         <xsl:when test="$parent_kind = 'SubscriberPortImpl'" />
                         <xsl:when test="$parent_kind = 'Variable'" />
@@ -1767,32 +1768,25 @@
     
 
     <xsl:function name="cdit:get_variable_name">
-        <xsl:param name="node" as="element()*"/>
+        <xsl:param name="node" as="element()?"/>
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
+        <xsl:variable name="label" select="lower-case(graphml:get_label($node))" />
         <xsl:variable name="parent_kind" select="graphml:get_kind(graphml:get_parent_node($node))" />
 
         <xsl:choose>
             <xsl:when test="$kind = 'FunctionCall'">
                 <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
                 <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
-
+                <!-- Select Our worker as our variable_name -->
                 <xsl:if test="not(graphml:is_descendant_of($worker_inst, $node))">
-                    <xsl:value-of select="cdit:variablize_value(graphml:get_data_value($worker_inst, 'label'))"/>
+                    <xsl:value-of select="cdit:get_variable_name($worker_inst)"/>
                 </xsl:if>
-
-            </xsl:when>
-            <xsl:when test="$kind = 'Variable' and ($parent_kind = 'Class' or $parent_kind = 'ComponentImpl')">
-                <xsl:value-of select="cdit:variablize_value(graphml:get_label($node))"/>
-            </xsl:when>
-            <xsl:when test="$kind = 'AttributeImpl'">
-                <xsl:value-of select="cdit:variablize_value(graphml:get_label($node))"/>
-            </xsl:when>
+            </xsl:when>            
             <xsl:when test="$kind = 'VoidType'">
                 <xsl:value-of select="''"/>
             </xsl:when>
-
             <xsl:otherwise>
-                <xsl:value-of select="cdit:get_unique_variable_name($node)" />
+                <xsl:value-of select="cdit:get_variable_label($label, $node)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>

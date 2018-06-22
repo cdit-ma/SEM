@@ -563,9 +563,54 @@
     </xsl:function>
 
     <xsl:function name="cdit:get_variable_label" as="xs:string">
-        <xsl:param name="variable" as="element()" />
-        <xsl:value-of select="cdit:variablize_value(graphml:get_label($variable))" />
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="node" as="element()?" />
+
+        <xsl:variable name="kind" select="graphml:get_kind($node)" />
+        <xsl:variable name="parent_node" select="graphml:get_parent_node($node)" />
+        <xsl:variable name="parent_kind" select="graphml:get_kind($parent_node)" />
+
+        <xsl:variable name="ancestor_kinds" select="($kind, graphml:get_data_values(graphml:get_ancestor_nodes($node), 'kind'))" />
+
+        <xsl:variable name="prefix">
+            <xsl:choose>
+                <xsl:when test="$parent_kind = 'Class' or
+                                $parent_kind = 'ComponentImpl'">
+                    <xsl:value-of select="'g'" />
+                </xsl:when>
+                <xsl:when test="'InputParameterGroup' = $ancestor_kinds or
+                                'InputParameterGroupInstance' = $ancestor_kinds">
+                    <xsl:value-of select="'p'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'AggregateInstance' and
+                        ($parent_kind = 'SubscriberPortImpl'
+                        )
+                        ">
+                    <xsl:value-of select="'p'" />
+                </xsl:when>
+                <xsl:when test="$node">
+                    <xsl:value-of select="'m'" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:variable name="suffix">
+            <xsl:choose>
+                <xsl:when test="'InputParameterGroupInstance' = $ancestor_kinds or
+                                'PublisherPortImpl' = $ancestor_kinds or
+                                'RequesterPortImpl' = $ancestor_kinds or
+                                'ReturnParameterGroupInstance' = $ancestor_kinds">
+                    <xsl:value-of select="graphml:get_id($node)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="''" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="o:join_list(($prefix, $label, $suffix), '_')" />
     </xsl:function>
+
 
     <xsl:function name="cpp:get_aggregate_type_name" as="xs:string">
         <xsl:param name="aggregate_inst" as="element()" />
@@ -1231,7 +1276,7 @@
         <xsl:variable name="label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
-        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_name($aggregate)" />
         <xsl:variable name="set_value" select="graphml:get_data_value($aggregate, 'value')" />
 
         <xsl:variable name="value">
@@ -1268,7 +1313,7 @@
         <xsl:variable name="label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
-        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_name($aggregate)" />
         <xsl:variable name="set_value" select="graphml:get_data_value($aggregate, 'value')" />
         
         <xsl:choose>
@@ -1393,7 +1438,7 @@
         
         <xsl:variable name="label" select="graphml:get_label($element)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($element)" />
-        <xsl:variable name="var_label" select="cdit:get_variable_label($element)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_name($element)" />
         <xsl:variable name="kind" select="graphml:get_kind($element)" />
 
         <xsl:variable name="is_attribute" select="$kind = 'Attribute'" />
@@ -1539,7 +1584,7 @@
 
         <xsl:variable name="type" select="cdit:get_qualified_class_type($class)" />
         <xsl:variable name="label" select="graphml:get_data_value($class, 'label')" />
-        <xsl:variable name="variable" select="cdit:variablize_value($label)" />
+        <xsl:variable name="variable" select="cdit:get_variable_name($class)" />
 
         <xsl:variable name="getter" select="cpp:invoke_templated_static_function($type, 'AddTypedWorker', o:wrap_dblquote($label), '', 0)" />
 
@@ -1551,11 +1596,9 @@
         <xsl:param name="class" as="element()"  />
         <xsl:param name="tab" as="xs:integer"  />
 
-
-
         <xsl:variable name="type" select="cdit:get_qualified_class_type($class)" />
         <xsl:variable name="label" select="graphml:get_data_value($class, 'label')" />
-        <xsl:variable name="variable" select="cdit:variablize_value($label)" />
+        <xsl:variable name="variable" select="cdit:get_variable_name($class)" />
 
         <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
         <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr($type), $variable, cpp:nl(), $tab)" />
@@ -1666,9 +1709,6 @@
         </xsl:choose>
    </xsl:function>
 
-   
-
-   
  <xsl:function name="cdit:get_function_input_parameter_declarations" as="xs:string*">
         <xsl:param name="node" as="element()"/>
 
@@ -1677,7 +1717,7 @@
         <xsl:variable name="resolved_args" as="xs:string*">
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
-                <xsl:variable name="var_label" select="cdit:get_unique_variable_name(.)" />
+                <xsl:variable name="var_label" select="cdit:get_variable_name(.)" />
                 
                 <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
             </xsl:for-each>
@@ -1871,7 +1911,7 @@
     <xsl:function name="cdit:get_unique_variable_name">
         <xsl:param name="node" as="element()*"/>
         <xsl:variable name="id" select="graphml:get_id($node)" />
-        <xsl:value-of select="lower-case(o:join_list((graphml:get_label($node), $id), '_'))"/>
+        <xsl:value-of select="lower-case(o:join_list((cdit:get_variable_name($node), $id), '_'))"/>
     </xsl:function>
 
     <xsl:function name="cdit:middleware_supports_requestreply" as="xs:boolean">

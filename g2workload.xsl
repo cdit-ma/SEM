@@ -26,17 +26,28 @@
     <!-- Middleware Input Parameter-->
     <xsl:param name="id" as="xs:string" select="''" />
 
-    <xsl:variable name="debug_mode" as="xs:boolean" select="false()" />
+    <xsl:variable name="debug_mode" as="xs:boolean" select="true()" />
 
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
         <xsl:variable name="node" select="graphml:get_node_by_id($model, $id)" />
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
         <xsl:variable name="parent_node" select="graphml:get_parent_node($node)" />
+        
 
         <xsl:choose>
             <xsl:when test="not($node)">
                 <xsl:value-of select="cpp:comment(('Cannot find node with id:', o:wrap_quote($id)), 0)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Component' or $kind = 'ComponentInstance'">
+                <xsl:variable name="impl" select="graphml:get_impl($node)" />
+                <xsl:value-of select="cdit:get_component_impl_cpp($impl)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'ComponentImpl'">
+                <xsl:value-of select="cdit:get_component_impl_cpp($node)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Class'">
+                <xsl:value-of select="cdit:get_class_cpp($node)" />
             </xsl:when>
             <xsl:when test="$kind = 'PeriodicPort' or
                             $kind = 'SubscriberPortImpl' or
