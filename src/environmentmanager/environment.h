@@ -72,15 +72,18 @@ class Environment{
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
 
+        void AddExternalPorts(const std::string& model_name, const NodeManager::ControlMessage& control_message);
+
 
         bool HasPublicEventPort(const std::string& port_id);
         std::string GetPublicEventPortEndpoint(const std::string& port_id);
-        void AddPublicEventPort(const std::string& port_id, const std::string& address_string);
-        void AddPublicEventPort(const std::string& port_id, EnvironmentManager::EventPort event_port);
+        void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);
         void AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id);
+
+        void RemoveDependentExternalExperiment(const std::string& model_name, const std::string& port_id);
 
         std::string GetAmqpBrokerAddress();
 
@@ -123,6 +126,7 @@ class Environment{
         //event port guid -> set of experiment ids
         //keeps track of experiments waiting for port of this guid to become live.
         std::unordered_map<std::string, std::set<std::string> > pending_port_map_;
+        std::unordered_map<std::string, std::set<std::string> > dependent_experiment_map_;
 
         std::mutex port_mutex_;
         //initially allocated unique_queue of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct

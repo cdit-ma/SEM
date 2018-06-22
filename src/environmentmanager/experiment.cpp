@@ -9,6 +9,10 @@ Experiment::Experiment(Environment& environment, const std::string name) : envir
 
 Experiment::~Experiment(){
     try{
+        for(const auto& external_port_pair : external_port_map_){
+            const auto& external_port_label = external_port_pair.second->external_label;
+            environment_.RemoveDependentExternalExperiment(model_name_, external_port_label);
+        }
         for(const auto& port : port_map_){
             if(!port.second.port_number.empty()){
                 const auto& ip_address = port.second.node_ip;
@@ -64,6 +68,26 @@ void Experiment::SetManagerPort(const std::string& manager_port){
 
 void Experiment::SetMasterIp(const std::string& ip){
     master_ip_address_ = ip;
+}
+
+void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
+    for(const auto& external_port : message.external_ports()){
+        auto temp = new ExternalPort();
+        temp->id = external_port.info().id();
+        temp->external_label = external_port.info().name();
+        for(const auto& connected_port_id : external_port.connected_ports()){
+            temp->connected_ports.push_back(connected_port_id);
+        }
+        temp->is_blackbox = external_port.is_blackbox();
+        external_port_map_[external_port.info().id()] = std::unique_ptr<ExternalPort>(temp);
+
+
+
+        //TODO: Handle this correctly!
+        if(temp->is_blackbox){
+            environment_.AddPublicEventPort(model_name_, temp->external_label, "");
+        }
+    }
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
@@ -304,37 +328,30 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
 
     if(port.kind() == NodeManager::Port::SUBSCRIBER || port.kind() == NodeManager::Port::REQUESTER){
 
-        //Get list of connected ports
-        auto publisher_port_ids = connection_map_.at(port.info().id());
+        if(connection_map_.count(port.info().id())){
+            //Get list of connected ports
+            auto publisher_port_ids = connection_map_.at(port.info().id());
 
-        //Get those ports addresses
-        for(auto id : publisher_port_ids){
-
-            //XXX: Ugly hack to differentiate between local connected ports and public connected ports.
-            //ID of public connected ports is set to be port guid, which is not parseable as int
-            bool local_port = true;
-            try{
-                std::stoi(id);
-            }
-            catch(const std::invalid_argument& ex){
-                local_port = false;
-            }
-
-            if(local_port){
+            //Get those ports addresses
+            for(auto id : publisher_port_ids){
                 auto node_ip = port_map_.at(id).node_ip;
                 auto port_assigned_port = port_map_.at(id).port_number;
                 publisher_addresses.push_back("tcp://" + node_ip + ":" + port_assigned_port);
             }
+        }
+
+        for(int i = 0; i < port.connected_external_ports_size(); i++){
+            std::cout << "looking for " << port.connected_external_ports(i) << std::endl;
+            auto external_port_label = external_port_map_.at(port.connected_external_ports(i))->external_label;
+            std::cout << "looking for " << external_port_label << std::endl;
+            //Check environment for public ports with this id
+            if(environment_.HasPublicEventPort(external_port_label)){
+                publisher_addresses.push_back(environment_.GetPublicEventPortEndpoint(external_port_label));
+            }
+            //We don't have this public port's address yet. The experiment it orinates from is most likely not started yet.
+            //We need to keep track of the fact that this experiment is waiting for this port to become live so we can notify it of the environment change.
             else{
-                //Check environment for public ports with this id
-                if(environment_.HasPublicEventPort(id)){
-                    publisher_addresses.push_back(environment_.GetPublicEventPortEndpoint(id));
-                }
-                //We don't have this public port's address yet. The experiment it orinates from is most likely not started yet.
-                //We need to keep track of the fact that this experiment is waiting for this port to become live so we can notify it of the environment change.
-                else{
-                    environment_.AddPendingPublicEventPort(model_name_, id);
-                }
+                environment_.AddPendingPublicEventPort(model_name_, external_port_label);
             }
         }
     }
@@ -343,10 +360,14 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
         auto node_ip = port_map_.at(port.info().id()).node_ip;
 
         auto port_assigned_port = port_map_.at(port.info().id()).port_number;
-
         std::string addr_string = "tcp://" + node_ip + ":" + port_assigned_port;
-
         publisher_addresses.push_back(addr_string);
+
+        //Update any external port references with the address of this port.
+        for(int i = 0; i < port.connected_external_ports_size(); i++){
+            auto external_port_label = external_port_map_.at(port.connected_external_ports(i))->external_label;
+            environment_.AddPublicEventPort(model_name_, external_port_label, addr_string);
+        }
     }
     return publisher_addresses;
 }
@@ -409,25 +430,27 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
 
     while(!updated_port_ids_.empty()){
         auto port_it = updated_port_ids_.begin();
-        auto port_id = *port_it;
+        auto port_external_id = *port_it;
+        std::string endpoint = environment_.GetPublicEventPortEndpoint(port_external_id);
         updated_port_ids_.erase(port_it);
+
+        auto port_internal_id = external_id_to_internal_id_map_.at(port_external_id);
 
         //Iterate through all ports and check for connections to updated ports.
         //When we find one, add the new port endpoint to it's list of connecitons.
         //XXX:this is pretty terrible...
-        for(int i = 0; i < control_message.nodes_size(); i++){
-            auto node = control_message.nodes(i);
+        for(int i = 0; i < deployment_message_.nodes_size(); i++){
+            auto node = deployment_message_.nodes(i);
             for(int j = 0; j < node.components_size(); j++){
                 auto component = node.components(j);
                 for(int k = 0; k < component.ports_size(); k++){
                     auto port = component.mutable_ports(k);
                     for(int l = 0; l < port->connected_ports_size(); l++){
                         auto connected_port = port->connected_ports(l);
-                        if(port_id == connected_port){
+                        if(port_internal_id == connected_port){
                             try{
-                                std::string endpoint = environment_.GetPublicEventPortEndpoint(port_id);
                                 for(int m = 0; m < port->attributes_size(); m++){
-                                    auto attribute = port->mutable_attributes(i);
+                                    auto attribute = port->mutable_attributes(m);
                                     if(attribute->info().name() == "publisher_address"){
                                         attribute->add_s(endpoint);
                                     }
@@ -442,6 +465,8 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
             }
         }
     }
+    control_message.CopyFrom(deployment_message_);
+    std::cout << control_message.DebugString() << std::endl;
 }
 
 std::string Experiment::GetNodeIpByName(const std::string& node_name){

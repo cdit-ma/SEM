@@ -39,6 +39,7 @@ class ExecutionManager{
         
         std::string GetMasterRegistrationEndpoint();
         bool IsValid();
+
     private:
         void ExecutionLoop(double duration_sec) noexcept;
 
@@ -50,6 +51,7 @@ class ExecutionManager{
         void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
         bool Finished();
     private:
+        void UpdateCallback(NodeManager::EnvironmentMessage& environment_update);
         int GetSlaveStateCountTS(const SlaveState& state);
         void TriggerExecution(bool execute);
 

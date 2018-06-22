@@ -115,6 +115,8 @@ bool ExecutionManager::PopulateDeployment(){
 
         *deployment_message_ = response;
 
+        std::cout << deployment_message_->DebugString() << std::endl;
+
         for(auto& attribute : deployment_message_->attributes()){
             if(attribute.info().name() == "master_publisher_endpoint"){
                 master_publisher_endpoint_ = attribute.s(0);
@@ -302,6 +304,19 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
     deployment_map_[ip_address] = node;
 }
 
+void ExecutionManager::UpdateCallback(NodeManager::EnvironmentMessage& environment_update){
+    //TODO: filter only nodes we want to update???
+    //can we even do that??
+
+    if(environment_update.type() == NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
+        PushMessage("*", environment_update.mutable_control_message());
+    }
+    else{
+        throw std::runtime_error("Unknown message type");
+    }
+
+}
+
 void ExecutionManager::TriggerExecution(bool execute){
     //Obtain lock
     std::unique_lock<std::mutex> lock(execution_mutex_);
@@ -348,6 +363,8 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
         auto activate = new NodeManager::ControlMessage();
         activate->set_type(NodeManager::ControlMessage::ACTIVATE);
         PushMessage("*", activate);
+
+        requester_->AddUpdateCallback(std::bind(&ExecutionManager::UpdateCallback, this, std::placeholders::_1));
 
         {
             std::unique_lock<std::mutex> lock(execution_mutex_);
