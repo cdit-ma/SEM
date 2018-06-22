@@ -519,6 +519,37 @@
     </xsl:function>
 
     
+    <xsl:function name="cdit:test_variables">
+        <xsl:param name="components" as="element(gml:node)*"/>
+        <xsl:variable name="results">
+            <xsl:variable name="all_variables" select="graphml:get_descendant_nodes_of_kind($components, ('Variable'))" />
+            
+            <!-- Test for children -->
+            <xsl:value-of select="cdit:test_requires_children($all_variables, 'Variable entities require at least one child')" />
+            
+
+            <xsl:for-each select="$components">
+                <xsl:variable name="component" select="." />
+                <xsl:variable name="variables" select="graphml:get_descendant_nodes_of_kind($component, ('Variable'))" />
+                
+                <xsl:for-each select="$variables">
+                    <xsl:variable name="variable" select="." />
+                    <xsl:variable name="id" select="graphml:get_id($variable)" />
+                    <xsl:variable name="label" select="cdit:get_variable_name($variable)" />
+
+                    <xsl:variable name="all_ancestors" select="graphml:get_ancestor_nodes_until($variable, $component)" />            
+                    <xsl:variable name="variables_in_scope" select="graphml:get_child_nodes_of_kind($all_ancestors, ('Variable')) except $variable" />
+                    <xsl:variable name="labels" select="for $var in $variables_in_scope return cdit:get_variable_name($var)" />
+
+                     <xsl:variable name="duplicate_count" select="count($labels[$label = .])" />
+                    <xsl:value-of select="cdit:output_result($id, $duplicate_count = 0, o:join_list(('Variable with generated label', o:wrap_quote($label), 'is not unique with scope'), ' '), false(), 2)" />
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Variables established correctly', $results, 1)" />
+    </xsl:function>
+    
     <xsl:function name="cdit:test_eventport_aggregates">
         <xsl:param name="components" as="element(gml:node)*"/>
 
@@ -734,6 +765,9 @@
 
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_nodes_of_kind($model, 'Aggregate')" />
         <xsl:variable name="components" as="element()*" select="graphml:get_nodes_of_kind($model, 'Component')" />
+        
+
+        
 
         <xsl:variable name="behaviour_definitions" as="element()*" select="graphml:get_nodes_of_kind($model, 'BehaviourDefinitions')" />
         
@@ -746,6 +780,7 @@
 
         <xsl:value-of select="cdit:test_component_relations($components)" />
         <xsl:value-of select="cdit:test_eventport_aggregates($components)" />
+        <xsl:value-of select="cdit:test_variables(($component_impls, $classes))" />
 
 
         <xsl:value-of select="cdit:test_data_edges($model)" />

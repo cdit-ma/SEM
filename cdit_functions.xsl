@@ -1267,6 +1267,29 @@
         <xsl:value-of select="cpp:declare_function($return_parameter, $name, $input_parameters, ';', $tab)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_variable_name">
+        <xsl:param name="node" as="element()?"/>
+        <xsl:variable name="kind" select="graphml:get_kind($node)" />
+        <xsl:variable name="label" select="lower-case(graphml:get_label($node))" />
+        <xsl:variable name="parent_kind" select="graphml:get_kind(graphml:get_parent_node($node))" />
+
+        <xsl:choose>
+            <xsl:when test="$kind = 'FunctionCall'">
+                <xsl:variable name="worker_function_inst" select="graphml:get_first_definition($node)" />
+                <xsl:variable name="worker_inst" select="graphml:get_parent_node($worker_function_inst)" />
+                <!-- Select Our worker as our variable_name -->
+                <xsl:if test="not(graphml:is_descendant_of($worker_inst, $node))">
+                    <xsl:value-of select="cdit:get_variable_name($worker_inst)"/>
+                </xsl:if>
+            </xsl:when>            
+            <xsl:when test="$kind = 'VoidType'">
+                <xsl:value-of select="''"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:get_variable_label($label, $node)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
     
     
     <xsl:function name="cdit:declare_variable">

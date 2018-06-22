@@ -233,6 +233,21 @@
         
     </xsl:function>
 
+    <!--
+        Gets the parent node of the entity provided (Looks two levels up)
+    -->
+    <xsl:function name="graphml:get_ancestor_nodes_until" as="element(gml:node)*">
+        <xsl:param name="entity" as="element()?" />
+        <xsl:param name="top_ancestor" as="element()?" />
+    
+        <xsl:variable name="ancestors" select="graphml:get_ancestor_nodes($entity)" />
+        <xsl:for-each select="$ancestors">
+            <xsl:if test="graphml:is_descendant_of($top_ancestor, .)">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
       <!--
         Gets the siblings node of the entity provided (Looks two levels up)
     -->
