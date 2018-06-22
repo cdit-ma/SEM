@@ -410,7 +410,13 @@ std::set<std::string> Environment::GetDependentExperiments(const std::string& po
 }
 
 void Environment::AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id){
+    if(!pending_port_map_.count(port_id)){
+        pending_port_map_[port_id] = std::set<std::string>();
+    }
     pending_port_map_.at(port_id).insert(model_name);
+    if(!dependent_experiment_map_.count(port_id)){
+        dependent_experiment_map_[port_id] = std::set<std::string>();
+    }
     dependent_experiment_map_.at(port_id).insert(model_name);
 }
 

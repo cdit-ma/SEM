@@ -81,6 +81,7 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         temp->is_blackbox = external_port.is_blackbox();
         external_port_map_[external_port.info().id()] = std::unique_ptr<ExternalPort>(temp);
 
+        external_id_to_internal_id_map_[temp->external_label] = temp->id;
 
 
         //TODO: Handle this correctly!
@@ -422,6 +423,9 @@ void Experiment::UpdatePort(const std::string& port_guid){
 
 void Experiment::SetDeploymentMessage(const NodeManager::ControlMessage& control_message){
     deployment_message_ = NodeManager::ControlMessage(control_message);
+
+
+    for()
 }
 
 void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
@@ -434,30 +438,36 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
         std::string endpoint = environment_.GetPublicEventPortEndpoint(port_external_id);
         updated_port_ids_.erase(port_it);
 
+        std::cout << "adding " << port_external_id << std::endl;
+        std::cout << "adding " << endpoint << std::endl;
         auto port_internal_id = external_id_to_internal_id_map_.at(port_external_id);
+        std::cout << "adding " << port_internal_id << std::endl;
 
         //Iterate through all ports and check for connections to updated ports.
         //When we find one, add the new port endpoint to it's list of connecitons.
         //XXX:this is pretty terrible...
         for(int i = 0; i < deployment_message_.nodes_size(); i++){
+            std::cout << i << std::endl;
             auto node = deployment_message_.nodes(i);
             for(int j = 0; j < node.components_size(); j++){
+            std::cout << j << std::endl;
                 auto component = node.components(j);
                 for(int k = 0; k < component.ports_size(); k++){
                     auto port = component.mutable_ports(k);
-                    for(int l = 0; l < port->connected_ports_size(); l++){
-                        auto connected_port = port->connected_ports(l);
+            std::cout << k << std::endl;
+
+                    for(int l = 0; l < port->connected_external_ports_size(); l++){
+                        auto connected_port = port->connected_external_ports(l);
+                        std::cout << connected_port << std::endl;
                         if(port_internal_id == connected_port){
-                            try{
-                                for(int m = 0; m < port->attributes_size(); m++){
-                                    auto attribute = port->mutable_attributes(m);
-                                    if(attribute->info().name() == "publisher_address"){
-                                        attribute->add_s(endpoint);
-                                    }
+                            std::cout << "yes" << std::endl;
+                            for(int m = 0; m < port->attributes_size(); m++){
+
+                                auto attribute = port->mutable_attributes(m);
+                                if(attribute->info().name() == "publisher_address"){
+                                    std::cout << "adding" << endpoint << " to " << port->info().name()<< std::endl;
+                                    attribute->add_s(endpoint);
                                 }
-                            }
-                            catch(const std::out_of_range& ex){
-                                throw std::runtime_error("Updated public ports + master public ports map mismatch.");
                             }
                         }
                     }
