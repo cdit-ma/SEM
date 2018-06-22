@@ -599,7 +599,9 @@
                 <xsl:when test="'InputParameterGroupInstance' = $ancestor_kinds or
                                 'PublisherPortImpl' = $ancestor_kinds or
                                 'RequesterPortImpl' = $ancestor_kinds or
-                                'ReturnParameterGroupInstance' = $ancestor_kinds">
+                                'ReturnParameterGroupInstance' = $ancestor_kinds or
+                                'Setter' = $kind
+                                ">
                     <xsl:value-of select="graphml:get_id($node)" />
                 </xsl:when>
                 <xsl:otherwise>
@@ -1284,6 +1286,9 @@
             </xsl:when>            
             <xsl:when test="$kind = 'VoidType'">
                 <xsl:value-of select="''"/>
+            </xsl:when>
+            <xsl:when test="$kind = 'Setter'">
+                <xsl:value-of select="cdit:get_variable_label($kind, $node)" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="cdit:get_variable_label($label, $node)" />
