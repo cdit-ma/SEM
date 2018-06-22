@@ -99,7 +99,7 @@ public:
     RootAction* file_newProject;
     RootAction* file_importGraphML;
     
-    RootAction* file_importIdl;
+    
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;

@@ -27,7 +27,7 @@
 #include "../../../modelcontroller/version.h"
 
 #include "../../Utils/filehandler.h"
-#include "../../../idlparser/idlparser.h"
+
 
 #include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
@@ -1636,38 +1636,6 @@ void ViewController::importProjects()
 }
 
 
-void ViewController::importIdlFiles()
-{
-    auto idl_file_paths = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an IDL File to import.", QFileDialog::ExistingFiles, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
-    if(idl_file_paths.length()){
-        QtConcurrent::run([=]{
-            // Construct a notification item with a loading gif as its icon
-            auto notification = NotificationManager::manager()->AddNotification("Importing IDLs files ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
-            
-            std::vector<std::string> std_idl_files;
-            for(auto idl_file : idl_file_paths){
-                std_idl_files.push_back(idl_file.toStdString());
-            }
-
-            std::stringstream ss;
-            //Redirect standard error to our string stream
-            auto old_buffer = std::cerr.rdbuf(ss.rdbuf()); 
-            auto results = IdlParser::ParseIdls(std_idl_files, true);
-
-            auto idl_qstr = QString::fromStdString(results.second);
-            //reset the old buffer
-            std::cerr.rdbuf(old_buffer);
-            auto error = QString::fromStdString(ss.str());
-            
-            notification->setTitle(results.first ? "Successfully Parsed " + QString::number(idl_file_paths.size()) + " IDLs" : "Failed to import IDLs");
-            notification->setDescription(error);
-            notification->setSeverity(results.first ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-            if(idl_qstr.length()){
-                emit ImportProjects({idl_qstr});
-            }
-        });
-    }
-}
 
 
 void ViewController::closeProject()

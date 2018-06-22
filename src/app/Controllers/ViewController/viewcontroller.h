@@ -193,7 +193,6 @@ public slots:
     void closeMEDEA();
 
 
-    void importIdlFiles();
 
     void generateWorkspace();
     void executeModelLocal();

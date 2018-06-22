@@ -125,7 +125,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
 
-        connect(file_importIdl, &QAction::triggered, viewController, &ViewController::importIdlFiles);
+        
         
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
 
@@ -481,7 +481,7 @@ void ActionController::updateActions()
 
     file_importGraphML->setEnabled(controller_ready);
     
-    file_importIdl->setEnabled(controller_ready);
+    
     
     file_saveProject->setEnabled(controller_ready);
     file_saveAsProject->setEnabled(controller_ready);
@@ -661,8 +661,6 @@ void ActionController::setupActions()
 
 
     
-    file_importIdl = createRootAction("Project", "Import IDL Files", "", "Icons", "clipboardDown");
-    file_importIdl->setToolTip("Import IDL files into current project.");
 
   
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
@@ -958,7 +956,7 @@ void ActionController::setupMainMenu()
     menu_file->addAction(file_closeProject);
     menu_file->addSeparator();
     menu_file->addAction(file_importGraphML);
-    menu_file->addAction(file_importIdl);
+    
     
 
     menu_file->addSeparator();
