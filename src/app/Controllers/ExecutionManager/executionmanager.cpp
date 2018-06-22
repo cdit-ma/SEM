@@ -140,25 +140,18 @@ void ExecutionManager::ValidateModel_(QString model_path)
     }
 }
 
-void ExecutionManager::GenerateCodeForComponent(QString document_path, QString component_name)
+void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* item)
 {
+    auto id = item->getID();
+
+    auto file_path = item->getData("label").toString() + "_" + QString::number(id) + ".cpp";
     //Get Temp Path
-    QString path = FileHandler::getTempFileName("/");
-    //
-    component_name = component_name.toLower();
-    bool results = GenerateComponents(document_path, path, QStringList(component_name));
-    if(results){
-        QStringList exts;
-        exts << "impl.cpp" << "impl.h";
-        foreach(auto ext, exts){
-            QString file_name = component_name + ext;
-            QString file_path = path + "/components/" + component_name + "/" + file_name;
-            QString file_data = FileHandler::readTextFile(file_path);
-            emit GotCodeForComponent(file_name, file_data);
-        }
+    auto path = FileHandler::getTempFileName("/");
+    auto code = GenerateWorkload(document_path, path, id);
+
+    if(code.length()){
+        emit GotWorkloadCode(file_path, code);
     }
-    //Destroy temp directory
-    FileHandler::removeDirectory(path);
 }
 
 void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory, int duration){
@@ -273,6 +266,23 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
 
     return results.success;
+}
+
+QString ExecutionManager::GenerateWorkload(QString document_path, QString output_directory, int id)
+{
+    QString arg = "id=" + QString::number(id);
+
+    auto notification = NotificationManager::manager()->AddNotification("Generating workload C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, false);
+    auto results = RunSaxonTransform(transforms_path_ + "g2workload.xsl", document_path, output_directory, {arg});
+    
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    if(!results.success){
+        notification->setTitle("Failed to generate workload C++");
+    }else{
+        notification->setTitle("Successfully generated workload C++");
+    }
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    return results.standard_output.join("\n");
 }
 
 bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify)

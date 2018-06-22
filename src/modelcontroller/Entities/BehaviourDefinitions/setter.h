@@ -1,11 +1,11 @@
 #ifndef SETFUNCTION_H
 #define SETFUNCTION_H
-#include "../node.h"
+#include "../InterfaceDefinitions/datanode.h"
 
 
 class DataNode;
 class EntityFactoryRegistryBroker;
-class Setter : public Node
+class Setter : public DataNode
 {
 
     Q_OBJECT
@@ -22,6 +22,7 @@ public:
 	DataNode* GetRhs();
 	DataNode* GetOperator();
 private:
+	void operatorChanged();
 	void updateLabel();
 
 	DataNode* lhs_ = 0;

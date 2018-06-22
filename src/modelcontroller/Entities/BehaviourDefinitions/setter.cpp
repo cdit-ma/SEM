@@ -14,9 +14,13 @@ void Setter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
         });
 }
 
-Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
     setLabelFunctional(false);
+
+    setDataReceiver(false);
+    setDataProducer(false);
+
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
 
@@ -24,6 +28,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
         //Break out early for temporary entities
         return;
     }
+
 
     //setup Data
     auto label = broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
@@ -47,7 +52,10 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
 
     //Setup Comparator
     auto data_operator = broker.AttachData(operator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
-    data_operator->addValidValues({"=", "+=", "-=", "*=", "/="});
+    data_operator->addValidValues({"=", 
+                                    "+=", "-=", "*=", "/=",
+                                    "+", "-", "*", "/"
+    });
 
     broker.AttachData(operator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
     broker.AttachData(operator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
@@ -74,10 +82,13 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     //Update Label on data Change
     connect(data_rhs_value, &Data::dataChanged, this, &Setter::updateLabel);
     connect(data_lhs_value, &Data::dataChanged, this, &Setter::updateLabel);
+    connect(data_operator, &Data::dataChanged, this, &Setter::operatorChanged);
     connect(data_operator, &Data::dataChanged, this, &Setter::updateLabel);
 
     updateLabel();
     TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
+    TypeKey::BindInnerAndOuterTypes(lhs_, this, true);
+    TypeKey::BindInnerAndOuterTypes(rhs_, this, true);
 }
 
 bool Setter::canAdoptChild(Node* child)
@@ -94,6 +105,17 @@ bool Setter::canAdoptChild(Node* child)
     }
 
     return Node::canAdoptChild(child);
+}
+
+void Setter::operatorChanged(){
+    if(operator_){
+        auto operator_value = operator_->getDataValue("label").toString();
+        QSet<QString> producers = {"+", "-", "*", "/"};
+
+        bool valid_producer = producers.contains(operator_value);
+
+        setDataProducer(valid_producer);
+    }
 }
 
 void Setter::updateLabel(){

@@ -1258,7 +1258,7 @@ void ModelController::destructEdge_(Edge *edge){
                 break;
             }
             case EDGE_KIND::DATA:{
-                setupDataRelationship(src, dst, false);                
+                DataNode::BindDataRelationship(src, dst, false);
                 break;
             }
             default:
@@ -1823,11 +1823,6 @@ bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString d
     return false;
 }
 
-bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
-{
-    DataNode::BindDataRelationship(src, dst, setup);
-    return true;
-}
 
 
 bool ModelController::isGraphMLValid(QString inputGraphML)
@@ -1877,7 +1872,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
             break;
         }
         case EDGE_KIND::DATA:{
-            setupDataRelationship(src, dst, true);
+            DataNode::BindDataRelationship(src, dst, true);
             break;
         }
         default:
@@ -2770,6 +2765,26 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
 
     if(canChangeRow(unordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_ROW);
+    }
+
+    if(unordered_items.count() == 1){
+        bool all_okay = true;
+        QSet<NODE_TYPE> code_type = {NODE_TYPE::BEHAVIOUR_CONTAINER, NODE_TYPE::BEHAVIOUR_ELEMENT};
+        QSet<NODE_KIND> code_kinds = {NODE_KIND::COMPONENT, NODE_KIND::COMPONENT_INSTANCE, NODE_KIND::COMPONENT_IMPL};
+        for(auto item : unordered_items){
+            if(item->isNode()){
+                auto node = (Node*) item;
+                auto node_kind = node->getNodeKind();
+                auto node_types = node->getTypes();
+                if(!(node_types.intersects(code_type) || code_kinds.contains(node_kind))){
+                    all_okay = false;
+                    break;
+                }
+            }
+        }
+        if(all_okay){
+            properties.insert(SELECTION_PROPERTIES::CAN_GENERATE_CODE);
+        }
     }
 
     

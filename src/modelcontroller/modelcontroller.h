@@ -24,7 +24,7 @@ class ViewController;
 
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
-enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES, CAN_CHANGE_INDEX, CAN_CHANGE_ROW};
+enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES, CAN_CHANGE_INDEX, CAN_CHANGE_ROW, CAN_GENERATE_CODE};
 enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
 
 struct HistoryAction{
@@ -275,7 +275,7 @@ private:
     bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);
     
     bool setupAggregateRelationship(Node* src, Node* dst, bool setup);
-    bool setupDataRelationship(Node *src, Node *dst, bool setup = true);
+
 
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.4
     bool reverseAction(HistoryAction action);

@@ -336,7 +336,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
                     auto destination_second_parent = destination_parent->getParentNode();
                     
                     if(destination_second_parent && destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
-                        const auto& class_name = destination_second_parent->getDataValue("class").toString();
+                        const auto& class_name = destination_second_parent  ->getDataValue("class").toString();
                         
                         //Workers OpenCL_Worker and Vector_Operations need special data linking
                         if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){

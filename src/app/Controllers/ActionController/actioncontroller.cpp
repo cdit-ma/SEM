@@ -361,16 +361,15 @@ void ActionController::selectionChanged(int selection_size)
         view_fitView->setEnabled(got_selection);
         view_fitAllViews->setEnabled(controller_ready);
 
+        model_getCodeForComponent->setEnabled(got_java && selection_properties.contains(SELECTION_PROPERTIES::CAN_GENERATE_CODE));
+
         auto active_item = selectionController->getActiveSelectedItem();
         
         if(active_item && active_item->isNode()){
             auto node_item = (NodeViewItem*) active_item;
             auto node_kind = node_item->getNodeKind();
             toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
-            model_getCodeForComponent->setEnabled(got_java && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
         }
-
-        //applicationToolbar->updateSpacers();
     }
 }
 

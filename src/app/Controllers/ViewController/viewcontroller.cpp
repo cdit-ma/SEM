@@ -83,7 +83,7 @@ ViewController::ViewController(){
     
     
 
-    connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
+    connect(execution_manager, &ExecutionManager::GotWorkloadCode, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 
     auto search_manager = SearchManager::manager();
@@ -836,20 +836,9 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 
 void ViewController::getCodeForComponent()
 {
-    ViewItem* item = getActiveSelectedItem();
+    auto item = getActiveSelectedItem();
     if(item && item->isNode()){
-        auto def = (NodeViewItem*)item;
-        if(def->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE || def->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
-            int id = controller->getDefinition(item->getID());
-            def = getNodeViewItem(id);
-        }
-        if(def){
-            QString componentName = def->getData("label").toString();
-            QString filePath = getTempFileForModel();
-            if(!componentName.isEmpty() && !filePath.isEmpty()){
-                execution_manager->GenerateCodeForComponent(filePath, componentName);
-            }
-        }
+        execution_manager->GenerateCodeForWorkload(getTempFileForModel(), item);
     }
 }
 

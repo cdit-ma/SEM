@@ -165,7 +165,9 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         //Read StandardOutput
         result.process->setReadChannel(QProcess::StandardOutput);
         while(result.process->canReadLine()){
-            auto line = result.process->readLine().simplified();
+            QString line = result.process->readLine();
+            line = line.remove('\n');
+            line = line.remove('\r');
             result.standard_output << line;
             emit GotProcessStdOutLine(line);
         }
@@ -173,7 +175,9 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         //Read StandardError
         result.process->setReadChannel(QProcess::StandardError);
         while(result.process->canReadLine()){
-            auto line = result.process->readLine().simplified();
+            QString line = result.process->readLine();
+            line = line.remove('\n');
+            line = line.remove('\r');
             result.standard_error << line;
             emit GotProcessStdErrLine(line);
         }

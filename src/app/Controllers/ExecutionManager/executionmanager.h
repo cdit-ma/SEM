@@ -13,6 +13,7 @@
 #include <QThreadPool>
 #include <QReadWriteLock>
 
+class ViewItem;
 class ViewController;
 class ExecutionManager: public QObject
 {
@@ -32,7 +33,8 @@ public:
     void RunConfigure(QString configure_script_path);
     bool ExecuteModel(QString document_path, QString output_directory, int duration);
     void ValidateModel(QString model_path);
-    void GenerateCodeForComponent(QString document_path, QString component_name);
+    void GenerateCodeForWorkload(QString document_path, ViewItem* view_item);
+    
     void GenerateWorkspace(QString document_path, QString output_directory);
     QString get_env_var(QString key);
 signals:
@@ -41,8 +43,7 @@ signals:
     void ModelExecutionStateChanged(Notification::Severity state);
 
     void CancelModelExecution();
-
-    void GotCodeForComponent(QString file_name, QString file_data);
+    void GotWorkloadCode(QString file_name, QString cpp_code);
 
     void GotJava(bool ready);
     void GotRe(bool ready);
@@ -56,6 +57,8 @@ private:
     bool GenerateWorkspace_(QString document_path, QString output_directory);
     bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);
     bool GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify = true);
+
+    QString GenerateWorkload(QString document_path, QString output_directory, int id);
 
 
 
