@@ -22,7 +22,7 @@ namespace tao{
         //The Request Handle needs to be able to modify and change state of the Port
         friend class RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>;
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, BaseRequestType> callback_wrapper);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
