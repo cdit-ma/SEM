@@ -65,7 +65,7 @@ namespace qpid{
     //Specialised templated RequesterHandler for void returning
     template <class BaseReplyType, class ProtoReplyType>
     struct RequestHandler<BaseReplyType, ProtoReplyType, void, void>{
-        static void Loop(ThreadManager& thread_manager, qpid::ReplierPort<BaseReplyType, BaseRequestType, void, void>& port);
+        static void Loop(ThreadManager& thread_manager, qpid::ReplierPort<BaseReplyType, ProtoReplyType, void, void>& port);
     };
 };
 
