@@ -899,14 +899,17 @@
                             <!-- Get all the Definitions used by this aggregate instance -->
                             <xsl:sequence select="$aggregate_instances"/>
                         </xsl:if>
+                    </xsl:for-each>
 
-                        <xsl:if test="$middleware = 'base'">
+                    <!-- Include the Aggregate Instances required by ComponentImpls For Base -->
+                    <xsl:if test="$middleware = 'base'">
+                        <xsl:for-each select="cdit:get_deployed_component_instances($model)">
                             <xsl:variable name="component_impl" select="graphml:get_impl(.)" />
-                            <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates(., false())" />
+                            <xsl:variable name="aggregate_instances" select="cdit:get_required_aggregates($component_impl, false())" />
                             <!-- Get all the Definitions used by this aggregate instance -->
                             <xsl:sequence select="$aggregate_instances" />
-                        </xsl:if>
-                    </xsl:for-each>
+                        </xsl:for-each>
+                    </xsl:if>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -1746,8 +1749,9 @@
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
                 <xsl:variable name="var_label" select="cdit:get_variable_name(.)" />
-                
-                <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
+                <xsl:if test="$cpp_type and $cpp_type != 'void'">
+                    <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
+                </xsl:if>
             </xsl:for-each>
         </xsl:variable>
 

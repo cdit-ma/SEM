@@ -361,7 +361,7 @@
                 <xsl:variable name="args" select="cpp:join_args((o:wrap_dblquote($port_label), $call_back))" />
                 
                 <xsl:value-of select="cdit:comment_graphml_node(., $tab + 1)" />
-                <xsl:value-of select="cpp:invoke_templated_static_function($port_type, 'AddCallback', $args, cpp:nl(), $tab + 1) " />
+                <xsl:value-of select="cpp:invoke_templated_static_function($port_type, 'RegisterCallback', $args, cpp:nl(), $tab + 1) " />
                 <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
             </xsl:for-each>
 
@@ -375,12 +375,16 @@
 
                 <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_class_type, cdit:get_function_name(.)))" />
                 <xsl:variable name="port_type" select="cdit:get_base_server_interface_type($server_interface)" />
-
-                <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', 'std::placeholders::_1')), '', 0)" />
+                <xsl:variable name="base_request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+                
+                <xsl:variable name="extra_bind_args" select="if($base_request_type != 'void') then 'std::placeholders::_1' else ''" />
+                
+                
+                <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', $extra_bind_args)), '', 0)" />
                 <xsl:variable name="args" select="cpp:join_args((o:wrap_dblquote($port_label), $call_back))" />
                 
                 <xsl:value-of select="cdit:comment_graphml_node(., $tab + 1)" />
-                <xsl:value-of select="cpp:invoke_templated_static_function($port_type, 'AddCallback', $args, cpp:nl(), $tab + 1) " />
+                <xsl:value-of select="cpp:invoke_templated_static_function($port_type, 'RegisterCallback', $args, cpp:nl(), $tab + 1) " />
                 <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
             </xsl:for-each>
 
@@ -932,7 +936,7 @@
                 <xsl:variable name="args" select="cpp:join_args((o:wrap_dblquote($port_label), $call_back))" />
                 
                 <xsl:value-of select="cdit:comment_graphml_node(., $tab + 1)" />
-                <xsl:value-of select="cpp:invoke_static_function('', 'AddPeriodicEventCallback', $args, cpp:nl(), $tab + 1) " />
+                <xsl:value-of select="cpp:invoke_static_function('', 'RegisterPeriodicCallback', $args, cpp:nl(), $tab + 1) " />
                 <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
             </xsl:for-each>
 
@@ -1225,6 +1229,7 @@
                 <xsl:when test="$parent_kind = 'Variable' or
                                 $parent_kind = 'PublisherPortImpl' or
                                 $parent_kind = 'InputParameterGroupInstance' or
+                                $parent_kind = 'ReturnParameterGroup' or
                                 $parent_kind = 'ReturnParameterGroupInstance'
                                 ">
                     <xsl:value-of select="true()"/>

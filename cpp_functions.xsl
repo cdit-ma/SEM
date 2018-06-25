@@ -162,7 +162,7 @@
     <xsl:function name="cpp:declare_function">
         <xsl:param name="return_type" as="xs:string" />
         <xsl:param name="function_name" as="xs:string" />
-        <xsl:param name="parameters" as="xs:string" />
+        <xsl:param name="parameters" as="xs:string?" />
         <xsl:param name="suffix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
