@@ -307,7 +307,7 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>:
     bool valid = orb_endpoint.size() > 0 && server_name.size() > 0 && server_address.size() > 0;
 
     if(valid && ::RequesterPort<BaseReplyType, void>::HandleConfigure()){
-        return tao::SetupRequester<BaseReplyType, BaseRequestType, void, void, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
+        return tao::SetupRequester<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
     }
     return false;
 };
