@@ -203,8 +203,9 @@ void Data::addParentData(Data* data){
         store_value();
 
         connect(data, &Data::dataChanged, this, &Data::setValue);
-        updateChildren();
         setValue(data->getValue());
+        //Force an update
+        updateChildren(true);
     }
 }
 
@@ -212,9 +213,8 @@ void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
         parent_datas.remove(data);
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
-        
         restore_value();
-        //updateChildren();
+        updateChildren(true);
     }
 }
 
@@ -231,6 +231,7 @@ bool Data::unlinkData(Data* data){
     if(data && child_datas.contains(data)){
         child_datas.remove(data);
         data->removeParentData(this);
+
         return true;
     }
     return false;
@@ -273,6 +274,7 @@ void Data::addValidValues(QList<QVariant> values){
     for(auto value : values){
         addValidValue(value);
     }
+
     //Revalidate
     revalidateData();
 }

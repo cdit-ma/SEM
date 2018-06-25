@@ -319,8 +319,10 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
+        auto is_generic_provider = destination->getDataValue("is_generic_param").toBool();
+
         //Try and do special data linking
-        if(destination_parent){
+        if(is_generic_provider && destination_parent){
             bool bind_inner_type = true;
             bool bind_outer_type = false;
             QList<Node*> children_to_bind;
@@ -334,7 +336,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
                 }
                 default:{
                     auto destination_second_parent = destination_parent->getParentNode();
-                    
+
                     if(destination_second_parent && destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
                         const auto& class_name = destination_second_parent  ->getDataValue("class").toString();
                         
@@ -348,7 +350,8 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
                     break;
                 }
             }
-
+            
+            
             for(auto parameter : children_to_bind){
                 if(parameter->getDataValue("is_generic_param").toBool()){
                     if(bind_inner_type){
