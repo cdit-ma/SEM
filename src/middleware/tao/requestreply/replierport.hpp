@@ -68,7 +68,6 @@ namespace tao{
     };
 
     template <class BaseRequestType, class TaoRequestType, class TaoServerInt>
-
     class TaoServerImpl<void, void, BaseRequestType, TaoRequestType, TaoServerInt> : public TaoServerInt{
         public:
             TaoServerImpl(tao::ReplierPort<void, void, BaseRequestType, TaoRequestType, TaoServerInt>& port):
@@ -81,6 +80,20 @@ namespace tao{
             };
         private:
             tao::ReplierPort<void, void, BaseRequestType, TaoRequestType, TaoServerInt>& eventport;
+    };
+
+    template <class BaseReplyType, class TaoReplyType, class TaoServerInt>
+    class TaoServerImpl<BaseReplyType, TaoReplyType, void, void, TaoServerInt> : public TaoServerInt{
+        public:
+            TaoServerImpl(tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& port):
+                eventport(port){
+            };
+            TaoReplyType* TAO_SERVER_FUNC_NAME(){
+                auto base_result = eventport.ProcessRequest();
+                return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+            };
+        private:
+            tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& eventport;
     };
 };
 
