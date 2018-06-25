@@ -13,7 +13,7 @@ class Component;
 
 class PeriodicPort : public ::SubscriberPort<BaseMessage>{
     public:
-        PeriodicPort(std::weak_ptr<Component> component, const std::string& name, std::function<void (BaseMessage&)> callback, int milliseconds = 1000);
+        PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds = 1000);
         ~PeriodicPort();
         void SetFrequency(double hz);
         void SetDuration(int milliseconds);

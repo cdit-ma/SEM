@@ -160,7 +160,7 @@ bool Component::GotCallback(const std::string& port_name, const std::type_info& 
 
 
 
-void Component::AddCallback_(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, GenericCallbackWrapper* callback){
+void Component::AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, GenericCallbackWrapper callback){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     //Check for this port_name

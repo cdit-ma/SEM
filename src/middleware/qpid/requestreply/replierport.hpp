@@ -26,7 +26,7 @@ namespace qpid{
         //The Request Handle needs to be able to modify and change state of the Port
         friend class RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>;
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
@@ -65,10 +65,8 @@ namespace qpid{
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
-::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "qpid"){
-    auto component_ = component.lock();
-
+qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  CallbackWrapper<BaseReplyType, BaseRequestType> callback_wrapper):
+::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, callback_wrapper, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };

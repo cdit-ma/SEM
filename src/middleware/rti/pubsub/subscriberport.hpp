@@ -16,7 +16,7 @@ namespace rti{
     class SubscriberPort: public ::SubscriberPort<BaseType>{
         friend class DataReaderListener<BaseType, RtiType>;
     public:
-        SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+        SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType> callback_wrapper);
         ~SubscriberPort(){
             Activatable::Terminate();
         };
@@ -53,8 +53,8 @@ namespace rti{
 };
 
 template <class BaseType, class RtiType>
-rti::SubscriberPort<BaseType, RtiType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
-::SubscriberPort<BaseType>(component, name, callback_function, "rti"){
+rti::SubscriberPort<BaseType, RtiType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType> callback_wrapper):
+::SubscriberPort<BaseType>(component, name, callback_wrapper, "rti"){
     subscriber_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "subscriber_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
