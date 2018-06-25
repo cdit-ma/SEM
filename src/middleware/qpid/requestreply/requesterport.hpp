@@ -178,7 +178,7 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::Process
 //Specialised templated RequesterPort for void requesting
 template <class BaseReplyType, class ProtoReplyType>
 qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
-::RequesterPort<void, BaseRequestType>(component, port_name, "qpid"){
+::RequesterPort<BaseReplyType, void>(component, port_name, "qpid"){
 
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
