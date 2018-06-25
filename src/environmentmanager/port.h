@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "uniquequeue.hpp"
 #include <memory>
-
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Component;
@@ -28,19 +28,27 @@ class Port{
             Tao = 5,
         };
         Port(const Component& parent, const std::string& id, const std::string& name, Port::PortKind kind, Port::PortMiddleware middleware);
+        std::string GetName() const;
+        std::string GetId() const;
+        Port::PortKind GetKind() const;
+        Port::PortMiddleware GetMiddleware() const;
+        std::string GetPublisherPort() const;
+        std::string GetTopic() const;
+        Component& GetParent() const;
 
+        void SetPublisherPort(const std::string& publisher_port);
         void SetTopic(const std::string& topic_name);
         void AddEndpoint(const std::string& endpoint);
-
+        void RemoveEndpoint(const std::string& endpoint);
         void AddConnectedPortId(const std::string& port_id);
         void AddExternalConnectedPortId(const std::string& port_id);
 
-        bool IsConnectedTo(const std::string& port_id);
+        bool IsConnectedTo(const std::string& port_id) const;
 
         void SetDirty();
-        bool IsDirty();
+        bool IsDirty() const;
 
-        Component& GetParent();
+        NodeManager::Port* GetUpdate();
 
     private:
         const Component& parent_;
@@ -49,12 +57,16 @@ class Port{
         PortKind kind_;
         PortMiddleware middleware_;
 
+        bool dirty_;
+
         std::string topic_name_;
 
-        std::vector<std::string> endpoints_;
+        std::set<std::string> endpoints_;
+
+        std::string publisher_port_;
 
         std::set<std::string> connected_port_ids_;
-        std::set<std::string> external_connected_port_ids_;
+        std::set<std::string> connected_external_port_ids_;
 
 };
 };

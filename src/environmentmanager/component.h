@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "uniquequeue.hpp"
 #include <memory>
-
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Node;
@@ -21,13 +21,18 @@ class Component{
 
         Node& GetParent();
 
+        std::vector<std::string> GetAllPublisherPorts() const;
+
         void SetDirty();
         bool IsDirty();
+
+        NodeManager::Component* GetUpdate();
 
     private:
         const Node& parent_;
         std::string id_;
         std::string name_;
+        std::string type_;
 
         bool dirty_;
 

@@ -13,30 +13,19 @@ Experiment::~Experiment(){
             const auto& external_port_label = external_port_pair.second->external_label;
             environment_.RemoveDependentExternalExperiment(model_name_, external_port_label);
         }
-        for(const auto& port : port_map_){
-            if(!port.second.port_number.empty()){
-                const auto& ip_address = port.second.node_ip;
-                environment_.FreePort(ip_address, port.second.port_number);
-            }
-        }
-        for(const auto& node : node_map_){
-            auto node_struct = *node.second;
-            auto name = node_struct.info().name();
-            const auto& ip_address = node.first;
+        for(const auto& pair : node_map_){
+            auto node = *pair.second;
+            const auto& ip_address = node.GetIp();
 
-            if(management_port_map_.count(ip_address)){
-                auto management_port = management_port_map_.at(ip_address);
-                environment_.FreePort(ip_address, management_port);
-
-            }
-            if(modellogger_port_map_.count(ip_address)){
-                auto modellogger_port = modellogger_port_map_.at(ip_address);
-                environment_.FreePort(ip_address, modellogger_port);
-            }
-            if(orb_port_map_.count(ip_address)){
-                auto orb_port = orb_port_map_.at(ip_address);
-                environment_.FreePort(ip_address, orb_port);
-            }
+            environment_.FreePorts(ip_address, node.GetAllLoggingPorts());
+            //Free publisher ports
+            environment_.FreePorts(ip_address, node.GetAllPublisherPorts());
+            //Free node's management port
+            environment_.FreePort(ip_address, node.GetManagementPort());
+            //Free node's logger port
+            environment_.FreePort(ip_address, node.GetModeLoggerPort());
+            //Free node's orb port
+            environment_.FreePort(ip_address, node.GetOrbPort());
         }
         environment_.FreeManagerPort(manager_port_);
         environment_.FreePort(master_ip_address_, master_publisher_port_);
@@ -92,9 +81,9 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
-    auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
-    std::string ip_address;
     auto node_name = node.info().name();
+    auto node_id = node.info().id();
+    std::string ip_address;
 
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
@@ -104,18 +93,16 @@ void Experiment::AddNode(const NodeManager::Node& node){
             break;
         }
     }
-    node_map_.emplace(ip_address, std::move(temp));
 
-
-    deployment_map_.insert({ip_address, 0});
+    auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(node_id, node_name, ip_address));
+    node_map_.emplace(ip_address, std::move(internal_node));
+    auto& node_ref = node_map_.at(ip_address);
 
     for(int i = 0; i < node.loggers_size(); i++){
         auto logger = node.loggers(i);
+        auto internal_logger = std::unique_ptr<Logger>(new EnvironmentManager::Logger());
         if(logger.type() == NodeManager::Logger::CLIENT){
 
-            auto logan_client = new LoganClient();
-            logan_client->ip_address = ip_address;
-            logan_client->id = logger.id();
             logan_client->frequency = logger.frequency();
             for(int j = 0; j < logger.processes_size(); j++){
                 logan_client->processes.push_back(logger.processes(j));
@@ -123,78 +110,81 @@ void Experiment::AddNode(const NodeManager::Node& node){
             logan_client->live_mode = logger.mode() == NodeManager::Logger::LIVE;
             logan_client->logging_port = environment_.GetPort(ip_address);
 
-            logan_client_map_[logger.id()] = std::unique_ptr<LoganClient>(logan_client);
+            //keep this
+            logan_client_address_map_[internal_logger.GetId()] = "tcp://" + ip_address + ":" + internal_logger->GetLoggingPort();
         }
 
         if(logger.type() == NodeManager::Logger::SERVER){
-            auto logan_server = new LoganServer();
 
-            logan_server->ip_address = ip_address;
             logan_server->db_file_name = logger.db_file_name();
-            logan_server->id = logger.id();
             for(int j = 0; j < logger.client_ids_size(); j++){
                 logan_server->client_ids.push_back(logger.client_ids(j));
             }
-
-            logan_server_map_[logger.id()] = std::unique_ptr<LoganServer>(logan_server);
         }
+        node_ref.AddLogger(std::move(internal_logger));
     }
 
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
+        auto internal_component = std::unique_ptr<EnvironmentManager::Component>(
+            new EnvironmentManager::Component(node_ref, component.info().id(), component.info().name()));
+
         for(int j = 0; j < component.ports_size(); j++){
 
             auto port = component.ports(j);
 
-            EventPort event_port;
-            event_port.id = port.info().id();
-            event_port.guid = port.port_guid();
-            event_port.node_ip = ip_address;
+            auto internal_port = std::unique_ptr<EnvironmentManager::Port>(
+                new EnvironmentManager::Port(*internal_component, port.info().id(), port.info().name(), /*KIND*/, /*middleware*/));
 
-            if(port.middleware() == NodeManager::ZMQ){
-                if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
-                    event_port.port_number = environment_.GetPort(ip_address);
+            //If we're a zmq publisher or zmq replier port, assign a publisher port
+            if(internal_port->GetMiddleware() == EnvironmentManager::Port::Middleware::Zmq){
+                
+                if(internal_port->GetKind() == EnvironmentManager::Port::Kind::Publisher || 
+                        internal_port->GetKind() == EnvironmentManager::Port::Kind::Replier){
+
+                    internal_port->SetPublisherPort(environment_.GetPort(ip_address));
                 }
             }
-            else if(port.middleware() == NodeManager::TAO){
-                if(!orb_port_map_.count(ip_address)){
-                    auto orb_port = environment_.GetPort(ip_address);
-                    orb_port_map_.insert({ip_address, orb_port});
+            else if(internal_port->GetMiddleware() == EnvironmentManager::Port::Middleware::Tao){
+                if(!node_ref.HasOrbPort()){
+                    node_ref.SetOrbPort(environment_.GetPort(ip_address));
                 }
-
-                event_port.port_number = orb_port_map_.at(ip_address);
-                //Make a unique name
-                event_port.topic = port.info().name() + "_" + event_port.id;
+                internal_port->SetPublisherPort(node_ref.GetOrbPort());
+                internal_port->SetTopic(internal_port->GetName() + "_" + internal_port->GetId());
             }
 
+
+            std::string type;
             for(const auto& ns : port.info().namespaces()){
-                event_port.type += ns + "::";
+                type += ns + "::";
             }
 
-            event_port.type += port.info().type();
+            type += port.info().type();
+            internal_port->SetType(type);
             
             for(int a = 0; a < port.attributes_size(); a++){
                 auto attribute = port.attributes(a);
                 if(attribute.info().name() == "topic"){
-                    event_port.topic = attribute.s(0);
-                    topic_set_.insert(event_port.topic);
+                    internal_port->SetTopic(attribute.s(0));
+                    topic_set_.insert(internal_port->GetTopic());
                     break;
                 }
             }
 
             for(int k = 0; k < port.connected_ports_size(); k++){
-                auto id = port.connected_ports(k);
-                connection_map_[id].push_back(event_port.id);
+                auto connected_id = port.connected_ports(k);
+                internal_port->AddConnectedPortId(connected_id);
+                connection_map_[connected_id].push_back(internal_port->GetId());
             }
 
-            port_map_.insert({event_port.id, event_port});
+            internal_component->AddPort(std::move(internal_port));
         }
-        deployment_map_.at(ip_address)++;
+        node_ref.AddComponent(std::move(internal_component));
     }
-    
-    auto deploy_count = deployment_map_.at(ip_address);
+
+    auto deploy_count = node_ref.GetDeployedComponentCount();
     if(deploy_count > 0){
-        std::cout << "Experiment[" << model_name_ << "] Node: " <<node_name << " Deployed: " << deploy_count << std::endl;
+        std::cout << "Experiment[" << model_name_ << "] Node: " << nodenode_ref.GetName() << " Deployed: " << deploy_count << std::endl;
     }
 }
 
@@ -215,50 +205,34 @@ void Experiment::ConfigureNode(NodeManager::Node& node){
     if(node.components_size() > 0){
         //set modellogger port
         auto logger_port = environment_.GetPort(ip_address);
+        node_map_.at(ip_address)->SetModelLoggerPort(logger_port);
 
-        auto logger_attribute = node.add_attributes();
-        auto logger_attribute_info = logger_attribute->mutable_info();
-        logger_attribute->set_kind(NodeManager::Attribute::STRING);
-        logger_attribute_info->set_name("modellogger_port");
-        logger_attribute->add_s(logger_port);
+        // auto logger_attribute = node.add_attributes();
+        // auto logger_attribute_info = logger_attribute->mutable_info();
+        // logger_attribute->set_kind(NodeManager::Attribute::STRING);
+        // logger_attribute_info->set_name("modellogger_port");
+        // logger_attribute->add_s(logger_port);
 
         //set master/slave port
         auto management_port = environment_.GetPort(ip_address);
+        node_map_.at(ip_address)->SetManagementPort(logger_port);
 
-        auto management_endpoint_attribute = node.add_attributes();
-        auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
-        management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
-        management_endpoint_attribute_info->set_name("management_port");
-        management_endpoint_attribute->add_s(management_port);
-
-        modellogger_port_map_.insert({ip_address, logger_port});
-        management_port_map_.insert({ip_address, management_port});
+        // auto management_endpoint_attribute = node.add_attributes();
+        // auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
+        // management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
+        // management_endpoint_attribute_info->set_name("management_port");
+        // management_endpoint_attribute->add_s(management_port);
     }
 
-    if(node.loggers_size() > 0){
-        for(int i = 0; i < node.loggers_size(); i++){
-            if(node.loggers(i).type() == NodeManager::Logger::SERVER){
-                auto server = node.mutable_loggers(i);
-                for(int j = 0; j < server->client_ids_size(); j++){
-                    auto client_id = server->client_ids(j);
-                    auto client_address = logan_client_map_[client_id]->ip_address;
-                    auto client_port = logan_client_map_[client_id]->logging_port;
-                    std::string full_address = "tcp://" + client_address + ":" + client_port;
-                    server->add_client_addresses(full_address);
+    node_map_.at(ip_address)->SetLoganClientAddresses(logan_client_address_map_);
 
-                    logan_server_map_[server->id()]->client_addresses.push_back(full_address);
-                }
-            }
-        }
-    }
+    
 
-    auto temp = std::unique_ptr<NodeManager::Node>(new NodeManager::Node(node));
-    node_map_.at(ip_address).swap(temp);
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
-    if(deployment_map_.count(ip_address)){
-        return deployment_map_.at(ip_address) > 0;
+    if(node_map_.count(ip_address)){
+        return node_map_.at(ip_address)->GetDeployedComponentCount() > 0;
     }
     else{
         throw std::invalid_argument("No node found with ip " + ip_address);
@@ -266,6 +240,9 @@ bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
 }
 
 NodeManager::EnvironmentMessage Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
+    if(node_map_.count(ip_address)){
+        return node_map_.at(ip_address)->GetLoganDeploymentMessage();
+    }
     NodeManager::EnvironmentMessage message;
 
     for(const auto& server_pair : logan_server_map_){
@@ -315,7 +292,7 @@ std::string Experiment::GetMasterRegistrationAddress(){
 }
 
 std::string Experiment::GetNodeModelLoggerPort(const std::string& ip_address) const{
-    return modellogger_port_map_.at(ip_address);
+    return node_map_.at(ip_address)->GetModeLoggerPort();
 }
 
 std::set<std::string> Experiment::GetTopics() const{
@@ -432,49 +409,50 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
     std::unique_lock<std::mutex> lock(mutex_);
     dirty_flag_ = false;
 
-    while(!updated_port_ids_.empty()){
-        auto port_it = updated_port_ids_.begin();
-        auto port_external_id = *port_it;
-        std::string endpoint = environment_.GetPublicEventPortEndpoint(port_external_id);
-        updated_port_ids_.erase(port_it);
+    // while(!updated_port_ids_.empty()){
+    //     auto port_it = updated_port_ids_.begin();
+    //     auto port_external_id = *port_it;
+    //     std::string endpoint = environment_.GetPublicEventPortEndpoint(port_external_id);
+    //     updated_port_ids_.erase(port_it);
 
-        std::cout << "adding " << port_external_id << std::endl;
-        std::cout << "adding " << endpoint << std::endl;
-        auto port_internal_id = external_id_to_internal_id_map_.at(port_external_id);
-        std::cout << "adding " << port_internal_id << std::endl;
+    //     std::cout << "adding " << port_external_id << std::endl;
+    //     std::cout << "adding " << endpoint << std::endl;
+    //     auto port_internal_id = external_id_to_internal_id_map_.at(port_external_id);
+    //     std::cout << "adding " << port_internal_id << std::endl;
 
-        //Iterate through all ports and check for connections to updated ports.
-        //When we find one, add the new port endpoint to it's list of connecitons.
-        //XXX:this is pretty terrible...
-        for(int i = 0; i < deployment_message_.nodes_size(); i++){
-            std::cout << i << std::endl;
-            auto node = deployment_message_.nodes(i);
-            for(int j = 0; j < node.components_size(); j++){
-            std::cout << j << std::endl;
-                auto component = node.components(j);
-                for(int k = 0; k < component.ports_size(); k++){
-                    auto port = component.mutable_ports(k);
-            std::cout << k << std::endl;
+    //     //Iterate through all ports and check for connections to updated ports.
+    //     //When we find one, add the new port endpoint to it's list of connecitons.
+    //     //XXX:this is pretty terrible...
+    //     for(int i = 0; i < deployment_message_.nodes_size(); i++){
+    //         std::cout << i << std::endl;
+    //         auto node = deployment_message_.nodes(i);
+    //         for(int j = 0; j < node.components_size(); j++){
+    //         std::cout << j << std::endl;
+    //             auto component = node.components(j);
+    //             for(int k = 0; k < component.ports_size(); k++){
+    //                 auto port = component.mutable_ports(k);
+    //         std::cout << k << std::endl;
 
-                    for(int l = 0; l < port->connected_external_ports_size(); l++){
-                        auto connected_port = port->connected_external_ports(l);
-                        std::cout << connected_port << std::endl;
-                        if(port_internal_id == connected_port){
-                            std::cout << "yes" << std::endl;
-                            for(int m = 0; m < port->attributes_size(); m++){
+    //                 for(int l = 0; l < port->connected_external_ports_size(); l++){
+    //                     auto connected_port = port->connected_external_ports(l);
+    //                     std::cout << connected_port << std::endl;
+    //                     if(port_internal_id == connected_port){
+    //                         std::cout << "yes" << std::endl;
+    //                         for(int m = 0; m < port->attributes_size(); m++){
 
-                                auto attribute = port->mutable_attributes(m);
-                                if(attribute->info().name() == "publisher_address"){
-                                    std::cout << "adding" << endpoint << " to " << port->info().name()<< std::endl;
-                                    attribute->add_s(endpoint);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //                             auto attribute = port->mutable_attributes(m);
+    //                             if(attribute->info().name() == "publisher_address"){
+    //                                 std::cout << "adding" << endpoint << " to " << port->info().name()<< std::endl;
+    //                                 attribute->add_s(endpoint);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    
     control_message.CopyFrom(deployment_message_);
     std::cout << control_message.DebugString() << std::endl;
 }
