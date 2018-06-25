@@ -324,7 +324,7 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>:
 };
 
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
-BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::ProcessRequest(const BaseRequestType& message, std::chrono::milliseconds timeout){
+BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::ProcessRequest(std::chrono::milliseconds timeout){
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
