@@ -196,7 +196,7 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pr
         //Construct receiver
         qpid::messaging::Address response_queue("#response-queue; {create: always, delete:always}");
         auto receiver = session.createReceiver(response_queue);
-]
+
         //Convert request
         qpid::messaging::Message qpid_request;
         qpid_request.setReplyTo(response_queue);
