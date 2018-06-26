@@ -9,44 +9,44 @@
 template <class BaseReplyType, class BaseRequestType>
 class ReplierPort : public Port{
     public:
-        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, BaseRequestType> callback_function, const std::string& middleware);
+        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_function, const std::string& middleware);
 
         using base_reply_type = BaseReplyType;
         using base_request_type = BaseRequestType;
         BaseReplyType ProcessRequest(BaseRequestType& type);
     private:
-        CallbackWrapper<BaseReplyType, BaseRequestType> callback_wrapper_;
+        const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper_;
 };
 
 //Specialised templated ReplierPort for void returning
 template <class BaseRequestType>
 class ReplierPort<void, BaseRequestType> : public Port{
     public:
-        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<void, BaseRequestType> callback_function, const std::string& middleware);
+        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<void, BaseRequestType>& callback_function, const std::string& middleware);
         using base_reply_type = void;
         using base_request_type = BaseRequestType;
         void ProcessRequest(BaseRequestType& type);
     protected:
     private:
-        CallbackWrapper<void, BaseRequestType> callback_wrapper_;
+        const CallbackWrapper<void, BaseRequestType>& callback_wrapper_;
 };
 
 //Specialised templated ReplierPort for void returning
 template <class BaseReplyType>
 class ReplierPort<BaseReplyType, void> : public Port{
     public:
-        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, void> callback_function, const std::string& middleware);
+        ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, void>& callback_function, const std::string& middleware);
         using base_reply_type = BaseReplyType;
         using base_request_type = void;
         BaseReplyType ProcessRequest();
     protected:
     private:
-        CallbackWrapper<BaseReplyType, void> callback_wrapper_;
+        const CallbackWrapper<BaseReplyType, void>& callback_wrapper_;
 };
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class BaseRequestType>
-ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, BaseRequestType> callback_function, const std::string& middleware)
+ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_function, const std::string& middleware)
 :   Port(component, port_name, Port::Kind::REPLIER, middleware),
     callback_wrapper_(callback_function)
 {
@@ -70,7 +70,7 @@ BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRe
 
 //Specialised templated ReplierPort for void returning
 template <class BaseRequestType>
-ReplierPort<void, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<void, BaseRequestType> callback_function, const std::string& middleware)
+ReplierPort<void, BaseRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<void, BaseRequestType>& callback_function, const std::string& middleware)
 :   Port(component, port_name, Port::Kind::REPLIER, middleware),
     callback_wrapper_(callback_function)
 {};
@@ -93,7 +93,7 @@ void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& base_re
 
 //Specialised templated ReplierPort for void requesting
 template <class BaseReplyType>
-ReplierPort<BaseReplyType, void>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, void> callback_function, const std::string& middleware)
+ReplierPort<BaseReplyType, void>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, void>& callback_function, const std::string& middleware)
 :   Port(component, port_name, Port::Kind::REPLIER, middleware),
     callback_wrapper_(callback_function)
 {};

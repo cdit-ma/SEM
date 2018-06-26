@@ -18,7 +18,7 @@ namespace zmq{
         friend class RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>;
         
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, CallbackWrapper<BaseReplyType, BaseRequestType> server_function);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
@@ -64,8 +64,8 @@ namespace zmq{
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  CallbackWrapper<BaseReplyType, BaseRequestType> server_function):
-::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "zmq"){
+zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper):
+::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, callback_wrapper, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
