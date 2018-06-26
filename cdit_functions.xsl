@@ -229,6 +229,11 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cdit:middleware_handles_union" as="xs:boolean">
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:value-of select="$middleware = 'tao' or $middleware = 'rti' or $middleware = 'ospl' or $middleware = 'base'" />
+    </xsl:function>
+
     <xsl:function name="cdit:invoke_middleware_add_vector_function" as="xs:string">
         <xsl:param name="obj" as="xs:string"/>
         <xsl:param name="operator" as="xs:string"/>
@@ -1376,7 +1381,7 @@
     <xsl:function name="cdit:get_union_descrimantor_type">
         <xsl:param name="aggregate" as="element()" />
         <xsl:variable name="label" select="graphml:get_label($aggregate)" />
-        <xsl:value-of select="concat(o:title_case($label), 'Descriminator')" />
+        <xsl:value-of select="o:join_list((o:title_case($label), 'Descriminator'), '_')" />
     </xsl:function>
 
     <xsl:function name="cdit:get_qualified_union_descrimantor_type">

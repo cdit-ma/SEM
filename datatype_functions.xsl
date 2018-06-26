@@ -1128,8 +1128,11 @@
             <xsl:when test="$middleware_lc = 'base'">
                 <xsl:value-of select="'get_descriminator'" />
             </xsl:when>
-            <xsl:when test="$middleware_lc = 'tao' or $middleware_lc = 'rti'">
+            <xsl:when test="$middleware_lc = 'tao'">
                 <xsl:value-of select="'_d'" />
+            </xsl:when>
+            <xsl:when test="$middleware_lc = 'rti'">
+                <xsl:value-of select="'_d().underlying'" />
             </xsl:when>
         </xsl:choose>
     </xsl:function>
@@ -1141,7 +1144,7 @@
         <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union') and cdit:middleware_handles_union($source_middleware)" />
         <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $target_middleware)" />
 
         <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
@@ -1190,6 +1193,11 @@
         </xsl:for-each>
 
         <xsl:if test="$is_union">
+            <!-- Handle the Default Case -->
+            <xsl:value-of select="cpp:switch_default($tab)" />
+            <xsl:value-of select="concat(o:t($tab + 1), 'break', cpp:nl())" />
+            <xsl:value-of select="cpp:scope_end($tab)" />
+
             <xsl:value-of select="cpp:scope_end($tab)" />
         </xsl:if>
 
