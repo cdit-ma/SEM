@@ -202,7 +202,7 @@
                 <xsl:value-of select="cmake:comment(('Inform middleware compiler', o:wrap_angle($middleware_extension), 'of directories to look for relative files.'), 0)" />
                 <xsl:value-of select="concat('set(', upper-case(concat($middleware_package, '_IMPORT_DIRS')), o:nl(1))" />
             </xsl:if>
-            <xsl:variable name="import_path" select="o:join_paths((cmake:wrap_variable('TOP_SOURCE_DIR'), 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="import_path" select="o:join_paths((cmake:wrap_variable('TOP_SOURCE_DIR'), 'datatypes', $middleware, cdit:get_namespace_type_path(.)))" />
             <xsl:value-of select="concat(o:t(1), $import_path, o:nl(1))" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
@@ -451,7 +451,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $middleware, cdit:get_namespace_type_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -563,7 +563,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_namespace_type_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -679,7 +679,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_aggregates_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths(($top_binary_dir, 'datatypes', $datatype_middleware, cdit:get_namespace_type_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -736,6 +736,32 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
+
+    <!-- 
+        Sets up RE_PATH
+    -->
+    <xsl:function name="cmake:setup_re_path">
+        <xsl:value-of select="cmake:comment('CDIT Runtime Paths', 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_PATH', cmake:get_env_var('RE_PATH'), 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <!--
+        Gets the top level CMakeLists file
+    -->
+    <xsl:function name="cmake:get_top_cmakelists">
+        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
+        <xsl:value-of select="cmake:set_cpp11()" />
+        <xsl:value-of select="cmake:setup_re_path()" />
+
+        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(), 'lib'))" />
+
+        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
+        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
+        <xsl:value-of select="cmake:add_subdirectories(('components', 'ports', 'classes', 'datatypes'))" />
+    </xsl:function>
+
 
     
                 

@@ -238,4 +238,15 @@
 
         <xsl:value-of select="count($string_list[matches(., concat('^', $str, '$'), if($case_insensitive) then 'i' else '')])" />
     </xsl:function>
+
+    <!--
+        Removes duplicate nodes from a list
+    -->
+    <xsl:function name="o:remove_duplicates">
+        <xsl:param name="elements" />
+
+        <xsl:for-each-group select="$elements" group-by=".">
+            <xsl:sequence select="." />
+        </xsl:for-each-group>
+    </xsl:function>
 </xsl:stylesheet>

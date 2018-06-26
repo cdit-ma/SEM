@@ -803,6 +803,36 @@
         <xsl:value-of select="cdit:test_deployment($component_instances)" />
     </xsl:function>
 
+
+    <xsl:function name="cdit:middlewares_match" as="xs:boolean">
+        <xsl:param name="middleware1" as="xs:string"/>
+        <xsl:param name="middleware2" as="xs:string"/>
+
+        <xsl:variable name="middleware1_lc" select="lower-case($middleware1)" />
+        <xsl:variable name="middleware2_lc" select="lower-case($middleware2)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware1_lc = $middleware2_lc">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="($middleware1_lc = 'rti' or $middleware1_lc = 'ospl') and ($middleware2_lc = 'ospl' or $middleware2_lc = 'rti')">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="false()" />
+            </xsl:otherwise>
+        </xsl:choose>
+   </xsl:function>
+
+       <xsl:function name="cdit:middleware_requires_topic" as="xs:boolean">
+        <xsl:param name="middleware" as="xs:string"/>
+
+        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+
+        <xsl:value-of select="$middleware_lc='qpid' or $middleware_lc='rti' or $middleware_lc='ospl'" />
+   </xsl:function>
+
+
     
 
     

@@ -22,24 +22,23 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="middleware_type" select="cdit:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="base_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cdit:get_aggregate_qualified_type($aggregate, $middleware)" />
 
         <!-- Preamble -->
         <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translator_cpp', 0)" />
-        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
-        <!-- Include the translater header -->
+        <!-- Include the translator headers -->
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'translator.h')))" />
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'primitivetranslator.hpp')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the base message type -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate, 'base')" />
 
-        <!-- Include the base message type -->
-        <xsl:value-of select="cdit:include_middleware_aggregate_headers($middleware, $aggregate)" />
+        <!-- Include the Middleware message type -->
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate, $middleware)" />
 
         <!-- Define the namespace -->
         <xsl:variable name="function_namespace" select="('Base')" />
@@ -497,7 +496,7 @@
             <xsl:value-of select="cpp:include_library_header('vector')" />
         </xsl:if>
 
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $required_aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers($required_aggregates, 'base')" />
         <xsl:value-of select="cdit:include_enum_headers($enums)" />
         <xsl:value-of select="o:nl(1)" />
 
@@ -551,8 +550,8 @@
         <!-- TODO -->
 
         <!-- Include the base message type -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate)" />
-        <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path($datatype_middleware, $aggregate))" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate, 'base')" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate, $datatype_middleware)" />
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
@@ -560,8 +559,8 @@
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'pubsub', 'subscriberport.hpp')))" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="base_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cdit:get_aggregate_qualified_type($aggregate, $middleware)" />
         <xsl:variable name="port_type" select="cpp:join_args(($base_type, $middleware_type))" />
 
         <xsl:variable name="func_args" select="cpp:join_args((cpp:const_ref_var_def('std::string', 'port_name'), cpp:declare_variable(cpp:weak_ptr('Component'), 'component', '', 0)))" />
@@ -606,12 +605,9 @@
         <xsl:value-of select="o:nl(1)" />
 
         
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregate_instances)" />
-        
-        <xsl:for-each select="$aggregate_instances">
-            <!-- Include the base message types -->
-            <xsl:value-of select="cpp:include_local_header(cdit:get_aggregates_generated_middleware_header_path($datatype_middleware, .))" />
-        </xsl:for-each>
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate_instances, 'base')" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregate_instances, $datatype_middleware)" />
+
 
         <xsl:if test="$middleware = 'tao'">
             <xsl:variable name="server_header" select="cdit:get_middleware_generated_header_name($server_interface, $middleware)" />
@@ -636,22 +632,22 @@
 
 
          <!--
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="base_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cdit:get_aggregate_qualified_type($aggregate, $middleware)" />
         $base_type, $middleware_type))" /> -->
         
         <xsl:variable name="port_types" as="xs:string*">
-            <xsl:sequence select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
-            <xsl:sequence select="cdit:get_qualified_server_interface_reply_type($server_interface, $datatype_middleware)" />
-            <xsl:sequence select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
-            <xsl:sequence select="cdit:get_qualified_server_interface_request_type($server_interface, $datatype_middleware)" />
+            <xsl:sequence select="cdit:get_qualified_reply_type_for_server_interface($server_interface, 'base')" />
+            <xsl:sequence select="cdit:get_qualified_reply_type_for_server_interface($server_interface, $datatype_middleware)" />
+            <xsl:sequence select="cdit:get_qualified_request_type_for_server_interface($server_interface, 'base')" />
+            <xsl:sequence select="cdit:get_qualified_request_type_for_server_interface($server_interface, $datatype_middleware)" />
         </xsl:variable>
 
         <xsl:variable name="requester_port_types" as="xs:string*">
             <xsl:sequence select="$port_types" />
 
             <xsl:if test="$middleware = 'tao'">
-                <xsl:sequence select="cpp:get_aggregate_qualified_type($server_interface, $datatype_middleware)" />
+                <xsl:sequence select="cdit:get_aggregate_qualified_type($server_interface, $datatype_middleware)" />
             </xsl:if>
         </xsl:variable>
         
@@ -692,7 +688,7 @@
         <xsl:param name="aggregate" as="element()" />
 
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="class_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="class_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
         <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
         
         <xsl:variable name="header_file" select="cdit:get_base_aggregate_h_name($aggregate)" />
@@ -723,7 +719,7 @@
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         
-        <xsl:variable name="class_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="class_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
         
         <xsl:variable name="aggregate_h" select="concat(lower-case($aggregate_label), '.h')" />
         <xsl:variable name="aggregate_cpp" select="concat(lower-case($aggregate_label), '.cpp')" />
@@ -787,7 +783,7 @@
         <!-- Include the required aggregate folders -->
         <xsl:variable name="sub_directories" as="xs:string*">
             <xsl:for-each select="$aggregates">
-                <xsl:sequence select="cdit:get_aggregates_path(.)" />
+                <xsl:sequence select="cdit:get_namespace_type_path(.)" />
             </xsl:for-each>
         </xsl:variable>
 
@@ -856,7 +852,7 @@
         <xsl:value-of select="cpp:switch('value', 1)" />
 
         <xsl:for-each select="$enum_members">
-            <xsl:variable name="enum_type" select="cdit:get_resolved_enum_member_type(.)" />
+            <xsl:variable name="enum_type" select="cdit:get_qualified_enum_member_type(.)" />
             <xsl:variable name="enum_label" select="upper-case(graphml:get_label(.))" />
             <xsl:value-of select="cpp:switch_case($enum_type, 2)" />
             <xsl:value-of select="cpp:return(o:wrap_dblquote($enum_label), 3)" />
@@ -980,7 +976,7 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <!-- Get the type of the Enum -->
-        <xsl:variable name="enum_cast_type" select="cpp:get_enum_qualified_type($enum_instance, $target_middleware)" />
+        <xsl:variable name="enum_cast_type" select="cdit:get_qualified_enum_type($enum_instance, $target_middleware)" />
 
         <xsl:variable name="cast_enum_value" select="o:join_list((o:wrap_bracket($enum_cast_type), cpp:static_cast('int', $get_func)), ' ')" />
         <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($enum_instance)" />
@@ -999,8 +995,8 @@
         
         
         <xsl:variable name="other_middleware" select="if($src_middleware = 'base') then $target_middleware else $src_middleware" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $other_middleware)" />
+        <xsl:variable name="base_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cdit:get_aggregate_qualified_type($aggregate, $other_middleware)" />
         
         <xsl:variable name="translate_func" select="if($src_middleware = 'base') then 'BaseToMiddleware' else 'MiddlewareToBase'" />
 
@@ -1145,7 +1141,7 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union') and cdit:middleware_handles_union($source_middleware)" />
-        <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $target_middleware)" />
+        <xsl:variable name="target_type" select="cdit:get_aggregate_qualified_type($aggregate, $target_middleware)" />
 
         <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
 

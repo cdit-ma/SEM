@@ -40,10 +40,10 @@
                     <xsl:value-of select="cpp:void()" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Function'">
-                    <xsl:value-of select="cdit:get_function_return_parameter_declarations($entity)" />
+                    <xsl:value-of select="cdit:get_function_return_type($entity)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'ReplierPortImpl'">
-                    <xsl:value-of select="cdit:get_function_return_parameter_declarations($entity)" />
+                    <xsl:value-of select="cdit:get_function_return_type($entity)" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="cpp:warning(('cdit:define_workload_function()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
@@ -64,10 +64,10 @@
                     <xsl:value-of select="''" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Function'">
-                    <xsl:value-of select="cdit:get_function_input_parameter_declarations($entity)" />
+                    <xsl:value-of select="cdit:get_function_parameters($entity)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'ReplierPortImpl'">
-                    <xsl:value-of select="cdit:get_function_input_parameter_declarations($entity)" />
+                    <xsl:value-of select="cdit:get_function_parameters($entity)" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="cpp:warning(('cdit:define_workload_function()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
@@ -148,8 +148,8 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="function_name" select="cdit:get_function_name($function)" />
-        <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations($function)" />
-        <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations($function)" />
+        <xsl:variable name="return_parameter" select="cdit:get_function_return_type($function)" />
+        <xsl:variable name="input_parameters" select="cdit:get_function_parameters($function)" />
         
         <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
         <xsl:value-of select="cpp:declare_function($return_parameter, $function_name, $input_parameters, ';', $tab)" />
@@ -220,7 +220,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregates, 'base')" />
 
         <!-- Define the Namespaces -->
         <xsl:value-of select="cpp:define_namespaces($namespaces)" />
@@ -276,7 +276,7 @@
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
             <xsl:variable name="return_type" select="cdit:get_requester_port_return_type($server_interface)" />
-            <xsl:variable name="request_params" select="cdit:get_requester_port_parameters($server_interface)" />
+            <xsl:variable name="request_params" select="cdit:get_requester_port_function_parameters($server_interface)" />
 
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
             <xsl:value-of select="cpp:declare_function($return_type, $function_name, $request_params, ';', $tab + 2)" />
@@ -291,8 +291,8 @@
             <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
-            <xsl:variable name="return_type" select="cdit:get_replier_port_return_type($server_interface)" />
-            <xsl:variable name="request_params" select="cdit:get_replier_port_parameters($server_interface)" />
+            <xsl:variable name="return_type" select="cdit:get_qualified_reply_type_for_server_interface($server_interface, 'base')" />
+            <xsl:variable name="request_params" select="cdit:get_replier_port_function_parameters($server_interface)" />
 
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
             <xsl:value-of select="cpp:declare_function(concat('virtual ', $return_type), $function_name, $request_params, ' = 0;', $tab + 2)" />
@@ -374,8 +374,8 @@
                 <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
 
                 <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_class_type, cdit:get_function_name(.)))" />
-                <xsl:variable name="port_type" select="cdit:get_base_server_interface_type($server_interface)" />
-                <xsl:variable name="base_request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+                <xsl:variable name="port_type" select="cdit:get_server_interface_template_type($server_interface)" />
+                <xsl:variable name="base_request_type" select="cdit:get_qualified_request_type_for_server_interface($server_interface, 'base')" />
                 
                 <xsl:variable name="extra_bind_args" select="if($base_request_type != 'void') then 'std::placeholders::_1' else ''" />
                 
@@ -424,13 +424,13 @@
             <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
-            <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
-            <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+            <xsl:variable name="reply_type" select="cdit:get_qualified_reply_type_for_server_interface($server_interface, 'base')" />
+            <xsl:variable name="request_type" select="cdit:get_qualified_request_type_for_server_interface($server_interface, 'base')" />
 
             <xsl:variable name="return_type" select="cdit:get_requester_port_return_type($server_interface)" />
-            <xsl:variable name="request_params" select="cdit:get_requester_port_parameters($server_interface)" />
+            <xsl:variable name="request_params" select="cdit:get_requester_port_function_parameters($server_interface)" />
 
-            <xsl:variable name="port_type" select="cdit:get_base_server_interface_type($server_interface)" />
+            <xsl:variable name="port_type" select="cdit:get_server_interface_template_type($server_interface)" />
             
             <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('RequesterPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
 
@@ -524,7 +524,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregates, 'base')" />
 
         <!-- Include the Eums -->
         <xsl:value-of select="cdit:include_enum_headers($enums)" />
@@ -586,8 +586,8 @@
             <xsl:variable name="server_interface" select="graphml:get_port_aggregate(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
 
-            <xsl:variable name="reply_type" select="cdit:get_qualified_server_interface_reply_type($server_interface, 'base')" />
-            <xsl:variable name="request_type" select="cdit:get_qualified_server_interface_request_type($server_interface, 'base')" />
+            <xsl:variable name="reply_type" select="cdit:get_qualified_reply_type_for_server_interface($server_interface, 'base')" />
+            <xsl:variable name="request_type" select="cdit:get_qualified_request_type_for_server_interface($server_interface, 'base')" />
 
             <xsl:variable name="args">
                 <xsl:if test="$request_type != 'void'">
@@ -780,7 +780,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the Aggregates -->
-        <xsl:value-of select="cdit:include_aggregate_headers('Base', $aggregates)" />
+        <xsl:value-of select="cdit:include_aggregate_headers($aggregates, 'base')" />
         
         <!-- Include the Worker Headers -->
         <xsl:value-of select="cdit:include_worker_headers($worker_instances)" />
@@ -1007,8 +1007,8 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="name" select="cdit:get_function_name($function)" />
-        <xsl:variable name="return_parameter" select="cdit:get_function_return_parameter_declarations($function)" />
-        <xsl:variable name="input_parameters" select="cdit:get_function_input_parameter_declarations($function)" />
+        <xsl:variable name="return_parameter" select="cdit:get_function_return_type($function)" />
+        <xsl:variable name="input_parameters" select="cdit:get_function_parameters($function)" />
         
         <xsl:value-of select="cdit:comment_graphml_node($function, $tab)" />
         <xsl:value-of select="cpp:define_function($return_parameter, $qualified_class_type, $name, $input_parameters, cpp:scope_start(0))" />
@@ -1241,7 +1241,7 @@
         </xsl:variable>
 
         <xsl:if test="$should_process">
-            <xsl:variable name="aggregate_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+            <xsl:variable name="aggregate_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
             <xsl:variable name="variable_name" select="cdit:get_variable_name($aggregate_instance)" />
 
             <xsl:if test="$should_define_variable">
@@ -1741,7 +1741,7 @@
                     </xsl:choose>
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumMember'">
-                    <xsl:value-of select="cdit:get_resolved_enum_member_type($node)" />
+                    <xsl:value-of select="cdit:get_qualified_enum_member_type($node)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Setter'">
                     <xsl:value-of select="cdit:get_variable_name($node)" />
@@ -1754,7 +1754,7 @@
                     <xsl:choose>
                         <xsl:when test="$parent_kind = 'RequesterPortImpl'">
                             <!-- We have defined a variable based on the Top Level Aggregate -->
-                            <xsl:variable name="is_void" select="cdit:does_function_return_void($parent_node)" />
+                            <xsl:variable name="is_void" select="cdit:get_function_return_type($parent_node) = 'void'" />
                             <xsl:value-of select="concat(cdit:get_variable_name($parent_node), if($is_void) then '' else '.first')" />
                         </xsl:when>
                         <xsl:otherwise>

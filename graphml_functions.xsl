@@ -110,6 +110,14 @@
         <xsl:param name="entity" as="element()?" />
         <xsl:value-of select="graphml:get_data_value($entity, 'label')" />
     </xsl:function>
+
+    <!--
+        Gets the 'middleware' data value from the entity
+    -->
+    <xsl:function name="graphml:get_middleware" as="xs:string?">
+        <xsl:param name="entity" as="element()?" />
+        <xsl:value-of select="lower-case(graphml:get_data_value($entity, 'middleware'))" />
+    </xsl:function>
     
     <!--
         Gets the 'type' data value from the entity
@@ -242,7 +250,7 @@
     
         <xsl:variable name="ancestors" select="graphml:get_ancestor_nodes($entity)" />
         <xsl:for-each select="$ancestors">
-            <xsl:if test="graphml:is_descendant_of($top_ancestor, .)">
+            <xsl:if test="graphml:is_descendant_of(., $top_ancestor)">
                 <xsl:sequence select="." />
             </xsl:if>
         </xsl:for-each>
@@ -265,11 +273,14 @@
         <xsl:sequence select="$node//gml:node" />
     </xsl:function>
 
+    <!--
+        Checks to see if node1 is a descendant of $node2
+    -->
     <xsl:function name="graphml:is_descendant_of" as="xs:boolean">
-        <xsl:param name="node_1" as="element(gml:node)" />
-        <xsl:param name="node_2" as="element(gml:node)" />
+        <xsl:param name="node1" as="element(gml:node)" />
+        <xsl:param name="node2" as="element(gml:node)" />
 
-        <xsl:value-of select="$node_2 = graphml:get_descendant_nodes($node_1)" />
+        <xsl:value-of select="$node1 = graphml:get_descendant_nodes($node2)" />
     </xsl:function>
 
     <!--
@@ -492,13 +503,6 @@
         <xsl:value-of select="graphml:got_data($class_def, 'worker')" />
     </xsl:function>
 
-    <xsl:function name="graphml:get_class_worker_type" as="xs:string">
-        <xsl:param name="class_instance" as="element()"  />
-
-        <xsl:variable name="class_def" select="graphml:get_definition($class_instance)" />
-        <xsl:value-of select="graphml:get_data_value($class_def, 'worker')" />
-    </xsl:function>
-
     <!--
         Gets the The Worker Instances
     -->
@@ -558,19 +562,81 @@
         <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@source)" />
     </xsl:function>
 
+    <!--
+
+    -->
     <xsl:function name="graphml:get_edges_target" as="element(gml:node)?">
         <xsl:param name="edge" as="element(gml:edge)?" />
         <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@target)" />
     </xsl:function>
 
-    
-    <xsl:function name="graphml:remove_duplicates" as="element()*">
-        <xsl:param name="elements" as="element()*" />
-
-        <xsl:for-each-group select="$elements" group-by=".">
-            <xsl:sequence select="." />
-        </xsl:for-each-group>
+    <xsl:function name="graphml:get_port_instance_kinds" as="xs:string*">
+        <xsl:sequence select="graphml:get_pubsub_port_instance_kinds() , graphml:get_reqrep_port_instance_kinds()" />
     </xsl:function>
+
+    <xsl:function name="graphml:get_pubsub_port_instance_kinds" as="xs:string*">
+        <xsl:sequence select="'SubscriberPortInstance', 'PublisherPortInstance'"/>
+    </xsl:function>
+
+    <xsl:function name="graphml:get_pubsub_port_kinds" as="xs:string*">
+        <xsl:sequence select="'SubscriberPort', 'PublisherPort'"/>
+    </xsl:function>
+
+    <xsl:function name="graphml:get_reqrep_port_kinds" as="xs:string*">
+        <xsl:sequence select="'RequesterPort', 'ReplierPort'"/>
+    </xsl:function>
+    
+    <xsl:function name="graphml:get_reqrep_port_instance_kinds" as="xs:string*">
+        <xsl:sequence select="'RequesterPortInstance', 'ReplierPortInstance'"/>
+    </xsl:function>
+
+    <!--
+        Gets a list of Deployed Component Instances
+    -->
+    <xsl:function name="graphml:get_deployed_component_instances" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)" />
+        
+        <!-- Get all Component Instances -->
+        <xsl:for-each select="graphml:get_nodes_of_kind($model, 'ComponentInstance')">
+            <xsl:if test="graphml:is_deployed(.)">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!--
+        Gets a list of Deployed Port Instances
+    -->
+    <xsl:function name="graphml:get_deployed_port_instances" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)" />
+        
+        <xsl:variable name="deployed_components" select="graphml:get_deployed_component_instances($model)" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($deployed_components, graphml:get_port_instance_kinds())"/>
+    </xsl:function>
+
+    <!--
+        Gets the Worker Type of a Class
+    -->
+    <xsl:function name="graphml:get_class_worker_type" as="xs:string?">
+        <xsl:param name="class" as="element()"  />
+
+        <xsl:if test="graphml:is_class_a_worker($class)">
+            <xsl:variable name="class_def" select="graphml:get_definition($class)" />
+            <xsl:value-of select="graphml:get_data_value($class_def, 'worker')" />
+        </xsl:if>
+    </xsl:function>
+
+    <!--
+        Checks if a Class is a Worker
+    -->
+    <xsl:function name="graphml:is_class_a_worker" as="xs:boolean">
+        <xsl:param name="class" as="element(gml:node)"  />
+
+        <xsl:variable name="class_def" select="graphml:get_definition($class)" />
+        <xsl:value-of select="graphml:got_data($class_def, 'worker')" />
+    </xsl:function>
+
+    
 
    
 </xsl:stylesheet>

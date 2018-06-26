@@ -21,6 +21,8 @@
     <xsl:import href="cdit_functions.xsl"/> 
     <xsl:import href="cdit_cmake_functions.xsl"/>
     <xsl:import href="component_functions.xsl"/>
+
+    <xsl:import href="new_cdit_functions.xsl"/>
     
 
     <!-- Middleware Input Parameter-->
@@ -51,14 +53,14 @@
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="cdit:get_deployed_component_instances($model)">
+                    <xsl:for-each select="graphml:get_deployed_component_instances($model)">
                         <xsl:sequence select="graphml:get_impl(.)" />
                     </xsl:for-each>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:variable name="component_impls_to_generate" select="graphml:remove_duplicates($component_impls)" />
+        <xsl:variable name="component_impls_to_generate" select="o:remove_duplicates($component_impls)" />
         
 
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">
@@ -67,7 +69,7 @@
             <xsl:variable name="label" select="lower-case(graphml:get_label($component_def))" />
 
             <xsl:variable name="component_path" select="cdit:get_component_path($component_def)" />
-            <xsl:variable name="qualified_type" select="cpp:get_component_qualified_type($component_def)" />
+            <xsl:variable name="qualified_type" select="cdit:get_qualified_type($component_def)" />
             
             <xsl:value-of select="o:message(('Generating Component:', o:wrap_quote($qualified_type)))" />
                 
@@ -149,7 +151,7 @@
 
             <!-- Generate the top level cmake file -->
             <xsl:result-document href="{o:write_file(cmake:cmake_file())}">
-                <xsl:value-of select="cdit:get_top_cmake()" />
+                <xsl:value-of select="cmake:get_top_cmakelists()" />
             </xsl:result-document>
         </xsl:if>
     </xsl:template>
