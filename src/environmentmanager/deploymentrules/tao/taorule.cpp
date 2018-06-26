@@ -1,7 +1,7 @@
 #include "taorule.h"
 #include <iostream>
 
-Tao::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::TAO, environment){
+Tao::DeploymentRule::DeploymentRule(EnvironmentManager::Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::TAO, environment){
 }
 
 void Tao::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){

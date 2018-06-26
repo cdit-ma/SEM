@@ -8,19 +8,22 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
+class Environment;
 class Node;
 class Port;
 class Component{
     public:
-        Component(const Node& parent, const std::string& id, const std::string& name);
-        void AddPort(std::unique_ptr<Port> node);
+        Component(Environment& environment, Node& parent, const NodeManager::Component& component);
+        void AddPort(const NodeManager::Port& port);
         void AddAttribute();
 
         std::string GetId();
         std::string GetName();
 
-        Node& GetParent();
+        Node& GetNode();
+        Port& GetPort(const std::string& port_id);
 
+        bool HasPort(const std::string& port_id);
         std::vector<std::string> GetAllPublisherPorts() const;
 
         void SetDirty();
@@ -29,7 +32,8 @@ class Component{
         NodeManager::Component* GetUpdate();
 
     private:
-        const Node& parent_;
+        Environment& environment_;
+        Node& node_;
         std::string id_;
         std::string name_;
         std::string type_;

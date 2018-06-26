@@ -6,44 +6,10 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 
-class Environment;
 
 namespace EnvironmentManager{
-
-struct LoganClient{
-    std::string experiment_name;
-    std::string id;
-    std::string ip_address;
-    std::string logging_port;
-    double frequency;
-    bool live_mode;
-    std::vector<std::string> processes;
-};
-
-struct LoganServer{
-    std::string experiment_name;
-    std::string id;
-    std::string ip_address;
-    std::string db_file_name;
-    std::vector<std::string> client_ids;
-    std::vector<std::string> client_addresses;
-};
-
-struct EventPort{
-    std::string id;
-    std::string guid;
-    std::string type;
-    std::string node_ip;
-    std::string port_number;
-    std::string topic;
-
-    //list of publisher ids
-    std::vector<std::string> connected_ports;
-
-    std::string endpoint;
-
-};
-
+class Environment;
+class Node;
 struct ExternalPort{
     std::string id;
     std::string external_label;
@@ -73,11 +39,11 @@ class Experiment{
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
-        void ConfigureNode(NodeManager::Node& node);
+        void ConfigureNodes();
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
-        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
 
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
@@ -98,6 +64,16 @@ class Experiment{
 
         void SetDeploymentMessage(const NodeManager::ControlMessage& control_message);
         void GetUpdate(NodeManager::ControlMessage& control_message);
+
+        void AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint);
+        void RemoveLoganClientEndpoint(const std::string& client_id);
+
+        void AddZmqEndpoint(const std::string& port_id, const std::string& endpoint);
+        void RemoveZmqEndpoint(const std::string& port_id);
+
+        void AddConnection(const std::string& connected_id, const std::string& port_id);
+        void AddTopic(const std::string& topic);
+
 
     private:
     

@@ -12,7 +12,7 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     registration_port_ = registration_port;
 
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-    environment_ = std::unique_ptr<Environment>(new Environment(ip_addr, portrange_min, portrange_max));
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, portrange_min, portrange_max));
 
     execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 
@@ -131,7 +131,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     deployments_.emplace_back(new DeploymentHandler(*environment_,
                                                     *context_,
                                                     ip_addr_,
-                                                    Environment::DeploymentType::EXECUTION_MASTER,
+                                                    EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
                                                     message.update_endpoint(),
                                                     port_promise.get(),
                                                     message.experiment_id()));
@@ -159,7 +159,7 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
     logan_clients_.emplace_back(new DeploymentHandler(*environment_,
                                                     *context_,
                                                     ip_addr_,
-                                                    Environment::DeploymentType::LOGAN_CLIENT,
+                                                    EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
                                                     "",
                                                     port_promise.get(),
                                                     experiment_id));

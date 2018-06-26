@@ -8,14 +8,16 @@
 #include "uniquequeue.hpp"
 #include <proto/controlmessage/controlmessage.pb.h>
 
-
 namespace EnvironmentManager{
+class Environment;
 class Component;
-class LoganServer;
-class LoganClient;
+class Logger;
+class Port;
+class Experiment;
 class Node{
     public:
-        Node(const std::string& id, const std::string& name, const std::string& ip_address);
+        Node(Environment& environment, Experiment& experiment, const NodeManager::Node& node);
+        ~Node();
         Node(const Node& parent, const std::string& id, const std::string& name, const std::string& ip_address);
 
         //Info getters
@@ -43,16 +45,15 @@ class Node{
         void SetOrbPort(const std::string& orb_port);
 
         //Node, component, attribute and logger adders
-        void AddNode(std::unique_ptr<Node> node);
-        void AddComponent(std::unique_ptr<Component> component);
+        void AddComponent(const NodeManager::Component& component);
         void AddAttribute();
-        void AddLogger(std::unique_ptr<LoganServer> logger);
-        void AddLogger(std::unique_ptr<LoganClient> logger);
+        void AddLogger(const NodeManager::Logger& logger);
 
         //Update requirement management
         void SetDirty();
         bool IsDirty();
 
+        Experiment& GetExperiment();
 
         //Deep getters
         bool HasNode(const std::string& node_id) const;
@@ -63,10 +64,14 @@ class Node{
         Port& GetPort(const std::string& port_id) const;
 
         //protobuf getters
-        NodeManager::Node GetUpdate();
-        NodeManager::Node GetFullProto();
+        NodeManager::Node* GetUpdate();
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage() const;
+
+        NodeManager::Node* GetFullProto();
 
     private:
+        Environment& environment_;
+        Experiment& experiment_;
         std::string id_;
         std::string name_;
         std::string ip_;
@@ -81,11 +86,11 @@ class Node{
         //Component id -> Component
         std::unordered_map<std::string, std::unique_ptr<Component> > components_;
 
-        //logger id -> logan server
-        std::unordered_map<std::string, std::unique_ptr<LoganServer> > logan_servers_;
+        //logger id -> Logger
+        std::unordered_map<std::string, std::unique_ptr<Logger> > loggers_;
 
-        //logger id -> logan client
-        std::unordered_map<std::string, std::unique_ptr<LoganClient> > logan_clients_;
+
+        bool dirty_;
 
 };
 };

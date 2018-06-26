@@ -1,6 +1,6 @@
 #include "amqprule.h"
 
-Amqp::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::AMQP, environment){
+Amqp::DeploymentRule::DeploymentRule(EnvironmentManager::Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::AMQP, environment){
 }
 
 void Amqp::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){

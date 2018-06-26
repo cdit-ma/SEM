@@ -3,6 +3,7 @@
 #include <cassert>
 #include <queue>
 
+using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
@@ -75,7 +76,7 @@ std::string Environment::AddLoganClientServer(){
     return port;
 }
 
-NodeManager::EnvironmentMessage Environment::GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address){
+NodeManager::EnvironmentMessage* Environment::GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetLoganDeploymentMessage(ip_address);
     }
@@ -192,9 +193,9 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
     }
 }
 
-void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node& node){
+void Environment::ConfigureNodes(const std::string& model_name){
     if(experiment_map_.count(model_name)){
-        experiment_map_.at(model_name)->ConfigureNode(node);
+        experiment_map_.at(model_name)->ConfigureNodes();
     }
     else{
         throw std::invalid_argument("No experiment called: " + model_name);
@@ -264,7 +265,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     if(node_map_.count(ip)){
         return;
     }
-    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(ip, available_ports_));
+    auto temp = std::unique_ptr<EnvironmentManager::PortTracker>(new EnvironmentManager::PortTracker(ip, available_ports_));
     temp->SetName(node_name);
     node_ip_map_.insert(std::make_pair(node_name, ip));
     node_name_map_.insert(std::make_pair(ip, node_name));

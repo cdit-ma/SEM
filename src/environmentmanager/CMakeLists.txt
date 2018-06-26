@@ -24,6 +24,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/port.cpp
     )
 
 set(HEADERS
@@ -38,6 +42,10 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/port.cpp
     )
 
 #Pass Version info into cmakevars.h

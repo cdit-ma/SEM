@@ -1,6 +1,6 @@
 #include "zmqrule.h"
 #include <iostream>
-Zmq::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::ZMQ, environment){
+Zmq::DeploymentRule::DeploymentRule(EnvironmentManager::Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::ZMQ, environment){
 }
 
 void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){

@@ -8,10 +8,11 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
+class Environment;
 class Component;
 class Port{
     public:
-        enum class PortKind{
+        enum class Kind{
             NoKind = 0,
             Periodic = 1,
             Publisher = 2,
@@ -19,7 +20,7 @@ class Port{
             Requester = 4,
             Replier = 5,
         };
-        enum class PortMiddleware{
+        enum class Middleware{
             NoMiddleware = 0,
             Zmq = 1,
             Rti = 2,
@@ -27,15 +28,19 @@ class Port{
             Qpid = 4,
             Tao = 5,
         };
-        Port(const Component& parent, const std::string& id, const std::string& name, Port::PortKind kind, Port::PortMiddleware middleware);
+        Port(Environment& environment, Component& parent, const NodeManager::Port& port);
+        ~Port();
         std::string GetName() const;
         std::string GetId() const;
-        Port::PortKind GetKind() const;
-        Port::PortMiddleware GetMiddleware() const;
+        Port::Kind GetKind() const;
+        Port::Middleware GetMiddleware() const;
         std::string GetPublisherPort() const;
         std::string GetTopic() const;
-        Component& GetParent() const;
+        Component& GetComponent() const;
+        Node& GetNode() const;
+        Experiment& GetExperiment() const;
 
+        void SetType(const std::string& type);
         void SetPublisherPort(const std::string& publisher_port);
         void SetTopic(const std::string& topic_name);
         void AddEndpoint(const std::string& endpoint);
@@ -50,12 +55,21 @@ class Port{
 
         NodeManager::Port* GetUpdate();
 
+        Kind ProtoPortKindToInternal(NodeManager::Port::Kind kind);
+        NodeManager::Port::Kind InternalPortKindToProto(Port::Kind middleware);
+        Middleware ProtoPortMiddlewareToInternal(NodeManager::Middleware middleware);
+        NodeManager::Middleware InternalPortMiddlewareToProto(Port::Middleware middleware);
+
+
+
     private:
-        const Component& parent_;
+        Environment& environment_;
+        Component& component_;
         std::string id_;
         std::string name_;
-        PortKind kind_;
-        PortMiddleware middleware_;
+        std::string type_;
+        Kind kind_;
+        Middleware middleware_;
 
         bool dirty_;
 

@@ -1,6 +1,6 @@
 #include "ddsrule.h"
 
-Dds::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::DDS, environment){
+Dds::DeploymentRule::DeploymentRule(EnvironmentManager::Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::DDS, environment){
 }
 
 void Dds::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port){

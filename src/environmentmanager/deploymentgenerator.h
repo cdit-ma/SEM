@@ -7,7 +7,7 @@
 
 class DeploymentGenerator{
     public:
-        DeploymentGenerator(Environment& environment);
+        DeploymentGenerator(EnvironmentManager::Environment& environment);
         void PopulateDeployment(NodeManager::ControlMessage& message);
         void TerminateDeployment(NodeManager::ControlMessage& message);
 
@@ -22,7 +22,7 @@ class DeploymentGenerator{
         void PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node);
         DeploymentRule::MiddlewareType MapMiddleware(NodeManager::Middleware middleware);
 
-        Environment& environment_;
+        EnvironmentManager::Environment& environment_;
         std::list<std::unique_ptr<DeploymentRule> > rules_;
 
 };

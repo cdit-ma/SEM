@@ -7,10 +7,10 @@
 #include "deploymentrules/amqp/amqprule.h"
 #include "deploymentrules/tao/taorule.h"
 
-DeploymentHandler::DeploymentHandler(Environment& env,
+DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     zmq::context_t& context,
                                     const std::string& ip_addr,
-                                    Environment::DeploymentType deployment_type,
+                                    EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string>* port_promise,
                                     const std::string& experiment_id) :
@@ -110,10 +110,10 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
     try{
         if(!removed_flag_){
-            if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
+            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
                 environment_.RemoveExperiment(experiment_id_, call_time);
             }
-            if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
+            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
                 environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
             }
             removed_flag_ = true;
@@ -235,9 +235,9 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
 
     if(environment_.ModelNameExists(message.experiment_id())){
-        auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
+        auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
 
-        *message.mutable_logger() = {loggers.begin(), loggers.end()};
+        //*message.mutable_logger() = {loggers.begin(), loggers.end()};
 
         message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
     }

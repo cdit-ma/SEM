@@ -6,7 +6,7 @@
 namespace Amqp{
     class DeploymentRule : public ::DeploymentRule{
         public:
-            DeploymentRule(Environment& environment);
+            DeploymentRule(EnvironmentManager::Environment& environment);
 
             void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port);
             void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::Port& event_port);

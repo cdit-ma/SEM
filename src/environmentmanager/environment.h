@@ -10,7 +10,9 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 #include "experiment.h"
+#include "porttracker.h"
 
+namespace EnvironmentManager{
 class Environment{
 
     public:
@@ -29,7 +31,7 @@ class Environment{
         void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
 
 
-        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
 
         void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
@@ -37,7 +39,7 @@ class Environment{
         void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
+        void ConfigureNodes(const std::string& model_name);
 
         bool ExperimentIsDirty(const std::string& model_name);
         void GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message);
@@ -111,7 +113,7 @@ class Environment{
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
         //node_name -> node data structure
-        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::PortTracker> > node_map_;
 
         //node_name -> node_ip map
         std::unordered_map<std::string, std::string> node_ip_map_;
@@ -134,6 +136,7 @@ class Environment{
 
         //ports available on the environment manager, uses same port range as nodes.
         unique_queue<int> available_node_manager_ports_;
+};
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT

@@ -49,7 +49,7 @@ class DeploymentRegister{
 
         std::unique_ptr<zmq::context_t> context_;
 
-        std::unique_ptr<Environment> environment_;
+        std::unique_ptr<EnvironmentManager::Environment> environment_;
 
         std::string ip_addr_;
         std::string registration_port_;

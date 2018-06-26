@@ -12,7 +12,7 @@ class DeploymentRule{
             AMQP = 3,
             TAO = 4
         };
-        DeploymentRule(MiddlewareType type, Environment& environment) : environment_(environment){
+        DeploymentRule(MiddlewareType type, EnvironmentManager::Environment& environment) : environment_(environment){
             this->type = type;
         };
 
@@ -23,7 +23,7 @@ class DeploymentRule{
     private:
         MiddlewareType type = MiddlewareType::NONE;
     protected:
-            Environment& environment_;
+            EnvironmentManager::Environment& environment_;
 };
 
 #endif //DEPLOYMENTRULE_H

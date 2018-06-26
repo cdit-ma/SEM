@@ -1,7 +1,7 @@
 #include "deploymentgenerator.h"
 #include "deploymentrule.h"
 #include <iostream>
-DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment_(environment){
+DeploymentGenerator::DeploymentGenerator(EnvironmentManager::Environment& environment) : environment_(environment){
 }
 
 void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
@@ -19,6 +19,7 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     }
 
     environment_.SetExperimentMasterIp(control_message.experiment_id(), master_ip_address);
+    environment_.ConfigureNodes(control_message.experiment_id());
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         NodeManager::Node* node = control_message.mutable_nodes(i);
@@ -63,8 +64,6 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
             }
         }
     }
-    //Populate management ports and update environment's understanding of this node
-    environment_.ConfigureNode(control_message.experiment_id(), node);
 }
 
 void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& control_message){
