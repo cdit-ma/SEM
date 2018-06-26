@@ -15,6 +15,8 @@ void MEDEA::Class::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& brok
 MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    
     addInstanceKind(NODE_KIND::CLASS_INSTANCE);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);

@@ -15,6 +15,8 @@ ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(b
     //Setup State
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_IMPL);
     setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_IMPL);
