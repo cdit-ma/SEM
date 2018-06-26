@@ -466,7 +466,7 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
         }
     }
     control_message.CopyFrom(deployment_message_);
-    std::cout << control_message.DebugString() << std::endl;
+    //std::cout << control_message.DebugString() << std::endl;
 }
 
 std::string Experiment::GetNodeIpByName(const std::string& node_name){

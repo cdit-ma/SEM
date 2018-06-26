@@ -16,7 +16,7 @@ namespace ospl{
     template <class BaseType, class OsplType> class SubscriberPort: public ::SubscriberPort<BaseType>{
         friend class DataReaderListener<BaseType, OsplType>;
     public:
-        SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType> callback_wrapper);
+        SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType>& callback_wrapper);
         ~SubscriberPort(){
             Activatable::Terminate();
         };
@@ -51,7 +51,7 @@ namespace ospl{
 };
 
 template <class BaseType, class OsplType>
-ospl::SubscriberPort<BaseType, OsplType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType> callback_wrapper):
+ospl::SubscriberPort<BaseType, OsplType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType>& callback_wrapper):
 ::SubscriberPort<BaseType>(component, name, callback_wrapper, "ospl"){
     subscriber_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "subscriber_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();

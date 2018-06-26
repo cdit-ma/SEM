@@ -160,7 +160,7 @@ bool Component::GotCallback(const std::string& port_name, const std::type_info& 
 
 
 
-void Component::AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, GenericCallbackWrapper callback){
+void Component::AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> callback){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     //Check for this port_name
@@ -173,7 +173,7 @@ void Component::AddCallback(const std::string& port_name, const std::type_info& 
 
     //Insert types into map
     callback_type_hash_.emplace(std::make_pair(port_name, std::make_pair(request_type_ref, reply_type_ref)));
-    callback_functions_[port_name] = callback;
+    callback_functions_[port_name] = std::move(callback);
 }
 
 
