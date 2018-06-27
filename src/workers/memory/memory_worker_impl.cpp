@@ -6,69 +6,51 @@
 Memory_Worker_Impl::~Memory_Worker_Impl(){
     std::lock_guard<std::mutex> guard(lock_);
     auto size = memory_.size();
-    Deallocate_(size);
+    Deallocate(size);
 }
 
+//TODO: handle the case where caller may be interested in allocation of continuous block
 bool Memory_Worker_Impl::Allocate(size_t kilobytes) {
     bool result = false;
-    if(kilobytes > 0){
-        std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
 
-        result = Allocate_(kilobytes);
-    }
-    return result;
-}
+    // although the complexity function is evaluated to a double, only use integer for allocating memory
+    while(kilobytes-- > 0){
+        char* allocation = 0;
+        allocation = new char[CUTS_MEMORY_ALLOC_SIZE];
 
-bool Memory_Worker_Impl::Allocate_(size_t kilobytes){
-    bool result = false;
-    try{
-        // although the complexity function is evaluated to a double, only use integer for allocating memory
-        while(kilobytes-- > 0){
-            char* allocation = 0;
-            allocation = new char[CUTS_MEMORY_ALLOC_SIZE];
-
-            if(allocation){
-                memory_.push_back(allocation);
-            }
+        if(allocation){
+            memory_.push_back(allocation);
         }
-        result = true;
-    }
-    catch (...){
+        else {
+            result = false;
+        }
     }
     return result;
 }
 
 bool Memory_Worker_Impl::Deallocate(size_t kilobytes) {
-    bool result = false;
-    if(kilobytes > 0){
-        std::lock_guard<std::mutex> guard(lock_);
-        result = Deallocate_(kilobytes);
-    }
-    return result;
-}
+    bool result = true;
+    std::lock_guard<std::mutex> guard(lock_);
 
-bool Memory_Worker_Impl::Deallocate_(size_t kilobytes){
-    bool result = false;
-    try{
-        // Make sure we are not trying to deallocate more memory
-        // that what is currently allocated.
-        if (kilobytes > memory_.size()){
-            kilobytes = memory_.size();
-        }
-        char* memory = 0;
-
-        while(kilobytes-- > 0){
-            // get the next allocation on the <memory_> stack
-            memory = memory_.front();
-            memory_.pop_front();
-
-            // delete the piece of
-            delete[] memory;
-        }
-        result = true;
+    // Make sure we are not trying to deallocate more memory
+    // that what is currently allocated.
+    if (kilobytes > memory_.size()){
+        kilobytes = memory_.size();
+        //TODO: Report attempt to deallocate more memory than has been allocated
+        result = false;
     }
-    catch(...){
+    char* memory = 0;
+
+    while(kilobytes-- > 0){
+        // get the next allocation on the <memory_> stack
+        memory = memory_.front();
+        memory_.pop_front();
+
+        // delete the piece of memory
+        delete[] memory;
     }
+
     return result;
 }
 
