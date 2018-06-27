@@ -34,7 +34,7 @@ for(n in builder_nodes){
                 dir("lib"){
                     deleteDir()
                 }
-                
+
                 //Unstash the code
                 unstash "source_code"
                 
@@ -104,7 +104,7 @@ stage("Test"){
 node("master"){
     dir("test_cases"){
         for(n in builder_nodes){
-            unstash(n + "_test_cases", allowEmpty:true)
+            unstash name: n + "_test_cases", allowEmpty:true
         }
 
         def globstr = "**.xml"
