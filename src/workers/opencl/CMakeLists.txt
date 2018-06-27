@@ -3,14 +3,20 @@ set(PROJ_NAME opencl_worker)
 set(TESTER_NAME ${PROJ_NAME}_tester)
 project(${PROJ_NAME})
 
+# Search for Altera OpenCL libraries
 set(ALTERA_OCLSDK_ROOT $ENV{ALTERAOCLSDKROOT})
 set(ALTERA_OCLSDK_LIB_ROOT $ENV{ALTERA_OCLSDK_LIB_ROOT})
 
+# Set OpenCL Root / Lib Path
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
 
+# Try and find an OpenCL Implementation
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
-find_library(ALTERA_OCLSDK_LIB OpenCL ${ALTERA_OCLSDK_LIB_ROOT})
+
+if(EXISTS ${ALTERA_OCLSDK_LIB_ROOT})
+    find_library(ALTERA_OCLSDK_LIB OpenCL ${ALTERA_OCLSDK_LIB_ROOT})
+endif()
 
 # If OpenCL doesn't exist on this machine we can bail out
 if(NOT OPENCL_LIB)
@@ -28,7 +34,6 @@ if (NOT OPENCL_INCLUDE_PATH)
     message(STATUS "Setting opencl include directory to default (${OPENCL_ROOT}/include)")
     set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
-
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
@@ -64,11 +69,6 @@ set(CLFFT_ROOT $ENV{CLFFT_ROOT})
 set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
-# Search for Altera OpenCL libraries
-set(ALTERA_OCLSDK_ROOT $ENV{ALTERAOCLSDKROOT})
-set(ALTERA_OCLSDK_LIB_ROOT "$ENV{ALTERA_OCLSDK_LIB_ROOT}")
-find_library(ALTERA_OCLSDK_LIB OpenCl ${ALTERA_OCLSDK_LIB_ROOT})
-
 # Add implementations for fft library as necessary
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "building OpenCL worker with FPGA FFT library")
@@ -102,12 +102,11 @@ if(ALTERA_OCLSDK_LIB)
     message(STATUS "Building OpenCL worker with FPGA FFT library")
     target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
     #target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
-elseif (CLFFT_LIB)
+elseif(CLFFT_LIB)
     target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
     target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
     target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
     target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})
-
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
 endif()
