@@ -721,8 +721,10 @@
         
         <xsl:variable name="class_type" select="cdit:get_aggregate_qualified_type($aggregate, 'base')" />
         
-        <xsl:variable name="aggregate_h" select="concat(lower-case($aggregate_label), '.h')" />
-        <xsl:variable name="aggregate_cpp" select="concat(lower-case($aggregate_label), '.cpp')" />
+        <xsl:variable name="file_name" select="cdit:get_aggregate_file_prefix($aggregate, 'base')" />
+
+        <xsl:variable name="aggregate_h" select="concat($file_name, '.h')" />
+        <xsl:variable name="aggregate_cpp" select="concat($file_name, '.cpp')" />
 
         <xsl:variable name="shared_lib_name" select="cmake:get_aggregate_shared_library_name($aggregate, 'base')" />
         <xsl:variable name="proj_name" select="$shared_lib_name" />

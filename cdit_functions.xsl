@@ -803,9 +803,9 @@
 
     <xsl:function name="cdit:get_base_aggregate_h_name" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
-        
-        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:value-of select="concat($aggregate_label,'.h')" />
+
+        <xsl:variable name="file_name" select="cdit:get_aggregate_file_prefix($aggregate, 'base')" />
+        <xsl:value-of select="concat($file_name,'.h')" />
     </xsl:function>
 
     <xsl:function name="cdit:get_base_aggregate_cpp_name" as="xs:string">
