@@ -14,10 +14,6 @@ void Vector::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    //Can be both an input/output for data.
-    setDataProducer(true);
-    setDataReceiver(true);
-
     addInstanceKind(NODE_KIND::VECTOR_INSTANCE);   
     
     setAcceptsNodeKind(NODE_KIND::MEMBER);

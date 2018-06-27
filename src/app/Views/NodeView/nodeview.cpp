@@ -939,8 +939,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::ENUM_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("value");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                
+                if(item->hasData("value")){
+                    node_item->setSecondaryTextKey("value");
+                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                }else{
+                    node_item->setSecondaryTextKey("type");
+                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                }
                 break;
             
             case NODE_KIND::PORT_PUBLISHER_IMPL:

@@ -83,6 +83,8 @@ void DataNode::setDataReceiver(bool receiver)
 
     if(receiver){
         getFactoryBroker().AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
+    }else{
+        getFactoryBroker().RemoveData(this, "value");
     }
 }
 
@@ -260,6 +262,15 @@ bool DataNode::isContainedInVariable(){
     return _contained_in_variable;
 }
 
+bool DataNode::isContainedInFunctionCall(){
+    RunContainmentChecks();
+    return _contained_in_function_call;
+}
+
+bool DataNode::isContainedInAggregateInstance(){
+    RunContainmentChecks();
+    return _contained_in_aggregate_instance;
+}
 
 void DataNode::RunContainmentChecks(){
     if(getParentNode() && !_run_containment_checks){
@@ -281,6 +292,16 @@ void DataNode::RunContainmentChecks(){
                     _contained_in_variable = true;
                     break;
                 }
+                case NODE_KIND::FUNCTION_CALL:{
+                    _contained_in_function_call = true;
+                    break;
+                }
+                case NODE_KIND::AGGREGATE_INSTANCE:{
+                    _contained_in_aggregate_instance = true;
+                    break;
+                }
+                
+                
                 case NODE_KIND::VECTOR:
                 case NODE_KIND::VECTOR_INSTANCE:{
                     _contained_in_vector = true;

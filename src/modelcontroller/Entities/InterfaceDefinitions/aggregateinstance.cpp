@@ -72,7 +72,6 @@ void AggregateInstance::ParentSet(DataNode* child){
         
         QSet<NODE_KIND> inverse_parents = {NODE_KIND::FUNCTION_CALL, NODE_KIND::PORT_REQUESTER_IMPL};
         QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE};
-        
 
         QSet<NODE_KIND> ancestor_kinds;
 
@@ -80,6 +79,8 @@ void AggregateInstance::ParentSet(DataNode* child){
         for(auto ancestor : child->getParentNodes(-1)){
             ancestor_kinds += ancestor->getNodeKind();
         }
+
+        
 
         if(ancestor_kinds.intersects(inverse_parents)){
             valid_producer_parents += {NODE_KIND::RETURN_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE};
@@ -91,6 +92,12 @@ void AggregateInstance::ParentSet(DataNode* child){
 
         if(!ancestor_kinds.intersects(valid_receiver_parents)){
             valid_producer_parents += {NODE_KIND::PORT_SUBSCRIBER_IMPL};
+        }
+
+        //No Data Linking in the Interface Definitions aspect except for Enum Members
+        if(ancestor_kinds.contains(NODE_KIND::INTERFACE_DEFINITIONS) and child->getNodeKind() != NODE_KIND::ENUM_MEMBER){
+            //Fail out
+            invalid_parents = ancestor_kinds;
         }
 
         if(!ancestor_kinds.intersects(invalid_parents)){
@@ -105,6 +112,12 @@ void AggregateInstance::ParentSet(DataNode* child){
         if(child->getParentNodeKind() == NODE_KIND::VARIABLE){
             got_valid_producer = false;
             got_valid_receiver = false;
+        }
+
+        if(ancestor_kinds.contains(NODE_KIND::FUNCTION_CALL)){
+            if(ancestor_kinds.contains(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE) && ancestor_kinds.contains(NODE_KIND::AGGREGATE_INSTANCE)){
+                got_valid_receiver = false;
+            }
         }
 
         child->setDataProducer(got_valid_producer);

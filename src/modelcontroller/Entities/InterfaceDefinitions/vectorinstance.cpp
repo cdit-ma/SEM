@@ -14,8 +14,8 @@ void VectorInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
 
 VectorInstance::VectorInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
-    setDataProducer(true);
-    setDataReceiver(true);
+    //setDataProducer(true);
+    //setDataReceiver(true);
 
     addInstancesDefinitionKind(NODE_KIND::VECTOR);
     setChainableDefinition();

@@ -35,6 +35,9 @@ public:
 
     bool isContainedInVector();
     bool isContainedInVariable();
+    bool isContainedInFunctionCall();
+    bool isContainedInAggregateInstance();
+
     Node* getContainmentNode();
     Node* getChildOfContainmentNode();
 private:
@@ -44,6 +47,8 @@ private:
 
     bool _contained_in_vector = false;
     bool _contained_in_variable = false;
+    bool _contained_in_function_call = false;
+    bool _contained_in_aggregate_instance = false;
     Node* _containment_node = 0;
     Node* _child_of_containment_node = 0;
 

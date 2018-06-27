@@ -8,6 +8,7 @@
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
     <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
+    <key attr.name="is_optional_param" attr.type="bool" for="all" id="is_optional_param"/>
 
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
@@ -305,6 +306,7 @@
                                     <data key="icon">pencil</data>
                                     <data key="description">The value to fill the Vector with.</data>
                                     <data key="is_generic_param">true</data>
+                                    <data key="is_optional_param">true</data>
                                 </node>
                             </graph>
                         </node>

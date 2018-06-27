@@ -992,11 +992,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     
     bind_values.insert("is_generic_param", "is_generic_param");
+    bind_values.insert("is_optional_param", "is_optional_param");
     required_instance_keys.insert("is_generic_param");
-
-    
-    
-    
+    required_instance_keys.insert("is_optional_param");
 
     bool bind_index = false;
     bool bind_labels = true;
