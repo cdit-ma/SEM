@@ -36,7 +36,7 @@ class qpid_SubPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             component->RegisterCallback<void, Base::Basic>(port_name, EmptyCallback);
             auto port = ConstructSubscriberPort<qpid::SubscriberPort<Base::Basic, ::Basic> >(port_name, component);
-            EXPECT_TRUE(setup_port(*port, port_name));
+            EXPECT_TRUE(setup_port(*port, broker, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -48,7 +48,7 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = ConstructPublisherPort<qpid::PublisherPort<Base::Basic, ::Basic> >(port_name, component);
-        EXPECT_TRUE(setup_port(*port, port_name));
+        EXPECT_TRUE(setup_port(*port, broker, port_name));
         a = port;
         ASSERT_TRUE(a);
     }

@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_ospl)
+set(PROJ_NAME test_ospl_pubsub)
 project(${PROJ_NAME})
 
 if(NOT OSPL_DDS_FOUND)
