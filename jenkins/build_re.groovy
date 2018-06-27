@@ -81,7 +81,8 @@ for(n in builder_nodes){
                                 currentBuild.result = 'FAILURE'
                             }
                         }
-                        stash includes: "*.xml", name: node_name + "_test_cases", allowEmpty: true
+                        def stash_name = node_name + "_test_cases"
+                        stash includes: "*.xml", name: stash_name, allowEmpty: true
                         //Clean up the directory after
                         deleteDir()
                     }
@@ -104,7 +105,9 @@ stage("Test"){
 node("master"){
     dir("test_cases"){
         for(n in builder_nodes){
-            unstash name: n + "_test_cases", allowEmpty: true
+            def node_name = n
+            def stash_name = node_name + "_test_cases"
+            unstash name: stash_name, allowEmpty: true
         }
 
         def globstr = "**.xml"
