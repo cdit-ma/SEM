@@ -24,8 +24,13 @@ namespace cl {
 
 class OpenCLManager {
 	public:
-		OpenCLManager(OpenCLManager&& other) = default;
-		OpenCLManager& operator=(OpenCLManager&& other) = default;
+		//OpenCLManager(OpenCLManager&& other) = default;
+		//OpenCLManager& operator=(OpenCLManager&& other) = default;
+		//OpenCLManager(const OpenCLManager& other) = delete;
+		//OpenCLManager& operator=(const OpenCLManager& other) = delete;
+		//OpenCLManager(OpenCLManager&& other) = delete;
+		//OpenCLManager& operator=(OpenCLManager&& other) = delete;
+		~OpenCLManager();// = default;
 
 		/**
 		* Returns the OpenCLManager responsible for managing a given OpenCL platform,
@@ -80,7 +85,7 @@ class OpenCLManager {
 
 	private:
 		OpenCLManager(const Worker& worker, cl::Platform &platform);
-		~OpenCLManager() {};
+		//~OpenCLManager() {};
 
 		int TrackBuffer(const Worker& worker, GenericBuffer* buffer);
 		void UntrackBuffer(int buffer_id);
@@ -97,18 +102,18 @@ class OpenCLManager {
 							std::string error_message);
 
 		// A separate OpenCLManager is maintained for each OpenCL platform
-		static std::vector<OpenCLManager*> reference_list_;
+		static std::unordered_map<int, std::unique_ptr<OpenCLManager> > reference_map_;
 		static std::vector<cl::Platform> platform_list_;
 
 		// Variables
 		bool valid_ = false;
 		cl::Platform& platform_;
 		std::string platform_name_;
-		cl::Context* context_;
+		std::unique_ptr<cl::Context> context_;
 		std::vector<std::unique_ptr<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
-		cl::Program* program_;
-		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
+		//cl::Program* program_;
+		//std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
 		std::mutex opencl_resource_mutex_;
 
