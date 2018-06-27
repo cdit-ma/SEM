@@ -12,7 +12,6 @@ SET(RE_VERSION "3.0.4")
 
 option(BUILD_TEST "Build testing" OFF)
 
-
 #Get the RE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 #Set the RE_GEN_PATH

@@ -49,43 +49,44 @@ for(n in builder_nodes){
 
     test_map[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "/bin/test"){
-                def globstr = "test_*"
-                if(!isUnix()){
-                    //If windows search for exe only
-                    globstr += ".exe"
+            dir(PROJECT_NAME){
+                environment{
+                    //Set LD_LIBRARY_PATH to point at this version of RE First
+                    LD_LIBRARY_PATH = pwd() + "/lib:$LD_LIBRARY_PATH"
                 }
 
-                //Find all executables
-                def test_list = findFiles glob: globstr
-
-                def test_count = 0;
-                def test_error_count = 0;
-
-                dir("results"){
-                    for(def file : test_list){
-                        def file_path = file.name
-                        def file_name = utils.trimExtension(file_path)
-                        def test_output = file_name + "_" + node_name + ".xml"
-                        print("Running Test: " + file_path)
-                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
-
-                        if(test_error_code != 0){
-                            print("Test: " + file_path + " Failed!")
-                        }
+                dir("bin/test"){
+                    def globstr = "test_*"
+                    if(!isUnix()){
+                        //If windows search for exe only
+                        globstr += ".exe"
                     }
-                    def stash_name = node_name + "_test_cases"
-                    stash includes: "*.xml", name: stash_name, allowEmpty: true
-                    //Clean up the directory after
-                    deleteDir()
+
+                    //Find all executables
+                    def test_list = findFiles glob: globstr
+                    
+                    dir("results"){
+                        for(def file : test_list){
+                            def file_path = file.name
+                            def file_name = utils.trimExtension(file_path)
+                            def test_output = file_name + "_" + node_name + ".xml"
+                            print("Running Test: " + file_path)
+                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+
+                            if(test_error_code != 0){
+                                print("Test: " + file_path + " Failed!")
+                            }
+                        }
+                        def stash_name = node_name + "_test_cases"
+                        stash includes: "*.xml", name: stash_name, allowEmpty: true
+                        //Clean up the directory after
+                        deleteDir()
+                    }
                 }
-                //Clean up the directory after
-                deleteDir()
             }
         }
     }
 }
-
 
 stage("Build"){
     parallel builder_map
