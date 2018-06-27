@@ -14,10 +14,10 @@ struct cl_comand_queue;
 class OpenCL_Worker : public Worker {
 public:
     OpenCL_Worker(const Component& component, std::string inst_name);
-    ~OpenCL_Worker();
+    //~OpenCL_Worker();
 
     bool HandleConfigure() override;
-    //bool HandleTerminate() override;
+    bool HandleTerminate() override;
     bool IsValid() const;
 
     // Base/Utility functions
