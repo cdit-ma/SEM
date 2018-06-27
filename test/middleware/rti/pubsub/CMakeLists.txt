@@ -13,8 +13,6 @@ if(NOT RTI_DDS_FOUND)
 	return()
 endif()
 
-find_package(Boost 1.30.0 REQUIRED)
-
 # Generate the <rti> files for Aggregate
 RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
 
