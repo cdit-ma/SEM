@@ -55,6 +55,8 @@ for(n in builder_nodes){
                     LD_LIBRARY_PATH = pwd() + "/lib:$LD_LIBRARY_PATH"
                 }
 
+                print("LD_LIBRARY_PATH:$LD_LIBRARY_PATH")
+
                 dir("bin/test"){
                     def globstr = "test_*"
                     if(!isUnix()){
