@@ -36,7 +36,7 @@ for(n in builder_nodes){
                 }
 
                 //Unstash the code
-                unstash "source_code"
+                unstash name: "source_code"
                 
                 dir("build"){
                     if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
@@ -104,7 +104,7 @@ stage("Test"){
 node("master"){
     dir("test_cases"){
         for(n in builder_nodes){
-            unstash name: n + "_test_cases", allowEmpty:true
+            unstash name: n + "_test_cases", allowEmpty: true
         }
 
         def globstr = "**.xml"
