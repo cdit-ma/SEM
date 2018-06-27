@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_qpid)
+set(PROJ_NAME test_qpid_pubsub)
 project(${PROJ_NAME})
 
 #Find protobuf
