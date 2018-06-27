@@ -4,133 +4,185 @@
 #include "../../base/basic.h"
 #include "../../proto/basic.pb.h"
 
-#include <future>
-#include <core/component.h>
-#include <middleware/zmq/requestreply/requesterport.hpp>
-#include <middleware/zmq/requestreply/replierport.hpp>
-#include <middleware/zmq/pubsub/subscriberport.hpp>
-#include <core/ports/pubsub/subscriberport.hpp>
 #include <core/ports/libportexport.h>
+#include <middleware/zmq/requestreply/replierport.hpp>
+#include <middleware/zmq/requestreply/requesterport.hpp>
+
+//Include the FSM Tester
+#include "../../../core/activatablefsmtester.h"
+
+
+void empty_callback(Base::Basic& b){};
 
 Base::Basic callback(Base::Basic& message){
-    std::cout << "RUNNING: callback" << std::endl;
-    std::cout << "Int: " << message.int_val << std::endl;
-    std::cout << "str_val: " << message.str_val << std::endl;
-    
-    std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
-    
-    //Base::Basic m2;
     message.int_val *= 10;
-    message.str_val = "10asdasd";
     return message;
-}
+};
 
-void callback2(Base::Basic& message){
-    std::cout << "RUNNING: callback2" << std::endl;
-    //std::cout << "Int: " << message.int_val << std::endl;
-    //std::cout << "str_val: " << message.str_val << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(message.int_val * 10));
-    
-    //Base::Basic m2;
+Base::Basic busy_callback(Base::Basic& message){
     message.int_val *= 10;
-}
-
-Base::Basic callback3(){
-    Base::Basic m2;
-    m2.int_val *= 10;
-    return m2;
-}
+    sleep_ms(100);
+    return message;
+};
 
 
-void print_base(const Base::Basic& m){
-    std::cerr << "Base::Basic(" << m.get_base_message_id() << ")" << std::endl;
-    std::cerr << "\tint_val: " << m.int_val << std::endl;
-    std::cerr << "\tstr_val: " << m.str_val << std::endl;
-    if(m.int_val == 5){
-        //std::cerr << "\tsleepybois" << std::endl;
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-}
+void busy_callback_no_reply(Base::Basic& message){
+    sleep_ms(100);
+};
 
-void print_base2(){
-    std::cerr << "" << std::endl;
-}
 
-void configure_port(Port& port, const std::string& port_address){
+bool setup_port(Port& port, std::string port_address){
     auto address = port.GetAttribute("server_address").lock();
-    address->set_String(port_address);
+    if(address){
+        address->set_String("inproc://" + port_address);
+        return true;
+    }
+    return false;
+}
+
+
+
+//Define an Requester Port FSM Tester
+class ZMQ_RequesterPort_FSMTester : public ActivatableFSMTester{
+    protected:
+        void SetUp(){
+            ActivatableFSMTester::SetUp();
+            auto port_name = get_long_test_name();
+            auto port = ConstructRequesterPort<zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
+            EXPECT_TRUE(setup_port(*port, port_name));
+            a = port;
+            ASSERT_TRUE(a);
+        }
+};
+
+//Define an Replier Port FSM Tester
+class ZMQ_ReplierPort_FSMTester : public ActivatableFSMTester{
+    protected:
+        void SetUp(){
+            ActivatableFSMTester::SetUp();
+            auto port_name = get_long_test_name();
+            component->AddCallback<Base::Basic, Base::Basic>(port_name, callback);
+            auto port = ConstructReplierPort<zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
+            EXPECT_TRUE(setup_port(*port, port_name));
+            a = port;
+            ASSERT_TRUE(a);
+        }
+};
+
+#define TEST_FSM_CLASS ZMQ_RequesterPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
+#undef TEST_FSM_CLASS
+
+#define TEST_FSM_CLASS ZMQ_ReplierPort_FSMTester
+#include "../../../core/activatablefsmtestcases.h"
+#undef TEST_FSM_CLASS
+
+
+TEST(zmq_ReqRep, Req_Basic_Rep_Basic_Busy100){
+    const auto test_name = get_long_test_name();
+    const auto req_name = "rq_" + test_name;
+    const auto rep_name = "rp_" + test_name;
+
+    auto component = std::make_shared<Component>(test_name);
+    component->AddCallback<Base::Basic, Base::Basic>(rep_name, busy_callback);
+
+    auto requester_port = ConstructRequesterPort<zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(req_name, component);
+    auto replier_port = ConstructReplierPort<zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(rep_name, component);
+    
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
+
+    EXPECT_TRUE(requester_port->Configure());
+    EXPECT_TRUE(replier_port->Configure());
+    EXPECT_TRUE(requester_port->Activate());
+    EXPECT_TRUE(replier_port->Activate());
+
+    int send_count = 100;
+
+    //Send as fast as possible
+    for(int i = 0; i < send_count; i++){
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
+        auto c = requester_port->SendRequest(b, std::chrono::milliseconds(200));
+        EXPECT_TRUE(c.first);
+        if(c.first){
+            EXPECT_EQ(b.int_val * 10, c.second.int_val);
+        }
+    }
+    
+    EXPECT_TRUE(requester_port->Passivate());
+    EXPECT_TRUE(replier_port->Passivate());
+
+    EXPECT_TRUE(requester_port->Terminate());
+    EXPECT_TRUE(replier_port->Terminate());
+
+    auto total_rxd = replier_port->GetEventsReceived();
+    auto proc_rxd = replier_port->GetEventsProcessed();
+
+    auto total_txd = requester_port->GetEventsReceived();
+    auto total_sent = requester_port->GetEventsProcessed();
+
+    EXPECT_EQ(total_txd, send_count);
+    EXPECT_EQ(total_sent, send_count);
+    EXPECT_EQ(total_rxd, send_count);
+    EXPECT_EQ(proc_rxd, send_count);
+    delete requester_port;
+    delete replier_port;
+}
+
+TEST(ZMQ_ReqRep, Req_Basic_Rep_Void_Busy100){
+    const auto test_name = get_long_test_name();
+    const auto req_name = "rq_" + test_name;
+    const auto rep_name = "rp_" + test_name;
+
+    auto component = std::make_shared<Component>(test_name);
+    component->AddCallback<void, Base::Basic>(rep_name, busy_callback_no_reply);
+
+    auto requester_port = ConstructRequesterPort<zmq::RequesterPort<void, void, Base::Basic, ::Basic>>(req_name, component);
+    auto replier_port = ConstructReplierPort<zmq::ReplierPort<void, void, Base::Basic, ::Basic>>(rep_name, component);
+    
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
+
+    EXPECT_TRUE(requester_port->Configure());
+    EXPECT_TRUE(replier_port->Configure());
+    EXPECT_TRUE(requester_port->Activate());
+    EXPECT_TRUE(replier_port->Activate());
+
+    int send_count = 100;
+
+    //Send as fast as possible
+    for(int i = 0; i < send_count; i++){
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
+        auto c = requester_port->SendRequest(b, std::chrono::milliseconds(200));
+        EXPECT_TRUE(c);
+    }
+    
+    EXPECT_TRUE(requester_port->Passivate());
+    EXPECT_TRUE(replier_port->Passivate());
+
+    EXPECT_TRUE(requester_port->Terminate());
+    EXPECT_TRUE(replier_port->Terminate());
+
+    auto total_rxd = replier_port->GetEventsReceived();
+    auto proc_rxd = replier_port->GetEventsProcessed();
+
+    auto total_txd = requester_port->GetEventsReceived();
+    auto total_sent = requester_port->GetEventsProcessed();
+
+    EXPECT_EQ(total_txd, send_count);
+    EXPECT_EQ(total_sent, send_count);
+    EXPECT_EQ(total_rxd, send_count);
+    EXPECT_EQ(proc_rxd, send_count);
+    delete requester_port;
+    delete replier_port;
 }
 
 int main(int ac, char* av[])
 {
-    auto component = std::make_shared<Component>("Test");
-    component->AddCallback<Base::Basic, Base::Basic>("asdasd2", new CallbackWrapper<Base::Basic, Base::Basic>(callback));
-    component->AddCallback<void, Base::Basic>("asdasd", new CallbackWrapper<void, Base::Basic>(callback2));
-    component->AddCallback<Base::Basic, void>("asdasd3", new CallbackWrapper<Base::Basic, void>(callback3));
-    //component->AddCallback<Base::Basic>("asdasd", print_base);
-    
-    auto requester_port = ConstructRequesterPort<zmq::RequesterPort<void, void, Base::Basic, ::Basic>>("Test23", component);
-    auto replier_port = ConstructReplierPort<zmq::ReplierPort<void, void, Base::Basic, ::Basic>>("asdasd", component);
-
-    auto requester_port2 = ConstructRequesterPort<zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>("Test24", component);
-    auto replier_port2 = ConstructReplierPort<zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>("asdasd2", component);
-    
-
-
-    auto address = "inproc://testy";
-    auto address2 = "inproc://testy2";
-
-    configure_port(*requester_port, address);
-    configure_port(*replier_port, address);
-
-    configure_port(*requester_port2, address2);
-    configure_port(*replier_port2, address2);
-
-    requester_port->Configure();
-    replier_port->Configure();
-
-    requester_port2->Configure();
-    replier_port2->Configure();
-
-    requester_port->Activate();
-    replier_port->Activate();
-
-    requester_port2->Activate();
-    replier_port2->Activate();
-
-
-    for(int i = 0; i < 1; i++){
-        Base::Basic a;
-        a.int_val = i;
-        a.str_val = "LEL" + std::to_string(i);
-        std::cerr << "Sending A" << std::endl;
-        print_base(a);
-
-        
-        auto response = requester_port->SendRequest(a, std::chrono::milliseconds(100));
-        auto response2 = requester_port2->SendRequest(a, std::chrono::milliseconds(100));
-
-        if(response){
-            std::cerr << "Got Response1" << std::endl;
-        }
-        
-
-        if(response2.first){
-            std::cerr << "Got Response 2: " << std::endl;
-            print_base(response2.second);
-        }
-        std::cerr << std::endl;
-    }
-
-    requester_port->Passivate();
-    replier_port->Passivate();
-
-    requester_port2->Passivate();
-    replier_port2->Passivate();
-    
-    requester_port->Terminate();
-    replier_port->Terminate();
-
-    requester_port2->Terminate();
-    replier_port2->Terminate();
+    testing::InitGoogleTest(&ac, av);
+    return RUN_ALL_TESTS();
 }

@@ -34,7 +34,7 @@ set(HEADERS
     )
 
 #Pass Version info into cmakevars.h
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 
@@ -86,7 +86,7 @@ target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_execution_parser_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
-target_link_libraries(${RE_NODE_MANAGER_LIB} environment_manager_lib)
+target_link_libraries(${RE_NODE_MANAGER_LIB} re_environment_manager_lib)
 
 target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${RE_EXECUTION_TESTER} ${Boost_PROGRAM_OPTIONS_LIBRARY})

@@ -26,7 +26,11 @@ class Environment{
         std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
 
         void RemoveExperiment(const std::string& model_name, uint64_t time);
-        void RemoveLoganClient(const std::string& model_name, const std::string& ip_address);
+        void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
+
+
+        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
+
         void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
@@ -40,14 +44,19 @@ class Environment{
 
         bool ModelNameExists(const std::string& model_name) const;
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;
-        std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
-        std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
+        
+        void SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address);
+
+        std::string GetMasterPublisherAddress(const std::string& model_name);
+        std::string GetMasterRegistrationAddress(const std::string& model_name);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
-        std::string GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address);
+        std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);
+        std::string GetTaoServerName(const std::string& model_name, const NodeManager::Port& port);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
+        std::string GetOrbEndpoint(const std::string& experiment_id, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
 
@@ -56,21 +65,25 @@ class Environment{
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
 
-        std::string GetPort(const std::string& node_name);
-        void FreePort(const std::string& node_name, const std::string& port_number);
+        std::string GetPort(const std::string& ip_address);
+        void FreePort(const std::string& ip_address, const std::string& port_number);
+
         
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
 
+        void AddExternalPorts(const std::string& model_name, const NodeManager::ControlMessage& control_message);
+
 
         bool HasPublicEventPort(const std::string& port_id);
         std::string GetPublicEventPortEndpoint(const std::string& port_id);
-        void AddPublicEventPort(const std::string& port_id, const std::string& address_string);
-        void AddPublicEventPort(const std::string& port_id, EnvironmentManager::EventPort event_port);
+        void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);
         void AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id);
+
+        void RemoveDependentExternalExperiment(const std::string& model_name, const std::string& port_id);
 
         std::string GetAmqpBrokerAddress();
 
@@ -91,7 +104,7 @@ class Environment{
         std::string address_;
 
         //Returns management port for logan client
-        std::string AddLoganClient(const std::string& model_name, const std::string& ip_address);
+        std::string AddLoganClientServer();
 
         bool AddExperiment(const std::string& model_name);
         //model_name -> experiment data structure
@@ -113,6 +126,7 @@ class Environment{
         //event port guid -> set of experiment ids
         //keeps track of experiments waiting for port of this guid to become live.
         std::unordered_map<std::string, std::set<std::string> > pending_port_map_;
+        std::unordered_map<std::string, std::set<std::string> > dependent_experiment_map_;
 
         std::mutex port_mutex_;
         //initially allocated unique_queue of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct

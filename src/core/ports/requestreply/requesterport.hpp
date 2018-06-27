@@ -31,6 +31,19 @@ class RequesterPort<void, BaseRequestType> : public Port{
         virtual void ProcessRequest(const BaseRequestType& type, std::chrono::milliseconds timeout) = 0;
 };
 
+//Specialised templated RequesterPort for void returning
+template <class BaseReplyType>
+class RequesterPort<BaseReplyType, void> : public Port{
+    public:
+        RequesterPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
+        std::pair<bool, BaseReplyType> SendRequest(std::chrono::milliseconds timeout);
+        
+        using base_reply_type = BaseReplyType;
+        using base_request_type = void;
+    protected:
+        virtual BaseReplyType ProcessRequest(std::chrono::milliseconds timeout) = 0;
+};
+
 //Generic templated RequesterPort
 template  <class BaseReplyType, class BaseRequestType>
 RequesterPort<BaseReplyType, BaseRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware)
@@ -39,12 +52,15 @@ RequesterPort<BaseReplyType, BaseRequestType>::RequesterPort(std::weak_ptr<Compo
 };
 
 template  <class BaseReplyType, class BaseRequestType>
-std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& request, std::chrono::milliseconds timeout)
+std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
     try{
-        return {true, ProcessRequest(request, timeout)};
+        EventRecieved(base_request);
+        auto base_reply = std::move(ProcessRequest(base_request, timeout));
+        EventProcessed(base_request, true);
+        return {true, std::move(base_reply)};
     }catch(const std::exception& e){
-        //TODO:
+        //std::cerr << e.what() << std::endl;
     }
     return {false, BaseReplyType()};
 };
@@ -57,15 +73,42 @@ RequesterPort<void, BaseRequestType>::RequesterPort(std::weak_ptr<Component> com
 };
 
 template  <class BaseRequestType>
-bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& request, std::chrono::milliseconds timeout)
+bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
     try{
-        ProcessRequest(request, timeout);
+        EventRecieved(base_request);
+        ProcessRequest(base_request, timeout);
+        EventProcessed(base_request, true);
         return true;
     }catch(const std::exception& e){
-        //TODO:
+        //std::cerr << e.what() << std::endl;
     }
+    EventProcessed(base_request, false);
     return false;
+};
+
+
+//Specialised templated RequesterPort for void recieving returning
+template  <class BaseReplyType>
+RequesterPort<BaseReplyType, void>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware)
+: Port(component, port_name, Port::Kind::REQUESTER, middleware){
+
+};
+
+template  <class BaseReplyType>
+std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, void>::SendRequest(std::chrono::milliseconds timeout)
+{
+    //Generate a request
+    try{
+        BaseMessage m;
+        EventRecieved(m);
+        auto base_reply = std::move(ProcessRequest(timeout));
+        EventProcessed(m, true);
+        return {true, std::move(base_reply)};
+    }catch(const std::exception& e){
+        //std::cerr << e.what() << std::endl;
+    }
+    return {false, BaseReplyType()};
 };
 
 #endif // BASE_PORT_REQUESTER_HPP

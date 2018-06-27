@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(ENVIRONMENT_MANAGER environment_manager)
+set(ENVIRONMENT_MANAGER re_environment_manager)
 set(ENVIRONMENT_MANAGER_LIB "${ENVIRONMENT_MANAGER}_lib")
 
 set(PROJ_NAME ${ENVIRONMENT_MANAGER})
@@ -20,6 +20,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/amqp/amqprule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/tao/taorule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
@@ -32,11 +33,15 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/amqp/amqprule.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/tao/taorule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
     )
+
+#Pass Version info into cmakevars.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 add_library(${ENVIRONMENT_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 

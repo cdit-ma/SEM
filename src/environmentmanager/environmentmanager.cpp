@@ -6,8 +6,12 @@
 #include <signal.h>
 #include <re_common/util/execution.hpp>
 
+#include "cmakevars.h"
+
 #include "broadcaster.h"
 #include "deploymentregister.h"
+
+std::string VERSION_NAME = "re_environment_manager";
 
 Execution* exe = 0;
 
@@ -23,7 +27,7 @@ int main(int argc, char **argv){
     exe = new Execution();
 
     static const std::string default_bcast_port = "22334";
-    static const std::string default_registration_port = "22335";
+    static const std::string default_registration_port = "20000";
 
     std::string ip_address;
     std::string registration_port;
@@ -54,6 +58,11 @@ int main(int argc, char **argv){
         std::cout << options << std::endl;
         return 0;
     }
+
+    if(vm.count("broadcast_port")){
+        std::cerr << "Broadcast not implemented." << std::endl;
+        return 1;
+    }
     
     //Set defaults if not set in args
     if(bcast_port.empty()){
@@ -68,6 +77,10 @@ int main(int argc, char **argv){
 
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(*exe, ip_address, registration_port));
     deployment_register->Start();
+
+    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
+    std::cout << "* Endpoint: " << "tcp://" << ip_address << ":" << registration_port << std::endl << std::endl;
+    std::cout << "------------------[Running]------------------" << std::endl << std::endl;
 
     exe->Start();
 

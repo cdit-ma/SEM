@@ -12,9 +12,21 @@ namespace EnvironmentManager{
 
 struct LoganClient{
     std::string experiment_name;
+    std::string id;
     std::string ip_address;
-    std::string management_port;
     std::string logging_port;
+    double frequency;
+    bool live_mode;
+    std::vector<std::string> processes;
+};
+
+struct LoganServer{
+    std::string experiment_name;
+    std::string id;
+    std::string ip_address;
+    std::string db_file_name;
+    std::vector<std::string> client_ids;
+    std::vector<std::string> client_addresses;
 };
 
 class Node{
@@ -31,6 +43,7 @@ class Node{
             auto port = available_ports_.front();
             available_ports_.pop();
             auto port_str =  std::to_string(port);
+            std::cout << "Port Acquired: " << name_ << " : " << port_str << std::endl;
             return port_str;
         };
 
@@ -39,7 +52,9 @@ class Node{
             int port_number;
             try{
                 port_number = std::stoi(port);
-                available_ports_.push(port_number);
+                if(available_ports_.push(port_number)){
+                    std::cout << "Port Freed: " << name_ << " : " << port << std::endl;
+                }
             }
             catch(const std::invalid_argument& ex){
                 std::cerr << "Could not free port <\'" << port <<"\'>, port string could not be converted to int." << std::endl;
@@ -81,7 +96,7 @@ struct EventPort{
     std::string id;
     std::string guid;
     std::string type;
-    std::string node_name;
+    std::string node_ip;
     std::string port_number;
     std::string topic;
 
@@ -90,6 +105,14 @@ struct EventPort{
 
     std::string endpoint;
 
+};
+
+struct ExternalPort{
+    std::string id;
+    std::string external_label;
+    std::vector<std::string> connected_ports;
+
+    bool is_blackbox = false;
 };
 
 enum class ExperimentState{
@@ -109,25 +132,28 @@ class Experiment{
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_port);
 
-        void SetMasterPublisherIp(const std::string& ip);
+        void SetMasterIp(const std::string& ip);
 
+        void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
         void ConfigureNode(NodeManager::Node& node);
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
-        void AddLoganClient(const std::string& model_name,
-                            const std::string& ip_address,
-                            const std::string& management_port,
-                            const std::string& logging_port);
-                            
-        std::string GetMasterPublisherPort();
-        std::string GetNodeManagementPort(const std::string& ip) const;
+        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string& ip_address);
+
+        std::string GetMasterPublisherAddress();
+        std::string GetMasterRegistrationAddress();
+
         std::string GetNodeModelLoggerPort(const std::string& ip) const;
 
         std::set<std::string> GetTopics() const;
 
         std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
+        std::string GetOrbEndpoint(const std::string& port_id);
+
+        std::string GetTaoReplierServerAddress(const NodeManager::Port& port);
+        std::string GetTaoServerName(const NodeManager::Port& port);
 
         bool IsDirty() const;
 
@@ -138,6 +164,8 @@ class Experiment{
 
     private:
     
+        std::string GetNodeIpByName(const std::string& node_name);
+
         std::mutex mutex_;
 
         bool configure_done_;
@@ -146,7 +174,8 @@ class Experiment{
 
         NodeManager::ControlMessage deployment_message_;
         std::string model_name_;
-        std::string master_port_;
+        std::string master_publisher_port_;
+        std::string master_registration_port_;
         std::string master_ip_address_;
         std::string manager_port_;
 
@@ -171,13 +200,23 @@ class Experiment{
         //node_id -> model_logger_port
         std::unordered_map<std::string, std::string> modellogger_port_map_;
 
+        //node_id -> orb port
+        std::unordered_map<std::string, std::string> orb_port_map_;
+
         //list of topics used in this experiment
         std::set<std::string> topic_set_;
 
         //map of node id -> deployed component count
         std::unordered_map<std::string, int> deployment_map_;
 
-        std::vector<std::unique_ptr<LoganClient> > logan_clients_;
+        //map of internal port_id -> external port unique label
+        std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
+
+        //external port_id -> internal port id
+        std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
+
+        std::unordered_map<std::string, std::unique_ptr<LoganClient> > logan_client_map_;
+        std::unordered_map<std::string, std::unique_ptr<LoganServer> > logan_server_map_;
 
         uint64_t time_added_;
         ExperimentState state_;

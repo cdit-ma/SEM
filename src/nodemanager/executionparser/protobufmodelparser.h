@@ -24,6 +24,7 @@ class ProtobufModelParser{
         bool process_success_;
         bool PreProcess();
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
+        bool ParseExternalDelegates(NodeManager::ControlMessage* control_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
         
@@ -37,12 +38,14 @@ class ProtobufModelParser{
         std::string GetDeployedID(const std::string& id);
         void SetAttributePb(NodeManager::Attribute*, const std::string& type, const std::string& value);
         std::string GetDefinitionId(const std::string& id);
+        std::string GetRecursiveDefinitionId(const std::string& id);
         std::string GetAggregateId(const std::string& id);
         std::string GetImplId(const std::string& id);
 
         std::string BuildPortGuid(const std::string& port_id);
 
         NodeManager::Port::Kind GetPortKind(const std::string& kind);
+        NodeManager::ExternalPort::Kind GetExternalPortKind(const std::string& kind);
         NodeManager::Node::NodeType GetHardwareItemKind(const std::string& kind);
 
         std::string to_lower(const std::string& s);
@@ -62,6 +65,8 @@ class ProtobufModelParser{
         std::vector<std::string> hardware_cluster_ids_;
         std::vector<std::string> component_assembly_ids_;
         std::vector<std::string> qos_edge_ids_;
+        std::vector<std::string> logging_server_ids_;
+        std::vector<std::string> logging_client_ids_;
 
         //source/target id -> set of all edge id's attached to source/target
         std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
@@ -89,6 +94,8 @@ class ProtobufModelParser{
 
         //port replicate id -> eventport proto
         std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
+        //external port id -> ExternalPort Proto
+        std::unordered_map<std::string, NodeManager::ExternalPort*> external_port_id_map_;
 
         //component id -> vector of that component's replications
         std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
@@ -97,6 +104,9 @@ class ProtobufModelParser{
         std::vector<std::string> component_ids_;
         std::vector<std::string> component_impl_ids_;
         std::vector<std::string> component_instance_ids_;
+
+        std::vector<std::string> delegates_pubsub_ids_;
+        std::vector<std::string> delegates_server_ids_;
 
         //event port id -> fully qualified event port guid
         std::unordered_map<std::string, std::string> port_guid_map_;
@@ -112,5 +122,7 @@ class ProtobufModelParser{
         };
 
         std::unordered_map<std::string, std::vector<AssemblyConnection> > assembly_map_;
+
+        std::unordered_map<std::string, std::vector<std::string> > logging_server_client_map_;
 };
 #endif //PROTOBUFMODELPARSER_H

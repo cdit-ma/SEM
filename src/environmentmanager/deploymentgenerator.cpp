@@ -18,6 +18,8 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
         }
     }
 
+    environment_.SetExperimentMasterIp(control_message.experiment_id(), master_ip_address);
+
     for(int i = 0; i < control_message.nodes_size(); i++){
         NodeManager::Node* node = control_message.mutable_nodes(i);
         PopulateNode(control_message, *node);
@@ -25,9 +27,16 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
 
     auto master_publisher_port_attribute = control_message.add_attributes();
     auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
-    master_publisher_port_attribute_info->set_name("master_publisher_port");
+    master_publisher_port_attribute_info->set_name("master_publisher_endpoint");
     master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
-    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.experiment_id(), master_ip_address));
+    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherAddress(control_message.experiment_id()));
+
+    auto master_registration_port_attribute = control_message.add_attributes();
+    auto master_registration_port_attribute_info = master_registration_port_attribute->mutable_info();
+    master_registration_port_attribute_info->set_name("master_registration_endpoint");
+    master_registration_port_attribute->set_kind(NodeManager::Attribute::STRING);
+    master_registration_port_attribute->add_s(environment_.GetMasterRegistrationAddress(control_message.experiment_id()));
+
     environment_.StoreControlMessage(control_message);
 }
 
@@ -49,7 +58,7 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
                     rule.ConfigureEventPort(control_message, port);
                 }
                 catch(std::exception& ex){
-                    std::cerr << ex.what() << std::endl;
+                    std::cerr << "DeploymentGenerator::PopulateNode: " << ex.what() << " in port: " << port.info().name() << std::endl;
                 }
             }
         }
@@ -62,14 +71,14 @@ void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& contr
 
 }
 
-DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Port::Middleware middleware){
+DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Middleware middleware){
     switch(middleware){
-        case NodeManager::Port::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
-        case NodeManager::Port::RTI:       return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::Port::OSPL:      return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::Port::QPID:      return DeploymentRule::MiddlewareType::AMQP;
-        case NodeManager::Port::TAO:       return DeploymentRule::MiddlewareType::CORBA;
-        default:                                return DeploymentRule::MiddlewareType::NONE;
+        case NodeManager::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
+        case NodeManager::RTI:       return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::OSPL:      return DeploymentRule::MiddlewareType::DDS;
+        case NodeManager::QPID:      return DeploymentRule::MiddlewareType::AMQP;
+        case NodeManager::TAO:       return DeploymentRule::MiddlewareType::TAO;
+        default:                     return DeploymentRule::MiddlewareType::NONE;
     }
 }
 
@@ -88,6 +97,8 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
     std::string experiment_id(control_message.experiment_id());
+
+    environment_.AddExternalPorts(experiment_id, control_message);
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         AddNodeToExperiment(experiment_id, control_message.nodes(i));

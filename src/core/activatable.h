@@ -27,6 +27,8 @@ public:
         RUNNING = 2,
         NOT_RUNNING = 3,
     };
+    static const std::string ToString(const Transition& transation);
+    static const std::string ToString(const State& transation);
 
     public: 
         virtual ~Activatable(){};

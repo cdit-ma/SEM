@@ -5,65 +5,98 @@
 #include <iostream>
 #include <chrono>
 #include "../../re_common/zmq/zmqutils.hpp"
+#include "../deploymentmanager.h"
 
-
-zmq::Registrant::Registrant(DeploymentManager* manager){
-    deployment_manager_ = manager;
-    
+//SLAVE
+zmq::Registrant::Registrant(DeploymentManager& deployment_manager):
+    deployment_manager_(deployment_manager)
+{
     //Construct context
     context_ = new zmq::context_t(1);
 
-
-    
-    //Start the registration thread
-    registration_thread_ = new std::thread(&zmq::Registrant::RegistrationLoop, this);
+    //Start an async registration loop
+    registration_loop_ = std::async(std::launch::async, &zmq::Registrant::RegistrationLoop, this);
 }
 
 zmq::Registrant::~Registrant(){
-    //Deleting the context will interupt any blocking ZMQ calls
-    
     if(context_){
         delete context_;
+        context_ = 0;
     }
-
-    if(registration_thread_){
-        registration_thread_->join();
-        delete registration_thread_;
-    }
-
-    if(deployment_manager_){
-        deployment_manager_->TeardownModelLogger();
-        delete deployment_manager_;
-    }
+    registration_loop_.get();
 }
 
+void  zmq::Registrant::SendTerminated(){
+    std::unique_lock<std::mutex> lock(terminated_mutex_);
+    terminated_ = true;
+    terminated_cv_.notify_all();
+}
+
+//CLient
 void zmq::Registrant::RegistrationLoop(){
     //Start a request socket, and bind endpoint
-    auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
+    auto socket = zmq::socket_t(*context_, ZMQ_REQ);
 
     try{
-        std::string endpoint = deployment_manager_->GetSlaveEndpoint();
-        //if we're an unused node
-        if(endpoint.empty()){
+        if(!deployment_manager_.QueryEnvironmentManager()){
+            deployment_manager_.Teardown();
             return;
         }
-        socket.bind(endpoint.c_str());
-        zmq::message_t slave_startup;
 
-        //Send our slave address
-        socket.send(zmq::message_t(endpoint.begin(), endpoint.end()));
+        //Get the Registrant Port
+        auto slave_ip_address = deployment_manager_.GetSlaveIPAddress();
+        auto master_registration_endpoint = deployment_manager_.GetMasterRegistrationEndpoint();
 
-        //Recieve the startup request
-        socket.recv(&slave_startup);
-        NodeManager::Startup slave_startup_pb;
-        slave_startup_pb.ParseFromArray(slave_startup.data(), slave_startup.size());
-        auto slave_response = deployment_manager_->HandleStartup(slave_startup_pb);
+        socket.connect(master_registration_endpoint.c_str());
 
-        //Send the slave response
-        socket.send(Proto2Zmq(slave_response));
+        {
+            //Send our NodeManager::SlaveStartupMessage
+            NodeManager::SlaveStartupMessage slave_request;
+            slave_request.set_type(NodeManager::SlaveStartupMessage::REQUEST);
+            slave_request.mutable_request()->set_slave_ip(slave_ip_address);
+            socket.send(Proto2Zmq(slave_request));
+        }
+        {
+            //Recieve the startup request
+            zmq::message_t zmq_slave_startup;
+            socket.recv(&zmq_slave_startup);
+
+            auto slave_startup = Zmq2Proto<NodeManager::SlaveStartupMessage>(zmq_slave_startup);
+
+            if(slave_startup.type() == NodeManager::SlaveStartupMessage::STARTUP){
+                const auto& slave_response = deployment_manager_.HandleSlaveStartup(slave_startup.startup());
+
+                //Send our NodeManager::StartupResponse
+                NodeManager::SlaveStartupMessage response;
+                response.set_type(NodeManager::SlaveStartupMessage::RESPONSE);
+                response.set_allocated_response(new NodeManager::SlaveStartupResponse(slave_response));
+                socket.send(Proto2Zmq(response));
+            }else{
+                return;
+            }
+        }
+
+        {
+            //Recieve nothing
+            zmq::message_t zmq_master_response;
+            socket.recv(&zmq_master_response);
+        }
+        
+        std::unique_lock<std::mutex> lock(terminated_mutex_);
+        terminated_cv_.wait(lock, [this]{return terminated_;});
+
+        NodeManager::SlaveStartupMessage slave_request;
+        slave_request.set_type(NodeManager::SlaveStartupMessage::TERMINATED);
+        slave_request.mutable_request()->set_slave_ip(slave_ip_address);
+        socket.send(Proto2Zmq(slave_request));
+
+        zmq::message_t zmq_master_response;
+        socket.recv(&zmq_master_response);
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrant::RegistrationLoop():" << ex.what() << std::endl;
         }
+    }catch(const std::exception& e){
+        std::cerr << "zmq::Registrant::RegistrationLoop():" << e.what() << std::endl;
     }
 }

@@ -10,191 +10,201 @@
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
-import hudson.model.Computer.ListPossibleNames
 
 def utils = new Utils(this);
 
-def masterNode = "${MASTER_NODE}"
-def executionTime = "${EXECUTION_TIME}"
-def experimentNameArg = "${EXPERIMENT_NAME}"
-def experimentID = env.BUILD_ID
-def buildDir = "run" + experimentID
-def experimentName = experimentID
-def environmentManagerAddress = env.ENVIRONMENT_MANAGER_ADDRESS
+final master_node = "${MASTER_NODE}"
+final execution_time = "${EXECUTION_TIME}"
+final env_manager_addr = "${ENVIRONMENT_MANAGER_ADDRESS}"
+final build_id = env.BUILD_ID
+final CLEANUP = false
 
-if(!experimentNameArg.isEmpty()){
-    experimentName = experimentNameArg
+def experiment_name = "${EXPERIMENT_NAME}"
+if(experiment_name.isEmpty()){
+    experiment_name = "deploy_model_" + build_id
 }
 
-//Deployment plans
-def loganServers = [:]
-def loganClients = [:]
-def loganServers_shutdown = [:]
-def loganClients_shutdown = [:]
-def nodeManagers = [:]
-def compileCode = [:]
-def addrMap = [:]
-def libLocationMap = [:]
+//Executor Maps
+def logan_instances = [:]
+def builder_map = [:]
+def execution_map = [:]
 
-def fail_flag = false
-def failureList = []
+def FAILED = false
+def FAILURE_LIST = []
+final UNIQUE_ID =  experiment_name + "_" + build_id
+final MODEL_FILE = UNIQUE_ID + ".graphml"
 
-def file = "model.graphml"
+def builder_nodes = []
+def nodes = utils.getLabelledNodes("re")
 
-//TODO: Change this back to 're'
-def reNodes = utils.getLabelledNodes("envmanager_test")
-
-//XXX: Problems ahoy here
-//In case where node has multiple network interfaces, we're cooked.
-for(def i = 0; i < reNodes.size(); i++){
-    def nodeName = reNodes[i];
-    def nodeIPLookup = jenkins.model.Jenkins.instance.getNode(nodeName)
-    def ip_addr_list = nodeIPLookup.computer.getChannel().call(new ListPossibleNames())
-    addrMap[nodeName] = ip_addr_list[0]
+//Get one node of each kind
+for(builder_type in ["builder_centos7", "builder_ubuntu18"]){
+    for(node_name in utils.getLabelledNodes(builder_type)){
+        builder_nodes += node_name
+        break;
+    }
 }
 
-withEnv(["model=''"]){
-    node(masterNode){
+if(builder_nodes.size() == 0){
+    error('Cannot find any builder nodes.')
+}
 
-        def workspacePath = pwd()
-        def reGenPath = "${RE_PATH}" + "/re_gen"
-        def saxonPath = reGenPath
+if(nodes.size() == 0){
+    error('Cannot find any nodes.')
+}
 
-        def middlewareString = ' middlewares='
-        def fileString = ' -s:' + workspacePath + "/" + file
-        def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
-        
-        def buildPath = workspacePath + "/" + buildDir
-        unstashParam "model", file
-        stash includes: file, name: 'model'
+//Run codegen on the first node
+node(builder_nodes[0]){
+    //Unstash the model from parameter
+    unstashParam "model", MODEL_FILE
+    sleep(1)
+    //Stash the model file
+    stash includes: MODEL_FILE, name: 'model'
 
-        //TODO: Fix this to actually get middlewares from somewhere
-        //code gen may actually handle this automatically without args now days, ask dan
-        middlewareString += "zmq,proto,rti,ospl"
-        //Generate C++ code
-        stage('CodeGen'){
-            dir(buildPath){
-                unstash 'model'
-                archiveArtifacts file
+    stage('C++ Generation'){
+        dir(build_id + "/Codegen"){
+            unstash 'model'
+            sleep(1)
+            
+            def re_gen_path = '${RE_PATH}/re_gen/'
+            def saxon_call = 'java -jar ' + re_gen_path + '/saxon.jar -xsl:' + re_gen_path
+            def file_parameter = ' -s:' + MODEL_FILE
+            
+            def run_type_gen = saxon_call + '/g2datatypes.xsl' + file_parameter
+            def run_components_gen = saxon_call + '/g2components.xsl' + file_parameter
+            def run_validation = saxon_call + '/g2validate.xsl' + file_parameter + ' write_file=true'
+
+            if(utils.runScript(run_type_gen) != 0){
+                error('Datatype code generation failed.')
+            }
+
+            if(utils.runScript(run_components_gen) != 0){
+                error('Components code generation failed.')
+            }
+
+            if(utils.runScript(run_validation) != 0){
+                error('Validation report generation failed.')
+            }
+
+            //Construct a zip file with the code
+            zip(zipFile: UNIQUE_ID + ".zip", archive: true)
+
+            //Stash the generated code
+            stash includes: '**', name: 'codegen'
+            
+            //Archive the model
+            archiveArtifacts MODEL_FILE
+            
+            //Delete the Dir
+            if(CLEANUP){
+                deleteDir()
+            }
+        }
+    }
+}
+
+//Run Compilation
+for(def i = 0; i < builder_nodes.size(); i++){
+    def node_name = builder_nodes[i];
+    //Define the Builder instructions
+    builder_map[node_name] = {
+        node(node_name){
+            def stash_name = "code_" + utils.getNodeOSVersion(node_name)
+            dir(build_id + "/" + stash_name){
+                //Unstash the generated code
+                unstash 'codegen'
+
+                dir("build"){
+                    if(!utils.buildProject("Ninja", "")){
+                        error("CMake failed on Builder Node: " + node_name)
+                    }
+                }
+                dir("lib"){
+                    //Stash all Libraries
+                    stash includes: '**', name: stash_name
+                }
+            }
+            //Delete the Dir
+            if(CLEANUP){
+                deleteDir()
+            }
+        }
+    }
+}
+
+//Produce the execution map
+for(def i = 0; i < nodes.size(); i++){
+    def node_name = nodes[i];
+    execution_map[node_name] = {
+        node(node_name){
+            dir(build_id){
+                //Get the IP of this node
+                def ip_addr = utils.getNodeIpAddress(node_name)
                 
-                stage('C++ Generation'){
-                    def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-                    if(utils.runScript(typeGenCommand) != 0){
-                        failureList << "Datatype code generation failed"
-                        fail_flag = true;
-                    } 
-                    def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-                    if(utils.runScript(componentGenCommand) !=0){
-                        failureList << "Component code generation failed"
-                        fail_flag = true;
+                dir("lib"){
+                    //Unstash the required libraries for this node.
+                    //Have to run in the lib directory due to dll linker paths
+                    unstash "code_" + utils.getNodeOSVersion(node_name)
+                    
+                    def args = " -n " + experiment_name
+                    args += " -e " + env_manager_addr
+                    args += " -a " + ip_addr
+                    args += " -l ."
+
+                    def logan_args = ""
+                    logan_args += " -n " + experiment_name
+                    logan_args += " -e " + env_manager_addr
+                    logan_args += " -a " + ip_addr
+
+                    if(node_name == master_node){
+                        unstash 'model'
+                        args += " -t " + execution_time
+                        args += " -d " + MODEL_FILE
                     }
 
-                    dir("lib"){
-                        //Generate QOS into lib directory
-                        def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
-                        print(qosGenCommand)
-                        if(utils.runScript(qosGenCommand) != 0){
-                            failureList << "QoS generation failed"
-                            fail_flag = true;
+                    parallel(
+                        ("LOGAN_ " + node_name): {
+                            //Run Logan
+                            if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
+                        },
+                        ("RE_ " + node_name): {
+                            //Run re_node_manager
+                            if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
                         }
-                    }
+                    )
+
+                    archiveArtifacts artifacts: '**.sql', allowEmptyArchive: true
                 }
-            }
-        }
-
-        //Archive code gen and add to build artifacts
-        stage('Archive'){
-            dir(buildPath){
-                stash includes: '**', name: 'codeGen'
-                zip(zipFile: "archive.zip", archive: true, glob: '**')
-            }
-        }
-    }
-
-    stage("Build deployment plan"){
-        for(def i = 0; i < reNodes.size(); i++){
-            def nodeName = reNodes[i];
-            def ipAddr = addrMap[nodeName]
-
-            //Populate map of scripts to run compilation on all nodes
-            compileCode[nodeName] = {
-                node(nodeName){
-                    dir(buildDir){
-                        unstash 'codeGen'
-                        libLocationMap[nodeName] = pwd()
-                    }
-                    dir(buildDir + "/build"){
-                        if(!utils.buildProject("Ninja", "")){
-                            failureList << ("cmake failed on node: " + nodeName)
-                            fail_flag = true;
-                        }
-                    }
-                }
-            }
-
-            //Populate map of scripts to run re_node_manager on all nodes
-            nodeManagers[nodeName] = {
-                node(nodeName){
-                    def buildPath = libLocationMap[nodeName] + "/lib"
-                    def master_args = ""
-                    def slave_args = ""
-                    def shared_args = ""
-                    def command = "${RE_PATH}" + "/bin/re_node_manager"
-
-                    //Set args required for both slaves and masters
-                    shared_args += " -n " + experimentName
-                    shared_args += " -e " + environmentManagerAddress
-                    shared_args += " -a " + ipAddr
-                    slave_args += " -l . "
-
-                    //If we are a master, set exectuion time and deployment file location
-                    if(nodeName == masterNode){
-                        master_args += " -t " + executionTime
-                        master_args += " -d " + file
-                    }
-
-                    command += shared_args
-                    command += slave_args
-                    command += master_args
-
-                    dir(buildPath){
-                        if(nodeName == masterNode){
-                            unstash 'model'
-                        }
-                        if(utils.runScript(command) != 0){
-                            failureList << ("Experiment slave failed on node: " + nodeName)
-                            fail_flag = true
-                        }
-                    }
+                //Delete the Dir
+                if(CLEANUP){
+                    deleteDir()
                 }
             }
         }
     }
+}
 
-    //Run compilation scripts
-    stage("Compiling C++"){
-        parallel compileCode
-    }
+//Run compilation scripts
+stage("Compiling C++"){
+    parallel builder_map
+}
 
-    //Run re_node_manager scripts
-    stage("Execute Model"){
-        if(!fail_flag){
-            parallel nodeManagers
-        }
-        else{
-            print("############# Execution skipped, compilation or code generation failed! #############")
-        }
-    }
+//Run compilation scripts
+stage("Execute Model"){
+    parallel execution_map
+}
 
-    if(fail_flag){
-        currentBuild.result = 'FAILURE'
-        print("Execution failed!")
-        print(failureList.size() + " Error(s)")
-        for(s in failureList){
-            print("ERROR: " + s)
-        }
+if(FAILED){
+    print("Model Execution failed!")
+    print(FAILURE_LIST.size() + " Error(s)")
+    for(failure in FAILURE_LIST){
+        print("ERROR: " + failure)
     }
-    else{
-        currentBuild.result = 'SUCCESS'
-    }
+    error("Model Execution failed!")
 }

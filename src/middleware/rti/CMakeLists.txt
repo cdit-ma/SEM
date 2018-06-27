@@ -35,8 +35,3 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RTI_DDS_INCLUDE_DIRS})
 
 
 target_link_libraries(${PROJ_NAME} ${RTI_DDS_LIBRARIES})
-
-
-SET(RTI_HELPER_LIBRARIES ${RTI_DDS_LIBRARIES})
-
-message("RTI: ${RTI_HELPER_LIBRARIES}")

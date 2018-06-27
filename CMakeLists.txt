@@ -8,7 +8,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-SET(RE_VERSION "1.5.0")
+SET(RE_VERSION "3.0.3")
 
 option(BUILD_TEST "Build testing" OFF)
 

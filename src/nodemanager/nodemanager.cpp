@@ -138,27 +138,30 @@ int main(int argc, char **argv){
     }
 
 
-    std::unique_ptr<zmq::Registrar> master;
-    std::unique_ptr<zmq::Registrant> slave;
-    bool success = true;
+    bool success = true;    
+
+    std::unique_ptr<DeploymentManager> deployment_manager;
+    std::unique_ptr<ExecutionManager> execution_manager;
 
     if(success && is_master){
-        auto execution_manager = new ExecutionManager(address,
+        execution_manager = std::move(std::unique_ptr<ExecutionManager>(new ExecutionManager(address,
                                                     graphml_path,
                                                     execution_duration,
                                                     exe,
                                                     experiment_id,
-                                                    environment_manager_endpoint);
-
-        master = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(execution_manager, address));
+                                                    environment_manager_endpoint)));
 
         success = execution_manager->IsValid();
     }
 
+    
+
     if(success && is_slave){
-        //Construct a Deployment Manager to handle the Deployment
-        auto deployment_manager = new DeploymentManager(is_master, dll_path, exe, experiment_id, address, environment_manager_endpoint);
-        slave = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(deployment_manager));
+        deployment_manager = std::move(
+            std::unique_ptr<DeploymentManager>(
+                new DeploymentManager(is_master, dll_path, exe, experiment_id, address, environment_manager_endpoint)
+            )
+        );
     }
 
     if(success){

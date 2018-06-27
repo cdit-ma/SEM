@@ -12,6 +12,7 @@
 #include "executionparser/protobufmodelparser.h"
 #include "environmentmanager/environment.h"
 #include <re_common/zmq/environmentrequester/environmentrequester.h>
+#include "zmq/registrar.h"
 
 namespace zmq{class ProtoWriter;};
 namespace Graphml{class ModelParser;};
@@ -30,10 +31,15 @@ class ExecutionManager{
                             Execution* execution, const std::string& experiment_id, const std::string& environment_manager_endpoint = "");
 
         std::vector<std::string> GetSlaveAddresses();
-        const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);
-        bool HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response);
+        const NodeManager::SlaveStartup GetSlaveStartupMessage(const std::string& slave_ip);
+
+        void GotSlaveTerminated(const std::string& slave_ip);
+
+        bool HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response);
         
+        std::string GetMasterRegistrationEndpoint();
         bool IsValid();
+
     private:
         void ExecutionLoop(double duration_sec) noexcept;
 
@@ -41,18 +47,25 @@ class ExecutionManager{
         void TerminateExecution();
 
         int GetSlaveStateCount(const SlaveState& state);
+        
         void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
         bool Finished();
     private:
+        void UpdateCallback(NodeManager::EnvironmentMessage& environment_update);
+        int GetSlaveStateCountTS(const SlaveState& state);
         void TriggerExecution(bool execute);
+
+        std::string GetSlaveHostName(const std::string& slave_ip);
 
         bool ConstructControlMessages();
         void ConfigureNode(const NodeManager::Node& node);
         bool PopulateDeployment();
 
         std::mutex mutex_;
-        std::string master_endpoint_;
-        std::string master_publisher_port_;
+        
+        std::string master_ip_addr_;
+        std::string master_publisher_endpoint_;
+        std::string master_registration_endpoint_;
         std::string experiment_id_;
         std::string environment_manager_endpoint_;
 
@@ -60,11 +73,14 @@ class ExecutionManager{
 
         NodeManager::ControlMessage* deployment_message_;
 
+        std::unique_ptr<zmq::Registrar> registrar_;
+
         std::unordered_map<std::string, NodeManager::Node> deployment_map_;
 
         std::mutex execution_mutex_;
         std::condition_variable execution_lock_condition_;
         bool terminate_flag_ = false;
+        bool execute_flag_ = false;
 
         bool local_mode_ = false;
 
@@ -77,7 +93,10 @@ class ExecutionManager{
         zmq::ProtoWriter* proto_writer_;
         std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
 
+        std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
+        std::condition_variable slave_state_cv_;
+
 };
 
 #endif //EXECUTIONMANAGER_H

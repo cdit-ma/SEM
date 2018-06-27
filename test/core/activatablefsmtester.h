@@ -18,11 +18,14 @@ void sleep_ms(int ms){
 
 class ActivatableFSMTester : public ::testing::Test {
     protected:
+        std::shared_ptr<Component> component;
+        
         Port* a = 0;
         std::default_random_engine random_generator;
 
         virtual void SetUp(){
             random_generator.seed(testing::UnitTest::GetInstance()->random_seed());
+            component = std::make_shared<Component>(get_long_test_name());
         }
 
         void TearDown(){

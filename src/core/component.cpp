@@ -106,8 +106,6 @@ std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
     if(event_port){
         const auto& port_name = event_port->get_name();
         if(ports_.count(port_name) == 0){
-            std::cerr << "Component '" << get_name()  << "' Added an Port with name '" << port_name << "'" << std::endl;
-
             ports_[port_name] = std::move(event_port);
             return ports_[port_name];
         }else{
@@ -162,7 +160,7 @@ bool Component::GotCallback(const std::string& port_name, const std::type_info& 
 
 
 
-void Component::AddCallback_(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, GenericCallbackWrapper* callback){
+void Component::AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> callback){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
     //Check for this port_name
@@ -175,7 +173,7 @@ void Component::AddCallback_(const std::string& port_name, const std::type_info&
 
     //Insert types into map
     callback_type_hash_.emplace(std::make_pair(port_name, std::make_pair(request_type_ref, reply_type_ref)));
-    callback_functions_[port_name] = callback;
+    callback_functions_[port_name] = std::move(callback);
 }
 
 

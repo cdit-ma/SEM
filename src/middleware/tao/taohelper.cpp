@@ -1,4 +1,4 @@
-#include "helper.h"
+#include "taohelper.h"
 #include <iostream>
 #include <tao/IORTable/IORTable.h>
 
@@ -8,20 +8,9 @@ tao::TaoHelper& tao::TaoHelper::get_tao_helper(){
     return t;
 };
 
-
-tao::TaoHelper::TaoHelper(){
-    std::cout << "CONSTRUCTING: " << this << std::endl;
-}
-
 tao::TaoHelper::~TaoHelper(){
-    std::cerr << "DESTRUCTING" << this << std::endl;
-    for(auto &poa : registered_poas_){
-        std::cout << "DESTROYING: " << poa->the_name() << std::endl;
-        poa->destroy(true, true);
-    }
-
     registered_poas_.clear();
-
+    
     for(auto& pair : orb_lookup_){
         try{
             //Interupt the thread running the orb, it'll handle destruction
@@ -33,39 +22,41 @@ tao::TaoHelper::~TaoHelper(){
 
     //Wait for the Orbs Threads to finish
     for(auto &pair : orb_run_futures_){
-        pair.second.wait();
+        delete pair.second;
     }
 
     //Clean the maps of the Orbs/Threads
     orb_run_futures_.clear();
     orb_lookup_.clear();
-
-    std::cerr << "~TaoHelper()" << std::endl;
 }
 
-void tao::TaoHelper::OrbThread(CORBA::ORB_ptr orb){
+void tao::TaoHelper::OrbThread(ThreadManager& thread_manager, CORBA::ORB_ptr orb){
+    const auto orb_id = orb->id();
     try{
+        thread_manager.Thread_Configured();
+        thread_manager.Thread_Activated();
         orb->run();
         orb->destroy();
         CORBA::release(orb);
         orb = CORBA::ORB::_nil();
     }catch(const CORBA::Exception& e){
-        std::cerr << "tao::TaoHelper::get_orb(): Background Thread '" <</* orb_endpoint*/ "AO" << "' - Corba Exception: " << e._name() << e._info() << std::endl;
+        std::cerr << "tao::TaoHelper::get_orb(): Background Thread '" << orb_id << "' - Corba Exception: " << e._name() << " - " << e._info() << std::endl;
     }
+    thread_manager.Thread_Terminated();
 }
 
 CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool debug_mode){
-    std::unique_lock<std::mutex> lock(global_mutex_);
+    std::unique_lock<std::mutex> lock(orb_mutex_);
     if(orb_lookup_.count(orb_endpoint)){
         return orb_lookup_[orb_endpoint];
     }else{
         CORBA::ORB_ptr orb = 0;
         try{
             auto endpoint = strdup(orb_endpoint.c_str());
+            auto orb_id = strdup(orb_endpoint.c_str());
             auto debug_str = strdup(debug_mode ? "10" : "0");
-            int argc = 4;
-            std::cerr << "CONSTRUCTING ORB: " << endpoint << std::endl;
-            char* argv[4] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str};
+            int argc = 6;
+            char* argv[6] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str, "-ORBId", orb_id};
             orb = CORBA::ORB_init (argc, argv);
             
             delete[] endpoint;
@@ -76,44 +67,35 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
         }
 
         if(!CORBA::is_nil(orb)){
-            //Start an async task to run the ORB
-            auto orb_future = std::async(std::launch::async, OrbThread, CORBA::ORB::_duplicate(orb));
+            //Start an async task to run the ORB, and attach it into a thread manager object
+            auto thread_manager = new ThreadManager();
+            thread_manager->SetFuture(std::async(std::launch::async, OrbThread, std::ref(*thread_manager), orb));
 
-            bool is_async_running = false;
-            while(!is_async_running){
-                //Wait for the result of the future, or a short period of time, this will make sure the thread is alive
-                auto status = orb_future.wait_for(std::chrono::milliseconds(0));
-                switch(status){
-                    case std::future_status::deferred:
-                        //Keep Looping
-                        continue;
-                    default:
-                        is_async_running = true;
-                        break;
+            //Wait for activated
+            auto success = thread_manager->WaitForActivated();
+
+            if(success){
+                 //Now that the orb is running, we should try resolve a reference, If we can resolve, the orb should be fine
+                try{
+                    registered_poas_.insert(get_root_poa(orb));
+                    success = thread_manager->GetState() == ThreadManager::State::ACTIVE;
+                }catch(const CORBA::Exception& e){
+                    success = false;
+                    //If we get an exception, destroy the orb
+                    std::cerr << "tao::TaoHelper::get_orb(): '" << orb_endpoint << "' - Corba Exception: " << e._name() <<  e._info() << std::endl;
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
 
-            //Now that the orb is running, we should try resolve a reference, If we can resolve, the orb should be fine
-            try{
-                registered_poas_.insert(get_root_poa(orb));
-                
-            }catch(const CORBA::Exception& e){
-                //If we get an exception, destroy the orb
-                std::cerr << "tao::TaoHelper::get_orb(): '" << orb_endpoint << "' - Corba Exception: " << e._name() <<  e._info() << std::endl;
-                //Destroy the Orb, which should interupt our async task
-                orb->shutdown(true);
-                //Wait for the future
-                orb_future.wait();
-                orb = 0;
-            }
-
-            if(orb){
+            if(success){
                 orb_lookup_[orb_endpoint] = orb;
-                orb_run_futures_[orb_endpoint] = std::move(orb_future);
-                std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
+                orb_run_futures_[orb_endpoint] = thread_manager;
+                //std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
             }else{
                 std::cerr << "tao::TaoHelper::get_orb(): Failed to construct Orb: '" << orb_endpoint << "'" << std::endl;
+                //Destroy the Orb, which should interupt our async task
+                orb->shutdown(true);
+                orb = 0;
+                delete thread_manager;
             }
         }
         return orb;
@@ -142,19 +124,17 @@ PortableServer::POA_var tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
         if(poa){
             std::cout << "Found POA: " << poa_name << std::endl;
         }else{
-            std::cout << "Constructing POA: " << poa_name << std::endl;
             // Construct the policy list for the LoggingServerPOA.
             CORBA::PolicyList policies (3);
             policies.length (3);
             policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
             policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
             policies[2] = root_poa->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
-
+            
             // Get the POA manager object
             PortableServer::POAManager_var manager = root_poa->the_POAManager();
 
             if(manager->get_state() != PortableServer::POAManager::ACTIVE){
-                std::cout << "ACTIVATING: " << poa_name << std::endl;
                 manager->activate();
             }
             
@@ -193,7 +173,7 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
         auto ior_table = GetIORTable(orb);
        
         if(ior_table){
-            std::cout << "Binding: " << object_name << std::endl;
+            
             ior_table->rebind(object_name.c_str(), ior);
             return true;
         }
@@ -225,9 +205,10 @@ void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::s
     if(orb){
         try{
             auto object = orb->string_to_object(corba_str.c_str());
+            //orb->unregister_initial_reference(obj_id.c_str());
             orb->register_initial_reference(obj_id.c_str(), object);
-        }catch(...){
-
+        }catch(const CORBA::Exception& e){
+            std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
         }
     }
 }

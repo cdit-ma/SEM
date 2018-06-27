@@ -16,21 +16,18 @@ namespace zmq{
             PublisherPort(std::weak_ptr<Component> component, std::string name);
             ~PublisherPort(){
                 Activatable::Terminate();
-            }
+            };
+            
         protected:
             bool HandleConfigure();
-            bool HandlePassivate();
             bool HandleTerminate();
         public:
             bool Send(const BaseType& t);
         private:
-            bool setup_tx();
-            std::mutex control_mutex_;
-
-            ::Proto::Translator<BaseType, ProtoType> translater;
-            
-            zmq::socket_t* socket_ = 0;
+            bool setupTx();
             std::shared_ptr<Attribute> end_points_;
+            std::mutex socket_mutex;
+            std::unique_ptr<zmq::socket_t> socket;
     }; 
 };
 
@@ -40,26 +37,13 @@ zmq::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> 
 };
 
 
-
 template <class BaseType, class ProtoType>
-bool zmq::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    bool valid = end_points_->StringList().size() > 0;
-
-    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
-        return setup_tx();
-    }
-    return false;
-};
-
-template <class BaseType, class ProtoType>
-bool zmq::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::PublisherPort<BaseType>::HandlePassivate()){
-        if(socket_){
-            delete socket_;
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            socket_ = 0;
+bool zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
+    if(::PublisherPort<BaseType>::HandleTerminate()){
+        std::lock_guard<std::mutex> lock(socket_mutex);
+        if(socket){
+            auto raw_socket = socket.release();
+            delete raw_socket;
 
         }
         return true;
@@ -68,43 +52,51 @@ bool zmq::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
 };
 
 template <class BaseType, class ProtoType>
-bool zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
-    HandlePassivate();
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::PublisherPort<BaseType>::HandleTerminate();
+bool zmq::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
+    if(::PublisherPort<BaseType>::HandleConfigure()){
+        return setupTx();
+    }
+    return false;
 };
 
+
 template <class BaseType, class ProtoType>
-bool zmq::PublisherPort<BaseType, ProtoType>::setup_tx(){
-    auto helper = ZmqHelper::get_zmq_helper();
-    this->socket_ = helper->get_publisher_socket();
-    for(auto e: end_points_->StringList()){
-        try{
-            //Bind the addresses provided
-            this->socket_->bind(e.c_str());
-        }catch(zmq::error_t ex){
-            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg("Cannot bind endpoint: '" + e + "' " + ex.what());
+bool zmq::PublisherPort<BaseType, ProtoType>::setupTx(){
+    std::lock_guard<std::mutex> lock(socket_mutex);
+    if(!socket){
+        auto helper = ZmqHelper::get_zmq_helper();
+        socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(std::move(helper->get_publisher_socket() ) ));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        for(const auto& endpoint : end_points_->StringList()){
+            try{
+                //connect the addresses provided
+                socket->bind(endpoint.c_str());
+                //std::cerr << "BINDING: " << endpoint << std::endl;
+            }catch(zmq::error_t ex){
+                Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + endpoint + "' " + ex.what());
+                return false;
+            }
         }
+        //XXX: DO NOT REMOVE THE SLEEP ZMQ NEEDS HIS REST
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     return true;
 };
 
 template <class BaseType, class ProtoType>
 bool zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    
     bool should_send = ::PublisherPort<BaseType>::Send(message);
 
     if(should_send){
-        if(socket_){
-            auto str = translater.BaseToString(message);
-            zmq::message_t data(str.c_str(), str.size());
-            socket_->send(data);
-            return true;
-        }else{
-            Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Socket unexpectedly null");
-        }
+        
+        
+
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
+        //Send the request
+        socket->send(String2Zmq(request_str));
+        return true;
     }
     return false;
 };

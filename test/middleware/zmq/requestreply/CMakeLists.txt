@@ -3,7 +3,7 @@ set(PROJ_NAME test_zmq_requestreply)
 project(${PROJ_NAME})
 
 # Find package ZMQ
-find_package(ZMQ)
+find_package(QPID)
 
 #Find protobuf
 find_package(Protobuf REQUIRED)

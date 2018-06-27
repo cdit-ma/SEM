@@ -44,6 +44,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
     catch(zmq::error_t& e){
         std::cerr << "Could not bind reply socket in registration loop. IP_ADDR: " << ip_addr_ <<
                                         " Port: " << registration_port_ << std::endl;
+        execution_.Interrupt();
         return;
     }
 
@@ -108,12 +109,18 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
             break;
         }
 
+        case NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY:{
+            HandleLoganClientListQuery(message);
+            break;
+        }
+
         default:{
             throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
             break;
         }
     }
 }
+
 
 void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& message){
     //Push work onto new thread with port number promise
@@ -125,7 +132,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
                                                     *context_,
                                                     ip_addr_,
                                                     Environment::DeploymentType::EXECUTION_MASTER,
-                                                    "",
+                                                    message.update_endpoint(),
                                                     port_promise.get(),
                                                     message.experiment_id()));
 
@@ -145,7 +152,6 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
 
 void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& message){
     std::string experiment_id = message.experiment_id();
-    std::string node_ip_address = message.logger().publisher_address();
 
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
@@ -154,7 +160,7 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
                                                     *context_,
                                                     ip_addr_,
                                                     Environment::DeploymentType::LOGAN_CLIENT,
-                                                    node_ip_address,
+                                                    "",
                                                     port_promise.get(),
                                                     experiment_id));
 
@@ -197,14 +203,21 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
 
     if(environment_->NodeDeployedTo(experiment_id, ip_address)){
         //Have experiment_id in environment, and ip_addr has component deployed to id
-        std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
+        std::string master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
+        std::string master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
         std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
 
-        auto management_attribute = node->add_attributes();
-        auto management_attribute_info = management_attribute->mutable_info();
-        management_attribute_info->set_name("management_port");
-        management_attribute->set_kind(NodeManager::Attribute::STRING);
-        management_attribute->add_s(management_port);
+        auto master_publisher_attribute = node->add_attributes();
+        auto master_publisher_attribute_info = master_publisher_attribute->mutable_info();
+        master_publisher_attribute_info->set_name("master_publisher_endpoint");
+        master_publisher_attribute->set_kind(NodeManager::Attribute::STRING);
+        master_publisher_attribute->add_s(master_publisher_endpoint);
+
+        auto master_registration_attribute = node->add_attributes();
+        auto master_registration_attribute_info = master_registration_attribute->mutable_info();
+        master_registration_attribute_info->set_name("master_registration_endpoint");
+        master_registration_attribute->set_kind(NodeManager::Attribute::STRING);
+        master_registration_attribute->add_s(master_registration_endpoint);
 
         auto modellogger_attribute = node->add_attributes();
         auto modellogger_attribute_info = modellogger_attribute->mutable_info();
@@ -226,6 +239,17 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
+}
+
+void DeploymentRegister::HandleLoganClientListQuery(NodeManager::EnvironmentMessage& message){
+    // std::string experiment_id = message.experiment_id();
+
+    // auto client_addresses = environment_->GetLoganClientList(experiment_id);
+
+    // for(const auto& client_address : client_addresses){
+    //     auto logger = message.add_logger();
+    //     logger->set_publisher_address(client_address);
+    // }
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{

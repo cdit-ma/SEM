@@ -37,51 +37,56 @@ void DeploymentContainer::SetLibraryPath(const std::string library_path){
 std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<Component> weak_component, const std::string& port_name){
     auto component = weak_component.lock();
     if(component){
-    //    auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, component->GetCallback<::BaseMessage>(port_name), 1000));
-        //return component->AddPort(std::move(u_ptr)).lock();
+        try{
+            const auto& callback = component->GetCallback<void, BaseMessage>(port_name);
+            auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, callback, 1000));
+            return component->AddPort(std::move(u_ptr)).lock();
+        }catch(const std::exception& ex){
+            throw std::runtime_error("Component: '" + component->get_name() + "' Cannot construct Periodic Port '" + ex.what());
+        }
     }
     return nullptr;
 }
 
 bool DeploymentContainer::Configure(const NodeManager::Node& node){
-    bool success = true;
-    
-    set_name(node.info().name());
-    set_id(node.info().id());
-
-    for(const auto& component_pb : node.components()){
-        auto component = GetConfiguredComponent(component_pb);
-        success = component ? success : false;
-    }
-
-    if(!success){
-        //Teardown Components
+    try{
+        set_name(node.info().name());
+        set_id(node.info().id());
+        
+        //Try and configure all components
+        for(const auto& component_pb : node.components()){
+            GetConfiguredComponent(component_pb);
+        }
+        std::cout << "* Configured Slave as: " << get_name() << std::endl;
+        return Activatable::Configure();
+    }catch(const std::runtime_error& e){
+        //Teardown The Components we may have constructed
         for(const auto& component_pb : node.components()){
             RemoveComponent(component_pb.info().id());
         }
+        throw e;
     }
-
-    if(success){
-        std::cout << "* Configured DeploymentContainer: " << get_name() << std::endl;
-    }
-    return success && Activatable::Configure();
+    return false;
 }
 
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
-    std::shared_ptr<Worker> worker;
     if(component){
         const auto& worker_info_pb = worker_pb.info();
+        const auto& worker_name = worker_info_pb.name();
+
         //Get the worker
-        worker = component->GetWorker(worker_info_pb.name()).lock();
+        auto worker = component->GetWorker(worker_name).lock();
 
         if(worker){
             //Handle the attributes
             for(const auto& attr : worker_pb.attributes()){
-                SetAttributeFromPb(worker, attr);
+                SetAttributeFromPb(*worker, attr);
             }
+        }else{
+            throw std::runtime_error("Component: '" + component->get_name() + "' Doesn't have a Worker: '" + worker_name + "'");
         }
     }
-    return worker;
+    return nullptr;
 }
 
 std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const NodeManager::Component& component_pb){
@@ -96,8 +101,8 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
 
     if(component){
         //Handle the attributes
-        for(const auto& attr : component_pb.attributes()){
-            SetAttributeFromPb(component, attr);
+        for(const auto& attr_pb : component_pb.attributes()){
+            SetAttributeFromPb(*component, attr_pb);
         }
 
         //Handle the ports
@@ -106,13 +111,15 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         }
 
         //Handle the workers
-        for(const auto& port_pb : component_pb.workers()){
-            auto worker = GetConfiguredWorker(component, port_pb);
+        for(const auto& worker_pb : component_pb.workers()){
+            GetConfiguredWorker(component, worker_pb);
         }
+
+        return component;
     }else{
-        std::cerr << "Cannot Construct Component: " << component_info_pb.name() << std::endl;
+        throw std::runtime_error("Cannot Construct Component: " + component_info_pb.name());
     }
-    return component;
+    return nullptr;
 }
 
 std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& info){
@@ -131,17 +138,13 @@ std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& inf
 }
 
 std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& port_pb){
-    std::shared_ptr<Port> port;
-
     if(component){
         const auto& port_info_pb = port_pb.info();
-        const auto& middleware = NodeManager::Port_Middleware_Name(port_pb.middleware());
+        const auto& middleware = NodeManager::Middleware_Name(port_pb.middleware());
+        const auto namespace_str = GetNamespaceString(port_pb.info());
         
         //Try get the port
-        port = component->GetPort(port_info_pb.name()).lock();
-        
-        
-        const auto namespace_str = GetNamespaceString(port_pb.info());
+        auto port = component->GetPort(port_info_pb.name()).lock();
 
         if(!port){
             switch(port_pb.kind()){
@@ -170,22 +173,23 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
             }
 
             if(port){
+                //Set the ID/TYPE Once
                 port->set_id(port_info_pb.id());
                 port->set_type(port_info_pb.type());
             }
         }
 
-
         if(port){
             for(const auto& attr : port_pb.attributes()){
-                SetAttributeFromPb(port, attr);
+                SetAttributeFromPb(*port, attr);
             }
+            return port;
         }else{
-            ModelLogger::get_model_logger()->LogFailedPortConstruction(port_info_pb.type(), port_info_pb.name(), port_info_pb.id());
+            throw std::runtime_error("Cannot Construct Port: " + port_info_pb.name() + " " + port_info_pb.type() + " " + port_info_pb.id());
         }
     }
 
-    return port;
+    return nullptr;
 }
 
 bool DeploymentContainer::HandleActivate(){
@@ -245,11 +249,10 @@ std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Compo
         components_[name] = std::move(component);
         return components_[name];
     }else if(component){
-        std::cerr << "DeploymentContainer already has a Component with name '" << name << "'" << std::endl;
+        throw std::runtime_error("DeploymentContainer already has a Component with name: " + name);
     }else{
-        std::cerr << "DeploymentContainer cannot add a Null Component with name '" << name << "'" << std::endl;
+        throw std::runtime_error("DeploymentContainer cannot add a Null Component with name: " + name);
     }
-    return std::weak_ptr<Component>();
 }
 
 std::weak_ptr<Component> DeploymentContainer::GetComponent(const std::string& name){
@@ -267,14 +270,14 @@ std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::strin
         auto component = components_[name];
         components_.erase(name);
         return component;
-    }else{ 
-        std::cerr << "DeploymentContainer doesn't have a Component with name '" << name << "'" << std::endl;
-        return std::shared_ptr<Component>();
     }
+    return nullptr;
 }
 
-std::string DeploymentContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
-    std::string p = middleware + "_";
+std::string DeploymentContainer::get_port_library_name(const std::string& port_type, const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
+    std::string p = "port_";
+    p += port_type + "_";
+    p += middleware + "_";
     if(!namespace_str.empty()){
         p += namespace_str + "_";
     }
@@ -293,7 +296,7 @@ std::string DeploymentContainer::get_component_library_name(const std::string& c
 
 std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
+    const auto& library_name = get_port_library_name("pubsub", middleware, namespace_name, datatype);
 
     if(!publisher_port_constructors_.count(library_name)){
         auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructPublisherPort");
@@ -317,19 +320,55 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::str
 
 std::shared_ptr<Port> DeploymentContainer::ConstructRequesterPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    //TODO:
+    const auto& library_name = get_port_library_name("requestreply", middleware, namespace_name, datatype);
+
+    if(!requester_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructRequesterPort");
+        if(function){
+            requester_port_constructors_[library_name] = function;
+        }
+    }
+
+    if(requester_port_constructors_.count(library_name)){
+        auto port_ptr = requester_port_constructors_[library_name](port_name, component);
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+        }else{
+            port = std::shared_ptr<Port>(port_ptr);
+        }
+    }
     return port;
 }
 
 std::shared_ptr<Port> DeploymentContainer::ConstructReplierPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    //TODO:
+    const auto& library_name = get_port_library_name("requestreply", middleware, namespace_name, datatype);
+
+    if(!replier_port_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructReplierPort");
+        if(function){
+            replier_port_constructors_[library_name] = function;
+        }
+    }
+
+    if(replier_port_constructors_.count(library_name)){
+        auto port_ptr = replier_port_constructors_[library_name](port_name, component);
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+        }else{
+            port = std::shared_ptr<Port>(port_ptr);
+        }
+    }
     return port;
 }
 
 std::shared_ptr<Port> DeploymentContainer::ConstructSubscriberPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
-    const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
+    const auto& library_name = get_port_library_name("pubsub", middleware, namespace_name, datatype);
 
     if(!subscriber_port_constructors_.count(library_name)){
         auto function = dll_loader.GetLibraryFunction<PortCConstructor>(library_path_, library_name, "ConstructSubscriberPort");

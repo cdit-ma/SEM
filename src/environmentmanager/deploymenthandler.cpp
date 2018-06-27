@@ -5,6 +5,7 @@
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
 #include "deploymentrules/amqp/amqprule.h"
+#include "deploymentrules/tao/taorule.h"
 
 DeploymentHandler::DeploymentHandler(Environment& env,
                                     zmq::context_t& context,
@@ -113,7 +114,7 @@ void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
                 environment_.RemoveExperiment(experiment_id_, call_time);
             }
             if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
-                environment_.RemoveLoganClient(experiment_id_, deployment_ip_address_);
+                environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
             }
             removed_flag_ = true;
         }
@@ -168,6 +169,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(environment_)));
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(environment_)));
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(environment_)));
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(environment_)));
                 generator.PopulateDeployment(*(message.mutable_control_message()));
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
@@ -184,7 +186,14 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                if(environment_.ExperimentIsDirty(experiment_id_)){
+                bool dirty = true;
+                try{
+                    dirty = environment_.ExperimentIsDirty(experiment_id_);
+                }
+                catch(const std::invalid_argument& ex){
+
+                }
+                if(dirty){
                     HandleDirtyExperiment(message);
                 }else{
                     message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
@@ -206,11 +215,11 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
     }
     catch(std::exception& ex){
         //TODO: Add ex.what() as error message.
+        std::cerr << "DeploymentHandler::HandleRequest" << ex.what() << std::endl;
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
     }
 
     return message.SerializeAsString();
-
 }
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
@@ -224,10 +233,16 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-    auto logger_message = message.mutable_logger();
-    auto ip_address = logger_message->publisher_address();
-    auto logger_port = environment_.GetLoganPublisherPort(experiment_id_, ip_address);
-    logger_message->set_publisher_port(logger_port);
 
-    message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+    if(environment_.ModelNameExists(message.experiment_id())){
+        auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
+
+        *message.mutable_logger() = {loggers.begin(), loggers.end()};
+
+        message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+    }
+    else{
+        message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+    }
+
 }

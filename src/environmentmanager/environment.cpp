@@ -33,15 +33,20 @@ std::string Environment::AddDeployment(const std::string& model_name,
                                         const std::string& ip_address,
                                         DeploymentType deployment_type){
 
-    //add deployment
-    if(!experiment_map_.count(model_name)){
-        AddExperiment(model_name);
-    }
-    if(deployment_type == DeploymentType::EXECUTION_MASTER){
-        return experiment_map_.at(model_name)->GetManagerPort();
-    }
-    if(deployment_type == DeploymentType::LOGAN_CLIENT){
-        return AddLoganClient(model_name, ip_address);
+
+    switch(deployment_type){
+        case DeploymentType::EXECUTION_MASTER:{
+            //add deployment
+            if(!experiment_map_.count(model_name)){
+                AddExperiment(model_name);
+            }
+            return experiment_map_.at(model_name)->GetManagerPort();
+        }
+        case DeploymentType::LOGAN_CLIENT:{
+            return AddLoganClientServer();
+        }
+        default:
+            throw std::runtime_error("Unexpected Deployment Type");
     }
 }
 
@@ -58,27 +63,25 @@ bool Environment::AddExperiment(const std::string& model_name){
     return true;
 }
 
-std::string Environment::AddLoganClient(const std::string& model_name, const std::string& ip_address){
-    
-    if(!experiment_map_.count(model_name)){
-        throw std::invalid_argument("No experiment found called " + model_name);
-    }
-
+std::string Environment::AddLoganClientServer(){
     std::string port;
     try{
         port = GetManagerPort();
     }catch(const std::exception& ex){
         port = "";
     }
-
-    //TODO: populate this properly
-    std::string logging_port = "45454";
-
-    experiment_map_.at(model_name)->AddLoganClient(model_name, ip_address, port, logging_port);
+    //experiment_map_.at(model_name)->AddLoganClient(model_name, ip_address, port, logging_port);
 
     return port;
-
 }
+
+NodeManager::EnvironmentMessage Environment::GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetLoganDeploymentMessage(ip_address);
+    }
+    throw std::invalid_argument("No experiment found called " + model_name);
+}
+
 
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
@@ -86,8 +89,8 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
     std::cout << "Remaining experiments: " << experiment_map_.size() << std::endl;
 }
 
-void Environment::RemoveLoganClient(const std::string& model_name, const std::string& ip_address){
-    //TODO: complete this.
+void Environment::RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address){
+
 }
 
 void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
@@ -115,10 +118,23 @@ void Environment::DeclusterNode(NodeManager::Node& node){
     //TODO: change this to have 2nd mode for distribution (reflecting components running on nodes from other experiments)
     if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
         std::queue<NodeManager::Component> component_queue;
+        std::queue<NodeManager::Logger> logging_servers;
+        std::vector<NodeManager::Logger> logging_clients;
         for(int i = 0; i < node.components_size(); i++){
             component_queue.push(NodeManager::Component(node.components(i)));
         }
         node.clear_components();
+
+        for(int i = 0; i < node.loggers_size(); i++){
+            if(node.loggers(i).type() == NodeManager::Logger::SERVER){
+                logging_servers.push(NodeManager::Logger(node.loggers(i)));
+            }
+            else{
+                logging_clients.push_back(NodeManager::Logger(node.loggers(i)));
+            }
+
+        }
+        node.clear_loggers();
 
         int child_node_count = node.nodes_size();
         int counter = 0;
@@ -131,9 +147,38 @@ void Environment::DeclusterNode(NodeManager::Node& node){
             *new_component = component;
             counter++;
         }
+
+        counter = 0;
+        //put one logging server on a node
+        while(!logging_servers.empty()){
+            auto server = logging_servers.front();
+            logging_servers.pop();
+
+            auto new_server = node.mutable_nodes(counter % child_node_count)->add_loggers();
+            *new_server = server;
+            counter++;
+        }
+
+        //put a copy of all logging clients on all child nodes
+        for(int i = 0; i < node.nodes_size(); i++){
+            for(const auto& logger : logging_clients){
+                auto new_logger = node.mutable_nodes(i)->add_loggers();
+                *new_logger = logger;
+            }
+        }
+
     }
     for(int i = 0; i < node.nodes_size(); i++){
         DeclusterNode(*(node.mutable_nodes(i)));
+    }
+}
+
+void Environment::AddExternalPorts(const std::string& model_name, const NodeManager::ControlMessage& control_message){
+    if(experiment_map_.count(model_name)){
+        experiment_map_.at(model_name)->AddExternalPorts(control_message);
+    }
+    else{
+        throw std::invalid_argument("No experiment called: " + model_name);
     }
 }
 
@@ -145,7 +190,6 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
     else{
         throw std::invalid_argument("No experiment called: " + model_name);
     }
-
 }
 
 void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node& node){
@@ -173,6 +217,26 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
 
 }
 
+std::string Environment::GetOrbEndpoint(const std::string& model_name, const std::string& port_id){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
+    }
+    return std::string();
+}
+
+std::string Environment::GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetTaoReplierServerAddress(port);
+    }
+    return std::string();
+}
+std::string Environment::GetTaoServerName(const std::string& model_name, const NodeManager::Port& port){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetTaoServerName(port);
+    }
+    return std::string();
+}
+
 //Return list of experiments using the topic name provided
 std::vector<std::string> Environment::CheckTopic(const std::string& model_name, const std::string& topic){
     std::vector<std::string> out;
@@ -197,33 +261,31 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
         }
     }
 
-    if(node_map_.count(node_name)){
+    if(node_map_.count(ip)){
         return;
     }
-    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(node.info().name(), available_ports_));
+    auto temp = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(ip, available_ports_));
     temp->SetName(node_name);
     node_ip_map_.insert(std::make_pair(node_name, ip));
     node_name_map_.insert(std::make_pair(ip, node_name));
-    node_map_.emplace(node_name, std::move(temp));
+    node_map_.emplace(ip, std::move(temp));
 }
 
 //Get port from node specified.
-std::string Environment::GetPort(const std::string& node_name){
+std::string Environment::GetPort(const std::string& ip_address){
     //Get first available port, store then erase it
-    if(node_map_.count(node_name)){
-        std::cout << "Get port " << node_name << std::endl;
-        return node_map_.at(node_name)->GetPort();
+    if(node_map_.count(ip_address)){
+        return node_map_.at(ip_address)->GetPort();
     }
     else{
-        throw std::invalid_argument("Environment::GetPort No node found with name: " + node_name);
+        throw std::invalid_argument("Environment::GetPort No node found with ip address: " + ip_address);
     }
 }
 
 //Free port specified from node specified
-void Environment::FreePort(const std::string& node_name, const std::string& port_number){
-    if(node_map_.count(node_name)){
-        std::cout << "Free port " << node_name << ":" << port_number << std::endl;
-        node_map_.at(node_name)->FreePort(port_number);
+void Environment::FreePort(const std::string& ip_address, const std::string& port_number){
+    if(node_map_.count(ip_address)){
+        node_map_.at(ip_address)->FreePort(port_number);
     }
 }
 
@@ -247,48 +309,40 @@ void Environment::FreeManagerPort(const std::string& port){
 
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& node_ip) const{
     if(experiment_map_.count(model_name)){
-        std::string node_name;
-        try{
-            node_name = node_name_map_.at(node_ip);
-        }
-        catch(const std::exception& ex){
-        }
-        return experiment_map_.at(model_name)->HasDeploymentOn(node_name);
+        return experiment_map_.at(model_name)->HasDeploymentOn(node_ip);
     }
     return false;
 }
 
 bool Environment::ModelNameExists(const std::string& model_name) const{
-    return experiment_map_.count(model_name);
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->ConfigureDone();
+    }
+    return false;
 }
 
-std::string Environment::GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address){
+void Environment::SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
-        try{
-            experiment_map_.at(model_name)->SetMasterPublisherIp(master_ip_address);
-            return experiment_map_.at(model_name)->GetMasterPublisherPort();
-        }catch(std::runtime_error ex){
-            
-            return "";
-        }
+        return experiment_map_.at(model_name)->SetMasterIp(ip_address);
+    }
+}
+
+
+std::string Environment::GetMasterPublisherAddress(const std::string& model_name){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetMasterPublisherAddress();
     }
     return "";
 }
 
-std::string Environment::GetNodeManagementPort(const std::string& model_name, const std::string& ip_address){
+std::string Environment::GetMasterRegistrationAddress(const std::string& model_name){
     if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeManagementPort(node_name_map_.at(ip_address));
+        return experiment_map_.at(model_name)->GetMasterRegistrationAddress();
     }
     return "";
 }
+
 std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(node_name_map_.at(ip_address));
-    }
-    return "";
-}
-
-std::string Environment::GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetNodeModelLoggerPort(ip_address);
     }
@@ -324,33 +378,27 @@ std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
     }
 }
 
-void Environment::AddPublicEventPort(const std::string& port_guid, const std::string& address){
+void Environment::AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address){
 
     auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
-    public_event_port_map_.emplace(port_guid, std::move(temp));
-    public_event_port_map_.at(port_guid)->id = port_guid;
-    public_event_port_map_.at(port_guid)->guid = port_guid;
-    public_event_port_map_.at(port_guid)->endpoint = address;
+    public_event_port_map_.emplace(port_id, std::move(temp));
+    public_event_port_map_.at(port_id)->id = port_id;
+    public_event_port_map_.at(port_id)->guid = port_id;
+    public_event_port_map_.at(port_id)->endpoint = address;
 
-    if(pending_port_map_.count(port_guid)){
-        for(auto experiment_id : pending_port_map_.at(port_guid)){
-            experiment_map_.at(experiment_id)->UpdatePort(port_guid);
+    if(pending_port_map_.count(port_id)){
+        for(auto experiment_id : pending_port_map_.at(port_id)){
+            experiment_map_.at(experiment_id)->UpdatePort(port_id);
         }
-        pending_port_map_.erase(port_guid);
+        //pending_port_map_.erase(port_id);
     }
-}
 
-void Environment::AddPublicEventPort(const std::string& port_guid, EnvironmentManager::EventPort event_port){
-    auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort(event_port));
-    
-    public_event_port_map_.emplace(port_guid, std::move(temp));
-
-    if(pending_port_map_.count(port_guid)){
-        for(auto experiment_id : pending_port_map_.at(port_guid)){
-            experiment_map_.at(experiment_id)->UpdatePort(port_guid);
-        }
-        pending_port_map_.erase(port_guid);
+    if(!dependent_experiment_map_.count(port_id)){
+        dependent_experiment_map_[port_id] = std::set<std::string>();
+        
     }
+    dependent_experiment_map_.at(port_id).insert(model_name);
+
 }
 
 bool Environment::HasPendingPublicEventPort(const std::string& port_id){
@@ -363,8 +411,20 @@ std::set<std::string> Environment::GetDependentExperiments(const std::string& po
 
 void Environment::AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id){
     pending_port_map_.at(port_id).insert(model_name);
+    dependent_experiment_map_.at(port_id).insert(model_name);
 }
 
+void Environment::RemoveDependentExternalExperiment(const std::string& model_name, const std::string& port_id){
+    if(dependent_experiment_map_.count(port_id)){
+        dependent_experiment_map_.at(port_id).erase(model_name);
+        if(dependent_experiment_map_.at(port_id).size() == 0){
+            std::cout << "Removing external port: " << port_id << std::endl;
+            public_event_port_map_.erase(port_id);
+        }
+    }
+}
+
+//XXX: Hardcoded
 std::string Environment::GetAmqpBrokerAddress(){
     return address_ + ":5672";
 }
