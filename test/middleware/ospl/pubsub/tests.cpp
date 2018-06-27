@@ -5,7 +5,7 @@
 #include "../../base/pubsubtests.hpp"
 
 // Include the proto convert functions for the port type
-#include "basic.hpp"
+#include "basic_DCPS.hpp"
 
 #include <core/ports/libportexport.h>
 #include <middleware/ospl/pubsub/publisherport.hpp>
