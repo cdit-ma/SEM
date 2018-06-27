@@ -6,7 +6,7 @@
 #include "../activatablefsmtester.h"
 
 
-void empty_callback(BaseMessage& b){};
+void empty_callback(){};
 
 class PeriodicPort_0hz_FSMTester : public ActivatableFSMTester{
     protected:
@@ -14,13 +14,14 @@ class PeriodicPort_0hz_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             c = std::make_shared<Component>();
-            
-            auto port = new PeriodicPort(c, port_name, empty_callback);
+            c->RegisterPeriodicCallback(port_name, empty_callback);
+            const auto& callback = c->GetCallback<void, BaseMessage>(port_name);
+            auto port = new PeriodicPort(c, port_name, callback);
             port->SetFrequency(0);
             a = port;
             ASSERT_TRUE(a);
         };
-
+ 
         std::shared_ptr<Component> c;
 };
 
@@ -30,8 +31,9 @@ class PeriodicPort_1hz_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             c = std::make_shared<Component>();
-            auto port = new PeriodicPort(c, port_name, empty_callback);
-            port->SetFrequency(1);
+            c->RegisterPeriodicCallback(port_name, empty_callback);
+            const auto& callback = c->GetCallback<void, BaseMessage>(port_name);
+            auto port = new PeriodicPort(c, port_name, callback);
             a = port;
             ASSERT_TRUE(a);
         };
@@ -80,6 +82,7 @@ class PeriodicEventTest : public ::testing::TestWithParam<PeriodTestCase>{};
 //This is our test case for the frame
 TEST_P(PeriodicEventTest, TickCount)
 {
+    auto test_name = get_long_test_name();
     //Get our test structure
     auto p = GetParam();
 
@@ -90,27 +93,30 @@ TEST_P(PeriodicEventTest, TickCount)
 
    int callback_tick_count = 0;
    {
-       auto c = std::make_shared<Component>("Test");
-       PeriodicPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage& m){
-               std::this_thread::sleep_for(std::chrono::milliseconds(p.callback_time_ms));
-               callback_tick_count ++;
-           });
+        auto c = std::make_shared<Component>(test_name);
+        c->RegisterPeriodicCallback(test_name, [&callback_tick_count, &p](void){
+            std::this_thread::sleep_for(std::chrono::milliseconds(p.callback_time_ms));
+            callback_tick_count ++;
+        });
 
-       //Set the frequency, and startup the Periodic Event
-       port.SetFrequency(p.periodic_hz);
-       EXPECT_TRUE(port.Configure());
-       EXPECT_TRUE(port.Activate());
+        const auto& callback = c->GetCallback<void, BaseMessage>(test_name);
+        PeriodicPort port(c, test_name, callback);
 
-       //Run for the desired test length
-       std::this_thread::sleep_for(std::chrono::milliseconds(p.test_time_ms));
-       EXPECT_TRUE(port.Passivate());
-       EXPECT_TRUE(port.Terminate());
+        //Set the frequency, and startup the Periodic Event
+        port.SetFrequency(p.periodic_hz);
+        EXPECT_TRUE(port.Configure());
+        EXPECT_TRUE(port.Activate());
 
-       auto total_rxd = port.GetEventsReceived();
-       auto proc_rxd = port.GetEventsProcessed();
+        //Run for the desired test length
+        std::this_thread::sleep_for(std::chrono::milliseconds(p.test_time_ms));
+        EXPECT_TRUE(port.Passivate());
+        EXPECT_TRUE(port.Terminate());
 
-       //Check that we got the same number of proccessed rx messages as we did in our callback
-       EXPECT_EQ(proc_rxd, callback_tick_count);
+        auto total_rxd = port.GetEventsReceived();
+        auto proc_rxd = port.GetEventsProcessed();
+
+        //Check that we got the same number of proccessed rx messages as we did in our callback
+        EXPECT_EQ(proc_rxd, callback_tick_count);
    }
 
    //The number of callbacks we got should fall within the range of satisfactory
