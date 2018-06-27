@@ -54,37 +54,37 @@ for(n in builder_nodes){
             def ABS_RE_PATH = pwd() + "/" + PROJECT_NAME + "/"
             path = ABS_RE_PATH + "bin;" + ABS_RE_PATH + "lib;" + path
 
-                //Find all executables
-                def test_list = findFiles glob: globstr
+            //Find all executables
+            def test_list = findFiles glob: globstr
 
-                def test_count = 0;
-                def test_error_count = 0;
+            def test_count = 0;
+            def test_error_count = 0;
 
-                dir("results"){
-                    for(def file : test_list){
-                        def file_path = file.name
-                        def file_name = utils.trimExtension(file_path)
-                        def test_output = file_name + "_" + node_name + ".xml"
-                        print("Running Test: " + file_path)
-                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+            dir("results"){
+                for(def file : test_list){
+                    def file_path = file.name
+                    def file_name = utils.trimExtension(file_path)
+                    def test_output = file_name + "_" + node_name + ".xml"
+                    print("Running Test: " + file_path)
+                    def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
-                        if(test_error_code != 0){
-                            print("Test: " + file_path + " Failed!")
-                            currentBuild.result = 'FAILURE'
-                        }
-                        def stash_name = node_name + "_test_cases"
-                        stash includes: "*.xml", name: stash_name, allowEmpty: true
-                        //Clean up the directory after
-                        deleteDir()
+                    if(test_error_code != 0){
+                        print("Test: " + file_path + " Failed!")
+                        currentBuild.result = 'FAILURE'
                     }
-                    stash includes: "*.xml", name: node_name + "_test_cases"
+                    def stash_name = node_name + "_test_cases"
+                    stash includes: "*.xml", name: stash_name, allowEmpty: true
+                    //Clean up the directory after
+                    deleteDir()
                 }
-                //Clean up the directory after
-                deleteDir()
+                stash includes: "*.xml", name: node_name + "_test_cases", allowEmpty: true
             }
+            //Clean up the directory after
+            deleteDir()
         }
     }
 }
+
 
 stage("Build"){
     parallel builder_map
