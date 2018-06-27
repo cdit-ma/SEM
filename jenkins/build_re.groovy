@@ -49,15 +49,22 @@ for(n in builder_nodes){
 
     test_map[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME){
-                environment{
-                    //Set LD_LIBRARY_PATH to point at this version of RE First
-                    LD_LIBRARY_PATH = pwd() + "/lib:$LD_LIBRARY_PATH"
-                }
+            def RE_PATH = pwd() + "/" + PROJECT_NAME
+            def RE_LIB_PATH = RE_PATH + "/lib"
+            def env_vars = []
+            
+            if(isUnix()){
+                //SET LD_LIBRARY_PATH to force the linker to find this projects libraries
+                env_vars += "LD_LIBRARY_PATH=" + RE_LIB_PATH + ":$LD_LIBRARY_PATH"
+            }else{
+                //SET PATH to force the linker to find this projects libraries
+                env_vars += "PATH=" + RE_LIB_PATH + ":$PATH"
+            }
 
-                print("LD_LIBRARY_PATH:$LD_LIBRARY_PATH")
+            withEnv(env_vars){
+                dir(RE_PATH + "/bin/test"){
+                    print("LD_LIBRARY_PATH:$LD_LIBRARY_PATH")
 
-                dir("bin/test"){
                     def globstr = "test_*"
                     if(!isUnix()){
                         //If windows search for exe only
