@@ -15,15 +15,13 @@ endif()
 
 find_package(Boost 1.30.0 REQUIRED)
 
-# Copy this <idl> file into the binary directory so the compilation of generated files can succeed
-configure_file(../basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-
 # Generate the <rti> files for Aggregate
-RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_BINARY_DIR}/basic.idl)
+RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/../translator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/rtitest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
 add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 
@@ -39,9 +37,6 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
-
-
-
 
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)

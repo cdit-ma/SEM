@@ -22,7 +22,8 @@ OSPL_DDS_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_BINARY_DIR}/basic.idl)
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/../translator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ospltest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
 
 add_executable(${PROJ_NAME} ${SOURCE} ${OSPL_SRCS} ${OSPL_HDRS})

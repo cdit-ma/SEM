@@ -3,7 +3,7 @@ set(PROJ_NAME test_zmq_requestreply)
 project(${PROJ_NAME})
 
 # Find package ZMQ
-find_package(QPID)
+find_package(ZMQ)
 
 #Find protobuf
 find_package(Protobuf REQUIRED)
@@ -14,7 +14,8 @@ if(NOT ZMQ_FOUND)
 endif()
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
 
 add_executable(${PROJ_NAME} ${SOURCE})
