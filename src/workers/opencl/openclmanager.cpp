@@ -223,7 +223,7 @@ OpenCLManager::~OpenCLManager() {
 		return;
 	}
 	
-	Log::Log(Severity::WARNING)
+	Log(Severity::WARNING)
 		.Class("OpenCLManager")
 		.Func(__func__)
 		.Msg("OpenCLManager was deleted before all associated buffers had been released");
