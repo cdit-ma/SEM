@@ -359,22 +359,10 @@ bool Node::canAdoptChild(Node *node)
 bool Node::addChild(Node *child)
 {
     if(child && !containsChild(child) && canAdoptChild(child)){
-        if(child->getParentNode()){
-            qCritical() << toString() << "ADDING A CHILD: " << child->toString();
-        }
         auto node_kind = child->getNodeKind();
         children_.insert(node_kind, child);
 
         child->setParentNode(this, branch_count_++);
-
-        if(gotData("uuid")){
-            auto data = getData("uuid");
-            auto key = data->getKey();
-            if(!child->gotData("uuid")){
-                //Construct a new piece of data
-                getFactoryBroker().AttachData(child, key, ProtectedState::PROTECTED);
-            }
-        }
         childAdded(child);
         return true;
     }
@@ -833,11 +821,25 @@ void Node::removeEdge(Edge *edge)
         edges_.remove(edge->getEdgeKind(), edge);
     }
 }
+void Node::AddUUID(){
+    if(parent_node_){
+        auto parent_uuid = parent_node_->getData("uuid");
+        if(parent_uuid){
+            auto uuid_key = parent_uuid->getKey();
+            if(!gotData(uuid_key)){
+                //Construct a new piece of data
+                getFactoryBroker().AttachData(this, uuid_key, ProtectedState::PROTECTED);
+            }
+        }
+    }
+}
+
 void Node::parentNodeUpdated(){
 
     if(parent_node_){
         revalidateData();
 
+        AddUUID();
         //Update the parent tree index
         updateTreeIndex(parent_node_->getTreeIndex());
         updateViewAspect(parent_node_->getViewAspect());

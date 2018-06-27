@@ -192,7 +192,7 @@ class Node : public Entity
         
         
     private:
-        
+        void AddUUID();
         bool indirectlyConnectedTo(Node* node);
         QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
         QList<Node*> getOrderedChildNodes();
