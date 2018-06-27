@@ -10,7 +10,6 @@
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
-
 def utils = new Utils(this);
 
 final master_node = "${MASTER_NODE}"
@@ -104,8 +103,8 @@ node(builder_nodes[0]){
 }
 
 //Run Compilation
-for(def i = 0; i < builder_nodes.size(); i++){
-    def node_name = builder_nodes[i];
+for(n in builder_nodes){
+    def node_name = n;
     //Define the Builder instructions
     builder_map[node_name] = {
         node(node_name){
@@ -133,8 +132,8 @@ for(def i = 0; i < builder_nodes.size(); i++){
 }
 
 //Produce the execution map
-for(def i = 0; i < nodes.size(); i++){
-    def node_name = nodes[i];
+for(n in nodes){
+    def node_name = n;
     execution_map[node_name] = {
         node(node_name){
             dir(build_id){

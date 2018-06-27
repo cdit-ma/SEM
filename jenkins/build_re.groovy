@@ -2,11 +2,10 @@ def PROJECT_NAME = 'test_re'
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
-
 def utils = new Utils(this);
 
-stage("Checkout"){
-    node("master"){
+node("master"){
+    stage("Checkout"){
         dir(PROJECT_NAME){
             checkout scm
         }
@@ -14,43 +13,46 @@ stage("Checkout"){
     }
 }
 
-def step_build_test = [:]
-def step_test = [:]
+def builder_map = [:]
+def test_map = [:]
+def builder_nodes = utils.getLabelledNodes("builder")
 
-def re_nodes = utils.getLabelledNodes("builder")
-for(n in re_nodes){
+if(builder_nodes.size() == 0){
+    error('Cannot find any builder nodes.')
+}
+
+//Construct a builder map
+for(n in builder_nodes){
     def node_name = n
 
-    step_build_test[node_name] = {
+    builder_map[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "/bin"){
-                // Prune old bin
-                deleteDir()
-            }
-            dir(PROJECT_NAME + "/lib"){
-                // Prune old lib
-                deleteDir()
-            }
-            unstash "source_code"
-            generator = "Ninja"
-            build_dir = PROJECT_NAME + "/build_" + generator
-            
-            dir(build_dir){
-                //Build the entire project 
-                def success = utils.buildProject(generator, "-DBUILD_TEST=ON")
-                if(!success){
-                    error("Cannot Compile")
+            dir(PROJECT_NAME){
+                dir("bin"){
+                    deleteDir()
+                }
+                dir("lib"){
+                    deleteDir()
+                }
+                
+                //Unstash the code
+                unstash "source_code"
+
+                dir("build"){
+                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
+                        error("CMake failed on Builder Node: " + node_name)
+                    }
                 }
             }
         }
     }
 
-    step_test[node_name] = {
+    test_map[node_name] = {
         node(node_name){
-            path = "${PATH}"
+            def path = "${PATH}"
             //Append bin and lib directories for this build of re into the path for windows to find dlls
-            abs_re_path = pwd() + "/" + PROJECT_NAME + "/"
-            path = abs_re_path + "bin;" + abs_re_path + "lib;" + path
+            def ABS_RE_PATH = pwd() + "/" + PROJECT_NAME + "/"
+            path = ABS_RE_PATH + "bin;" + ABS_RE_PATH + "lib;" + path
 
             withEnv(['path=' + path]){
                 dir(PROJECT_NAME + "/bin/test"){
@@ -79,7 +81,7 @@ for(n in re_nodes){
                                 currentBuild.result = 'FAILURE'
                             }
                         }
-                        stash includes: "*.xml", name: node_name + "_test_cases"
+                        stash includes: "*.xml", name: node_name + "_test_cases", allowEmpty: true
                         //Clean up the directory after
                         deleteDir()
                     }
@@ -90,16 +92,19 @@ for(n in re_nodes){
 }
 
 stage("Build"){
-    parallel step_build_test
+    parallel builder_map
 }
+
 stage("Test"){
-    parallel step_test
+    parallel test_map
 }
+
+//Collate Results
 
 node("master"){
     dir("test_cases"){
-        for(n in re_nodes){
-            unstash(n + "_test_cases")
+        for(n in builder_nodes){
+            unstash(n + "_test_cases", allowEmpty:true)
         }
 
         def globstr = "**.xml"
