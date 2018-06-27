@@ -102,7 +102,7 @@ class OpenCLManager {
 							std::string error_message);
 
 		// A separate OpenCLManager is maintained for each OpenCL platform
-		static std::unordered_map<int, std::unique_ptr<OpenCLManager> > reference_map_;
+		static std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > reference_map_;
 		static std::vector<cl::Platform> platform_list_;
 
 		// Variables

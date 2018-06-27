@@ -14,7 +14,7 @@
 #include <unordered_set>
 
 std::mutex reference_list_mutex_;
-std::unordered_map<int, std::unique_ptr<OpenCLManager> > OpenCLManager::reference_map_;
+std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > OpenCLManager::reference_map_;
 std::vector<cl::Platform> OpenCLManager::platform_list_;
 
 /************************************************************************/
@@ -60,7 +60,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 			return NULL;
 		}
 
-		reference_map_.emplace(platform_id, new_manager);
+		reference_map_.emplace(platform_id,  std::move(std::unique_ptr<OpenCLManager>(new_manager)));
 		//reference_list_.at(platform_id).swap(std::move(std::unique_ptr<OpenCLManager>(new_manager)));// = std::move();
 	}
 
@@ -112,7 +112,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 			return NULL;
 		}
 
-		reference_map_.emplace(platform_id, new_manager);
+		reference_map_.emplace(platform_id, std::move(std::unique_ptr<OpenCLManager>(new_manager)));
 		//reference_list_.at(platform_id).swap(std::unique_ptr<OpenCLManager>(new_manager));
 	}
 
