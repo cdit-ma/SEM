@@ -8,8 +8,8 @@ node("master"){
     stage("Checkout"){
         dir(PROJECT_NAME){
             checkout scm
+            stash includes: "**", name: "source_code"
         }
-        stash includes: "**", name: "source_code"
     }
 }
 
@@ -37,7 +37,7 @@ for(n in builder_nodes){
                 
                 //Unstash the code
                 unstash "source_code"
-
+                
                 dir("build"){
                     if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
                         error("CMake failed on Builder Node: " + node_name)
