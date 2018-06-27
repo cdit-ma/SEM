@@ -63,8 +63,6 @@ for(n in builder_nodes){
 
             withEnv(env_vars){
                 dir(RE_PATH + "/bin/test"){
-                    print("LD_LIBRARY_PATH:$LD_LIBRARY_PATH")
-
                     def globstr = "test_*"
                     if(!isUnix()){
                         //If windows search for exe only
@@ -106,26 +104,27 @@ stage("Test"){
 }
 
 //Collate Results
-
 node("master"){
-    dir("test_cases"){
-        for(n in builder_nodes){
-            def node_name = n
-            def stash_name = node_name + "_test_cases"
-            unstash name: stash_name, allowEmpty: true
-        }
+    stage("Collate"){
+        dir("test_cases"){
+            for(n in builder_nodes){
+                def node_name = n
+                def stash_name = node_name + "_test_cases"
+                unstash name: stash_name, allowEmpty: true
+            }
 
-        def globstr = "**.xml"
-        def test_results = findFiles glob: globstr
-        for (int i = 0; i < test_results.size(); i++){
-            def file_path = test_results[i].name
-            junit file_path
+            def globstr = "**.xml"
+            def test_results = findFiles glob: globstr
+            for (int i = 0; i < test_results.size(); i++){
+                def file_path = test_results[i].name
+                junit file_path
+            }
+            
+            //Test cases
+            def test_archive = "test_results.zip"
+            zip glob: globstr, zipFile: test_archive
+            archiveArtifacts test_archive
+            deleteDir()
         }
-        
-        //Test cases
-        def test_archive = "test_results.zip"
-        zip glob: globstr, zipFile: test_archive
-        archiveArtifacts test_archive
-        deleteDir()
     }
 }
