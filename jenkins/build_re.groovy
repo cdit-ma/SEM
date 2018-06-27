@@ -86,7 +86,6 @@ for(n in builder_nodes){
                         }
                         def stash_name = node_name + "_test_cases"
                         stash includes: "*.xml", name: stash_name, allowEmpty: true
-                        print("Stashing: " + stash_name)
                         //Clean up the directory after
                         deleteDir()
                     }
@@ -111,8 +110,7 @@ node("master"){
             for(n in builder_nodes){
                 def node_name = n
                 def stash_name = node_name + "_test_cases"
-                print("Unstashing: " + stash_name)
-                unstash name: stash_name, allowEmpty: true
+                unstash stash_name
             }
 
             def globstr = "**.xml"
