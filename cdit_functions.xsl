@@ -841,6 +841,13 @@
         <xsl:value-of select="lower-case(o:join_paths(('components', $path)))" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_class_path" as="xs:string">
+        <xsl:param name="class" as="element()" />
+
+        <xsl:variable name="path" select="cdit:get_components_path($class)" />
+        <xsl:value-of select="lower-case(o:join_paths(('classes', $path)))" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_aggregate_h_path" as="xs:string">
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="aggregate" as="element()" />
@@ -1283,7 +1290,7 @@
             </xsl:when>
             <xsl:otherwise>
                 <!-- Is Custom Class -->
-                <xsl:value-of select="o:title_case(graphml:get_type($class))" />
+                <xsl:value-of select="o:title_case(graphml:get_label($class))" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1317,11 +1324,10 @@
         <xsl:param name="tab" as="xs:integer"  />
 
         <xsl:variable name="type" select="cdit:get_qualified_class_type($class)" />
-        <xsl:variable name="label" select="graphml:get_data_value($class, 'label')" />
-        <xsl:variable name="variable" select="cdit:get_variable_name($class)" />
+        <xsl:variable name="name" select="cdit:get_variable_name($class)" />
 
         <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
-        <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr($type), $variable, cpp:nl(), $tab)" />
+        <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr($type), $name, cpp:nl(), $tab)" />
     </xsl:function>
 
 
@@ -1448,12 +1454,24 @@
 
         <xsl:variable name="resolved_args" as="xs:string*">
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group)">
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
                 <xsl:variable name="var_label" select="cdit:get_variable_name(.)" />
 
-                <xsl:if test="$cpp_type and $cpp_type != 'void'">
-                    <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
-                </xsl:if>
+                <xsl:choose>
+                    <xsl:when test="($kind = 'Member' or
+                                    $kind = 'MemberInstance') and
+                                    cpp:is_primitive_type($cpp_type)">
+                        <xsl:value-of select="cpp:var_def($cpp_type, $var_label)" />
+                    </xsl:when>
+                    <xsl:when test="$kind = 'EnumInstance'">
+                        <xsl:value-of select="cpp:var_def($cpp_type, $var_label)" />
+                    </xsl:when>
+                    <xsl:when test="$cpp_type and
+                                    $cpp_type != 'void'" >
+                        <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
+                    </xsl:when>
+                </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
         <xsl:sequence select="cpp:join_args($resolved_args)" />
@@ -1860,7 +1878,7 @@
     -->
     <xsl:function name="cdit:include_enum_headers" as="xs:string?">
         <xsl:param name="enums" as="element(gml:node)*" />
-        <xsl:value-of select="cdit:include_aggregate_headers($enums, 'Base')" />
+        <xsl:value-of select="cdit:include_aggregate_headers($enums, 'base')" />
     </xsl:function>
 
     <!-- Includes the Aggregate Files Headers -->
@@ -1871,7 +1889,7 @@
         <!-- For each Aggregate Definition -->
         <xsl:for-each select="graphml:get_definitions($aggregates)">
             <xsl:if test="position() = 1">
-                <xsl:sequence select="cpp:comment(('Include required', o:wrap_quote($middleware), graphml:get_kind(.), 'header files'), 0)" />
+                <xsl:sequence select="cpp:comment(('A Include required', o:wrap_quote($middleware), graphml:get_kind(.), 'header files'), 0)" />
             </xsl:if>
             
             <xsl:variable name="header_file" select="cdit:get_aggregates_generated_middleware_header_path(., $middleware)" />

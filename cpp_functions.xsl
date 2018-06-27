@@ -426,7 +426,18 @@
         <xsl:param name="type" as="xs:string"/>
         <xsl:param name="value" as="xs:string"/>
 
-        <xsl:value-of select="o:join_list((concat($type, o:and()), $value), ' ')" />
+        <xsl:value-of select="cpp:var_def(concat($type, o:and()), $value)" />
+    </xsl:function>
+
+    <!--
+        Used to define a type as a reference
+        ie. ${type} ${value}
+    -->
+    <xsl:function name="cpp:var_def">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+
+        <xsl:value-of select="o:join_list(($type, $value), ' ')" />
     </xsl:function>
 
     <!--
@@ -887,5 +898,15 @@
         <xsl:param name="type_2" as="xs:string"/>
 
         <xsl:value-of select="concat('std::pair', o:wrap_angle(cpp:join_args(($type_1, $type_2))))" />
+    </xsl:function>
+
+    <!--
+        Tests to see if a CPP type is a primitive
+    -->
+    <xsl:function name="cpp:is_primitive_type" as="xs:boolean">
+        <xsl:param name="cpp_type" as="xs:string" />
+
+        <xsl:variable name="primitive_types" select="'std::string', 'int', 'char', 'bool', 'double', 'float'" as="xs:string*" />
+        <xsl:value-of select="$cpp_type = $primitive_types" />
     </xsl:function>
 </xsl:stylesheet>

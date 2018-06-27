@@ -21,8 +21,6 @@
     <xsl:import href="cdit_functions.xsl"/> 
     <xsl:import href="cdit_cmake_functions.xsl"/>
     <xsl:import href="component_functions.xsl"/>
-
-    <xsl:import href="new_cdit_functions.xsl"/>
     
 
     <!-- Middleware Input Parameter-->
@@ -66,8 +64,8 @@
         <xsl:for-each-group select="$component_impls_to_generate" group-by=".">
             <xsl:variable name="component_impl" select="." />
             <xsl:variable name="component_def" select="graphml:get_definition($component_impl)" />
+            
             <xsl:variable name="label" select="lower-case(graphml:get_label($component_def))" />
-
             <xsl:variable name="component_path" select="cdit:get_component_path($component_def)" />
             <xsl:variable name="qualified_type" select="cdit:get_qualified_type($component_def)" />
             
@@ -111,27 +109,26 @@
         <xsl:for-each-group select="$classes" group-by=".">
             <xsl:variable name="class" select="." />
             
-            <!-- Get the labels of the definition and impl -->
-            <xsl:variable name="class_label" select="graphml:get_label($class)" />
-            <xsl:variable name="class_prefix" select="lower-case($class_label)" />
-            <xsl:variable name="class_path" select="o:join_paths(('classes', $class_prefix))" />
+            <xsl:variable name="label" select="lower-case(graphml:get_label($class))" />
+            <xsl:variable name="path" select="cdit:get_class_path($class)" />
+            <xsl:variable name="type" select="cdit:get_qualified_type($class)" />
 
-            <xsl:value-of select="o:message(('Generating Class:', o:wrap_quote($class_label)))" />
+            <xsl:value-of select="o:message(('Generating Class:', o:wrap_quote($type)))" />
             
             <xsl:if test="not($preview)">
                 <!-- Only Generate the Interfaces and CMake files when we aren't in preview mode -->
-                <xsl:variable name="class_h" select="concat($class_prefix, '.h')" />
-                <xsl:variable name="class_cpp" select="concat($class_prefix, '.cpp')" />
+                <xsl:variable name="class_h" select="concat($label, '.h')" />
+                <xsl:variable name="class_cpp" select="concat($label, '.cpp')" />
 
-                <xsl:result-document href="{o:write_file(($class_path, $class_h))}">
+                <xsl:result-document href="{o:write_file(($path, $class_h))}">
                     <xsl:value-of select="cdit:get_class_h($class)" />
                 </xsl:result-document>
 
-                <xsl:result-document href="{o:write_file(($class_path, $class_cpp))}">
+                <xsl:result-document href="{o:write_file(($path, $class_cpp))}">
                     <xsl:value-of select="cdit:get_class_cpp($class)" />
                 </xsl:result-document>
 
-                <xsl:result-document href="{o:write_file(($class_path, cmake:cmake_file()))}">
+                <xsl:result-document href="{o:write_file(($path, cmake:cmake_file()))}">
                     <xsl:value-of select="cdit:get_class_cmake($class)" />
                 </xsl:result-document>
             </xsl:if>

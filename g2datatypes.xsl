@@ -27,8 +27,6 @@
     <xsl:import href="cdit_cmake_functions.xsl"/>
     <xsl:import href="datatype_functions.xsl"/>
 
-    <xsl:import href="new_cdit_functions.xsl"/>
-    
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="generate_all" as="xs:boolean" select="false()" />
