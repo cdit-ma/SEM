@@ -49,45 +49,38 @@ for(n in builder_nodes){
 
     test_map[node_name] = {
         node(node_name){
-            def path = "${PATH}"
-            //Append bin and lib directories for this build of re into the path for windows to find dlls
-            def ABS_RE_PATH = pwd() + "/" + PROJECT_NAME + "/"
-            path = ABS_RE_PATH + "bin;" + ABS_RE_PATH + "lib;" + path
-            
-            withEnv(['path=' + path]){
-                dir(PROJECT_NAME + "/bin/test"){
-                    def globstr = "test_*"
-                    if(!isUnix()){
-                        //If windows search for exe only
-                        globstr += ".exe"
-                    }
+            dir(PROJECT_NAME + "/bin/test"){
+                def globstr = "test_*"
+                if(!isUnix()){
+                    //If windows search for exe only
+                    globstr += ".exe"
+                }
 
-                    //Find all executables
-                    def test_list = findFiles glob: globstr
+                //Find all executables
+                def test_list = findFiles glob: globstr
 
-                    def test_count = 0;
-                    def test_error_count = 0;
+                def test_count = 0;
+                def test_error_count = 0;
 
-                    dir("results"){
-                        for(def file : test_list){
-                            def file_path = file.name
-                            def file_name = utils.trimExtension(file_path)
-                            def test_output = file_name + "_" + node_name + ".xml"
-                            print("Running Test: " + file_path)
-                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+                dir("results"){
+                    for(def file : test_list){
+                        def file_path = file.name
+                        def file_name = utils.trimExtension(file_path)
+                        def test_output = file_name + "_" + node_name + ".xml"
+                        print("Running Test: " + file_path)
+                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
-                            if(test_error_code != 0){
-                                print("Test: " + file_path + " Failed!")
-                            }
+                        if(test_error_code != 0){
+                            print("Test: " + file_path + " Failed!")
                         }
-                        def stash_name = node_name + "_test_cases"
-                        stash includes: "*.xml", name: stash_name, allowEmpty: true
-                        //Clean up the directory after
-                        deleteDir()
                     }
+                    def stash_name = node_name + "_test_cases"
+                    stash includes: "*.xml", name: stash_name, allowEmpty: true
                     //Clean up the directory after
                     deleteDir()
                 }
+                //Clean up the directory after
+                deleteDir()
             }
         }
     }
