@@ -5,9 +5,7 @@
 #include <set>
 #include <iostream>
 
-namespace cl {
-    class Device;
-}
+#include <mutex>
 
 class OpenCLLoadBalancer {
 public:
@@ -36,6 +34,8 @@ private:
     };
 
     std::set<DeviceJobList> device_ids_;
+
+    std::mutex mutex_;
 };
 
 #endif

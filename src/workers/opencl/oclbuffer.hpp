@@ -44,6 +44,7 @@ template <typename T>
 OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, size_t num_elements)
     : GenericBuffer(worker, manager, num_elements*sizeof(T)) {
 
+    static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buffered in current implementation");
 }
 
 template <typename T>
@@ -54,8 +55,6 @@ OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, const std:
 
 template <typename T>
 bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, const OpenCLDevice& device, bool blocking) {
-
-static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buffered in current implementation");
 
     // Warn if size mismatch, abort if overflow would occur
     if (data.size() !=  GetNumElements()) {

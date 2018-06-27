@@ -11,6 +11,7 @@ OpenCLLoadBalancer::OpenCLLoadBalancer(const std::vector<unsigned int>& device_i
 }
 
 unsigned int OpenCLLoadBalancer::RequestDevice() {
+    std::lock_guard<std::mutex> guard(mutex_);
     /*int cur_min = INT_MAX;
     const cl::Device* best_device = nullptr;
     for (auto device_pair : devices_) {
@@ -35,6 +36,8 @@ unsigned int OpenCLLoadBalancer::RequestDevice() {
 }
 
 void OpenCLLoadBalancer::ReleaseDevice(unsigned int dev_id) {
+    std::lock_guard<std::mutex> guard(mutex_);
+
     for (auto& djl : device_ids_) {
         if (djl.device_id_ == dev_id) {
             DeviceJobList updated_entry(djl);

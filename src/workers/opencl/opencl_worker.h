@@ -1,5 +1,5 @@
-#ifndef OPENCLWORKER_H
-#define OPENCLWORKER_H
+#ifndef OpenCL_Worker_H
+#define OpenCL_Worker_H
 
 #include <core/worker.h>
 #include "openclmanager.h"
@@ -7,12 +7,17 @@
 #include "openclkernel.hpp"
 #include "openclloadbalancer.h"
 
-class OpenCLWorker : public Worker {
-public:
-    OpenCLWorker(const Component& component, std::string inst_name);
-    ~OpenCLWorker();
 
-    bool Configure();
+struct clfftSetupData_;
+struct cl_comand_queue;
+
+class OpenCL_Worker : public Worker {
+public:
+    OpenCL_Worker(const Component& component, std::string inst_name);
+    //~OpenCL_Worker();
+
+    bool HandleConfigure() override;
+    bool HandleTerminate() override;
     bool IsValid() const;
 
     // Base/Utility functions
@@ -32,14 +37,22 @@ public:
     bool KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations);
     bool KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations);
 
+    // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
+    bool FFT(std::vector<float> &data);
+    bool FFT(OCLBuffer<float> &data);
+
+
 
 protected:
     virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
 
+    bool InitFFT();
+    bool CleanupFFT();
+
 
 private:
 
-    OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);
+    //OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);
     // Can throw if source file doesn't exist, contains no kernels or doesn't contain the specified kernel
     OpenCLKernel& GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file);
 
@@ -53,11 +66,21 @@ private:
     std::shared_ptr<Attribute> platform_id_;
     std::shared_ptr<Attribute> device_id_;
 
+    // clFFT specific members
+    clfftSetupData_* fftSetupData = 0;
+
+    // FPGA FFT specific members
+    std::vector<OpenCLQueue> fetch_queues_;
+    //cl_command_queue* fetch_queue_ = 0;
+    OpenCLKernel* fpga_fft_kernel_ = 0;
+    OpenCLKernel* fpga_fetch_kernel_ = 0;
+    
+    //cl_mem d_inData, d_outData;
 };
 
 
 template <typename T>
-OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
+OCLBuffer<T>* OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
     OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(*this, data.size());
     /*for (const auto& dev_wrapper : devices_) {
         new_buffer->WriteData(data, dev_wrapper.get(), blocking, this);
@@ -67,12 +90,12 @@ OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
 }
 
 template <typename T>
-void OpenCLWorker::ReleaseBuffer(OCLBuffer<T>* buffer) {
+void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>* buffer) {
     return manager_->ReleaseBuffer(*this, buffer);
 }
 
 template <typename T>
-bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
+bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot write to buffer when worker has no associated devices");
@@ -97,7 +120,7 @@ bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data,
 }
 
 template <typename T>
-std::vector<T> OpenCLWorker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
+std::vector<T> OpenCL_Worker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot read from buffer when worker has no associated devices");

@@ -17,19 +17,20 @@ cl::Device& storeDevice(cl::Device& dev) {
 
 
 OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device) :
+    //dev_(std::make_shared<cl::Device>(device)),
     dev_(new cl::Device(device)),
     manager_(manager),
-    queue_(new cl::CommandQueue(manager_.GetContext(), *dev_, CL_QUEUE_PROFILING_ENABLE, &err_)),
     name_(dev_->getInfo<CL_DEVICE_NAME>())
 {
+	queue_ = std::make_shared<OpenCLQueue>(manager, *this);
     // /int err;
     //auto command_queue = new cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE, &err);
 
-    if (err_ != CL_SUCCESS) {
+    /*if (err_ != CL_SUCCESS) {
         LogError(worker,
             __func__,
             "Unable to create a command queue for device " + name_);
-    }
+    }*/
 	//name_ = dev_.getInfo<CL_DEVICE_NAME>();
     valid_ = true;
 }
@@ -42,7 +43,7 @@ std::string OpenCLDevice::GetName() const {
     return name_;
 }
 
-const cl::CommandQueue& OpenCLDevice::GetQueue() const {
+OpenCLQueue& OpenCLDevice::GetQueue() const {
     return *queue_;
 }
 
@@ -55,7 +56,9 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
-	programs_.emplace_back(manager_.GetContext(), sources, &err);
+	std::lock_guard<std::mutex> guard(kernel_list_mutex_);
+
+	programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), sources, &err));
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
@@ -63,13 +66,13 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 			err);
 		return false;
 	}
-    cl::Program& new_program = programs_.back();
+    cl::Program& new_program = *(programs_.back());
 
     std::vector<cl::Device> device_vec;
     //device_vec.emplace_back(*dev_);
-	for (auto& other_dev : manager_.GetDevices(worker)) {
-		if (other_dev.GetName() == name_) {
-			device_vec.emplace_back(other_dev.GetRef());
+	for (const auto& other_dev : manager_.GetDevices(worker)) {
+		if (other_dev->GetName() == name_) {
+			device_vec.emplace_back(other_dev->GetRef());
 		}
 	}
 	err = new_program.build(device_vec);
@@ -92,10 +95,10 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 
 		std::vector<std::string> kernel_names;
 		//std::vector<OpenCLDevice> all_devices = manager_.GetDevices(worker);
-		for (auto& other_dev : manager_.GetDevices(worker)) {
-			if (other_dev.GetName() == name_) {
-				for (const auto& kernel : other_dev.GetKernels()) {
-					kernel_names.push_back(kernel.get().GetName());
+		for (const auto& other_dev : manager_.GetDevices(worker)) {
+			if (other_dev->GetName() == name_) {
+				for (const OpenCLKernel& kernel : other_dev->GetKernels()) {
+					kernel_names.push_back(kernel.GetName());
 				}
 			}
 		}
@@ -108,22 +111,11 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 				return false;
 			}
 		}
-	}/*
-	if (err != CL_SUCCESS) {
-		std::cerr << "kernel creation error code:" << err << std::endl;
-		LogError(worker,
-			std::string(__func__),
-			"An error occurred during the creation of OpenCL kernels from a built program",
-			err);
-
-		std::vector 
-		if (err != CL_SUCCESS) {
-			return false;
-		}
-	}*/
+	}
 
 	for (auto& kernel : new_kernels) {
-		kernels_.emplace_back(worker, manager_, kernel);
+		//kernels_.emplace_back(worker, manager_, kernel);
+		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
 	return true;
@@ -134,7 +126,6 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 	cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
-
 	std::vector<std::string> filenames;
 	filenames.push_back(filename);
 	cl::Program::Binaries binaries = ReadOpenCLBinaries(filenames);
@@ -143,7 +134,9 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
     device_vec.push_back(*dev_);
 	std::vector<cl_int> binary_success;
 
-	programs_.emplace_back(manager_.GetContext(), device_vec, binaries, &binary_success, &err);
+	std::lock_guard<std::mutex> guard(kernel_list_mutex_);
+
+	programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), device_vec, binaries, &binary_success, &err));
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
@@ -161,7 +154,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		}
 	}
 
-    cl::Program& new_program = programs_.back();
+    cl::Program& new_program = *(programs_.back());
 	err = new_program.build(device_vec);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
@@ -186,7 +179,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		std::string name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
 		bool name_already_exists = false;
 		for (const auto& k : kernels_) {
-			if (k.GetName() == name) {
+			if (k->GetName() == name) {
 				name_already_exists = true;
 			}
 		}
@@ -197,17 +190,18 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 				err);
 			continue;
 		}
-		kernels_.emplace_back(worker, manager_, kernel);
-		//std::cout << name << std::endl;
+		//kernels_.emplace_back(worker, manager_, kernel);
+		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
 	return true;
 }
 
 const std::vector<std::reference_wrapper<OpenCLKernel> > OpenCLDevice::GetKernels() {
+	std::lock_guard<std::mutex> guard(kernel_list_mutex_);
 	std::vector<std::reference_wrapper<OpenCLKernel> > kernel_refs;
-	for (OpenCLKernel& kernel : kernels_) {
-		kernel_refs.emplace_back(std::ref(kernel));
+	for (const auto& kernel : kernels_) {
+		kernel_refs.emplace_back(std::ref(*kernel));
 	}
 	return kernel_refs;
 }
