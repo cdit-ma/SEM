@@ -95,7 +95,7 @@ void AggregateInstance::ParentSet(DataNode* child){
         }
 
         //No Data Linking in the Interface Definitions aspect except for Enum Members
-        if(ancestor_kinds.contains(NODE_KIND::INTERFACE_DEFINITIONS) and child->getNodeKind() != NODE_KIND::ENUM_MEMBER){
+        if(ancestor_kinds.contains(NODE_KIND::INTERFACE_DEFINITIONS) && child->getNodeKind() != NODE_KIND::ENUM_MEMBER){
             //Fail out
             invalid_parents = ancestor_kinds;
         }
