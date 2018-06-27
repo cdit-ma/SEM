@@ -14,17 +14,8 @@
 #include <unordered_set>
 
 std::mutex reference_list_mutex_;
-std::vector<OpenCLManager*> OpenCLManager::reference_list_;
+std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > OpenCLManager::reference_map_;
 std::vector<cl::Platform> OpenCLManager::platform_list_;
-
-
-/*std::vector<OpenCLDevice> Device2Value(const std::vector<std::shared_ptr<OpenCLDevice> > device_list ){
-	std::vector<OpenCLDevice> devices;
-	for (auto d : device_list) {
-		devices.push_back(*d);
-	}
-	return devices;
-}*/
 
 /************************************************************************/
 /* Static functions                                                     */
@@ -35,7 +26,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
     std::lock_guard<std::mutex> guard(reference_list_mutex_);
 
 	// If we haven't initialized the length of the reference list yet do so now
-	if (reference_list_.empty()) {
+	//if (reference_map_.empty()) {
 		/*cl_int errCode = cl::Platform::get(&platform_list_);
 		if (errCode != CL_SUCCESS) {
 			LogError(worker,
@@ -45,11 +36,12 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 			return NULL;
 		}*/
 		GetPlatforms(worker);
-		reference_list_.resize(platform_list_.size(), NULL);
-	}
+		//reference_list_.resize(platform_list_.size());
+	//}
 
 	// Check that the specified platform index isn't out of bounds
-	if (platform_id >= reference_list_.size() || platform_id < 0) {
+	if (platform_id >= platform_list_.size() || platform_id < 0) {
+	//if (!reference_map_.count(platform_id)) 
 		LogError(worker,
 			std::string(__func__),
 			"platform_id is out of bounds (" + std::to_string(platform_id) + ")");
@@ -57,7 +49,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 	}
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
-	if (reference_list_[platform_id] == NULL) {
+	if (reference_map_.count(platform_id) == 0) {
 		OpenCLManager* new_manager = new OpenCLManager(worker, platform_list_[platform_id]);
 
 		if (!new_manager->IsValid()) {
@@ -68,11 +60,13 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 			return NULL;
 		}
 
-		reference_list_[platform_id] = new_manager;
+		reference_map_.emplace(platform_id,  std::move(std::unique_ptr<OpenCLManager>(new_manager)));
+		//reference_list_.at(platform_id).swap(std::move(std::unique_ptr<OpenCLManager>(new_manager)));// = std::move();
 	}
 
 	// Return the relevant reference
-	return reference_list_[platform_id];
+	return reference_map_.at(platform_id).get();
+	//return reference_list_[platform_id].get();
 
 }
 
@@ -82,10 +76,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 	cl_int err;
 
 	// If we haven't initialized the length of the reference list yet do so now
-	if (reference_list_.empty()) {
+	//if (reference_list_.empty()) {
 		GetPlatforms(worker);
-		reference_list_.resize(platform_list_.size(), NULL);
-	}
+		//reference_list_.resize(platform_list_.size(), NULL);
+	//}
 
 	// Find the index of the platform with the requested name
 	unsigned int platform_id = 0;
@@ -107,7 +101,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
-	if (reference_list_[platform_id] == NULL) {
+	if (reference_map_.count(platform_id) == 0) {
 		OpenCLManager* new_manager = new OpenCLManager(worker, platform_list_[platform_id]);
 
 		if (!new_manager->IsValid()) {
@@ -118,11 +112,13 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 			return NULL;
 		}
 
-		reference_list_[platform_id] = new_manager;
+		reference_map_.emplace(platform_id, std::move(std::unique_ptr<OpenCLManager>(new_manager)));
+		//reference_list_.at(platform_id).swap(std::unique_ptr<OpenCLManager>(new_manager));
 	}
 
 	// Return the relevant reference
-	return reference_list_[platform_id];
+	return reference_map_.at(platform_id).get();
+	//return reference_list_[platform_id].get();
 
 }
 
@@ -189,7 +185,7 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 	}
 
 	// Create a context from the collected devices
-	context_ = new cl::Context(devices, NULL, NULL, NULL, &err);
+	context_ = std::unique_ptr<cl::Context>(new cl::Context(devices, NULL, NULL, NULL, &err));
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
@@ -198,21 +194,20 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 		return;
 	}
 
-	// Create a representation for each of the devices
+	// Create a wrapped representation for each of the devices
 	for(auto& d : devices) {
-		//device_list_.emplace_back(worker, *this, d);
 		device_list_.emplace_back(new OpenCLDevice(worker, *this, d));
-		//device_list_.push_back(std::move(OpenCLDevice(*context_, d, *worker_reference)));
 	}
 
+	// Fetch all of the pre-compiled binaries
 	LoadAllBinaries(worker);
 
+	// On FPGA platforms it is expected that the FFT kernels have also been precompiled
     if (is_fpga_) {
         for (const auto& dev : device_list_) {
             try {
                 dev->LoadKernelsFromBinary(worker, "fft1d.aocx");
             } catch (const OpenCLException& ocle) {
-                //LogOpenCLError(worker, "OpenCLManager::"+std::string(__func__),
 				throw OpenCLException("Failed to load FFT implementation for FPGA: "+std::string(ocle.what()), ocle.ErrorCode());
             }
         }
@@ -221,6 +216,21 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 
 	// Mark the manager as having been properly initialized
 	valid_ = true;
+}
+
+OpenCLManager::~OpenCLManager() {
+	if (buffer_store_.empty()) {
+		return;
+	}
+	
+	Log(Severity::WARNING)
+		.Class("OpenCLManager")
+		.Func(__func__)
+		.Msg("OpenCLManager was deleted before all associated buffers had been released");
+
+	for (auto& unfreed_buffer_pair : buffer_store_) {
+		delete unfreed_buffer_pair.second;
+	}
 }
 
 // TODO: Handle the !valid_ case
@@ -300,13 +310,6 @@ void OpenCLManager::UntrackBuffer(int buffer_id) {
 }
 
 bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
-    /*if (load_balancer_ == NULL) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-            "Trying to load binaries when no load balancer is specified");
-            return false;
-    }*/
-
-    //std::string plat_name = manager_->GetPlatformName();
 
     bool did_all_succeed = true;
     for (const auto& device : device_list_) {
