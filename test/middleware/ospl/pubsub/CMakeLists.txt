@@ -11,8 +11,7 @@ if(NOT OSPL_DDS_FOUND)
 	endif()
 endif()
 
-# Generate the <rti> files for Aggregate
-RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
+OSPL_DDS_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/../translator.cpp
