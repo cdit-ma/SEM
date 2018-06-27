@@ -78,13 +78,12 @@ for(n in builder_nodes){
 
                             if(test_error_code != 0){
                                 print("Test: " + file_path + " Failed!")
-                                currentBuild.result = 'FAILURE'
                             }
-                            //Clean up the directory after
-                            deleteDir()
                         }
                         def stash_name = node_name + "_test_cases"
                         stash includes: "*.xml", name: stash_name, allowEmpty: true
+                        //Clean up the directory after
+                        deleteDir()
                     }
                     //Clean up the directory after
                     deleteDir()
