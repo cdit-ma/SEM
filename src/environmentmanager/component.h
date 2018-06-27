@@ -11,9 +11,11 @@ namespace EnvironmentManager{
 class Environment;
 class Node;
 class Port;
+class Attribute;
 class Component{
     public:
         Component(Environment& environment, Node& parent, const NodeManager::Component& component);
+        void ConfigureConnections();
         void AddPort(const NodeManager::Port& port);
         void AddAttribute();
 
@@ -30,6 +32,7 @@ class Component{
         bool IsDirty();
 
         NodeManager::Component* GetUpdate();
+        NodeManager::Component* GetProto();
 
     private:
         Environment& environment_;
@@ -41,7 +44,7 @@ class Component{
         bool dirty_;
 
         std::unordered_map<std::string, std::unique_ptr<Port> > ports_;
-
+        std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
 
 };
 };

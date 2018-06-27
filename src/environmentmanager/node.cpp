@@ -3,14 +3,15 @@
 #include "component.h"
 #include "logger.h"
 #include "port.h"
+#include "attribute.h"
 
 using namespace EnvironmentManager;
 
 Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node& node) : 
             environment_(environment), experiment_(parent){
 
-    auto name_ = node.info().name();
-    auto id_ = node.info().id();
+    name_ = node.info().name();
+    id_ = node.info().id();
 
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
@@ -27,10 +28,17 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     for(int i = 0; i < node.components_size(); i++){
         AddComponent(node.components(i));
     }
+
+    for(int i = 0; i < node.attributes_size(); i++){
+        AddAttribute(node.attributes(i));
+    }
     //set logger port
-    SetModelLoggerPort(environment_.GetPort(ip_));
-    //set master/slave port
-    SetManagementPort(environment_.GetPort(ip_));
+    if(DeployedTo()){
+        model_logger_port_ = environment_.GetPort(ip_);
+        GetExperiment().AddModelLoggerEndpoint(id_, "tcp://" + ip_ + ":" + model_logger_port_);
+        //set master/slave port
+        management_port_ = environment_.GetPort(ip_);
+    }
 }
 
 Node::~Node(){
@@ -41,6 +49,15 @@ Node::~Node(){
     //Free node's orb port
     if(HasOrbPort()){
         environment_.FreePort(ip_, GetOrbPort());
+    }
+}
+
+void Node::ConfigureConnections(){
+    for(const auto& logger_pair : loggers_){
+        logger_pair.second->ConfigureConnections();
+    }
+    for(const auto& component_pair : components_){
+        component_pair.second->ConfigureConnections();
     }
 }
 
@@ -71,6 +88,10 @@ std::string Node::GetOrbPort() const {
     return orb_port_;
 }
 
+void Node::SetOrbPort(const std::string& orb_port){
+    orb_port_ = orb_port;
+}
+
 void Node::AddComponent(const NodeManager::Component& component){
     components_.insert(std::make_pair(component.info().id(),
             std::unique_ptr<EnvironmentManager::Component>(
@@ -78,15 +99,15 @@ void Node::AddComponent(const NodeManager::Component& component){
 }
 
 void Node::AddLogger(const NodeManager::Logger& logger){
-
-     
     loggers_.insert(std::make_pair(logger.id(), 
             std::unique_ptr<EnvironmentManager::Logger>(
                 new EnvironmentManager::Logger(environment_, *this, logger))));
 }
 
-void Node::AddAttribute(){
-
+void Node::AddAttribute(const NodeManager::Attribute& attribute){
+    attributes_.insert(std::make_pair(attribute.info().id(), 
+            std::unique_ptr<EnvironmentManager::Attribute>(
+                new EnvironmentManager::Attribute(attribute))));
 }
 
 void Node::SetDirty(){
@@ -158,12 +179,51 @@ NodeManager::Node* Node::GetUpdate(){
             node->mutable_components()->AddAllocated(component.second->GetUpdate());
         }
 
-        // for(const auto& attribute : attributes_){
-        //     std::cout << "fill attributes" << std::endl;
-        // }
+        for(const auto& attribute : attributes_){
+            node->mutable_attributes()->AddAllocated(attribute.second->GetUpdate());
+        }
 
         dirty_ = false;
     }
+    return node;
+}
+
+NodeManager::Node* Node::GetProto(){
+    NodeManager::Node* node;
+
+    node = new NodeManager::Node();
+    std::cout << name_ << std::endl;
+    node->mutable_info()->set_name(name_);
+    node->mutable_info()->set_id(id_);
+    node->set_type(NodeManager::Node::HARDWARE_NODE);
+
+    auto ip_attribute = node->add_attributes();
+    auto ip_attribute_info = ip_attribute->mutable_info();
+    ip_attribute_info->set_name("ip_address");
+    ip_attribute->add_s(ip_);
+
+    auto modellogger_attribute = node->add_attributes();
+    auto modellogger_attribute_info = modellogger_attribute->mutable_info();
+    modellogger_attribute_info->set_name("modellogger_port");
+    modellogger_attribute->add_s(model_logger_port_);
+
+    auto management_port_attribute = node->add_attributes();
+    auto management_port_attribute_info = management_port_attribute->mutable_info();
+    management_port_attribute_info->set_name("management_port");
+    management_port_attribute->add_s(management_port_);
+
+    for(const auto& logger : loggers_){
+        node->mutable_loggers()->AddAllocated(logger.second->GetProto());
+    }
+
+    for(const auto& component : components_){
+        node->mutable_components()->AddAllocated(component.second->GetProto());
+    }
+
+    for(const auto& attribute : attributes_){
+        node->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+    }
+
     return node;
 }
 
@@ -172,17 +232,17 @@ NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
-
         message->mutable_logger()->AddAllocated(logger->GetDeploymentMessage());
-
-        
     }
 
     return message;
 
 }
 
-
 Experiment& Node::GetExperiment(){
     return experiment_;
+}
+
+bool Node::DeployedTo() const{
+    return (loggers_.size() || components_.size());
 }

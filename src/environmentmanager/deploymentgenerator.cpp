@@ -19,24 +19,10 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     }
 
     environment_.SetExperimentMasterIp(control_message.experiment_id(), master_ip_address);
+
     environment_.ConfigureNodes(control_message.experiment_id());
 
-    for(int i = 0; i < control_message.nodes_size(); i++){
-        NodeManager::Node* node = control_message.mutable_nodes(i);
-        PopulateNode(control_message, *node);
-    }
-
-    auto master_publisher_port_attribute = control_message.add_attributes();
-    auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
-    master_publisher_port_attribute_info->set_name("master_publisher_endpoint");
-    master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
-    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherAddress(control_message.experiment_id()));
-
-    auto master_registration_port_attribute = control_message.add_attributes();
-    auto master_registration_port_attribute_info = master_registration_port_attribute->mutable_info();
-    master_registration_port_attribute_info->set_name("master_registration_endpoint");
-    master_registration_port_attribute->set_kind(NodeManager::Attribute::STRING);
-    master_registration_port_attribute->add_s(environment_.GetMasterRegistrationAddress(control_message.experiment_id()));
+    std::cout << environment_.GetProto(control_message.experiment_id())->DebugString() << std::endl;
 
     environment_.StoreControlMessage(control_message);
 }

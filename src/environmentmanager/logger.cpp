@@ -48,6 +48,21 @@ Logger::~Logger(){
     }
 }
 
+void Logger::ConfigureConnections(){
+    if(type_ == Type::Server){
+        const auto& client_address_map = GetExperiment().GetLoganClientEndpointMap();
+        for(const auto& client_id : client_ids_){
+            if(client_address_map.count(client_id)){
+                client_addresses_.insert(client_address_map.at(client_id));
+            }
+        }
+        const auto& model_logger_address_map = GetExperiment().GetModelLoggerEndpointMap();
+        for(const auto& address_pair : model_logger_address_map){
+            client_addresses_.insert(address_pair.second);
+        }
+    }
+}
+
 std::string Logger::GetId() const{
     return id_;
 }
@@ -135,6 +150,32 @@ NodeManager::Logger* Logger::GetUpdate(){
 }
 
 NodeManager::Logger* Logger::GetDeploymentMessage() const{
+    NodeManager::Logger* logger;
+
+    if(GetType() == EnvironmentManager::Logger::Type::Server){
+        logger = new NodeManager::Logger();
+        for(const auto& client_addr : GetClientAddresses()){
+            logger->add_client_addresses(client_addr);
+        }
+        logger->set_db_file_name(GetDbFileName());
+        logger->set_type(NodeManager::Logger::SERVER);
+
+    }
+
+    if(GetType() == EnvironmentManager::Logger::Type::Client){
+        logger = new NodeManager::Logger();
+        for(const auto& process : GetProcesses()){
+            logger->add_processes(process);
+        }
+        logger->set_frequency(GetFrequency());
+        logger->set_publisher_address(node_.GetIp());
+        logger->set_publisher_port(GetPublisherPort());
+        logger->set_type(NodeManager::Logger::CLIENT);
+    }
+    return logger;
+}
+
+NodeManager::Logger* Logger::GetProto(){
     NodeManager::Logger* logger;
 
     if(GetType() == EnvironmentManager::Logger::Type::Server){

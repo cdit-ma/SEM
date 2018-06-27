@@ -74,7 +74,6 @@ int main(int argc, char **argv){
 
     std::string bcast_address("tcp://" + ip_address + ":" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
-
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(*exe, ip_address, registration_port));
     deployment_register->Start();
 

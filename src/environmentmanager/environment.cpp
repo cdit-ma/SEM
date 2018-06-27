@@ -202,6 +202,15 @@ void Environment::ConfigureNodes(const std::string& model_name){
     }
 }
 
+NodeManager::ControlMessage* Environment::GetProto(const std::string& model_name){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_.at(model_name)->GetProto();
+    }
+    else{
+        throw std::invalid_argument("No experiment called: " + model_name);
+    }
+}
+
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetPublisherAddress(port);
@@ -219,22 +228,22 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
 }
 
 std::string Environment::GetOrbEndpoint(const std::string& model_name, const std::string& port_id){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
-    }
+    // if(experiment_map_.count(model_name)){
+    //     return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
+    // }
     return std::string();
 }
 
 std::string Environment::GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetTaoReplierServerAddress(port);
-    }
+    // if(experiment_map_.count(model_name)){
+    //     return experiment_map_.at(model_name)->GetTaoReplierServerAddress(port);
+    // }
     return std::string();
 }
 std::string Environment::GetTaoServerName(const std::string& model_name, const NodeManager::Port& port){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetTaoServerName(port);
-    }
+    // if(experiment_map_.count(model_name)){
+    //     return experiment_map_.at(model_name)->GetTaoServerName(port);
+    // }
     return std::string();
 }
 

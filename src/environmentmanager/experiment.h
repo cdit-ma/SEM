@@ -41,6 +41,8 @@ class Experiment{
         void AddNode(const NodeManager::Node& node);
         void ConfigureNodes();
 
+        NodeManager::ControlMessage* GetProto();
+
         bool HasDeploymentOn(const std::string& node_name) const;
 
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
@@ -67,9 +69,19 @@ class Experiment{
 
         void AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint);
         void RemoveLoganClientEndpoint(const std::string& client_id);
+        const std::unordered_map<std::string, std::string>& GetLoganClientEndpointMap() const;
+
+        void AddModelLoggerEndpoint(const std::string& client_id, const std::string& endoint);
+        void RemoveModelLoggerEndpoint(const std::string& client_id);
+        const std::unordered_map<std::string, std::string>& GetModelLoggerEndpointMap() const;
 
         void AddZmqEndpoint(const std::string& port_id, const std::string& endpoint);
         void RemoveZmqEndpoint(const std::string& port_id);
+        const std::unordered_map<std::string, std::string>& GetZmqEndpointMap() const;
+
+        void AddTaoEndpoint(const std::string& port_id, const std::string& endpoint);
+        void RemoveTaoEndpoint(const std::string& port_id);
+        const std::unordered_map<std::string, std::string>& GetTaoEndpointMap() const;
 
         void AddConnection(const std::string& connected_id, const std::string& port_id);
         void AddTopic(const std::string& topic);
@@ -119,8 +131,18 @@ class Experiment{
 
         std::set<std::string> updated_port_ids_;
 
+        //node id -> model logger fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
+        std::unordered_map<std::string, std::string> modellogger_endpoint_map_;
+
         //logan client id -> logan client fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
-        std::unordered_map<std::string, std::string> logan_client_address_map_;
+        std::unordered_map<std::string, std::string> logan_client_endpoint_map_;
+
+        //port id -> configured zmq endpoing "tcp://xxx.xxx.xxx.xxx:pppp"
+        std::unordered_map<std::string, std::string> zmq_endpoint_map_;
+
+        //Port id -> Configured tao endpoint "corbaloc:iiop:xxx.xxx.xxx.xxx:pppp/server_name;
+        std::unordered_map<std::string, std::string> tao_endpoint_map_;
+
 };
 }; //namespace EnvironmentManager
 

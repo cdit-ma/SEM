@@ -1,6 +1,7 @@
 #include "component.h"
 #include "node.h"
 #include "port.h"
+#include "attribute.h"
 
 using namespace EnvironmentManager;
 
@@ -18,8 +19,20 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
 
 
     //Add attributes
+    for(int i = 0; i < component.attributes_size(); i++){
+        attributes_.insert(std::make_pair(component.attributes(i).info().id(), 
+            std::unique_ptr<EnvironmentManager::Attribute>(
+                new EnvironmentManager::Attribute(component.attributes(i)))));
+    }
     //add workers
 }
+
+void Component::ConfigureConnections(){
+    for(auto& port_pair : ports_){
+        port_pair.second->ConfigureConnections();
+    }
+}
+
 std::string Component::GetId(){
     return id_;
 };
@@ -81,6 +94,25 @@ NodeManager::Component* Component::GetUpdate(){
         // for(const auto& attribute : attributes_){
         //     std::cout << "fill attributes" <<std::endl;
         // }
+    }
+    return component;
+}
+
+NodeManager::Component* Component::GetProto(){
+    NodeManager::Component* component;
+    component = new NodeManager::Component();
+
+    component->mutable_info()->set_name(name_);
+    std::cout << name_ << std::endl;
+    component->mutable_info()->set_id(id_);
+    component->mutable_info()->set_type(type_);
+
+    for(const auto& port : ports_){
+        component->mutable_ports()->AddAllocated(port.second->GetUpdate());
+    }
+
+    for(const auto& attribute : attributes_){
+        component->mutable_attributes()->AddAllocated(attribute.second->GetProto());
     }
     return component;
 }

@@ -9,7 +9,10 @@
 
 namespace EnvironmentManager{
 class Environment;
+class Experiment;
+class Node;
 class Component;
+class Attribute;
 class Port{
     public:
         enum class Kind{
@@ -43,10 +46,14 @@ class Port{
         void SetType(const std::string& type);
         void SetPublisherPort(const std::string& publisher_port);
         void SetTopic(const std::string& topic_name);
-        void AddEndpoint(const std::string& endpoint);
-        void RemoveEndpoint(const std::string& endpoint);
+        void AddConnectedEndpoint(const std::string& endpoint);
+        void RemoveConnectedEndpoint(const std::string& endpoint);
         void AddConnectedPortId(const std::string& port_id);
         void AddExternalConnectedPortId(const std::string& port_id);
+
+        void ConfigureConnections();
+        void AddAttribute(const NodeManager::Attribute& attribute);
+
 
         bool IsConnectedTo(const std::string& port_id) const;
 
@@ -54,6 +61,8 @@ class Port{
         bool IsDirty() const;
 
         NodeManager::Port* GetUpdate();
+        NodeManager::Port* GetProto();
+
 
         Kind ProtoPortKindToInternal(NodeManager::Port::Kind kind);
         NodeManager::Port::Kind InternalPortKindToProto(Port::Kind middleware);
@@ -77,10 +86,20 @@ class Port{
 
         std::set<std::string> endpoints_;
 
+        std::string tao_replier_server_name_;
+
         std::string publisher_port_;
 
         std::set<std::string> connected_port_ids_;
         std::set<std::string> connected_external_port_ids_;
+
+        std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
+
+        void FillZmqProto(NodeManager::Port* port);
+        void FillDdsProto(NodeManager::Port* port);
+        void FillQpidProto(NodeManager::Port* port);
+        void FillTaoProto(NodeManager::Port* port);
+
 
 };
 };

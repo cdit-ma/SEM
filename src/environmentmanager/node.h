@@ -9,16 +9,21 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
+
 class Environment;
 class Component;
 class Logger;
 class Port;
 class Experiment;
+class Attribute;
+
 class Node{
     public:
         Node(Environment& environment, Experiment& experiment, const NodeManager::Node& node);
         ~Node();
         Node(const Node& parent, const std::string& id, const std::string& name, const std::string& ip_address);
+
+        void ConfigureConnections();
 
         //Info getters
         std::string GetId() const;
@@ -46,7 +51,7 @@ class Node{
 
         //Node, component, attribute and logger adders
         void AddComponent(const NodeManager::Component& component);
-        void AddAttribute();
+        void AddAttribute(const NodeManager::Attribute& attribute);
         void AddLogger(const NodeManager::Logger& logger);
 
         //Update requirement management
@@ -63,11 +68,13 @@ class Node{
         bool HasPort(const std::string& port_id) const;
         Port& GetPort(const std::string& port_id) const;
 
+        bool DeployedTo() const;
+
         //protobuf getters
         NodeManager::Node* GetUpdate();
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage() const;
 
-        NodeManager::Node* GetFullProto();
+        NodeManager::Node* GetProto();
 
     private:
         Environment& environment_;
@@ -88,6 +95,10 @@ class Node{
 
         //logger id -> Logger
         std::unordered_map<std::string, std::unique_ptr<Logger> > loggers_;
+
+        //attribute id -> attribute
+        std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
+
 
 
         bool dirty_;

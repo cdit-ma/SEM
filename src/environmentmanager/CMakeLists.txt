@@ -28,6 +28,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/port.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     )
 
 set(HEADERS
@@ -42,10 +43,11 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/port.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/node.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/component.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/port.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     )
 
 #Pass Version info into cmakevars.h

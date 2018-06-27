@@ -1,7 +1,9 @@
+#include "port.h"
 #include "node.h"
 #include "component.h"
-#include "port.h"
 #include "environment.h"
+#include "experiment.h"
+#include "attribute.h"
 
 using namespace EnvironmentManager;
 
@@ -13,6 +15,10 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
     kind_ = ProtoPortKindToInternal(port.kind());
     middleware_ = ProtoPortMiddlewareToInternal(port.middleware());
 
+    for(int i = 0; i < port.attributes_size(); i++){
+        AddAttribute(port.attributes(i));
+    }
+
     //If we're a zmq publisher or zmq replier port, assign a publisher port
     if(middleware_ == EnvironmentManager::Port::Middleware::Zmq){
         
@@ -20,14 +26,21 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
             SetPublisherPort(environment_.GetPort(component_.GetNode().GetIp()));
             std::string endpoint = "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
             GetExperiment().AddZmqEndpoint(id_, endpoint);
+            endpoints_.insert(endpoint);
         }
     }
-    else if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
+    if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
         if(!GetNode().HasOrbPort()){
             GetNode().SetOrbPort(environment_.GetPort(GetNode().GetIp()));
         }
         SetPublisherPort(GetNode().GetOrbPort());
-        SetTopic(GetName() + "_" + GetId());
+        std::string topic = GetName() + "_" + GetId();
+        SetTopic(topic);
+
+        if(kind_ == Kind::Replier){
+            std::string endpoint = "corbaloc:iiop:" + GetNode().GetIp() + ":" + GetPublisherPort() + "/" + topic;
+            GetExperiment().AddTaoEndpoint(id_, endpoint);
+        }
     }
 
     std::string type;
@@ -38,12 +51,14 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
     type += port.info().type();
     SetType(type);
     
-    for(int a = 0; a < port.attributes_size(); a++){
-        auto attribute = port.attributes(a);
-        if(attribute.info().name() == "topic"){
-            SetTopic(attribute.s(0));
-            GetExperiment().AddTopic(GetTopic());
-            break;
+    if(middleware_ != Middleware::Tao){
+        for(int a = 0; a < port.attributes_size(); a++){
+            auto attribute = port.attributes(a);
+            if(attribute.info().name() == "topic"){
+                SetTopic(attribute.s(0));
+                GetExperiment().AddTopic(GetTopic());
+                break;
+            }
         }
     }
 
@@ -56,11 +71,44 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 }
 
 Port::~Port(){
-    if(middleware_ == EnvironmentManager::Port::Middleware::Zmq && 
+    if(middleware_ == Middleware::Zmq && 
         (kind_ == Kind::Publisher || kind_ == Kind::Replier)){
         environment_.FreePort(GetNode().GetId(), publisher_port_);
         GetExperiment().RemoveZmqEndpoint(id_);
     }
+}
+
+void Port::ConfigureConnections(){
+
+    if(middleware_ == Middleware::Zmq){
+        if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
+            const auto& endpoint_map = GetExperiment().GetZmqEndpointMap();
+            for(const auto& connected_port_id : connected_port_ids_){
+                if(endpoint_map.count(connected_port_id)){
+                    auto endpoint = endpoint_map.at(connected_port_id);
+                    AddConnectedEndpoint(endpoint);
+                }
+            }
+        }
+    }
+
+    if(middleware_ == Middleware::Tao){
+        if(kind_ == Kind::Requester){
+            const auto& endpoint_map = GetExperiment().GetTaoEndpointMap();
+            for(const auto& connected_port_id : connected_port_ids_){
+                if(endpoint_map.count(connected_port_id)){
+                    auto endpoint = endpoint_map.at(connected_port_id);
+                    AddConnectedEndpoint(endpoint);
+                }
+            }
+        }
+    }
+}
+
+void Port::AddAttribute(const NodeManager::Attribute& attribute){
+    attributes_.insert(std::make_pair(attribute.info().id(), 
+            std::unique_ptr<EnvironmentManager::Attribute>(
+                new EnvironmentManager::Attribute(attribute))));
 }
 
 std::string Port::GetId() const{
@@ -106,11 +154,11 @@ std::string Port::GetTopic() const{
     return topic_name_;
 }
 
-void Port::AddEndpoint(const std::string& endpoint){
+void Port::AddConnectedEndpoint(const std::string& endpoint){
     endpoints_.insert(endpoint);
 }
 
-void Port::RemoveEndpoint(const std::string& endpoint){
+void Port::RemoveConnectedEndpoint(const std::string& endpoint){
     endpoints_.erase(endpoints_.find(endpoint));
 }
 
@@ -139,29 +187,156 @@ NodeManager::Port* Port::GetUpdate(){
     NodeManager::Port* port;
 
     if(dirty_){
-        port = new NodeManager::Port();
-        port->mutable_info()->set_name(name_);
-        port->mutable_info()->set_id(id_);
-        port->mutable_info()->set_type(type_);
-
-        port->set_kind(InternalPortKindToProto(kind_));
-        port->set_middleware(InternalPortMiddlewareToProto(middleware_));
-
-        for(const auto& connected_port : connected_port_ids_){
-            port->add_connected_ports(connected_port);
-        }
-
-        for(const auto& external_port : connected_external_port_ids_){
-            port->add_connected_ports(external_port);
-        }
-
-        // for(const auto& attribute : attributes_){
-        //     std::cout << "add attrs" << std::endl;
-        // }
-
-        dirty_ = false;
+        port = GetProto();
     }
     return port;
+}
+
+NodeManager::Port* Port::GetProto(){
+    NodeManager::Port* port;
+
+    port = new NodeManager::Port();
+    port->mutable_info()->set_name(name_);
+    std::cout << name_ <<std::endl;
+    port->mutable_info()->set_id(id_);
+    port->mutable_info()->set_type(type_);
+
+    port->set_kind(InternalPortKindToProto(kind_));
+    port->set_middleware(InternalPortMiddlewareToProto(middleware_));
+
+    for(const auto& connected_port : connected_port_ids_){
+        port->add_connected_ports(connected_port);
+    }
+
+    for(const auto& external_port : connected_external_port_ids_){
+        port->add_connected_ports(external_port);
+    }
+
+    switch(middleware_){
+        case Middleware::Zmq:{
+            FillZmqProto(port);
+            break;
+        }
+        case Middleware::Rti:
+        case Middleware::Ospl:{
+            FillDdsProto(port);
+            break;
+        }
+        case Middleware::Qpid:{
+            FillQpidProto(port);
+            break;
+        }
+        case Middleware::Tao:{
+            FillTaoProto(port);
+            break;
+        }
+        default:{
+            break;
+        }
+    }
+
+    for(const auto& attribute : attributes_){
+        port->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+    }
+    
+    return port;
+}
+
+void Port::FillZmqProto(NodeManager::Port* port){
+    switch(kind_){
+        case Kind::Publisher:
+        case Kind::Subscriber:{
+            auto publisher_address_attr = port->add_attributes();
+            auto publisher_address_attr_info = publisher_address_attr->mutable_info();
+            publisher_address_attr_info->set_name("publisher_address");
+            publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
+
+            if(kind_ == Kind::Publisher){
+                publisher_address_attr->add_s(*(endpoints_.begin()));
+            }
+            else{
+                for(auto endpoint : endpoints_){
+                    publisher_address_attr->add_s(endpoint);
+                }
+            }
+            break;
+        }
+        case Kind::Requester:
+        case Kind::Replier:{
+            auto server_address_attr = port->add_attributes();
+            auto server_address_attr_info = server_address_attr->mutable_info();
+            server_address_attr_info->set_name("server_address");
+            server_address_attr->set_kind(NodeManager::Attribute::STRING);
+
+            if(!endpoints_.empty()){
+                server_address_attr->add_s(*(endpoints_.begin()));
+            }
+            break;
+        }
+        default:{
+            break;
+        }
+    }
+}
+
+void Port::FillDdsProto(NodeManager::Port* port){
+    //Set domain
+    auto domain_pb = port->add_attributes();
+    auto domain_info_pb = domain_pb->mutable_info();
+    domain_info_pb->set_name("domain_id");
+    domain_pb->set_kind(NodeManager::Attribute::INTEGER);
+    domain_pb->set_i(0);
+
+    auto topic_pb = port->add_attributes();
+    auto topic_info_pb = topic_pb->mutable_info();
+    topic_info_pb->set_name("topic_name");
+    topic_pb->set_kind(NodeManager::Attribute::STRING);
+    topic_pb->add_s(topic_name_);
+}
+
+void Port::FillQpidProto(NodeManager::Port* port){
+    //Set broker address
+    auto broker_pb = port->add_attributes();
+    auto broker_info_pb = broker_pb->mutable_info();
+    broker_info_pb->set_name("broker");
+    broker_pb->set_kind(NodeManager::Attribute::STRING);
+    broker_pb->add_s(environment_.GetAmqpBrokerAddress());
+
+    //set and add topics to environment
+    auto topic_pb = port->add_attributes();
+    auto topic_info_pb = topic_pb->mutable_info();
+    topic_info_pb->set_name("topic_name");
+    topic_pb->set_kind(NodeManager::Attribute::STRING);
+    topic_pb->add_s(topic_name_);
+}
+
+void Port::FillTaoProto(NodeManager::Port* port){
+    {
+        auto server_name_attr = port->add_attributes();
+        auto server_name_info = server_name_attr->mutable_info();
+        server_name_info->set_name("server_name");
+        server_name_attr->set_kind(NodeManager::Attribute::STRING);
+        server_name_attr->add_s(topic_name_);
+    }
+
+    const auto& orb_endpoint = GetNode().GetIp() + ":" + GetNode().GetOrbPort();
+    {
+        //TODO: Need Unique Port per HardwareNode per experiment for both Requester/Replier
+        auto orb_attr = port->add_attributes();
+        auto orb_info = orb_attr->mutable_info();
+        orb_info->set_name("orb_endpoint");
+        orb_attr->set_kind(NodeManager::Attribute::STRING);
+        orb_attr->add_s("iiop://" + orb_endpoint);
+    }
+
+    if(kind_ == Kind::Requester){
+        //TODO: Need Unique Port per HardwareNode per experiment for both Requester/Replier
+        auto server_addr_attr = port->add_attributes();
+        auto server_addr_info = server_addr_attr->mutable_info();
+        server_addr_info->set_name("server_address");
+        server_addr_attr->set_kind(NodeManager::Attribute::STRING);
+        server_addr_attr->add_s(*(endpoints_.begin()));
+    }
 }
 
 Port::Kind Port::ProtoPortKindToInternal(NodeManager::Port::Kind kind){

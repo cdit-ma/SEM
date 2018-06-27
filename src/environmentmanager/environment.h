@@ -40,6 +40,7 @@ class Environment{
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
         void ConfigureNodes(const std::string& model_name);
+        NodeManager::ControlMessage* GetProto(const std::string& model_name);
 
         bool ExperimentIsDirty(const std::string& model_name);
         void GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message);

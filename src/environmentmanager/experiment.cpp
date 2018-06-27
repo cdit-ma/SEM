@@ -1,5 +1,5 @@
-#include "environment.h"
 #include "experiment.h"
+#include "environment.h"
 #include "node.h"
 
 using namespace EnvironmentManager;
@@ -88,9 +88,9 @@ void Experiment::AddNode(const NodeManager::Node& node){
 }
 
 void Experiment::ConfigureNodes(){
-    //node_map_.at(ip_address)->SetLoganClientAddresses(logan_client_address_map_);
-
-    //node_map_.at(ip_address)->PopulateConnections(connection_map_);
+    for(auto& node_pair : node_map_){
+        node_pair.second->ConfigureConnections();
+    }
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
@@ -131,9 +131,9 @@ std::set<std::string> Experiment::GetTopics() const{
 }
 
 std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port& port){
-
     std::unique_lock<std::mutex> lock(mutex_);
     std::vector<std::string> publisher_addresses;
+    /*
 
     if(port.kind() == NodeManager::Port::SUBSCRIBER || port.kind() == NodeManager::Port::REQUESTER){
 
@@ -176,47 +176,8 @@ std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port
             environment_.AddPublicEventPort(model_name_, external_port_label, addr_string);
         }
     }
+    */
     return publisher_addresses;
-}
-
-std::string Experiment::GetTaoReplierServerAddress(const NodeManager::Port& port){
-    std::unique_lock<std::mutex> lock(mutex_);
-    std::string server_address;
-
-    if(port.kind() == NodeManager::Port::REQUESTER){
-
-        //Get list of connected ports
-        auto replier_port_ids = connection_map_.at(port.info().id());
-
-        //Get those ports addresses
-        for(auto id : replier_port_ids){
-            auto& replier_port = port_map_.at(id);
-            auto node_ip = replier_port.node_ip;
-            auto port_assigned_port = replier_port.port_number;
-            auto port_server_name = replier_port.topic;
-            server_address = "corbaloc:iiop:" + node_ip + ":" + port_assigned_port + "/" +  port_server_name;
-        }
-    }
-
-    return server_address;
-}
-
-std::string Experiment::GetTaoServerName(const NodeManager::Port& port){
-    std::unique_lock<std::mutex> lock(mutex_);
-    if(port.kind() == NodeManager::Port::REQUESTER || port.kind() == NodeManager::Port::REPLIER){
-        //Get those ports addresses
-        auto& replier_port = port_map_.at(port.info().id());
-        return replier_port.topic;
-    }
-    return std::string();
-}
-
-
-std::string Experiment::GetOrbEndpoint(const std::string& port_id){
-    // auto node_ip = port_map_.at(port_id).node_ip;
-
-    // return node_ip + ":" + orb_port_map_.at(node_ip);
-    return "";
 }
 
 bool Experiment::IsDirty() const{
@@ -236,77 +197,89 @@ void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
     std::unique_lock<std::mutex> lock(mutex_);
     dirty_flag_ = false;
 
-    // while(!updated_port_ids_.empty()){
-    //     auto port_it = updated_port_ids_.begin();
-    //     auto port_external_id = *port_it;
-    //     std::string endpoint = environment_.GetPublicEventPortEndpoint(port_external_id);
-    //     updated_port_ids_.erase(port_it);
-
-    //     std::cout << "adding " << port_external_id << std::endl;
-    //     std::cout << "adding " << endpoint << std::endl;
-    //     auto port_internal_id = external_id_to_internal_id_map_.at(port_external_id);
-    //     std::cout << "adding " << port_internal_id << std::endl;
-
-    //     //Iterate through all ports and check for connections to updated ports.
-    //     //When we find one, add the new port endpoint to it's list of connecitons.
-    //     //XXX:this is pretty terrible...
-    //     for(int i = 0; i < deployment_message_.nodes_size(); i++){
-    //         std::cout << i << std::endl;
-    //         auto node = deployment_message_.nodes(i);
-    //         for(int j = 0; j < node.components_size(); j++){
-    //         std::cout << j << std::endl;
-    //             auto component = node.components(j);
-    //             for(int k = 0; k < component.ports_size(); k++){
-    //                 auto port = component.mutable_ports(k);
-    //         std::cout << k << std::endl;
-
-    //                 for(int l = 0; l < port->connected_external_ports_size(); l++){
-    //                     auto connected_port = port->connected_external_ports(l);
-    //                     std::cout << connected_port << std::endl;
-    //                     if(port_internal_id == connected_port){
-    //                         std::cout << "yes" << std::endl;
-    //                         for(int m = 0; m < port->attributes_size(); m++){
-
-    //                             auto attribute = port->mutable_attributes(m);
-    //                             if(attribute->info().name() == "publisher_address"){
-    //                                 std::cout << "adding" << endpoint << " to " << port->info().name()<< std::endl;
-    //                                 attribute->add_s(endpoint);
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     
     control_message.CopyFrom(deployment_message_);
     std::cout << control_message.DebugString() << std::endl;
 }
 
-std::string Experiment::GetNodeIpByName(const std::string& node_name){
-    try{
-        return node_address_map_.at(node_name);
+NodeManager::ControlMessage* Experiment::GetProto(){
+    NodeManager::ControlMessage* control_message = new NodeManager::ControlMessage();
+
+    control_message->set_experiment_id(model_name_);
+
+    for(auto& node_pair : node_map_){
+        if(node_pair.second->DeployedTo()){
+            std::cout << control_message->DebugString() << std::endl;
+            control_message->mutable_nodes()->AddAllocated(node_pair.second->GetProto());
+        }
     }
-    catch(const std::exception& ex){
-        throw std::runtime_error(model_name_ + " has no registered node: '" + node_name + "'");
-    }
+    auto master_ip_address_attribute = control_message->add_attributes();
+    auto master_ip_address_attribute_info = master_ip_address_attribute->mutable_info();
+    master_ip_address_attribute_info->set_name("master_ip_address");
+    master_ip_address_attribute->set_kind(NodeManager::Attribute::STRING);
+    master_ip_address_attribute->add_s(master_ip_address_);
+
+    auto master_publisher_port_attribute = control_message->add_attributes();
+    auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
+    master_publisher_port_attribute_info->set_name("master_publisher_endpoint");
+    master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
+    master_publisher_port_attribute->add_s(GetMasterPublisherAddress());
+
+    auto master_registration_port_attribute = control_message->add_attributes();
+    auto master_registration_port_attribute_info = master_registration_port_attribute->mutable_info();
+    master_registration_port_attribute_info->set_name("master_registration_endpoint");
+    master_registration_port_attribute->set_kind(NodeManager::Attribute::STRING);
+    master_registration_port_attribute->add_s(GetMasterRegistrationAddress());
+
+    return control_message;
 }
 
-void Experiment::AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint){
+void Experiment::AddModelLoggerEndpoint(const std::string& node_id, const std::string& endpoint){
+    modellogger_endpoint_map_.insert(std::make_pair(node_id, endpoint));
+}
 
+void Experiment::RemoveModelLoggerEndpoint(const std::string& node_id){
+
+}
+
+const std::unordered_map<std::string, std::string>& Experiment::GetModelLoggerEndpointMap() const{
+    return modellogger_endpoint_map_;
+}
+
+void Experiment::AddLoganClientEndpoint(const std::string& client_id, const std::string& endpoint){
+    logan_client_endpoint_map_.insert(std::make_pair(client_id, endpoint));
 }
 
 void Experiment::RemoveLoganClientEndpoint(const std::string& client_id){
 
 }
 
-void Experiment::AddZmqEndpoint(const std::string& port_id, const std::string& endpoint){
+const std::unordered_map<std::string, std::string>& Experiment::GetLoganClientEndpointMap() const{
+    return logan_client_endpoint_map_;
+}
 
+void Experiment::AddZmqEndpoint(const std::string& port_id, const std::string& endpoint){
+    zmq_endpoint_map_.insert(std::make_pair(port_id, endpoint));
 }
 
 void Experiment::RemoveZmqEndpoint(const std::string& port_id){
 
+}
+
+const std::unordered_map<std::string, std::string>& Experiment::GetZmqEndpointMap() const{
+    return zmq_endpoint_map_;
+}
+
+void Experiment::AddTaoEndpoint(const std::string& port_id, const std::string& endpoint){
+    tao_endpoint_map_.insert(std::make_pair(port_id, endpoint));
+}
+
+void Experiment::RemoveTaoEndpoint(const std::string& port_id){
+
+}
+
+const std::unordered_map<std::string, std::string>& Experiment::GetTaoEndpointMap() const{
+    return tao_endpoint_map_;
 }
 
 void Experiment::AddConnection(const std::string& connected_id, const std::string& port_id){
@@ -314,5 +287,5 @@ void Experiment::AddConnection(const std::string& connected_id, const std::strin
 }
 
 void Experiment::AddTopic(const std::string& topic){
-    
+
 }

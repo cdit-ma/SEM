@@ -25,6 +25,9 @@ class Logger{
         };
         Logger(Environment& environment, Node& parent, const NodeManager::Logger& logger);
         ~Logger();
+
+        void ConfigureConnections();
+
         std::string GetId() const;
         Logger::Type GetType() const;
 
@@ -60,6 +63,9 @@ class Logger{
         bool IsDirty();
 
         NodeManager::Logger* GetUpdate();
+
+        NodeManager::Logger* GetProto();
+
 
         NodeManager::Logger* GetDeploymentMessage() const;
 
