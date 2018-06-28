@@ -15,7 +15,7 @@ node("master"){
 
 def builder_map = [:]
 def test_map = [:]
-def builder_nodes = utils.getLabelledNodes("builder")
+def builder_nodes = nodesByLabel("builder")
 
 if(builder_nodes.size() == 0){
     error('Cannot find any builder nodes.')
