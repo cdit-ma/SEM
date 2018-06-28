@@ -131,11 +131,13 @@ void Port::AddAttribute(const NodeManager::Attribute& attribute){
 }
 
 void Port::UpdateExternalEndpoints(){
-    for(const auto& external_connected_port_id : connected_external_port_ids_){
-        auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
-        if(environment_.HasPublicEventPort(external_port_label)){
-            SetDirty();
-            AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+    if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
+        for(const auto& external_connected_port_id : connected_external_port_ids_){
+            auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
+            if(environment_.HasPublicEventPort(external_port_label)){
+                SetDirty();
+                AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+            }
         }
     }
 }

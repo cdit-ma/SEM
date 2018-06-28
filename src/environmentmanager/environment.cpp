@@ -94,18 +94,11 @@ void Environment::RemoveLoganClientServer(const std::string& model_name, const s
 
 }
 
-void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
-    std::string experiment_name = control_message.experiment_id();
-    if(experiment_name.empty()){
+void Environment::FinishConfigure(const std::string& experiment_id){
+    if(!experiment_map_.count(experiment_id)){
         return;
     }
-
-    if(!experiment_map_.count(experiment_name)){
-        return;
-    }
-
-    experiment_map_.at(experiment_name)->SetDeploymentMessage(control_message);
-    experiment_map_.at(experiment_name)->SetConfigureDone();
+    experiment_map_.at(experiment_id)->SetConfigureDone();
 }
 
 void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){

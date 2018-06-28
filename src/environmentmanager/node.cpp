@@ -117,6 +117,7 @@ void Node::AddAttribute(const NodeManager::Attribute& attribute){
 
 void Node::SetDirty(){
     dirty_ = true;
+    GetExperiment().SetDirty();
 }
 
 bool Node::IsDirty(){

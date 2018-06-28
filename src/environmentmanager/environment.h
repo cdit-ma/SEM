@@ -33,7 +33,7 @@ class Environment{
 
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
 
-        void StoreControlMessage(const NodeManager::ControlMessage& control_message);
+        void FinishConfigure(const std::string& model_name);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
         void DeclusterNode(NodeManager::Node& message);

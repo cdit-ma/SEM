@@ -185,18 +185,26 @@ bool Experiment::IsDirty() const{
     return dirty_flag_;
 }
 
+void Experiment::SetDirty(){
+    dirty_flag_ = true;
+}
+
 void Experiment::UpdatePort(const std::string& external_port_label){
 
-    if(external_id_to_internal_id_map_.count(external_port_label)){
-        std::string internal_id = external_id_to_internal_id_map_.at(external_port_label);
+    if(configure_done_){
 
-        const auto& external_port = external_port_map_.at(internal_id);
-        auto local_port_update_ids = external_port->connected_ports;
+        if(external_id_to_internal_id_map_.count(external_port_label)){
+            std::string internal_id = external_id_to_internal_id_map_.at(external_port_label);
 
-        for(const auto& update_id : local_port_update_ids){
-            GetPort(update_id).UpdateExternalEndpoints();
+            const auto& external_port = external_port_map_.at(internal_id);
+            auto local_port_update_ids = external_port->connected_ports;
+
+            for(const auto& update_id : local_port_update_ids){
+                GetPort(update_id).UpdateExternalEndpoints();
+            }
         }
     }
+
 }
 
 Port& Experiment::GetPort(const std::string& id){
@@ -205,7 +213,7 @@ Port& Experiment::GetPort(const std::string& id){
             return node_pair.second->GetPort(id);
         }
     }
-    throw std::out_of_range("Experiment::GetPort: " + id);
+    throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
 std::string Experiment::GetPublicEventPortName(const std::string& public_port_local_id){

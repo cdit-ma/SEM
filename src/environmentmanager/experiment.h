@@ -68,6 +68,8 @@ class Experiment{
 
 
         bool IsDirty() const;
+        void SetDirty();
+
 
         void UpdatePort(const std::string& external_port_label);
 

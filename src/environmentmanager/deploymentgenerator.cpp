@@ -27,6 +27,7 @@ NodeManager::ControlMessage* DeploymentGenerator::PopulateDeployment(NodeManager
     environment_.ConfigureNodes(experiment_id);
 
     NodeManager::ControlMessage* configured_message = environment_.GetProto(experiment_id);
+    environment_.FinishConfigure(experiment_id);
 
     std::cout << configured_message->DebugString() << std::endl;
 
