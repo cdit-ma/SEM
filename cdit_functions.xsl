@@ -1833,7 +1833,13 @@
 
         <!-- Get the Type and Namespace of the Aggregate -->
         <xsl:variable name="aggregate_def" select="graphml:get_definition($aggregate)" />
-        <xsl:variable name="namespace" select="graphml:get_namespace($aggregate_def)" />
+
+        <xsl:variable name="namespace">
+            <xsl:if test="lower-case($middleware) != 'base'">
+                <xsl:value-of select="cpp:get_aggregate_type_name($aggregate_def)" />
+            </xsl:if>
+        </xsl:variable>
+
         <xsl:variable name="type" select="cpp:get_aggregate_type_name($aggregate_def)" />
 
         <xsl:value-of select="lower-case(o:join_list(($namespace, $type), '_'))" />
