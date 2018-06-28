@@ -1881,7 +1881,7 @@
 
         <xsl:variable name="namespace">
             <xsl:if test="lower-case($middleware) != 'base'">
-                <xsl:value-of select="cpp:get_aggregate_type_name($aggregate_def)" />
+                <xsl:value-of select="graphml:get_namespace($aggregate_def)" />
             </xsl:if>
         </xsl:variable>
 
