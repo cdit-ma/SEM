@@ -40,7 +40,7 @@ class Node{
         std::string GetManagementPort() const;
         std::string GetModelLoggerPort() const;
         bool HasOrbPort() const;
-        std::string GetOrbPort() const;
+        std::string GetOrbPort();
         std::vector<std::string> GetAllPublisherPorts() const;
         std::vector<std::string> GetAllLoggingPorts() const;
 

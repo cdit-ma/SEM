@@ -27,12 +27,14 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
             std::string endpoint = "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
             GetExperiment().AddZmqEndpoint(id_, endpoint);
             endpoints_.insert(endpoint);
+
+            //if this port is connected to any external ports, update them to have this endpoint
+            for(int i = 0; i < port.connected_external_ports_size(); i++){
+                GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
+            }
         }
     }
     if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
-        if(!GetNode().HasOrbPort()){
-            GetNode().SetOrbPort(environment_.GetPort(GetNode().GetIp()));
-        }
         SetPublisherPort(GetNode().GetOrbPort());
         std::string topic = GetName() + "_" + GetId();
         SetTopic(topic);
@@ -40,6 +42,12 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         if(kind_ == Kind::Replier){
             std::string endpoint = "corbaloc:iiop:" + GetNode().GetIp() + ":" + GetPublisherPort() + "/" + topic;
             GetExperiment().AddTaoEndpoint(id_, endpoint);
+            endpoints_.insert(endpoint);
+
+            //if this port is connected to any external ports, update them to have this endpoint
+            for(int i = 0; i < port.connected_external_ports_size(); i++){
+                GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
+            }
         }
     }
 
@@ -62,10 +70,14 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         }
     }
 
-    for(int k = 0; k < port.connected_ports_size(); k++){
-        auto connected_id = port.connected_ports(k);
+    for(int i = 0; i < port.connected_ports_size(); i++){
+        auto connected_id = port.connected_ports(i);
         AddConnectedPortId(connected_id);
-        //connection_map_[connected_id].push_back(GetId());
+        GetExperiment().AddConnection(connected_id, id_);
+    }
+    for(int i = 0; i < port.connected_external_ports_size(); i++){
+        auto connected_id = port.connected_external_ports(i);
+        AddExternalConnectedPortId(connected_id);
         GetExperiment().AddConnection(connected_id, id_);
     }
 }
@@ -73,7 +85,7 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 Port::~Port(){
     if(middleware_ == Middleware::Zmq && 
         (kind_ == Kind::Publisher || kind_ == Kind::Replier)){
-        environment_.FreePort(GetNode().GetId(), publisher_port_);
+        environment_.FreePort(GetNode().GetIp(), publisher_port_);
         GetExperiment().RemoveZmqEndpoint(id_);
     }
 }
@@ -103,12 +115,29 @@ void Port::ConfigureConnections(){
             }
         }
     }
+
+    for(const auto& external_connected_port_id : connected_external_port_ids_){
+        auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
+        if(environment_.HasPublicEventPort(external_port_label)){
+            AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+        }
+    }
 }
 
 void Port::AddAttribute(const NodeManager::Attribute& attribute){
     attributes_.insert(std::make_pair(attribute.info().id(), 
             std::unique_ptr<EnvironmentManager::Attribute>(
                 new EnvironmentManager::Attribute(attribute))));
+}
+
+void Port::UpdateExternalEndpoints(){
+    for(const auto& external_connected_port_id : connected_external_port_ids_){
+        auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
+        if(environment_.HasPublicEventPort(external_port_label)){
+            SetDirty();
+            AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+        }
+    }
 }
 
 std::string Port::GetId() const{
@@ -188,6 +217,7 @@ NodeManager::Port* Port::GetUpdate(){
 
     if(dirty_){
         port = GetProto();
+        dirty_ = false;
     }
     return port;
 }
@@ -208,7 +238,7 @@ NodeManager::Port* Port::GetProto(){
     }
 
     for(const auto& external_port : connected_external_port_ids_){
-        port->add_connected_ports(external_port);
+        port->add_connected_external_ports(external_port);
     }
 
     switch(middleware_){

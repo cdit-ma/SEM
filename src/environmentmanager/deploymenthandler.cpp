@@ -224,13 +224,8 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 }
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
-    
     message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-
-    auto update_message = message.mutable_control_message();
-
-    environment_.GetExperimentUpdate(experiment_id_, *update_message);
-
+    message.set_allocated_control_message(environment_.GetExperimentUpdate(experiment_id_));
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){

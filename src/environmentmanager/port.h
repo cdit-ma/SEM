@@ -54,6 +54,7 @@ class Port{
         void ConfigureConnections();
         void AddAttribute(const NodeManager::Attribute& attribute);
 
+        void UpdateExternalEndpoints();
 
         bool IsConnectedTo(const std::string& port_id) const;
 

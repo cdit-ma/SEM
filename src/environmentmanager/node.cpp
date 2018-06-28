@@ -42,13 +42,15 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
 }
 
 Node::~Node(){
-    //Free node's management port
-    environment_.FreePort(ip_, GetManagementPort());
-    //Free node's logger port
-    environment_.FreePort(ip_, GetModelLoggerPort());
-    //Free node's orb port
-    if(HasOrbPort()){
-        environment_.FreePort(ip_, GetOrbPort());
+    if(DeployedTo()){
+        //Free node's management port
+        environment_.FreePort(ip_, GetManagementPort());
+        //Free node's logger port
+        environment_.FreePort(ip_, GetModelLoggerPort());
+        //Free node's orb port
+        if(HasOrbPort()){
+            environment_.FreePort(ip_, GetOrbPort());
+        }
     }
 }
 
@@ -84,7 +86,10 @@ std::string Node::GetModelLoggerPort() const {
 bool Node::HasOrbPort() const{
     return !orb_port_.empty();
 }
-std::string Node::GetOrbPort() const {
+std::string Node::GetOrbPort(){
+    if(!HasOrbPort()){
+        orb_port_ = environment_.GetPort(ip_);
+    }
     return orb_port_;
 }
 

@@ -10,10 +10,12 @@
 namespace EnvironmentManager{
 class Environment;
 class Node;
+class Port;
 struct ExternalPort{
     std::string id;
     std::string external_label;
-    std::vector<std::string> connected_ports;
+    std::set<std::string> connected_ports;
+    std::string endpoint;
 
     bool is_blackbox = false;
 };
@@ -60,12 +62,17 @@ class Experiment{
         std::string GetTaoReplierServerAddress(const NodeManager::Port& port);
         std::string GetTaoServerName(const NodeManager::Port& port);
 
+        std::string GetPublicEventPortName(const std::string& public_port_local_id);
+
+        Port& GetPort(const std::string& id);
+
+
         bool IsDirty() const;
 
-        void UpdatePort(const std::string& port_guid);
+        void UpdatePort(const std::string& external_port_label);
 
         void SetDeploymentMessage(const NodeManager::ControlMessage& control_message);
-        void GetUpdate(NodeManager::ControlMessage& control_message);
+        NodeManager::ControlMessage* GetUpdate();
 
         void AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint);
         void RemoveLoganClientEndpoint(const std::string& client_id);
@@ -85,6 +92,9 @@ class Experiment{
 
         void AddConnection(const std::string& connected_id, const std::string& port_id);
         void AddTopic(const std::string& topic);
+
+        void AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
+
 
 
     private:

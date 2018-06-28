@@ -91,9 +91,10 @@ NodeManager::Component* Component::GetUpdate(){
             component->mutable_ports()->AddAllocated(port.second->GetUpdate());
         }
 
-        // for(const auto& attribute : attributes_){
-        //     std::cout << "fill attributes" <<std::endl;
-        // }
+        for(const auto& attribute : attributes_){
+            component->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+        }
+        dirty_ = false;
     }
     return component;
 }

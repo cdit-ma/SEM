@@ -43,7 +43,7 @@ class Environment{
         NodeManager::ControlMessage* GetProto(const std::string& model_name);
 
         bool ExperimentIsDirty(const std::string& model_name);
-        void GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message);
+        NodeManager::ControlMessage* GetExperimentUpdate(const std::string& model_name);
 
         bool ModelNameExists(const std::string& model_name) const;
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;

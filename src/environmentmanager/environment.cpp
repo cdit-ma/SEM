@@ -367,9 +367,9 @@ bool Environment::ExperimentIsDirty(const std::string& model_name){
     }
 }
 
-void Environment::GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message){
+NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string& model_name){
     try{
-        experiment_map_.at(model_name)->GetUpdate(control_message);
+        return experiment_map_.at(model_name)->GetUpdate();
     }catch(const std::out_of_range& ex){
         throw std::invalid_argument("Model named " + model_name + " not found in Environment::GetExperimentUpdate.");
     }
@@ -396,11 +396,8 @@ void Environment::AddPublicEventPort(const std::string& model_name, const std::s
     public_event_port_map_.at(port_id)->guid = port_id;
     public_event_port_map_.at(port_id)->endpoint = address;
 
-    if(pending_port_map_.count(port_id)){
-        for(auto experiment_id : pending_port_map_.at(port_id)){
-            experiment_map_.at(experiment_id)->UpdatePort(port_id);
-        }
-        //pending_port_map_.erase(port_id);
+    for(const auto& experiment_pair : experiment_map_){
+        experiment_pair.second->UpdatePort(port_id);
     }
 
     if(!dependent_experiment_map_.count(port_id)){

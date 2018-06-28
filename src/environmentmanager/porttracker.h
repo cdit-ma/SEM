@@ -48,7 +48,7 @@ class PortTracker{
                 }
             }
             catch(const std::invalid_argument& ex){
-                std::cerr << "Could not free port <\'" << port <<"\'>, port string could not be converted to int." << std::endl;
+                std::cerr << "Could not free port <\'" << port <<"\'> from ip <\'" << ip_ <<"\'>, port string could not be converted to int." << std::endl;
                 std::cerr << ex.what() << std::endl;
             }
             catch(const std::out_of_range& ex){

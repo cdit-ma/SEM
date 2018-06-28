@@ -1,6 +1,7 @@
 #include "experiment.h"
 #include "environment.h"
 #include "node.h"
+#include "port.h"
 
 using namespace EnvironmentManager;
 
@@ -56,7 +57,7 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         temp->id = external_port.info().id();
         temp->external_label = external_port.info().name();
         for(const auto& connected_port_id : external_port.connected_ports()){
-            temp->connected_ports.push_back(connected_port_id);
+            temp->connected_ports.insert(connected_port_id);
         }
         temp->is_blackbox = external_port.is_blackbox();
         external_port_map_[external_port.info().id()] = std::unique_ptr<ExternalPort>(temp);
@@ -184,22 +185,55 @@ bool Experiment::IsDirty() const{
     return dirty_flag_;
 }
 
-void Experiment::UpdatePort(const std::string& port_guid){
-    dirty_flag_ = true;
-    updated_port_ids_.insert(port_guid);
+void Experiment::UpdatePort(const std::string& external_port_label){
+
+    if(external_id_to_internal_id_map_.count(external_port_label)){
+        std::string internal_id = external_id_to_internal_id_map_.at(external_port_label);
+
+        const auto& external_port = external_port_map_.at(internal_id);
+        auto local_port_update_ids = external_port->connected_ports;
+
+        for(const auto& update_id : local_port_update_ids){
+            GetPort(update_id).UpdateExternalEndpoints();
+        }
+    }
+}
+
+Port& Experiment::GetPort(const std::string& id){
+    for(const auto& node_pair : node_map_){
+        if(node_pair.second->HasPort(id)){
+            return node_pair.second->GetPort(id);
+        }
+    }
+    throw std::out_of_range("Experiment::GetPort: " + id);
+}
+
+std::string Experiment::GetPublicEventPortName(const std::string& public_port_local_id){
+    if(external_port_map_.count(public_port_local_id)){
+        return external_port_map_.at(public_port_local_id)->external_label;
+    }
+    return std::string();
 }
 
 void Experiment::SetDeploymentMessage(const NodeManager::ControlMessage& control_message){
     deployment_message_ = NodeManager::ControlMessage(control_message);
 }
 
-void Experiment::GetUpdate(NodeManager::ControlMessage& control_message){
+NodeManager::ControlMessage* Experiment::GetUpdate(){
     std::unique_lock<std::mutex> lock(mutex_);
     dirty_flag_ = false;
 
-    
-    control_message.CopyFrom(deployment_message_);
-    std::cout << control_message.DebugString() << std::endl;
+    NodeManager::ControlMessage* control_message = new NodeManager::ControlMessage();
+    control_message->set_experiment_id(model_name_);
+
+    for(auto& node_pair : node_map_){
+        if(node_pair.second->DeployedTo()){
+            control_message->mutable_nodes()->AddAllocated(node_pair.second->GetUpdate());
+        }
+    }
+
+    std::cout << control_message->DebugString() << std::endl;
+    return control_message;
 }
 
 NodeManager::ControlMessage* Experiment::GetProto(){
@@ -287,4 +321,12 @@ void Experiment::AddConnection(const std::string& connected_id, const std::strin
 
 void Experiment::AddTopic(const std::string& topic){
 
+}
+
+void Experiment::AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint){
+    if(external_port_map_.count(external_port_internal_id)){
+        const auto& external_port = external_port_map_.at(external_port_internal_id);
+        environment_.AddPublicEventPort(model_name_, external_port->external_label, endpoint);
+        external_port->endpoint = endpoint;
+    }
 }
