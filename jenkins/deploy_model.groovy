@@ -69,16 +69,11 @@ node(builder_nodes[0]){
             def saxon_call = 'java -jar ' + re_gen_path + '/saxon.jar -xsl:' + re_gen_path
             def file_parameter = ' -s:' + MODEL_FILE
             
-            def run_type_gen = saxon_call + '/g2datatypes.xsl' + file_parameter
-            def run_components_gen = saxon_call + '/g2components.xsl' + file_parameter
-            def run_validation = saxon_call + '/g2validate.xsl' + file_parameter + ' write_file=true'
+            def run_generation = saxon_call + '/generate_project.xsl' + file_parameter
+            def run_validation = saxon_call + '/generate_validation.xsl' + file_parameter + ' write_file=true'
 
-            if(utils.runScript(run_type_gen) != 0){
-                error('Datatype code generation failed.')
-            }
-
-            if(utils.runScript(run_components_gen) != 0){
-                error('Components code generation failed.')
+            if(utils.runScript(run_generation) != 0){
+                error('Project code generation failed.')
             }
 
             if(utils.runScript(run_validation) != 0){
