@@ -17,6 +17,9 @@ add_subdirectory("${GOOGLE_TEST_DIR}")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/workers")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
 
-
+if(BUILD_REGEN_TEST)
+	message(STATUS "Building re_gen tests")
+	#Build the test
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
+endif(BUILD_REGEN_TEST)
