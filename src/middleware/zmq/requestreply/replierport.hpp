@@ -18,7 +18,7 @@ namespace zmq{
         friend class RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>;
         
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
@@ -54,12 +54,18 @@ namespace zmq{
     struct RequestHandler<void, void, BaseRequestType, ProtoRequestType>{
         static void Loop(ThreadManager& thread_manager, zmq::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port, const std::string terminate_address, const std::string server_address);
     };
+
+    //Specialised templated RequesterHandler for void requesting
+    template <class BaseReplyType, class ProtoReplyType>
+    struct RequestHandler<BaseReplyType, ProtoReplyType, void, void>{
+        static void Loop(ThreadManager& thread_manager, zmq::ReplierPort<BaseReplyType, ProtoReplyType, void, void>& port, const std::string terminate_address, const std::string server_address);
+    };
 };
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
-::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "zmq"){
+zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper):
+::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, callback_wrapper, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";
     auto component_id = component_ ? component_->get_id() : "??";
@@ -265,6 +271,70 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
                     port.ProcessRequest(*base_request_ptr);
                     //Send reply
                     socket.send(String2Zmq(""));
+                }catch(const zmq::error_t& ex){
+                    Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
+                    break;
+                }
+            }
+            //Log that the port has been passivated
+            port.LogPassivation();
+        }
+    }
+    thread_manager.Thread_Terminated();
+};
+
+
+
+//Specialised templated RequestHandler for void returning
+template <class BaseReplyType, class ProtoReplyType>
+void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(ThreadManager& thread_manager, zmq::ReplierPort<BaseReplyType, ProtoReplyType, void, void>& port, const std::string terminate_address, const std::string server_address){
+    auto socket = ZmqHelper::get_zmq_helper()->get_reply_socket();
+    bool success = true;
+    try{
+        //Bind the Terminate address
+        socket.bind(terminate_address.c_str());
+    }catch(const zmq::error_t& ex){
+        std::cerr << "ERR" << std::endl;
+        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind terminate endpoint: '" + terminate_address + "' " + ex.what());
+        success = false;
+    }
+
+    try{
+        //Bind the Outgoing address
+        socket.bind(server_address.c_str());
+    }catch(const zmq::error_t& ex){
+        std::cerr << "ERR" << std::endl;
+        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg("Cannot bind endpoint: '" + server_address + "' " + ex.what());
+        success = false;
+    }
+
+    if(success){
+        //XXX: DO NOT REMOVE THE SLEEP ZMQ NEEDS HIS REST
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        thread_manager.Thread_Configured();
+
+        if(thread_manager.Thread_WaitForActivate()){
+            thread_manager.Thread_Activated();
+            while(true){
+                try{
+                    //Wait for next message
+                    zmq::message_t zmq_request;
+                    socket.recv(&zmq_request);
+
+                    const auto& request_str = Zmq2String(zmq_request);
+                    
+                    if(request_str == port.terminate_str){
+                        //Send back a Terminate
+                        socket.send(zmq_request);
+                        break;
+                    }
+                    
+                    //Call through the base ProcessRequest function, which calls any attached callback
+                    auto base_reply = port.ProcessRequest();
+                    auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                    
+                    //Send reply
+                    socket.send(String2Zmq(reply_str));
                 }catch(const zmq::error_t& ex){
                     Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
                     break;

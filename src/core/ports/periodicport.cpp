@@ -20,7 +20,7 @@
 //TODO: LOOKUP Leaky bucket model
 //TODO: HANDLE Frequency <= 5000hz
 
-PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string& name, std::function<void(BaseMessage&)> callback, int milliseconds)
+PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds)
 : ::SubscriberPort<BaseMessage>(component, name, callback, "periodic"){
     //Force set the kind
     SetKind(Port::Kind::PERIODIC);

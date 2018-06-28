@@ -8,12 +8,11 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-SET(RE_VERSION "3.0.2")
+SET(RE_VERSION "3.0.4")
 
 option(BUILD_TEST "Build testing" OFF)
 
-
-#Get the RE_PATH
+#Get the RE_PATHRE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 #Set the RE_GEN_PATH
 set(REGEN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_gen")

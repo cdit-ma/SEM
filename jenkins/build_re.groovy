@@ -2,58 +2,67 @@ def PROJECT_NAME = 'test_re'
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
-
 def utils = new Utils(this);
 
-stage("Checkout"){
-    node("master"){
+node("master"){
+    stage("Checkout"){
         dir(PROJECT_NAME){
             checkout scm
+            stash includes: "**", name: "source_code"
         }
-        stash includes: "**", name: "source_code"
     }
 }
 
-def step_build_test = [:]
-def step_test = [:]
+def builder_map = [:]
+def test_map = [:]
+def builder_nodes = utils.getLabelledNodes("builder")
 
-def re_nodes = utils.getLabelledNodes("builder")
-for(n in re_nodes){
+if(builder_nodes.size() == 0){
+    error('Cannot find any builder nodes.')
+}
+
+//Construct a builder map
+for(n in builder_nodes){
     def node_name = n
 
-    step_build_test[node_name] = {
+    builder_map[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "/bin"){
-                // Prune old bin
-                deleteDir()
-            }
-            dir(PROJECT_NAME + "/lib"){
-                // Prune old lib
-                deleteDir()
-            }
-            unstash "source_code"
-            generator = "Ninja"
-            build_dir = PROJECT_NAME + "/build_" + generator
-            
-            dir(build_dir){
-                //Build the entire project 
-                def success = utils.buildProject(generator, "-DBUILD_TEST=ON")
-                if(!success){
-                    error("Cannot Compile")
+            dir(PROJECT_NAME){
+                dir("bin"){
+                    deleteDir()
+                }
+                dir("lib"){
+                    deleteDir()
+                }
+
+                //Unstash the code
+                unstash name: "source_code"
+                
+                dir("build"){
+                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
+                        error("CMake failed on Builder Node: " + node_name)
+                    }
                 }
             }
         }
     }
 
-    step_test[node_name] = {
+    test_map[node_name] = {
         node(node_name){
-            path = "${PATH}"
-            //Append bin and lib directories for this build of re into the path for windows to find dlls
-            abs_re_path = pwd() + "/" + PROJECT_NAME + "/"
-            path = abs_re_path + "bin;" + abs_re_path + "lib;" + path
+            def RE_PATH = pwd() + "/" + PROJECT_NAME
+            def RE_LIB_PATH = RE_PATH + "/lib"
+            def env_vars = []
+            
+            if(isUnix()){
+                //SET LD_LIBRARY_PATH to force the linker to find this projects libraries
+                env_vars += "LD_LIBRARY_PATH=" + RE_LIB_PATH + ":$LD_LIBRARY_PATH"
+            }else{
+                //SET PATH to force the linker to find this projects libraries
+                env_vars += "PATH=" + RE_LIB_PATH + ":$PATH"
+            }
 
-            withEnv(['path=' + path]){
-                dir(PROJECT_NAME + "/bin/test"){
+            withEnv(env_vars){
+                dir(RE_PATH + "/bin/test"){
                     def globstr = "test_*"
                     if(!isUnix()){
                         //If windows search for exe only
@@ -62,10 +71,7 @@ for(n in re_nodes){
 
                     //Find all executables
                     def test_list = findFiles glob: globstr
-
-                    def test_count = 0;
-                    def test_error_count = 0;
-
+                    
                     dir("results"){
                         for(def file : test_list){
                             def file_path = file.name
@@ -76,10 +82,10 @@ for(n in re_nodes){
 
                             if(test_error_code != 0){
                                 print("Test: " + file_path + " Failed!")
-                                currentBuild.result = 'FAILURE'
                             }
                         }
-                        stash includes: "*.xml", name: node_name + "_test_cases"
+                        def stash_name = node_name + "_test_cases"
+                        stash includes: "*.xml", name: stash_name, allowEmpty: true
                         //Clean up the directory after
                         deleteDir()
                     }
@@ -90,29 +96,35 @@ for(n in re_nodes){
 }
 
 stage("Build"){
-    parallel step_build_test
+    parallel builder_map
 }
+
 stage("Test"){
-    parallel step_test
+    parallel test_map
 }
 
+//Collate Results
 node("master"){
-    dir("test_cases"){
-        for(n in re_nodes){
-            unstash(n + "_test_cases")
-        }
+    stage("Collate"){
+        dir("test_cases"){
+            for(n in builder_nodes){
+                def node_name = n
+                def stash_name = node_name + "_test_cases"
+                unstash stash_name
+            }
 
-        def globstr = "**.xml"
-        def test_results = findFiles glob: globstr
-        for (int i = 0; i < test_results.size(); i++){
-            def file_path = test_results[i].name
-            junit file_path
+            def globstr = "**.xml"
+            def test_results = findFiles glob: globstr
+            for (int i = 0; i < test_results.size(); i++){
+                def file_path = test_results[i].name
+                junit file_path
+            }
+            
+            //Test cases
+            def test_archive = "test_results.zip"
+            zip glob: globstr, zipFile: test_archive
+            archiveArtifacts test_archive
+            deleteDir()
         }
-        
-        //Test cases
-        def test_archive = "test_results.zip"
-        zip glob: globstr, zipFile: test_archive
-        archiveArtifacts test_archive
-        deleteDir()
     }
 }

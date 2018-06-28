@@ -25,9 +25,11 @@ PortType* ConstructSubscriberPort(const std::string& port_name, std::weak_ptr<Co
     static_assert(std::is_base_of<SubscriberPort<typename PortType::base_type>, PortType>::value, "PortType must inherit from SubscriberPort");
     auto component_sp = component.lock();
 	if(component_sp){
-        auto callback_wrapper = component_sp->GetCallback<void, typename PortType::base_type>(port_name);
-        if(callback_wrapper){
-            return new PortType(component, port_name, callback_wrapper->callback_fn);
+        try{
+            const auto& callback_wrapper = component_sp->GetCallback<void, typename PortType::base_type>(port_name);
+            return new PortType(component, port_name, callback_wrapper);
+        }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
         }
     }
     return nullptr;
@@ -50,9 +52,11 @@ PortType* ConstructReplierPort(const std::string& port_name, std::weak_ptr<Compo
     static_assert(std::is_base_of<ReplierPort<typename PortType::base_reply_type, typename PortType::base_request_type>, PortType>::value, "PortType must inherit from ReplierPort");
     auto component_sp = component.lock();
 	if(component_sp){
-        auto callback_wrapper = component_sp->GetCallback<typename PortType::base_reply_type, typename PortType::base_request_type>(port_name);
-        if(callback_wrapper){
-            return new PortType(component, port_name, callback_wrapper->callback_fn);
+        try{
+            const auto& callback_wrapper = component_sp->GetCallback<typename PortType::base_reply_type, typename PortType::base_request_type>(port_name);
+            return new PortType(component, port_name, callback_wrapper);
+        }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
         }
     }
     return nullptr;

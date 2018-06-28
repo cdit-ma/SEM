@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_qpid)
+set(PROJ_NAME test_qpid_pubsub)
 project(${PROJ_NAME})
 
 #Find protobuf
@@ -14,9 +14,11 @@ if(NOT QPID_FOUND)
 endif()
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/qpidtest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
-add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
+
+add_executable(${PROJ_NAME} ${SOURCE})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${QPID_INCLUDE_DIRS})

@@ -1,0 +1,25 @@
+/// Put the interfaces in a module, to avoid global namespace pollution
+struct Basic{
+    long int_val; //@key
+    string str_val;
+    string guid_val;
+};
+
+/// A very simple interface
+interface Basic2Void
+{
+	void send(in Basic message);
+};
+
+/// A very simple interface
+interface Void2Basic
+{
+	Basic send();
+};
+
+/// A very simple interface
+interface Basic2Basic
+{
+	Basic send(in Basic message);
+};
+

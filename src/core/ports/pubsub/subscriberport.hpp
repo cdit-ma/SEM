@@ -17,7 +17,7 @@
 template <class BaseType>
 class SubscriberPort : public Port{
     public:
-        SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseType&) > callback_function, const std::string& middleware);
+        SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<void, BaseType>& callback_wrapper, const std::string& middleware);
         ~SubscriberPort();
         void SetMaxQueueSize(const int max_queue_size);
 
@@ -33,7 +33,7 @@ class SubscriberPort : public Port{
         bool rx(BaseType* t, bool process_message = true);
         void receive_loop();
     private:
-        std::function<void (BaseType&) > callback_function_;
+        const CallbackWrapper<void, BaseType>& callback_wrapper_;
 
         
         //Queue Mutex responsible for these Variables
@@ -63,13 +63,11 @@ class SubscriberPort : public Port{
 };
 
 template <class BaseType>
-SubscriberPort<BaseType>::SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (BaseType&) > callback_function, const std::string& middleware)
-:Port(component, port_name, Port::Kind::SUBSCRIBER, middleware){
-    if(callback_function){
-        callback_function_ = callback_function;
-    }else{
-        Log(Severity::WARNING).Msg("Got a null callback function").Context(this).Func(GET_FUNC);
-    }
+SubscriberPort<BaseType>::SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<void, BaseType>& callback_wrapper, const std::string& middleware)
+:Port(component, port_name, Port::Kind::SUBSCRIBER, middleware),
+callback_wrapper_(callback_wrapper)
+{
+
 };
 
 template <class BaseType>
@@ -143,12 +141,12 @@ template <class BaseType>
 bool SubscriberPort<BaseType>::rx(BaseType* t, bool process_message){
     if(t){
         //Only process the message if we are running and we have a callback, and we aren't meant to ignore
-        process_message &= is_running() && callback_function_;
+        process_message &= is_running() && callback_wrapper_.callback_fn;
 
         if(process_message){
             //Call into the function and log
             logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::STARTED_FUNC);
-            callback_function_(*t);
+            callback_wrapper_.callback_fn(*t);
             logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
         }
 

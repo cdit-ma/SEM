@@ -26,7 +26,7 @@ namespace qpid{
         //The Request Handle needs to be able to modify and change state of the Port
         friend class RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>;
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
@@ -61,14 +61,18 @@ namespace qpid{
     struct RequestHandler<void, void, BaseRequestType, ProtoRequestType>{
         static void Loop(ThreadManager& thread_manager, qpid::ReplierPort<void, void, BaseRequestType, ProtoRequestType>& port);
     };
+
+    //Specialised templated RequesterHandler for void returning
+    template <class BaseReplyType, class ProtoReplyType>
+    struct RequestHandler<BaseReplyType, ProtoReplyType, void, void>{
+        static void Loop(ThreadManager& thread_manager, qpid::ReplierPort<BaseReplyType, ProtoReplyType, void, void>& port);
+    };
 };
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
-::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "qpid"){
-    auto component_ = component.lock();
-
+qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper):
+::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, callback_wrapper, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };
@@ -251,6 +255,64 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
                         //Send a blank reply
                         auto reply_sender = session.createSender(address);
                         reply_sender.send(qpid::messaging::Message(""));
+                        session.acknowledge();
+                    }
+                }catch(const std::exception& ex){
+                    Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
+                    break;
+                }
+            }
+        }
+        //Log that the port has been passivated
+        port.LogPassivation();
+    }
+    thread_manager.Thread_Terminated();
+};
+
+
+//Specialised templated RequestHandler for void requesting
+template <class BaseReplyType, class ProtoReplyType>
+void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(ThreadManager& thread_manager, qpid::ReplierPort<BaseReplyType, ProtoReplyType, void, void>& port){
+    bool success = true;
+
+    qpid::messaging::Session session;
+    qpid::messaging::Receiver receiver;
+
+    const auto& broker_address = port.broker_->String();
+    const auto& topic_name = port.topic_name_->String();
+
+    try{
+        std::lock_guard<std::mutex> lock(port.connection_mutex_);
+        //Construct a Qpid Connection
+        port.connection_ = qpid::messaging::Connection(broker_address);
+        //Open the connection
+        port.connection_.open();
+        session = port.connection_.createSession();
+        receiver = session.createReceiver("amq.topic/reqrep/"  + topic_name);
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
+        success = false;
+    }
+    
+    if(success){
+        thread_manager.Thread_Configured();
+
+        if(thread_manager.Thread_WaitForActivate()){
+            thread_manager.Thread_Activated();
+            while(true){
+                try{
+                    //Wait for next message
+                    auto request = receiver.fetch();
+                    
+                    const auto& address = request.getReplyTo();
+                    if(address){
+                        //Call through the base ProcessRequest function, which calls any attached callback
+                        auto base_reply = port.ProcessRequest();
+                        auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+
+                        //Create a Sender to send back
+                        auto reply_sender = session.createSender(address);
+                        reply_sender.send(qpid::messaging::Message(reply_str));
                         session.acknowledge();
                     }
                 }catch(const std::exception& ex){

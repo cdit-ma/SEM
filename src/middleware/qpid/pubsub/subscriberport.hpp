@@ -29,7 +29,7 @@ namespace qpid{
     template <class BaseType, class ProtoType> class SubscriberPort: public ::SubscriberPort<BaseType>{
         friend class SubscriberHandler<BaseType, ProtoType>;
         public:
-            SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function);
+            SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType>& callback_wrapper);
             ~SubscriberPort(){
                 Activatable::Terminate();
             }
@@ -64,8 +64,8 @@ namespace qpid{
 };
 
 template <class BaseType, class ProtoType>
-qpid::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, std::function<void (BaseType&) > callback_function):
-::SubscriberPort<BaseType>(component, name, callback_function, "qpid"){
+qpid::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType>& callback_wrapper):
+::SubscriberPort<BaseType>(component, name, callback_wrapper, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };

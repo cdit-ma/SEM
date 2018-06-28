@@ -22,7 +22,7 @@ namespace tao{
         //The Request Handle needs to be able to modify and change state of the Port
         friend class RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>;
         public:
-            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<BaseReplyType (BaseRequestType&) > server_function);
+            ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){
                 Activatable::Terminate();
             };
@@ -68,7 +68,6 @@ namespace tao{
     };
 
     template <class BaseRequestType, class TaoRequestType, class TaoServerInt>
-
     class TaoServerImpl<void, void, BaseRequestType, TaoRequestType, TaoServerInt> : public TaoServerInt{
         public:
             TaoServerImpl(tao::ReplierPort<void, void, BaseRequestType, TaoRequestType, TaoServerInt>& port):
@@ -82,12 +81,26 @@ namespace tao{
         private:
             tao::ReplierPort<void, void, BaseRequestType, TaoRequestType, TaoServerInt>& eventport;
     };
+
+    template <class BaseReplyType, class TaoReplyType, class TaoServerInt>
+    class TaoServerImpl<BaseReplyType, TaoReplyType, void, void, TaoServerInt> : public TaoServerInt{
+        public:
+            TaoServerImpl(tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& port):
+                eventport(port){
+            };
+            TaoReplyType* TAO_SERVER_FUNC_NAME(){
+                auto base_result = eventport.ProcessRequest();
+                return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+            };
+        private:
+            tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& eventport;
+    };
 };
 
 //Generic templated ReplierPort
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
-tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  std::function<BaseReplyType (BaseRequestType&) > server_function):
-::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, server_function, "tao"){
+tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::ReplierPort(std::weak_ptr<Component> component, const std::string& port_name,  const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper):
+::ReplierPort<BaseReplyType, BaseRequestType>(component, port_name, callback_wrapper, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
 };

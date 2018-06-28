@@ -641,6 +641,11 @@ bool ProtobufModelParser::Process(){
 
             //Handle Class Instances
             for(const auto& class_instance_id : class_instance_ids){
+                //Ignore vector operations
+                if(graphml_parser_->GetDataValue(class_instance_id, "type") == "Vector_Operations"){
+                    continue;
+                }
+                
                 std::string class_uid = component_uid + "_" + class_instance_id;
                 auto class_pb = component_pb->add_workers();
                 auto class_info_pb = class_pb->mutable_info();

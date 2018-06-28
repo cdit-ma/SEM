@@ -117,7 +117,7 @@ bool ExecutionManager::PopulateDeployment(){
 
         *deployment_message_ = response;
 
-        std::cout << deployment_message_->DebugString() << std::endl;
+        //std::cout << deployment_message_->DebugString() << std::endl;
 
         for(auto& attribute : deployment_message_->attributes()){
             if(attribute.info().name() == "master_publisher_endpoint"){

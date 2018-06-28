@@ -18,8 +18,7 @@ class Worker;
 #include "behaviourcontainer.h"
 #include "basemessage.h"
 struct GenericCallbackWrapper{
-    protected:
-        GenericCallbackWrapper(){};
+    GenericCallbackWrapper(){};
 };
 
 template <class ReplyType, class RequestType>
@@ -80,18 +79,19 @@ class Component : public BehaviourContainer{
         std::shared_ptr<Port> RemovePort(const std::string& port_name);
 
         template<class ReplyType, class RequestType>
-        void AddCallback(const std::string& port_name, std::function<ReplyType (RequestType&)> fn);
+        void RegisterCallback(const std::string& port_name, std::function<ReplyType (RequestType&)> fn);
 
         template<class ReplyType, class RequestType>
-        void AddCallback(const std::string& port_name, std::function<ReplyType (void)> fn);
+        void RegisterCallback(const std::string& port_name, std::function<ReplyType (void)> fn);
 
-        
-        void AddPeriodicEventCallback(const std::string& port_name, std::function<void ()> fn){
-            AddCallback<void, BaseMessage>(port_name, [=](BaseMessage&){fn();});
-        }
+        void RegisterPeriodicCallback(const std::string& port_name, std::function<void ()> fn){
+            RegisterCallback<void, BaseMessage>(port_name, [=](BaseMessage&){
+                fn();
+            });
+        };
         
         template<class ReplyType, class RequestType>
-        CallbackWrapper<ReplyType, RequestType>* GetCallback(const std::string& port_name);
+        const CallbackWrapper<ReplyType, RequestType>& GetCallback(const std::string& port_name);
 
         bool GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type);
         bool RemoveCallback(const std::string& port_name);
@@ -102,14 +102,14 @@ class Component : public BehaviourContainer{
         virtual bool HandleTerminate();
     private:
         template<class ReplyType, class RequestType>
-        void AddCallback(const std::string& port_name, CallbackWrapper<ReplyType, RequestType>* wrapper);
-        void AddCallback_(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, GenericCallbackWrapper* wrapper);
+        void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
+        void AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> wrapper);
 
         std::mutex state_mutex_;
         
         std::mutex port_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Port> > ports_;
-        std::unordered_map<std::string, GenericCallbackWrapper*> callback_functions_;
+        std::unordered_map<std::string, std::unique_ptr<GenericCallbackWrapper> > callback_functions_;
         std::unordered_map<std::string, std::pair<std::reference_wrapper<const std::type_info>, std::reference_wrapper<const std::type_info> > > callback_type_hash_;
 };
 
@@ -121,32 +121,35 @@ std::shared_ptr<PortType> Component::GetTypedPort(const std::string& port_name){
 };
 
 template<class ReplyType, class RequestType>
-void Component::AddCallback(const std::string& port_name, CallbackWrapper<ReplyType, RequestType>* wrapper){
+void Component::AddCallback(const std::string& port_name, std::unique_ptr<CallbackWrapper<ReplyType, RequestType>> wrapper){
     const auto& request_type = typeid(RequestType);
     const auto& reply_type = typeid(ReplyType);
-    return AddCallback_(port_name, request_type, reply_type, wrapper);
+    return AddCallback(port_name, request_type, reply_type, std::move(wrapper));
 };
 
 template<class ReplyType, class RequestType>
-void Component::AddCallback(const std::string& port_name, std::function<ReplyType (RequestType&)> fn){
-    AddCallback<ReplyType, RequestType>(port_name, new CallbackWrapper<ReplyType, RequestType>(fn));
+void Component::RegisterCallback(const std::string& port_name, std::function<ReplyType (RequestType&)> fn){
+    auto callback = std::unique_ptr< CallbackWrapper<ReplyType, RequestType> >(new CallbackWrapper<ReplyType, RequestType>(fn));
+    AddCallback<ReplyType, RequestType>(port_name, std::move(callback));
 };
 
 template<class ReplyType, class RequestType>
-void Component::AddCallback(const std::string& port_name, std::function<ReplyType (void)> fn){
+void Component::RegisterCallback(const std::string& port_name, std::function<ReplyType (void)> fn){
     static_assert(std::is_void<RequestType>::value, "RequestType must be void");
-    AddCallback<ReplyType, RequestType>(port_name, new CallbackWrapper<ReplyType, RequestType>(fn));
+    auto callback = std::unique_ptr< CallbackWrapper<ReplyType, RequestType> >(new CallbackWrapper<ReplyType, RequestType>(fn));
+    AddCallback<ReplyType, RequestType>(port_name, std::move(callback));
 };
 
 template<class ReplyType, class RequestType>
-CallbackWrapper<ReplyType, RequestType>* Component::GetCallback(const std::string& port_name){
+const CallbackWrapper<ReplyType, RequestType>& Component::GetCallback(const std::string& port_name){
     const auto& request_type = typeid(RequestType);
     const auto& reply_type = typeid(ReplyType);
 
     if(GotCallback(port_name, request_type, reply_type)){
-        return (CallbackWrapper<ReplyType, RequestType>*) callback_functions_.at(port_name);
+        return (const CallbackWrapper<ReplyType, RequestType>&) (* callback_functions_.at(port_name));
+    }else{
+        throw std::runtime_error("Component: '" + get_name() + "' does not have a matching registered Port Callback: '" + port_name + "'");
     }
-    return nullptr;
 };
 
 #endif //COMPONENT_H

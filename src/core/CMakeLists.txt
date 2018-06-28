@@ -8,9 +8,6 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(PROJ_NAME re_core)
 project(${PROJ_NAME})
 
-
-
-
 #Find protobuf
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
