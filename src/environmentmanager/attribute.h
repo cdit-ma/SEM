@@ -17,6 +17,7 @@ class Attribute{
         };
 
         Attribute(const NodeManager::Attribute& attribute);
+        std::string GetName() const;
 
         NodeManager::Attribute* GetUpdate();
         NodeManager::Attribute* GetProto();

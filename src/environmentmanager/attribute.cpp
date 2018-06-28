@@ -41,6 +41,10 @@ Attribute::Attribute(const NodeManager::Attribute& attribute){
     }
 }
 
+std::string Attribute::GetName() const{
+    return name_;
+}
+
 NodeManager::Attribute* Attribute::GetUpdate(){
     NodeManager::Attribute* attribute;
     if(dirty_){
@@ -82,7 +86,6 @@ NodeManager::Attribute* Attribute::GetProto(){
     NodeManager::Attribute* attribute = new NodeManager::Attribute();
 
     attribute->mutable_info()->set_name(name_);
-    std::cout << name_ << std::endl;
     attribute->mutable_info()->set_id(id_);
 
     attribute->set_kind(InternalAttributeKindToProto(kind_));
@@ -110,7 +113,6 @@ NodeManager::Attribute* Attribute::GetProto(){
             break;
         }
     }
-    std::cout << attribute->DebugString() << std::endl;
     return attribute;
 }
 

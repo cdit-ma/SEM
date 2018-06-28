@@ -8,7 +8,7 @@
 class DeploymentGenerator{
     public:
         DeploymentGenerator(EnvironmentManager::Environment& environment);
-        void PopulateDeployment(NodeManager::ControlMessage& message);
+        NodeManager::ControlMessage* PopulateDeployment(NodeManager::ControlMessage& message);
         void TerminateDeployment(NodeManager::ControlMessage& message);
 
         void AddDeploymentRule(std::unique_ptr<DeploymentRule> rule);

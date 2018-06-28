@@ -197,7 +197,6 @@ NodeManager::Port* Port::GetProto(){
 
     port = new NodeManager::Port();
     port->mutable_info()->set_name(name_);
-    std::cout << name_ <<std::endl;
     port->mutable_info()->set_id(id_);
     port->mutable_info()->set_type(type_);
 
@@ -238,7 +237,7 @@ NodeManager::Port* Port::GetProto(){
     for(const auto& attribute : attributes_){
         port->mutable_attributes()->AddAllocated(attribute.second->GetProto());
     }
-    
+
     return port;
 }
 

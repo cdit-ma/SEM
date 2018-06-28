@@ -103,12 +103,11 @@ NodeManager::Component* Component::GetProto(){
     component = new NodeManager::Component();
 
     component->mutable_info()->set_name(name_);
-    std::cout << name_ << std::endl;
     component->mutable_info()->set_id(id_);
     component->mutable_info()->set_type(type_);
 
     for(const auto& port : ports_){
-        component->mutable_ports()->AddAllocated(port.second->GetUpdate());
+        component->mutable_ports()->AddAllocated(port.second->GetProto());
     }
 
     for(const auto& attribute : attributes_){

@@ -4,10 +4,14 @@
 DeploymentGenerator::DeploymentGenerator(EnvironmentManager::Environment& environment) : environment_(environment){
 }
 
-void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
-    //Add experiment to environment
+NodeManager::ControlMessage* DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
+
+    //Decluster operation mutates control message
     environment_.DeclusterExperiment(control_message);
 
+    std::string experiment_id = control_message.experiment_id();
+
+    //Add experiment to environment
     AddExperiment(control_message);
 
     std::string master_ip_address;
@@ -18,13 +22,15 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
         }
     }
 
-    environment_.SetExperimentMasterIp(control_message.experiment_id(), master_ip_address);
+    environment_.SetExperimentMasterIp(experiment_id, master_ip_address);
 
-    environment_.ConfigureNodes(control_message.experiment_id());
+    environment_.ConfigureNodes(experiment_id);
 
-    std::cout << environment_.GetProto(control_message.experiment_id())->DebugString() << std::endl;
+    NodeManager::ControlMessage* configured_message = environment_.GetProto(experiment_id);
 
-    environment_.StoreControlMessage(control_message);
+    std::cout << configured_message->DebugString() << std::endl;
+
+    return configured_message;
 }
 
 void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node){

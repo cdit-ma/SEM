@@ -209,7 +209,6 @@ NodeManager::ControlMessage* Experiment::GetProto(){
 
     for(auto& node_pair : node_map_){
         if(node_pair.second->DeployedTo()){
-            std::cout << control_message->DebugString() << std::endl;
             control_message->mutable_nodes()->AddAllocated(node_pair.second->GetProto());
         }
     }

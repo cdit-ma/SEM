@@ -192,7 +192,6 @@ NodeManager::Node* Node::GetProto(){
     NodeManager::Node* node;
 
     node = new NodeManager::Node();
-    std::cout << name_ << std::endl;
     node->mutable_info()->set_name(name_);
     node->mutable_info()->set_id(id_);
     node->set_type(NodeManager::Node::HARDWARE_NODE);

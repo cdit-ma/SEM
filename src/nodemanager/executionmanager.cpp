@@ -96,7 +96,9 @@ bool ExecutionManager::PopulateDeployment(){
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
         generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(*environment)));
 
-        generator.PopulateDeployment(*deployment_message_);
+        NodeManager::ControlMessage* configured_message =  generator.PopulateDeployment(*deployment_message_);
+        deployment_message_->Clear();
+        deployment_message_ = configured_message;
     }
     else{
         requester_->Init(environment_manager_endpoint_);
