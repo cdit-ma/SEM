@@ -273,7 +273,7 @@
         
         <xsl:variable name="namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="library_name" select="o:join_list(('datatype', 'pubsub', $middleware, $namespace, $label), '_')" />
+        <xsl:variable name="library_name" select="o:join_list(('port', 'pubsub', $middleware, $namespace, $label), '_')" />
         <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
     </xsl:function>
 
@@ -283,7 +283,7 @@
         
         <xsl:variable name="label" select="graphml:get_label($server_interface)" />
         <xsl:variable name="namespace" select="graphml:get_namespace($server_interface)" />
-        <xsl:variable name="library_name" select="o:join_list(('datatype', 'requestreply', $middleware, $namespace, $label), '_')" />
+        <xsl:variable name="library_name" select="o:join_list(('port', 'requestreply', $middleware, $namespace, $label), '_')" />
         <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
     </xsl:function>
 
