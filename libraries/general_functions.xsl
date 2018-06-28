@@ -245,7 +245,7 @@
     <xsl:function name="o:remove_duplicates">
         <xsl:param name="elements" />
 
-        <xsl:for-each-group select="$elements" group-by=".">
+        <xsl:for-each-group select="$elements" group-by="generate-id(.)">
             <xsl:sequence select="." />
         </xsl:for-each-group>
     </xsl:function>

@@ -230,6 +230,14 @@
     <!--
         Gets the parent node of the entity provided (Looks two levels up)
     -->
+    <xsl:function name="graphml:get_parent_kind" as="xs:string?">
+        <xsl:param name="entity" as="element()?" />
+        <xsl:sequence select="graphml:get_kind(graphml:get_parent_node($entity))" />
+    </xsl:function>
+
+    <!--
+        Gets the parent node of the entity provided (Looks two levels up)
+    -->
     <xsl:function name="graphml:get_ancestor_nodes" as="element(gml:node)*">
         <xsl:param name="entity" as="element()?" />
     

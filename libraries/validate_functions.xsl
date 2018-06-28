@@ -301,16 +301,16 @@
                     <xsl:variable name="value" select="graphml:get_value(.)" />
                     <xsl:variable name="parent_node" select="graphml:get_parent_node(.)" />
                     <xsl:variable name="parent_kind" select="graphml:get_kind($parent_node)" />
+                    <xsl:variable name="parent_parent_kind" select="graphml:get_parent_kind($parent_node)" />
 
                     <xsl:variable name="children_linked" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
 
-                    
-                    <xsl:variable name="is_subscriber_port" select="$parent_kind = 'SubscriberPortImpl'"/>
+                    <xsl:variable name="is_input_port_parameter" select="$kind = 'AggregateInstance' and ($parent_kind = 'SubscriberPortImpl' or $parent_parent_kind = 'ReplierPortImpl')"/>
 
                     <xsl:variable name="is_valid_kind" select="not($kind = ('VectorInstance', 'Vector'))"/>
 
                     <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'InputParameterGroup', 'VectorInstance', 'Vector', 'Variable'))) = 0"/>
-                    <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance' ,'RequesterPortImpl', 'PublisherPortImpl'))) > 0 or $is_subscriber_port"/>
+                    <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance' ,'RequesterPortImpl', 'PublisherPortImpl'))) > 0 or $is_input_port_parameter"/>
                     <xsl:variable name="is_optional" select="graphml:evaluate_data_value_as_boolean(., 'is_optional_param')" />
                     
                     <!-- Don't want to check inside vectors, as they do not need data -->
