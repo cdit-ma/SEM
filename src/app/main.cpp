@@ -11,7 +11,6 @@
 #include <windows.h>
 #endif
 
-
 int launchMEDEA(int argc, char *argv[]){
     // If we are on windows and openend through a console pipe stdout and stderr for debugging
     #ifdef _WIN32
