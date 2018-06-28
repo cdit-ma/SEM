@@ -194,7 +194,7 @@ public slots:
 
 
 
-    void generateWorkspace();
+    void generateProjectWorkspace();
     void executeModelLocal();
 
     void centerSelection();

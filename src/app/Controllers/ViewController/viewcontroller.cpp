@@ -1651,12 +1651,12 @@ void ViewController::closeMEDEA()
     }
 }
 
-void ViewController::generateWorkspace()
+void ViewController::generateProjectWorkspace()
 {
     auto file_path = getTempFileForModel();
-    auto output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
+    auto output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to generate project in.", QFileDialog::Directory, false);
     if(!output_dir.isEmpty()){
-        execution_manager->GenerateWorkspace(file_path, output_dir);
+        execution_manager->GenerateProject(file_path, output_dir);
     }
 }
 

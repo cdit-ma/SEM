@@ -122,7 +122,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
-        connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
+        connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateProjectWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
 
         

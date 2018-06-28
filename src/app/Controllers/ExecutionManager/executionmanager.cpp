@@ -80,7 +80,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
     }
 
     auto validation_noti = manager->AddNotification("Model validation in progress", "Icons", "shield", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::VALIDATION);
-    auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
+    auto results = RunSaxonTransform(transforms_path_ + "generate_validation.xsl", model_path, "");
 
     if (results.success) {
         int test_count = 0;
@@ -172,7 +172,7 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
 
         auto re_path = env_var.value("RE_PATH") + "/bin/";
 
-        auto generate = GenerateWorkspace_(document_path, output_directory);
+        auto generate = GenerateProject_(document_path, output_directory);
 
         auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
         emit ModelExecutionStateChanged(notification->getSeverity());
@@ -225,42 +225,17 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
     }
 }
 
-bool ExecutionManager::GenerateWorkspace_(QString document_path, QString output_directory)
+bool ExecutionManager::GenerateProject_(QString document_path, QString output_directory)
 {
-    auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
-
-    auto components = GenerateComponents(document_path, output_directory, {}, false);
-    auto datatypes = GenerateDatatypes(document_path, output_directory, false);
-
-    
-    notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-    if(components && datatypes){
-        notification->setTitle("Successfully generated model workspace C++");
-        notification->setDescription("Generated in '" + output_directory + "'");
-    }else{
-        notification->setTitle("Generated model workspace C++ failed");
-    }
-    notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-    return components && datatypes;
-}
-
-bool ExecutionManager::GenerateComponents(QString document_path, QString output_directory, QStringList component_names, bool toast_notify)
-{
-    QStringList args;
-    if(component_names.size() > 0){
-        args << "components=" + component_names.join(",");
-        args << "preview=true";
-    }
-
-    auto notification = NotificationManager::manager()->AddNotification("Generating component C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, toast_notify);
-    auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
+    auto notification = NotificationManager::manager()->AddNotification("Generating Project C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
+    auto results = RunSaxonTransform(transforms_path_ + "generate_project.xsl", document_path, output_directory, {});
     
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
-        notification->setTitle("Failed to generate component C++");
+        notification->setTitle("Failed to generate project C++");
         notification->setDescription(results.standard_error.join("\n"));
     }else{
-        notification->setTitle("Successfully generated component C++");
+        notification->setTitle("Successfully generated project C++");
     }
 
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
@@ -273,7 +248,7 @@ QString ExecutionManager::GenerateWorkload(QString document_path, QString output
     QString arg = "id=" + QString::number(id);
 
     auto notification = NotificationManager::manager()->AddNotification("Generating workload C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, false);
-    auto results = RunSaxonTransform(transforms_path_ + "g2workload.xsl", document_path, output_directory, {arg});
+    auto results = RunSaxonTransform(transforms_path_ + "generate_workload.xsl", document_path, output_directory, {arg});
     
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
@@ -283,34 +258,6 @@ QString ExecutionManager::GenerateWorkload(QString document_path, QString output
     }
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     return results.standard_output.join("\n");
-}
-
-bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify)
-{
-    // Construct a notification item with a loading gif as its icon
-    auto notification = NotificationManager::manager()->AddNotification("Generating datatype C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, toast_notify);
-    auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-    
-    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-    if(!results.success){
-        notification->setTitle("Failed to generate datatype C++");
-        notification->setDescription(results.standard_error.join("\n"));
-    }else{
-        notification->setTitle("Successfully generated datatype C++");
-    }
-    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-
-    
-
-    return results.success;
-}
-
-QStringList ExecutionManager::GetMiddlewareArgs()
-{
-
-    QStringList args;
-    args << "middlewares=zmq,proto,rti,qpid,ospl";
-    return args;
 }
 
 void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
@@ -344,11 +291,11 @@ bool ExecutionManager::ExecuteModel(QString document_path, QString output_direct
     return false;
 }
 
-void ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory){
+void ExecutionManager::GenerateProject(QString document_path, QString output_directory){
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
-    if(!generate_workspace_thread.isRunning()){
-        generate_workspace_thread = QtConcurrent::run(this, &ExecutionManager::GenerateWorkspace_, document_path, output_directory);
+    if(!generate_project_thread.isRunning()){
+        generate_project_thread = QtConcurrent::run(this, &ExecutionManager::GenerateProject_, document_path, output_directory);
     }
 }
 

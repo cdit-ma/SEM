@@ -35,7 +35,7 @@ public:
     void ValidateModel(QString model_path);
     void GenerateCodeForWorkload(QString document_path, ViewItem* view_item);
     
-    void GenerateWorkspace(QString document_path, QString output_directory);
+    void GenerateProject(QString document_path, QString output_directory);
     QString get_env_var(QString key);
 signals:
     void GotProcessStdOutLine(QString line);
@@ -54,16 +54,11 @@ private:
     void CheckForJava_();
     void ExecuteModel_(QString document_path, QString output_directory, int duration);
 
-    bool GenerateWorkspace_(QString document_path, QString output_directory);
-    bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);
-    bool GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify = true);
-
+    bool GenerateProject_(QString document_path, QString output_directory);
     QString GenerateWorkload(QString document_path, QString output_directory, int id);
 
 
-
     void settingChanged(SETTINGS setting, QVariant value);
-    QStringList GetMiddlewareArgs();
 
     
 
@@ -81,7 +76,7 @@ private:
     QFuture<void> java_thread;
     QFuture<void> validate_thread;
     QFuture<void> execute_model_thread;
-    QFuture<void> generate_workspace_thread;
+    QFuture<bool> generate_project_thread;
     QFuture<void> generate_code_thread;
 
     QReadWriteLock lock_;
