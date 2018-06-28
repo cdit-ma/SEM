@@ -1448,13 +1448,6 @@
         </xsl:if>
     </xsl:function>
 
-    
-
-    
-
-
-
-        
     <xsl:function name="cdit:generate_function_call_code">
         <xsl:param name="node" as="element()"/>
         <xsl:param name="tab" as="xs:integer"/>
@@ -1897,6 +1890,8 @@
                 <xsl:when test="$kind = 'InputParameterGroupInstance'" />
                 <xsl:when test="$kind = 'SubscriberPortImpl'" />
                 <xsl:when test="$kind = 'InputParameterGroup'" />
+                <xsl:when test="$kind = 'VoidType'" />
+                
                 
                 <xsl:otherwise>
                     <xsl:value-of select="o:warning(('cdit:generate_workflow_code()', 'Node Kind:', o:wrap_quote($kind), 'Not Implemented'))" />
@@ -1968,7 +1963,7 @@
         <xsl:variable name="namespace" select="graphml:get_namespace($definition)" />
 
         <!-- Set the Project Name -->
-        <xsl:variable name="module_lib_name" select="lower-case(o:join_list(($kind, $namespace, $label), '_'))" />
+        <xsl:variable name="module_lib_name" select="cmake:get_class_shared_library_name($entity)" />
         <xsl:variable name="proj_name" select="$module_lib_name" />
 
         <xsl:variable name="binary_dir_var" select="cmake:current_binary_dir_var()" />

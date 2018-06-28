@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v3.0.4'" />
+        <xsl:value-of select="'re_gen-v3.0.5'" />
     </xsl:function>
 
     <!--
@@ -1477,6 +1477,7 @@
         <xsl:sequence select="cpp:join_args($resolved_args)" />
     </xsl:function>
 
+    
 
     <!--
         Gets the Template Type for a ServerInterface
@@ -1489,7 +1490,6 @@
 
         <xsl:value-of select="cpp:join_args(($reply_type, $request_type))" />
     </xsl:function>
-
 
     <!--
         Gets the Qualified CPP Function Parameters for a RequesterPort
@@ -1685,6 +1685,49 @@
         <xsl:sequence select="distinct-values($required_middlewares)"/>
     </xsl:function>
 
+    <xsl:function name="cdit:get_components_to_build" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)?" />
+        <xsl:param name="generate_all" as="xs:boolean" />
+
+        <xsl:variable name="required_components" as="element(gml:node)*">
+            <xsl:choose>
+                <xsl:when test="$generate_all = true()">
+                    <xsl:sequence select="graphml:get_nodes_of_kind($model, 'ComponentImpl')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each select="graphml:get_deployed_component_instances($model)">
+                        <xsl:sequence select="graphml:get_impl(.)" />
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:sequence select="o:remove_duplicates($required_components)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_classes_to_build" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)?" />
+        <xsl:param name="generate_all" as="xs:boolean" />
+
+        <xsl:variable name="required_classes" as="element(gml:node)*">
+            <xsl:choose>
+                <xsl:when test="$generate_all = true()">
+                    <xsl:sequence select="graphml:get_nodes_of_kind($model, 'Class')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each select="cdit:get_components_to_build($model, $generate_all)">
+                        <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'ClassInstance')">
+                            <xsl:if test="graphml:is_class_instance_worker(.) = false()">
+                                <xsl:sequence select="graphml:get_definition(.)" />
+                            </xsl:if>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:sequence select="o:remove_duplicates($required_classes)" />
+    </xsl:function>
 
     <!--
         Gets the required Aggregates to generate for a particular middleware
@@ -1823,6 +1866,8 @@
         <!-- Combine the namespace and type -->
         <xsl:value-of select="cpp:combine_namespaces(($namespace, $type))" />
     </xsl:function>
+
+    
 
     <!--
         Gets the prefix to generate files for Aggregates with

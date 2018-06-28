@@ -14,13 +14,13 @@
     
 
     <!-- Load in Functions -->
-    <xsl:import href="general_functions.xsl"/>
-    <xsl:import href="cpp_functions.xsl"/>
-    <xsl:import href="cmake_functions.xsl"/>
-    <xsl:import href="graphml_functions.xsl"/>
-    <xsl:import href="cdit_functions.xsl"/> 
-    <xsl:import href="cdit_cmake_functions.xsl"/>
-    <xsl:import href="component_functions.xsl"/>
+    <xsl:import href="libraries/general_functions.xsl"/>
+    <xsl:import href="libraries/cpp_functions.xsl"/>
+    <xsl:import href="libraries/cmake_functions.xsl"/>
+    <xsl:import href="libraries/graphml_functions.xsl"/>
+    <xsl:import href="libraries/cdit_functions.xsl"/> 
+    <xsl:import href="libraries/cdit_cmake_functions.xsl"/>
+    <xsl:import href="libraries/component_functions.xsl"/>
     
 
     <!-- Middleware Input Parameter-->

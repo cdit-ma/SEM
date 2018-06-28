@@ -238,6 +238,12 @@
         <xsl:value-of select="concat($middleware_compiler, o:wrap_bracket($compiler_arg), o:nl(1))" />
     </xsl:function>
 
+
+    <xsl:function name="cmake:combine_project_library_name" as="xs:string">
+        <xsl:param name="library_name" as="xs:string" />
+        <xsl:value-of select="o:join_list((cmake:get_library_prefix(), lower-case($library_name)), '_')" />
+    </xsl:function>
+
     <xsl:function name="cmake:get_aggregate_shared_library_name" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -255,7 +261,9 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="lower-case(o:join_list(('datatype', $shared_middleware, $namespace, $label), '_'))" />
+
+        <xsl:variable name="library_name" select="o:join_list(('datatype', $shared_middleware, $namespace, $label), '_')" />
+        <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
     </xsl:function>
 
 
@@ -263,9 +271,10 @@
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
         
-        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-        <xsl:value-of select="lower-case(o:join_list(('port', 'pubsub', $middleware, $aggregate_namespace, $aggregate_label), '_'))" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="library_name" select="o:join_list(('datatype', 'pubsub', $middleware, $namespace, $label), '_')" />
+        <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
     </xsl:function>
 
     <xsl:function name="cmake:get_requestreply_module_library_name" as="xs:string">
@@ -274,7 +283,8 @@
         
         <xsl:variable name="label" select="graphml:get_label($server_interface)" />
         <xsl:variable name="namespace" select="graphml:get_namespace($server_interface)" />
-        <xsl:value-of select="lower-case(o:join_list(('port', 'requestreply', $middleware, $namespace, $label), '_'))" />
+        <xsl:variable name="library_name" select="o:join_list(('datatype', 'requestreply', $middleware, $namespace, $label), '_')" />
+        <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
     </xsl:function>
 
     
@@ -287,17 +297,11 @@
         <!-- Include the headers once for each worker type -->
         <xsl:for-each-group select="graphml:get_custom_class_instances($entity)" group-by="graphml:get_definition(.)">
             <xsl:if test="position() = 1">
-                <xsl:value-of select="cmake:comment('Include Custom Class Header Files', 0)" />
+                <xsl:value-of select="cmake:comment('Target Link Custom Class', 0)" />
             </xsl:if>
-            <xsl:variable name="class_def" select="graphml:get_definition(.)" />
-
-            <xsl:variable name="namespace" select="graphml:get_namespace($class_def)" />
-            <xsl:variable name="label" select="graphml:get_label($class_def)" />
-
-            <xsl:variable name="worker_lib_name" select="lower-case(o:join_list(('class', $namespace, $label), '_'))" />
-
-            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
+            <xsl:variable name="worker_lib_name" select="cmake:get_class_shared_library_name(.)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $worker_lib_name, 0)" />
+
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>
@@ -762,8 +766,23 @@
         <xsl:value-of select="cmake:add_subdirectories(('components', 'ports', 'classes', 'datatypes'))" />
     </xsl:function>
 
+    <!--
+        Gets the Binary Prefix for CMake if one exists
+    -->
+    <xsl:function name="cmake:get_library_prefix" as="xs:string">
+        <xsl:value-of select="$library_prefix" />
+    </xsl:function>
 
-    
-                
+    <xsl:function name="cmake:get_class_shared_library_name" as="xs:string">
+        <xsl:param name="entity" as="element()" />
+
+        <xsl:variable name="definition" select="graphml:get_definition($entity)" />
+        <xsl:variable name="kind" select="graphml:get_kind($definition)" />
+        <xsl:variable name="label" select="lower-case(graphml:get_label($definition))" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($definition)" />
+
+        <xsl:variable name="library_name" select="o:join_list(($kind, $namespace, $label), '_')" />
+        <xsl:value-of select="cmake:combine_project_library_name($library_name)" />
+    </xsl:function>
 
 </xsl:stylesheet>

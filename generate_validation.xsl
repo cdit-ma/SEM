@@ -10,13 +10,13 @@
     exclude-result-prefixes="gml">
 		
     <!-- Load in Functions -->
-    <xsl:import href="general_functions.xsl"/>
-    <xsl:import href="xml_functions.xsl"/>
-    <xsl:import href="graphml_functions.xsl"/>
-    <xsl:import href="cdit_functions.xsl"/>
-    <xsl:import href="cpp_functions.xsl"/>
-    <xsl:import href="cmake_functions.xsl"/>
-    <xsl:import href="validate_functions.xsl"/>
+    <xsl:import href="libraries/general_functions.xsl"/>
+    <xsl:import href="libraries/xml_functions.xsl"/>
+    <xsl:import href="libraries/graphml_functions.xsl"/>
+    <xsl:import href="libraries/cdit_functions.xsl"/>
+    <xsl:import href="libraries/cpp_functions.xsl"/>
+    <xsl:import href="libraries/cmake_functions.xsl"/>
+    <xsl:import href="libraries/validate_functions.xsl"/>
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
     <xsl:param name="debug_mode" as="xs:boolean" select="false()" />

@@ -560,7 +560,7 @@
         ie return ${var};
     -->
     <xsl:function name="cpp:return">
-        <xsl:param name="var" as="xs:string" />
+        <xsl:param name="var" as="xs:string?" />
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:value-of select="concat(o:t($tab), o:join_list(('return', $var), ' '), cpp:nl())" />
