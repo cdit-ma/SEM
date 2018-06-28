@@ -25,6 +25,7 @@
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="id" as="xs:string" select="''" />
+    <xsl:param name="library_prefix" as="xs:string" select="''" />
 
     <xsl:variable name="debug_mode" as="xs:boolean" select="true()" />
 
