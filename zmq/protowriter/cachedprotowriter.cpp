@@ -143,7 +143,8 @@ bool zmq::CachedProtoWriter::Terminate(){
 
         return true;
     }
-    return false;
+    //Return the base terminate
+    return zmq::ProtoWriter::Terminate();
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){

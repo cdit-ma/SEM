@@ -37,6 +37,11 @@ class Execution{
             terminated = true;
             lock_condition_.notify_all();
         };
+
+        bool IsInterrupted(){
+            std::unique_lock<std::mutex> lock(mutex_);
+            return terminated;
+        }
 };
 
 #endif //RE_COMMON_UTIL_EXECTION
