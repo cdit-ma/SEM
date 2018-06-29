@@ -106,61 +106,63 @@ void LogController::QueueOneTimeInfo(){
 
 void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
     auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
-    zmq::Monitor monitor;
-    
-    monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
-    writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
+    {
+        zmq::Monitor monitor;
+        monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
+        
+        writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
 
-    if(!writer->BindPublisherSocket(publisher_endpoint)){
-        std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
-        return;
-    }
-    
-    //Get the duration in milliseconds
-    auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
-
-    system_->ignore_processes();
-    
-    //Subscribe to our desired process names
-    for(const auto& process_name : processes){
-        system_->monitor_processes(process_name);
-    }
-    
-
-    //We need to sleep for at least 1 second, if our duration is less than 1 second, calculate the offset to get at least 1 second
-    auto last_duration = std::min(std::chrono::milliseconds(-1000) + tick_duration, std::chrono::milliseconds(0));
-    while(true){
-        auto sleep_duration = tick_duration - last_duration;
-        {
-            std::unique_lock<std::mutex> lock(interupt_mutex_);
-            log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});
-            if(interupt_){
-                break;
-            }
+        if(!writer->BindPublisherSocket(publisher_endpoint)){
+            std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
+            return;
         }
+        
+        //Get the duration in milliseconds
+        auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
 
-        auto start = std::chrono::steady_clock::now();
-        {
-            //Whenever a new server connects, send one time information, using our client address as the topic
-            std::lock_guard<std::mutex> lock(one_time_mutex_);
-            if(send_onetime_info_){
-                writer->PushMessage(publisher_endpoint, GetSystemInfo());
-                send_onetime_info_ = false;
-            }
+        system_->ignore_processes();
+        
+        //Subscribe to our desired process names
+        for(const auto& process_name : processes){
+            system_->monitor_processes(process_name);
         }
+        
 
-        {
-            //Send the tick'd information to all servers
-            if(system_->update()){
-                writer->PushMessage(GetSystemStatus());
+        //We need to sleep for at least 1 second, if our duration is less than 1 second, calculate the offset to get at least 1 second
+        auto last_duration = std::min(std::chrono::milliseconds(-1000) + tick_duration, std::chrono::milliseconds(0));
+        while(true){
+            auto sleep_duration = tick_duration - last_duration;
+            {
+                std::unique_lock<std::mutex> lock(interupt_mutex_);
+                log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});
+                if(interupt_){
+                    break;
+                }
             }
-        }
 
-        //Calculate the duration we should sleep for
-        auto end = std::chrono::steady_clock::now();
-        last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            auto start = std::chrono::steady_clock::now();
+            {
+                //Whenever a new server connects, send one time information, using our client address as the topic
+                std::lock_guard<std::mutex> lock(one_time_mutex_);
+                if(send_onetime_info_){
+                    writer->PushMessage(publisher_endpoint, GetSystemInfo());
+                    send_onetime_info_ = false;
+                }
+            }
+
+            {
+                //Send the tick'd information to all servers
+                if(system_->update()){
+                    writer->PushMessage(GetSystemStatus());
+                }
+            }
+
+            //Calculate the duration we should sleep for
+            auto end = std::chrono::steady_clock::now();
+            last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        }
+        writer->Terminate();
     }
-    writer->Terminate();
     std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
 }
 
