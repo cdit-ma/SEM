@@ -170,7 +170,79 @@ for(n in builder_nodes){
     }
 }
 
+
+//Produce the execution map
+for(n in nodes){
+    def node_name = n;
+    execution_map[node_name] = {
+        node(node_name){
+            dir(build_id){
+                //Get the IP of this node
+                def ip_addr = utils.getNodeIpAddress(node_name)
+                
+                dir("lib"){
+                    //Unstash the required libraries for this node.
+                    //Have to run in the lib directory due to dll linker paths
+                    unstash "code_" + utils.getNodeOSVersion(node_name)
+                    
+                    def args = ' -n "' + experiment_name + '"'
+                    args += " -e " + env_manager_addr
+                    args += " -a " + ip_addr
+                    args += " -l ."
+
+                    def logan_args = ' -n "' + experiment_name + '"'
+                    logan_args += " -e " + env_manager_addr
+                    logan_args += " -a " + ip_addr
+
+                    if(node_name == master_node){
+                        unstash 'model'
+                        args += " -t " + execution_time
+                        args += ' -d "' + MODEL_FILE  + '"'
+                    }
+
+                    parallel(
+                        ("LOGAN_ " + node_name): {
+                            //Run Logan
+                            if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
+                        },
+                        ("RE_ " + node_name): {
+                            //Run re_node_manager
+                            if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILED = true
+                            }
+                        }
+                    )
+
+                    archiveArtifacts artifacts: '**.sql', allowEmptyArchive: true
+                }
+                //Delete the Dir
+                if(CLEANUP){
+                    deleteDir()
+                }
+            }
+        }
+    }
+}
+
 //Run compilation scripts
 stage("Compiling C++"){
     parallel builder_map
+}
+
+//Run compilation scripts
+stage("Execute Model"){
+    parallel execution_map
+}
+
+if(FAILED){
+    print("Model Execution failed!")
+    print(FAILURE_LIST.size() + " Error(s)")
+    for(failure in FAILURE_LIST){
+        print("ERROR: " + failure)
+    }
+    error("Model Execution failed!")
 }
