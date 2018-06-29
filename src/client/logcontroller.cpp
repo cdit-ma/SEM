@@ -105,8 +105,8 @@ void LogController::QueueOneTimeInfo(){
 }
 
 void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
-    zmq::Monitor monitor;
     auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
+    zmq::Monitor monitor;
     
     monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
     writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
@@ -162,7 +162,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     }
     writer->Terminate();
     std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
-    writer.reset();
 }
 
 

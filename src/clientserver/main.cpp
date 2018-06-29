@@ -45,7 +45,11 @@ int main(int ac, char** av){
 
     try{
         ClientServer client_server(*execution, address, experiment_id, environment_manager_address);
-        std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
+        
+        //Only print if client server is actually in use
+        if(!execution->IsInterrupted()){
+            std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
+        }
         execution->Start();
     }catch(const std::exception& e){
         std::cerr << e.what() << std::endl;
