@@ -124,33 +124,39 @@ for(n in builder_nodes){
                 }
 
                 def files_to_copy = []
+
                 //Code may already be here
                 dir(temp_dir){
                     //Unstash the generated code
                     unstash 'codegen'
 
-                    //Ignore graphml/zip files
-                    for(file in findFiles(glob: '**/!(*.graphml|*.zip)')){
-                        def copy_file = true
-                        //Calculate the hash of the files that exist
-
-                        def file_sha = sha1(file.path)
-                        if(current_file_hash.containsKey(file.path)){
-                            if(file_sha == current_file_hash[file.path]){
-                                copy_file = false
+                    for(file in findFiles(glob: '**')){
+                        def file_path = file.path
+                        def process_file = true
+                        
+                        //Ignore graphml/zip files
+                        for(ext in [".graphml", ".zip"]){
+                            if(file_path.endsWith(ext)){
+                                process_file = false
                             }
                         }
 
-                        if(copy_file){
-                            files_to_copy += file.path
+                        if(process_file && current_file_hash.containsKey(file_path)){
+                            def file_sha = sha1(file_path)
+                            if(file_sha == current_file_hash[file_path]){
+                                process_file = false
+                            }
+                        }
+                        if(process_file){
+                            files_to_copy += file_path
                         }
                     }
                 }
 
-                for(file in files_to_copy){
-                    print("Copying: " + file)
-                    def src_path = temp_dir + "/" + file
-                    def dst_path = cached_dir + "/" + file
+                for(file_path in files_to_copy){
+                    print("Copying: " + file_path)
+                    def src_path = temp_dir + "/" + file_path
+                    def dst_path = cached_dir + "/" + file_path
                     sh 'mkdir -p `dirname "' + dst_path + '"` && cp "' + src_path + '" "' + dst_path + '"'
                 }
 
