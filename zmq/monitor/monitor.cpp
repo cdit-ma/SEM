@@ -19,15 +19,19 @@
  */
  
 #include "monitor.h"
-
+#include <iostream>
 zmq::Monitor::Monitor(){
 }
 
 zmq::Monitor::~Monitor(){
     if(monitor_future_.valid()){
         //Abort the thread
+        std::cerr << "ABD" << std::endl;
         abort();
+
+        std::cerr << "WAITING" << std::endl;
         monitor_future_.get();
+        std::cerr << "DED" << std::endl;
     }
 }
 
@@ -41,7 +45,7 @@ bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, const std::string& addre
             try{
                 monitor(*socket, address.c_str(), event_type);
             }catch(const zmq::error_t& ex){
-                    
+
             }
         });
         return true;
