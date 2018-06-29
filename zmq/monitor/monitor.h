@@ -21,7 +21,7 @@
 #ifndef RE_COMMON_ZMQ_MONITOR_H
 #define RE_COMMON_ZMQ_MONITOR_H
 #include <functional>
-#include <thread>
+#include <future>
 #include <zmq.hpp>
 
 namespace zmq{
@@ -49,7 +49,7 @@ namespace zmq{
             void on_event_unknown(const zmq_event_t &event, const char* addr);
 
             std::function<void(int, std::string)> callback_;
-            std::thread* monitor_thread_ = 0;
+            std::future<void> monitor_future_;
     };
 }
 #endif //RE_COMMON_ZMQ_MONITOR_H

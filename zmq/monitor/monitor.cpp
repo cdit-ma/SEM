@@ -24,11 +24,10 @@ zmq::Monitor::Monitor(){
 }
 
 zmq::Monitor::~Monitor(){
-    if(monitor_thread_){
+    if(monitor_future_.valid()){
         //Abort the thread
         abort();
-        monitor_thread_->join();
-        delete monitor_thread_;
+        monitor_future_.get();
     }
 }
 
@@ -37,9 +36,14 @@ void zmq::Monitor::RegisterEventCallback(std::function<void(int, std::string)> f
 }
 
 bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, std::string address, int event_type){
-    if(socket && !monitor_thread_){
-        //Call a thread to run monitor
-        monitor_thread_ = new std::thread([=]{monitor(*socket, address.c_str(), event_type);});
+    if(socket && !monitor_future_.valid()){
+        monitor_future_ = std::async(std::launch::async, [=](){
+            try{
+                monitor(*socket, address.c_str(), event_type);
+            }catch(const zmq::error_t& ex){
+
+            }
+        });
         return true;
     }
     return false;
