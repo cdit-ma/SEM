@@ -207,14 +207,14 @@ for(n in nodes){
                     }
 
                     parallel(
-                        ("LOGAN_ " + node_name): {
+                        ("LOGAN_" + node_name): {
                             //Run Logan
                             if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
                                 FAILURE_LIST << ("Logan failed on node: " + node_name)
                                 FAILED = true
                             }
                         },
-                        ("RE_ " + node_name): {
+                        ("RE_" + node_name): {
                             //Run re_node_manager
                             if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
                                 FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
@@ -222,8 +222,11 @@ for(n in nodes){
                             }
                         }
                     )
-
-                    archiveArtifacts artifacts: '**.sql', allowEmptyArchive: true
+                    
+                    //Archive any sql databases produced
+                    if(findFiles(glob: '**/*.sql').size() > 0){
+                        archiveArtifacts artifacts: '**/*.sql'
+                    }
                 }
                 //Delete the Dir
                 if(CLEANUP){
