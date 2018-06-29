@@ -25,12 +25,8 @@ zmq::Monitor::Monitor(){
 
 zmq::Monitor::~Monitor(){
     if(monitor_future_.valid()){
-        try{
-            abort();
-            monitor_future_.get();
-        }catch(const zmq::error_t& ex){
-
-        }
+        abort();
+        monitor_future_.get();
     }
 }
 
@@ -44,7 +40,7 @@ bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, const std::string& addre
             try{
                 monitor(*socket, address.c_str(), event_type);
             }catch(const zmq::error_t& ex){
-
+                std::cerr << "ERROR" << std::endl;
             }
         });
         return true;
