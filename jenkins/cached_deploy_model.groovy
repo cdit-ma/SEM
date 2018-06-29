@@ -107,6 +107,7 @@ for(n in builder_nodes){
     builder_map[node_name] = {
         node(node_name){
             def stash_name = "code_" + utils.getNodeOSVersion(node_name)
+            def new_stash_name = "new_" + stash_name
             def build_dir = stash_name
 
             dir(build_dir){
@@ -123,7 +124,7 @@ for(n in builder_nodes){
                     }
                 }
 
-                def files_to_copy = []
+                def files_to_delete = []
 
                 //Code may already be here
                 dir(temp_dir){
@@ -141,31 +142,42 @@ for(n in builder_nodes){
                             }
                         }
 
-                        if(process_file && current_file_hash.containsKey(file_path)){
-                            def file_sha = sha1(file_path)
-                            if(file_sha == current_file_hash[file_path]){
-                                process_file = false
+                        if(process_file){
+                            def expected_path = "../" + cached_dir + "/" + file_path
+                            if(fileExists(expected_path)){
+                                def src_file_sha = sha1(expected_path)
+                                def dst_file_sha = sha1(file_path)
+                                if(src_file_sha == dst_file_sha){
+                                    //Maybe remove the file
+                                    process_file = false
+                                }
                             }
                         }
-                        if(process_file){
-                            files_to_copy += file_path
+
+                        if(!process_file){
+                            files_to_delete += file_path
+                        }else{
+                            //if(utils.runScript('rm "' + file_path + '"') != 0){
+                                //print("Cannot remove file: '" + file_path + "'")
+                            //}
                         }
                     }
-                }
 
-                for(file_path in files_to_copy){
-                    print("Copying: " + file_path)
-                    def src_path = temp_dir + "/" + file_path
-                    def dst_path = cached_dir + "/" + file_path
-                    sh 'mkdir -p `dirname "' + dst_path + '"` && cp "' + src_path + '" "' + dst_path + '"'
-                }
+                    writeFile file: 'files_to_delete.txt', text: files_to_delete.join("\n")
 
-                dir(temp_dir){
+                    if(utils.runScript('while read file ; do rm "$file" ; done < files_to_delete.txt') != 0){
+                        print("Cannot remove file: '" + file_path + "'")
+                    }
+                    
+
+                    stash name: new_stash_name, allowEmpty: true
                     //Delete old directory
-                    deleteDir()
+                    //deleteDir()
                 }
-
+                
                 dir(cached_dir){
+                    unstash name: new_stash_name
+
                     dir("build"){
                         if(!utils.buildProject("Ninja", "")){
                             error("CMake failed on Builder Node: " + node_name)
