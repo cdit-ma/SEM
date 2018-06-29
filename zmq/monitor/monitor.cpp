@@ -41,7 +41,7 @@ bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, const std::string& addre
             try{
                 monitor(*socket, address.c_str(), event_type);
             }catch(const zmq::error_t& ex){
-
+                    
             }
         });
         return true;
