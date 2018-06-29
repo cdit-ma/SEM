@@ -910,7 +910,7 @@
         <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($member)" />
+        <xsl:variable name="temp_variable" select="cdit:get_variable_name($member)" />
 
         <xsl:variable name="primitive_type" select="graphml:get_data_value($member, 'primitive_type')" />
         
@@ -940,7 +940,7 @@
         <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
         
-        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($member)" />
+        <xsl:variable name="temp_variable" select="cdit:get_variable_name($member)" />
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $member, $source_middleware)" />
         <xsl:value-of select="cdit:translate_primitive_member($member, $get_func, $middleware, $source_middleware, $target_middleware, $tab)" />
 
@@ -962,7 +962,7 @@
         
         <xsl:value-of select="cdit:cast_enum_instance($enum_instance, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 1)" />
         
-        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($enum_instance)" />
+        <xsl:variable name="temp_variable" select="cdit:get_variable_name($enum_instance)" />
         <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $temp_variable)" />
         <xsl:value-of select="concat(o:t($tab + 1), $set_func, cpp:nl())" />
         <xsl:value-of select="cpp:scope_end($tab)" />
@@ -981,7 +981,7 @@
         <xsl:variable name="enum_cast_type" select="cdit:get_qualified_enum_type($enum_instance, $target_middleware)" />
 
         <xsl:variable name="cast_enum_value" select="o:join_list((o:wrap_bracket($enum_cast_type), cpp:static_cast('int', $get_func)), ' ')" />
-        <xsl:variable name="temp_variable" select="cdit:get_unique_variable_name($enum_instance)" />
+        <xsl:variable name="temp_variable" select="cdit:get_variable_name($enum_instance)" />
 
         <xsl:value-of select="cpp:comment('Cast the enums integer representation', $tab)" />
         <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $cast_enum_value, cpp:nl(), $tab)" />
@@ -1059,7 +1059,7 @@
         <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $vector, $source_middleware)" />
-        <xsl:variable name="temp_variable" select="concat(cdit:get_unique_variable_name($vector), '_element')" />
+        <xsl:variable name="temp_variable" select="concat(cdit:get_variable_name($vector), '_element')" />
         <xsl:variable name="temp_element_variable" select="o:join_list(($target_middleware, $temp_variable), '_')" />
 
         <xsl:variable name="set_func">
@@ -1071,7 +1071,7 @@
                     <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'EnumInstance'">
-                    <xsl:variable name="variable_name" select="cdit:get_unique_variable_name($vector_child)" />
+                    <xsl:variable name="variable_name" select="cdit:get_variable_name($vector_child)" />
 
                     <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name)" />
                 </xsl:when>
