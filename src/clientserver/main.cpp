@@ -12,7 +12,6 @@ Execution* execution = 0;
 
 
 int main(int ac, char** av){
-
     execution = new Execution();
 
     std::string experiment_id;

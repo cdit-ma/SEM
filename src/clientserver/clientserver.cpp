@@ -74,7 +74,9 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
     }
 
     if(!clients_.size() && !servers_.size()){
-        throw std::runtime_error("Not needed");
+        std::cout << "Not Needed." << std::endl;
+        //Interupt the execution
+        execution_.Interrupt();
     }
 }
 
