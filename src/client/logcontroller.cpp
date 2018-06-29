@@ -161,6 +161,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto end = std::chrono::steady_clock::now();
             last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         }
+        monitor.abort();
         writer->Terminate();
         std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
         writer.reset();
