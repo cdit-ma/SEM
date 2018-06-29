@@ -35,7 +35,7 @@ void zmq::Monitor::RegisterEventCallback(std::function<void(int, std::string)> f
     callback_ = fn;
 }
 
-bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, std::string address, int event_type){
+bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, const std::string& address, int event_type){
     if(socket && !monitor_future_.valid()){
         monitor_future_ = std::async(std::launch::async, [=](){
             try{

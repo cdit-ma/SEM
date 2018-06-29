@@ -29,7 +29,7 @@ namespace zmq{
         public:
             Monitor();
             ~Monitor();
-            bool MonitorSocket(zmq::socket_t* socket, std::string address, int event_type);
+            bool MonitorSocket(zmq::socket_t* socket, const std::string& address, int event_type);
             void RegisterEventCallback(std::function<void(int, std::string)> fn);
         private:
             void on_event(const zmq_event_t &event, const char* addr);
