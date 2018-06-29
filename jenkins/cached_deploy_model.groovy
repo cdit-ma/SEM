@@ -59,7 +59,6 @@ if(nodes.size() == 0){
 node(builder_nodes[0]){
     //Unstash the model from parameter
     unstashParam "model", MODEL_FILE
-    sleep(1)
     //Stash the model file
     stash includes: MODEL_FILE, name: 'model'
 
@@ -111,68 +110,52 @@ for(n in builder_nodes){
             def build_dir = stash_name
 
             dir(build_dir){
-                def current_file_hash = [:]
                 def cached_dir = experiment_name
-                def temp_dir = build_id
+                //Make a list of files to delete
+                def files_to_remove = []
 
-                dir(cached_dir){
-                    touch "lock"
-                    for(file in findFiles(glob: '**')){
-                        //Calculate the hash of the files that exist
-                        def file_sha = sha1(file.path)
-                        current_file_hash[file.path] = file_sha
-                    }
-                }
-
-                def files_to_delete = []
-
-                //Code may already be here
-                dir(temp_dir){
+                dir(build_id){
                     //Unstash the generated code
                     unstash 'codegen'
 
                     for(file in findFiles(glob: '**')){
                         def file_path = file.path
-                        def process_file = true
+                        def remove_file = false
                         
                         //Ignore graphml/zip files
                         for(ext in [".graphml", ".zip"]){
                             if(file_path.endsWith(ext)){
-                                process_file = false
+                                remove_file = true
                             }
                         }
 
-                        if(process_file){
-                            def expected_path = "../" + cached_dir + "/" + file_path
-                            if(fileExists(expected_path)){
-                                def src_file_sha = sha1(expected_path)
-                                def dst_file_sha = sha1(file_path)
+                        if(!remove_file){
+                            //Check to see if the corresponding file exists in the cached dir
+                            def dst_path = "../" + cached_dir + "/" + file_path
+                            if(fileExists(dst_path)){
+                                def src_file_sha = sha1(file_path)
+                                def dst_file_sha = sha1(dst_path)
                                 if(src_file_sha == dst_file_sha){
-                                    //Maybe remove the file
-                                    process_file = false
+                                    remove_file = true
                                 }
                             }
                         }
 
-                        if(!process_file){
-                            files_to_delete += file_path
-                        }else{
-                            //if(utils.runScript('rm "' + file_path + '"') != 0){
-                                //print("Cannot remove file: '" + file_path + "'")
-                            //}
+                        if(remove_file){
+                            files_to_remove += file_path
                         }
                     }
 
-                    writeFile file: 'files_to_delete.txt', text: files_to_delete.join("\n")
-
-                    if(utils.runScript('while read file ; do rm "$file" ; done < files_to_delete.txt') != 0){
-                        print("Cannot remove file: '" + file_path + "'")
+                    //Write all files to be removed into a file, then remove them in bash, hide the output
+                    writeFile file: 'files_to_remove.list', text: files_to_remove.join("\n")
+                    if(utils.runScript('while read file ; do rm "$file" ; done < files_to_remove.list  > /dev/null 2>&1') != 0){
+                        print("Cannot remove files")
                     }
                     
-
+                    //Stash only the different files
                     stash name: new_stash_name, allowEmpty: true
                     //Delete old directory
-                    //deleteDir()
+                    deleteDir()
                 }
                 
                 dir(cached_dir){
@@ -186,6 +169,7 @@ for(n in builder_nodes){
                     dir("lib"){
                         //Stash all Libraries
                         stash includes: '**', name: stash_name
+                        //Remove the binary directory once we are done
                         deleteDir()
                     }
                 }
@@ -227,10 +211,10 @@ for(n in nodes){
                     parallel(
                         ("LOGAN_" + node_name): {
                             //Run Logan
-                            if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
+                            /*if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
                                 FAILURE_LIST << ("Logan failed on node: " + node_name)
                                 FAILED = true
-                            }
+                            }*/
                         },
                         ("RE_" + node_name): {
                             //Run re_node_manager
