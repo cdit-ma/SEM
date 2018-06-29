@@ -109,7 +109,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     {
         zmq::Monitor monitor;
         monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
-        
+
         writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
 
         if(!writer->BindPublisherSocket(publisher_endpoint)){
@@ -162,8 +162,9 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         }
         writer->Terminate();
+        std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
+        writer.reset();
     }
-    std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
 }
 
 
