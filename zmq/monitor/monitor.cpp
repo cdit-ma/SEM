@@ -25,13 +25,12 @@ zmq::Monitor::Monitor(){
 
 zmq::Monitor::~Monitor(){
     if(monitor_future_.valid()){
-        //Abort the thread
-        std::cerr << "ABD" << std::endl;
-        abort();
+        try{
+            abort();
+            monitor_future_.get();
+        }catch(const zmq::error_t& ex){
 
-        std::cerr << "WAITING" << std::endl;
-        monitor_future_.get();
-        std::cerr << "DED" << std::endl;
+        }
     }
 }
 
