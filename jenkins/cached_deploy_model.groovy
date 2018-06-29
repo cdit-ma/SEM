@@ -126,11 +126,11 @@ for(n in builder_nodes){
                 def files_to_copy = []
                 //Code may already be here
                 dir(temp_dir){
-                    print("Entering Temp Dir: " + temp_dir)
                     //Unstash the generated code
                     unstash 'codegen'
 
-                    for(file in findFiles(glob: '**')){
+                    //Ignore graphml/zip files
+                    for(file in findFiles(glob: '**/!(*.graphml|*.zip)')){
                         def copy_file = true
                         //Calculate the hash of the files that exist
 
@@ -146,11 +146,17 @@ for(n in builder_nodes){
                         }
                     }
                 }
+
                 for(file in files_to_copy){
                     print("Copying: " + file)
                     def src_path = temp_dir + "/" + file
                     def dst_path = cached_dir + "/" + file
                     sh 'mkdir -p `dirname "' + dst_path + '"` && cp "' + src_path + '" "' + dst_path + '"'
+                }
+
+                dir(temp_dir){
+                    //Delete old directory
+                    deleteDir()
                 }
 
                 dir(cached_dir){
@@ -204,7 +210,7 @@ for(n in nodes){
                         ("LOGAN_ " + node_name): {
                             //Run Logan
                             if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
-                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILURE_LIST << ("Logan failed on node: " + node_name)
                                 FAILED = true
                             }
                         },
