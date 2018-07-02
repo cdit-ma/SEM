@@ -29,6 +29,7 @@
 
 class Table;
 
+class SQLiteDatabase;
 namespace re_common{
     class UserEvent;
     class LifecycleEvent;
@@ -36,13 +37,13 @@ namespace re_common{
     class ComponentUtilizationEvent;
     class MessageEvent;
 }
+
 class ModelProtoHandler : public ProtoHandler{
     public:
-        ModelProtoHandler();
+        ModelProtoHandler(SQLiteDatabase& database);
         ~ModelProtoHandler();
 
-        void ConstructTables(SQLiteDatabase* database);
-        void BindCallbacks(zmq::ProtoReceiver* receiver);
+        void BindCallbacks(zmq::ProtoReceiver& receiver);
         
     private:
         //Table creation
@@ -59,7 +60,7 @@ class ModelProtoHandler : public ProtoHandler{
         void ProcessComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& message);
 
         //Members
-        SQLiteDatabase* database_;
+        SQLiteDatabase& database_;
         std::unordered_map<std::string, Table*> table_map_;
         std::set<std::string> registered_nodes_;
 };

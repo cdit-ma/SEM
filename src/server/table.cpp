@@ -26,9 +26,10 @@
 #define INSERT_TABLE_PREFIX "INSERT INTO"
 #define LID_INSERT "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
 
-Table::Table(SQLiteDatabase* database, const std::string& name){
+Table::Table(SQLiteDatabase& database, const std::string& name):
+    database_(database)
+{
     table_name_ = name;
-    database_ = database;
     AddColumn("lid", "INTEGER");
 }
 
@@ -66,10 +67,6 @@ int Table::get_field_id(const std::string& field){
             break;
         }
     }
-    /*
-    if(column_lookup_.count(field)){
-        field_id = column_lookup_[field];
-    }*/
     return field_id;
 }
 
@@ -102,16 +99,13 @@ sqlite3_stmt* Table::get_table_construct_statement(){
 sqlite3_stmt* Table::get_table_insert_statement(){
     auto s = GetSqlStatement(table_insert_);
     if(!s){
-        if(!database_){
-            std::cout << "NULL DATABSE?!: " << database_ << std::endl;    
-        }
         std::cout << "NULL TABLE: " << table_insert_ << std::endl;
     }
     return s;
 }
 
 sqlite3_stmt* Table::GetSqlStatement(const std::string& query){
-    return database_->GetSqlStatement(query);
+    return database_.GetSqlStatement(query);
 }
 
 void Table::Finalize(){

@@ -27,7 +27,6 @@
 #include <iostream>
 
 #include "cmakevars.h"
-
 #include "logcontroller.h"
 
 std::condition_variable lock_condition_;
@@ -52,12 +51,9 @@ int main(int ac, char** av){
     double log_frequency = 1.0;
     std::string address;
     std::string port;
-    std::string environment_manager_address;
-    std::string experiment_id;
     boost::program_options::options_description desc(LONG_VERSION " Options");
     desc.add_options()("address,a", boost::program_options::value<std::string>(&address), "IP address of logging client node.");
     desc.add_options()("port,p", boost::program_options::value<std::string>(&port), "Local port to attach logging client to.");
-    desc.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "Experiment id, if using environment manager.");
     desc.add_options()("frequency,f", boost::program_options::value<double>(&log_frequency)->default_value(log_frequency), "Logging frequency (Hz)");
     desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Process names to log (ie logan_client)");
     desc.add_options()("live-mode,l", boost::program_options::value<bool>(&live_mode)->default_value(live_mode), "Produce data live");
@@ -83,8 +79,7 @@ int main(int ac, char** av){
     }
 
     //Check for valid args
-    //Need address at all times AND ( (environment manager address AND experiment id) OR a port).
-    bool valid_args = !address.empty() && ((!environment_manager_address.empty() && !experiment_id.empty()) || !port.empty());
+    bool valid_args = address.size() && port.size();
 
     //On invalid args or help arg, print options and exit.
     if(!valid_args || vm.count("help")){
@@ -122,7 +117,6 @@ int main(int ac, char** av){
 
 
         if(!log_controller.Stop()){
-            
             return 1;
         }
     }

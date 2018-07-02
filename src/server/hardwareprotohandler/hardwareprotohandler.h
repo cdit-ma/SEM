@@ -28,7 +28,7 @@
 #include <google/protobuf/message_lite.h>
 
 class Table;
-
+class SQLiteDatabase;
 namespace re_common{
     class SystemInfo;
     class SystemStatus;
@@ -36,12 +36,10 @@ namespace re_common{
 
 class HardwareProtoHandler : public ProtoHandler{
     public:
-        HardwareProtoHandler();
+        HardwareProtoHandler(SQLiteDatabase& database);
         ~HardwareProtoHandler();
 
-        void ConstructTables(SQLiteDatabase* database);
-        void BindCallbacks(zmq::ProtoReceiver* receiver);
-
+        void BindCallbacks(zmq::ProtoReceiver& receiver);
     private:
         //Table creation
         void CreateSystemStatusTable();
@@ -59,7 +57,7 @@ class HardwareProtoHandler : public ProtoHandler{
         void ProcessOneTimeSystemInfo(const re_common::SystemInfo& info);
 
         //Members
-        SQLiteDatabase* database_;
+        SQLiteDatabase& database_;
         std::unordered_map<std::string, Table*> table_map_;
         std::set<std::string> registered_nodes_;
 };

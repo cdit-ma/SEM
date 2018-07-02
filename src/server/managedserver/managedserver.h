@@ -1,19 +1,18 @@
-#ifndef LOGAN_CLIENT_SERVER_H
-#define LOGAN_CLIENT_SERVER_H
+#ifndef LOGAN_MANAGEDSERVER_H
+#define LOGAN_MANAGEDSERVER_H
 
 #include <re_common/util/execution.hpp>
 #include <re_common/zmq/environmentrequester/environmentrequester.h>
 
 #include "server/server.h"
-#include "client/logcontroller.h"
 
 namespace NodeManager{
     class EnvironmentMessage;
 }
 
-class ClientServer{
+class ManagedServer{
     public:
-        ClientServer(Execution& exectution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address);
+        ManagedServer(Execution& exectution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address);
         void Terminate();
 
     private:
@@ -24,17 +23,13 @@ class ClientServer{
         std::string experiment_id_;
         std::string environment_manager_address_;
 
-        //Client and server pointers.
-        std::vector<std::unique_ptr<LogController> > clients_;
         std::vector<std::unique_ptr<Server> > servers_;
 
         const static int MAX_RETRY_COUNT = 5;
 
         //Ref to our execution
         Execution& execution_;
-
         std::unique_ptr<EnvironmentRequester> requester_;
-
 };
 
-#endif //LOGAN_CLIENT_SERVER_H
+#endif //LOGAN_MANAGEDSERVER_H

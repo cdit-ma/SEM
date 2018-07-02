@@ -27,15 +27,10 @@
 
 #include "cmakevars.h"
 
-#include "server.h"
+#include "../server.h"
 
-#ifndef DISABLE_HARDWARE_HANDLER
-#include "hardwareprotohandler/hardwareprotohandler.h"
-#endif
 
-#ifndef DISABLE_MODEL_HANDLER
-#include "modelprotohandler/modelprotohandler.h"
-#endif
+
 
 std::mutex mutex_;
 std::condition_variable lock_condition_;
@@ -58,14 +53,12 @@ int main(int ac, char** av)
     //Variables to store the input parameters
     std::string database_path;
     std::string experiment_id;
-    std::string environment_manager_address;
     std::vector<std::string> client_addresses;
 
     //Parse command line options
     boost::program_options::options_description desc(LONG_VERSION " Options");
-    desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
+    desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken()->required(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
     desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
-    desc.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "Experiment ID to log");
     desc.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -79,23 +72,6 @@ int main(int ac, char** av)
         std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
         std::cout << desc << std::endl;
         return 1;
-    }
-
-    bool valid_args = true;
-
-    //Check that we have both or neither experiment-id and environment manager address.
-    if(!(vm.count("experiment-id") == vm.count("environment-manager"))){
-        valid_args = false;
-    }
-
-    //If we have no list of clients, args are invalid
-    if(!client_addresses.size()){
-        valid_args = false;
-    }
-
-    if(!valid_args || vm.count("help")){
-        std::cout << desc << std::endl;
-        return 0;
     }
 
     //Print output
@@ -112,33 +88,13 @@ int main(int ac, char** av)
     {
         //Construct a Server to interface between our ZMQ messaging infrastructure and SQLite
         Server server(database_path, client_addresses);
-
-        //Add our proto handlers and start the server
-        #ifndef DISABLE_HARDWARE_HANDLER
-        {
-            server.AddProtoHandler(new HardwareProtoHandler());
-        }
-        #endif
-
-        #ifndef DISABLE_MODEL_HANDLER
-        {
-            server.AddProtoHandler(new ModelProtoHandler());
-        }
-        #endif
-
-        if(!server.Start()){
-            return 1;
-        }
+        server.Start();
 
         std::cout << "* Started Logging." << std::endl;
         std::unique_lock<std::mutex> lock(mutex_);
         //Wait for the signal_handler to notify for exit
         lock_condition_.wait(lock);
         std::cout << "* Stopping Logging." << std::endl;
-
-        if(!server.Terminate()){
-            return 1;
-        }
     }
     return 0;
 }

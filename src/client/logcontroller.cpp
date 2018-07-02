@@ -33,7 +33,7 @@
 
 #include <re_common/proto/systemstatus/systemstatus.pb.h>
 #include <re_common/zmq/protowriter/cachedprotowriter.h>
-#include <re_common/zmq/monitor/monitor.h>
+#include <re_common/zmq/protowriter/monitor.h>
 #include <zmq.hpp>
 
 #include <google/protobuf/util/json_util.h>
@@ -107,10 +107,12 @@ void LogController::QueueOneTimeInfo(){
 void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
     auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
     {
-        zmq::Monitor monitor;
-        monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
-
-        writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
+        {
+            //Attach monitor
+            auto monitor = std::unique_ptr<zmq::Monitor>(new zmq::Monitor());
+            monitor->RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
+            writer->AttachMonitor(std::move(monitor), ZMQ_EVENT_ACCEPTED);
+        }
 
         if(!writer->BindPublisherSocket(publisher_endpoint)){
             std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
@@ -161,7 +163,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto end = std::chrono::steady_clock::now();
             last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         }
-        monitor.abort();
         writer->Terminate();
         std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
         writer.reset();

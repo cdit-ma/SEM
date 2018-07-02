@@ -6,59 +6,68 @@
 #include "protohandler.h"
 #include "../re_common/zmq/protoreceiver/protoreceiver.h"
 
-Server::Server(const std::string& database_path, std::vector<std::string> addresses){
-    //Construct database
-	database_ = new SQLiteDatabase(database_path);
+#ifndef DISABLE_HARDWARE_HANDLER
+#include "hardwareprotohandler/hardwareprotohandler.h"
+#endif
 
-    //Construct receiver
-	receiver_ = new zmq::ProtoReceiver();
-    for(const auto& c : addresses){
-        receiver_->Connect(c);
+#ifndef DISABLE_MODEL_HANDLER
+#include "modelprotohandler/modelprotohandler.h"
+#endif
+
+Server::Server(const std::string& database_path, const std::vector<std::string>& addresses){
+    proto_receiver_ = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
+    database_ = std::unique_ptr<SQLiteDatabase>(new SQLiteDatabase(database_path));
+
+    //Connect to all addresses
+    for(const auto& address : addresses){
+        proto_receiver_->Connect(address);
     }
 
-    //Receieve all messages
-    receiver_->Filter("");
+    //Recieve all messages
+    proto_receiver_->Filter("");
+
+    //Add our proto handlers and start the server
+    #ifndef DISABLE_HARDWARE_HANDLER
+    AddProtoHandler(std::unique_ptr<ProtoHandler>(new HardwareProtoHandler(*database_)));
+    #endif
+
+    #ifndef DISABLE_MODEL_HANDLER
+    AddProtoHandler(std::unique_ptr<ProtoHandler>(new ModelProtoHandler(*database_)));
+    #endif
 }
 
-void Server::AddProtoHandler(ProtoHandler* handler){
-    if(!running_){
-        handler_list_.push_back(handler);
-    }else{
-        std::cerr << "Could not add proto handler, receiver started." << std::endl;
-    }
+SQLiteDatabase& Server::GetDatabase(){
+    return *database_;
 }
 
-bool Server::Start(){
-    bool success = false;
+void Server::AddProtoHandler(std::unique_ptr<ProtoHandler> proto_handler){
+    std::lock_guard<std::mutex> lock(mutex_);
+    proto_handler->BindCallbacks(*proto_receiver_);
+    proto_handlers_.emplace_back(std::move(proto_handler));
+}
+
+void Server::Start(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    
     if(!running_){
-        for(const auto& handler : handler_list_){
-            handler->ConstructTables(database_);
-            handler->BindCallbacks(receiver_);
-        }
         database_->Flush(true);
         std::cout << "* Constructed tables" << std::endl;
+        proto_receiver_->Start();
         running_ = true;
-        success = receiver_->Start();
     }
-    return success;
 }
 
-bool Server::Terminate(){
-    if(running_){
-        receiver_->Terminate();
-        std::cout << "* Logged " << receiver_->GetRxCount() << " messages." << std::endl;
-        delete receiver_;
-        receiver_ = 0;
-
-        for(auto handler : handler_list_){
-            delete handler;
-        }
-        handler_list_.clear();
-        delete database_;
-        database_ = 0;
-        running_ = false;
-        return true;
+Server::~Server(){
+    if(proto_receiver_){
+        std::cout << "* Logged " << proto_receiver_->GetRxCount() << " messages." << std::endl;
     }
-    return false;
 
+    //Shutdown the receiver
+    proto_receiver_.reset();
+
+    //Destroy the proto handlers
+    proto_handlers_.clear();
+
+    //Destroy the databases
+    database_.reset();
 }

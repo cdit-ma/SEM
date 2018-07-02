@@ -63,11 +63,10 @@ const std::string LOGAN_EVENT_USER_TABLE = "Model_Event_User";
 const std::string LOGAN_EVENT_WORKLOAD_TABLE = "Model_Event_Workload";
 const std::string LOGAN_EVENT_COMPONENT_TABLE = "Model_Event_Component";
 
-ModelProtoHandler::ModelProtoHandler() : ProtoHandler(){}
-ModelProtoHandler::~ModelProtoHandler(){}
-
-void ModelProtoHandler::ConstructTables(SQLiteDatabase* database){
-    database_ = database;
+ModelProtoHandler::ModelProtoHandler(SQLiteDatabase& database):
+    ProtoHandler(),
+    database_(database)
+{
     CreatePortEventTable();
     CreateComponentEventTable();
     CreateUserEventTable();
@@ -75,11 +74,11 @@ void ModelProtoHandler::ConstructTables(SQLiteDatabase* database){
     CreateComponentUtilizationTable();
 }
 
-void ModelProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){
-    receiver->RegisterProtoCallback<re_common::UserEvent>(std::bind(&ModelProtoHandler::ProcessUserEvent, this, std::placeholders::_1));
-    receiver->RegisterProtoCallback<re_common::LifecycleEvent>(std::bind(&ModelProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
-    receiver->RegisterProtoCallback<re_common::WorkloadEvent>(std::bind(&ModelProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
-    receiver->RegisterProtoCallback<re_common::ComponentUtilizationEvent>(std::bind(&ModelProtoHandler::ProcessComponentUtilizationEvent, this, std::placeholders::_1));
+void ModelProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
+    receiver.RegisterProtoCallback<re_common::UserEvent>(std::bind(&ModelProtoHandler::ProcessUserEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::LifecycleEvent>(std::bind(&ModelProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::WorkloadEvent>(std::bind(&ModelProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::ComponentUtilizationEvent>(std::bind(&ModelProtoHandler::ProcessComponentUtilizationEvent, this, std::placeholders::_1));
 }
 
 
@@ -103,7 +102,7 @@ void ModelProtoHandler::CreatePortEventTable(){
     t->Finalize();
 
     table_map_[LOGAN_LIFECYCLE_PORT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void ModelProtoHandler::CreateComponentEventTable(){
@@ -121,7 +120,7 @@ void ModelProtoHandler::CreateComponentEventTable(){
     t->Finalize();
 
     table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void ModelProtoHandler::CreateUserEventTable(){
@@ -140,7 +139,7 @@ void ModelProtoHandler::CreateUserEventTable(){
     t->Finalize();
 
     table_map_[LOGAN_EVENT_USER_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void ModelProtoHandler::CreateWorkloadEventTable(){
@@ -167,7 +166,7 @@ void ModelProtoHandler::CreateWorkloadEventTable(){
 
     t->Finalize();
     table_map_[LOGAN_EVENT_WORKLOAD_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void ModelProtoHandler::CreateComponentUtilizationTable(){
@@ -194,7 +193,7 @@ void ModelProtoHandler::CreateComponentUtilizationTable(){
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
     table_map_[LOGAN_EVENT_COMPONENT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& event){
@@ -213,7 +212,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& e
         ins.BindString(LOGAN_PORT_MIDDLEWARE, event.port().middleware());
         ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event.type()));
 
-        database_->QueueSqlStatement(ins.get_statement());
+        database_.QueueSqlStatement(ins.get_statement());
     }
 
     else if(event.has_component()){
@@ -224,7 +223,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& e
             ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
             ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
             ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event.type()));
-            database_->QueueSqlStatement(ins.get_statement());
+            database_.QueueSqlStatement(ins.get_statement());
     }
 }
 
@@ -237,7 +236,7 @@ void ModelProtoHandler::ProcessUserEvent(const re_common::UserEvent& event){
     ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
     ins.BindString("message", event.message());
     ins.BindString(LOGAN_TYPE, re_common::UserEvent::Type_Name(event.type()));
-    database_->QueueSqlStatement(ins.get_statement());
+    database_.QueueSqlStatement(ins.get_statement());
 }
 
 void ModelProtoHandler::ProcessWorkloadEvent(const re_common::WorkloadEvent& event){
@@ -258,7 +257,7 @@ void ModelProtoHandler::ProcessWorkloadEvent(const re_common::WorkloadEvent& eve
     ins.BindString("function", event.function());
     ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event.event_type()));
     ins.BindString("args", event.args());
-    database_->QueueSqlStatement(ins.get_statement());
+    database_.QueueSqlStatement(ins.get_statement());
 }
 
 void ModelProtoHandler::ProcessComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& event){
@@ -283,5 +282,5 @@ void ModelProtoHandler::ProcessComponentUtilizationEvent(const re_common::Compon
     ins.BindInt("port_event_id", event.port_event_id());
     ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event.type()));
 
-    database_->QueueSqlStatement(ins.get_statement());
+    database_.QueueSqlStatement(ins.get_statement());
 }

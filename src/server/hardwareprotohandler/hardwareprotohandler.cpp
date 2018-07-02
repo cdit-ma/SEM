@@ -53,11 +53,11 @@ const std::string LOGAN_INTERFACE_INFO_TABLE = "Hardware_InterfaceInfo";
 const std::string LOGAN_PROCESS_STATUS_TABLE = "Hardware_ProcessStatus";
 const std::string LOGAN_PROCESS_INFO_TABLE = "Hardware_ProcessInfo";
 
-HardwareProtoHandler::HardwareProtoHandler() : ProtoHandler(){}
-HardwareProtoHandler::~HardwareProtoHandler(){}
-
-void HardwareProtoHandler::ConstructTables(SQLiteDatabase* database){
-    database_ = database;
+HardwareProtoHandler::HardwareProtoHandler(SQLiteDatabase& database):
+    ProtoHandler(),
+    database_(database)
+{
+    //Create the relevant tables
     CreateSystemStatusTable();
     CreateSystemInfoTable();
     CreateCpuTable();
@@ -69,10 +69,11 @@ void HardwareProtoHandler::ConstructTables(SQLiteDatabase* database){
     CreateProcessInfoTable();
 }
 
-void HardwareProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){
+
+void HardwareProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
     //Register call back functions and type with zmqreceiver
-    receiver->RegisterProtoCallback<re_common::SystemStatus>(std::bind(&HardwareProtoHandler::ProcessSystemStatus, this, std::placeholders::_1));
-    receiver->RegisterProtoCallback<re_common::SystemInfo>(std::bind(&HardwareProtoHandler::ProcessOneTimeSystemInfo, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::SystemStatus>(std::bind(&HardwareProtoHandler::ProcessSystemStatus, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::SystemInfo>(std::bind(&HardwareProtoHandler::ProcessOneTimeSystemInfo, this, std::placeholders::_1));
 }
 
 void HardwareProtoHandler::CreateSystemStatusTable(){
@@ -89,7 +90,7 @@ void HardwareProtoHandler::CreateSystemStatusTable(){
 
     table_map_[LOGAN_SYSTEM_STATUS_TABLE] = t;
     t->Finalize();
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateSystemInfoTable(){
@@ -114,7 +115,7 @@ void HardwareProtoHandler::CreateSystemInfoTable(){
     t->Finalize();
 
     table_map_[LOGAN_SYSTEM_INFO_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateCpuTable(){
@@ -131,7 +132,7 @@ void HardwareProtoHandler::CreateCpuTable(){
     t->Finalize();
 
     table_map_[LOGAN_CPU_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateFileSystemTable(){
@@ -148,7 +149,7 @@ void HardwareProtoHandler::CreateFileSystemTable(){
     t->Finalize();
 
     table_map_[LOGAN_FILE_SYSTEM_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateFileSystemInfoTable(){
@@ -166,7 +167,7 @@ void HardwareProtoHandler::CreateFileSystemInfoTable(){
     t->Finalize();
 
     table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateInterfaceTable(){
@@ -186,7 +187,7 @@ void HardwareProtoHandler::CreateInterfaceTable(){
     t->Finalize();
 
     table_map_[LOGAN_INTERFACE_STATUS_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateInterfaceInfoTable(){
@@ -208,7 +209,7 @@ void HardwareProtoHandler::CreateInterfaceInfoTable(){
     t->Finalize();
 
     table_map_[LOGAN_INTERFACE_INFO_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateProcessTable(){
@@ -232,7 +233,7 @@ void HardwareProtoHandler::CreateProcessTable(){
     t->Finalize();
 
     table_map_[LOGAN_PROCESS_STATUS_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void HardwareProtoHandler::CreateProcessInfoTable(){
@@ -251,7 +252,7 @@ void HardwareProtoHandler::CreateProcessInfoTable(){
     t->Finalize();
 
     table_map_[LOGAN_PROCESS_INFO_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
+    database_.QueueSqlStatement(t->get_table_construct_statement());
 }
 
 
@@ -267,7 +268,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
     stmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
     stmt.BindDouble("cpu_utilization", status.cpu_utilization());
     stmt.BindDouble("phys_mem_utilization", status.phys_mem_utilization());
-    database_->QueueSqlStatement(stmt.get_statement());
+    database_.QueueSqlStatement(stmt.get_statement());
 
 
     for(int i = 0; i < status.cpu_core_utilization_size(); i++){
@@ -277,7 +278,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
         cpustmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
         cpustmt.BindInt("core_id", i);
         cpustmt.BindDouble("core_utilization", status.cpu_core_utilization(i));
-        database_->QueueSqlStatement(cpustmt.get_statement());
+        database_.QueueSqlStatement(cpustmt.get_statement());
     }
 
     for(int i = 0; i < status.processes_size(); i++){
@@ -296,7 +297,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
         procstmt.BindInt("disk_written", (int)(proc.disk_written()));
         procstmt.BindInt("disk_total", (int)(proc.disk_total()));
         procstmt.BindString("state", re_common::ProcessStatus::State_Name(proc.state()));
-        database_->QueueSqlStatement(procstmt.get_statement());
+        database_.QueueSqlStatement(procstmt.get_statement());
     }
 
     for(int i = 0; i < status.interfaces_size(); i++){
@@ -311,7 +312,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
         ifstatement.BindInt("rx_bytes", (int)(ifstat.rx_bytes()));
         ifstatement.BindInt("tx_packets", (int)(ifstat.tx_packets()));
         ifstatement.BindInt("tx_bytes", (int)(ifstat.tx_bytes()));
-        database_->QueueSqlStatement(ifstatement.get_statement());
+        database_.QueueSqlStatement(ifstatement.get_statement());
     }
 
     for(int i = 0; i < status.file_systems_size(); i++){
@@ -323,7 +324,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
         fsstatement.BindDouble(LOGAN_TIMEOFDAY, timestamp);
         fsstatement.BindString(LOGAN_NAME, fss.name());
         fsstatement.BindDouble("utilization", fss.utilization());
-        database_->QueueSqlStatement(fsstatement.get_statement());
+        database_.QueueSqlStatement(fsstatement.get_statement());
     }
 
     for(int i = 0; i < status.process_info_size(); i++){
@@ -337,7 +338,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
             proc_insert.BindString(LOGAN_NAME, proc_info.name());
             proc_insert.BindString("args", proc_info.args());
             proc_insert.BindDouble("start_time", proc_info.start_time());
-            database_->QueueSqlStatement(proc_insert.get_statement());
+            database_.QueueSqlStatement(proc_insert.get_statement());
         }
     }
 }
@@ -367,7 +368,7 @@ void HardwareProtoHandler::ProcessOneTimeSystemInfo(const re_common::SystemInfo&
     infostmt.BindString("cpu_vendor", info.cpu_vendor());
     infostmt.BindInt("cpu_frequency", info.cpu_frequency());
     infostmt.BindInt("physical_memory", info.physical_memory());
-    database_->QueueSqlStatement(infostmt.get_statement());
+    database_.QueueSqlStatement(infostmt.get_statement());
 
     for(int i = 0; i < info.file_system_info_size(); i++){
         re_common::FileSystemInfo fsi = info.file_system_info(i);
@@ -379,7 +380,7 @@ void HardwareProtoHandler::ProcessOneTimeSystemInfo(const re_common::SystemInfo&
         fsinfo.BindString(LOGAN_NAME, fsi.name());
         fsinfo.BindString(LOGAN_TYPE, re_common::FileSystemInfo::Type_Name(fsi.type()));
         fsinfo.BindInt("size", (int)(fsi.size()));
-        database_->QueueSqlStatement(fsinfo.get_statement());
+        database_.QueueSqlStatement(fsinfo.get_statement());
     }
 
     for(int i = 0; i < info.interface_info_size(); i++){
@@ -399,6 +400,6 @@ void HardwareProtoHandler::ProcessOneTimeSystemInfo(const re_common::SystemInfo&
         if_insert.BindString("mac_addr", if_info.mac_addr());
         if_insert.BindInt("speed", (int)(if_info.speed()));
 
-        database_->QueueSqlStatement(if_insert.get_statement());
+        database_.QueueSqlStatement(if_insert.get_statement());
     }
 }

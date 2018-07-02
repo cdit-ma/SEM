@@ -14,7 +14,6 @@ if(APPLE)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 endif(APPLE)
 
-
 set(LOGAN_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 #Use the local submoduled cmake_modules if we don't have a global one set

@@ -43,7 +43,7 @@ struct TableColumn{
 
 class Table{
     public:
-        Table(SQLiteDatabase* database, const std::string& name);
+        Table(SQLiteDatabase& database, const std::string& name);
         ~Table();
         bool AddColumn(const std::string& name, const std::string& type);
         TableInsert get_insert_statement();
@@ -54,7 +54,7 @@ class Table{
 
         void Finalize();
     private:
-        SQLiteDatabase* database_;
+        SQLiteDatabase& database_;
 
         int size_;
         bool finalized_ = false;

@@ -1,12 +1,9 @@
-#include "clientserver.h"
-#include <controlmessage.pb.h>
-#include "server/modelprotohandler/modelprotohandler.h"
-#include "server/hardwareprotohandler/hardwareprotohandler.h"
+#include "managedserver.h"
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <zmq.hpp>
 
-ClientServer::ClientServer(Execution& execution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address) : execution_(execution)
+ManagedServer::ManagedServer(Execution& execution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address) : execution_(execution)
 {
-
     std::string default_database_file_name = experiment_id + ".sql";
 
     address_ = address;
@@ -15,7 +12,7 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
 
     requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_address_, experiment_id_, EnvironmentRequester::DeploymentType::LOGAN));
 
-    requester_->AddUpdateCallback(std::bind(&ClientServer::HandleUpdate, this, std::placeholders::_1));
+    requester_->AddUpdateCallback(std::bind(&ManagedServer::HandleUpdate, this, std::placeholders::_1));
     requester_->Init(environment_manager_address_);
     requester_->SetIPAddress(address);
     requester_->Start();
@@ -51,50 +48,27 @@ ClientServer::ClientServer(Execution& execution, const std::string& address, con
 
     for(const auto logger : message.logger()){
         if(logger.type() == NodeManager::Logger::SERVER){
-            std::cout << "Server: " << std::endl;
             std::vector<std::string> client_list;
             for(const auto& address : logger.client_addresses()){
-                std::cerr << "\tClient: " << address << std::endl;
                 client_list.push_back(address);
             }
             servers_.push_back(std::move(std::unique_ptr<Server>(new Server(logger.db_file_name(), client_list))));
-            servers_.back()->AddProtoHandler(new HardwareProtoHandler());
-            servers_.back()->AddProtoHandler(new ModelProtoHandler());
             servers_.back()->Start();
-        }
-        if(logger.type() == NodeManager::Logger::CLIENT){
-            std::cout << "Client: " << std::endl;
-            double frequency = 0;
-            std::vector<std::string> processes;
-            bool live_mode = logger.mode() == NodeManager::Logger::LIVE;
-            clients_.push_back(std::move(std::unique_ptr<LogController>(new LogController())));
-            clients_.back()->Start("tcp://" + logger.publisher_address() + ":" + logger.publisher_port(), frequency, processes, live_mode);
-            std::cout << "Publish Address: tcp://" << logger.publisher_address() << ":" << logger.publisher_port() << std::endl;
         }
     }
 
-    if(!clients_.size() && !servers_.size()){
-        std::cout << "Not Needed." << std::endl;
+    if(!servers_.size()){
         //Interupt the execution
         execution_.Interrupt();
     }
 }
 
-void ClientServer::Terminate(){
-    for(const auto& client : clients_){
-        client->Stop();
-    }
-
-    for(const auto& server : servers_){
-        server->Terminate();
-    }
-    
-    clients_.clear();
+void ManagedServer::Terminate(){
     servers_.clear();
     execution_.Interrupt();
 }
 
-void ClientServer::HandleUpdate(NodeManager::EnvironmentMessage& message){
+void ManagedServer::HandleUpdate(NodeManager::EnvironmentMessage& message){
     switch(message.type()){
         case NodeManager::EnvironmentMessage::ERROR_RESPONSE:{
             Terminate();
