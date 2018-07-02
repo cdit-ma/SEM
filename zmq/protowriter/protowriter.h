@@ -26,17 +26,17 @@
 #include <google/protobuf/message_lite.h>
 #include <zmq.hpp>
 
-#include "../monitor/monitorable.h"
+#include "monitor.h"
 
 namespace zmq{
-    class ProtoWriter : public zmq::Monitorable{
+    class ProtoWriter{
         public:
             ProtoWriter();
             virtual ~ProtoWriter();
 
             int GetTxCount();
             
-            bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
+            void AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type);
             bool BindPublisherSocket(const std::string& endpoint);
 
             virtual bool PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
@@ -46,8 +46,11 @@ namespace zmq{
             bool PushString(const std::string& topic, const std::string& message_type, const std::string& message);
         private:
             int tx_count_ = 0;
-            zmq::socket_t* socket_;
-            zmq::context_t* context_;
+
+            std::unique_ptr<zmq::socket_t> socket_;
+            std::unique_ptr<zmq::context_t> context_;
+            
+            std::vector< std::unique_ptr<zmq::Monitor> >  monitors_;
             std::mutex mutex_;
     };
 };

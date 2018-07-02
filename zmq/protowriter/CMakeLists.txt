@@ -16,12 +16,14 @@ find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.cpp
 )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.h
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.h
+)
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
@@ -46,4 +48,3 @@ target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})
-target_link_libraries(${PROJ_NAME} zmq_monitor)

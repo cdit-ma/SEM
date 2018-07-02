@@ -21,7 +21,6 @@
 #ifndef RE_COMMON_ZMQ_PROTORECEIVER_H
 #define RE_COMMON_ZMQ_PROTORECEIVER_H
 
-#include <thread>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -29,75 +28,69 @@
 #include <functional>
 #include <unordered_map>
 #include <map>
+#include <future>
 
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
 
-#include "../monitor/monitorable.h"
-
 namespace zmq{
-    class ProtoReceiver: public zmq::Monitorable{
+    class ProtoReceiver{
         public:
             ProtoReceiver();
             ~ProtoReceiver();
 
-            void SetBatchMode(const bool on, const int size);
-            bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
-
+            void Start();
+            void Connect(const std::string& address);
+            void Filter(const std::string& topic_filter);
+            void SetBatchMode(size_t batch_size);
+            void Terminate();
+            
             int GetRxCount(); 
-            bool Start();
-            bool Terminate();
-            
-            bool Connect(const std::string& address);
-            bool Filter(const std::string& topic_filter);
-
             template<class T>
-            bool RegisterProtoCallback(std::function<void(const T&)> fn);
+            void RegisterProtoCallback(std::function<void(const T&)> fn);
         private:
-            bool ProcessMessage(const zmq::message_t& type, const zmq::message_t& data);
-            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(const google::protobuf::MessageLite&)> fn);
+            void RegisterNewProto(const google::protobuf::MessageLite& message_default_instance, std::function<void(const google::protobuf::MessageLite&)> callback_function);
+            void ProcessMessage(const zmq::message_t& proto_type, const zmq::message_t& proto_data);
+
             
-            void RecieverThread();
+            void ProtoConverter();
+            void ZmqReceiver();
+
             //RecieverThread helper functions
             bool Connect_(const std::string& address);
             bool Filter_(const std::string& topic_filter);
             
-            void ProtoConvertThread();
 
             std::mutex zmq_mutex_;
-            zmq::context_t *context_ = 0;
-            zmq::socket_t* socket_ = 0;
-            std::vector<std::string> addresses_;
-            std::vector<std::string> filters_;
+            std::unique_ptr<zmq::context_t> context_;
+            std::set<std::string> addresses_;
+            std::set<std::string> filters_;
 
             std::mutex proto_mutex_;
             std::multimap<std::string, std::function<void(const google::protobuf::MessageLite&)> > callback_lookup_;
-            
-            std::unordered_map<std::string, std::function<google::protobuf::MessageLite* (const zmq::message_t&)> > proto_lookup_;
+            std::unordered_map<std::string, std::function<google::protobuf::MessageLite* (const zmq::message_t&)> > proto_constructor_lookup_;
 
             std::mutex queue_mutex_;
-            int batch_size_ = 0;
+            size_t batch_size_ = 0;
             std::condition_variable queue_lock_condition_;
             std::queue<std::pair<zmq::message_t, zmq::message_t> > rx_message_queue_; 
             int rx_count_ = 0;
 
-            std::mutex thread_mutex_;
-            std::thread* reciever_thread_ = 0;
-            std::thread* proto_convert_thread_ = 0;
-            bool terminate_proto_convert_thread_ = false;
+            std::mutex future_mutex_;
+            bool terminate_proto_converter_ = false;
+            std::future<void> zmq_receiver_;
+            std::future<void> proto_converter_;
     };
 };
 
 template<class T>
-bool zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const T&)> fn){
+void zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const T&)> callback_function){
     static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value, "T must inherit from google::protobuf::MessageLite");
-    const auto& default_instance = T::default_instance();
-
-    RegisterNewProto(default_instance, [fn](const google::protobuf::MessageLite& ml){
-        auto t_message = (const T&) ml;
-        fn(t_message);
+    
+    RegisterNewProto(T::default_instance(), [callback_function](const google::protobuf::MessageLite& ml){
+        //Call into the function provided with an up-casted message
+        callback_function((const T&) ml);
     });
-    return true;
 }
 
 #endif //RE_COMMON_ZMQ_PROTORECEIVER_H

@@ -23,12 +23,12 @@
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
 #include <thread>
-#include "../monitor/monitor.h"
+#include "monitor.h"
 
 zmq::ProtoWriter::ProtoWriter(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    context_ = new zmq::context_t();
-    socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
+    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t());
+    socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_PUB));
+    
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
     socket_->setsockopt(ZMQ_SNDHWM, 10000);
 }
@@ -37,13 +37,12 @@ zmq::ProtoWriter::~ProtoWriter(){
     Terminate();
 }
 
-bool zmq::ProtoWriter::AttachMonitor(zmq::Monitor* monitor, const int event_type){
+void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(monitor && socket_){
-        //Attach monitor; using a new address
-        return monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
-    }
-    return false;
+    //TODO: re-add GetNewMonitorAddress()
+    std::string addr = "inproc://Monitor_1";
+    monitor->MonitorSocket(*socket_, addr, event_type);
+    monitors_.emplace_back(std::move(monitor));
 }
 
 bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
@@ -106,18 +105,7 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
 
 bool zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
-    try{
-        if(context_ && socket_){
-            delete socket_;
-            socket_ = 0;
-            delete context_;
-            context_ = 0;
-            return true;
-        }
-        return false;
-
-    }
-    catch(...){
-        return false;
-    }
+    socket_.reset();
+    context_.reset();
+    monitors_.clear();
 }
