@@ -23,6 +23,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
+#include "sqlite3.h"
 
 #define SQL_BATCH_SIZE 100
 

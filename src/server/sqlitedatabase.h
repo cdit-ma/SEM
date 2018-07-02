@@ -26,7 +26,10 @@
 #include <future>
 #include <mutex>
 #include <condition_variable>
-#include "sqlite3.h"
+
+
+class sqlite3_stmt;
+class sqlite3;
 
 class SQLiteDatabase{
     public:
