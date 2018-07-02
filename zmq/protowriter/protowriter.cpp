@@ -110,10 +110,11 @@ bool zmq::ProtoWriter::Terminate(){
     std::cerr << "TERMINATED: SOCKET" << std::endl;
 
     std::cerr << "TERMINATING: CONTEXT" << std::endl;
-
-    context_.reset();
-    std::cerr << "TERMINATED: CONTEXT" << std::endl;
-    std::cerr << "TERMINATING: MONITORS" << std::endl;
     monitors_.clear();
+    std::cerr << "TERMINATED: CONTEXT" << std::endl;
+
+
+    std::cerr << "TERMINATING: MONITORS" << std::endl;
+    context_.reset();
     std::cerr << "TERMINATED: MONITORS" << std::endl;
 }
