@@ -2,7 +2,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include "../executionmanager.h"
-#include "../../re_common/zmq/zmqutils.hpp"
+#include <re_common/zmq/zmqutils.hpp>
 
 //MASTER
 zmq::Registrar::Registrar(ExecutionManager& execution_manager):

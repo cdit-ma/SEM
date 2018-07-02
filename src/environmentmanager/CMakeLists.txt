@@ -37,7 +37,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
     )
 
 #Pass Version info into cmakevars.h
@@ -65,13 +64,16 @@ target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
+target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
+
 
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 
 

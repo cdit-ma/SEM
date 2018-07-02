@@ -11,8 +11,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <proto/controlmessage/controlmessage.pb.h>
-
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
 
