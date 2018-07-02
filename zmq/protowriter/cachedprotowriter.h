@@ -41,7 +41,7 @@ namespace zmq{
             ~CachedProtoWriter();
             
             bool PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
-            bool Terminate();
+            void Terminate();
         private:
             void WriteQueue();
 

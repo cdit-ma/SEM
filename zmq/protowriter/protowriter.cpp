@@ -103,18 +103,12 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
     return false;
 }
 
-bool zmq::ProtoWriter::Terminate(){
+void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
-    std::cerr << "TERMINATING: SOCKET" << std::endl;
+    //Teardown socket
     socket_.reset();
-    std::cerr << "TERMINATED: SOCKET" << std::endl;
-
-    std::cerr << "TERMINATING: CONTEXT" << std::endl;
+    //Remove monitors
     monitors_.clear();
-    std::cerr << "TERMINATED: CONTEXT" << std::endl;
-
-
-    std::cerr << "TERMINATING: MONITORS" << std::endl;
+    //Teardown context
     context_.reset();
-    std::cerr << "TERMINATED: MONITORS" << std::endl;
 }

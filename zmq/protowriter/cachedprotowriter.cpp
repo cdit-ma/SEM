@@ -93,7 +93,7 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::proto
     return false;
 }
 
-bool zmq::CachedProtoWriter::Terminate(){
+void zmq::CachedProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
     if(writer_future_.valid()){
         {
@@ -140,11 +140,10 @@ bool zmq::CachedProtoWriter::Terminate(){
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
-
-        return true;
     }
 
-    return false;
+    //Terminate the base class
+    zmq::ProtoWriter::Terminate();
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){
