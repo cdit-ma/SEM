@@ -17,6 +17,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BIN
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/sigarsysteminfo.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/systeminfo.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/logcontroller.cpp
 )
 

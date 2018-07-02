@@ -50,10 +50,9 @@ class LogController{
         void GotNewConnection(int event_type, std::string address);
         void QueueOneTimeInfo();
         
-        re_common::SystemStatus* GetSystemStatus();
-        re_common::SystemInfo* GetSystemInfo();
         
-        SystemInfo* system_ = 0;
+        
+        SystemInfo& system_;
         
         std::mutex state_mutex_;
 
@@ -67,8 +66,9 @@ class LogController{
         bool interupt_ = false;
         int message_id_ = 0;
 
-        //don't send onetime info for any contained pids
-        std::unordered_map<int, double> pid_updated_times_;
+        const int listener_id;
+
+        
 };
 
 #endif //LOGCONTROLLER_H

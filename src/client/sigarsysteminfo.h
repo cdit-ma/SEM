@@ -39,10 +39,12 @@ extern "C"{
 
 class SigarSystemInfo: public SystemInfo{
     public:
+        static SystemInfo& GetSystemInfo();
+
         SigarSystemInfo();
         ~SigarSystemInfo();
 
-        double get_update_timestamp() const;
+        std::chrono::milliseconds get_update_timestamp() const;
 
         std::string get_hostname() const;
 
@@ -100,7 +102,7 @@ class SigarSystemInfo: public SystemInfo{
         int get_monitored_process_thread_count(const int pid) const;
         time_t get_monitored_process_start_time(const int pid) const;
         time_t get_monitored_process_total_time(const int pid) const;
-        double get_monitored_process_update_time(const int pid) const;
+        std::chrono::milliseconds get_monitored_process_update_time(const int pid) const;
 
         long long get_monitored_process_disk_written(const int pid) const;
         long long get_monitored_process_disk_read(const int pid) const;
@@ -128,16 +130,14 @@ class SigarSystemInfo: public SystemInfo{
 
 
         //Refresh
-        bool update();
+        std::chrono::milliseconds UpdateData();
 
     private:
-        double get_timestamp(const std::chrono::milliseconds t) const; 
         bool open_sigar();
         bool close_sigar();
         sigar_t *sigar_ = 0;
 
         void update_timestamp();
-        bool initial_update();
         bool update_phys_mem(sigar_mem_t* mem);
         bool update_cpu();
         bool update_cpu_list(sigar_cpu_list_t* cpu_list);

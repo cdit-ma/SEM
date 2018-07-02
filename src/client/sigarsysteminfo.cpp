@@ -26,9 +26,16 @@
 #include <iostream>
 #include <algorithm>
 
+SystemInfo& SigarSystemInfo::GetSystemInfo(){
+    static SigarSystemInfo system_info;
+    return system_info;
+}
+
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
-    initial_update();
+    update_timestamp();
+    UpdateData();
+    onetime_update_sys_info();
 }
 
 SigarSystemInfo::~SigarSystemInfo(){
@@ -56,12 +63,8 @@ bool SigarSystemInfo::close_sigar(){
     }
 }
 
-double SigarSystemInfo::get_update_timestamp() const{
-    return get_timestamp(lastUpdate_);
-}
-
-double SigarSystemInfo::get_timestamp(const std::chrono::milliseconds t) const{
-    return t.count() / 1000.0;
+std::chrono::milliseconds SigarSystemInfo::get_update_timestamp() const{
+    return lastUpdate_;
 }
 
 
@@ -199,37 +202,28 @@ bool SigarSystemInfo::update_cpu(){
     return true;
 }
 
-bool SigarSystemInfo::initial_update(){
-    update_timestamp();
-    bool okay = true;
-    okay &= update();
-    okay &= onetime_update_sys_info();
-    return okay;
-}
-bool SigarSystemInfo::update(){
-    std::chrono::milliseconds currentTime = get_current_time();
-    auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastUpdate_);
+std::chrono::milliseconds SigarSystemInfo::UpdateData(){
+    std::chrono::milliseconds current_time = get_current_time();
+    auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - lastUpdate_);
 
     //don't update more than 10 times a second
-    if(difference.count() < 100){
-        return false;
+    if(difference.count() >= 100){
+        update_timestamp();
+        update_cpu();
+        update_phys_mem(&phys_mem_);
+        update_interfaces();
+        update_processes();
+        update_filesystems();
     }
-    
-    update_timestamp();
-    bool okay = true;
-    okay &= update_cpu();
-    okay &= update_phys_mem(&phys_mem_);
-    okay &= update_interfaces();
-    okay &= update_processes();
-    okay &= update_filesystems();
-    return okay;
+    return lastUpdate_;
 }
 
 void SigarSystemInfo::update_timestamp(){
     lastUpdate_ = get_current_time();
 }
 
- std::chrono::milliseconds SigarSystemInfo::get_current_time() const{
+
+std::chrono::milliseconds SigarSystemInfo::get_current_time() const{
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 }
 
@@ -681,7 +675,7 @@ bool SigarSystemInfo::update_processes(){
 
     Process* process = 0;
 
-    std::chrono::milliseconds t = get_current_time();
+    auto current_timestamp = get_update_timestamp();
     for(size_t i = 0; i < process_list.number; i++){
         int pid = (int)(process_list.data[i]);
         current_pids_.insert(pid);
@@ -692,7 +686,7 @@ bool SigarSystemInfo::update_processes(){
         if(seenPIDBefore){
             process = processes_[pid];
 
-            auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
+            auto difference = std::chrono::duration_cast<std::chrono::seconds>(current_timestamp - process->lastUpdated_);
             get_info = difference.count() >= 0.8;
         }else{
             process = new Process();
@@ -730,7 +724,7 @@ bool SigarSystemInfo::update_processes(){
             sigar_proc_cpu_get(sigar_, pid, &process->cpu);
             sigar_proc_mem_get(sigar_, pid, &process->mem);
             sigar_proc_disk_io_get(sigar_, pid, &process->disk);
-            process->lastUpdated_ = t;
+            process->lastUpdated_ = current_timestamp;
         }
         //Store the process in the map
         processes_[pid] = process;
@@ -797,13 +791,12 @@ std::vector<std::string> SigarSystemInfo::get_monitored_processes_names() const{
     return tracked_process_names_;
 }
 
-double SigarSystemInfo::get_monitored_process_update_time(const int pid) const{
+std::chrono::milliseconds SigarSystemInfo::get_monitored_process_update_time(const int pid) const{
     if(processes_.count(pid)){
-        return get_timestamp(processes_.at(pid)->lastUpdated_);
+        return processes_.at(pid)->lastUpdated_;
     }
-    return -1;
+    return std::chrono::milliseconds(-1);
 }
-        
  
 
 bool SigarSystemInfo::stringInString(const std::string haystack, const std::string needle) const{
