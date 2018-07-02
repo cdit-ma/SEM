@@ -24,6 +24,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <memory>
 
 class ProtoHandler;
 class SQLiteDatabase;
