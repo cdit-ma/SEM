@@ -221,4 +221,4 @@ std::vector<KMeansParam> getKMeansParams() {
     return getKMeansParamPermutations(devices, datasets, iterations);
 }
 
-INSTANTIATE_TEST_CASE_P(DISABLED_KMeans, KMeansFixture, ::testing::ValuesIn(getKMeansParams()));
+INSTANTIATE_TEST_CASE_P(KMeans, KMeansFixture, ::testing::ValuesIn(getKMeansParams()));

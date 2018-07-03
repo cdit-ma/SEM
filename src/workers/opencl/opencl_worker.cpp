@@ -238,6 +238,9 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
 
     centroids = ReadBuffer(*centroid_buffer);
     point_classifications = ReadBuffer(*classification_buffer, true);
+    ReleaseBuffer(point_buffer);
+    ReleaseBuffer(centroid_buffer);
+    ReleaseBuffer(classification_buffer);
     return true;
 }
 
@@ -369,6 +372,9 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
 
     classify_kernel_lock.unlock();
     adjust_kernel_lock.unlock();
+
+    ReleaseBuffer(work_group_center_buffer);
+    ReleaseBuffer(work_group_count_buffer);
 
     load_balancer_->ReleaseDevice(device_id);
 
