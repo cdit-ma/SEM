@@ -192,7 +192,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
                     //Wait for next message
                     zmq::message_t zmq_request;
                     socket.recv(&zmq_request);
-
                     const auto& request_str = Zmq2String(zmq_request);
                     
                     if(request_str == port.terminate_str){
