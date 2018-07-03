@@ -40,7 +40,7 @@ zmq::ProtoWriter::~ProtoWriter(){
 void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
     std::unique_lock<std::mutex> lock(mutex_);
     //TODO: re-add GetNewMonitorAddress()
-    std::string addr = "inproc://Monitor_1";
+    std::string addr = "inproc://Monitor_" + std::to_string(monitors_.size());
     monitor->MonitorSocket(*socket_, addr, event_type);
     monitors_.emplace_back(std::move(monitor));
 }
@@ -107,8 +107,8 @@ void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
     //Teardown socket
     socket_.reset();
-    //Remove monitors
-    monitors_.clear();
     //Teardown context
     context_.reset();
+    //Remove monitors
+    monitors_.clear();
 }

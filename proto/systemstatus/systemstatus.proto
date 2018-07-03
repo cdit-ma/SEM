@@ -42,6 +42,7 @@ message ProcessStatus{
 		PROC_DEAD = 6;
 	}
 	State state = 10;
+	string name = 11;
 }
 
 message ProcessInfo{
