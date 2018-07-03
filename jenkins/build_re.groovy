@@ -15,7 +15,7 @@ node("master"){
 
 def builder_map = [:]
 def test_map = [:]
-def builder_nodes = utils.getLabelledNodes("builder")
+def builder_nodes = nodesByLabel("builder")
 
 if(builder_nodes.size() == 0){
     error('Cannot find any builder nodes.')
@@ -49,13 +49,20 @@ for(n in builder_nodes){
 
     test_map[node_name] = {
         node(node_name){
-            def path = "${PATH}"
-            //Append bin and lib directories for this build of re into the path for windows to find dlls
-            def ABS_RE_PATH = pwd() + "/" + PROJECT_NAME + "/"
-            path = ABS_RE_PATH + "bin;" + ABS_RE_PATH + "lib;" + path
+            def RE_PATH = pwd() + "/" + PROJECT_NAME
+            def RE_LIB_PATH = RE_PATH + "/lib"
+            def env_vars = []
             
-            withEnv(['path=' + path]){
-                dir(PROJECT_NAME + "/bin/test"){
+            if(isUnix()){
+                //SET LD_LIBRARY_PATH to force the linker to find this projects libraries
+                env_vars += "LD_LIBRARY_PATH=" + RE_LIB_PATH + ":$LD_LIBRARY_PATH"
+            }else{
+                //SET PATH to force the linker to find this projects libraries
+                env_vars += "PATH=" + RE_LIB_PATH + ":$PATH"
+            }
+
+            withEnv(env_vars){
+                dir(RE_PATH + "/bin/test"){
                     def globstr = "test_*"
                     if(!isUnix()){
                         //If windows search for exe only
@@ -64,10 +71,7 @@ for(n in builder_nodes){
 
                     //Find all executables
                     def test_list = findFiles glob: globstr
-
-                    def test_count = 0;
-                    def test_error_count = 0;
-
+                    
                     dir("results"){
                         for(def file : test_list){
                             def file_path = file.name
@@ -85,14 +89,11 @@ for(n in builder_nodes){
                         //Clean up the directory after
                         deleteDir()
                     }
-                    //Clean up the directory after
-                    deleteDir()
                 }
             }
         }
     }
 }
-
 
 stage("Build"){
     parallel builder_map
@@ -103,26 +104,27 @@ stage("Test"){
 }
 
 //Collate Results
-
 node("master"){
-    dir("test_cases"){
-        for(n in builder_nodes){
-            def node_name = n
-            def stash_name = node_name + "_test_cases"
-            unstash name: stash_name, allowEmpty: true
-        }
+    stage("Collate"){
+        dir("test_cases"){
+            for(n in builder_nodes){
+                def node_name = n
+                def stash_name = node_name + "_test_cases"
+                unstash stash_name
+            }
 
-        def globstr = "**.xml"
-        def test_results = findFiles glob: globstr
-        for (int i = 0; i < test_results.size(); i++){
-            def file_path = test_results[i].name
-            junit file_path
+            def globstr = "**.xml"
+            def test_results = findFiles glob: globstr
+            for (int i = 0; i < test_results.size(); i++){
+                def file_path = test_results[i].name
+                junit file_path
+            }
+            
+            //Test cases
+            def test_archive = "test_results.zip"
+            zip glob: globstr, zipFile: test_archive
+            archiveArtifacts test_archive
+            deleteDir()
         }
-        
-        //Test cases
-        def test_archive = "test_results.zip"
-        zip glob: globstr, zipFile: test_archive
-        archiveArtifacts test_archive
-        deleteDir()
     }
 }

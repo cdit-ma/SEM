@@ -14,8 +14,10 @@ if(NOT QPID_FOUND)
 endif()
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
+
 add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
