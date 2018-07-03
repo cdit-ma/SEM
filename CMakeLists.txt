@@ -16,7 +16,7 @@ if(NOT IS_SUB_REPO)
 		set(CMAKE_MACOSX_RPATH 1)
 	endif(APPLE)
 	#Set the projects RPATH to look in the executable directory
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 	
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
