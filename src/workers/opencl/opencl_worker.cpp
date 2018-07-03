@@ -338,6 +338,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         if (wg_center_vec.size() != wg_count_vec.size()*4) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Error reading back adjusted centroids aggregated per workgroup; center and count vector size mismatch");
+            ReleaseBuffer(work_group_center_buffer);
+            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
          
