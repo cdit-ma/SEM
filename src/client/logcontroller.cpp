@@ -29,29 +29,26 @@
 #include <algorithm>
 
 #include "sigarsysteminfo.h"
-#include "systeminfo.h"
 
 #include <re_common/proto/systemstatus/systemstatus.pb.h>
 #include <re_common/zmq/protowriter/cachedprotowriter.h>
 #include <re_common/zmq/protowriter/monitor.h>
-#include <zmq.hpp>
-
 #include <google/protobuf/util/json_util.h>
 
 //Constructor used for print only call
 LogController::LogController():
     system_(SigarSystemInfo::GetSystemInfo()),
-    listener_id(system_.RegisterListener())
+    listener_id_(system_.RegisterListener())
 {
 
 }
 
 std::string LogController::GetSystemInfoJson(){
     //Let sigar do its thing for 1 second
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    system_.Update(listener_id);
+    //std::this_thread::sleep_for(std::chrono::seconds(1));
+    system_.Update();
 
-    auto info = system_.GetSystemInfo(listener_id);
+    auto info = system_.GetSystemInfo(listener_id_);
 
     std::string output;
     google::protobuf::util::JsonOptions options;
@@ -65,9 +62,13 @@ std::string LogController::GetSystemInfoJson(){
     return output;
 }
 
-void LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
+void LogController::Start(const std::string& publisher_endpoint, double frequency, const std::vector<std::string>& processes, const bool& live_mode){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(!logging_future_.valid()){
+        //Validate the frequency
+        frequency = std::min(10.0, frequency);
+        frequency = std::max(1.0 / 60.0, frequency);
+
         std::lock_guard<std::mutex> lock(interupt_mutex_);
         interupt_ = false;
         logging_future_ = std::async(std::launch::async, &LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
@@ -77,11 +78,8 @@ void LogController::Start(const std::string& publisher_endpoint, const double& f
 void LogController::Stop(){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(logging_future_.valid()){
-        std::cerr << "Interupting Log thread" << std::endl;
         InteruptLogThread();
-        std::cerr << "Interupting Log thread2" << std::endl;
         logging_future_.get();
-        std::cerr << "Interupting Log thread3" << std::endl;
     }
 }
 
@@ -124,12 +122,10 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
 
         system_.ignore_processes();
-        
         //Subscribe to our desired process names
         for(const auto& process_name : processes){
             system_.monitor_processes(process_name);
         }
-        
 
         //We need to sleep for at least 1 second, if our duration is less than 1 second, calculate the offset to get at least 1 second
         auto last_duration = std::min(std::chrono::milliseconds(-1000) + tick_duration, std::chrono::milliseconds(0));
@@ -139,10 +135,8 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto sleep_duration = tick_duration - last_duration;
             {
                 std::unique_lock<std::mutex> lock(interupt_mutex_);
-                std::cerr << "WAITING FOR TICK: " << std::endl;
                 log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});
                 
-                std::cerr << " WOKEN " << std::endl;
                 if(interupt_){
                     break;
                 }
@@ -153,16 +147,21 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
                 //Whenever a new server connects, send one time information, using our client address as the topic
                 std::lock_guard<std::mutex> lock(one_time_mutex_);
                 if(send_onetime_info_){
-                    writer->PushMessage(publisher_endpoint, system_.GetSystemInfo(listener_id));
-                    send_onetime_info_ = false;
+                    auto message = system_.GetSystemInfo(listener_id_);
+                    if(message){
+                        writer->PushMessage(message);
+                        send_onetime_info_ = false;
+                    }
                 }
             }
 
             {
-
+                system_.Update();
                 //Send the tick'd information to all servers
-                if(system_.Update(listener_id)){
-                    writer->PushMessage(system_.GetSystemStatus(listener_id));
+                
+                auto message = system_.GetSystemStatus(listener_id_);
+                if(message){
+                    writer->PushMessage(message);
                 }
             }
 
@@ -170,7 +169,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto end = std::chrono::steady_clock::now();
             last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         }
-        std::cerr << "TERMINATING WRITER?" << std::endl;
         writer->Terminate();
         std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
         writer.reset();

@@ -37,7 +37,6 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
         last_update_sent = listener_updated_times_.at(listener_id);
     }
 
-
     //If the last updated data time is the same, ignore
     if(last_update_sent == current_data_time){
         return nullptr;
@@ -68,11 +67,12 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
     const auto& alive_pids = get_monitored_pids();
 
     for(const auto& pid : alive_pids){
-        bool update_pid = get_monitored_process_update_time(pid) < last_update_sent;
+        bool update_pid = get_monitored_process_update_time(pid) > last_update_sent;
 
         if(update_pid){
             auto process_status = system_status->add_processes();
             process_status->set_pid(pid);
+            process_status->set_name(get_process_name(pid));
             process_status->set_state((re_common::ProcessStatus::State)get_process_state(pid));
 
             //Only send the one time info if we haven't seen this message
@@ -118,8 +118,8 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
             interface_status->set_tx_packets(get_interface_tx_packets(i));
         }
     }
-
-    
+    //Updates
+    listener_updated_times_[listener_id] = current_data_time;
     return system_status;
 }
 
@@ -171,23 +171,14 @@ re_common::SystemInfo* SystemInfo::GetSystemInfo(const int listener_id){
             interface_info->set_speed(get_interface_speed(i));
         }
     }
+
+    
     return system_info;
 }
 
-bool SystemInfo::Update(const int listener_id){
+void SystemInfo::Update(){
     std::lock_guard<std::mutex> lock(mutex_);
-    
     auto update_time = UpdateData();
-
-    bool updated = true;
-
-    if(listener_updated_times_[listener_id] == update_time){
-        updated = false;
-    }
-
-    //Update the map
-    listener_updated_times_[listener_id] = update_time;
-    return updated;
 };
 
 int SystemInfo::RegisterListener(){

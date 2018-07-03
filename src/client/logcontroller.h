@@ -24,9 +24,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <future>
-#include <unordered_map>
 #include <vector>
-#include <google/protobuf/message_lite.h>
 
 #include "systeminfo.h"
 
@@ -42,20 +40,18 @@ class LogController{
         ~LogController();
 
         std::string GetSystemInfoJson();
-        void Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
+        void Start(const std::string& publisher_endpoint, double frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
         void Stop();
     private:
         void InteruptLogThread();
         void LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode);
         void GotNewConnection(int event_type, std::string address);
         void QueueOneTimeInfo();
-        
-        
-        
+
         SystemInfo& system_;
+        const int listener_id_;
         
         std::mutex state_mutex_;
-
         std::future<void> logging_future_;
         
         std::mutex one_time_mutex_;
@@ -64,11 +60,6 @@ class LogController{
         std::mutex interupt_mutex_;
         std::condition_variable log_condition_;
         bool interupt_ = false;
-        int message_id_ = 0;
-
-        const int listener_id;
-
-        
 };
 
 #endif //LOGCONTROLLER_H

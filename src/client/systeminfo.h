@@ -155,7 +155,7 @@ class SystemInfo{
     //Refresh
     re_common::SystemStatus* GetSystemStatus(const int listener_id);
     re_common::SystemInfo* GetSystemInfo(const int listener_id);
-    bool Update(const int listener_id);
+    void Update();
     int RegisterListener();
 private:
     static double convert_timestamp(const std::chrono::milliseconds& timestamp);

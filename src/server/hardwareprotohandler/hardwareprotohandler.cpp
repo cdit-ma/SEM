@@ -222,6 +222,7 @@ void HardwareProtoHandler::CreateProcessTable(){
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn("pid", LOGAN_INT);
+    t->AddColumn("name", LOGAN_VARCHAR);
     t->AddColumn("core_id", LOGAN_INT);
     t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
     t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
@@ -289,6 +290,7 @@ void HardwareProtoHandler::ProcessSystemStatus(const re_common::SystemStatus& st
         procstmt.BindInt(LOGAN_MESSAGE_ID, message_id);
         procstmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
         procstmt.BindInt("pid", proc.pid());
+        procstmt.BindString("name", proc.name());
         procstmt.BindInt("core_id", proc.cpu_core_id());
         procstmt.BindDouble("cpu_utilization", proc.cpu_utilization());
         procstmt.BindDouble("phys_mem_utilization", proc.phys_mem_utilization());

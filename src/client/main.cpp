@@ -81,22 +81,23 @@ int main(int ac, char** av){
         return valid_args;
     }
 
-
+    //Max 10x a second, Min 1 every minute
     std::string logger_endpoint = "tcp://" + address + ":" + port;
     {
+        log_controller.Start(logger_endpoint, log_frequency, processes, live_mode);
+     
         //Print output
         std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
         std::cout << "* Logging Endpoint: " << logger_endpoint << std::endl;
         std::cout << "* Logging Frequency: " << log_frequency << "Hz" << std::endl;
         std::cout << "* Logging Mode: " << (live_mode ? "Live" : "Cached") << std::endl;
-        for(int i = 0; i < processes.size(); i++){
-            if(i == 0){
-                std::cout << "* Monitored Processes:" << std::endl;
+        if(processes.size()){
+            std::cout << "* Monitored Processes:" << std::endl;
+            for(const auto& process : processes){
+                std::cout << "** " << process << std::endl;
             }
-            std::cout << "** " << processes[i] << std::endl;
         }
         std::cout << "-------------[ Logging ]-------------" << std::endl;
-        log_controller.Start(logger_endpoint, log_frequency, processes, live_mode);
         std::cout << "* Starting logging." << std::endl;
         execution.Start();
         std::cout << "* Tearing down logging." << std::endl;
