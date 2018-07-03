@@ -42,5 +42,5 @@ option(DISABLE_MODEL_LOGGING "Disable model logging tables in logan_server")
 option(DISABLE_HARDWARE_LOGGING "Disable hardware logging tables in logan_server")
 
 #Build the source
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
