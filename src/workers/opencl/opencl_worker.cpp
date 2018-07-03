@@ -233,6 +233,9 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
 
     bool success = KmeansCluster(*point_buffer, *centroid_buffer, *classification_buffer, iterations);
     if (!success) {
+        ReleaseBuffer(point_buffer);
+        ReleaseBuffer(centroid_buffer);
+        ReleaseBuffer(classification_buffer);
         return false;
     }
 
@@ -301,6 +304,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     } catch (const OpenCLException& ocle) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to set args for cluster adjust kernel, skipping:\n"+std::string(ocle.what()));
+        ReleaseBuffer(work_group_center_buffer);
+        ReleaseBuffer(work_group_count_buffer);
         return false;
     }
     
@@ -311,6 +316,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to execute K-means classification kernel:\n"+std::string(ocle.what()));
+            ReleaseBuffer(work_group_center_buffer);
+            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
 
@@ -320,6 +327,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to execute K-means center adjustment kernel:\n"+std::string(ocle.what()));
+            ReleaseBuffer(work_group_center_buffer);
+            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
 
