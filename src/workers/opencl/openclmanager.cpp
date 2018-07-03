@@ -228,7 +228,14 @@ OpenCLManager::~OpenCLManager() {
 		.Func(__func__)
 		.Msg("OpenCLManager was deleted before all associated buffers had been released");
 
+#ifdef BUILD_TEST
+	std::cerr << buffer_store_.size() << " buffers haven't been deallocated after OpenCL testing has finished" << std::endl;	
+#endif
+
 	for (auto& unfreed_buffer_pair : buffer_store_) {
+#ifdef BUILD_TEST
+		std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
+#endif
 		delete unfreed_buffer_pair.second;
 	}
 }
