@@ -54,13 +54,14 @@ RequesterPort<BaseReplyType, BaseRequestType>::RequesterPort(std::weak_ptr<Compo
 template  <class BaseReplyType, class BaseRequestType>
 std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
+
     try{
         EventRecieved(base_request);
         auto base_reply = std::move(ProcessRequest(base_request, timeout));
         EventProcessed(base_request, true);
         return {true, std::move(base_reply)};
     }catch(const std::exception& e){
-        //std::cerr << e.what() << std::endl;
+        // std::cerr << e.what() << std::endl;
     }
     return {false, BaseReplyType()};
 };
