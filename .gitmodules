@@ -1,6 +1,6 @@
 [submodule "re_common"]
-	path = src/re_common
-	url = https://github.com/cdit-ma/re_common.git
+	path = re_common
+	url = https://github.com/cdit-ma/re_common
 [submodule "cmake_modules"]
 	path = cmake_modules
 	url = https://github.com/cdit-ma/cmake_modules

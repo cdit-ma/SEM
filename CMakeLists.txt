@@ -1,33 +1,36 @@
+
 cmake_minimum_required (VERSION 2.6)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-#Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-#Set the projects RPATH to look in the executable directory
-if(APPLE)
-	set(CMAKE_MACOSX_RPATH 1)
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
-endif(APPLE)
 
 set(LOGAN_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-#Use the local submoduled cmake_modules if we don't have a global one set
-set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+get_directory_property(IS_SUB_REPO PARENT_DIRECTORY)
 
-#Set the binary and library locations
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+# Only set this if we aren't a sub repo
+if(NOT IS_SUB_REPO)
+	if(APPLE)
+		set(CMAKE_MACOSX_RPATH 1)
+	endif(APPLE)
+	#Set the projects RPATH to look in the executable directory
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+	
+	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
-if(MSVC)
-	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-	SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-	SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	#Set the binary and library locations
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+	if(MSVC)
+		SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+		SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+		SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	endif()
 endif()
 
 SET(LOGAN_VERSION "3.1.0")
@@ -40,3 +43,4 @@ option(DISABLE_HARDWARE_LOGGING "Disable hardware logging tables in logan_server
 
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")

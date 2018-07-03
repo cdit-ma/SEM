@@ -64,6 +64,7 @@ target_include_directories(${LOGAN_CLIENT} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 
 target_link_libraries(${LOGAN_CLIENT_LIB} ${PROTOBUF_LIBRARIES})

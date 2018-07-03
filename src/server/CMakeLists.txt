@@ -47,6 +47,7 @@ target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${LOGAN_SRC_PATH})
 
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 target_link_libraries(${LOGAN_SERVER_LIB} zmq_protoreceiver)
 target_link_libraries(${LOGAN_SERVER_LIB} re_common_proto_systemstatus)

@@ -44,6 +44,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 
+
 target_link_libraries(${PROJ_NAME} logan_server_lib)
 
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
