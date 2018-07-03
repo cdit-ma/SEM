@@ -27,9 +27,18 @@ namespace qpid{
 
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
+        protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
         private:
             std::shared_ptr<Attribute> broker_;
             std::shared_ptr<Attribute> topic_name_;
+
+            qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Sender sender_ = 0;
+            qpid::messaging::Receiver receiver_ = 0;
+            qpid::messaging::Address response_queue_address_ = 0;
     };
 
 
@@ -45,9 +54,19 @@ namespace qpid{
             
             using middleware_reply_type = void;
             using middleware_request_type = ProtoRequestType;
+        protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
         private:
             std::shared_ptr<Attribute> broker_;
             std::shared_ptr<Attribute> topic_name_;
+
+            qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Sender sender_ = 0;
+            qpid::messaging::Receiver receiver_ = 0;
+            qpid::messaging::Address response_queue_address_ = 0;
+
     };
 
     //Specialised templated RequesterPort for void requesting
@@ -62,12 +81,27 @@ namespace qpid{
             
             using middleware_reply_type = BaseReplyType;
             using middleware_request_type = void;
+        protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
         private:
             std::shared_ptr<Attribute> broker_;
             std::shared_ptr<Attribute> topic_name_;
+
+            qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Sender sender_ = 0;
+            qpid::messaging::Receiver receiver_ = 0;
+            qpid::messaging::Address response_queue_address_ = 0;
+
+            std::string response_queue_string_;
     };
 
 };
+
+
+
+
 
 //Generic templated RequesterPort
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
@@ -79,27 +113,63 @@ qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequest
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
+    try{
+        bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
+        if(valid && ::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure()){
+            if(!connection_){
+                //Construct qpid connection and session with broker info and constructed topic name
+                connection_ = qpid::messaging::Connection(broker_->String());
+                connection_.open();
+                session_ = connection.createSession();
+
+                //Construct sender
+                sender_ = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
+
+                //Construct receiver
+                response_queue_address_ = qpid::messaging::Address("#response-queue; {create: always, delete:always}");
+                receiver_ = session.createReceiver(response_queue_address_);
+                return true;
+            }
+        }
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID requester") + ex.what());
+    }
+    return false;
+};
+
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
+    if(::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate()){
+        if(connection_ && connection_.isOpen()){
+            connection_.close();
+            connection_ = 0;
+            sender_ = 0;
+        }
+        return true;
+    }
+    return false;
+};
+
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleTerminate(){
+    HandlePassivate();
+    return ::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleTerminate();
+};
+
+template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     try{
-        //Construct qpid connection and session with broker info and constructed topic name
-        qpid::messaging::Connection connection(broker_->String());
-        connection.open();
-        auto session = connection.createSession();
-        auto sender = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
-
-        //Construct receiver
-        qpid::messaging::Address response_queue("#response-queue; {create: always, delete:always}");
-        auto receiver = session.createReceiver(response_queue);
 
         //Translate the base_request object into a string
         const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
 
         //Convert request
         qpid::messaging::Message qpid_request(request_str);
-        qpid_request.setReplyTo(response_queue);
+        qpid_request.setReplyTo(response_queue_address_);
 
         //Send the request
-        sender.send(qpid_request);
+        sender_.send(qpid_request);
 
         //Convert -1 timeout to qpid forever duration
         qpid::messaging::Duration qpid_timeout(timeout.count());
@@ -108,7 +178,7 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
         }
 
         //Get the reply message
-        qpid::messaging::Message qpid_reply = receiver.fetch(qpid_timeout);
+        qpid::messaging::Message qpid_reply = receiver_.fetch(qpid_timeout);
         const auto& reply_str = qpid_reply.getContent();
         
         auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
@@ -127,13 +197,63 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
     }
 };
 
-//Specialised templated RequesterPort for void returning
+
+
+
+/*
+    Specialised template for void response type
+*/
 template <class BaseRequestType, class ProtoRequestType>
 qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<void, BaseRequestType>(component, port_name, "qpid"){
 
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
+};
+
+template <class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleConfigure(){
+    try{
+        bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
+        if(valid && ::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleConfigure()){
+            if(!connection_){
+                //Construct qpid connection and session with broker info and constructed topic name
+                connection_ = qpid::messaging::Connection(broker_->String());
+                connection_.open();
+                session_ = connection.createSession();
+
+                //Construct sender
+                sender_ = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
+
+                //Construct receiver
+                response_queue_address_ = qpid::messaging::Address("#response-queue; {create: always, delete:always}");
+                receiver_ = session.createReceiver(response_queue_address_);
+                return true;
+            }
+        }
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID requester") + ex.what());
+    }
+    return false;
+};
+
+template <class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandlePassivate(){
+    if(::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandlePassivate()){
+        if(connection_ && connection_.isOpen()){
+            connection_.close();
+            connection_ = 0;
+            sender_ = 0;
+        }
+        return true;
+    }
+    return false;
+};
+
+template <class BaseRequestType, class ProtoRequestType>
+bool qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleTerminate(){
+    HandlePassivate();
+    return ::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleTerminate();
 };
 
 template <class BaseRequestType, class ProtoRequestType>
@@ -175,6 +295,9 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::Process
 
 
 
+
+
+
 //Specialised templated RequesterPort for void requesting
 template <class BaseReplyType, class ProtoReplyType>
 qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
@@ -182,6 +305,51 @@ qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::RequesterPort(st
 
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
+};
+
+template <class BaseReplyType, class ProtoReplyType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleConfigure(){
+    try{
+        bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
+        if(valid && ::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleConfigure()){
+            if(!connection_){
+                //Construct qpid connection and session with broker info and constructed topic name
+                connection_ = qpid::messaging::Connection(broker_->String());
+                connection_.open();
+                session_ = connection.createSession();
+
+                //Construct sender
+                sender_ = session.createSender("amq.topic/reqrep/"  + topic_name_->String());
+
+                //Construct receiver
+                response_queue_address_ = qpid::messaging::Address("#response-queue; {create: always, delete:always}");
+                receiver_ = session.createReceiver(response_queue_address_);
+                return true;
+            }
+        }
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID requester") + ex.what());
+    }
+    return false;
+};
+
+template <class BaseReplyType, class ProtoReplyType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandlePassivate(){
+    if(::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandlePassivate()){
+        if(connection_ && connection_.isOpen()){
+            connection_.close();
+            connection_ = 0;
+            sender_ = 0;
+        }
+        return true;
+    }
+    return false;
+};
+
+template <class BaseReplyType, class ProtoReplyType>
+bool qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleTerminate(){
+    HandlePassivate();
+    return ::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleTerminate();
 };
 
 template <class BaseReplyType, class ProtoReplyType>
