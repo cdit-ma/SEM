@@ -107,8 +107,8 @@ void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
     //Teardown socket
     socket_.reset();
-    //Teardown context
-    context_.reset();
     //Remove monitors
     monitors_.clear();
+    //Teardown context
+    context_.reset();
 }
