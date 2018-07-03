@@ -42,8 +42,8 @@ class LogController{
         ~LogController();
 
         std::string GetSystemInfoJson();
-        bool Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
-        bool Stop();
+        void Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
+        void Stop();
     private:
         void InteruptLogThread();
         void LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode);

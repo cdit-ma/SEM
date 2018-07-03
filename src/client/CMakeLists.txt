@@ -53,6 +53,7 @@ endif()
 
 #include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
 target_include_directories(${LOGAN_CLIENT} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${LOGAN_CLIENT} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${SIGAR_INCLUDE_DIRS})
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})

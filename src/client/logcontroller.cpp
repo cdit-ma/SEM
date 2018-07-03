@@ -65,25 +65,24 @@ std::string LogController::GetSystemInfoJson(){
     return output;
 }
 
-bool LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
+void LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(!logging_future_.valid()){
         std::lock_guard<std::mutex> lock(interupt_mutex_);
         interupt_ = false;
         logging_future_ = std::async(std::launch::async, &LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
-        return true;
     }
-    return false;
 }
 
-bool LogController::Stop(){
+void LogController::Stop(){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(logging_future_.valid()){
+        std::cerr << "Interupting Log thread" << std::endl;
         InteruptLogThread();
+        std::cerr << "Interupting Log thread2" << std::endl;
         logging_future_.get();
-        return true;
+        std::cerr << "Interupting Log thread3" << std::endl;
     }
-    return false;
 }
 
 void LogController::InteruptLogThread(){
@@ -140,7 +139,10 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto sleep_duration = tick_duration - last_duration;
             {
                 std::unique_lock<std::mutex> lock(interupt_mutex_);
+                std::cerr << "WAITING FOR TICK: " << std::endl;
                 log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});
+                
+                std::cerr << " WOKEN " << std::endl;
                 if(interupt_){
                     break;
                 }
@@ -168,6 +170,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
             auto end = std::chrono::steady_clock::now();
             last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         }
+        std::cerr << "TERMINATING WRITER?" << std::endl;
         writer->Terminate();
         std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
         writer.reset();

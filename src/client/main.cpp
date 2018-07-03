@@ -19,28 +19,21 @@
 */
 
 #include <signal.h>
-#include <condition_variable>
-#include <mutex>
-#include <string>
-#include <functional>
 #include <boost/program_options.hpp>
+#include <re_common/util/execution.hpp>
 #include <iostream>
 
 #include "cmakevars.h"
 #include "logcontroller.h"
 
-std::condition_variable lock_condition_;
-std::mutex mutex_;
+Execution execution;
 
 void signal_handler (int signal_value){
-    //Gain the lock so we can notify to terminate
-    std::unique_lock<std::mutex> lock(mutex_);
-    lock_condition_.notify_all();
+    execution.Interrupt();
 }
 
 
 int main(int ac, char** av){
-
     //Handle the SIGINT/SIGTERM signal
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -73,7 +66,7 @@ int main(int ac, char** av){
     LogController log_controller;
 
     //Print system info json and exit.
-    if(vm.count("system_info_print")){
+    if(vm.count("system-info-print")){
         std::cout << log_controller.GetSystemInfoJson() << std::endl;
         return 0;
     }
@@ -84,7 +77,7 @@ int main(int ac, char** av){
     //On invalid args or help arg, print options and exit.
     if(!valid_args || vm.count("help")){
         std::cout << desc << std::endl;
-        std::cout << "If no fully qualified endpoint is specified (-a & -p), a fully qualified environment manager endpoint and experiment-id must be (-a & -e & -n)." << std::endl;
+        std::cout << "Please ully qualified endpoint is specified (-a & -p)." << std::endl;
         return valid_args;
     }
 
@@ -103,22 +96,10 @@ int main(int ac, char** av){
             std::cout << "** " << processes[i] << std::endl;
         }
         std::cout << "-------------[ Logging ]-------------" << std::endl;
-
-        if(!log_controller.Start(logger_endpoint, log_frequency, processes, live_mode)){
-            return 1;
-        }
-
-        {
-            std::cout << "* Starting logging." << std::endl;
-            std::unique_lock<std::mutex> lock(mutex_);
-            //Wait for the signal_handler to notify for exit
-            lock_condition_.wait(lock);
-        }
-
-
-        if(!log_controller.Stop()){
-            return 1;
-        }
+        log_controller.Start(logger_endpoint, log_frequency, processes, live_mode);
+        std::cout << "* Starting logging." << std::endl;
+        execution.Start();
+        std::cout << "* Tearing down logging." << std::endl;
     }
     return 0;
 }
