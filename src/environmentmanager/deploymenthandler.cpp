@@ -2,10 +2,6 @@
 #include <iostream>
 
 #include "deploymentgenerator.h"
-#include "deploymentrules/zmq/zmqrule.h"
-#include "deploymentrules/dds/ddsrule.h"
-#include "deploymentrules/amqp/amqprule.h"
-#include "deploymentrules/tao/taorule.h"
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     zmq::context_t& context,

@@ -1,11 +1,6 @@
 #include "executionmanager.h"
 #include "executionparser/modelparser.h"
 #include "environmentmanager/deploymentgenerator.h"
-#include "environmentmanager/deploymentrule.h"
-#include "environmentmanager/deploymentrules/zmq/zmqrule.h"
-#include "environmentmanager/deploymentrules/dds/ddsrule.h"
-#include "environmentmanager/deploymentrules/amqp/amqprule.h"
-#include "environmentmanager/deploymentrules/tao/taorule.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -90,10 +85,6 @@ bool ExecutionManager::PopulateDeployment(){
 
         DeploymentGenerator generator(*environment);
         //TODO: Add other middlewares.
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(*environment)));
 
         NodeManager::ControlMessage* configured_message =  generator.PopulateDeployment(*deployment_message_);
         deployment_message_->Clear();

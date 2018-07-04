@@ -42,49 +42,10 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
     for(int i = 0; i < node.nodes_size(); i++){
         PopulateNode(control_message, *node.mutable_nodes(i));
     }
-
-    //Hit bottom level sub node, or finished populating all subnodes. Fill this current node
-    for(auto& component : *node.mutable_components()){
-        for(auto& port : *component.mutable_ports()){
-            if(port.kind() != NodeManager::Port::PERIODIC){
-                auto& rule = GetDeploymentRule(MapMiddleware(port.middleware()));
-                try{
-                    rule.ConfigureEventPort(control_message, port);
-                }
-                catch(std::exception& ex){
-                    std::cerr << "DeploymentGenerator::PopulateNode: " << ex.what() << " in port: " << port.info().name() << std::endl;
-                }
-            }
-        }
-    }
 }
 
 void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& control_message){
 
-}
-
-DeploymentRule::MiddlewareType DeploymentGenerator::MapMiddleware(NodeManager::Middleware middleware){
-    switch(middleware){
-        case NodeManager::ZMQ:       return DeploymentRule::MiddlewareType::ZMQ;
-        case NodeManager::RTI:       return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::OSPL:      return DeploymentRule::MiddlewareType::DDS;
-        case NodeManager::QPID:      return DeploymentRule::MiddlewareType::AMQP;
-        case NodeManager::TAO:       return DeploymentRule::MiddlewareType::TAO;
-        default:                     return DeploymentRule::MiddlewareType::NONE;
-    }
-}
-
- void DeploymentGenerator::AddDeploymentRule(std::unique_ptr<DeploymentRule> rule){
-     rules_.emplace_back(std::move(rule));
- }
-
-DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::MiddlewareType type){
-    for(auto& rule : rules_){
-        if(rule->GetMiddlewareType() == type){
-            return *rule;
-        }
-    }
-    throw std::invalid_argument("No middleware rule supplied." + std::to_string((int)type));
 }
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
