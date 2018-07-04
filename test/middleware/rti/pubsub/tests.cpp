@@ -113,7 +113,7 @@ TEST(DISABLED_rti_PubSub, Basic_Busy){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-TEST(zmq_PubSub, Basic_Terminate){
+TEST(DISABLED_rti_PubSub, Basic_Terminate){
     using namespace ::PubSub::Basic::Terminate;
 
     //Define the base types

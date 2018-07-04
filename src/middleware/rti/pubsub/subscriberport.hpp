@@ -22,6 +22,7 @@ namespace rti{
         };
         void notify();
     protected:
+        bool HandleActivate();
         bool HandleConfigure();
         bool HandlePassivate();
         bool HandleTerminate();
@@ -61,6 +62,18 @@ rti::SubscriberPort<BaseType, RtiType>::SubscriberPort(std::weak_ptr<Component> 
 
     //Set default subscriber
     subscriber_name_->set_String("In_" + this->get_name());
+};
+
+template <class BaseType, class RtiType>
+bool rti::SubscriberPort<BaseType, RtiType>::HandleActivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::SubscriberPort<BaseType>::HandleActivate()){
+        if(thread_manager_){
+            return thread_manager_->Activate();
+        }
+        return false;
+    }
+    return false;
 };
 
 template <class BaseType, class RtiType>

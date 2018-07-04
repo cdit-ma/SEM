@@ -8,6 +8,7 @@
 #include <condition_variable>
 
 #include "pubsub/subscriberport.hpp"
+#include "../threadmanager.h"
 
 class Component;
 
@@ -19,6 +20,7 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         void SetDuration(int milliseconds);
 
     protected:
+        bool HandleActivate();
         bool HandleConfigure();
         bool HandlePassivate();
         bool HandleTerminate();
@@ -26,7 +28,7 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         void Loop();
         
         std::mutex state_mutex_;
-        std::thread* tick_thread_ = 0;
+        ThreadManager* thread_manager_ = 0;
         
         std::mutex tick_mutex_;
         bool interupt_ = false;

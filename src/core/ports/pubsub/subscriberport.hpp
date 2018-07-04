@@ -24,6 +24,7 @@ class SubscriberPort : public Port{
 
         using base_type = BaseType;
     protected:
+        virtual bool HandleActivate();
         virtual bool HandleConfigure();
         virtual bool HandlePassivate();
         virtual bool HandleTerminate();
@@ -96,6 +97,19 @@ bool SubscriberPort<BaseType>::HandlePassivate(){
     }
     return false;
 };
+
+template <class BaseType>
+bool SubscriberPort<BaseType>::HandleActivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(Port::HandleActivate()){
+        if(thread_manager_){
+            thread_manager_->Activate();
+        }
+        return true;
+    }
+    return false;
+};
+
 
 
 template <class BaseType>
