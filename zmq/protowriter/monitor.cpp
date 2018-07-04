@@ -20,6 +20,7 @@
  
 #include "monitor.h"
 #include <iostream>
+
 void zmq::Monitor::RegisterEventCallback(std::function<void(int, std::string)> fn){
     callback_ = fn;
 }

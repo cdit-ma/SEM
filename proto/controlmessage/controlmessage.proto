@@ -170,9 +170,9 @@ message Logger{
 
     enum Type{
         NONE = 0;
-        CLIENT = 1;
-        SERVER = 2;
-        BOTH = 3;
+        MODEL = 1;
+        CLIENT = 2;
+        SERVER = 3;
     }
     
     Type type = 1;

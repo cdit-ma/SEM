@@ -21,7 +21,6 @@
 #ifndef RE_COMMON_ZMQ_MONITOR_H
 #define RE_COMMON_ZMQ_MONITOR_H
 #include <functional>
-#include <future>
 #include <zmq.hpp>
 
 namespace zmq{
