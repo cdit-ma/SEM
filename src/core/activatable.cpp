@@ -143,27 +143,34 @@ bool Activatable::transition_state(Transition transition){
             transition_ = transition;
             state_condition_.notify_all();
         }
-        bool transitioned = false;
-        switch(transition){
-            case Transition::CONFIGURE:{
-                transitioned = HandleConfigure();
-                break;
+        bool transitioned = true;
+        try{
+            switch(transition){
+                case Transition::CONFIGURE:{
+                    HandleConfigure();
+                    break;
+                }
+                case Transition::ACTIVATE:{
+                    HandleActivate();
+                    break;
+                }
+                case Transition::PASSIVATE:{
+                    HandlePassivate();
+                    break;
+                }
+                case Transition::TERMINATE:{
+                    HandleTerminate();
+                    break;
+                }
+                default:
+                    transitioned = false;
+                    break;
             }
-            case Transition::ACTIVATE:{
-                transitioned = HandleActivate();
-                break;
-            }
-            case Transition::PASSIVATE:{
-                transitioned = HandlePassivate();
-                break;
-            }
-            case Transition::TERMINATE:{
-                transitioned = HandleTerminate();
-                break;
-            }
-            default:
-                break;
+        }catch(const std::exception& e){
+            std::cerr << "EXCEPTION::" << e.what() << std::endl;
+            transitioned = false;
         }
+        
 
         //If transitioned, move the state, otherwise fail
         if(transitioned){
@@ -188,7 +195,7 @@ Activatable::State Activatable::get_state(){
     return state_;
 }
 
-ModelLogger* Activatable::logger(){
+ModelLogger& Activatable::logger(){
     return ModelLogger::get_model_logger();
 };
 
@@ -196,17 +203,6 @@ bool Activatable::is_running(){
    return get_state() == Activatable::State::RUNNING; 
 }
 
-bool Activatable::BlockUntilStateChanged(const Activatable::State desired_state){
-    std::unique_lock<std::mutex> lock(state_mutex_);
-    state_condition_.wait(lock, [this, desired_state]{return state_ == desired_state || transition_ == Activatable::Transition::TERMINATE;});
-    
-    //Terminate should always error
-    if(transition_ == Activatable::Transition::TERMINATE){
-        return false;
-    }else{
-        return state_ == desired_state;
-    }
-}
 
 std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> attribute){
     std::lock_guard<std::mutex> lock(attributes_mutex_);

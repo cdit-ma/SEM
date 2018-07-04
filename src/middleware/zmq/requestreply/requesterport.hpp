@@ -69,20 +69,20 @@ template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, clas
 BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     const auto address = server_address_->String();
     try{
-        auto helper = ZmqHelper::get_zmq_helper();
-        auto socket = helper->get_request_socket();
+        auto& helper = ZmqHelper::get_zmq_helper();
+        auto socket = helper.get_request_socket();
         
         //Connect to the address
-        socket.connect(address.c_str());
+        socket->connect(address.c_str());
 
         //Translate the base_request object into a string
         const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
         
         //Send the request
-        socket.send(String2Zmq(request_str));
+        socket->send(String2Zmq(request_str));
 
         //Poll for our timeout
-        auto events = helper->poll_socket(socket, timeout);
+        auto events = helper.poll_socket(*socket, timeout);
 
         if(events == 0){
             throw std::runtime_error("Timeout");
@@ -90,7 +90,7 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
 
         //Block and wait for the reply message
         zmq::message_t zmq_reply;
-        socket.recv(&zmq_reply);
+        socket->recv(&zmq_reply);
         
         //Get the string
         const auto reply_str = Zmq2String(zmq_reply);
@@ -123,20 +123,20 @@ template <class BaseRequestType, class ProtoRequestType>
 void zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     const auto address = server_address_->String();
     try{
-        auto helper = ZmqHelper::get_zmq_helper();
-        auto socket = helper->get_request_socket();
+        auto& helper = ZmqHelper::get_zmq_helper();
+        auto socket = helper.get_request_socket();
         
         //Connect to the address
-        socket.connect(address.c_str());
+        socket->connect(address.c_str());
 
         //Translate the base_request object into a string
         const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
         
         //Send the request
-        socket.send(String2Zmq(request_str));
+        socket->send(String2Zmq(request_str));
 
         //Poll for our timeout
-        auto events = helper->poll_socket(socket, timeout);
+        auto events = helper.poll_socket(*socket, timeout);
 
         if(events == 0){
             throw std::runtime_error("Timeout waiting for response");
@@ -144,7 +144,7 @@ void zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessR
 
         //Block and wait for the reply message
         zmq::message_t zmq_reply;
-        socket.recv(&zmq_reply);
+        socket->recv(&zmq_reply);
     }catch(const zmq::error_t& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + address + "' " + ex.what());
         throw std::runtime_error("Cannot connect to endpoint: '" + address + "' ");
@@ -162,17 +162,17 @@ template <class BaseReplyType, class ProtoReplyType>
 BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::ProcessRequest(std::chrono::milliseconds timeout){
     const auto address = server_address_->String();
     try{
-        auto helper = ZmqHelper::get_zmq_helper();
-        auto socket = helper->get_request_socket();
+        auto& helper = ZmqHelper::get_zmq_helper();
+        auto socket = helper.get_request_socket();
         
         //Connect to the address
-        socket.connect(address.c_str());
+        socket->connect(address.c_str());
         
         //Send the blank request
-        socket.send(zmq::message_t());
+        socket->send(zmq::message_t());
 
         //Poll for our timeout
-        auto events = helper->poll_socket(socket, timeout);
+        auto events = helper.poll_socket(*socket, timeout);
 
         if(events == 0){
             throw std::runtime_error("Timeout waiting for response");
@@ -180,7 +180,7 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pro
 
         //Block and wait for the reply message
         zmq::message_t zmq_reply;
-        socket.recv(&zmq_reply);
+        socket->recv(&zmq_reply);
 
         //Get the string
         const auto reply_str = Zmq2String(zmq_reply);

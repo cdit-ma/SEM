@@ -58,13 +58,13 @@ BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRe
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn(base_request);
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request, process_message);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(base_request);
         return base_reply;
     }
-    EventProcessed(base_request, false);
+    EventIgnored(base_request);
     return BaseReplyType();
 };
 
@@ -80,13 +80,13 @@ void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& base_re
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(base_request);
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request, process_message);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(base_request);
         return;
     }
-    EventProcessed(base_request, false);
+    EventIgnored(base_request);
 };
 
 
@@ -104,13 +104,13 @@ BaseReplyType ReplierPort<BaseReplyType, void>::ProcessRequest(){
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn();
-        logger()->LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request, process_message);
+        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(base_request);
         return base_reply;
     }
-    EventProcessed(base_request, false);
+    EventIgnored(base_request);
     return BaseReplyType();
 };
 

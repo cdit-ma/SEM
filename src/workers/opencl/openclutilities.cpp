@@ -223,7 +223,7 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+	ModelLogger::get_model_logger().LogWorkerEvent(worker,
 		function_signature,
 		ModelLogger::WorkloadEvent::MESSAGE,
 		-1,		// Need to expose something like get_current_work_id() 
@@ -238,7 +238,7 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+	ModelLogger::get_model_logger().LogWorkerEvent(worker,
 		function_signature,
 		ModelLogger::WorkloadEvent::MESSAGE,
 		-1,		// Need to expose something like get_current_work_id() 

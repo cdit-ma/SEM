@@ -42,13 +42,10 @@ public:
         std::string get_type() const;
 
         bool is_running();
-        ModelLogger* logger();
+        ModelLogger& logger();
 
         Activatable::State get_state();
 
-        bool BlockUntilStateChanged(const Activatable::State state);
-        bool WaitForActivate();
-        bool WaitForStartup();
 
         bool Configure();
         bool Activate();
@@ -58,10 +55,10 @@ public:
         std::weak_ptr<Attribute> GetAttribute(const std::string& name);
         std::weak_ptr<Attribute> ConstructAttribute(const ATTRIBUTE_TYPE type, const std::string name);
     protected:
-        virtual bool HandleConfigure() = 0;
-        virtual bool HandleActivate() = 0;
-        virtual bool HandlePassivate() = 0;
-        virtual bool HandleTerminate() = 0;
+        virtual void HandleConfigure(){};
+        virtual void HandleActivate(){};
+        virtual void HandlePassivate(){};
+        virtual void HandleTerminate(){};
         std::weak_ptr<Attribute> AddAttribute(std::unique_ptr<Attribute> attribute);
     private:
         bool transition_state(const Activatable::Transition transition);

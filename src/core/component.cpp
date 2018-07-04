@@ -20,84 +20,69 @@ Component::~Component(){
     ports_.clear();
 }
 
-bool Component::HandleActivate(){
+void Component::HandleActivate(){
     std::lock_guard<std::mutex> state_lock(state_mutex_);
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
-    if(BehaviourContainer::HandleActivate()){
-        for(const auto& p : ports_){
-            auto& a = p.second;
-            if(a){
-                a->Activate();
-            }
+    for(const auto& p : ports_){
+        auto& a = p.second;
+        if(a){
+            a->Activate();
         }
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-        return true;
     }
-    return false;
+    BehaviourContainer::HandleActivate();
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 }
 
-bool Component::HandleConfigure(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+void Component::HandleConfigure(){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
-    if(BehaviourContainer::HandleConfigure()){
-        for(const auto& p : ports_){
-            auto& a = p.second;
-            if(a){
-                a->Configure();
-            }
+    for(const auto& p : ports_){
+        auto& a = p.second;
+        if(a){
+            a->Configure();
         }
-        return true;
     }
-    return false;
+    BehaviourContainer::HandleConfigure();
 }
 
-bool Component::HandlePassivate(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+void Component::HandlePassivate(){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
     
-    if(BehaviourContainer::HandlePassivate()){
-        for(const auto& p : ports_){
-            auto& a = p.second;
-            if(a){
-                a->Passivate();
-            }
+    for(const auto& p : ports_){
+        auto& a = p.second;
+        if(a){
+            a->Passivate();
         }
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
-        return true;
     }
-    return false;
+
+    BehaviourContainer::HandlePassivate();
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 }
 
-bool Component::HandleTerminate(){
+void Component::HandleTerminate(){
     HandlePassivate();
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    
+    std::list<std::future<bool> > results;
 
-    auto success = false;
-    if(BehaviourContainer::HandlePassivate()){
-        //Construct a list of async terminate requests.
-        //This should lessen the impact of slow destruction of the ports, allowing them to be concurrent
-        {
-            std::list<std::future<bool> > results;
-            std::lock_guard<std::mutex> ports_lock(port_mutex_);
-
-            for(const auto& p : ports_){
-                auto& a = p.second;
-                if(a){
-                    //Construct a thread to run the terminate function, which is blocking
-                    results.push_back(std::async(std::launch::async, &Activatable::Terminate, a));
-                }
-            }
-            //Join all of our termination threads
-            for(auto& result : results){
-                success &= result.get();
-            }
+    for(const auto& p : ports_){
+        auto& port = p.second;
+        if(port){
+            //Construct a thread to run the terminate function, which is blocking
+            results.push_back(std::async(std::launch::async, &Activatable::Terminate, port));
         }
-        success = true;
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
     }
-    return success;
+    for(auto& result : results){
+        if(!result.get()){
+            throw std::runtime_error("Component failed to Terminate Port");
+        }
+    }
+
+    results.clear();
+
+    BehaviourContainer::HandleTerminate();
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }
 
 

@@ -64,23 +64,5 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
 };
 
 void Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
-    if(logger()){
-        logger()->LogWorkerEvent(*this, function_name, event, work_id, args);
-    }
+    logger().LogWorkerEvent(*this, function_name, event, work_id, args);
 }
-
-bool Worker::HandleActivate(){
-    return BehaviourContainer::HandleActivate();
-};
-
-bool Worker::HandleConfigure(){
-    return BehaviourContainer::HandleConfigure();
-};
-
-bool Worker::HandlePassivate(){
-    return BehaviourContainer::HandlePassivate();
-};
-
-bool Worker::HandleTerminate(){
-    return BehaviourContainer::HandleTerminate();
-};

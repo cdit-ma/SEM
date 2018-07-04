@@ -24,11 +24,6 @@ class Worker: public BehaviourContainer{
         bool is_worker() const;
 
     protected:
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
-
         int get_new_work_id();
         void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
         

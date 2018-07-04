@@ -9,7 +9,6 @@
 #include <iostream>
 #include "../../threadmanager.h"
 
-#include "../translator.h"
 #include "../port.h"
 #include "../../modellogger.h"
 #include "../../component.h"
@@ -24,39 +23,31 @@ class SubscriberPort : public Port{
 
         using base_type = BaseType;
     protected:
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
+        virtual void HandleConfigure();
+        virtual void HandleActivate();
+        virtual void HandlePassivate();
+        virtual void HandleTerminate();
 
-        void EnqueueMessage(BaseType* t);
+        void EnqueueMessage(std::unique_ptr<BaseType> message);
         int GetQueuedMessageCount();
     private:
-        bool rx(BaseType* t, bool process_message = true);
-        void receive_loop();
+        void InterruptLoop();
+        void ProcessLoop();
+        void rx(BaseType& t, bool process_message = true);
     private:
         const CallbackWrapper<void, BaseType>& callback_wrapper_;
 
         
         //Queue Mutex responsible for these Variables
         std::mutex queue_mutex_;
-        std::queue<BaseType*> message_queue_;
+        std::condition_variable queue_condition_;
+        std::queue< std::unique_ptr<BaseType> > message_queue_;
         int max_queue_size_ = -1;
         int processing_count_ = 0;
-
-        const int terminate_timeout_ms_ = 10000;
-
-        std::mutex notify_mutex_;
         bool terminate_ = false;
-        std::condition_variable notify_lock_condition_;
 
-        
-        std::mutex rx_setup_mutex_;
-        bool rx_setup_ = false;
-        std::condition_variable rx_setup_condition_;
-
-        std::mutex control_mutex_;
-        ThreadManager* thread_manager_ = 0;
+        std::mutex thread_manager_mutex_;
+        std::unique_ptr<ThreadManager> thread_manager_;
 };
 
 template <class BaseType>
@@ -79,135 +70,112 @@ void SubscriberPort<BaseType>::SetMaxQueueSize(int max_queue_size){
 };
 
 template <class BaseType>
-bool SubscriberPort<BaseType>::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-
-    if(Port::HandlePassivate()){
-        {
-            //Wake up the threads sleep
-            std::lock_guard<std::mutex> lock2(notify_mutex_);
-            terminate_ = true;
-            notify_lock_condition_.notify_all();
-        }
-
-        if(thread_manager_){
-            return thread_manager_->Terminate();
-        }
-        return true;
+void SubscriberPort<BaseType>::InterruptLoop(){
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(thread_manager_){
+        //Wake up the threads sleep
+        std::lock_guard<std::mutex> lock(queue_mutex_);
+        terminate_ = true;
+        queue_condition_.notify_all();
     }
-    return false;
-};
-
-template <class BaseType>
-bool SubscriberPort<BaseType>::HandleActivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(Port::HandleActivate()){
-        if(thread_manager_){
-            thread_manager_->Activate();
-        }
-        return true;
-    }
-    return false;
-};
-
+}
 
 
 template <class BaseType>
-bool SubscriberPort<BaseType>::HandleConfigure(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(Port::HandleConfigure()){
-        if(!thread_manager_){
-            thread_manager_ = new ThreadManager();
-            auto future = std::async(std::launch::async, &SubscriberPort<BaseType>::receive_loop, this);
-            thread_manager_->SetFuture(std::move(future));
-            return thread_manager_->Configure();
-        }else{
-            std::cerr << "Have extra thread manager" << std::endl;
-        }
+void SubscriberPort<BaseType>::HandleConfigure(){
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(!thread_manager_){
+        thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
+        auto future = std::async(std::launch::async, &SubscriberPort<BaseType>::ProcessLoop, this);
+        thread_manager_->SetFuture(std::move(future));
+        thread_manager_->Configure();
+    }else{
+        throw std::runtime_error("SubscriberPort has an active ThreadManager");
     }
-    return false;
+};
+
+template <class BaseType>
+void SubscriberPort<BaseType>::HandleActivate(){
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(thread_manager_){
+        thread_manager_->Activate();
+    }else{
+        throw std::runtime_error("Got no Thread Manager");
+    }
 };
 
 
 template <class BaseType>
-bool SubscriberPort<BaseType>::HandleTerminate(){
-    SubscriberPort<BaseType>::HandlePassivate();
-    std::unique_lock<std::mutex> lock(control_mutex_);
-    if(Port::HandleTerminate()){
-
-        if(thread_manager_){
-            delete thread_manager_;
-            thread_manager_ = 0;
-        }
-        return true;
-    }
-    return false;
+void SubscriberPort<BaseType>::HandlePassivate(){
+    InterruptLoop();
 };
 
 template <class BaseType>
-bool SubscriberPort<BaseType>::rx(BaseType* t, bool process_message){
-    if(t){
-        //Only process the message if we are running and we have a callback, and we aren't meant to ignore
-        process_message &= is_running() && callback_wrapper_.callback_fn;
-
-        if(process_message){
-            //Call into the function and log
-            logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::STARTED_FUNC);
-            callback_wrapper_.callback_fn(*t);
-            logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        }
-
-        EventProcessed(*t, process_message);
-        delete t;
-        return process_message;
+void SubscriberPort<BaseType>::HandleTerminate(){
+    InterruptLoop();
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(thread_manager_){
+        thread_manager_->Terminate();
+        thread_manager_.reset();
     }
-    return false;
 };
 
 template <class BaseType>
-void SubscriberPort<BaseType>::receive_loop(){
+void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
+    //Only process the message if we are running and we have a callback, and we aren't meant to ignore
+    process_message &= is_running() && callback_wrapper_.callback_fn;
+
+    if(process_message){
+        //Call into the function and log
+        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::STARTED_FUNC);
+        callback_wrapper_.callback_fn(message);
+        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        EventProcessed(message);
+    }else{
+        EventIgnored(message);
+    }
+};
+
+template <class BaseType>
+void SubscriberPort<BaseType>::ProcessLoop(){
+    //Store a queue of messages
+    std::queue< std::unique_ptr<BaseType> > queue;
+
+    //Notify that the thread is configured
     thread_manager_->Thread_Configured();
 
-    //Store a queue of messages
-    std::queue<BaseType*> queue;
-    
     if(thread_manager_->Thread_WaitForActivate()){
         thread_manager_->Thread_Activated();
+
         bool running = true;
         while(running){
             {
-                std::unique_lock<std::mutex> notify_lock(notify_mutex_);
-                notify_lock_condition_.wait(notify_lock, [this]{
-                    if(terminate_){
-                        //Wake up if the termination flag has been set
-                        return true;
-                    }else{
-                        //Wake up if we have new messages to process
-                        std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-                        return message_queue_.size() > 0;
-                    }
+                std::unique_lock<std::mutex> lock(queue_mutex_);
+                queue_condition_.wait(lock, [this]{
+                    //Wake up if the termination flag has been set
+                    return terminate_ || !message_queue_.empty();
                 });
-
-                //Gain Mutex
-                std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+                
                 //Swap out the queue's, and release the mutex
                 message_queue_.swap(queue);
                 //Update the current processing count
                 processing_count_ += queue.size();
 
-                if(terminate_ && queue.empty()){
+                if(terminate_){
                     running = false;
+                    terminate_ = false;
                 }
             }
 
             while(!queue.empty()){
-                auto m = queue.front();
+                auto message = std::move(queue.front());
                 queue.pop();
 
                 //If the component is Passivated, this will return false instantaneously
-                rx(m);
+                rx(*message);
                 
-                std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+                
+                std::lock_guard<std::mutex> lock(queue_mutex_);
                 //Decrement our count of how many messages are currently being processed
                 processing_count_ --;
             }
@@ -217,12 +185,12 @@ void SubscriberPort<BaseType>::receive_loop(){
 };
 
 template <class BaseType>
-void SubscriberPort<BaseType>::EnqueueMessage(BaseType* t){
-    if(t){
-        //Log the recieving
-        EventRecieved(*t);
+void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message){
+    if(message){
+        //Log that we've recieved
+        EventRecieved(*message);
         
-        std::unique_lock<std::mutex> lock(queue_mutex_);
+        std::lock_guard<std::mutex> lock(queue_mutex_);
         //Sum the total number of messages we are processing
         auto queue_size = message_queue_.size() + processing_count_;
 
@@ -230,13 +198,12 @@ void SubscriberPort<BaseType>::EnqueueMessage(BaseType* t){
         bool enqueue_message = is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);
 
         if(enqueue_message){
-            message_queue_.push(t);
+            message_queue_.push(std::move(message));
             //Notify the thread that we have new messages
-            notify_lock_condition_.notify_all();
+            queue_condition_.notify_all();
         }else{
-            lock.unlock();
             //Call the rx function, saying that we will ignore the message
-            rx(t, false);
+            rx(*message, false);
         }
     }
 };

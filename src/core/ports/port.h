@@ -33,12 +33,9 @@ class Port : public Activatable
         int GetEventsIgnored();
     protected:
         void EventRecieved(const BaseMessage& message);
-        void EventProcessed(const BaseMessage& message, bool processed);
+        void EventProcessed(const BaseMessage& message);
+        void EventIgnored(const BaseMessage& message);
 
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
         void LogActivation();
         void LogPassivation();
 

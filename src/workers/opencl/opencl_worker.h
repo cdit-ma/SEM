@@ -2,6 +2,7 @@
 #define OPENCLWORKER_H
 
 #include <core/worker.h>
+#include <core/component.h>
 #include "openclmanager.h"
 #include "oclbuffer.hpp"
 #include "openclkernel.hpp"

@@ -11,7 +11,7 @@ template <class BaseType>
 class PublisherPort : public Port{
     public:
         PublisherPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
-        virtual bool Send(const BaseType& t);
+        virtual void Send(const BaseType& message) = 0;
         using base_type = BaseType;
 };
 
@@ -21,19 +21,5 @@ PublisherPort<BaseType>::PublisherPort(std::weak_ptr<Component> component, const
 
 };
 
-template <class BaseType>
-bool PublisherPort<BaseType>::Send(const BaseType& message){
-    //Log the recieving
-    EventRecieved(message);
-    
-    auto sent_message = is_running();
-    
-    if(sent_message){
-        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
-    }
-    
-    EventProcessed(message, sent_message);
-    return sent_message;
-};
 
 #endif // BASE_PORT_PUBLISHER_HPP

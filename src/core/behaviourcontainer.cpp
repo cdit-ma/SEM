@@ -2,6 +2,7 @@
 #include "worker.h"
 #include <list>
 #include <future>
+#include <iostream>
 
 BehaviourContainer::BehaviourContainer(const std::string& inst_name){
     set_name(inst_name);
@@ -13,73 +14,54 @@ BehaviourContainer::~BehaviourContainer(){
     workers_.clear();
 }
 
-bool BehaviourContainer::HandleActivate(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+void BehaviourContainer::HandleActivate(){
+    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
+    for(const auto& p : workers_){
+        auto& worker = p.second;
+        if(worker){
+            worker->Activate();
+        }
+    }
+}
+
+void BehaviourContainer::HandlePassivate(){
     std::lock_guard<std::mutex> worker_lock(worker_mutex_);
     
     for(const auto& p : workers_){
-        auto& a = p.second;
-        if(a){
-            a->Activate();
+        auto& worker = p.second;
+        if(worker){
+            worker->Passivate();
         }
     }
-    return true;
 }
 
-bool BehaviourContainer::HandlePassivate(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    
-    for(const auto& p : workers_){
-        auto& a = p.second;
-        if(a){
-            a->Passivate();
-        }
-    }
-    return true;
-}
-
-bool BehaviourContainer::HandleTerminate(){
+void BehaviourContainer::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> state_lock(state_mutex_);
-    
     
     auto success = true;
     std::list<std::future<bool> > results;
 
-    //Construct a list of async terminate requests.
-    //This should lessen the impact of slow destruction of the ports, allowing them to be concurrent
-    {
-        std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-
-        for(const auto& p : workers_){
-            auto& a = p.second;
-            if(a){
-                //Construct a thread to run the terminate function, which is blocking
-                results.push_back(std::async(std::launch::async, &Activatable::Terminate, a));
-            }
+    for(const auto& p : workers_){
+        auto& worker = p.second;
+        if(worker){
+            //Construct a thread to run the terminate function, which is blocking
+            results.push_back(std::async(std::launch::async, &Activatable::Terminate, worker));
         }
     }
 
-    //Join all of our termination threads
-    for(auto& result : results){
-        success &= result.get();
-    }
-
-    return true;
+    results.clear();
 }
 
-bool BehaviourContainer::HandleConfigure(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+void BehaviourContainer::HandleConfigure(){
     std::lock_guard<std::mutex> worker_lock(worker_mutex_);
     
     for(const auto& p : workers_){
-        auto& a = p.second;
-        if(a){
-            a->Configure();
+        auto& worker = p.second;
+        if(worker){
+            worker->Configure();
         }
     }
-    return true;
 }
 
 std::weak_ptr<Worker> BehaviourContainer::AddWorker(std::unique_ptr<Worker> worker){
