@@ -90,7 +90,7 @@ TEST(zmq_ReqRep, Basic2Basic_Stable){
     delete replier_port;
 }
 
-TEST(zmq_ReqRep, Basic2Basic_Busy){
+TEST(zmq_ReqRep, LONG_Basic2Basic_Busy){
     using namespace ::ReqRep::Basic2Basic::Busy;
 
     //Define the base types
@@ -119,7 +119,7 @@ TEST(zmq_ReqRep, Basic2Basic_Busy){
     delete replier_port;
 }
 
-TEST(zmq_ReqRep, Basic2Basic_Timeout){
+TEST(zmq_ReqRep, LONG_Basic2Basic_Timeout){
     using namespace ::ReqRep::Basic2Basic::Timeout;
     
     //Define the base types
@@ -179,7 +179,7 @@ TEST(zmq_ReqRep, Basic2Void_Stable){
     delete replier_port;
 }
 
-TEST(zmq_ReqRep, Basic2Void_Busy){
+TEST(zmq_ReqRep, LONG_Basic2Void_Busy){
     using namespace ::ReqRep::Basic2Void::Busy;
     
     //Define the base types
@@ -239,7 +239,7 @@ TEST(zmq_ReqRep, Void2Basic_Stable){
     delete replier_port;
 }
 
-TEST(zmq_ReqRep, Void2Basic_Busy){
+TEST(zmq_ReqRep, LONG_Void2Basic_Busy){
     using namespace ::ReqRep::Void2Basic::Busy;
     
     //Define the base types

@@ -222,8 +222,8 @@ std::vector<MatrixMultParam> getRectTests(){
     return all_params;
 };
 
-INSTANTIATE_TEST_CASE_P(Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
-INSTANTIATE_TEST_CASE_P(Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
+INSTANTIATE_TEST_CASE_P(LONG_Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
+INSTANTIATE_TEST_CASE_P(LONG_Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
 
 
 /*
