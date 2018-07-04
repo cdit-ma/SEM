@@ -117,10 +117,10 @@ void ospl::SubscriberPort<BaseType, OsplType>::recv_loop(){
     try{
        //Construct a DDS Paosplcipant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
-       auto paosplcipant = helper->get_paosplcipant(domain_id_->Integer());
-       auto topic = get_topic<OsplType>(paosplcipant, topic_name_->String());
+       auto participant = helper->get_participant(domain_id_->Integer());
+       auto topic = get_topic<OsplType>(participant, topic_name_->String());
 
-       auto subscriber = helper->get_subscriber(paosplcipant, subscriber_name_->String());
+       auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
        reader_ = get_data_reader<OsplType>(subscriber, topic, qos_path_->String(), qos_name_->String());
        
        //Attach listener to only respond to data_available()
