@@ -11,9 +11,11 @@ ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
 
-bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, Mode mode){
+bool ModelLogger::setup_model_logger(std::string host_name, std::string address, std::string port, Mode mode){
     auto s = get_model_logger();
     bool success = false;
+
+    auto endpoint = "tcp://" + address + ":" + port;
     {
         std::lock_guard<std::mutex> lock(global_mutex_);
         if(!s->is_setup()){

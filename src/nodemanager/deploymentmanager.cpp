@@ -104,11 +104,13 @@ NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const No
     const auto& host_name = startup.slave_host_name();
     
     const auto& logger = startup.logger();
-        
-    //Handle Logger setup
-    if(!ModelLogger::setup_model_logger(host_name, logger.publisher_address(), (ModelLogger::Mode)logger.mode())){
-        slave_response.add_error_codes("Setting Model Logger Failed");
-        success = false;
+    
+    if(logger.type() == NodeManager::Logger::MODEL){
+        //Handle Logger setup
+        if(!ModelLogger::setup_model_logger(host_name, logger.publisher_address(), logger.publisher_port(), (ModelLogger::Mode)logger.mode())){
+            slave_response.add_error_codes("Setting Model Logger Failed");
+            success = false;
+        }
     }
 
     //Setup our subscriber
