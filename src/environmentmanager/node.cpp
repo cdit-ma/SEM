@@ -71,7 +71,7 @@ std::string Node::GetIp() const{
     return ip_;
 }
 int Node::GetDeployedComponentCount() const{
-    return components_.size();
+    return components_.size() + loggers_.size();
 }
 
 //Port getters/setters

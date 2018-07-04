@@ -30,17 +30,12 @@ DeploymentManager::DeploymentManager(bool on_master_node,
 
     execution_->AddTerminateCallback(std::bind(&DeploymentManager::InteruptQueueThread, this));
 
-    //Get all Main messages
-    subscriber_->Filter("*");
-
     //Subscribe to NodeManager::ControlMessage Types
     subscriber_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
 
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
-    
-    subscriber_->Start();
-    
+
     registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
 }
 
@@ -116,7 +111,9 @@ NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const No
     //Setup our subscriber
     if(subscriber_){
         subscriber_->Connect(master_publisher_endpoint_);
+        subscriber_->Filter("*");
         subscriber_->Filter(host_name + "*");
+        subscriber_->Start();
     }else{
         success = false;
     }

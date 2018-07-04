@@ -101,7 +101,6 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 void Experiment::AddNode(const NodeManager::Node& node){
     auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
 
-
     std::string ip_address = internal_node->GetIp();
     node_map_.emplace(ip_address, std::move(internal_node));
     auto& node_ref = node_map_.at(ip_address);
