@@ -209,7 +209,6 @@ NodeManager::ControlMessage* Experiment::GetUpdate(){
         }
     }
 
-    std::cout << control_message->DebugString() << std::endl;
     return control_message;
 }
 
