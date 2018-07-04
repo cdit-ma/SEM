@@ -2052,6 +2052,8 @@
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
+        <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
