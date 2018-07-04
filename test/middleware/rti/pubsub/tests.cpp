@@ -60,7 +60,7 @@ protected:
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(rti_PubSub, Basic_Stable){
+TEST(DISABLED_rti_PubSub, Basic_Stable){
     using namespace ::PubSub::Basic::Stable;
 
     //Define the base types
@@ -86,7 +86,7 @@ TEST(rti_PubSub, Basic_Stable){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-TEST(rti_PubSub, Basic_Busy){
+TEST(DISABLED_rti_PubSub, Basic_Busy){
     using namespace ::PubSub::Basic::Busy;
 
     //Define the base types
