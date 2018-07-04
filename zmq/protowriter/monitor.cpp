@@ -33,7 +33,6 @@ void zmq::Monitor::MonitorThread(std::reference_wrapper<zmq::socket_t> socket, c
         std::lock_guard<std::mutex> lock(mutex);
         monitor_address = "inproc://monitor_" + std::to_string(monitor_count++);
     }
-    std::cerr << monitor_address << std::endl;
 
     try{
         monitor(socket.get(), monitor_address.c_str(), event_type);
