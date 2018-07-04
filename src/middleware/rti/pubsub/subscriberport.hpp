@@ -38,9 +38,7 @@ namespace rti{
         std::shared_ptr<Attribute> qos_path_;
         std::shared_ptr<Attribute> qos_name_;
 
-        std::mutex thread_state_mutex_;
-        ThreadState thread_state_;
-        std::condition_variable thread_state_condition_;
+        ThreadManager* thread_manager_ = 0;
 
         
         bool interupt_ = false;
@@ -71,16 +69,13 @@ bool rti::SubscriberPort<BaseType, RtiType>::HandleConfigure(){
     
     bool valid = topic_name_->String().length() >= 0;
     if(valid && ::SubscriberPort<BaseType>::HandleConfigure()){
-        if(!recv_thread_){
-            {
-                std::unique_lock<std::mutex> lock(notify_mutex_);
-                interupt_ = false;
-            }
-            std::unique_lock<std::mutex> lock(thread_state_mutex_);
-            thread_state_ = ThreadState::WAITING;
-            recv_thread_ = new std::thread(&rti::SubscriberPort<BaseType, RtiType>::recv_loop, this);
-            thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
-            return thread_state_ == ThreadState::STARTED;
+        if(!thread_manager_){
+            thread_manager_ = new ThreadManager();
+            auto future = std::async(std::launch::async, &SubscriberPort<BaseType, RtiType>::recv_loop, this);
+            thread_manager_->SetFuture(std::move(future));
+            return thread_manager_->Configure();
+        }else{
+            std::cerr << "Have extra thread manager" << std::endl;
         }
     }
     return false;
@@ -90,12 +85,9 @@ template <class BaseType, class RtiType>
 bool rti::SubscriberPort<BaseType, RtiType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::SubscriberPort<BaseType>::HandlePassivate()){ 
-        //Set the terminate state in the passivation
-        {
-            std::lock_guard<std::mutex> lock(notify_mutex_);
-            interupt_ = true;
+        if(thread_manager_){
+            return thread_manager_->Terminate();
         }
-        notify();
         return true;
     }
     return false;
@@ -106,29 +98,22 @@ bool rti::SubscriberPort<BaseType, RtiType>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::SubscriberPort<BaseType>::HandleTerminate()){
-        if(recv_thread_){
-            //Join our rti_thread
-            recv_thread_->join();
-            delete recv_thread_;
-            recv_thread_ = 0;
+        if(thread_manager_){
+            delete thread_manager_;
+            thread_manager_ = 0;
         }
         return true;
     }
     return false;
 };
 
-template <class BaseType, class RtiType>
-void rti::SubscriberPort<BaseType, RtiType>::notify(){
-    notify_lock_condition_.notify_all();
-};
 
 template <class BaseType, class RtiType>
 void rti::SubscriberPort<BaseType, RtiType>::recv_loop(){
     dds::sub::DataReader<RtiType> reader_ = dds::sub::DataReader<RtiType>(dds::core::null);
     rti::DataReaderListener<BaseType, RtiType> listener(this);
 
-    auto state = ThreadState::STARTED;
-
+    bool success = true;
     try{
        //Construct a DDS Participant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
@@ -142,39 +127,34 @@ void rti::SubscriberPort<BaseType, RtiType>::recv_loop(){
        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup RTI DDS Reciever") + ex.what());
-        state = ThreadState::TERMINATED;
+        success = false;
     }
 
-    //Change the state to be Configured
-    {
-        std::lock_guard<std::mutex> lock(thread_state_mutex_);
-        thread_state_ = state;
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    
-    thread_state_condition_.notify_all();
-
-    if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
-        //Log the port becoming online
-        Port::LogActivation();
-        
-        while(true){ 
-            {
-                //Wait for next message
-                std::unique_lock<std::mutex> lock(notify_mutex_);
-                //Check to see if we've been interupted before sleeping the first time
-                if(interupt_){
-                    break;
-                }else{
-                    notify_lock_condition_.wait(lock);
+    if(success){
+        thread_manager_->Thread_Configured();
+        if(thread_manager_->Thread_WaitForActivate()){
+            thread_manager_->Thread_Activated();
+            //Log the port becoming online
+            Port::LogActivation();
+            
+            while(true){ 
+                {
+                    //Wait for next message
+                    std::unique_lock<std::mutex> lock(notify_mutex_);
+                    //Check to see if we've been interupted before sleeping the first time
+                    if(interupt_){
+                        break;
+                    }else{
+                        notify_lock_condition_.wait(lock);
+                    }
                 }
             }
+            Port::LogPassivation();
         }
-        Port::LogPassivation();
         //Blocks for the DataReaderListener to finish
         reader_.close();
     }
+    thread_manager_->Thread_Terminated();
 };
 
 #endif //RTI_PORT_SUBSCRIBER_HPP

@@ -7,6 +7,7 @@
 #include <queue>
 #include <functional>
 #include <iostream>
+#include "../../threadmanager.h"
 
 #include "../translator.h"
 #include "../port.h"
@@ -54,12 +55,7 @@ class SubscriberPort : public Port{
         std::condition_variable rx_setup_condition_;
 
         std::mutex control_mutex_;
-        //Normal Mutex is for changing properties 
-        std::thread* queue_thread_ = 0;
-
-        std::mutex thread_finished_mutex_;
-        std::condition_variable thread_finished_condition_;
-        int running_thread_count_ = 0;
+        ThreadManager* thread_manager_ = 0;
 };
 
 template <class BaseType>
@@ -72,6 +68,7 @@ callback_wrapper_(callback_wrapper)
 
 template <class BaseType>
 SubscriberPort<BaseType>::~SubscriberPort(){
+    HandleTerminate();
 };
 
 template <class BaseType>
@@ -83,28 +80,35 @@ void SubscriberPort<BaseType>::SetMaxQueueSize(int max_queue_size){
 template <class BaseType>
 bool SubscriberPort<BaseType>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+
     if(Port::HandlePassivate()){
-        //Gain the notify_mutex to flag the terminate flag
         {
-            std::unique_lock<std::mutex> lock(notify_mutex_);
+            //Wake up the threads sleep
+            std::lock_guard<std::mutex> lock2(notify_mutex_);
             terminate_ = true;
+            notify_lock_condition_.notify_all();
         }
-        notify_lock_condition_.notify_all();
+
+        if(thread_manager_){
+            return thread_manager_->Terminate();
+        }
         return true;
     }
     return false;
 };
 
+
 template <class BaseType>
 bool SubscriberPort<BaseType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(Port::HandleConfigure()){
-        if(!queue_thread_){
-            std::unique_lock<std::mutex> lock2(rx_setup_mutex_);
-            rx_setup_ = false;
-            queue_thread_ = new std::thread(&SubscriberPort<BaseType>::receive_loop, this);
-            rx_setup_condition_.wait(lock2, [=]{return rx_setup_;});
-            return true;
+        if(!thread_manager_){
+            thread_manager_ = new ThreadManager();
+            auto future = std::async(std::launch::async, &SubscriberPort<BaseType>::receive_loop, this);
+            thread_manager_->SetFuture(std::move(future));
+            return thread_manager_->Configure();
+        }else{
+            std::cerr << "Have extra thread manager" << std::endl;
         }
     }
     return false;
@@ -116,22 +120,11 @@ bool SubscriberPort<BaseType>::HandleTerminate(){
     SubscriberPort<BaseType>::HandlePassivate();
     std::unique_lock<std::mutex> lock(control_mutex_);
     if(Port::HandleTerminate()){
-        std::unique_lock<std::mutex> thread_lock(thread_finished_mutex_);
-        //Wait until we have no running threads, or we time out.
-        bool thread_finished = thread_finished_condition_.wait_for(thread_lock, std::chrono::milliseconds(terminate_timeout_ms_), [this]{return running_thread_count_ == 0;});
 
-        if(!thread_finished){
-            //If the thread didn't finish we can't terminate it, so we should detach and let the operation system decide what happens to the thread
-            //The thread may remain running after termination, in which case we can't handle this operation
-            //https://stackoverflow.com/questions/19744250/what-happens-to-a-detached-thread-when-main-exits
-            queue_thread_->detach();
-        }else{
-            //Thread should instantly join, as we know its finished
-            queue_thread_->join();
+        if(thread_manager_){
+            delete thread_manager_;
+            thread_manager_ = 0;
         }
-
-        delete queue_thread_;
-        queue_thread_ = 0;
         return true;
     }
     return false;
@@ -159,66 +152,54 @@ bool SubscriberPort<BaseType>::rx(BaseType* t, bool process_message){
 
 template <class BaseType>
 void SubscriberPort<BaseType>::receive_loop(){
-    {
-        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
-        running_thread_count_ ++;
-    }
-    {
-        //Notify that the thread is ready
-        std::lock_guard<std::mutex> lock(rx_setup_mutex_);
-        rx_setup_ = true;
-        rx_setup_condition_.notify_all();
-    }
+    thread_manager_->Thread_Configured();
 
     //Store a queue of messages
     std::queue<BaseType*> queue;
     
-    bool running = true;
-    while(running){
-        {
-            std::unique_lock<std::mutex> notify_lock(notify_mutex_);
-            notify_lock_condition_.wait(notify_lock, [this]{
-                if(terminate_){
-                    //Wake up if the termination flag has been set
-                    return true;
-                }else{
-                    //Wake up if we have new messages to process
-                    std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-                    return message_queue_.size() > 0;
+    if(thread_manager_->Thread_WaitForActivate()){
+        thread_manager_->Thread_Activated();
+        bool running = true;
+        while(running){
+            {
+                std::unique_lock<std::mutex> notify_lock(notify_mutex_);
+                notify_lock_condition_.wait(notify_lock, [this]{
+                    if(terminate_){
+                        //Wake up if the termination flag has been set
+                        return true;
+                    }else{
+                        //Wake up if we have new messages to process
+                        std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+                        return message_queue_.size() > 0;
+                    }
+                });
+
+                //Gain Mutex
+                std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+                //Swap out the queue's, and release the mutex
+                message_queue_.swap(queue);
+                //Update the current processing count
+                processing_count_ += queue.size();
+
+                if(terminate_ && queue.empty()){
+                    running = false;
                 }
-            });
+            }
 
-            //Gain Mutex
-            std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-            //Swap out the queue's, and release the mutex
-            message_queue_.swap(queue);
-            //Update the current processing count
-            processing_count_ += queue.size();
+            while(!queue.empty()){
+                auto m = queue.front();
+                queue.pop();
 
-            if(terminate_ && queue.empty()){
-                running = false;
+                //If the component is Passivated, this will return false instantaneously
+                rx(m);
+                
+                std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+                //Decrement our count of how many messages are currently being processed
+                processing_count_ --;
             }
         }
-
-        while(!queue.empty()){
-            auto m = queue.front();
-            queue.pop();
-
-            //If the component is Passivated, this will return false instantaneously
-            rx(m);
-            
-            std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-            //Decrement our count of how many messages are currently being processed
-            processing_count_ --;
-        }
     }
-
-    {
-        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
-        running_thread_count_ --;
-        //Notify that our thread is dead
-        thread_finished_condition_.notify_all();
-    }
+    thread_manager_->Thread_Terminated();
 };
 
 template <class BaseType>
