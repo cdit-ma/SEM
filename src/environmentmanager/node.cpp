@@ -36,7 +36,9 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     if(components_.size()){
         AddModelLogger();
 
-        //set master/slave port
+    }
+    //set master/slave port
+    if(DeployedTo()){
         management_port_ = environment_.GetPort(ip_);
     }
 }
