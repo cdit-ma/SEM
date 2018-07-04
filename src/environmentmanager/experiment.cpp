@@ -64,16 +64,36 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 
         external_id_to_internal_id_map_[temp->external_label] = temp->id;
 
+        //populate public blackbox endpoint based on model supplied info
         if(temp->is_blackbox){
-            std::string address;
-            for(int i = 0; i < message.attributes_size(); i++){
-                auto attribute = message.attributes(i);
-                if(attribute.info().name() == "publisher_address" || attribute.info().name() == "server_address"){
-                    address = attribute.s(0);
-                    break;
+            if(external_port.middleware() == NodeManager::Middleware::ZMQ){
+                std::string address;
+                for(int i = 0; i < message.attributes_size(); i++){
+                    auto attribute = message.attributes(i);
+                    if(attribute.info().name() == "publisher_address" || attribute.info().name() == "server_address"){
+                        address = attribute.s(0);
+                        break;
+                    }
+
                 }
+                environment_.AddPublicEventPort(model_name_, temp->external_label, address);
             }
-            environment_.AddPublicEventPort(model_name_, temp->external_label, address);
+
+            if(external_port.middleware() == NodeManager::Middleware::TAO){
+                std::string address;
+                std::string server_name;
+                for(int i = 0; i < message.attributes_size(); i++){
+                    auto attribute = message.attributes(i);
+                    if(attribute.info().name() == "server_address"){
+                        address = attribute.s(0);
+                    }
+                    if(attribute.info().name() == "server_name"){
+                        server_name = attribute.s(0);
+                    }
+                }
+                std::string full_address = "corbaloc:iiop:" + address + "/" + server_name;
+                environment_.AddPublicEventPort(model_name_, temp->external_label, full_address);
+            }
         }
     }
 }
@@ -130,62 +150,8 @@ std::string Experiment::GetMasterRegistrationAddress(){
     return "tcp://" + master_ip_address_ + ":" + master_registration_port_;
 }
 
-std::string Experiment::GetNodeModelLoggerPort(const std::string& ip_address) const{
-    return node_map_.at(ip_address)->GetModelLoggerPort();
-}
-
 std::set<std::string> Experiment::GetTopics() const{
     return topic_set_;
-}
-
-std::vector<std::string> Experiment::GetPublisherAddress(const NodeManager::Port& port){
-    std::unique_lock<std::mutex> lock(mutex_);
-    std::vector<std::string> publisher_addresses;
-    /*
-
-    if(port.kind() == NodeManager::Port::SUBSCRIBER || port.kind() == NodeManager::Port::REQUESTER){
-
-        if(connection_map_.count(port.info().id())){
-            //Get list of connected ports
-            auto publisher_port_ids = connection_map_.at(port.info().id());
-
-            //Get those ports addresses
-            for(auto id : publisher_port_ids){
-                auto node_ip = port_map_.at(id).node_ip;
-                auto port_assigned_port = port_map_.at(id).port_number;
-                publisher_addresses.push_back("tcp://" + node_ip + ":" + port_assigned_port);
-            }
-        }
-
-        for(int i = 0; i < port.connected_external_ports_size(); i++){
-            auto external_port_label = external_port_map_.at(port.connected_external_ports(i))->external_label;
-            //Check environment for public ports with this id
-            if(environment_.HasPublicEventPort(external_port_label)){
-                publisher_addresses.push_back(environment_.GetPublicEventPortEndpoint(external_port_label));
-            }
-            //We don't have this public port's address yet. The experiment it orinates from is most likely not started yet.
-            //We need to keep track of the fact that this experiment is waiting for this port to become live so we can notify it of the environment change.
-            else{
-                environment_.AddPendingPublicEventPort(model_name_, external_port_label);
-            }
-        }
-    }
-
-    else if(port.kind() == NodeManager::Port::PUBLISHER || port.kind() == NodeManager::Port::REPLIER){
-        auto node_ip = port_map_.at(port.info().id()).node_ip;
-
-        auto port_assigned_port = port_map_.at(port.info().id()).port_number;
-        std::string addr_string = "tcp://" + node_ip + ":" + port_assigned_port;
-        publisher_addresses.push_back(addr_string);
-
-        //Update any external port references with the address of this port.
-        for(int i = 0; i < port.connected_external_ports_size(); i++){
-            auto external_port_label = external_port_map_.at(port.connected_external_ports(i))->external_label;
-            environment_.AddPublicEventPort(model_name_, external_port_label, addr_string);
-        }
-    }
-    */
-    return publisher_addresses;
 }
 
 bool Experiment::IsDirty() const{
@@ -209,7 +175,6 @@ void Experiment::UpdatePort(const std::string& external_port_label){
             }
         }
     }
-
 }
 
 Port& Experiment::GetPort(const std::string& id){
@@ -285,7 +250,7 @@ void Experiment::AddModelLoggerEndpoint(const std::string& node_id, const std::s
 }
 
 void Experiment::RemoveModelLoggerEndpoint(const std::string& node_id){
-
+    modellogger_endpoint_map_.erase(node_id);
 }
 
 const std::unordered_map<std::string, std::string>& Experiment::GetModelLoggerEndpointMap() const{

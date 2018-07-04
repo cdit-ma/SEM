@@ -166,10 +166,6 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
                 //Create generator and populate message
                 DeploymentGenerator generator(environment_);
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(environment_)));
                 NodeManager::ControlMessage* configured_message = generator.PopulateDeployment(*(message.mutable_control_message()));
                 message.set_allocated_control_message(configured_message);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);

@@ -205,7 +205,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         //Have experiment_id in environment, and ip_addr has component deployed to id
         std::string master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
         std::string master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
-        std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
 
         auto master_publisher_attribute = node->add_attributes();
         auto master_publisher_attribute_info = master_publisher_attribute->mutable_info();
@@ -218,12 +217,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         master_registration_attribute_info->set_name("master_registration_endpoint");
         master_registration_attribute->set_kind(NodeManager::Attribute::STRING);
         master_registration_attribute->add_s(master_registration_endpoint);
-
-        auto modellogger_attribute = node->add_attributes();
-        auto modellogger_attribute_info = modellogger_attribute->mutable_info();
-        modellogger_attribute_info->set_name("modellogger_port");
-        modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
-        modellogger_attribute->add_s(model_logger_port);
 
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);

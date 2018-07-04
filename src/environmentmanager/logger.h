@@ -15,8 +15,9 @@ class Logger{
     public:
         enum class Type{
             None = 0,
-            Client = 1,
-            Server = 2,
+            Model = 1,
+            Client = 2,
+            Server = 3,
         };
         enum class Mode{
             Off = 0,
@@ -24,6 +25,7 @@ class Logger{
             Cached = 2,
         };
         Logger(Environment& environment, Node& parent, const NodeManager::Logger& logger);
+        Logger(Environment& environment, Node& parent, Type type, Mode mode);
         ~Logger();
 
         void ConfigureConnections();

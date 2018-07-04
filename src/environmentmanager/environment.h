@@ -52,14 +52,8 @@ class Environment{
 
         std::string GetMasterPublisherAddress(const std::string& model_name);
         std::string GetMasterRegistrationAddress(const std::string& model_name);
-        std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
-        std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);
-        std::string GetTaoServerName(const std::string& model_name, const NodeManager::Port& port);
-
-        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
-        std::string GetOrbEndpoint(const std::string& experiment_id, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
 

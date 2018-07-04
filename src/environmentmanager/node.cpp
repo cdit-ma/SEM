@@ -34,8 +34,8 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     }
     //set logger port
     if(DeployedTo()){
-        model_logger_port_ = environment_.GetPort(ip_);
-        GetExperiment().AddModelLoggerEndpoint(id_, "tcp://" + ip_ + ":" + model_logger_port_);
+        AddModelLogger();
+
         //set master/slave port
         management_port_ = environment_.GetPort(ip_);
     }
@@ -45,8 +45,6 @@ Node::~Node(){
     if(DeployedTo()){
         //Free node's management port
         environment_.FreePort(ip_, GetManagementPort());
-        //Free node's logger port
-        environment_.FreePort(ip_, GetModelLoggerPort());
         //Free node's orb port
         if(HasOrbPort()){
             environment_.FreePort(ip_, GetOrbPort());
@@ -80,9 +78,6 @@ int Node::GetDeployedComponentCount() const{
 std::string Node::GetManagementPort() const{
     return management_port_;
 }
-std::string Node::GetModelLoggerPort() const {
-    return model_logger_port_;
-}
 bool Node::HasOrbPort() const{
     return !orb_port_.empty();
 }
@@ -107,6 +102,13 @@ void Node::AddLogger(const NodeManager::Logger& logger){
     loggers_.insert(std::make_pair(logger.id(), 
             std::unique_ptr<EnvironmentManager::Logger>(
                 new EnvironmentManager::Logger(environment_, *this, logger))));
+}
+
+
+void Node::AddModelLogger(){
+    loggers_.insert(std::make_pair("model_logger", 
+            std::unique_ptr<EnvironmentManager::Logger>(new EnvironmentManager::Logger(environment_, *this, 
+            EnvironmentManager::Logger::Type::Model, EnvironmentManager::Logger::Mode::Cached))));
 }
 
 void Node::AddAttribute(const NodeManager::Attribute& attribute){
@@ -167,11 +169,6 @@ NodeManager::Node* Node::GetUpdate(){
         ip_attribute_info->set_name("ip_address");
         ip_attribute->add_s(ip_);
 
-        auto modellogger_attribute = node->add_attributes();
-        auto modellogger_attribute_info = modellogger_attribute->mutable_info();
-        modellogger_attribute_info->set_name("modellogger_port");
-        modellogger_attribute->add_s(model_logger_port_);
-
         auto management_port_attribute = node->add_attributes();
         auto management_port_attribute_info = management_port_attribute->mutable_info();
         management_port_attribute_info->set_name("management_port");
@@ -207,11 +204,6 @@ NodeManager::Node* Node::GetProto(){
     ip_attribute_info->set_name("ip_address");
     ip_attribute->add_s(ip_);
 
-    auto modellogger_attribute = node->add_attributes();
-    auto modellogger_attribute_info = modellogger_attribute->mutable_info();
-    modellogger_attribute_info->set_name("modellogger_port");
-    modellogger_attribute->add_s(model_logger_port_);
-
     auto management_port_attribute = node->add_attributes();
     auto management_port_attribute_info = management_port_attribute->mutable_info();
     management_port_attribute_info->set_name("management_port");
@@ -237,7 +229,9 @@ NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
-        message->mutable_logger()->AddAllocated(logger->GetDeploymentMessage());
+        if(logger->GetType() != Logger::Type::Model){
+            message->mutable_logger()->AddAllocated(logger->GetDeploymentMessage());
+        }
     }
 
     return message;

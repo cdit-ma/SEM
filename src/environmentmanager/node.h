@@ -33,12 +33,10 @@ class Node{
 
         //Fully qualified endpoint getters
         std::string GetManagementEndpoint() const;
-        std::string GetModelLoggerEndpoint() const;
         std::string GetOrbEndpoint() const;
 
         //Port number only getters
         std::string GetManagementPort() const;
-        std::string GetModelLoggerPort() const;
         bool HasOrbPort() const;
         std::string GetOrbPort();
         std::vector<std::string> GetAllPublisherPorts() const;
@@ -53,6 +51,7 @@ class Node{
         void AddComponent(const NodeManager::Component& component);
         void AddAttribute(const NodeManager::Attribute& attribute);
         void AddLogger(const NodeManager::Logger& logger);
+        void AddModelLogger();
 
         //Update requirement management
         void SetDirty();

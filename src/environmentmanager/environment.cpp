@@ -204,40 +204,12 @@ NodeManager::ControlMessage* Environment::GetProto(const std::string& model_name
     }
 }
 
-std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetPublisherAddress(port);
-    }else{
-        throw std::invalid_argument("Model named :" + model_name + " not found.");
-    }
-}
-
 std::string Environment::GetTopic(const std::string& model_name, const std::string& port_id){
     //auto port = experiment_map_[model_name]->port_map_[port_id];
 
     throw std::runtime_error("Environment::GetTopic NOT IMPLEMENTED");
     return "";
 
-}
-
-std::string Environment::GetOrbEndpoint(const std::string& model_name, const std::string& port_id){
-    // if(experiment_map_.count(model_name)){
-    //     return experiment_map_.at(model_name)->GetOrbEndpoint(port_id);
-    // }
-    return std::string();
-}
-
-std::string Environment::GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port){
-    // if(experiment_map_.count(model_name)){
-    //     return experiment_map_.at(model_name)->GetTaoReplierServerAddress(port);
-    // }
-    return std::string();
-}
-std::string Environment::GetTaoServerName(const std::string& model_name, const NodeManager::Port& port){
-    // if(experiment_map_.count(model_name)){
-    //     return experiment_map_.at(model_name)->GetTaoServerName(port);
-    // }
-    return std::string();
 }
 
 //Return list of experiments using the topic name provided
@@ -341,13 +313,6 @@ std::string Environment::GetMasterPublisherAddress(const std::string& model_name
 std::string Environment::GetMasterRegistrationAddress(const std::string& model_name){
     if(experiment_map_.count(model_name)){
         return experiment_map_.at(model_name)->GetMasterRegistrationAddress();
-    }
-    return "";
-}
-
-std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name)){
-        return experiment_map_.at(model_name)->GetNodeModelLoggerPort(ip_address);
     }
     return "";
 }

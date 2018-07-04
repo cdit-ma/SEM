@@ -41,10 +41,26 @@ Logger::Logger(Environment& environment, Node& parent, const NodeManager::Logger
     }
 }
 
+Logger::Logger(Environment& environment, Node& parent, EnvironmentManager::Logger::Type type, EnvironmentManager::Logger::Mode mode): 
+                node_(parent), environment_(environment){
+    type_ = type;
+    mode_ = mode;
+
+    if(type_ == EnvironmentManager::Logger::Type::Model){
+        publisher_port_ = environment_.GetPort(GetNode().GetIp());
+        std::string endpoint = "tcp://" + GetNode().GetIp() + ":" + publisher_port_;
+        GetExperiment().AddModelLoggerEndpoint(GetNode().GetId(), endpoint);
+    }
+}
+
 Logger::~Logger(){
     if(type_ == Type::Client){
         environment_.FreePort(GetNode().GetIp(), publisher_port_);
         GetExperiment().RemoveLoganClientEndpoint(id_);
+    }
+    if(type_ == Type::Model){
+        environment_.FreePort(GetNode().GetIp(), publisher_port_);
+        GetExperiment().RemoveModelLoggerEndpoint(GetNode().GetId());
     }
 }
 
@@ -197,6 +213,14 @@ NodeManager::Logger* Logger::GetProto(){
         logger->set_publisher_address(node_.GetIp());
         logger->set_publisher_port(GetPublisherPort());
         logger->set_type(NodeManager::Logger::CLIENT);
+    }
+
+    if(GetType() == EnvironmentManager::Logger::Type::Model){
+        logger = new NodeManager::Logger();
+        
+        logger->set_publisher_address(node_.GetIp());
+        logger->set_publisher_port(GetPublisherPort());
+        logger->set_type(NodeManager::Logger::MODEL);
     }
     return logger;
 }

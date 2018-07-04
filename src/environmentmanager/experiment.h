@@ -52,11 +52,8 @@ class Experiment{
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
 
-        std::string GetNodeModelLoggerPort(const std::string& ip) const;
-
         std::set<std::string> GetTopics() const;
 
-        std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
         std::string GetOrbEndpoint(const std::string& port_id);
 
         std::string GetTaoReplierServerAddress(const NodeManager::Port& port);

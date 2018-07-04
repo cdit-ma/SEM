@@ -16,14 +16,14 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
             publisher_address_attr_info->set_name("publisher_address");
             publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
-            auto publisher_addresses = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            //auto publisher_addresses = environment_.GetPublisherAddress(message.experiment_id(), event_port);
             if(event_port.kind() == NodeManager::Port::PUBLISHER){
-                publisher_address_attr->add_s(publisher_addresses.at(0));
+                //publisher_address_attr->add_s(publisher_addresses.at(0));
             }
             else{
-                for(auto id : publisher_addresses){
-                    publisher_address_attr->add_s(id);
-                }
+                //for(auto id : publisher_addresses){
+                    //publisher_address_attr->add_s(id);
+                //}
             }
             break;
         }
@@ -35,8 +35,8 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
             server_address_attr_info->set_name("server_address");
             server_address_attr->set_kind(NodeManager::Attribute::STRING);
 
-            auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
-            server_address_attr->add_s(connected_address.at(0));
+            //auto connected_address = environment_.GetPublisherAddress(message.experiment_id(), event_port);
+            //server_address_attr->add_s(connected_address.at(0));
             break;
         }
 
