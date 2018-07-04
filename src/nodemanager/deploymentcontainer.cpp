@@ -68,7 +68,7 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                 }
                 case NodeManager::Logger::MODEL:{
                     if(!ModelLogger::is_logger_setup()){
-                        if(ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode())){
+                        if(!ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode())){
                             throw std::runtime_error("Failed to setup Model Logger: tcp://" + logger_pb.publisher_address() + ":" + logger_pb.publisher_port());
                         }
                     }
