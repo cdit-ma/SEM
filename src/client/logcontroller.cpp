@@ -63,7 +63,7 @@ std::string LogController::GetSystemInfoJson(){
 }
 
 void LogController::Start(const std::string& publisher_endpoint, double frequency, const std::vector<std::string>& processes, const bool& live_mode){
-    std::lock_guard<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> lock(future_mutex_);
     if(!logging_future_.valid()){
         //Validate the frequency
         frequency = std::min(10.0, frequency);
@@ -71,12 +71,23 @@ void LogController::Start(const std::string& publisher_endpoint, double frequenc
 
         std::lock_guard<std::mutex> lock(interupt_mutex_);
         interupt_ = false;
+        
+        //Start the other thread
+        std::unique_lock<std::mutex> alive_lock(state_mutex_);
+        thread_state_ = State::NONE;
         logging_future_ = std::async(std::launch::async, &LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
+
+        //Wait for the thread to be up or dead
+        state_condition_.wait(alive_lock, [this]{return thread_state_ != LogController::State::NONE;});
+
+        if(thread_state_ == State::ERROR){
+            throw std::runtime_error("LogController could not be started");
+        }
     }
 }
 
 void LogController::Stop(){
-    std::lock_guard<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> lock(future_mutex_);
     if(logging_future_.valid()){
         InteruptLogThread();
         logging_future_.get();
@@ -104,6 +115,7 @@ void LogController::QueueOneTimeInfo(){
 }
 
 void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
+    State state = State::RUNNING;
     auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
     {
         {
@@ -115,8 +127,21 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
 
         if(!writer->BindPublisherSocket(publisher_endpoint)){
             std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
+            state = State::ERROR;
+        }
+
+        {
+            //Notify that our thread is back up
+            std::unique_lock<std::mutex> alive_lock(state_mutex_);
+            thread_state_ = state;
+            state_condition_.notify_all();
+        }
+
+        
+        if(state != State::ERROR){
             return;
         }
+        
         
         //Get the duration in milliseconds
         auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
@@ -173,4 +198,9 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
         writer.reset();
     }
+
+
+    //Notify that our thread is back up
+    std::unique_lock<std::mutex> alive_lock(state_mutex_);
+    thread_state_ = State::NONE;
 }

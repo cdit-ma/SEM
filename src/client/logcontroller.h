@@ -35,6 +35,12 @@ namespace re_common{
 };
 
 class LogController{
+    enum class State{
+        NONE,
+        ERROR,
+        RUNNING
+    };
+
     public:
         LogController();
         ~LogController();
@@ -51,7 +57,7 @@ class LogController{
         SystemInfo& system_;
         const int listener_id_;
         
-        std::mutex state_mutex_;
+        std::mutex future_mutex_;
         std::future<void> logging_future_;
         
         std::mutex one_time_mutex_;
@@ -60,6 +66,10 @@ class LogController{
         std::mutex interupt_mutex_;
         std::condition_variable log_condition_;
         bool interupt_ = false;
+
+        std::mutex state_mutex_;
+        std::condition_variable state_condition_;
+        State thread_state_;
 };
 
 #endif //LOGCONTROLLER_H
