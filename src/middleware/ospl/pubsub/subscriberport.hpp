@@ -170,9 +170,9 @@ void ospl::SubscriberPort<BaseType, OsplType>::receive_loop(){
             }
         }
         Port::LogPassivation();
+        //Blocks for the DataReaderListener to finish
+        reader_.close();
     }
-    //Blocks for the DataReaderListener to finish
-    reader_.close();
 };
 
 #endif //OSPL_PORTSUBSCRIBER_HPP
