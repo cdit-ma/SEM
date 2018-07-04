@@ -10,6 +10,7 @@ node("master"){
             checkout scm
             stash includes: "**", name: "source_code"
         }
+        echo sh(returnStdout: true, script: 'env')
     }
 }
 
