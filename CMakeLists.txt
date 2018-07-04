@@ -8,7 +8,6 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(APPLE)
 	set(CMAKE_MACOSX_RPATH ON)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
