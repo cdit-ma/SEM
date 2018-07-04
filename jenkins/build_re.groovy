@@ -131,14 +131,15 @@ node("master"){
             archiveArtifacts test_archive
             deleteDir()
         }
-    }
-}
 
-if(FAILED){
-    print("Test Execution failed!")
-    print(FAILURE_LIST.size() + " Error(s)")
-    for(failure in FAILURE_LIST){
-        print("ERROR: " + failure)
+        if(FAILED){
+            print("Test Execution failed!")
+            print(FAILURE_LIST.size() + " Error(s)")
+            for(failure in FAILURE_LIST){
+                print("ERROR: " + failure)
+            }
+            //error("Test Execution failed!")
+            throw new exception("MUy desc")
+        }
     }
-    error("Test Execution failed!")
 }
