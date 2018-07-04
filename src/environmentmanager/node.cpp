@@ -229,7 +229,7 @@ NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
-        if(logger->GetType() != Logger::Type::Model){
+        if(logger->GetType() == Logger::Type::Server){
             message->mutable_logger()->AddAllocated(logger->GetDeploymentMessage());
         }
     }
