@@ -57,7 +57,7 @@ class ModelLogger{
         bool is_setup();
         void set_hostname(std::string host_name);
         
-        zmq::ProtoWriter* writer_;
+        zmq::ProtoWriter* writer_ = 0;
         ~ModelLogger();
     public:
         void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
