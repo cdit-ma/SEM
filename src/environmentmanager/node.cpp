@@ -33,7 +33,7 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
         AddAttribute(node.attributes(i));
     }
     //set logger port
-    if(DeployedTo()){
+    if(components_.size()){
         AddModelLogger();
 
         //set master/slave port

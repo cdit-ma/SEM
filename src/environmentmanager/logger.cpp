@@ -208,5 +208,13 @@ NodeManager::Logger* Logger::GetProto(){
         logger->set_publisher_port(GetPublisherPort());
         logger->set_type(NodeManager::Logger::MODEL);
     }
+    if(mode_ == Mode::Off){
+        logger->set_mode(NodeManager::Logger::OFF);
+    }else if(mode_ == Mode::Cached){
+        logger->set_mode(NodeManager::Logger::CACHED);
+    }else if(mode_ == Mode::Live){
+        logger->set_mode(NodeManager::Logger::LIVE);
+    }
+
     return logger;
 }
