@@ -25,6 +25,8 @@
 #include <mutex>
 #include <google/protobuf/message_lite.h>
 #include <zmq.hpp>
+#include <future>
+#include <vector>
 
 #include "monitor.h"
 
