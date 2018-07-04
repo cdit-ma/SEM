@@ -61,9 +61,23 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
 
         //Try and configure all components
         for(const auto& logger_pb : node.loggers()){
-            GetConfiguredLoganClient(logger_pb);
+            switch(logger_pb.type()){
+                case NodeManager::Logger::CLIENT:{
+                    GetConfiguredLoganClient(logger_pb);
+                    break;
+                }
+                case NodeManager::Logger::MODEL:{
+                    if(!ModelLogger::is_logger_setup()){
+                        if(ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode())){
+                            throw std::runtime_error("Failed to setup Model Logger: tcp://" + logger_pb.publisher_address() + ":" + logger_pb.publisher_port());
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
         }
-
 
         std::cout << "* Configured Slave as: " << get_name() << std::endl;
         return Activatable::Configure();

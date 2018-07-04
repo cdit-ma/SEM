@@ -48,6 +48,7 @@ class ModelLogger{
         static bool setup_model_logger(std::string host_name, std::string address, std::string port, Mode mode);
         static ModelLogger* get_model_logger();
         static bool shutdown_logger();
+        static bool is_logger_setup();
         
     protected:
         ModelLogger();

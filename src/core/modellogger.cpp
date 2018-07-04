@@ -35,6 +35,10 @@ ModelLogger* ModelLogger::get_model_logger(){
     return singleton_;
 }
 
+bool ModelLogger::is_logger_setup(){
+    return get_model_logger()->is_setup();
+}
+
 bool ModelLogger::shutdown_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
 
@@ -60,15 +64,24 @@ void ModelLogger::set_hostname(std::string host_name){
 }
 
 bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
-    if(mode == Mode::OFF){
-        active_ = false;
-    }
-    if(!writer_){
-        if(mode == Mode::LIVE){
-            writer_ = new zmq::ProtoWriter();
-        }else{
-            writer_ = new zmq::CachedProtoWriter();
+    switch(mode){
+        case Mode::OFF:{
+            active_ = false;
+            return true;
+            break;
         }
+        case Mode::LIVE:{
+            if(!writer_)
+                writer_ = new zmq::ProtoWriter();
+            break;
+        }
+        case Mode::CACHED:{
+            if(!writer_)
+                writer_ = new zmq::CachedProtoWriter();
+            break;
+        }
+    }
+    if(writer_){
         return writer_->BindPublisherSocket(endpoint);
     }
     return false;
