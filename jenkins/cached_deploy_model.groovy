@@ -59,8 +59,10 @@ if(nodes.size() == 0){
 node(builder_nodes[0]){
     //Unstash the model from parameter
     unstashParam "model", MODEL_FILE
+    sleep(1)
     //Stash the model file
     stash includes: MODEL_FILE, name: 'model'
+    
 
     stage('C++ Generation'){
         dir(build_id + "/Codegen"){
@@ -211,10 +213,10 @@ for(n in nodes){
                     parallel(
                         ("LOGAN_" + node_name): {
                             //Run Logan
-                            /*if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
+                            if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + logan_args) != 0){
                                 FAILURE_LIST << ("Logan failed on node: " + node_name)
                                 FAILED = true
-                            }*/
+                            }
                         },
                         ("RE_" + node_name): {
                             //Run re_node_manager
