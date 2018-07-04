@@ -23,9 +23,6 @@ if(experiment_name.isEmpty()){
     experiment_name = "deploy_model_" + build_id
 }
 
-//Set the current build description
-currentBuild.description = experiment_name
-
 //Executor Maps
 def logan_instances = [:]
 def builder_map = [:]
