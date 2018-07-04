@@ -138,7 +138,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         }
 
         
-        if(state != State::ERROR){
+        if(state == State::ERROR){
             return;
         }
         
