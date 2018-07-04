@@ -12,6 +12,8 @@ if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif(MSVC)
 
+set(RE_TEST_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 add_subdirectory("${GOOGLE_TEST_DIR}")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
