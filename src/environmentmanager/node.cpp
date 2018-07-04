@@ -226,6 +226,7 @@ NodeManager::Node* Node::GetProto(){
 
 NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
     NodeManager::EnvironmentMessage* message;
+    message = new NodeManager::Logger();
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
