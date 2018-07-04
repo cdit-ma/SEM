@@ -64,9 +64,16 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 
         external_id_to_internal_id_map_[temp->external_label] = temp->id;
 
-        //TODO: Handle this correctly!
         if(temp->is_blackbox){
-            environment_.AddPublicEventPort(model_name_, temp->external_label, "");
+            std::string address;
+            for(int i = 0; i < message.attributes_size(); i++){
+                auto attribute = message.attributes(i);
+                if(attribute.info().name() == "publisher_address" || attribute.info().name() == "server_address"){
+                    address = attribute.s(0);
+                    break;
+                }
+            }
+            environment_.AddPublicEventPort(model_name_, temp->external_label, address);
         }
     }
 }
@@ -190,9 +197,7 @@ void Experiment::SetDirty(){
 }
 
 void Experiment::UpdatePort(const std::string& external_port_label){
-
     if(configure_done_){
-
         if(external_id_to_internal_id_map_.count(external_port_label)){
             std::string internal_id = external_id_to_internal_id_map_.at(external_port_label);
 
