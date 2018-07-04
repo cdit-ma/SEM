@@ -174,7 +174,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTCAPT)
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10)
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10)
 {
     int count = 10;
     while(count-- > 0){
@@ -185,7 +185,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTx10)
     }
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10_DELAY)
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_DELAY)
 {
     int sleep_time = 5;
     int count = 10;
@@ -201,7 +201,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTx10_DELAY)
     }
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10_RANDOMDELAY)
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_RANDOMDELAY)
 {
     int min = 1;
     int max = 50;
