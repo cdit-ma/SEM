@@ -262,6 +262,10 @@ bool DeploymentContainer::HandleActivate(){
     for(const auto& c : components_){
         success = c.second->Activate() ? success : false;
     }
+
+    for(const auto& c : logan_clients_){
+        success = c.second->Activate() ? success : false;
+    }
     return true;
 }
 
@@ -269,6 +273,10 @@ bool DeploymentContainer::HandlePassivate(){
     auto success = true;
 
     for(const auto& c : components_){
+        success = c.second->Passivate() ? success : false;
+    }
+
+    for(const auto& c : logan_clients_){
         success = c.second->Passivate() ? success : false;
     }
 
@@ -287,6 +295,11 @@ bool DeploymentContainer::HandleTerminate(){
         results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
     }
     components_.clear();
+
+    for(const auto& c : logan_clients_){
+        results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
+    }
+    logan_clients_.clear();
     
     for(auto& result : results){
         success &= result.get();
@@ -300,6 +313,10 @@ bool DeploymentContainer::HandleConfigure(){
     std::list<std::future<bool> > results;
 
     for(const auto& c : components_){
+        results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
+    }
+
+    for(const auto& c : logan_clients_){
         results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
     }
     
