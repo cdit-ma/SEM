@@ -45,7 +45,7 @@ class ModelLogger{
             IGNORED = 4,
         };
         //Static getter functions
-        static bool setup_model_logger(std::string host_name, std::string endpoint, Mode mode);
+        static bool setup_model_logger(std::string host_name, std::string address, std::string port, Mode mode);
         static ModelLogger* get_model_logger();
         static bool shutdown_logger();
         

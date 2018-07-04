@@ -3,15 +3,17 @@
 
 #include <unordered_map>
 #include <functional>
+#include <memory>
 
 #include <core/component.h>
 #include <core/ports/libportexport.h>
 #include <core/libcomponentexport.h>
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+
 
 
 #include "dllloader.h"
+#include "loganclient.h"
 
 namespace NodeManager{
     class Component;
@@ -19,6 +21,7 @@ namespace NodeManager{
     class Worker;
     class Node;
     class Info;
+    class Logger;
 };
 
 typedef std::function<PortCConstructor> PortConstructor;
@@ -33,6 +36,11 @@ class DeploymentContainer : public Activatable{
         std::weak_ptr<Component> GetComponent(const std::string& name);
         std::shared_ptr<Component> RemoveComponent(const std::string& name);
 
+
+        std::weak_ptr<LoganClient> AddLoganClient(std::unique_ptr<LoganClient> component, const std::string& id);
+        std::weak_ptr<LoganClient> GetLoganClient(const std::string& id);
+        std::shared_ptr<LoganClient> RemoveLoganClient(const std::string& id);
+
         void SetLibraryPath(const std::string library_path);
     protected:
         bool HandleActivate();
@@ -46,6 +54,14 @@ class DeploymentContainer : public Activatable{
         std::shared_ptr<Port> GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& eventport_pb);
         
         std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
+        
+
+        
+        std::shared_ptr<LoganClient> GetConfiguredLoganClient(const NodeManager::Logger& logger_pb);
+        std::shared_ptr<LoganClient> ConstructLoganClient(const std::string& id);
+        
+
+        
         
         
         //Constructor functions
@@ -74,6 +90,7 @@ class DeploymentContainer : public Activatable{
 
         std::mutex component_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Component> > components_;
+        std::unordered_map<std::string, std::shared_ptr<LoganClient> > logan_clients_;
 
         DllLoader dll_loader;
 };

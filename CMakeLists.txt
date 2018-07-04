@@ -27,7 +27,9 @@ set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 set(REGEN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
 
 set(RE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+set(LOGAN_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 #Use the local submoduled cmake_modules if we don't have a global one set
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
