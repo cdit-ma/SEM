@@ -8,7 +8,7 @@
 #include <core/ports/libportexport.h>
 #include <core/libcomponentexport.h>
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
 
 #include "dllloader.h"

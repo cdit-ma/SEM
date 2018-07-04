@@ -308,3 +308,11 @@ void Experiment::AddExternalEndpoint(const std::string& external_port_internal_i
         external_port->endpoint = endpoint;
     }
 }
+
+void Experiment::RemoveExternalEndpoint(const std::string& external_port_internal_id){
+    if(external_port_map_.count(external_port_internal_id)){
+        const auto& external_port = external_port_map_.at(external_port_internal_id);
+        environment_.RemovePublicEventPort(model_name_, external_port->external_label);
+        external_port->endpoint = "";
+    }
+}

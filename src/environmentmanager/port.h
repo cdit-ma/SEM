@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "uniquequeue.hpp"
 #include <memory>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Environment;
@@ -48,6 +48,8 @@ class Port{
         void SetTopic(const std::string& topic_name);
         void AddConnectedEndpoint(const std::string& endpoint);
         void RemoveConnectedEndpoint(const std::string& endpoint);
+        void AddExternalConnectedEndpoint(const std::string& endpoint);
+        void RemoveExternalConnectedEndpoint(const std::string& endpoint);
         void AddConnectedPortId(const std::string& port_id);
         void AddExternalConnectedPortId(const std::string& port_id);
 
@@ -81,11 +83,14 @@ class Port{
         Kind kind_;
         Middleware middleware_;
 
+        bool external_ = false;
+
         bool dirty_;
 
         std::string topic_name_;
 
         std::set<std::string> endpoints_;
+        std::set<std::string> external_endpoints_;
 
         std::string tao_replier_server_name_;
 

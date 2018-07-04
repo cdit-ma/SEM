@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 #include "experiment.h"
 #include "porttracker.h"
@@ -75,6 +75,7 @@ class Environment{
         bool HasPublicEventPort(const std::string& port_id);
         std::string GetPublicEventPortEndpoint(const std::string& port_id);
         void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
+        void RemovePublicEventPort(const std::string& model_name, const std::string& port_id);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);

@@ -54,7 +54,8 @@ endif(MSVC)
 #Include the directories
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 
 #target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 

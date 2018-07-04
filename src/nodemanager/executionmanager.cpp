@@ -11,8 +11,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <proto/controlmessage/controlmessage.pb.h>
-
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
 
@@ -121,10 +120,18 @@ bool ExecutionManager::PopulateDeployment(){
 
         for(auto& attribute : deployment_message_->attributes()){
             if(attribute.info().name() == "master_publisher_endpoint"){
-                master_publisher_endpoint_ = attribute.s(0);
+                if(attribute.s_size() > 0){
+                    master_publisher_endpoint_ = attribute.s(0);
+                }else{
+                    throw std::runtime_error("Got no Master Publisher Endpoint");
+                }
             }
             else if(attribute.info().name() == "master_registration_endpoint"){
-                master_registration_endpoint_= attribute.s(0);
+                if(attribute.s_size() > 0){
+                    master_registration_endpoint_= attribute.s(0);
+                }else{
+                    throw std::runtime_error("Got no Master Registration Endpoint");
+                }
             }
         }
     }
@@ -221,7 +228,11 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
         auto attribute = node->attributes(i);
 
         if(attribute.info().name() == "modellogger_port"){
-            logger_port = attribute.s(0);
+            if(attribute.s_size() > 0){
+                logger_port= attribute.s(0);
+            }else{
+                throw std::runtime_error("Got no Model Logger Endpoint");
+            }
         }
     }
 
@@ -288,7 +299,11 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
-            ip_address = attribute.s(0);
+            if(attribute.s_size() > 0){
+                ip_address = attribute.s(0);
+            }else{
+                throw std::runtime_error("Got no IP Address for Slave Node");
+            }
         }
     }
 

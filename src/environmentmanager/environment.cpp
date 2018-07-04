@@ -363,7 +363,12 @@ void Environment::AddPublicEventPort(const std::string& model_name, const std::s
         
     }
     dependent_experiment_map_.at(port_id).insert(model_name);
+}
 
+void Environment::RemovePublicEventPort(const std::string& model_name, const std::string& port_id){
+    public_event_port_map_.erase(port_id);
+
+    dependent_experiment_map_.at(port_id).erase(model_name);
 }
 
 bool Environment::HasPendingPublicEventPort(const std::string& port_id){

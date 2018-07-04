@@ -30,6 +30,7 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 
             //if this port is connected to any external ports, update them to have this endpoint
             for(int i = 0; i < port.connected_external_ports_size(); i++){
+                external_ = true;
                 GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
             }
         }
@@ -46,6 +47,7 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 
             //if this port is connected to any external ports, update them to have this endpoint
             for(int i = 0; i < port.connected_external_ports_size(); i++){
+                external_ = true;
                 GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
             }
         }
@@ -83,10 +85,16 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 }
 
 Port::~Port(){
+    //Dont need to handle freeing tao ports, this is done at node level.
+
     if(middleware_ == Middleware::Zmq && 
         (kind_ == Kind::Publisher || kind_ == Kind::Replier)){
         environment_.FreePort(GetNode().GetIp(), publisher_port_);
         GetExperiment().RemoveZmqEndpoint(id_);
+    }
+
+    if(external_){
+        GetExperiment().RemoveExternalEndpoint(id_);
     }
 }
 
@@ -119,7 +127,7 @@ void Port::ConfigureConnections(){
     for(const auto& external_connected_port_id : connected_external_port_ids_){
         auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
         if(environment_.HasPublicEventPort(external_port_label)){
-            AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+            AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
         }
     }
 }
@@ -132,11 +140,15 @@ void Port::AddAttribute(const NodeManager::Attribute& attribute){
 
 void Port::UpdateExternalEndpoints(){
     if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
+        //Clear out our external endpoints
+        external_endpoints_.clear();
+
+        //Repopulate them from the environment
         for(const auto& external_connected_port_id : connected_external_port_ids_){
             auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
             if(environment_.HasPublicEventPort(external_port_label)){
                 SetDirty();
-                AddConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+                AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
             }
         }
     }
@@ -191,6 +203,14 @@ void Port::AddConnectedEndpoint(const std::string& endpoint){
 
 void Port::RemoveConnectedEndpoint(const std::string& endpoint){
     endpoints_.erase(endpoints_.find(endpoint));
+}
+
+void Port::AddExternalConnectedEndpoint(const std::string& endpoint){
+    external_endpoints_.insert(endpoint);
+}
+
+void Port::RemoveExternalConnectedEndpoint(const std::string& endpoint){
+    external_endpoints_.erase(endpoints_.find(endpoint));
 }
 
 void Port::AddConnectedPortId(const std::string& port_id){
@@ -289,6 +309,9 @@ void Port::FillZmqProto(NodeManager::Port* port){
                 for(auto endpoint : endpoints_){
                     publisher_address_attr->add_s(endpoint);
                 }
+                for(auto endpoint : external_endpoints_){
+                    publisher_address_attr->add_s(endpoint);
+                }
             }
             break;
         }
@@ -366,7 +389,13 @@ void Port::FillTaoProto(NodeManager::Port* port){
         auto server_addr_info = server_addr_attr->mutable_info();
         server_addr_info->set_name("server_address");
         server_addr_attr->set_kind(NodeManager::Attribute::STRING);
-        server_addr_attr->add_s(*(endpoints_.begin()));
+        if(!endpoints_.empty()){
+            server_addr_attr->add_s(*(endpoints_.begin()));
+        }
+        else if(!external_endpoints_.empty()){
+            server_addr_attr->add_s(*(external_endpoints_.begin()));
+
+        }
     }
 }
 

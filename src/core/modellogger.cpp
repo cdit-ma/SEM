@@ -2,8 +2,8 @@
 #include <ctime>
 #include <iostream>
 
-#include "../re_common/zmq/protowriter/cachedprotowriter.h"
-#include <proto/modelevent/modelevent.pb.h>
+#include <re_common/proto/modelevent/modelevent.pb.h>
+#include <re_common/zmq/protowriter/cachedprotowriter.h>
 
 #include "worker.h"
 

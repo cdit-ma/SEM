@@ -29,8 +29,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../re_common/util/execution.hpp
-
     )
 
 #Pass Version info into cmakevars.h
@@ -49,21 +47,25 @@ target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common)
+target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
+
 
 
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common)
+target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_COMMON_SOURCE_DIR})
+target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_COMMON_BINARY_DIR})
 
 
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common)
+target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_COMMON_SOURCE_DIR})
+target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_COMMON_BINARY_DIR})
 
 
 

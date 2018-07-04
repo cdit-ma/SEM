@@ -113,15 +113,8 @@ NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const No
 
     //Setup our subscriber
     if(subscriber_){
-        if(!subscriber_->Connect(master_publisher_endpoint_)){
-            slave_response.add_error_codes("Subscriber couldn't connect to: '" + master_publisher_endpoint_ + "'");
-            success = false;
-        }
-
-        if(!subscriber_->Filter(host_name + "*")){
-            slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
-            success = false;
-        }
+        subscriber_->Connect(master_publisher_endpoint_);
+        subscriber_->Filter(host_name + "*");
     }else{
         success = false;
     }

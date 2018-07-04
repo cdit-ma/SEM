@@ -8,6 +8,14 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+if(APPLE)
+	set(CMAKE_MACOSX_RPATH ON)
+	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+elseif(UNIX)
+	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+endif()
+
 SET(RE_VERSION "3.0.5")
 
 option(BUILD_TEST "Build testing" OFF)
@@ -42,7 +50,12 @@ if(MSVC)
 endif()
 
 #Build the source
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+
+#Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 
 if(BUILD_TEST)
 	message(STATUS "Building re tests")

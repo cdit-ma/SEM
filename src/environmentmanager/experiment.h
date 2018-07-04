@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <unordered_map>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 
 
@@ -93,6 +93,7 @@ class Experiment{
         void AddTopic(const std::string& topic);
 
         void AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
+        void RemoveExternalEndpoint(const std::string& external_port_internal_id);
 
 
 
