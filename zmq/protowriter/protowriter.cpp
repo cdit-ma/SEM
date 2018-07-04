@@ -24,6 +24,8 @@
 #include <google/protobuf/message_lite.h>
 #include <thread>
 #include "monitor.h"
+#include <future>
+#include <functional>
 
 zmq::ProtoWriter::ProtoWriter(){
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t());
@@ -31,6 +33,7 @@ zmq::ProtoWriter::ProtoWriter(){
     
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
     socket_->setsockopt(ZMQ_SNDHWM, 10000);
+    socket_->setsockopt(ZMQ_LINGER, 0);
 }
 
 zmq::ProtoWriter::~ProtoWriter(){
@@ -39,9 +42,7 @@ zmq::ProtoWriter::~ProtoWriter(){
 
 void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
     std::unique_lock<std::mutex> lock(mutex_);
-    //TODO: re-add GetNewMonitorAddress()
-    std::string addr = "inproc://Monitor_" + std::to_string(monitors_.size());
-    monitor->MonitorSocket(*socket_, addr, event_type);
+    monitor_futures_.emplace_back(std::async(std::launch::async, &Monitor::MonitorThread, monitor.get(), std::ref(*socket_), event_type));
     monitors_.emplace_back(std::move(monitor));
 }
 
@@ -107,8 +108,10 @@ void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
     //Teardown socket
     socket_.reset();
+
     //Remove monitors
     monitors_.clear();
+
     //Teardown context
     context_.reset();
 }

@@ -49,6 +49,8 @@ namespace zmq{
 
             std::unique_ptr<zmq::socket_t> socket_;
             std::unique_ptr<zmq::context_t> context_;
+
+            std::vector< std::future<void> > monitor_futures_;
             
             std::vector< std::unique_ptr<zmq::Monitor> >  monitors_;
             std::mutex mutex_;

@@ -20,38 +20,31 @@
  
 #include "monitor.h"
 #include <iostream>
-zmq::Monitor::Monitor(){
-
-}
-
-zmq::Monitor::~Monitor(){
-    if(monitor_future_.valid()){
-        abort();
-        monitor_future_.get();
-    }
-}
-
 void zmq::Monitor::RegisterEventCallback(std::function<void(int, std::string)> fn){
     callback_ = fn;
 }
 
-void zmq::Monitor::MonitorSocket(zmq::socket_t& socket, const std::string& address, int event_type){
-    if(!monitor_future_.valid()){
-        monitor_future_ = std::async(std::launch::async, [&socket, address, event_type, this](){
-            try{
-                monitor(socket, address.c_str(), event_type);
-            }catch(const zmq::error_t& ex){
-            
-            }
-        });
+void zmq::Monitor::MonitorThread(std::reference_wrapper<zmq::socket_t> socket, const int event_type){
+    static std::mutex mutex;
+    static int monitor_count = 0;
+
+    std::string monitor_address;
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        monitor_address = "inproc://monitor_" + std::to_string(monitor_count++);
+    }
+    std::cerr << monitor_address << std::endl;
+
+    try{
+        monitor(socket.get(), monitor_address.c_str(), event_type);
+    }catch(const zmq::error_t& ex){
+        ex.what();
     }
 }
 
 void zmq::Monitor::on_event(const zmq_event_t &event, const char* addr){
-    std::string addr_str(addr);
-    int event_type = event.event;
     if(callback_){
-        callback_(event_type, addr_str);
+        callback_(event.event, std::string(addr));
     }
 }
 

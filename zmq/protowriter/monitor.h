@@ -25,15 +25,15 @@
 #include <zmq.hpp>
 
 namespace zmq{
+    class ProtoWriter;
     class Monitor: public zmq::monitor_t{
+        friend class ProtoWriter;
         public:
-            Monitor();
-            ~Monitor();
-            void MonitorSocket(zmq::socket_t& socket, const std::string& address, int event_type);
             void RegisterEventCallback(std::function<void(int, std::string)> fn);
+        protected:
+            void MonitorThread(std::reference_wrapper<zmq::socket_t> socket, const int event_type);
         private:
             void on_event(const zmq_event_t &event, const char* addr);
-
             void on_event_connected(const zmq_event_t &event, const char* addr);
             void on_event_connect_delayed(const zmq_event_t &event, const char* addr);
             void on_event_connect_retried(const zmq_event_t &event, const char* addr);
@@ -47,9 +47,7 @@ namespace zmq{
             void on_event_handshake_failed(const zmq_event_t &event, const char* addr);
             void on_event_handshake_succeed(const zmq_event_t &event, const char* addr);
             void on_event_unknown(const zmq_event_t &event, const char* addr);
-
             std::function<void(int, std::string)> callback_;
-            std::future<void> monitor_future_;
     };
 }
 #endif //RE_COMMON_ZMQ_MONITOR_H
