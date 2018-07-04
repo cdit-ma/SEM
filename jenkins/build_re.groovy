@@ -13,6 +13,9 @@ node("master"){
     }
 }
 
+def FAILED = false
+def FAILURE_LIST = []
+
 def builder_map = [:]
 def test_map = [:]
 def builder_nodes = nodesByLabel("builder")
@@ -81,7 +84,9 @@ for(n in builder_nodes){
                             def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
                             if(test_error_code != 0){
+                                FAILED = true
                                 print("Test: " + file_path + " Failed!")
+                                FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)
                             }
                         }
                         def stash_name = node_name + "_test_cases"
@@ -127,4 +132,13 @@ node("master"){
             deleteDir()
         }
     }
+}
+
+if(FAILED){
+    print("Test Execution failed!")
+    print(FAILURE_LIST.size() + " Error(s)")
+    for(failure in FAILURE_LIST){
+        print("ERROR: " + failure)
+    }
+    error("Test Execution failed!")
 }
