@@ -195,7 +195,6 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
             thread_manager.Thread_Configured();
         
             if(thread_manager.Thread_WaitForActivate()){
-                port.LogActivation();
                 thread_manager.Thread_Activated();
                 thread_manager.Thread_WaitForTerminate();
             }

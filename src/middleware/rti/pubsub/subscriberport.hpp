@@ -135,8 +135,6 @@ void rti::SubscriberPort<BaseType, RtiType>::Loop(){
         thread_manager_->Thread_Configured();
         if(thread_manager_->Thread_WaitForActivate()){
             thread_manager_->Thread_Activated();
-            //Log the port becoming online
-            Port::LogActivation();
             thread_manager_->Thread_WaitForTerminate();
             Port::LogPassivation();
         }

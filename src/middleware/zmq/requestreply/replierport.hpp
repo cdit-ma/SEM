@@ -142,7 +142,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     thread_manager.Thread_Configured();
 
     if(thread_manager.Thread_WaitForActivate()){
-        port.LogActivation();
         thread_manager.Thread_Activated();
         
         try{
@@ -178,7 +177,6 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
     thread_manager.Thread_Configured();
 
     if(thread_manager.Thread_WaitForActivate()){
-        port.LogActivation();
         thread_manager.Thread_Activated();
         
         try{
@@ -214,7 +212,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Thread
     thread_manager.Thread_Configured();
 
     if(thread_manager.Thread_WaitForActivate()){
-        port.LogActivation();
         thread_manager.Thread_Activated();
         
         try{

@@ -108,7 +108,6 @@ void PeriodicPort::TickLoop(){
     //Block until we are running, or error
     if(thread_manager_->Thread_WaitForActivate()){
         thread_manager_->Thread_Activated();
-        ::Port::LogActivation();
         while(true){
             {
                 std::unique_lock<std::mutex> lock(tick_mutex_);

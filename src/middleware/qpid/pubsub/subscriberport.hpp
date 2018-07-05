@@ -122,7 +122,6 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
     if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
-            this->LogActivation();
             thread_manager.Thread_Activated();
             try{
                 while(true){

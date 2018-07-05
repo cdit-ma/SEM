@@ -180,7 +180,6 @@ void zmq::PublisherPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manager
     thread_manager.Thread_Configured();
 
     if(thread_manager.Thread_WaitForActivate()){
-        ::Port::LogActivation();
         thread_manager.Thread_Activated();
         try{
             zmq::proxy((void*)*(xsub_socket.get()), (void*)*(xpub_socket.get()), nullptr);
@@ -189,7 +188,6 @@ void zmq::PublisherPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manager
                 std::cerr << "zmq::PublisherPort: '" + this->get_name() + "' " << ex.what() << std::endl;
             }
         }
-        ::Port::LogPassivation();
     }
     thread_manager.Thread_Terminated();
 };

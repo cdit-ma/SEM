@@ -142,7 +142,6 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
     if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
-            port.LogActivation();
             thread_manager.Thread_Activated();
             try{
                 while(true){
@@ -187,7 +186,6 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
     if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
-            port.LogActivation();
             thread_manager.Thread_Activated();
             try{
                 while(true){
@@ -231,7 +229,6 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
     if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
-            port.LogActivation();
             thread_manager.Thread_Activated();
             try{
                 while(true){
