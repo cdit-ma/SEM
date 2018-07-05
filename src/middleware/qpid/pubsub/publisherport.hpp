@@ -14,7 +14,7 @@ namespace qpid{
     template <class BaseType, class ProtoType> class PublisherPort: public ::PublisherPort<BaseType>{
         public:
             PublisherPort(std::weak_ptr<Component> component, std::string name);
-            ~PublisherPort(){this->Terminate()};
+            ~PublisherPort(){this->Terminate();};
             void Send(const BaseType& message);
         protected:
             void HandleConfigure();
@@ -41,7 +41,7 @@ qpid::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component>
 
 
 template <class BaseType, class ProtoType>
-bool qpid::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
+void qpid::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(port_helper_)
         throw std::runtime_error("qpid PublisherPort Port: '" + this->get_name() + "': Has an errant Port Helper!");
@@ -60,7 +60,7 @@ void qpid::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
 };
 
 template <class BaseType, class ProtoType>
-bool qpid::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
+void qpid::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
     port_helper_.reset();
     ::PublisherPort<BaseType>::HandleTerminate();
 };
@@ -81,7 +81,7 @@ void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
 
         if(sender){
             const auto& str = translator.BaseToString(message);
-            sender_.send(qpid::messaging::Message(str));
+            sender.send(qpid::messaging::Message(str));
             this->EventProcessed(message);
             this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
         }

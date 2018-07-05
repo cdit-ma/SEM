@@ -56,7 +56,7 @@ rti::PublisherPort<BaseType, RtiType>::PublisherPort(std::weak_ptr<Component> co
 template <class BaseType, class RtiType>
 void rti::PublisherPort<BaseType, RtiType>::HandleConfigure(){
     SetupWriter();
-    ::PublisherPort<BaseMessage>::HandleConfigure();
+    ::PublisherPort<BaseType>::HandleConfigure();
 };
 
 template <class BaseType, class RtiType>

@@ -78,7 +78,9 @@ void ospl::SubscriberPort<BaseType, OsplType>::HandleConfigure(){
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, &ospl::SubscriberPort<BaseType, OsplType>::Loop, this);
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    if(!thread_manager_->Configure()){
+        throw std::runtime_error("rti Subscriber Port: '" + this->get_name() + "': setup failed!");
+    }
     ::SubscriberPort<BaseType>::HandleConfigure();
 };
 

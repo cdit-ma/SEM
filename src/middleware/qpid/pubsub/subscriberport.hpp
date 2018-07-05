@@ -4,6 +4,7 @@
 #include <core/threadmanager.h>
 #include <middleware/proto/prototranslator.h>
 #include <core/ports/pubsub/subscriberport.hpp>
+#include <middleware/qpid/qpidhelper.h>
 
 #include <iostream>
 #include <mutex>
@@ -20,21 +21,22 @@ namespace qpid{
         friend class SubscriberHandler<BaseType, ProtoType>;
         public:
             SubscriberPort(std::weak_ptr<Component> component, std::string name, const CallbackWrapper<void, BaseType>& callback_wrapper);
-            ~SubscriberPort(){this->Terminate()};
+            ~SubscriberPort(){this->Terminate();};
             using middleware_type = ProtoType;
         protected:
-            bool HandleConfigure();
-            bool HandlePassivate();
-            bool HandleTerminate();
-            bool HandleActivate();
+            void HandleConfigure();
+            void HandlePassivate();
+            void HandleTerminate();
+            void HandleActivate();
         private:
             void InterruptLoop();
-            void Loop(ThreadManager& thread_manager);
+            void Loop(ThreadManager& thread_manager, PortHelper& port_helper, const std::string& topic_name);
 
             ::Proto::Translator<BaseType, ProtoType> translator;
 
             std::mutex mutex_;
             std::unique_ptr<ThreadManager> thread_manager_;
+            std::unique_ptr<PortHelper> port_helper_;
 
             std::shared_ptr<Attribute> broker_;
             std::shared_ptr<Attribute> topic_name_;
@@ -58,8 +60,8 @@ void qpid::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
 
     
     port_helper_ =  std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
-    thread_manager_ =  std::unique_ptr<ThreadManager>(new ThreadManager();
-    auto future = std::async(std::launch::async, &qpid::SubscriberPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_)));
+    thread_manager_ =  std::unique_ptr<ThreadManager>(new ThreadManager());
+    auto future = std::async(std::launch::async, &qpid::SubscriberPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_), std::ref(*port_helper_), topic_name_->String());
     thread_manager_->SetFuture(std::move(future));
     thread_manager_->Configure();
     ::SubscriberPort<BaseType>::HandleConfigure();
@@ -120,7 +122,7 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
     if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
-            port.LogActivation();
+            this->LogActivation();
             thread_manager.Thread_Activated();
             try{
                 while(true){
@@ -128,13 +130,13 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
                     const auto& request_str = request.getContent();
                     auto base_request_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
                     if(base_request_ptr){
-                        EnqueueMessage(std::move(base_request_ptr));
+                        this->EnqueueMessage(std::move(base_request_ptr));
                     }
                 }
             }catch(const std::exception& ex){
             
             }
-            port.LogPassivation();
+            this->LogPassivation();
         }
     }
 

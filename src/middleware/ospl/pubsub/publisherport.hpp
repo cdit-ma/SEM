@@ -56,7 +56,7 @@ ospl::PublisherPort<BaseType, OsplType>::PublisherPort(std::weak_ptr<Component> 
 template <class BaseType, class OsplType>
 void ospl::PublisherPort<BaseType, OsplType>::HandleConfigure(){
     SetupWriter();
-    ::PublisherPort<BaseMessage>::HandleConfigure();
+    ::PublisherPort<BaseType>::HandleConfigure();
 };
 
 template <class BaseType, class OsplType>
