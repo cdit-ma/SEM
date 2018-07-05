@@ -1,29 +1,36 @@
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
 
 set(PROJ_NAME opencl_worker)
 set(TESTER_NAME ${PROJ_NAME}_tester)
-
-set(OPENCL_ROOT $ENV{OPENCL_ROOT})
-set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
-#set(CLFFT_ROOT $ENV{CLFFT_ROOT})
-#set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
 project(${PROJ_NAME})
 
+# Set OpenCL Root / Lib Path
+set(OPENCL_ROOT $ENV{OPENCL_ROOT})
+set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
+
+# Try and find an OpenCL Implementation
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
-#find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
+if(DEFINED ENV{ALTERA_OCLSDK_LIB})
+    set(ALTERA_OCLSDK_LIB_ROOT $ENV{ALTERA_OCLSDK_LIB_ROOT})
+    find_library(ALTERA_OCLSDK_LIB OpenCL ${ALTERA_OCLSDK_LIB_ROOT})
+endif()
 
+# If OpenCL doesn't exist on this machine we can bail out
 if(NOT OPENCL_LIB)
     message(STATUS "Not Found OpenCL - Not building opencl_worker")
     return()
 endif()
 
-#if(NOT CLFFT_LIB)
-#    message(STATUS "Not Found CLFFT - Not building GPU worker")
-#    return()
-#endif(NOT CLFFT_LIB)
-#add_definitions(-DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
+# Specify the subprojects that depend on OpenCL
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
+
+# Apply overrides to OpenCL include directory if specified
+set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
+if (NOT OPENCL_INCLUDE_PATH)
+    message(STATUS "Setting opencl include directory to default (${OPENCL_ROOT}/include)")
+    set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
+endif()
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
@@ -34,6 +41,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclqueue.cpp
     )
 
 set(HEADERS
@@ -48,23 +57,69 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/fft/openclfft_worker.h
     )
 
-#Use this for enable_testing
+# Search for OpenCL FFT libraries
+set(CLFFT_ROOT $ENV{CLFFT_ROOT})
+set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
+find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
+
+# Add implementations for fft library as necessary
+if(ALTERA_OCLSDK_LIB)
+    message(STATUS "building OpenCL worker with FPGA FFT library")
+    # set(FFT_LIB FPGA)
+    set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
+        )
+elseif (CLFFT_LIB)
+    message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
+    set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
+        )
+else()
+    message(STATUS "No FFT library found when building OpenCL worker")
+    set(SOURCE
+    ${SOURCE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
+    )
+endif()
+
+
+# Mark library dependencies
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 add_executable(${TESTER_NAME} openclmanagertests.cpp)
 
+# Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
+if(ALTERA_OCLSDK_LIB)
+    message(STATUS "Building OpenCL worker with FPGA FFT library")
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
+    #target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
+elseif(CLFFT_LIB)
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
+    target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
+    target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
+    target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})
+else()
+    message(STATUS "No FFT library found when building OpenCL worker")
+endif()
+
+
+# Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
-message(${KERNEL_FILEPATH})
 target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE "${OPENCL_ROOT}/include")
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
 #target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${TESTER_NAME} PRIVATE "${OPENCL_ROOT}/include")
+target_include_directories(${TESTER_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
 #target_include_directories(${TESTER_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 if (MSVC)

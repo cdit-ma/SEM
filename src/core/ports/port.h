@@ -32,16 +32,15 @@ class Port : public Activatable
         int GetEventsProcessed();
         int GetEventsIgnored();
     protected:
+        void HandleConfigure();
+        void HandlePassivate();
+        void HandleTerminate();
+        void HandleActivate();
+    
         void EventRecieved(const BaseMessage& message);
-        void EventProcessed(const BaseMessage& message, bool processed);
-
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
-        void LogActivation();
-        void LogPassivation();
-
+        void EventProcessed(const BaseMessage& message);
+        void EventIgnored(const BaseMessage& message);
+        
         void SetKind(const Port::Kind& port_kind);
     private:
         std::weak_ptr<Component> component_;

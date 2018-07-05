@@ -13,10 +13,10 @@ endif()
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
-    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
+    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
-TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
+TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../message.idl)
 
 add_executable(${PROJ_NAME} ${SOURCE} ${TAO_SRCS} ${TAO_HDRS})
 

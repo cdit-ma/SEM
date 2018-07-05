@@ -5,11 +5,12 @@
 #include <mutex>
 #include <condition_variable>
 #include <future>
+#include <set>
 
 class ThreadManager{
     public:
         enum class State{NONE, CONFIGURED, ACTIVE, TERMINATED};
-        enum class Transition{NONE, ACTIVATE, TERMINATE};
+        enum class Transition{ACTIVATE, TERMINATE};
         
         ~ThreadManager();
         void SetThread(std::unique_ptr<std::thread> thread);
@@ -17,7 +18,10 @@ class ThreadManager{
         bool Configure();
         bool Activate();
         bool Terminate();
-        State GetState();
+
+        void SetTerminate();
+
+        bool isKillable();
 
         bool WaitForActivated();
     public:
@@ -33,11 +37,12 @@ class ThreadManager{
 
         std::mutex state_mutex_;
         std::condition_variable state_condition_;
-        State state_ = State::NONE;
+        
+        std::set<State> states_;
+        std::set<Transition> transitions_;
 
         std::mutex transition_mutex_;
         std::condition_variable transition_condition_;
-        Transition transition_ = Transition::NONE;
 };
 
 #endif // THREAD_MANAGER_H

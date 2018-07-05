@@ -5,34 +5,23 @@
 #include <re_common/proto/modelevent/modelevent.pb.h>
 #include <re_common/zmq/protowriter/cachedprotowriter.h>
 
+#include "component.h"
+#include "ports/port.h"
 #include "worker.h"
 
-ModelLogger* ModelLogger::singleton_ = 0;
-std::mutex ModelLogger::global_mutex_;
 
-
-bool ModelLogger::setup_model_logger(std::string host_name, std::string address, std::string port, Mode mode){
-    auto s = get_model_logger();
-    bool success = false;
-
-    auto endpoint = "tcp://" + address + ":" + port;
-    {
-        std::lock_guard<std::mutex> lock(global_mutex_);
-        if(!s->is_setup()){
-            success = s->setup_logger(endpoint, mode);
-            s->set_hostname(host_name);
-        }
+bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& endpoint, Mode mode){
+    auto& s = get_model_logger();
+    if(!s.is_setup()){
+        s.setup_logger(host_name, endpoint, mode);
+        return true;
     }
-    return success;
+    return false;
 }
 
-ModelLogger* ModelLogger::get_model_logger(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-    
-    if(singleton_ == 0){
-        singleton_ = new ModelLogger();
-    }
-    return singleton_;
+ModelLogger& ModelLogger::get_model_logger(){
+    static std::unique_ptr<ModelLogger> logger_(new ModelLogger());
+    return *logger_;
 }
 
 bool ModelLogger::is_logger_setup(){
@@ -40,62 +29,48 @@ bool ModelLogger::is_logger_setup(){
 }
 
 bool ModelLogger::shutdown_logger(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-
-    if(singleton_){
-        delete singleton_;
-        singleton_ = 0;
+    auto& s = get_model_logger();
+    std::lock_guard<std::mutex> lock(s.mutex_);
+    if(s.is_setup()){
+        s.writer_.reset();
         return true;
     }
     return false;
 }
-int count = 0;
-
-ModelLogger::ModelLogger(){
-    writer_ = 0;
-}
 
 bool ModelLogger::is_setup(){
-    return writer_;
+    return writer_ != nullptr;
 }
 
-void ModelLogger::set_hostname(std::string host_name){
+void ModelLogger::set_hostname(const std::string& host_name){
     this->host_name_ = host_name;
 }
 
-bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
+void ModelLogger::setup_logger(const std::string& host_name, const std::string& endpoint, Mode mode){
+    this->host_name_ = host_name;
+    
     switch(mode){
-        case Mode::OFF:{
-            active_ = false;
-            return true;
-            break;
-        }
         case Mode::LIVE:{
-            if(!writer_)
-                writer_ = new zmq::ProtoWriter();
+            writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
             break;
         }
         case Mode::CACHED:{
-            if(!writer_)
-                writer_ = new zmq::CachedProtoWriter();
+            writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
             break;
         }
+        default:
+            break;
     }
     if(writer_){
-        return writer_->BindPublisherSocket(endpoint);
+        if(!writer_->BindPublisherSocket(endpoint)){
+            throw std::runtime_error("Cannot bind endpoint: " + endpoint);
+        }
     }
-    return false;
 }
 
-ModelLogger::~ModelLogger(){
-    if(writer_){
-        delete writer_;
-    }
-}
-const std::string ModelLogger::get_hostname(){
+const std::string& ModelLogger::get_hostname() const{
     return host_name_;
 }
-
 
 std::chrono::milliseconds get_current_time(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -103,7 +78,7 @@ std::chrono::milliseconds get_current_time(){
 
 
 void fill_info(re_common::Info& info){
-    info.set_hostname(ModelLogger::get_model_logger()->get_hostname());
+    info.set_hostname(ModelLogger::get_model_logger().get_hostname());
     info.set_timestamp(get_current_time().count() / 1000.0);
 }
 
@@ -305,7 +280,7 @@ Log::Log(const Severity& severity){
 
 Log::~Log(){
     //TODO NEED TO ACTUALLY IMPLEMENT THIS LOGGING
-    auto logger = ModelLogger::get_model_logger();
+    auto& logger = ModelLogger::get_model_logger();
     if(severity_ < Severity::WARNING){
         std::cerr << "[" << (int)severity_ << "] " << function_name_ << ": " << message_ << std::endl;
     }

@@ -24,15 +24,25 @@ namespace cl {
 
 class OpenCLManager {
 	public:
+		//OpenCLManager(OpenCLManager&& other) = default;
+		//OpenCLManager& operator=(OpenCLManager&& other) = default;
+		//OpenCLManager(const OpenCLManager& other) = delete;
+		//OpenCLManager& operator=(const OpenCLManager& other) = delete;
+		//OpenCLManager(OpenCLManager&& other) = delete;
+		//OpenCLManager& operator=(OpenCLManager&& other) = delete;
+		~OpenCLManager();// = default;
+
 		/**
 		* Returns the OpenCLManager responsible for managing a given OpenCL platform,
 		* constructing and initializing the appropriate resources if required.
 		*
 		* @param platformID the index of the OpenCL platform as specified by the deployment information
 		* @param workerReference a reference to the worker making the call (for logging)
-		* @return The OpenCLMaanager for the provided platform, or NULL if one can't be created
+		* @return The OpenCLManager for the provided platform, or NULL if one can't be created
 		**/
 		static OpenCLManager* GetReferenceByPlatformID(const Worker& worker, int platform_id);
+		
+		static OpenCLManager* GetReferenceByPlatformName(const Worker& worker, std::string platform_name);
 
 
 		static const std::vector<cl::Platform> GetPlatforms(const Worker& worker);
@@ -42,7 +52,7 @@ class OpenCLManager {
 
 		std::string GetPlatformName() const;
 
-		std::vector<OpenCLDevice>& GetDevices(const Worker& worker);
+		const std::vector<std::unique_ptr<OpenCLDevice> > & GetDevices(const Worker& worker);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
@@ -57,6 +67,7 @@ class OpenCLManager {
 		void ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer);
 		
 		bool IsValid() const;
+        bool IsFPGA() const;
 
 		class BufferAttorney {
 			BufferAttorney() = delete;
@@ -72,12 +83,9 @@ class OpenCLManager {
 
 		static const int invalid_buffer_id_ = -1;
 
-	/*protected:
-		int GetNewBufferID();*/
-
 	private:
 		OpenCLManager(const Worker& worker, cl::Platform &platform);
-		~OpenCLManager() {};
+		//~OpenCLManager() {};
 
 		int TrackBuffer(const Worker& worker, GenericBuffer* buffer);
 		void UntrackBuffer(int buffer_id);
@@ -94,21 +102,26 @@ class OpenCLManager {
 							std::string error_message);
 
 		// A separate OpenCLManager is maintained for each OpenCL platform
-		static std::vector<OpenCLManager*> reference_list_;
+		static std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > reference_map_;
 		static std::vector<cl::Platform> platform_list_;
 
 		// Variables
 		bool valid_ = false;
 		cl::Platform& platform_;
 		std::string platform_name_;
-		cl::Context* context_;
-		std::vector<OpenCLDevice> device_list_;
+		std::unique_ptr<cl::Context> context_;
+		std::vector<std::unique_ptr<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
-		cl::Program* program_;
-		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
+		//cl::Program* program_;
+		//std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
+
+		std::mutex opencl_resource_mutex_;
 
 		std::map<int, GenericBuffer*> buffer_store_;
+		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
+
+        bool is_fpga_=false;
 };
 
 

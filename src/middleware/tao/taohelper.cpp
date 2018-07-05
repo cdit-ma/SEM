@@ -20,12 +20,6 @@ tao::TaoHelper::~TaoHelper(){
         }
     }
 
-    //Wait for the Orbs Threads to finish
-    for(auto &pair : orb_run_futures_){
-        delete pair.second;
-    }
-
-    //Clean the maps of the Orbs/Threads
     orb_run_futures_.clear();
     orb_lookup_.clear();
 }
@@ -68,7 +62,7 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
 
         if(!CORBA::is_nil(orb)){
             //Start an async task to run the ORB, and attach it into a thread manager object
-            auto thread_manager = new ThreadManager();
+            auto thread_manager = std::unique_ptr<ThreadManager>(new ThreadManager());
             thread_manager->SetFuture(std::async(std::launch::async, OrbThread, std::ref(*thread_manager), orb));
 
             //Wait for activated
@@ -78,7 +72,6 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
                  //Now that the orb is running, we should try resolve a reference, If we can resolve, the orb should be fine
                 try{
                     registered_poas_.insert(get_root_poa(orb));
-                    success = thread_manager->GetState() == ThreadManager::State::ACTIVE;
                 }catch(const CORBA::Exception& e){
                     success = false;
                     //If we get an exception, destroy the orb
@@ -88,14 +81,13 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
 
             if(success){
                 orb_lookup_[orb_endpoint] = orb;
-                orb_run_futures_[orb_endpoint] = thread_manager;
+                orb_run_futures_[orb_endpoint] = std::move(thread_manager);
                 //std::cout << "tao::TaoHelper::get_orb(): Constructed Orb: '" << orb_endpoint << "'" << std::endl;
             }else{
                 std::cerr << "tao::TaoHelper::get_orb(): Failed to construct Orb: '" << orb_endpoint << "'" << std::endl;
                 //Destroy the Orb, which should interupt our async task
                 orb->shutdown(true);
                 orb = 0;
-                delete thread_manager;
             }
         }
         return orb;

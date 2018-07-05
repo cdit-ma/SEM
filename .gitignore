@@ -1,5 +1,6 @@
 build
 build64
+ninjabuild
 .vs
 .vscode
 lib

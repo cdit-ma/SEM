@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <functional>
 
 /*void LogOpenCLError(std::string message, cl_int errorCode) {
 	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
@@ -110,7 +111,8 @@ std::string SanitisePathString(const std::string& str) {
 
 	std::remove_copy_if(str.begin(), str.end(),
 						std::back_inserter(result),
-						std::not1(std::ptr_fun(isValidChar)) );
+						//std::not1(std::ptr_fun(isValidChar)) );
+						std::not1(std::function<bool(char)>(isValidChar)) );
 
 	return result;
 }
@@ -179,6 +181,8 @@ cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenam
 				__func__,
 				"Failed to open file when reading binary files: " + filename);
 			break;*/
+            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
+            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
 			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading binary files: " + filename);
 		}
 
@@ -223,7 +227,7 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+	ModelLogger::get_model_logger().LogWorkerEvent(worker,
 		function_signature,
 		ModelLogger::WorkloadEvent::MESSAGE,
 		-1,		// Need to expose something like get_current_work_id() 
@@ -238,7 +242,7 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+	ModelLogger::get_model_logger().LogWorkerEvent(worker,
 		function_signature,
 		ModelLogger::WorkloadEvent::MESSAGE,
 		-1,		// Need to expose something like get_current_work_id() 

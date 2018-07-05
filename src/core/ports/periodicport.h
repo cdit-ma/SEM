@@ -1,6 +1,7 @@
 #ifndef BASE_PORT_PERIODIC_H
 #define BASE_PORT_PERIODIC_H
 
+#include <memory>
 #include <functional>
 #include <chrono>
 #include <thread>
@@ -8,6 +9,7 @@
 #include <condition_variable>
 
 #include "pubsub/subscriberport.hpp"
+#include "../threadmanager.h"
 
 class Component;
 
@@ -17,16 +19,14 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         ~PeriodicPort();
         void SetFrequency(double hz);
         void SetDuration(int milliseconds);
-
     protected:
-        bool HandleConfigure();
-        bool HandlePassivate();
-        bool HandleTerminate();
+        void HandleActivate();
+        void HandleConfigure();
+        void HandlePassivate();
+        void HandleTerminate();
     private:
-        void Loop();
-        
-        std::mutex state_mutex_;
-        std::thread* tick_thread_ = 0;
+        void InterruptLoop();
+        void TickLoop();
         
         std::mutex tick_mutex_;
         bool interupt_ = false;
@@ -36,5 +36,8 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         bool thread_ready_ = false;
         std::condition_variable thread_ready_condition_;
         std::shared_ptr<Attribute> frequency_;
+
+        std::mutex thread_manager_mutex_;
+        std::unique_ptr<ThreadManager> thread_manager_;
 };
 #endif //BASE_PORT_PERIODIC_H

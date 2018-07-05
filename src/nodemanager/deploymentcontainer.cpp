@@ -271,63 +271,73 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
     return nullptr;
 }
 
-bool DeploymentContainer::HandleActivate(){
-    auto success = true;
+void DeploymentContainer::HandleActivate(){
     for(const auto& c : components_){
-        success = c.second->Activate() ? success : false;
+        c.second->Activate();
     }
 
     for(const auto& c : logan_clients_){
-        success = c.second->Activate() ? success : false;
+        c.second->Activate();
     }
     return true;
 }
 
-bool DeploymentContainer::HandlePassivate(){
-    auto success = true;
-
+void DeploymentContainer::HandlePassivate(){
     for(const auto& c : components_){
-        success = c.second->Passivate() ? success : false;
+        c.second->Passivate();
     }
 
     for(const auto& c : logan_clients_){
-        success = c.second->Passivate() ? success : false;
+        c.second->Passivate();
     }
 
     return success;
 }
 
-bool DeploymentContainer::HandleTerminate(){
+void DeploymentContainer::HandleTerminate(){
     HandlePassivate();
+
     std::lock_guard<std::mutex> component_lock(component_mutex_);
 
-    //Using async allows concurrent termination of components, which gives orders of magnitude improvements
-    auto success = true;
     std::list<std::future<bool> > results;
 
-    for(const auto& c : components_){
-        results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
+    for(const auto& p : components_){
+        auto& component = p.second;
+        if(component){
+            //Construct a thread to run the terminate function, which is blocking
+            results.push_back(std::async(std::launch::async, &Activatable::Terminate, component));
+        }
     }
     components_.clear();
 
     for(const auto& c : logan_clients_){
-        results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
+        auto& logan_client = p.second;
+        if(logan_client){
+            results.push_back(std::async(std::launch::async, &Activatable::Terminate, logan_client));
+        }
     }
     logan_clients_.clear();
     
     for(auto& result : results){
-        success &= result.get();
+        if(!result.get()){
+            throw std::runtime_error("DeploymentContainer failed to Terminate Component");
+        }
     }
-    return success;
 }
 
-bool DeploymentContainer::HandleConfigure(){
+void DeploymentContainer::HandleConfigure(){
     //Using async allows concurrent configuration of components, which gives orders of magnitude improvements
     auto success = true;
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+
     std::list<std::future<bool> > results;
 
-    for(const auto& c : components_){
-        results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
+    for(const auto& p : components_){
+        auto& component = p.second;
+        if(component){
+            //Construct a thread to run the terminate function, which is blocking
+            results.push_back(std::async(std::launch::async, &Activatable::Configure, component));
+        }
     }
 
     for(const auto& c : logan_clients_){
@@ -335,9 +345,10 @@ bool DeploymentContainer::HandleConfigure(){
     }
     
     for(auto& result : results){
-        success &= result.get();
+        if(!result.get()){
+            throw std::runtime_error("DeploymentContainer failed to Configure Component");
+        }
     }
-    return success;
 }
 
 std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){

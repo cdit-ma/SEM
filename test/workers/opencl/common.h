@@ -9,18 +9,25 @@
 #include <workers/opencl/openclmanager.h>
 #include <workers/opencl/opencl_worker.h>
 
-#define EPS 1.2e-1
+#define EPS 1e-6
 #define CHECK_FLOAT(x, y, eps) (fabs(x-y)<eps)
+
+#define EXPECT_NEAR_RELATIVE(expected, actual, thresh) \
+        if (actual == 0) { \
+            EXPECT_NEAR(expected, actual, thresh);\
+        } else { \
+            EXPECT_NEAR(fabs((expected)/(actual)), 1, thresh);\
+        } \
 
 #define EXPECT_FLOATS_NEARLY_EQ(expected, actual, thresh) \
         EXPECT_EQ(expected.size(), actual.size()) << "Array sizes differ.";\
         for (size_t idx = 0; idx < std::min(expected.size(), actual.size()); ++idx) \
         { \
-	    if (actual[idx] == 0) { \
+            if (actual[idx] == 0) { \
                 EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx;\
-	    } else { \
-	        EXPECT_NEAR(fabs(expected[idx]/actual[idx]), 1, thresh);\
-	    } \
+            } else { \
+                EXPECT_NEAR(fabs((expected[idx])/(actual[idx])), 1, thresh);\
+            } \
         }
 
 struct DeviceParam{
@@ -38,11 +45,11 @@ struct DeviceParam{
 
 
 
-class OpenCLWorkerConstructor{
+class OpenCL_WorkerConstructor{
     public:
-        OpenCLWorkerConstructor(DeviceParam device):
+        OpenCL_WorkerConstructor(DeviceParam device):
             component_("component"),
-            worker_(component_, "openclworker")
+            worker_(component_, "OpenCL_Worker")
         {
             auto platform_attr = worker_.GetAttribute("platform_id").lock();
             if (platform_attr) {
@@ -53,8 +60,13 @@ class OpenCLWorkerConstructor{
                 device_attr->set_Integer(device.device_id);
             }
         }
+
+        ~OpenCL_WorkerConstructor() {
+            worker_.Terminate();
+        }
+
         Component component_;
-        OpenCLWorker worker_;
+        OpenCL_Worker worker_;
 };
 
 

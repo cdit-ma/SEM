@@ -27,7 +27,7 @@ public:
     int GetID() const;
     const Worker& GetInitialWorker() const;
     
-    const cl::Buffer& GetBackingRef() const;
+    cl::Buffer& GetBackingRef() const;
 
 protected:
 

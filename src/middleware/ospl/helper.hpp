@@ -17,8 +17,7 @@ namespace ospl{
 };
 
 template<class M> dds::topic::Topic<M> ospl::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
+    auto lock = get_dds_helper().obtain_lock();
 
     dds::topic::Topic<M> topic(dds::core::null);
     try{
@@ -38,8 +37,7 @@ template<class M> dds::topic::Topic<M> ospl::get_topic(dds::domain::DomainPartic
 };
 
 template<class M> dds::pub::DataWriter<M> ospl::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
+    auto lock = get_dds_helper().obtain_lock();
 
     dds::pub::DataWriter<M> writer(dds::core::null);
     
@@ -60,8 +58,7 @@ template<class M> dds::pub::DataWriter<M> ospl::get_data_writer(dds::pub::Publis
 };
 
 template<class M> dds::sub::DataReader<M> ospl::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
+    auto lock = get_dds_helper().obtain_lock();
     
     dds::sub::DataReader<M> reader(dds::core::null);
     

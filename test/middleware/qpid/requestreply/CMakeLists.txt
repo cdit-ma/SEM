@@ -15,7 +15,7 @@ endif()
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
-    ${GOOGLE_TEST_DIR}/src/gtest_main.cc
+    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
 add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
@@ -36,4 +36,5 @@ endif()
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} lib_test_basic_proto)
+target_link_libraries(${PROJ_NAME} qpid_helper)
 target_link_libraries(${PROJ_NAME} ${QPID_LIBRARIES})

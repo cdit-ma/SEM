@@ -39,4 +39,5 @@ BaseMessage::BaseMessage(BaseMessage&& other){
 BaseMessage& BaseMessage::operator=(BaseMessage&& other){
     id_ = other.id_;
     //std::cerr << "Move Assign: " " " << &other << " " << other.get_base_message_id() << " INTO " << get_base_message_id() << " " << this << std::endl;
+    return *this;
 }

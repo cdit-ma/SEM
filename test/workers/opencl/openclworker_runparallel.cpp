@@ -19,9 +19,9 @@ std::ostream& operator<<(std::ostream& os, const RunParallelParam& rpp) {
 
 class RunParallelFixture:
     public ::testing::TestWithParam<RunParallelParam>,
-    public OpenCLWorkerConstructor {
+    public OpenCL_WorkerConstructor {
 public:
-    RunParallelFixture() : OpenCLWorkerConstructor(GetParam().device) {
+    RunParallelFixture() : OpenCL_WorkerConstructor(GetParam().device) {
         if(!worker_.Configure()) {
             throw std::runtime_error("Failed to configure worker in RunParallelFixture constructor");
         }
@@ -79,4 +79,4 @@ std::vector<RunParallelParam> getRunParallelTestList() {
     return getRunParallelTests(devices, param_pairs, true);
 }
 
-INSTANTIATE_TEST_CASE_P(RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));
+INSTANTIATE_TEST_CASE_P(LONG_RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));

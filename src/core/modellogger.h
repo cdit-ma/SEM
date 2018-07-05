@@ -3,9 +3,7 @@
 
 #include <mutex>
 #include <string>
-
-#include "component.h"
-#include "ports/port.h"
+#include <memory>
 
 #ifdef _WIN32
     #define GET_FUNC __FUNCTION__
@@ -14,6 +12,10 @@
 #endif
 
 class Worker;
+class Component;
+class Port;
+class BaseMessage;
+class Activatable;
 
 namespace zmq{
     class ProtoWriter;
@@ -45,20 +47,14 @@ class ModelLogger{
             IGNORED = 4,
         };
         //Static getter functions
-        static bool setup_model_logger(std::string host_name, std::string address, std::string port, Mode mode);
-        static ModelLogger* get_model_logger();
+        static bool setup_model_logger(const std::string& host_name, const std::string& endpoint, Mode mode);
+        static ModelLogger& get_model_logger();
         static bool shutdown_logger();
         static bool is_logger_setup();
         
     protected:
-        ModelLogger();
-        
-        bool setup_logger(std::string endpoint, Mode mode);
+        void setup_logger(const std::string& host_name, const std::string& endpoint, Mode mode);
         bool is_setup();
-        void set_hostname(std::string host_name);
-        
-        zmq::ProtoWriter* writer_ = 0;
-        ~ModelLogger();
     public:
         void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
         void LogMessageEvent(const Port& port);
@@ -72,17 +68,16 @@ class ModelLogger{
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 
-        const std::string get_hostname();
+        const std::string& get_hostname() const;
+        void set_hostname(const std::string& hostname);
 
     private:
         void PushMessage(google::protobuf::MessageLite* message);
-
+        std::unique_ptr<zmq::ProtoWriter> writer_;
         bool active_ = true;
 
         std::string host_name_;
-        
-        static ModelLogger* singleton_;
-        static std::mutex global_mutex_;
+        std::mutex mutex_;
 };
 
 enum class Severity{

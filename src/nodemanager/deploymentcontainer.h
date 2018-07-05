@@ -43,10 +43,10 @@ class DeploymentContainer : public Activatable{
 
         void SetLibraryPath(const std::string library_path);
     protected:
-        bool HandleActivate();
-        bool HandlePassivate();
-        bool HandleTerminate();
-        bool HandleConfigure();
+        void HandleActivate();
+        void HandlePassivate();
+        void HandleTerminate();
+        void HandleConfigure();
     private:
         std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors

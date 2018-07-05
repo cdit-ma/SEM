@@ -1,6 +1,10 @@
 #include "threadmanager.h"
+#include <iostream>
 
 ThreadManager::~ThreadManager(){
+    if(thread_ || future_.valid()){
+        Terminate();
+    }
     if(thread_){
         //Shutdown our thread
         thread_->join();
@@ -20,86 +24,105 @@ void ThreadManager::SetFuture(std::future<void> async_future){
 };
 
 void ThreadManager::Thread_Configured(){
-    std::unique_lock<std::mutex> state_lock(state_mutex_);
-    if(state_ == State::NONE){
-        //Transition the state
-        state_ = State::CONFIGURED;
-        state_condition_.notify_all();
+    {
+        std::lock_guard<std::mutex> state_lock(state_mutex_);
+        states_.insert(State::CONFIGURED);
     }
+    state_condition_.notify_all();
 };
 
 void ThreadManager::Thread_Terminated(){
-    std::unique_lock<std::mutex> state_lock(state_mutex_);
-    //Transition the state
-    state_ = State::TERMINATED;
+    {
+        std::lock_guard<std::mutex> state_lock(state_mutex_);
+        states_.insert(State::TERMINATED);
+    }
     state_condition_.notify_all();
 };
 
 void ThreadManager::Thread_Activated(){
-    std::unique_lock<std::mutex> state_lock(state_mutex_);
-    if(state_ == State::CONFIGURED){
-        //Transition the state
-        state_ = State::ACTIVE;
-        state_condition_.notify_all();
+    {
+        std::lock_guard<std::mutex> state_lock(state_mutex_);
+        states_.insert(State::ACTIVE);
     }
+    state_condition_.notify_all();
 };
 
 bool ThreadManager::Thread_WaitForActivate(){
+    //Any Transition should wake up the activate function
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);
-    transition_condition_.wait(transition_lock, [this]{return transition_ != Transition::NONE;});
-    return transition_ == Transition::ACTIVATE;
+    transition_condition_.wait(transition_lock);
+    return transitions_.count(Transition::ACTIVATE);
 };
 
 bool ThreadManager::WaitForActivated(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
-    state_condition_.wait(state_lock, [this]{return state_ == State::ACTIVE || state_ == State::TERMINATED;});
-    return state_ == State::ACTIVE;
-
+    state_condition_.wait(state_lock, [this]{
+        return states_.count(State::ACTIVE) || states_.count(State::TERMINATED);
+    });
+    return states_.count(State::ACTIVE);
 }
 
 void ThreadManager::Thread_WaitForTerminate(){
+    //Any Transition should wake up the activate function
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);
-    transition_condition_.wait(transition_lock, [this]{return transition_ == Transition::TERMINATE;});
+    transition_condition_.wait(transition_lock);
+    transitions_.count(Transition::TERMINATE);
 }
 
 bool ThreadManager::Configure(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
-    if(state_ == State::NONE){
-        //Wait for state to be moved from NONE
-        state_condition_.wait(state_lock, [this]{return state_ != State::NONE;});
-    }
-    return state_ == State::CONFIGURED;
+    state_condition_.wait(state_lock, [this]{
+        return states_.count(State::CONFIGURED) || states_.count(State::TERMINATED);
+    });
+    return states_.count(State::CONFIGURED);
 };
 
 bool ThreadManager::Activate(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
-    if(state_ == State::CONFIGURED){
+
+    if(states_.count(State::CONFIGURED)){
         {
             //Notify That Transition has happened
-            std::unique_lock<std::mutex> terminate_lock(transition_mutex_);
-            transition_ = Transition::ACTIVATE;
+            std::unique_lock<std::mutex> transition_lock(transition_mutex_);
+            transitions_.insert(Transition::ACTIVATE);
             transition_condition_.notify_all();
         }
-        //Wait for state to be moved from NONE
-        state_condition_.wait(state_lock, [this]{return state_ != State::CONFIGURED;});
+
+        state_condition_.wait(state_lock, [this]{
+            return states_.count(State::ACTIVE) || states_.count(State::TERMINATED);
+        });
+        return states_.count(State::CONFIGURED);
     }
-    return state_ == State::ACTIVE;
+    return false;
 };
+
+void ThreadManager::SetTerminate(){
+    {
+        //Notify That Transition has happened
+        std::lock_guard<std::mutex> transition_lock(transition_mutex_);
+        transitions_.insert(Transition::TERMINATE);
+    }
+    transition_condition_.notify_all();
+}
 
 bool ThreadManager::Terminate(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
+
     {
         //Notify That Transition has happened
-        std::unique_lock<std::mutex> terminate_lock(transition_mutex_);
-        transition_ = Transition::TERMINATE;
-        transition_condition_.notify_all();
+        std::lock_guard<std::mutex> transition_lock(transition_mutex_);
+        transitions_.insert(Transition::TERMINATE);
     }
-    //Wait for state to be moved from NONE
-    state_condition_.wait(state_lock, [this]{return state_ == State::TERMINATED;});
-    return state_ == State::TERMINATED;
+    transition_condition_.notify_all();
+
+    state_condition_.wait(state_lock, [this]{
+        return states_.count(State::TERMINATED);
+    });
+    
+    return states_.count(State::TERMINATED);
 };
 
-ThreadManager::State ThreadManager::GetState(){
-    std::unique_lock<std::mutex> state_lock(state_mutex_);
-    return state_;
-};
+bool ThreadManager::isKillable(){
+    std::lock_guard<std::mutex> state_lock(state_mutex_);
+    return states_.count(State::ACTIVE) && !states_.count(State::TERMINATED);
+}

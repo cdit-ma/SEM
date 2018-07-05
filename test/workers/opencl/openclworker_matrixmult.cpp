@@ -43,9 +43,9 @@ std::ostream& operator<<(std::ostream& os, const MatrixMultParam& m) {
     return os << m.device << " - Matrix A: " << m.matrix_a << " x Matrix B: " << m.matrix_b;
 };
 
-class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, public OpenCLWorkerConstructor{
+class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, public OpenCL_WorkerConstructor{
     public:
-        MatrixMultFixture() : OpenCLWorkerConstructor(GetParam().device){
+        MatrixMultFixture() : OpenCL_WorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
                 throw std::runtime_error("Failed to configure worker in MatrixMultFixture constructor");
             }
@@ -112,7 +112,7 @@ TEST_P(MatrixMultFixture, DISABLED_RandomTest)
     if(GetParam().expect_success){
         //Calculate the expected result
         auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, EPS);
+        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, 1.2e-1);
     }
 }
 
@@ -213,6 +213,9 @@ std::vector<MatrixMultParam> getRectTests(){
     //Invalid Tests
     //TODO: Add more invalid tests
     invalid_tests.emplace_back(std::vector<int>({1,2,3,4}));
+    invalid_tests.emplace_back(std::vector<int>({4,2,3,4}));
+    invalid_tests.emplace_back(std::vector<int>({1,0,0,1}));
+    invalid_tests.emplace_back(std::vector<int>({0,0,0,0}));
 
     auto valid_params = getMatrixTests(devices, valid_tests, true);
     auto invalid_params = getMatrixTests(devices, invalid_tests, false);
@@ -222,14 +225,14 @@ std::vector<MatrixMultParam> getRectTests(){
     return all_params;
 };
 
-INSTANTIATE_TEST_CASE_P(Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
-INSTANTIATE_TEST_CASE_P(Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
+INSTANTIATE_TEST_CASE_P(LONG_Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
+INSTANTIATE_TEST_CASE_P(LONG_Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
 
 
 /*
-class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCLWorkerConstructor{
+class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCL_WorkerConstructor{
     public:
-        RunParallelFixture() : OpenCLWorkerConstructor(GetParam().device){
+        RunParallelFixture() : OpenCL_WorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
                 HasFatalFailure();
             }

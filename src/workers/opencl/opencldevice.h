@@ -4,10 +4,12 @@
 #include <memory>
 #include <string>
 #include <list>
+#include <mutex>
 
 #include <core/worker.h>
 
 #include "openclkernel.hpp"
+#include "openclqueue.h"
 
 //class OpenCLKernel;
 class OpenCLManager;
@@ -21,10 +23,12 @@ namespace cl {
 class OpenCLDevice {
 public:
     OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device);
+    ~OpenCLDevice() noexcept = default;
 
     const cl::Device& GetRef() const;
     std::string GetName() const;
-    const cl::CommandQueue& GetQueue() const;
+    // cl::CommandQueue& GetQueue() const;
+    OpenCLQueue& GetQueue() const;
 
     bool LoadKernelsFromSource(const Worker& worker, const std::vector<std::string>& filenames);
     bool LoadKernelsFromBinary(const Worker& worker, const std::string& filename);
@@ -37,11 +41,13 @@ private:
 
     std::unique_ptr<cl::Device> dev_;
     OpenCLManager& manager_;
-    std::unique_ptr<cl::CommandQueue> queue_;
+    std::shared_ptr<OpenCLQueue> queue_;
     std::string name_;
 
-    std::list<cl::Program> programs_;
-    std::list<OpenCLKernel> kernels_;
+    std::list<std::shared_ptr<cl::Program> > programs_;
+    std::list<std::unique_ptr<OpenCLKernel> > kernels_;
+
+    std::mutex kernel_list_mutex_;
 
     bool valid_ = false;
     int err_;
