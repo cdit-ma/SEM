@@ -63,7 +63,7 @@ void ReqRep::Basic2Basic::Stable::RunTest(
     EXPECT_TRUE(rep_port.Activate());
     EXPECT_TRUE(req_port.Activate());
 
-    int send_count = 100;
+    int send_count = 400;
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
@@ -128,7 +128,7 @@ void ReqRep::Basic2Basic::Busy::RunTest(
             EXPECT_EQ(b.int_val * 10, c.second.int_val);
         }
     }
-    
+
     //Passivate
     EXPECT_TRUE(rep_port.Passivate());
     EXPECT_TRUE(req_port.Passivate());
