@@ -27,13 +27,17 @@ struct KMeansParam {
 template <typename T>
 std::string print_vec(std::vector<T> vec) {
     std::string str = "{";
-    bool first = true;
+    unsigned int elements_appended = 0;
     for (const auto& element : vec) {
-        if (!first) {
+        if (elements_appended > 0) {
             str.append(", ");
-            first = false;
         }
         str.append(std::to_string(element));
+        elements_appended++;
+        if (elements_appended > 16) {
+            str.append(", ...");
+            break;
+        }
     }
     str.append("}");
     return str;
@@ -48,9 +52,9 @@ std::ostream& operator<<(std::ostream& os, const KMeansParam& kmp) {
 
 class KMeansFixture:
     public ::testing::TestWithParam<KMeansParam>,
-    public OpenCLWorkerConstructor {
+    public OpenCL_WorkerConstructor {
 public:
-    KMeansFixture() : OpenCLWorkerConstructor(GetParam().device) {
+    KMeansFixture() : OpenCL_WorkerConstructor(GetParam().device) {
         if(!worker_.Configure()) {
             throw std::runtime_error("Failed to configure worker in KMeansFixture constructor");
         }
@@ -65,7 +69,8 @@ TEST_P(KMeansFixture, KMeans)
     auto iterations = GetParam().iterations;
 
     std::vector<int> out_classifications(expected_classifications.size());
-    ASSERT_EQ(worker_.KmeansCluster(points, centroids, out_classifications, iterations), true);
+    bool did_report_success = worker_.KmeansCluster(points, centroids, out_classifications, iterations);
+    ASSERT_EQ(did_report_success, true);
 
     ASSERT_EQ(out_classifications, expected_classifications);
 }

@@ -14,6 +14,10 @@ typedef struct _cl_mem *cl_mem;
 class OpenCLKernel : public OpenCLKernelBase {
 public:
     OpenCLKernel(const Worker& worker, OpenCLManager& manager, cl::Kernel& kernel);
+    OpenCLKernel(OpenCLKernel&& other) noexcept : OpenCLKernelBase(std::move(other)) {};
+    OpenCLKernel& operator=(OpenCLKernel&& other) noexcept {};
+    ~OpenCLKernel() noexcept = default;
+    //using OpenCLKernelBase::OpenCLKernelBase;
 
     template <typename T0, typename... Ts>
     void SetArgs(T0& arg0, Ts&... args);
@@ -52,6 +56,7 @@ private:
 
 template <typename T0, typename... Ts>
 void OpenCLKernel::SetArgs(T0& arg0, Ts&... args) {
+    std::lock_guard<std::mutex> guard(kernel_mutex_);
     // std::cerr << "about to make the recursive call... " <<std::endl;
     SetArgsRecursive(0, arg0, args...);
 }

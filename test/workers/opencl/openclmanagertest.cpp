@@ -28,8 +28,8 @@ TEST(OpenCLManager, GetDevices)
         auto& devices = manager->GetDevices(worker);
         ASSERT_GT(devices.size(), 0);
 
-        for(auto& device : devices){
-            PrintInfo("* Device: " + device.GetName());
+        for(const auto& device : devices){
+            PrintInfo("* Device: " + device->GetName());
         }
     }
 }
@@ -58,7 +58,7 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 
         OpenCLDevice& GetDevice(){
             //TODO: Add a index based device getter to OpenCLManager
-            return manager_->GetDevices(worker_)[device_.device_id];
+            return *manager_->GetDevices(worker_)[device_.device_id];
         };
 
         DeviceParam device_;

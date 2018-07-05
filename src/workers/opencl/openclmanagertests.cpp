@@ -110,20 +110,20 @@ void testLoadBalancer(OpenCLManager& manager);
 void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device);
 void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device);
 
-OpenCLWorker* testWorkerConstruction(Component& component, int device_id);
-void testWorkerDestruction(OpenCLWorker& worker);
-void testWorkerCreateBuffer(OpenCLWorker& worker);
-void testWorkerReleaseBuffer(OpenCLWorker& worker);
-void testWorkerBufferDataTransfers(OpenCLWorker& worker);
-void testWorkerRunParallel(OpenCLWorker& worker);
-void testWorkerMatrixMult(OpenCLWorker& worker);
-	void testWorkerSquareMult(OpenCLWorker& worker, unsigned int length, bool expect_failure=false);
-	void testWorkerRectMult(OpenCLWorker& worker, unsigned int rowsA, unsigned int colsA,
+OpenCL_Worker* testWorkerConstruction(Component& component, int device_id);
+void testWorkerDestruction(OpenCL_Worker& worker);
+void testWorkerCreateBuffer(OpenCL_Worker& worker);
+void testWorkerReleaseBuffer(OpenCL_Worker& worker);
+void testWorkerBufferDataTransfers(OpenCL_Worker& worker);
+void testWorkerRunParallel(OpenCL_Worker& worker);
+void testWorkerMatrixMult(OpenCL_Worker& worker);
+	void testWorkerSquareMult(OpenCL_Worker& worker, unsigned int length, bool expect_failure=false);
+	void testWorkerRectMult(OpenCL_Worker& worker, unsigned int rowsA, unsigned int colsA,
 			unsigned int rowsB, unsigned int colsB, bool expect_failure=false);
 	Result checkMultiplication(float* matA, float* matB, float* matC,
 								unsigned int m, unsigned int k, unsigned int n);
 
-void testWorkerKMeans(OpenCLWorker& worker);
+void testWorkerKMeans(OpenCL_Worker& worker);
 
 int main(int argc, char** argv) {
 	auto start_time = std::chrono::steady_clock::now();
@@ -179,8 +179,8 @@ int main(int argc, char** argv) {
 	}
 
 	printInfo("Listing available devices for platform:");
-	for (auto& device : manager->GetDevices(test_worker)) {
-		std::cout << " - " << device.GetName() << std::endl;
+	for (const auto& device : manager->GetDevices(test_worker)) {
+		std::cout << " - " << device->GetName() << std::endl;
 		/*for (auto& kernel : device.GetKernels()) {
 			std::cout << "   - " << kernel.get().GetName() << std::endl;
 		}*/
@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
 	}*/
 
 	for (auto& device : manager->GetDevices(test_worker)) {
-		testBufferReadWrite(*manager, device);
+		testBufferReadWrite(*manager, *device);
 	}
 	
 	bool firstTime = true;
@@ -228,14 +228,14 @@ int main(int argc, char** argv) {
 		} else {
 			continue;
 		}
-		testKernelPassthrough(*manager, device);
+		testKernelPassthrough(*manager, *device);
 	}
 
 	testLoadBalancer(*manager);
 
 
 	for (int i=0; i< manager->GetDevices(test_worker).size(); i++) {
-		OpenCLWorker* worker = testWorkerConstruction(test_component, i);
+		OpenCL_Worker* worker = testWorkerConstruction(test_component, i);
 
 		// Run worker tests conditional on worker having been successfully constructed
 		if (worker != NULL) {
@@ -392,7 +392,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	printInfo("Running kernel passthrough test...");
 
 	Component passthroughComponent("passthroughComponent");
-	Worker passthroughWorker(passthroughComponent, "OpenCLWorker", "passthroughWorker");
+	Worker passthroughWorker(passthroughComponent, "OpenCL_Worker", "passthroughWorker");
 
 	auto in_data = std::vector<float>(4, 0.3f);
 	auto in_buffer = manager.CreateBuffer<float>(passthroughWorker, in_data, device);
@@ -483,12 +483,12 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	manager.ReleaseBuffer(passthroughWorker, out_buffer);
 }
 
-OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
+OpenCL_Worker* testWorkerConstruction(Component& component, int device_id) {
 	Result res = UNKNOWN;
 
-	printInfo("Creating an OpenCLWorker...");
+	printInfo("Creating an OpenCL_Worker...");
 
-	OpenCLWorker* worker = new OpenCLWorker(component, "OpenCLWorker_ConstructionTest");
+	OpenCL_Worker* worker = new OpenCL_Worker(component, "OpenCL_Worker_ConstructionTest");
 
 	auto platform_attr = worker->GetAttribute("platform_id").lock();
 	if (platform_attr == NULL) {
@@ -496,7 +496,7 @@ OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 	} else {
 		res = PASS;
 	}
-	recordTest(res, "Successfully retrieved 'platform_id' attribute for OpenCLWorker");
+	recordTest(res, "Successfully retrieved 'platform_id' attribute for OpenCL_Worker");
 
 	auto device_attr = worker->GetAttribute("device_id").lock();
 	if (device_attr == NULL) {
@@ -504,7 +504,7 @@ OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 	} else {
 		res = PASS;
 	}
-	recordTest(res, "Successfully retrieved 'device_id' attribute for OpenCLWorker");
+	recordTest(res, "Successfully retrieved 'device_id' attribute for OpenCL_Worker");
 
 	platform_attr->set_Integer(0);
 	device_attr->set_Integer(device_id);
@@ -516,7 +516,7 @@ OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "OpenCLWorker reports itself to be valid after configuration");
+	recordTest(res, "OpenCL_Worker reports itself to be valid after configuration");
 
 	if (res == FAIL) {
 		delete worker;
@@ -527,7 +527,7 @@ OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 }
 
 template <typename T>
-void testWorkerCreateBufferOfType(OpenCLWorker& worker, std::string type_name, std::vector<T> vec_4) {
+void testWorkerCreateBufferOfType(OpenCL_Worker& worker, std::string type_name, std::vector<T> vec_4) {
 	Result res = UNKNOWN;
 	std::vector<T> vec_empty;
 	OCLBuffer<T>* buffer_empty = worker.CreateBuffer(vec_empty, true);
@@ -611,7 +611,7 @@ void testWorkerCreateBufferOfType(OpenCLWorker& worker, std::string type_name, s
 	worker.ReleaseBuffer(buffer_4);
 }
 
-void testWorkerCreateBuffer(OpenCLWorker& worker) {
+void testWorkerCreateBuffer(OpenCL_Worker& worker) {
 	
 	testWorkerCreateBufferOfType<int>(worker, "int", {1,2,3,4});
 	testWorkerCreateBufferOfType<float>(worker, "float", {1.0, 2.0, 3.0, 4.0});
@@ -620,9 +620,9 @@ void testWorkerCreateBuffer(OpenCLWorker& worker) {
 	//testWorkerCreateBufferOfType<std::string>(worker, "string", {"This", "is", "a", "test"});	// Should throw static assertion!
 }
 
-void individualParallelRun(OpenCLWorker& worker, int threads, cl_long ops) {
+void individualParallelRun(OpenCL_Worker& worker, int threads, cl_long ops) {
 	Result res = UNKNOWN;
-	//std::cout << "Calling OpenCLWorker function RunParallel with "<<threads<<" thread, "<<ops<<" operation... " << std::endl;
+	//std::cout << "Calling OpenCL_Worker function RunParallel with "<<threads<<" thread, "<<ops<<" operation... " << std::endl;
 	auto start = std::chrono::steady_clock::now();
 	if (worker.RunParallel(threads, ops)) {
 		res = PASS;
@@ -635,7 +635,7 @@ void individualParallelRun(OpenCLWorker& worker, int threads, cl_long ops) {
 	printInfo("Completed in "+std::to_string(duration)+" milliseconds");
 }
 
-void testWorkerRunParallel(OpenCLWorker& worker) {
+void testWorkerRunParallel(OpenCL_Worker& worker) {
 	cl_long small_ops = 1;
 	cl_long large_ops = 1LL<<22LL;
 	int small_threads = 1;
@@ -650,7 +650,7 @@ void testWorkerRunParallel(OpenCLWorker& worker) {
 	individualParallelRun(worker, large_threads, large_ops);
 }
 
-void testWorkerMatrixMult(OpenCLWorker& worker) {
+void testWorkerMatrixMult(OpenCL_Worker& worker) {
 
 	testWorkerSquareMult(worker, 1);
 	testWorkerSquareMult(worker, 1);
@@ -691,7 +691,7 @@ void testWorkerMatrixMult(OpenCLWorker& worker) {
 	//cout << "   Too big..." << endl;
 }
 
-void testWorkerSquareMult(OpenCLWorker& worker, unsigned int length, bool expect_failure) {
+void testWorkerSquareMult(OpenCL_Worker& worker, unsigned int length, bool expect_failure) {
 	printInfo("Square "+std::to_string(length)+"x"+std::to_string(length)+"...");
 	Result res;
 	bool calculation_finished = false;
@@ -761,7 +761,7 @@ void testWorkerSquareMult(OpenCLWorker& worker, unsigned int length, bool expect
 	
 }
 
-void testWorkerRectMult(OpenCLWorker& worker, unsigned int rowsA, unsigned int colsA,
+void testWorkerRectMult(OpenCL_Worker& worker, unsigned int rowsA, unsigned int colsA,
 	unsigned int rowsB, unsigned int colsB, bool expect_failure) {
 	printInfo("Rect "+ std::to_string(rowsA) + "x" + std::to_string(colsA) + " by " +
 		std::to_string(rowsB) + "x" + std::to_string(colsB));
@@ -870,7 +870,7 @@ Result checkMultiplication(float* matA, float* matB, float* matC, unsigned int m
 	return res;
 }
 
-void testWorkerKMeans(OpenCLWorker& worker) {
+void testWorkerKMeans(OpenCL_Worker& worker) {
 	Result res;
 
 	std::vector<float> point_vec = {
