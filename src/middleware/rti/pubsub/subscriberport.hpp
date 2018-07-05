@@ -136,7 +136,6 @@ void rti::SubscriberPort<BaseType, RtiType>::Loop(){
         if(thread_manager_->Thread_WaitForActivate()){
             thread_manager_->Thread_Activated();
             thread_manager_->Thread_WaitForTerminate();
-            Port::LogPassivation();
         }
         //Blocks for the DataReaderListener to finish
         reader_.close();

@@ -137,7 +137,6 @@ void ospl::SubscriberPort<BaseType, OsplType>::Loop(){
             thread_manager_->Thread_Activated();
             //Log the port becoming online
             thread_manager_->Thread_WaitForTerminate();
-            Port::LogPassivation();
         }
         //Blocks for the DataReaderListener to finish
         reader_.close();

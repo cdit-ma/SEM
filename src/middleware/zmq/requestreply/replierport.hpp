@@ -164,9 +164,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
                 std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
             }
         }
-
-        //Log that the port has been passivated
-        port.LogPassivation();
     }
     thread_manager.Thread_Terminated();
 };
@@ -197,9 +194,6 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
                 std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
             }
         }
-
-        //Log that the port has been passivated
-        port.LogPassivation();
     }
     thread_manager.Thread_Terminated();
 };
@@ -231,9 +225,6 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Thread
                 std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
             }
         }
-
-        //Log that the port has been passivated
-        port.LogPassivation();
     }
     thread_manager.Thread_Terminated();
 }

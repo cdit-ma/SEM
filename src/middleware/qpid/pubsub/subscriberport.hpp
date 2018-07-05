@@ -135,7 +135,6 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
             }catch(const std::exception& ex){
             
             }
-            this->LogPassivation();
         }
     }
 

@@ -134,7 +134,6 @@ void zmq::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manage
                 std::cerr << "zmq::SubscriberPort: '" + this->get_name() + "' " << ex.what() << std::endl;
             }
         }
-        ::Port::LogPassivation();
     }
     thread_manager.Thread_Terminated();
 };

@@ -133,7 +133,6 @@ void PeriodicPort::TickLoop(){
             auto base_type_ptr = std::unique_ptr<base_type>(new BaseMessage());
             this->EnqueueMessage(std::move(base_type_ptr));
         }
-        ::Port::LogPassivation();
     }
     thread_manager_->Thread_Terminated();
 }

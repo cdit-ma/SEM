@@ -199,7 +199,6 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
                 thread_manager.Thread_WaitForTerminate();
             }
             helper.deregister_servant(orb, poa, tao_server, server_name);
-            port.LogPassivation();
         }
     }
 

@@ -163,7 +163,6 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
             }catch(const std::exception& ex){
                 std::cerr << ex.what() << std::endl;
             }
-            port.LogPassivation();
         }
     }
     thread_manager.Thread_Terminated();
@@ -206,7 +205,6 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
             }catch(const std::exception& ex){
                 std::cerr << ex.what() << std::endl;
             }
-            port.LogPassivation();
         }
     }
     thread_manager.Thread_Terminated();
@@ -248,7 +246,6 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
             }catch(const std::exception& ex){
                 std::cerr << ex.what() << std::endl;
             }
-            port.LogPassivation();
         }
     }
     thread_manager.Thread_Terminated();
