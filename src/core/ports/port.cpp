@@ -22,15 +22,6 @@ std::string Port::get_middleware() const{
     return port_middleware_;
 }
 
-void Port::LogActivation(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-};
-
-void Port::LogPassivation(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
-};
-
-
 void Port::SetKind(const Port::Kind& port_kind){
     port_kind_ = port_kind;
 }
@@ -63,4 +54,17 @@ void Port::EventIgnored(const BaseMessage& message){
     std::lock_guard<std::mutex> lock(mutex_);
     logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
     ignored_count_ ++;
+}
+
+void Port::HandleConfigure(){
+}
+
+void Port::HandleActivate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
+}
+void Port::HandlePassivate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+}
+void Port::HandleTerminate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }

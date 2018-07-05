@@ -66,7 +66,6 @@ void rti::SubscriberPort<BaseType, RtiType>::HandleActivate(){
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ::SubscriberPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 template <class BaseType, class RtiType>
@@ -88,7 +87,6 @@ template <class BaseType, class RtiType>
 void rti::SubscriberPort<BaseType, RtiType>::HandlePassivate(){
     InterruptLoop();
     ::SubscriberPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 };
 
 
@@ -108,7 +106,6 @@ InterruptLoop();
     thread_manager_.reset();
     
     ::SubscriberPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 

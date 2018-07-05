@@ -108,14 +108,12 @@ void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
 void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandlePassivate(){
     InterruptLoop();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
@@ -125,7 +123,6 @@ void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
     thread_manager_.reset();
 
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>

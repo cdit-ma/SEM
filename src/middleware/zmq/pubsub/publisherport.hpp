@@ -125,18 +125,13 @@ void zmq::PublisherPort<BaseType, ProtoType>::HandleActivate(){
         throw std::runtime_error("ZMQ Publisher Port: '" + this->get_name() + "': Has no ThreadManager!");
 
     thread_manager_->Activate();
-    
-
-
     ::PublisherPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 template <class BaseType, class ProtoType>
 void zmq::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
     InterruptLoop();
     ::PublisherPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 }
 
 
@@ -147,7 +142,6 @@ void zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
     
     thread_manager_.reset();
     ::PublisherPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 

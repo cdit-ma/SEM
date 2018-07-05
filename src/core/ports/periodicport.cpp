@@ -77,13 +77,11 @@ void PeriodicPort::HandleActivate(){
         throw std::runtime_error("PeriodicPort has no Thread Manager");
     }
     ::SubscriberPort<base_type>::HandleActivate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 }
 
 void PeriodicPort::HandlePassivate(){
     InterruptLoop();
     ::SubscriberPort<base_type>::HandlePassivate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 }
 
 void PeriodicPort::HandleTerminate(){
@@ -94,7 +92,6 @@ void PeriodicPort::HandleTerminate(){
         thread_manager_.reset();
     }
     ::SubscriberPort<base_type>::HandleTerminate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 void PeriodicPort::InterruptLoop(){

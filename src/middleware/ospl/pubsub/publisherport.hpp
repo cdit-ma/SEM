@@ -17,7 +17,6 @@ namespace ospl{
             void Send(const BaseType& message);
         protected:
             void HandleConfigure();
-            void HandleActivate();
             void HandlePassivate();
             void HandleTerminate();
         private:
@@ -59,18 +58,11 @@ void ospl::PublisherPort<BaseType, OsplType>::HandleConfigure(){
     ::PublisherPort<BaseType>::HandleConfigure();
 };
 
-template <class BaseType, class OsplType>
-void ospl::PublisherPort<BaseType, OsplType>::HandleActivate(){
-    ::PublisherPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-};
-
 
 template <class BaseType, class OsplType>
 void ospl::PublisherPort<BaseType, OsplType>::HandlePassivate(){
     DestructWriter();
     ::PublisherPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 };
 
 
@@ -78,7 +70,6 @@ template <class BaseType, class OsplType>
 void ospl::PublisherPort<BaseType, OsplType>::HandleTerminate(){
     DestructWriter();
     ::PublisherPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 

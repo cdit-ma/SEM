@@ -66,7 +66,6 @@ void ospl::SubscriberPort<BaseType, OsplType>::HandleActivate(){
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ::SubscriberPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 template <class BaseType, class OsplType>
@@ -88,7 +87,6 @@ template <class BaseType, class OsplType>
 void ospl::SubscriberPort<BaseType, OsplType>::HandlePassivate(){
     InterruptLoop();
     ::SubscriberPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 };
 
 
@@ -108,7 +106,6 @@ InterruptLoop();
     thread_manager_.reset();
     
     ::SubscriberPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 
