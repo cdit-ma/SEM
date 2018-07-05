@@ -17,7 +17,6 @@ namespace rti{
             void Send(const BaseType& message);
         protected:
             void HandleConfigure();
-            void HandleActivate();
             void HandlePassivate();
             void HandleTerminate();
         private:
@@ -59,18 +58,11 @@ void rti::PublisherPort<BaseType, RtiType>::HandleConfigure(){
     ::PublisherPort<BaseType>::HandleConfigure();
 };
 
-template <class BaseType, class RtiType>
-void rti::PublisherPort<BaseType, RtiType>::HandleActivate(){
-    ::PublisherPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-};
-
 
 template <class BaseType, class RtiType>
 void rti::PublisherPort<BaseType, RtiType>::HandlePassivate(){
     DestructWriter();
     ::PublisherPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 };
 
 
@@ -78,7 +70,6 @@ template <class BaseType, class RtiType>
 void rti::PublisherPort<BaseType, RtiType>::HandleTerminate(){
     DestructWriter();
     ::PublisherPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 
@@ -88,7 +79,7 @@ void rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
     this->EventRecieved(message);
 
     if(this->is_running()){
-        std::lock_guard<std::mutex> lock(writer_mutex_);
+        //std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
             auto m = translator.BaseToMiddleware(message);
             if(m){
@@ -113,8 +104,9 @@ void rti::PublisherPort<BaseType, RtiType>::SetupWriter(){
         auto topic = get_topic<RtiType>(participant, topic_name_->String());
         auto publisher = helper.get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<RtiType>(publisher, topic, qos_path_->String(), qos_name_->String());
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }else{
-        throw std::runtime_error("RTI Publisher Port: '" + this->get_name() + "': Has an errant writer!");
+        throw std::runtime_error("rti Publisher Port: '" + this->get_name() + "': Has an errant writer!");
     }
 };
 

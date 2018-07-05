@@ -25,7 +25,8 @@ namespace rti{
         void HandleTerminate();
     private:
         void InterruptLoop();
-        void Loop();
+        void Loop(ThreadManager& thread_manager, dds::sub::DataReader<RtiType> reader);
+        dds::sub::DataReader<RtiType> GetReader();
 
         ::Base::Translator<BaseType, RtiType> translator;
 
@@ -63,7 +64,7 @@ void rti::SubscriberPort<BaseType, RtiType>::HandleActivate(){
 
     thread_manager_->Activate();
     //Wait for our recv thjread to be up
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     ::SubscriberPort<BaseType>::HandleActivate();
 };
@@ -75,7 +76,8 @@ void rti::SubscriberPort<BaseType, RtiType>::HandleConfigure(){
         throw std::runtime_error("rti Subscriber Port: '" + this->get_name() + "': Has an errant ThreadManager!");
 
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
-    auto future = std::async(std::launch::async, &rti::SubscriberPort<BaseType, RtiType>::Loop, this);
+    auto reader = GetReader();
+    auto future = std::async(std::launch::async, &rti::SubscriberPort<BaseType, RtiType>::Loop, this, std::ref(*thread_manager_), std::move(reader));
     thread_manager_->SetFuture(std::move(future));
     if(!thread_manager_->Configure()){
         throw std::runtime_error("rti Subscriber Port: '" + this->get_name() + "': setup failed!");
@@ -101,46 +103,41 @@ void rti::SubscriberPort<BaseType, RtiType>::InterruptLoop(){
 
 template <class BaseType, class RtiType>
 void rti::SubscriberPort<BaseType, RtiType>::HandleTerminate(){
-InterruptLoop();
+    InterruptLoop();
+
     std::lock_guard<std::mutex> lock(mutex_);
     thread_manager_.reset();
     
     ::SubscriberPort<BaseType>::HandleTerminate();
 };
 
+template <class BaseType, class RtiType>
+dds::sub::DataReader<RtiType> rti::SubscriberPort<BaseType, RtiType>::GetReader(){
+    //Construct a DDS Participant, Subscriber, Topic and Reader
+    auto& helper = get_dds_helper();
+    auto participant = helper.get_participant(domain_id_->Integer());
+    auto topic = get_topic<RtiType>(participant, topic_name_->String());
+
+    auto subscriber = helper.get_subscriber(participant, subscriber_name_->String());
+    return get_data_reader<RtiType>(subscriber, topic, qos_path_->String(), qos_name_->String());
+};
+
 
 template <class BaseType, class RtiType>
-void rti::SubscriberPort<BaseType, RtiType>::Loop(){
-    dds::sub::DataReader<RtiType> reader_ = dds::sub::DataReader<RtiType>(dds::core::null);
+void rti::SubscriberPort<BaseType, RtiType>::Loop(ThreadManager& thread_manager, dds::sub::DataReader<RtiType> reader){
     rti::DataReaderListener<BaseType, RtiType> listener(this);
+    //Attach the listener
+    reader.listener(&listener, dds::core::status::StatusMask::data_available());
 
-    bool success = true;
-    try{
-        //Construct a DDS Participant, Subscriber, Topic and Reader
-        auto& helper = get_dds_helper();    
-        auto participant = helper.get_participant(domain_id_->Integer());
-        auto topic = get_topic<RtiType>(participant, topic_name_->String());
+    thread_manager.Thread_Configured();
 
-        auto subscriber = helper.get_subscriber(participant, subscriber_name_->String());
-        reader_ = get_data_reader<RtiType>(subscriber, topic, qos_path_->String(), qos_name_->String());
-
-        //Attach listener to only respond to data_available()
-        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
-    }catch(const std::exception& ex){
-        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup RTI DDS Reciever") + ex.what());
-        success = false;
+    if(thread_manager.Thread_WaitForActivate()){
+        thread_manager.Thread_Activated();
+        thread_manager.Thread_WaitForTerminate();
     }
-
-    if(success){
-        thread_manager_->Thread_Configured();
-        if(thread_manager_->Thread_WaitForActivate()){
-            thread_manager_->Thread_Activated();
-            thread_manager_->Thread_WaitForTerminate();
-        }
-        //Blocks for the DataReaderListener to finish
-        reader_.close();
-    }
-    thread_manager_->Thread_Terminated();
+    //Blocks for the DataReaderListener to finish
+    reader.close();
+    thread_manager.Thread_Terminated();
 };
 
 #endif //RTI_PORT_SUBSCRIBER_HPP

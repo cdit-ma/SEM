@@ -28,19 +28,19 @@ void PubSub::Basic::Stable::RunTest(::PublisherPort<Base::Basic>& pub_port, ::Su
     EXPECT_TRUE(sub_port.Activate());
     EXPECT_TRUE(pub_port.Activate());
 
-    int future_count = 100;
-    int future_send = 10;
+    int future_count = 10;
+    int future_send = 100;
     int send_count = future_count * future_send;
 
     std::list<std::future<void>> futures;
 
     for(int i = 0; i < future_count; i++){
-        auto future = std::async(std::launch::async, [&pub_port](int send_count){
+        auto future = std::async(std::launch::async, [i, &pub_port](int send_count){
             //Send as fast as possible
-            for(int i = 0; i < send_count; i++){
+            for(int j = 0; j < send_count; j++){
                 Base::Basic b;
-                b.int_val = i;
-                b.str_val = std::to_string(i);
+                b.int_val = (send_count * i) + j;
+                b.str_val = std::to_string(b.int_val);
                 pub_port.Send(b);
             }
         }, future_send);

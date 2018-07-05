@@ -167,7 +167,7 @@ bool Activatable::transition_state(Transition transition){
                     break;
             }
         }catch(const std::exception& e){
-            std::cerr << "EXCEPTION::" << e.what() << std::endl;
+            std::cerr << "Exception:" << e.what() << std::endl;
             transitioned = false;
         }
         

@@ -38,7 +38,7 @@ namespace tao{
         std::mutex orb_mutex_;
         
         std::unordered_map<std::string, CORBA::ORB_ptr> orb_lookup_;
-        std::unordered_map<std::string, ThreadManager*> orb_run_futures_;
+        std::unordered_map<std::string, std::unique_ptr<ThreadManager> > orb_run_futures_;
         std::unordered_set<PortableServer::POA_ptr> registered_poas_;
     };
 };

@@ -18,7 +18,6 @@ class ThreadManager{
         bool Configure();
         bool Activate();
         bool Terminate();
-        State GetState();
 
         void SetTerminate();
 

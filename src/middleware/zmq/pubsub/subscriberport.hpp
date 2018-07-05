@@ -106,9 +106,6 @@ void zmq::SubscriberPort<BaseType, ProtoType>::InterruptLoop(){
     if(thread_manager_){
         thread_manager_->SetTerminate();
     }
-    if(thread_manager_){
-        thread_manager_->SetTerminate();
-    }
     //Free the context, which will block until all sockets are released
     context_.reset();
 };

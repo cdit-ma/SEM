@@ -71,7 +71,7 @@ TEST(ospl_PubSub, Basic_Stable){
     
     auto rx_callback_count = 0;
     //Define a callback wrapper
-    CallbackWrapper<void, base_type> callback_wrapper([&rx_callback_count](base_type&){
+    CallbackWrapper<void, base_type> callback_wrapper([&rx_callback_count](base_type& m){
         rx_callback_count ++;
     });
 

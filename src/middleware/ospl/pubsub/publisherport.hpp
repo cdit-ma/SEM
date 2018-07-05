@@ -79,7 +79,7 @@ void ospl::PublisherPort<BaseType, OsplType>::Send(const BaseType& message){
     this->EventRecieved(message);
 
     if(this->is_running()){
-        std::lock_guard<std::mutex> lock(writer_mutex_);
+        //std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
             auto m = translator.BaseToMiddleware(message);
             if(m){
@@ -104,6 +104,7 @@ void ospl::PublisherPort<BaseType, OsplType>::SetupWriter(){
         auto topic = get_topic<OsplType>(participant, topic_name_->String());
         auto publisher = helper.get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<OsplType>(publisher, topic, qos_path_->String(), qos_name_->String());
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }else{
         throw std::runtime_error("ospl Publisher Port: '" + this->get_name() + "': Has an errant writer!");
     }
