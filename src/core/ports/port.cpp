@@ -22,34 +22,6 @@ std::string Port::get_middleware() const{
     return port_middleware_;
 }
 
-void Port::LogActivation(){
-    if(logger()){
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-    }
-};
-
-void Port::LogPassivation(){
-    if(logger()){
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
-    }
-};
-
-bool Port::HandleActivate(){
-    return true;
-};
-
-bool Port::HandleConfigure(){
-    return true;
-};
-
-bool Port::HandlePassivate(){
-    return true;
-};
-
-bool Port::HandleTerminate(){
-    return true;
-};
-
 void Port::SetKind(const Port::Kind& port_kind){
     port_kind_ = port_kind;
 }
@@ -73,12 +45,26 @@ void Port::EventRecieved(const BaseMessage& message){
     received_count_ ++;
 }
 
-void Port::EventProcessed(const BaseMessage& message, bool processed){
+void Port::EventProcessed(const BaseMessage& message){
     std::lock_guard<std::mutex> lock(mutex_);
-    if(processed){
-        processed_count_++;
-    }else{
-        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
-        ignored_count_ ++;
-    }
+    processed_count_++;
+}
+
+void Port::EventIgnored(const BaseMessage& message){
+    std::lock_guard<std::mutex> lock(mutex_);
+    logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
+    ignored_count_ ++;
+}
+
+void Port::HandleConfigure(){
+}
+
+void Port::HandleActivate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
+}
+void Port::HandlePassivate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+}
+void Port::HandleTerminate(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }

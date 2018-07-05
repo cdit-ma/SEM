@@ -18,9 +18,7 @@ namespace rti
 };
 
 template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
-
+    auto lock = get_dds_helper().obtain_lock();
     dds::topic::Topic<M> topic = nullptr;
     try{
         //Try use the Middleware's find function to find the topic
@@ -40,9 +38,7 @@ template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainPartici
 };
 
 template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
-
+    auto lock = get_dds_helper().obtain_lock();
     dds::pub::DataWriter<M> writer = nullptr;
 
     //If we have the publisher and the topic, construct the writer.
@@ -65,9 +61,7 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
 };
 
 template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    //Acquire the Lock from the DDS Helper
-    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
-    
+    auto lock = get_dds_helper().obtain_lock();
     dds::sub::DataReader<M> reader = nullptr;
     
     //If we have the subscriber and the topic, construct the writer.

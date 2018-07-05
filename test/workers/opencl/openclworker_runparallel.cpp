@@ -79,4 +79,4 @@ std::vector<RunParallelParam> getRunParallelTestList() {
     return getRunParallelTests(devices, param_pairs, true);
 }
 
-INSTANTIATE_TEST_CASE_P(RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));
+INSTANTIATE_TEST_CASE_P(LONG_RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));

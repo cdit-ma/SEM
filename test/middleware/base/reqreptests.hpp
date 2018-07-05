@@ -63,7 +63,7 @@ void ReqRep::Basic2Basic::Stable::RunTest(
     EXPECT_TRUE(rep_port.Activate());
     EXPECT_TRUE(req_port.Activate());
 
-    int send_count = 100;
+    int send_count = 400;
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
@@ -128,7 +128,7 @@ void ReqRep::Basic2Basic::Busy::RunTest(
             EXPECT_EQ(b.int_val * 10, c.second.int_val);
         }
     }
-    
+
     //Passivate
     EXPECT_TRUE(rep_port.Passivate());
     EXPECT_TRUE(req_port.Passivate());
@@ -165,16 +165,22 @@ void ReqRep::Basic2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, Base::Ba
     EXPECT_TRUE(req_port.Activate());
 
     int send_count = 100;
+    int timeout_ms = 50;
+    double busy_timeout = 100.0;
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
         Base::Basic b;
         b.int_val = i;
         b.str_val = std::to_string(i);
-        auto c = req_port.SendRequest(b, std::chrono::milliseconds(50));
+        auto c = req_port.SendRequest(b, std::chrono::milliseconds(timeout_ms));
         EXPECT_FALSE(c.first);
     }
-    
+
+    auto expected_rx = (send_count * timeout_ms) / busy_timeout;
+    int low_rx = expected_rx * .90;
+    int high_rx = expected_rx / .90;
+
     //Passivate
     EXPECT_TRUE(req_port.Passivate());
     EXPECT_TRUE(rep_port.Passivate());
@@ -191,8 +197,9 @@ void ReqRep::Basic2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, Base::Ba
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, 0);
-    EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, send_count);
+    EXPECT_GT(total_rxd, low_rx);
+    EXPECT_LT(total_rxd, high_rx);
+    EXPECT_EQ(total_rxd, proc_rxd);
 };
 
 /*

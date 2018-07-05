@@ -1,22 +1,15 @@
 #include "ddshelper.h"
 #include <iostream>
 
-rti::DdsHelper* rti::DdsHelper::singleton_ = 0;
-std::mutex rti::DdsHelper::global_mutex_;
-
-rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-
-    if(singleton_ == 0){
-        singleton_ = new DdsHelper();
-    }
-    return singleton_;
+rti::Helper& rti::get_dds_helper(){
+    static rti::Helper helper_;
+    return helper_;
 };
 
 
-dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
+dds::domain::DomainParticipant rti::Helper::get_participant(int domain){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     //Use the dds find functionality to look for the domain participant for the domain
     auto participant = dds::domain::find(domain);
@@ -33,9 +26,9 @@ dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
     return participant;
 };
 
-dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+dds::pub::Publisher rti::Helper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
     
     //Use the dds find functionality to look for the publisher on that domain
     auto pub = rti::pub::find_publisher(participant, publisher_name);
@@ -51,9 +44,9 @@ dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant
     return pub;
 };
 
-dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+dds::sub::Subscriber rti::Helper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    
     
     //Use the dds find functionality to look for the subscriber on that domain
     auto sub = rti::sub::find_subscriber(participant, subscriber_name);
@@ -68,3 +61,8 @@ dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipa
     }
     return sub;
 };
+
+std::unique_lock<std::mutex> rti::Helper::obtain_lock(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return std::move(lock);
+}

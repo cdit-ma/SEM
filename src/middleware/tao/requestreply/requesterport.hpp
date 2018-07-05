@@ -32,8 +32,8 @@ namespace tao{
             using middleware_reply_type = TaoReplyType;
             using middleware_request_type = TaoRequestType;
         protected:
-            bool HandleConfigure();
-            bool HandleTerminate();
+            void HandleConfigure();
+            void HandleTerminate();
         public:
             std::shared_ptr<Attribute> server_address_;
             std::shared_ptr<Attribute> server_name_;
@@ -59,8 +59,8 @@ namespace tao{
             
             void ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
         protected:
-            bool HandleConfigure();
-            bool HandleTerminate();
+            void HandleConfigure();
+            void HandleTerminate();
 
             using middleware_reply_type = void;
             using middleware_request_type = TaoRequestType;
@@ -89,8 +89,8 @@ namespace tao{
 
             BaseReplyType ProcessRequest(std::chrono::milliseconds timeout);
         protected:
-            bool HandleConfigure();
-            bool HandleTerminate();
+            void HandleConfigure();
+            void HandleTerminate();
 
             using middleware_reply_type = TaoReplyType;
             using middleware_request_type = void;
@@ -109,7 +109,7 @@ namespace tao{
     };
 
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-    static bool SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, const std::string& orb_endpoint, const std::string& server_address, const std::string& server_name);
+    static void SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, const std::string& orb_endpoint, const std::string& server_address, const std::string& server_name);
 };
 
 
@@ -124,23 +124,14 @@ tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType,
 
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
+void tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    const auto orb_endpoint = orb_endpoint_->String();
-    const auto server_name = server_name_->String();
-    const auto server_address = server_address_->String();
-
-    bool valid = orb_endpoint.size() > 0 && server_name.size() > 0 && server_address.size() > 0;
-
-    if(valid && ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure()){
-        return tao::SetupRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint, server_address, server_name);
-    }
-    return false;
+    tao::SetupRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this, orb_endpoint_->String(), server_address_->String(), server_name_->String());
 };
 
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
+void tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::RequesterPort<BaseReplyType, BaseRequestType>::HandleTerminate()){
         std::lock_guard<std::mutex> client_lock(client_mutex_);
@@ -150,7 +141,7 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
 };
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-bool tao::SetupRequester(
+void tao::SetupRequester(
     tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port, 
     const std::string& orb_endpoint,
     const std::string& server_address,
@@ -232,7 +223,7 @@ tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::
 };
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-bool tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
+void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
     const auto server_name = server_name_->String();
@@ -248,7 +239,7 @@ bool tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
 
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-bool tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
+void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::RequesterPort<void, BaseRequestType>::HandleTerminate()){
         std::lock_guard<std::mutex> client_lock(client_mutex_);
@@ -298,7 +289,7 @@ tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::Requ
 };
 
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
-bool tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::HandleConfigure(){
+void tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     const auto orb_endpoint = orb_endpoint_->String();
     const auto server_name = server_name_->String();
@@ -314,7 +305,7 @@ bool tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>:
 
 
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
-bool tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::HandleTerminate(){
+void tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::RequesterPort<BaseReplyType, void>::HandleTerminate()){
         std::lock_guard<std::mutex> client_lock(client_mutex_);

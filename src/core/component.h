@@ -96,10 +96,10 @@ class Component : public BehaviourContainer{
         bool GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type);
         bool RemoveCallback(const std::string& port_name);
     protected:
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
+        virtual void HandleActivate();
+        virtual void HandleConfigure();
+        virtual void HandlePassivate();
+        virtual void HandleTerminate();
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);

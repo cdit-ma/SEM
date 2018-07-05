@@ -4,10 +4,10 @@
 //Include the premade reqrep tests
 #include "../../base/reqreptests.hpp"
 
-// Include the proto convert functions for the port type
-#include "../../proto/basic.pb.h"
+#include "messageS.h"
 
 #include <core/ports/libportexport.h>
+#define TAO_SERVER_FUNC_NAME send
 #include <middleware/tao/requestreply/replierport.hpp>
 #include <middleware/tao/requestreply/requesterport.hpp>
 
@@ -31,7 +31,7 @@ class tao_RequesterPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = ConstructRequesterPort<tao::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
+            auto port = ConstructRequesterPort<tao::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic, ::Basic2Basic>>(port_name, component);
             EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
@@ -45,7 +45,7 @@ class tao_ReplierPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             component->RegisterCallback<Base::Basic, Base::Basic>(port_name, EmptyCallback);
-            auto port = ConstructReplierPort<tao::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
+            auto port = ConstructReplierPort<tao::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic, POA::Basic2Basic>>(port_name, component);
             EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);

@@ -174,36 +174,37 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTCAPT)
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10)
-{
-    int count = 100;
-    while(count-- > 0){
-        ASSERT_TRUE(a->Configure());
-        ASSERT_TRUE(a->Activate());
-        ASSERT_TRUE(a->Passivate());
-        ASSERT_TRUE(a->Terminate());
-    }
-};
-
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10_DELAY)
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10)
 {
     int count = 10;
     while(count-- > 0){
-        sleep_ms(10);
         ASSERT_TRUE(a->Configure());
-        sleep_ms(10);
         ASSERT_TRUE(a->Activate());
-        sleep_ms(10);
         ASSERT_TRUE(a->Passivate());
-        sleep_ms(10);
         ASSERT_TRUE(a->Terminate());
     }
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTx10_RANDOMDELAY)
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_DELAY)
 {
-    int min = 10;
-    int max = 100;
+    int sleep_time = 5;
+    int count = 10;
+    while(count-- > 0){
+        sleep_ms(sleep_time);
+        ASSERT_TRUE(a->Configure());
+        sleep_ms(sleep_time);
+        ASSERT_TRUE(a->Activate());
+        sleep_ms(sleep_time);
+        ASSERT_TRUE(a->Passivate());
+        sleep_ms(sleep_time);
+        ASSERT_TRUE(a->Terminate());
+    }
+};
+
+TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_RANDOMDELAY)
+{
+    int min = 1;
+    int max = 50;
     int count = 10;
     while(count-- > 0){
         random_sleep_ms(min, max);

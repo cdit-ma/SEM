@@ -21,10 +21,10 @@ class BehaviourContainer : public Activatable{
         std::weak_ptr<Worker> GetWorker(const std::string& worker_name);
         std::shared_ptr<Worker> RemoveWorker(const std::string& worker_name);
     protected:
-        virtual bool HandleActivate();
-        virtual bool HandleConfigure();
-        virtual bool HandlePassivate();
-        virtual bool HandleTerminate();
+        virtual void HandleActivate();
+        virtual void HandleConfigure();
+        virtual void HandlePassivate();
+        virtual void HandleTerminate();
     private:
         std::mutex state_mutex_;
         std::mutex worker_mutex_;

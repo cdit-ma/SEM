@@ -71,7 +71,7 @@ TEST(ospl_PubSub, Basic_Stable){
     
     auto rx_callback_count = 0;
     //Define a callback wrapper
-    CallbackWrapper<void, base_type> callback_wrapper([&rx_callback_count](base_type&){
+    CallbackWrapper<void, base_type> callback_wrapper([&rx_callback_count](base_type& m){
         rx_callback_count ++;
     });
 
@@ -113,7 +113,7 @@ TEST(ospl_PubSub, Basic_Busy){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-TEST(zmq_PubSub, Basic_Terminate){
+TEST(ospl_PubSub, Basic_Terminate){
     using namespace ::PubSub::Basic::Terminate;
 
     //Define the base types

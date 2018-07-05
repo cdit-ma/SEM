@@ -1,10 +1,10 @@
 #Set our project names
-set(PROJ_NAME test_cpuworker)
+set(PROJ_NAME test_memoryworker)
 project(${PROJ_NAME})
 
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpuworkertest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memoryworkertest.cpp
     ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
@@ -17,5 +17,5 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} pthread)
 endif(UNIX)
 
-target_link_libraries(${PROJ_NAME} cpu_worker)
+target_link_libraries(${PROJ_NAME} memory_worker)
 target_link_libraries(${PROJ_NAME} gtest)

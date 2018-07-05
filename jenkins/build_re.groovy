@@ -4,6 +4,13 @@ def PROJECT_NAME = 'test_re'
 import cditma.Utils
 def utils = new Utils(this);
 
+// Override this to enable running of long tests
+def RUN_ALL_TESTS = false
+final branch_name = env.BRANCH_NAME
+if(branch_name.contains("PR-")){
+    RUN_ALL_TESTS = true
+}
+
 node("master"){
     stage("Checkout"){
         dir(PROJECT_NAME){
@@ -12,6 +19,9 @@ node("master"){
         }
     }
 }
+
+def FAILED = false
+def FAILURE_LIST = []
 
 def builder_map = [:]
 def test_map = [:]
@@ -78,10 +88,16 @@ for(n in builder_nodes){
                             def file_name = utils.trimExtension(file_path)
                             def test_output = file_name + "_" + node_name + ".xml"
                             print("Running Test: " + file_path)
-                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+                            def test_filter = ""
+                            if (!RUN_ALL_TESTS) {
+                                test_filter = " --gtest_filter=-*LONG_*"
+                            }
+                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output + test_filter)
 
                             if(test_error_code != 0){
+                                FAILED = true
                                 print("Test: " + file_path + " Failed!")
+                                FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)
                             }
                         }
                         def stash_name = node_name + "_test_cases"
@@ -125,6 +141,15 @@ node("master"){
             zip glob: globstr, zipFile: test_archive
             archiveArtifacts test_archive
             deleteDir()
+        }
+
+        if(FAILED){
+            print("Test Execution failed!")
+            print(FAILURE_LIST.size() + " Error(s)")
+            for(failure in FAILURE_LIST){
+                print("ERROR: " + failure)
+            }
+            error("Test Execution failed!")
         }
     }
 }

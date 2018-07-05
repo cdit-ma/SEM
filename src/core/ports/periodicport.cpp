@@ -21,7 +21,7 @@
 //TODO: HANDLE Frequency <= 5000hz
 
 PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds)
-: ::SubscriberPort<BaseMessage>(component, name, callback, "periodic"){
+: ::SubscriberPort<base_type>(component, name, callback, "periodic"){
     //Force set the kind
     SetKind(Port::Kind::PERIODIC);
     SetMaxQueueSize(1);
@@ -56,47 +56,58 @@ void PeriodicPort::SetDuration(int milliseconds){
     }
 }
 
-bool PeriodicPort::HandleTerminate(){
-    //Need to passivate before we can terminate
-    HandlePassivate();
-
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    if(::SubscriberPort<BaseMessage>::HandleTerminate()){
-        if(tick_thread_){
-            //Join our zmq_thread
-            tick_thread_->join();
-            delete tick_thread_;
-            tick_thread_ = 0;
-        }
-        return true;
+void PeriodicPort::HandleConfigure(){
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(!thread_manager_){
+        thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
+        auto future = std::async(std::launch::async, &PeriodicPort::TickLoop, this);
+        thread_manager_->SetFuture(std::move(future));
+        thread_manager_->Configure();
+    }else{
+        throw std::runtime_error("PeriodicPort has an active ThreadManager");
     }
-    return false;
-};
-
-bool PeriodicPort::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    if(::SubscriberPort<BaseMessage>::HandlePassivate()){
-        //Notify the tick_thread to die
-        std::lock_guard<std::mutex> lock(tick_mutex_);
-        interupt_ = true;
-        tick_condition_.notify_all();
-        return true;
-    }
-    return false;
+    ::SubscriberPort<base_type>::HandleConfigure();
 }
 
-void PeriodicPort::Loop(){
-    
-    {
-        //Toggle the state
-        std::unique_lock<std::mutex> lock(thread_ready_mutex_);
-        thread_ready_ = true;
-        thread_ready_condition_.notify_all();
+void PeriodicPort::HandleActivate(){
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(thread_manager_){
+        thread_manager_->Activate();
+    }else{
+        throw std::runtime_error("PeriodicPort has no Thread Manager");
     }
+    ::SubscriberPort<base_type>::HandleActivate();
+}
+
+void PeriodicPort::HandlePassivate(){
+    InterruptLoop();
+    ::SubscriberPort<base_type>::HandlePassivate();
+}
+
+void PeriodicPort::HandleTerminate(){
+    InterruptLoop();
+    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    if(thread_manager_){
+        thread_manager_->Terminate();
+        thread_manager_.reset();
+    }
+    ::SubscriberPort<base_type>::HandleTerminate();
+};
+
+void PeriodicPort::InterruptLoop(){
+    //Wake up the threads sleep
+    std::lock_guard<std::mutex> lock(tick_mutex_);
+    interupt_ = true;
+    tick_condition_.notify_all();
+}
+
+
+void PeriodicPort::TickLoop(){
+    thread_manager_->Thread_Configured();
 
     //Block until we are running, or error
-    if(BlockUntilStateChanged(Activatable::State::RUNNING)){
-        ::Port::LogActivation();
+    if(thread_manager_->Thread_WaitForActivate()){
+        thread_manager_->Thread_Activated();
         while(true){
             {
                 std::unique_lock<std::mutex> lock(tick_mutex_);
@@ -118,30 +129,12 @@ void PeriodicPort::Loop(){
                     break;
                 }
             }
-            EnqueueMessage(new BaseMessage());
+
+            auto base_type_ptr = std::unique_ptr<base_type>(new BaseMessage());
+            this->EnqueueMessage(std::move(base_type_ptr));
         }
-        ::Port::LogPassivation();
     }
+    thread_manager_->Thread_Terminated();
 }
 
 
-
-bool PeriodicPort::HandleConfigure(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
-
-    //Call into our base Configure function.
-    if(::SubscriberPort<BaseMessage>::HandleConfigure()){
-        //Construct a new tick_thread which runs Loop()
-        if(!tick_thread_){
-            std::lock_guard<std::mutex> lock(tick_mutex_);
-            interupt_ = false;
-            std::unique_lock<std::mutex> thread_lock(thread_ready_mutex_);
-            thread_ready_ = false;
-            tick_thread_ = new std::thread(&PeriodicPort::Loop, this);
-            //Wait for the Loop to notify this
-            thread_ready_condition_.wait(thread_lock, [this]{return !thread_ready_;});
-            return true;
-        }
-    }
-    return false;
-}

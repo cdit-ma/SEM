@@ -56,7 +56,7 @@ TEST(MatrixMult, IdentityTest) {
 }
 
 
-TEST(MatrixMult, Big1024) {
+TEST(MatrixMult, LONG_Big1024) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
 

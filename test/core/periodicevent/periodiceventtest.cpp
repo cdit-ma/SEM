@@ -150,13 +150,13 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
 #include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-INSTANTIATE_TEST_CASE_P(0Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(0, 5, 1)));
-INSTANTIATE_TEST_CASE_P(1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
-INSTANTIATE_TEST_CASE_P(2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
-INSTANTIATE_TEST_CASE_P(4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
-INSTANTIATE_TEST_CASE_P(8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
-INSTANTIATE_TEST_CASE_P(16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
-INSTANTIATE_TEST_CASE_P(32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
+INSTANTIATE_TEST_CASE_P(LONG_0Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(0, 5, 1)));
+INSTANTIATE_TEST_CASE_P(LONG_1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
+INSTANTIATE_TEST_CASE_P(LONG_2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
+INSTANTIATE_TEST_CASE_P(LONG_4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
+INSTANTIATE_TEST_CASE_P(LONG_8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
+INSTANTIATE_TEST_CASE_P(LONG_16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
+INSTANTIATE_TEST_CASE_P(LONG_32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
 
 int main(int ac, char* av[])
 {
