@@ -20,6 +20,8 @@ class ThreadManager{
         bool Terminate();
         State GetState();
 
+        void SetTerminate();
+
         bool isKillable();
 
         bool WaitForActivated();

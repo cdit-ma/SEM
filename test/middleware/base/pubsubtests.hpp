@@ -1,5 +1,7 @@
 
 #include "basic.hpp"
+#include <list>
+#include <future>
 #include <core/ports/pubsub/publisherport.hpp>
 #include <core/ports/pubsub/subscriberport.hpp>
 
@@ -26,16 +28,28 @@ void PubSub::Basic::Stable::RunTest(::PublisherPort<Base::Basic>& pub_port, ::Su
     EXPECT_TRUE(sub_port.Activate());
     EXPECT_TRUE(pub_port.Activate());
 
-    int send_count = 100;
+    int future_count = 100;
+    int future_send = 10;
+    int send_count = future_count * future_send;
 
-    //Send as fast as possible
-    for(int i = 0; i < send_count; i++){
-       Base::Basic b;
-        b.int_val = i;
-        b.str_val = std::to_string(i);
-        pub_port.Send(b);
-        sleep_ms(1);
+    std::list<std::future<void>> futures;
+
+    for(int i = 0; i < future_count; i++){
+        auto future = std::async(std::launch::async, [&pub_port](int send_count){
+            //Send as fast as possible
+            for(int i = 0; i < send_count; i++){
+                Base::Basic b;
+                b.int_val = i;
+                b.str_val = std::to_string(i);
+                pub_port.Send(b);
+            }
+        }, future_send);
+        futures.push_back(std::move(future));
     }
+
+    futures.clear();
+    
+    sleep_ms(send_count / 10);
 
     //Passivate
     EXPECT_TRUE(sub_port.Passivate());

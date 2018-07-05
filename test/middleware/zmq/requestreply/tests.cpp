@@ -13,10 +13,11 @@
 
 
 
-bool setup_port(Port& port, std::string port_address){
+bool setup_port(Port& port, int test_id){
     auto address = port.GetAttribute("server_address").lock();
     if(address){
-        address->set_String("inproc://" + port_address);
+        std::string port_address = "tcp://127.0.0.1:" + std::to_string(7000 + test_id);
+        address->set_String(port_address);
         return true;
     }
     return false;
@@ -33,7 +34,7 @@ class ZMQ_RequesterPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = ConstructRequesterPort<zmq::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, port_name));
+            EXPECT_TRUE(setup_port(*port, 0));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -47,7 +48,7 @@ class ZMQ_ReplierPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             component->RegisterCallback<Base::Basic, Base::Basic>(port_name, EmptyCallback);
             auto port = ConstructReplierPort<zmq::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, port_name));
+            EXPECT_TRUE(setup_port(*port, 0));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -81,8 +82,8 @@ TEST(zmq_ReqRep, Basic2Basic_Stable){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -110,8 +111,8 @@ TEST(zmq_ReqRep, LONG_Basic2Basic_Busy){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -140,8 +141,8 @@ TEST(zmq_ReqRep, LONG_Basic2Basic_Timeout){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -170,8 +171,8 @@ TEST(zmq_ReqRep, Basic2Void_Stable){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -200,8 +201,8 @@ TEST(zmq_ReqRep, LONG_Basic2Void_Busy){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -230,8 +231,8 @@ TEST(zmq_ReqRep, Void2Basic_Stable){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 
@@ -260,8 +261,8 @@ TEST(zmq_ReqRep, LONG_Void2Basic_Busy){
     auto requester_port = ConstructRequesterPort<zmq::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<zmq::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, 0));
+    EXPECT_TRUE(setup_port(*replier_port, 0));
 
     RunTest(*requester_port, *replier_port);
 

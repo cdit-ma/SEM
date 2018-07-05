@@ -9,11 +9,11 @@
 #include <zmq.hpp>
 
 namespace zmq{
-    class ZmqHelper{
+    class Helper{
         public:
-            //Static getter functions
-            static ZmqHelper& get_zmq_helper();
-        public:
+            std::unique_ptr<zmq::socket_t> get_socket(zmq::context_t& context, const int socket_type);
+            std::unique_ptr<zmq::context_t> get_context();
+            
             std::unique_ptr<zmq::socket_t> get_publisher_socket();
             std::unique_ptr<zmq::socket_t> get_subscriber_socket();
 
@@ -24,6 +24,8 @@ namespace zmq{
         private:
             zmq::context_t context_;
     };
+    //Static getter functions
+    Helper& get_zmq_helper();
 };
 
 #endif //ZMQ_ZMQHELPER_H

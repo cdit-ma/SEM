@@ -13,19 +13,17 @@ namespace rti{
     template <class BaseType, class RtiType> class PublisherPort: public ::PublisherPort<BaseType>{
        public:
             PublisherPort(std::weak_ptr<Component> component, std::string name);
-            ~PublisherPort(){
-                Activatable::Terminate();
-            }
+            ~PublisherPort(){this->Terminate();};
+            void Send(const BaseType& message);
         protected:
-            bool HandleConfigure();
-            bool HandlePassivate();
-            bool HandleTerminate();
-        public:
-            bool Send(const BaseType& message);
+            void HandleConfigure();
+            void HandleActivate();
+            void HandlePassivate();
+            void HandleTerminate();
         private:
-            bool setup_tx();
-            int count = 0;
-
+            void SetupWriter();
+            void DestructWriter();
+            
             ::Base::Translator<BaseType, RtiType> translator;
 
              //Define the Attributes this port uses
@@ -36,7 +34,7 @@ namespace rti{
             std::shared_ptr<Attribute> qos_path_;
             std::shared_ptr<Attribute> qos_name_;
 
-            std::mutex control_mutex_;
+            std::mutex writer_mutex_;
             dds::pub::DataWriter<RtiType> writer_ = dds::pub::DataWriter<RtiType>(dds::core::null);
    }; 
 };
@@ -56,72 +54,77 @@ rti::PublisherPort<BaseType, RtiType>::PublisherPort(std::weak_ptr<Component> co
 
 
 template <class BaseType, class RtiType>
-bool rti::PublisherPort<BaseType, RtiType>::HandleConfigure(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    bool valid = topic_name_->String().length() > 0;
-
-    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
-
-        return setup_tx();
-    }
-    return false;
+void rti::PublisherPort<BaseType, RtiType>::HandleConfigure(){
+    SetupWriter();
+    ::PublisherPort<BaseMessage>::HandleConfigure();
 };
 
 template <class BaseType, class RtiType>
-bool rti::PublisherPort<BaseType, RtiType>::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::PublisherPort<BaseType>::HandlePassivate()){
-        if(writer_ != dds::core::null){
-            writer_.close();
-            writer_ = dds::pub::DataWriter<RtiType>(dds::core::null);
-        }
-        return true;
-    }
-    return false;
-};
-
-template <class BaseType, class RtiType>
-bool rti::PublisherPort<BaseType, RtiType>::HandleTerminate(){
-    HandlePassivate();
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::PublisherPort<BaseType>::HandleTerminate();
+void rti::PublisherPort<BaseType, RtiType>::HandleActivate(){
+    ::PublisherPort<BaseType>::HandleActivate();
+    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 
 template <class BaseType, class RtiType>
-bool rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    bool should_send = ::PublisherPort<BaseType>::Send(message);
+void rti::PublisherPort<BaseType, RtiType>::HandlePassivate(){
+    DestructWriter();
+    ::PublisherPort<BaseType>::HandlePassivate();
+    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+};
 
-    if(should_send){
+
+template <class BaseType, class RtiType>
+void rti::PublisherPort<BaseType, RtiType>::HandleTerminate(){
+    DestructWriter();
+    ::PublisherPort<BaseType>::HandleTerminate();
+    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
+};
+
+
+template <class BaseType, class RtiType>
+void rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
+    //Log the recieving
+    this->EventRecieved(message);
+
+    if(this->is_running()){
+        std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
             auto m = translator.BaseToMiddleware(message);
             if(m){
                 //De-reference the message and send
                 writer_.write(*m);
                 delete m;
-                return true;
+                this->EventProcessed(message);
+                this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
             }
-        }else{
-            Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Writer unexpectedly null");
         }
     }
-    return false;
+    this->EventIgnored(message);
 };
 
 template <class BaseType, class RtiType>
-bool rti::PublisherPort<BaseType, RtiType>::setup_tx(){
+void rti::PublisherPort<BaseType, RtiType>::SetupWriter(){
+    std::lock_guard<std::mutex> lock(writer_mutex_);
     if(writer_ == dds::core::null){
         //Construct a DDS Participant, Publisher, Topic and Writer
-        auto helper = DdsHelper::get_dds_helper();   
-        auto participant = helper->get_participant(domain_id_->Integer());
+        auto& helper = get_dds_helper();   
+        auto participant = helper.get_participant(domain_id_->Integer());
         auto topic = get_topic<RtiType>(participant, topic_name_->String());
-        auto publisher = helper->get_publisher(participant, publisher_name_->String());
+        auto publisher = helper.get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<RtiType>(publisher, topic, qos_path_->String(), qos_name_->String());
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        return true;
+    }else{
+        throw std::runtime_error("RTI Publisher Port: '" + this->get_name() + "': Has an errant writer!");
     }
-    return false;
+};
+
+template <class BaseType, class RtiType>
+void rti::PublisherPort<BaseType, RtiType>::DestructWriter(){
+    std::lock_guard<std::mutex> lock(writer_mutex_);
+    if(writer_ != dds::core::null){
+        writer_.close();
+        writer_ = dds::pub::DataWriter<RtiType>(dds::core::null);
+    }
 };
 
 

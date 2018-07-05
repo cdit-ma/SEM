@@ -1,22 +1,15 @@
 #include "ddshelper.h"
 #include <iostream>
 
-ospl::DdsHelper* ospl::DdsHelper::singleton_ = 0;
-std::mutex ospl::DdsHelper::global_mutex_;
-
-ospl::DdsHelper* ospl::DdsHelper::get_dds_helper(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-
-    if(singleton_ == 0){
-        singleton_ = new DdsHelper();
-    }
-    return singleton_;
+ospl::Helper& ospl::get_dds_helper(){
+    static ospl::Helper helper_;
+    return helper_;
 };
 
 
-dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domain){
+dds::domain::DomainParticipant ospl::Helper::get_participant(int domain){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     //Use the dds find functionality to look for the domain participant for the domain
     auto participant = dds::domain::find(domain);
@@ -31,9 +24,9 @@ dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domain){
     return participant;
 };
 
-dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+dds::pub::Publisher ospl::Helper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     //Construct hash key (Domain|publisher_name)
     std::string key = std::to_string(participant.domain_id()) + "|" + publisher_name;
@@ -61,9 +54,9 @@ dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipan
     return publisher;
 };
 
-dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+dds::sub::Subscriber ospl::Helper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     //Acquire the Lock
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     //Construct hash key (Domain|subscriber_name)
     std::string key = std::to_string(participant.domain_id()) + "|" + subscriber_name;
@@ -90,3 +83,8 @@ dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticip
     }
     return subscriber;
 };
+
+std::unique_lock<std::mutex> ospl::Helper::obtain_lock(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return std::move(lock);
+}

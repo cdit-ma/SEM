@@ -2,6 +2,9 @@
 #include <iostream>
 
 ThreadManager::~ThreadManager(){
+    if(thread_ || future_.valid()){
+        Terminate();
+    }
     if(thread_){
         //Shutdown our thread
         thread_->join();
@@ -54,10 +57,10 @@ bool ThreadManager::WaitForActivated(){
 }
 
 void ThreadManager::Thread_WaitForTerminate(){
-    std::unique_lock<std::mutex> state_lock(state_mutex_);
-    state_condition_.wait(state_lock, [this]{
-        return states_.count(State::TERMINATED);
-    });
+    //Any Transition should wake up the activate function
+    std::unique_lock<std::mutex> transition_lock(transition_mutex_);
+    transition_condition_.wait(transition_lock);
+    transitions_.count(Transition::TERMINATE);
 }
 
 bool ThreadManager::Configure(){
@@ -87,6 +90,15 @@ bool ThreadManager::Activate(){
     return false;
 };
 
+void ThreadManager::SetTerminate(){
+    {
+        //Notify That Transition has happened
+        std::unique_lock<std::mutex> transition_lock(transition_mutex_);
+        transitions_.insert(Transition::TERMINATE);
+        transition_condition_.notify_all();
+    }
+}
+
 bool ThreadManager::Terminate(){
     std::unique_lock<std::mutex> state_lock(state_mutex_);
 
@@ -99,7 +111,7 @@ bool ThreadManager::Terminate(){
 
     state_condition_.wait(state_lock, [this]{
         return states_.count(State::TERMINATED);
-        });
+    });
     
     return states_.count(State::TERMINATED);
 };
