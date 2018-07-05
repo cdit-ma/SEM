@@ -9,7 +9,7 @@ zmq::Registrar::Registrar(ExecutionManager& execution_manager):
     execution_manager_(execution_manager)
 {
     //Construct a context for creating sockets
-    context_ = new zmq::context_t();
+    context_ = new zmq::context_t(1);
 
     //Construct a new thread for each slave
     registration_loop_ = std::async(std::launch::async, &zmq::Registrar::RegistrationLoop, this);

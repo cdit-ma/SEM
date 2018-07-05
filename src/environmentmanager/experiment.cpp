@@ -133,6 +133,9 @@ NodeManager::EnvironmentMessage* Experiment::GetLoganDeploymentMessage(const std
     if(node_map_.count(ip_address)){
         return node_map_.at(ip_address)->GetLoganDeploymentMessage();
     }
+    else{
+        throw std::invalid_argument("Experiment::GetLoganDeploymentMessage No node found with ip " + ip_address);
+    }
 }
 
 std::string Experiment::GetMasterPublisherAddress(){

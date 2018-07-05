@@ -225,12 +225,16 @@ void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& messag
     if(environment_.ModelNameExists(message.experiment_id())){
         auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
 
-        message.Swap(environment_message);
-        delete environment_message;
 
-        message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
-    }
-    else{
+        if(environment_message){
+            message.Swap(environment_message);
+            delete environment_message;
+            message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+        }
+        else{
+            message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+        }
+    }else{
         message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
     }
 

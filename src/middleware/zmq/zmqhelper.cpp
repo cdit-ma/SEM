@@ -19,7 +19,7 @@ zmq::context_t* zmq::ZmqHelper::get_context(){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
     if(!context_){
-        context_ = new zmq::context_t();
+        context_ = new zmq::context_t(1);
     }
     return context_;
 };
