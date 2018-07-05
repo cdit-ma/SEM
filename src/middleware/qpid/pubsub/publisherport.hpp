@@ -3,46 +3,31 @@
 
 #include <middleware/proto/prototranslator.h>
 #include <core/ports/pubsub/publisherport.hpp>
+#include <middleware/qpid/qpidhelper.h>
 
-#include <vector>
+#include <mutex>
 #include <iostream>
 #include <string>
 #include <mutex>
-
-#include <qpid/messaging/Address.h>
-#include <qpid/messaging/Connection.h>
-#include <qpid/messaging/Message.h>
-#include <qpid/messaging/Message_io.h>
-#include <qpid/messaging/Sender.h>
-#include <qpid/messaging/Session.h>
-#include <qpid/messaging/Duration.h>
 
 namespace qpid{
     template <class BaseType, class ProtoType> class PublisherPort: public ::PublisherPort<BaseType>{
         public:
             PublisherPort(std::weak_ptr<Component> component, std::string name);
-           ~PublisherPort(){
-                Activatable::Terminate();
-            }
+            ~PublisherPort(){this->Terminate()};
+            void Send(const BaseType& message);
         protected:
-            bool HandleConfigure();
-            bool HandlePassivate();
-            bool HandleTerminate();
-        public:
-            bool Send(const BaseType& message);
+            void HandleConfigure();
+            void HandlePassivate();
+            void HandleTerminate();
         private:
-            bool setup_tx();
-
             ::Proto::Translator<BaseType, ProtoType> translator;
 
-            std::mutex control_mutex_;
-            qpid::messaging::Connection connection_ = 0;
-            qpid::messaging::Sender sender_ = 0;
-
-        
-            std::shared_ptr<Attribute> broker_;
+            std::mutex mutex_;
+            std::unique_ptr<PortHelper> port_helper_;
+            
             std::shared_ptr<Attribute> topic_name_;
-
+            std::shared_ptr<Attribute> broker_;
     };
 };
 
@@ -57,66 +42,51 @@ qpid::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component>
 
 template <class BaseType, class ProtoType>
 bool qpid::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
-    if(valid && ::PublisherPort<BaseType>::HandleConfigure()){
-        return setup_tx();
-    }
-    return false;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(port_helper_)
+        throw std::runtime_error("qpid PublisherPort Port: '" + this->get_name() + "': Has an errant Port Helper!");
+
+    port_helper_ =  std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
+    ::PublisherPort<BaseType>::HandleConfigure();
 };
 
 template <class BaseType, class ProtoType>
-bool qpid::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::PublisherPort<BaseType>::HandlePassivate()){
-        if(connection_ && connection_.isOpen()){
-            connection_.close();
-            connection_ = 0;
-            sender_ = 0;
-        }
-        return true;
+void qpid::PublisherPort<BaseType, ProtoType>::HandlePassivate(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(port_helper_){
+        port_helper_->Terminate();
     }
-    return false;
+    ::PublisherPort<BaseType>::HandlePassivate();
 };
 
 template <class BaseType, class ProtoType>
 bool qpid::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
-    HandlePassivate();
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    return ::PublisherPort<BaseType>::HandleTerminate();
+    port_helper_.reset();
+    ::PublisherPort<BaseType>::HandleTerminate();
 };
 
 template <class BaseType, class ProtoType>
-bool qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    bool should_send = ::PublisherPort<BaseType>::Send(message);
+void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
+    //Log the recieving
+    this->EventRecieved(message);
 
-    if(should_send && sender_){
-        auto str = translator.BaseToString(message);
-        qpid::messaging::Message m;
-        m.setContentObject(str);
-        sender_.send(m);
-        return true;
-    }
-    return false;
-};
-
-
-template <class BaseType, class ProtoType>
-bool qpid::PublisherPort<BaseType, ProtoType>::setup_tx(){
-    try{
-        if(!connection_){
-            connection_ = qpid::messaging::Connection(broker_->String());
-            connection_.open();
-            auto session = connection_.createSession();
-            std::string tn = "amq.topic/pubsub/" + topic_name_->String();
-            sender_ = session.createSender(tn);
-            return true;
+    if(this->is_running()){
+        qpid::messaging::Sender sender = 0;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if(port_helper_){
+                sender = port_helper_->GetSender(topic_name_->String());
+            }
         }
-    }catch(const std::exception& ex){
-        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID Sender") + ex.what());
+
+        if(sender){
+            const auto& str = translator.BaseToString(message);
+            sender_.send(qpid::messaging::Message(str));
+            this->EventProcessed(message);
+            this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+        }
     }
-    return false;
+    this->EventIgnored(message);
 };
 
 #endif //QPID_PORT_PUBLISHER_HPP

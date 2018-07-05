@@ -6,16 +6,7 @@
 #include <middleware/proto/prototranslator.h>
 #include <middleware/qpid/qpidhelper.h>
 
-#include <thread>
 #include <mutex>
-
-#include <qpid/messaging/Address.h>
-#include <qpid/messaging/Connection.h>
-#include <qpid/messaging/Message.h>
-#include <qpid/messaging/Receiver.h>
-#include <qpid/messaging/Session.h>
-#include <qpid/messaging/Duration.h>
-#include <qpid/messaging/Sender.h>
 
 namespace qpid{
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>

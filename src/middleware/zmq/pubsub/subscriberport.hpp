@@ -81,14 +81,12 @@ void zmq::SubscriberPort<BaseType, ProtoType>::HandleActivate(){
 
 
     ::SubscriberPort<BaseType>::HandleActivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 };
 
 template <class BaseType, class ProtoType>
 void zmq::SubscriberPort<BaseType, ProtoType>::HandlePassivate(){
     InterruptLoop();
     ::SubscriberPort<BaseType>::HandlePassivate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
 }
 
 
@@ -99,7 +97,6 @@ void zmq::SubscriberPort<BaseType, ProtoType>::HandleTerminate(){
     thread_manager_.reset();
     
     ::SubscriberPort<BaseType>::HandleTerminate();
-    this->logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 };
 
 
