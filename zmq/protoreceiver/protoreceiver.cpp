@@ -37,7 +37,7 @@ void zmq::ProtoReceiver::Start(){
         {
             //Construct a context
             std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
-            context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t());
+            context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
         }
 
         //Start our two async tasks
