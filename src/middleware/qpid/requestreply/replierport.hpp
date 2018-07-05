@@ -160,8 +160,10 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
                         reply_sender.getSession().acknowledge();
                     }
                 }
-            }catch(const std::exception& ex){
-                std::cerr << ex.what() << std::endl;
+            }catch(const qpid::messaging::MessagingException& ex){
+            }
+            catch(const std::exception& ex){
+                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
             }
         }
     }
@@ -202,8 +204,10 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
                         reply_sender.getSession().acknowledge();
                     }
                 }
-            }catch(const std::exception& ex){
-                std::cerr << ex.what() << std::endl;
+            }catch(const qpid::messaging::MessagingException& ex){
+            }
+            catch(const std::exception& ex){
+                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
             }
         }
     }
@@ -243,8 +247,10 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
                         reply_sender.getSession().acknowledge();
                     }
                 }
-            }catch(const std::exception& ex){
-                std::cerr << ex.what() << std::endl;
+            }catch(const qpid::messaging::MessagingException& ex){
+            }
+            catch(const std::exception& ex){
+                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
             }
         }
     }
