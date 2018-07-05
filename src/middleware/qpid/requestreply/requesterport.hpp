@@ -106,6 +106,7 @@ void qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     std::lock_guard<std::mutex> lock(mutex_);
     if(port_helper_)
         port_helper_->Terminate();
+    port_helper_.reset();
 
     ::RequesterPort<BaseReplyType, BaseRequestType>::HandleTerminate();
 };
@@ -118,7 +119,8 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
         std::lock_guard<std::mutex> lock(mutex_);
         if(port_helper_){
             sender = port_helper_->GetSender(topic_name_->String());
-            receiver = port_helper_->GetReceiver(topic_name_->String());
+            qpid::messaging::Address receiver_address("#response-queue; {create: always, delete:always}");
+            receiver = port_helper_->GetReceiver(receiver_address);
         }
     }
     
@@ -181,6 +183,7 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleT
     std::lock_guard<std::mutex> lock(mutex_);
     if(port_helper_)
         port_helper_->Terminate();
+    port_helper_.reset();
 
     ::RequesterPort<void, BaseRequestType>::HandleTerminate();
 };
@@ -193,7 +196,8 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::Process
         std::lock_guard<std::mutex> lock(mutex_);
         if(port_helper_){
             sender = port_helper_->GetSender(topic_name_->String());
-            receiver = port_helper_->GetReceiver(topic_name_->String());
+            qpid::messaging::Address receiver_address("#response-queue; {create: always, delete:always}");
+            receiver = port_helper_->GetReceiver(receiver_address);
         }
     }
     
@@ -240,6 +244,7 @@ void qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleTermi
     std::lock_guard<std::mutex> lock(mutex_);
     if(port_helper_)
         port_helper_->Terminate();
+    port_helper_.reset();
 
     ::RequesterPort<BaseReplyType, void>::HandleTerminate();
 };
@@ -252,7 +257,8 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pr
         std::lock_guard<std::mutex> lock(mutex_);
         if(port_helper_){
             sender = port_helper_->GetSender(topic_name_->String());
-            receiver = port_helper_->GetReceiver(topic_name_->String());
+            qpid::messaging::Address receiver_address("#response-queue; {create: always, delete:always}");
+            receiver = port_helper_->GetReceiver(receiver_address);
         }
     }
 

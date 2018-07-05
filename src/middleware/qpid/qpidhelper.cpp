@@ -29,7 +29,7 @@ qpid::messaging::Sender qpid::PortHelper::GetSender(const std::string& topic_nam
     std::lock_guard<std::mutex> lock(mutex_);
     if(!session_)
         throw std::runtime_error("Not QPid Session");
-    return session_.createSender("amq.topic/reqrep/"  + topic_name);
+    return session_.createSender("amq.topic/" + topic_name);
 }
 
 qpid::messaging::Receiver qpid::PortHelper::GetReceiver(const std::string& topic_name){
@@ -37,7 +37,7 @@ qpid::messaging::Receiver qpid::PortHelper::GetReceiver(const std::string& topic
     if(!session_)
         throw std::runtime_error("Not QPid Session");
     
-    return session_.createReceiver("amq.topic/reqrep/"  + topic_name);
+    return session_.createReceiver("amq.topic/" + topic_name);
 }
 
 qpid::messaging::Sender qpid::PortHelper::GetSender(const qpid::messaging::Address& address){
