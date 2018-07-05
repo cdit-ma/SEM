@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <string>
+#include <memory>
 
 #ifdef _WIN32
     #define GET_FUNC __FUNCTION__

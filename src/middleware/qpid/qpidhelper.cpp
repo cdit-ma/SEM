@@ -7,7 +7,7 @@ qpid::QpidHelper& qpid::QpidHelper::get_qpid_helper(){
 
 qpid::PortHelper::PortHelper(const std::string& broker_endpoint){
     //Construct qpid connection and session with broker info and constructed topic name
-    connection_ = qpid::messaging::Connection(broker_endpoint->String());
+    connection_ = qpid::messaging::Connection(broker_endpoint);
     connection_.open();
     session_ = connection_.createSession();
 }
@@ -29,16 +29,27 @@ qpid::messaging::Sender qpid::PortHelper::GetSender(const std::string& topic_nam
     std::lock_guard<std::mutex> lock(mutex_);
     if(!session_)
         throw std::runtime_error("Not QPid Session");
-    auto sender = session_.createSender("amq.topic/reqrep/"  + topic_name);
-    return std::move(sender);
+    return session_.createSender("amq.topic/reqrep/"  + topic_name);
 }
 
-qpid::messaging::Receiver qpid::PortHelper::Receiver(const std::string& topic_name){
+qpid::messaging::Receiver qpid::PortHelper::GetReceiver(const std::string& topic_name){
     std::lock_guard<std::mutex> lock(mutex_);
     if(!session_)
         throw std::runtime_error("Not QPid Session");
     
-    auto response_queue_address = qpid::messaging::Address("#response-queue; {create: always, delete:always}");
-    auto receiver = session_.createReceiver(response_queue_address);
-    return std::move(receiver);
+    return session_.createReceiver("amq.topic/reqrep/"  + topic_name);
+}
+
+qpid::messaging::Sender qpid::PortHelper::GetSender(const qpid::messaging::Address& address){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(!session_)
+        throw std::runtime_error("Not QPid Session");
+    return session_.createSender(address);
+}
+
+qpid::messaging::Receiver qpid::PortHelper::GetReceiver(const qpid::messaging::Address& address){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(!session_)
+        throw std::runtime_error("Not QPid Session");
+    return session_.createReceiver(address);
 }

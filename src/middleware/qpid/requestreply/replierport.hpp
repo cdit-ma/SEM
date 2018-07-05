@@ -4,6 +4,7 @@
 #include <core/threadmanager.h>
 #include <core/ports/requestreply/replierport.hpp>
 #include <middleware/proto/prototranslator.h>
+#include <middleware/qpid/qpidhelper.h>
 
 #include <thread>
 #include <mutex>
@@ -33,12 +34,12 @@ namespace qpid{
             using middleware_reply_type = ProtoReplyType;
             using middleware_request_type = ProtoRequestType;
         protected:
-            bool HandleConfigure();
-            bool HandlePassivate();
-            bool HandleTerminate();
-            bool HandleActivate();
+            void HandleConfigure();
+            void HandlePassivate();
+            void HandleTerminate();
+            void HandleActivate();
         private:
-            bool TerminateThread();
+            void InterruptLoop();
             
             std::mutex mutex_;
             std::unique_ptr<ThreadManager> thread_manager_;
@@ -76,7 +77,7 @@ qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestTy
 };
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-bool qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
+void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(thread_manager_)
         throw std::runtime_error("qpid Replier Port: '" + this->get_name() + "': Has an errant ThreadManager!");
@@ -86,14 +87,14 @@ bool qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     port_helper_ = std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
 
-    auto future = std::async(std::launch::async, zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), std::ref(*port_helper_));
+    auto future = std::async(std::launch::async, qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), std::ref(*port_helper_), topic_name_->String());
     thread_manager_->SetFuture(std::move(future));
     thread_manager_->Configure();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 }
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-bool qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleActivate(){
+void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::HandleActivate(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(!thread_manager_)
         throw std::runtime_error("qpid ReplierPort Port: '" + this->get_name() + "': Has no ThreadManager!");
@@ -124,7 +125,7 @@ void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
 
 
 template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>
-bool qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::InterruptLoop(){
+void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::InterruptLoop(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(thread_manager_){
         thread_manager_->SetTerminate();
@@ -142,8 +143,8 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
     
     try{
         receiver = port_helper.GetReceiver(topic_name);
-    }catch(const std::exception & e){
-        std::cerr << e.what() << std::endl;
+    }catch(const std::exception& ex){
+        std::cerr << ex.what() << std::endl;
         success = false;
     }
 
@@ -170,8 +171,7 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
                     }
                 }
             }catch(const std::exception& ex){
-                Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
-                break;
+                std::cerr << ex.what() << std::endl;
             }
             port.LogPassivation();
         }
@@ -188,8 +188,8 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
     
     try{
         receiver = port_helper.GetReceiver(topic_name);
-    }catch(const std::exception & e){
-        std::cerr << e.what() << std::endl;
+    }catch(const std::exception& ex){
+        std::cerr << ex.what() << std::endl;
         success = false;
     }
 
@@ -215,8 +215,7 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
                     }
                 }
             }catch(const std::exception& ex){
-                Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
-                break;
+                std::cerr << ex.what() << std::endl;
             }
             port.LogPassivation();
         }
@@ -233,8 +232,8 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
     
     try{
         receiver = port_helper.GetReceiver(topic_name);
-    }catch(const std::exception & e){
-        std::cerr << e.what() << std::endl;
+    }catch(const std::exception& ex){
+        std::cerr << ex.what() << std::endl;
         success = false;
     }
 
@@ -259,8 +258,7 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
                     }
                 }
             }catch(const std::exception& ex){
-                Log(Severity::ERROR_).Context(&port).Func(__func__).Msg(ex.what());
-                break;
+                std::cerr << ex.what() << std::endl;
             }
             port.LogPassivation();
         }

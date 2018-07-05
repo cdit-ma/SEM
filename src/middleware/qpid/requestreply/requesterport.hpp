@@ -2,7 +2,7 @@
 #define QPID_PORT_REQUESTER_HPP
 
 #include <core/ports/requestreply/requesterport.hpp>
-#include <core/middleware/qpid/qpidhelper.h>
+#include <middleware/qpid/qpidhelper.h>
 #include <middleware/proto/prototranslator.h>
 
 #include <qpid/messaging/Address.h>
@@ -97,7 +97,7 @@ void qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
     if(port_helper_)
         throw std::runtime_error("qpid RequesterPort Port: '" + this->get_name() + "': Has an errant Port Helper!");
 
-    port_helper = std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
+    port_helper_ =  std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
     ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 };
 
@@ -172,12 +172,12 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleC
     if(port_helper_)
         throw std::runtime_error("qpid RequesterPort Port: '" + this->get_name() + "': Has an errant Port Helper!");
 
-    port_helper = std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
+    port_helper_ =  std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
     ::RequesterPort<void, BaseRequestType>::HandleConfigure();
 };
 
 template <class BaseRequestType, class ProtoRequestType>
-bool qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleTerminate(){
+void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::HandleTerminate(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(port_helper_)
         port_helper_->Terminate();
@@ -231,7 +231,7 @@ void qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::HandleConfi
     if(port_helper_)
         throw std::runtime_error("qpid RequesterPort Port: '" + this->get_name() + "': Has an errant Port Helper!");
 
-    port_helper = std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
+    port_helper_ =  std::unique_ptr<PortHelper>(new PortHelper(broker_->String()));
     ::RequesterPort<BaseReplyType, void>::HandleConfigure();
 };
 

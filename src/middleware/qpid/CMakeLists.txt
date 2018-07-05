@@ -26,3 +26,5 @@ set(HEADERS
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${QPID_INCLUDE_DIRS})
+target_link_libraries(${PROJ_NAME} ${QPID_LIBRARIES})
