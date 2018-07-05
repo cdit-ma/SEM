@@ -25,14 +25,7 @@ OpenCL_Worker::OpenCL_Worker(const Component& component, std::string inst_name)
     delete load_balancer_;
 }*/
 
-bool OpenCL_Worker::HandleConfigure() {
-
-    if (!Worker::HandleConfigure()) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-            "Unable to configure OpenCLWorker due to underlying worker configureation failing");
-        return false;
-    }
-
+void OpenCL_Worker::HandleConfigure() {
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();
@@ -46,18 +39,14 @@ bool OpenCL_Worker::HandleConfigure() {
 
     manager_ = OpenCLManager::GetReferenceByPlatformID(*this, platform_id);
     if (manager_ == NULL) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-            "Unable to obtain a reference to an OpenCLManager");
-        return false;
+        throw std::runtime_error("Unable to obtain a reference to an OpenCLManager");
     }
 
     auto& device_list = manager_->GetDevices(*this);
     std::vector<unsigned int> device_ids;
 
     if (device_id < -1 || device_id >= device_list.size()) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-            "'device_id' provided by attribute is out of bounds: " + std::to_string(device_id));
-        return false;
+        throw std::runtime_error("'device_id' provided by attribute is out of bounds: " + std::to_string(device_id));
     }
 
     if (device_id == -1) {
@@ -75,15 +64,15 @@ bool OpenCL_Worker::HandleConfigure() {
     InitFFT();
 
     is_valid_ = true;
-    return true;
+
+    Worker::HandleConfigure();
 }
 
-bool OpenCL_Worker::HandleTerminate() {
+void OpenCL_Worker::HandleTerminate() {
     if (!CleanupFFT()) {
-        return false;
+        throw std::runtime_error("Cannot clean up FFT");
     }
     delete load_balancer_;
-    return true;
 }
 
 bool OpenCL_Worker::IsValid() const {

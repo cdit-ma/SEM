@@ -17,8 +17,8 @@ public:
     OpenCL_Worker(const Component& component, std::string inst_name);
     //~OpenCL_Worker();
 
-    bool HandleConfigure() override;
-    bool HandleTerminate() override;
+    void HandleConfigure() override;
+    void HandleTerminate() override;
     bool IsValid() const;
 
     // Base/Utility functions

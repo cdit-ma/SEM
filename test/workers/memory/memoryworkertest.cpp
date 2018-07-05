@@ -28,15 +28,15 @@ struct AllocTestParam {
 
 class MemoryTestFixture: public ::testing::TestWithParam<AllocTestParam> {
     public:
-        MemoryTestFixture() /*: OpenCLWorkerConstructor(GetParam().device)*/{
-            if(!worker_.Configure()){
-                throw std::runtime_error("Failed to configure worker in MatrixMultFixture constructor");
-            }
+        MemoryTestFixture():
+        component_("Component"),
+        worker_(component_, "Component")
+        {
         }
 
     private:
-        Component component_ = Component("component");
-        Memory_Worker worker_ = Memory_Worker(component_, "MemWorker");
+        Component component_;
+        Memory_Worker worker_;
 };
 
 std::vector<AllocTestParam> getMatchingAllocParams() {
@@ -78,7 +78,7 @@ TEST_P(MemoryTestFixture, MatchingAllocTest) {
     }
 
     amt_allocated = worker.GetAllocatedCount();
-    EXPECT_TRUE(amt_allocated, 0);
+    EXPECT_EQ(amt_allocated, 0);
 
     //auto end = std::chrono::steady_clock::now();
     //auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -87,4 +87,4 @@ TEST_P(MemoryTestFixture, MatchingAllocTest) {
     //EXPECT_GT(ms.count(), 100)
 }
 
-INSTANTIATE_TEST_CASE_P(AllocDeallocPair, MemoryTestFixture, ::testing::ValuesIn(getMatchingAllocParams()))
+//INSTANTIATE_TEST_CASE_P(AllocDeallocPair, MemoryTestFixture, ::testing::ValuesIn(getMatchingAllocParams()))
