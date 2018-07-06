@@ -32,6 +32,7 @@ OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Dev
             "Unable to create a command queue for device " + name_);
     }*/
 	//name_ = dev_.getInfo<CL_DEVICE_NAME>();
+	std::cerr << name_ << std::endl;
     valid_ = true;
 }
 
