@@ -322,6 +322,7 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
 
     bool did_all_succeed = true;
     for (const auto& device : device_list_) {
+		std::cerr << "loading binaries for " << device->GetName() << std::endl;
         std::string dev_name = SanitisePathString(device->GetName()).substr(0, 15);
 		std::string plat_name = SanitisePathString(platform_name_).substr(0, 15);
 
