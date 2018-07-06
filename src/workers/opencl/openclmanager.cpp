@@ -302,7 +302,7 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 	//TODO: See Dan for how to C++11 mutex good bruh
 	if (!buffer_store_.count(buffer_id)){
     	std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
-		buffer_store_.insert({buffer_id, std::unique_ptr<GenericBuffer>(buffer)});
+		buffer_store_.insert(std::make_pair(buffer_id, std::unique_ptr<GenericBuffer>(buffer)));
 		success = true;
 	} else {
 		LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));
