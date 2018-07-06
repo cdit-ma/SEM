@@ -1627,6 +1627,10 @@
             </xsl:when>
             <!-- Void type never has a name -->
             <xsl:when test="$kind = 'VoidType'" />
+            <xsl:when test="$kind = 'Setter'">
+                <xsl:variable name="kind" select="lower-case(graphml:get_kind($entity))" />
+                <xsl:value-of select="cdit:get_variable_label($kind, $entity)" />
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="label" select="lower-case(graphml:get_label($entity))" />
                 <xsl:value-of select="cdit:get_variable_label($label, $entity)" />
