@@ -60,12 +60,15 @@ template <typename T>
 bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, const OpenCLDevice& device, bool blocking) {
 
     // Warn if size mismatch, abort if overflow would occur
-    if (data.size() !=  GetNumElements()) {
+    if (data.size() != GetNumElements()) {
         LogError(worker,
             __func__,
-            "Attempting to write vector data to a buffer of different length: "
+            "Warning: Attempting to write vector data to a buffer of different length: "
                 +std::to_string(data.size())+" when expecting "+std::to_string(GetNumElements()));
         if (data.size() > GetNumElements()) {
+            LogError(worker,
+                __func__,
+                "Skipping buffer write");
             return false;
         }
     }

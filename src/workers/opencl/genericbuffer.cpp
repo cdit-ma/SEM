@@ -14,7 +14,7 @@ GenericBuffer::GenericBuffer(const Worker& worker, OpenCLManager& manager, size_
     if (size ==0) {
         LogError(worker_reference_,
             __func__,
-            "Unable to create a buffer of length 0");
+            "Warning: Unable to create a buffer of length 0");
         valid_ = false;
         return;
     }
