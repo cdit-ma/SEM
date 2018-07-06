@@ -68,9 +68,7 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                 }
                 case NodeManager::Logger::MODEL:{
                     if(!ModelLogger::is_logger_setup()){
-                        if(!ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode())){
-                            throw std::runtime_error("Failed to setup Model Logger: tcp://" + logger_pb.publisher_address() + ":" + logger_pb.publisher_port());
-                        }
+                        ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
                     }
                     break;
                 }
@@ -279,7 +277,6 @@ void DeploymentContainer::HandleActivate(){
     for(const auto& c : logan_clients_){
         c.second->Activate();
     }
-    return true;
 }
 
 void DeploymentContainer::HandlePassivate(){
@@ -290,8 +287,6 @@ void DeploymentContainer::HandlePassivate(){
     for(const auto& c : logan_clients_){
         c.second->Passivate();
     }
-
-    return success;
 }
 
 void DeploymentContainer::HandleTerminate(){
@@ -310,7 +305,7 @@ void DeploymentContainer::HandleTerminate(){
     }
     components_.clear();
 
-    for(const auto& c : logan_clients_){
+    for(const auto& p : logan_clients_){
         auto& logan_client = p.second;
         if(logan_client){
             results.push_back(std::async(std::launch::async, &Activatable::Terminate, logan_client));

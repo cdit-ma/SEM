@@ -10,9 +10,10 @@
 #include "worker.h"
 
 
-bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& endpoint, Mode mode){
+bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
     auto& s = get_model_logger();
     if(!s.is_setup()){
+        auto endpoint = "tcp://" + address + ":" + port;
         s.setup_logger(host_name, endpoint, mode);
         return true;
     }
@@ -25,7 +26,7 @@ ModelLogger& ModelLogger::get_model_logger(){
 }
 
 bool ModelLogger::is_logger_setup(){
-    return get_model_logger()->is_setup();
+    return get_model_logger().is_setup();
 }
 
 bool ModelLogger::shutdown_logger(){

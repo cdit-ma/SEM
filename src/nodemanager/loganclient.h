@@ -17,10 +17,8 @@ class LoganClient : public Activatable{
         void AddProcess(const std::string& process);
         void SetLiveMode(bool live_mode);
     protected:
-        bool HandleActivate();
-        bool HandleConfigure();
-        bool HandlePassivate();
-        bool HandleTerminate();
+        void HandleActivate();
+        void HandleTerminate();
     private:
         std::unique_ptr<LogController> logan_client_;
         

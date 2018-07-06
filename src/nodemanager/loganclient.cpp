@@ -10,23 +10,12 @@ LoganClient::~LoganClient(){
     Activatable::Terminate();
 }
 
-bool LoganClient::HandleActivate(){
+void LoganClient::HandleActivate(){
     logan_client_->Start(endpoint_, frequency_, processes_, live_mode_);
-    return true;
 }
 
-bool LoganClient::HandlePassivate(){
-    return true;
-}
-
-bool LoganClient::HandleConfigure(){
-    return true;
-}
-
-
-bool LoganClient::HandleTerminate(){
+void LoganClient::HandleTerminate(){
     logan_client_->Stop();
-    return true;
 }
 
 void LoganClient::SetEndpoint(const std::string& address, const std::string& port){
