@@ -46,7 +46,7 @@ GenericBuffer::GenericBuffer(const Worker& worker, OpenCLManager& manager, size_
 GenericBuffer::~GenericBuffer() {
     if (valid_) {
         valid_ = false;
-        OpenCLManager::BufferAttorney::ReleaseBufferID(manager_, *this);
+        //OpenCLManager::BufferAttorney::ReleaseBufferID(manager_, *this);
     }
 }
 
