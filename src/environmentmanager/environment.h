@@ -73,9 +73,9 @@ class Environment{
 
 
         bool HasPublicEventPort(const std::string& port_id);
-        std::string GetPublicEventPortEndpoint(const std::string& port_id);
-        void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
-        void RemovePublicEventPort(const std::string& model_name, const std::string& port_id);
+        std::set<std::string> GetPublicEventPortEndpoints(const std::string& port_id);
+        void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& endpoint);
+        void RemovePublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& endpoint);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);

@@ -15,7 +15,7 @@ struct ExternalPort{
     std::string id;
     std::string external_label;
     std::set<std::string> connected_ports;
-    std::string endpoint;
+    std::set<std::string> endpoints;
 
     bool is_blackbox = false;
 };
@@ -93,7 +93,7 @@ class Experiment{
         void AddTopic(const std::string& topic);
 
         void AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
-        void RemoveExternalEndpoint(const std::string& external_port_internal_id);
+        void RemoveExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
 
 
 

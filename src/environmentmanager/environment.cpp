@@ -337,9 +337,9 @@ bool Environment::HasPublicEventPort(const std::string& port_id){
     return public_event_port_map_.count(port_id);
 }
 
-std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
+std::set<std::string> Environment::GetPublicEventPortEndpoints(const std::string& port_id){
     if(public_event_port_map_.count(port_id)){
-        return public_event_port_map_.at(port_id)->endpoint;
+        return public_event_port_map_.at(port_id)->endpoints;
     }
     else{
         throw std::invalid_argument("Endpoint with id: " + port_id + " not found!");
@@ -347,12 +347,13 @@ std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
 }
 
 void Environment::AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address){
-
-    auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
-    public_event_port_map_.emplace(port_id, std::move(temp));
-    public_event_port_map_.at(port_id)->id = port_id;
-    public_event_port_map_.at(port_id)->guid = port_id;
-    public_event_port_map_.at(port_id)->endpoint = address;
+    if(!public_event_port_map_.count(port_id)){
+        auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
+        public_event_port_map_.emplace(port_id, std::move(temp));
+        public_event_port_map_.at(port_id)->id = port_id;
+        public_event_port_map_.at(port_id)->guid = port_id;
+    }
+    public_event_port_map_.at(port_id)->endpoints.insert(address);
 
     for(const auto& experiment_pair : experiment_map_){
         experiment_pair.second->UpdatePort(port_id);
@@ -365,10 +366,14 @@ void Environment::AddPublicEventPort(const std::string& model_name, const std::s
     dependent_experiment_map_.at(port_id).insert(model_name);
 }
 
-void Environment::RemovePublicEventPort(const std::string& model_name, const std::string& port_id){
-    public_event_port_map_.erase(port_id);
-
-    dependent_experiment_map_.at(port_id).erase(model_name);
+void Environment::RemovePublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& endpoint){
+    if(public_event_port_map_.count(port_id)){
+        public_event_port_map_[port_id]->endpoints.erase(endpoint);
+        if(public_event_port_map_[port_id]->endpoints.size() == 0){
+            public_event_port_map_.erase(port_id);
+            dependent_experiment_map_.at(port_id).erase(model_name);
+        }
+    }
 }
 
 bool Environment::HasPendingPublicEventPort(const std::string& port_id){

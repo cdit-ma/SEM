@@ -306,14 +306,14 @@ void Experiment::AddExternalEndpoint(const std::string& external_port_internal_i
     if(external_port_map_.count(external_port_internal_id)){
         const auto& external_port = external_port_map_.at(external_port_internal_id);
         environment_.AddPublicEventPort(model_name_, external_port->external_label, endpoint);
-        external_port->endpoint = endpoint;
+        external_port->endpoints.insert(endpoint);
     }
 }
 
-void Experiment::RemoveExternalEndpoint(const std::string& external_port_internal_id){
+void Experiment::RemoveExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint){
     if(external_port_map_.count(external_port_internal_id)){
         const auto& external_port = external_port_map_.at(external_port_internal_id);
-        environment_.RemovePublicEventPort(model_name_, external_port->external_label);
-        external_port->endpoint = "";
+        environment_.RemovePublicEventPort(model_name_, external_port->external_label, endpoint);
+        external_port->endpoints.erase(endpoint);
     }
 }

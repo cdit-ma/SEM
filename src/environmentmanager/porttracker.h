@@ -17,7 +17,7 @@ struct EventPort{
     //list of publisher ids
     std::vector<std::string> connected_ports;
 
-    std::string endpoint;
+    std::set<std::string> endpoints;
 
 };
 class PortTracker{

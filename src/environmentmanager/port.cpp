@@ -94,7 +94,7 @@ Port::~Port(){
     }
 
     if(external_){
-        GetExperiment().RemoveExternalEndpoint(id_);
+        GetExperiment().RemoveExternalEndpoint(id_, *(endpoints_.begin()));
     }
 }
 
@@ -127,7 +127,7 @@ void Port::ConfigureConnections(){
     for(const auto& external_connected_port_id : connected_external_port_ids_){
         auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
         if(environment_.HasPublicEventPort(external_port_label)){
-            AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+            AddExternalConnectedEndpoints(environment_.GetPublicEventPortEndpoints(external_port_label));
         }
     }
 }
@@ -148,7 +148,7 @@ void Port::UpdateExternalEndpoints(){
             auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
             if(environment_.HasPublicEventPort(external_port_label)){
                 SetDirty();
-                AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
+                AddExternalConnectedEndpoints(environment_.GetPublicEventPortEndpoints(external_port_label));
             }
         }
     }
@@ -205,8 +205,10 @@ void Port::RemoveConnectedEndpoint(const std::string& endpoint){
     endpoints_.erase(endpoints_.find(endpoint));
 }
 
-void Port::AddExternalConnectedEndpoint(const std::string& endpoint){
-    external_endpoints_.insert(endpoint);
+void Port::AddExternalConnectedEndpoints(const std::set<std::string> endpoints){
+    for(const auto& endpoint : endpoints){
+        external_endpoints_.insert(endpoint);
+    }
 }
 
 void Port::RemoveExternalConnectedEndpoint(const std::string& endpoint){
