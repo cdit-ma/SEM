@@ -291,33 +291,25 @@ void DeploymentContainer::HandlePassivate(){
 
 void DeploymentContainer::HandleTerminate(){
     HandlePassivate();
-
     std::lock_guard<std::mutex> component_lock(component_mutex_);
-
-    std::list<std::future<bool> > results;
-
+    
     for(const auto& p : components_){
         auto& component = p.second;
         if(component){
-            //Construct a thread to run the terminate function, which is blocking
-            results.push_back(std::async(std::launch::async, &Activatable::Terminate, component));
+            component->Terminate();
         }
     }
-    components_.clear();
+    
 
     for(const auto& p : logan_clients_){
         auto& logan_client = p.second;
         if(logan_client){
-            results.push_back(std::async(std::launch::async, &Activatable::Terminate, logan_client));
+            logan_client->Terminate();
         }
     }
-    logan_clients_.clear();
     
-    for(auto& result : results){
-        if(!result.get()){
-            throw std::runtime_error("DeploymentContainer failed to Terminate Component");
-        }
-    }
+    components_.clear();
+    logan_clients_.clear();
 }
 
 void DeploymentContainer::HandleConfigure(){

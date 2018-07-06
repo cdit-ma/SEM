@@ -10,7 +10,7 @@ BehaviourContainer::BehaviourContainer(const std::string& inst_name){
 
 BehaviourContainer::~BehaviourContainer(){
     Activatable::Terminate();
-    std::lock_guard<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> lock(worker_mutex_);
     workers_.clear();
 }
 
@@ -30,27 +30,20 @@ void BehaviourContainer::HandlePassivate(){
     for(const auto& p : workers_){
         auto& worker = p.second;
         if(worker){
-            worker->Passivate();
+            worker->Passivate(); 
         }
     }
 }
 
 void BehaviourContainer::HandleTerminate(){
-    HandlePassivate();
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
+    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
     
-    auto success = true;
-    std::list<std::future<bool> > results;
-
     for(const auto& p : workers_){
         auto& worker = p.second;
         if(worker){
-            //Construct a thread to run the terminate function, which is blocking
-            results.push_back(std::async(std::launch::async, &Activatable::Terminate, worker));
+            worker->Terminate();
         }
     }
-
-    results.clear();
 }
 
 void BehaviourContainer::HandleConfigure(){
