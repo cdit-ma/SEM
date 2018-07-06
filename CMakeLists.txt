@@ -15,7 +15,7 @@ elseif(UNIX)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 endif()
 
-SET(RE_VERSION "3.0.5")
+SET(RE_VERSION "3.0.6")
 
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
