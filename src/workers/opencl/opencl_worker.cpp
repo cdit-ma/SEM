@@ -428,6 +428,7 @@ OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& 
         throw std::invalid_argument("No kernels in file "+source_file);
     }
     
+    std::cerr << "about to print kernel name while in GetKernel()" << std::endl;
     for (OpenCLKernel& kernel : kernel_vec) {
         if (kernel.GetName() == kernel_name) {
             return kernel;
