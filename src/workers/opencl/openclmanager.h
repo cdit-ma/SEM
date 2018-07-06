@@ -142,7 +142,8 @@ OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, const std::vecto
 
 template <typename T>
 void OpenCLManager::ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer) {
-	delete buffer;
+	//delete buffer;
+	buffer_store_.erase(buffer->GetID());
 }
 
 #endif // OPENCL_MANAGER_H
