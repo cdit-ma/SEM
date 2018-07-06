@@ -93,7 +93,7 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     manager_->ReleaseBuffer(worker_, buffer);
 }
 
-TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
+TEST_P(OpenCLManagerFixture, DISABLED_BufferReadWrite_FloatRandom1024)
 { 
     std::default_random_engine random_generator;
     std::default_random_engine generator(testing::UnitTest::GetInstance()->random_seed());
