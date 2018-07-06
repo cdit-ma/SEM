@@ -41,6 +41,7 @@ const cl::Device& OpenCLDevice::GetRef() const {
 }
 
 std::string OpenCLDevice::GetName() const {
+	std::cerr << "about to get the name pls" << std::endl;
     return name_;
 }
 
