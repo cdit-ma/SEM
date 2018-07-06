@@ -86,7 +86,7 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     auto out_data = buffer->ReadData(worker_, device);
     EXPECT_EQ(in_data, out_data);
     
-    delete buffer;
+    manager_->ReleaseBuffer(worker_, buffer);
 }
 
 TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
@@ -112,7 +112,8 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
     auto out_data = buffer->ReadData(worker_, device);
     EXPECT_EQ(in_data, out_data);
     
-    delete buffer;
+    manager_->ReleaseBuffer(worker_, buffer);
+    //delete buffer;
 }
 
 TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
