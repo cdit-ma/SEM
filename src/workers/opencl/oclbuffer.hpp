@@ -67,7 +67,7 @@ bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, c
             __func__,
             "Warning: Attempting to write vector data to a buffer of different length: "
                 +std::to_string(data.size())+" when expecting "+std::to_string(GetNumElements()));
-        std::cerr "printline for sanity" << std::endl;
+        std::cerr << "printline for sanity" << std::endl;
         if (data.size() > GetNumElements()) {
             LogError(worker,
                 __func__,
