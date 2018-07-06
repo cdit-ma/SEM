@@ -2,17 +2,14 @@
 set(PROJ_NAME test_ospl_pubsub)
 project(${PROJ_NAME})
 
-
 if(NOT OSPL_DDS_FOUND)
-# Find package OSPL_DDS
-find_package(OSPL_DDS)
-if(NOT OSPL_DDS_FOUND)
-message(STATUS "Cannot find OSPL_DDS cannot build ${PROJ_NAME}")
-return()
+	# Find package OSPL_DDS
+	find_package(OSPL_DDS)
+	if(NOT OSPL_DDS_FOUND)
+		message(STATUS "Cannot find OSPL_DDS cannot build ${PROJ_NAME}")
+		return()
+	endif()
 endif()
-endif()
-
-find_package(Boost 1.30.0 REQUIRED)
 
 OSPL_DDS_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
 
@@ -24,7 +21,6 @@ SET(SOURCE
 
 add_executable(${PROJ_NAME} ${SOURCE} ${OSPL_SRCS} ${OSPL_HDRS})
 
-target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${OSPL_DDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
