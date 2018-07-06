@@ -260,7 +260,7 @@
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
             
             <xsl:value-of select="cdit:comment_graphml_node(., $tab + 2)" />
-            <xsl:value-of select="cpp:declare_function('bool', $function_name, cpp:const_ref_var_def($port_type, 'm'), ';', $tab + 2)" />
+            <xsl:value-of select="cpp:declare_function('void', $function_name, cpp:const_ref_var_def($port_type, 'm'), ';', $tab + 2)" />
             <xsl:value-of select="if(position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
 
@@ -405,13 +405,11 @@
             <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('PublisherPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
 
             <!-- Define the Send function -->
-            <xsl:value-of select="cpp:define_function('bool', $qualified_class_type, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
+            <xsl:value-of select="cpp:define_function('void', $qualified_class_type, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), 'p', $get_port, cpp:nl(), $tab + 1)" />
                 <xsl:value-of select="cpp:if('p', cpp:scope_start(0), $tab + 1)" />
-                    <xsl:variable name="send_request" select="cpp:invoke_function('p', cpp:arrow(), 'Send', 'm', 0)" />
-                    <xsl:value-of select="cpp:return($send_request, $tab + 2)" />
+                    <xsl:value-of select="concat(cpp:invoke_function('p', cpp:arrow(), 'Send', 'm', $tab + 2), cpp:nl())" />
                 <xsl:value-of select="cpp:scope_end($tab + 1)" />
-            <xsl:value-of select="cpp:return('false', $tab + 1)" />
             <xsl:value-of select="cpp:scope_end(0)" />
             <xsl:value-of select="o:nl(1)" />
         </xsl:for-each>
