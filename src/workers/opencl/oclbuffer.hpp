@@ -75,6 +75,8 @@ bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, c
             __func__,
             "Continuing on despite mismatch (requested size is smaller than available memory space)");
     }
+
+    std::cerr << "about to pass the write command down to the generic buffer" << std::endl;
     
     bool write_success = GenericBuffer::WriteData(worker, data.data(), size_, device, blocking);
     //bool write_success = GenericBuffer::WriteData(&(front_ref), size_, blocking, worker_reference);
