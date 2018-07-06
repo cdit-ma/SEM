@@ -58,8 +58,9 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 
         OpenCLDevice* GetDevice(){
             //TODO: Add a index based device getter to OpenCLManager
-            OpenCLDevice* dev = manager_->GetDevices(worker_).at(device_.device_id).get();
-            return dev;
+            auto& dev = manager_->GetDevices(worker_).at(device_.device_id);
+            std::cout << "unique_ptr ahoy" << std::endl;
+            return dev.get();
         };
 
         DeviceParam device_;
@@ -75,6 +76,7 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
+    std::cerr << device->GetName() << std::endl;
 
     ASSERT_TRUE(buffer->is_valid());
 
