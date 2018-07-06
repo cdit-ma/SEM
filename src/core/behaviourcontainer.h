@@ -26,7 +26,6 @@ class BehaviourContainer : public Activatable{
         virtual void HandlePassivate();
         virtual void HandleTerminate();
     private:
-        std::mutex state_mutex_;
         std::mutex worker_mutex_;
 
         std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;

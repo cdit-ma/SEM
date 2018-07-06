@@ -61,26 +61,15 @@ void Component::HandlePassivate(){
 }
 
 void Component::HandleTerminate(){
-    HandlePassivate();
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
-    
-    std::list<std::future<bool> > results;
 
     for(const auto& p : ports_){
         auto& port = p.second;
         if(port){
-            //Construct a thread to run the terminate function, which is blocking
-            results.push_back(std::async(std::launch::async, &Activatable::Terminate, port));
+            port->Terminate();
         }
     }
-    for(auto& result : results){
-        if(!result.get()){
-            throw std::runtime_error("Component failed to Terminate Port");
-        }
-    }
-
-    results.clear();
-
+    
     BehaviourContainer::HandleTerminate();
     logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }

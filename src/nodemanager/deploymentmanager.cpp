@@ -219,28 +219,24 @@ void DeploymentManager::ProcessControlQueue(){
                     break;
                 }
                 case NodeManager::ControlMessage::ACTIVATE:{
-                    bool success = true;
                     for(const auto& c : deployment_containers_){
-                        success = c.second->Activate() ? success : false;
+                        c.second->Activate();
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::PASSIVATE:{
-                    bool success = true;
-                    
                     for(const auto& c : deployment_containers_){
-                        success = c.second->Passivate() ? success : false;
+                        c.second->Passivate();
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::TERMINATE:{
-                    bool success = true;
                     for(const auto& c : deployment_containers_){
-                        success = c.second->Terminate() ? success : false;
+                        c.second->Terminate();
                     }
-                    
-                    //Shutdown the Logger
+
                     ModelLogger::shutdown_logger();
+                    
                     //Send the NodeManagerMaster that we are dead
                     registrant_->SendTerminated();
                     

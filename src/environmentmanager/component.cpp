@@ -11,6 +11,11 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
     name_ = component.info().name();
     type_ = component.info().type();
 
+    //Append to the list of namespaces
+    for(const auto& ns : component.info().namespaces()){
+        namespaces_.emplace_back(ns);
+    }
+
     for(int i = 0; i < component.ports_size(); i++){
         ports_.insert(std::make_pair(component.ports(i).info().id(), 
             std::unique_ptr<EnvironmentManager::Port>(
@@ -86,6 +91,10 @@ NodeManager::Component* Component::GetUpdate(){
         component->mutable_info()->set_name(name_);
         component->mutable_info()->set_id(id_);
         component->mutable_info()->set_type(type_);
+
+        for(const auto& ns : namespaces_){
+            component->mutable_info()->add_namespaces(ns);
+        }
 
         for(const auto& port : ports_){
             component->mutable_ports()->AddAllocated(port.second->GetUpdate());

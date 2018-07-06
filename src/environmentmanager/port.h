@@ -46,6 +46,7 @@ class Port{
         void SetType(const std::string& type);
         void SetPublisherPort(const std::string& publisher_port);
         void SetTopic(const std::string& topic_name);
+        
         void AddConnectedEndpoint(const std::string& endpoint);
         void RemoveConnectedEndpoint(const std::string& endpoint);
         void AddExternalConnectedEndpoint(const std::string& endpoint);
@@ -80,6 +81,7 @@ class Port{
         std::string id_;
         std::string name_;
         std::string type_;
+        std::vector<std::string> namespaces_;
         Kind kind_;
         Middleware middleware_;
 
