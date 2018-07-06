@@ -50,7 +50,10 @@ OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, size_t num
 template <typename T>
 OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking)
     : OCLBuffer(worker, manager, data.size()) {
-    WriteData(worker, data, device, blocking);
+    bool write_success = WriteData(worker, data, device, blocking);
+    if (!write_success) {
+        throw std::runtime_error("Unable to write data to buffer during creation");
+    }
 }
 
 template <typename T>
