@@ -56,9 +56,10 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
             }
         };
 
-        OpenCLDevice& GetDevice(){
+        OpenCLDevice* GetDevice(){
             //TODO: Add a index based device getter to OpenCLManager
-            return *manager_->GetDevices(worker_).at(device_.device_id);
+            OpenCLDevice* dev = manager_->GetDevices(worker_).at(device_.device_id).get();
+            return dev;
         };
 
         DeviceParam device_;
@@ -72,7 +73,8 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     auto buffer = manager_->CreateBuffer<float>(worker_, 4);
     ASSERT_NE(buffer, nullptr);
     
-    auto &device = GetDevice();
+    auto device = GetDevice();
+    ASSERT_NE(device, nullptr);
 
     ASSERT_TRUE(buffer->is_valid());
 
@@ -82,8 +84,8 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     }
     in_data[0] = (2.0f/3.0f);
 
-    ASSERT_TRUE(buffer->WriteData(worker_, in_data, device));
-    auto out_data = buffer->ReadData(worker_, device);
+    ASSERT_TRUE(buffer->WriteData(worker_, in_data, *device));
+    auto out_data = buffer->ReadData(worker_, *device);
     EXPECT_EQ(in_data, out_data);
     
     manager_->ReleaseBuffer(worker_, buffer);
@@ -99,7 +101,8 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
 
     ASSERT_NE(buffer, nullptr);
 
-    auto &device = GetDevice();
+    auto device = GetDevice();
+    ASSERT_NE(device, nullptr);
 
     ASSERT_TRUE(buffer->is_valid());
 
@@ -108,9 +111,9 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
         in_data[i] = distribution(generator);
     }
 
-    ASSERT_TRUE(buffer->WriteData(worker_, in_data, device));
+    ASSERT_TRUE(buffer->WriteData(worker_, in_data, *device));
     std::cerr << "got past write" << std::endl;
-    auto out_data = buffer->ReadData(worker_, device);
+    auto out_data = buffer->ReadData(worker_, *device);
     EXPECT_EQ(in_data, out_data);
     
     manager_->ReleaseBuffer(worker_, buffer);
@@ -119,11 +122,12 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
 
 TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
 {
-    auto &device = GetDevice();
+    auto device = GetDevice();
+    ASSERT_NE(device, nullptr);
     size_t size = 4;
     
     auto in_data = std::vector<float>(size, 2.0f/3.0f);
-    auto in_buffer = manager_->CreateBuffer<float>(worker_, in_data, device);
+    auto in_buffer = manager_->CreateBuffer<float>(worker_, in_data, *device);
     ASSERT_NE(in_buffer, nullptr);
     auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
     ASSERT_NE(out_buffer, nullptr);
@@ -131,11 +135,11 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     ASSERT_TRUE(in_buffer->is_valid());
     ASSERT_TRUE(out_buffer->is_valid());
     //Load the kernel
-    ASSERT_TRUE(device.LoadKernelsFromSource(worker_, {GetSourcePath("kernel.cl")}));
+    ASSERT_TRUE(device->LoadKernelsFromSource(worker_, {GetSourcePath("kernel.cl")}));
 
     //TODO: Jackson Add a kernel getter for a device which takes the name of the kernel, and throws exception if it can't find it
     OpenCLKernel* passthrough_kernel = NULL;
-    for (auto& kernel_refwrapper : device.GetKernels()) {
+    for (auto& kernel_refwrapper : device->GetKernels()) {
         auto& kernel = kernel_refwrapper.get();
         if (kernel.GetName() == "dataPassthroughTest") {
             passthrough_kernel = &kernel;
@@ -144,9 +148,9 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     ASSERT_FALSE(passthrough_kernel == NULL);
 
     passthrough_kernel->SetArgs((*in_buffer), (*out_buffer));
-    passthrough_kernel->Run(device, true, cl::NullRange, cl::NDRange(size), cl::NDRange(size));
+    passthrough_kernel->Run(*device, true, cl::NullRange, cl::NDRange(size), cl::NDRange(size));
 
-    auto out_data = out_buffer->ReadData(worker_, device);
+    auto out_data = out_buffer->ReadData(worker_, *device);
     EXPECT_EQ(in_data, out_data);
 
     manager_->ReleaseBuffer(worker_, in_buffer);
