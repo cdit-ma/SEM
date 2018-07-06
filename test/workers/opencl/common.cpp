@@ -37,7 +37,6 @@ std::string GetDeviceName(int platform_id, int device_id){
         int id = 0;
         /*for (auto& device : manager->GetDevices(w)){
             if(id++ == device_id){
-                std::cerr << "getting device name in tester" << std::endl;
                 return device->GetName();
             }
         }*/

@@ -76,7 +76,6 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
-    std::cerr << device->GetName() << std::endl;
 
     ASSERT_TRUE(buffer->is_valid());
 
@@ -105,8 +104,6 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
 
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
-    std::cerr << device << std::endl;
-    std::cerr << device->GetName() << std::endl;
 
     ASSERT_TRUE(buffer->is_valid());
 
@@ -116,7 +113,6 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
     }
 
     ASSERT_TRUE(buffer->WriteData(worker_, in_data, *device));
-    std::cerr << "got past write" << std::endl;
     auto out_data = buffer->ReadData(worker_, *device);
     EXPECT_EQ(in_data, out_data);
     
