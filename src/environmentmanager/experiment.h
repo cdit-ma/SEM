@@ -3,114 +3,19 @@
 
 #include <mutex>
 #include <unordered_map>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 
-class Environment;
 
 namespace EnvironmentManager{
-
-struct LoganClient{
-    std::string experiment_name;
-    std::string id;
-    std::string ip_address;
-    std::string logging_port;
-    double frequency;
-    bool live_mode;
-    std::vector<std::string> processes;
-};
-
-struct LoganServer{
-    std::string experiment_name;
-    std::string id;
-    std::string ip_address;
-    std::string db_file_name;
-    std::vector<std::string> client_ids;
-    std::vector<std::string> client_addresses;
-};
-
-class Node{
-    public:
-        Node(const std::string& ip_address, unique_queue<int> port_set){
-            ip_ = ip_address;
-            available_ports_ = port_set;
-        }
-        std::string GetPort(){
-            std::unique_lock<std::mutex> lock(port_mutex_);
-            if(available_ports_.empty()){
-                return "";
-            }
-            auto port = available_ports_.front();
-            available_ports_.pop();
-            auto port_str =  std::to_string(port);
-            std::cout << "Port Acquired: " << name_ << " : " << port_str << std::endl;
-            return port_str;
-        };
-
-        void FreePort(const std::string& port){
-            std::unique_lock<std::mutex> lock(port_mutex_);
-            int port_number;
-            try{
-                port_number = std::stoi(port);
-                if(available_ports_.push(port_number)){
-                    std::cout << "Port Freed: " << name_ << " : " << port << std::endl;
-                }
-            }
-            catch(const std::invalid_argument& ex){
-                std::cerr << "Could not free port <\'" << port <<"\'>, port string could not be converted to int." << std::endl;
-                std::cerr << ex.what() << std::endl;
-            }
-            catch(const std::out_of_range& ex){
-                std::cerr << "Could not free port, port # out of range for int." << std::endl;
-                std::cerr << ex.what() << std::endl;
-            }
-            catch(...){
-                std::cerr << "Unknown exception thrown in Node::FreePort" << std::endl;
-            }
-        }
-        std::string GetName(){
-            return name_;
-        };
-
-        void SetName(const std::string& name){
-            name_ = name;
-        };
-        std::string GetIp(){
-            return ip_;
-        };
-        void IncrementComponentCount(){
-            component_count_++;
-        }
-    private:
-        std::string name_;
-        std::string ip_;
-        int component_count_ = 0;
-        std::mutex port_mutex_;
-        unique_queue<int> available_ports_;
-
-        //eventport guid -> port number assigned
-        std::unordered_map<std::string, std::string> used_ports_;
-};
-
-struct EventPort{
-    std::string id;
-    std::string guid;
-    std::string type;
-    std::string node_ip;
-    std::string port_number;
-    std::string topic;
-
-    //list of publisher ids
-    std::vector<std::string> connected_ports;
-
-    std::string endpoint;
-
-};
-
+class Environment;
+class Node;
+class Port;
 struct ExternalPort{
     std::string id;
     std::string external_label;
-    std::vector<std::string> connected_ports;
+    std::set<std::string> connected_ports;
+    std::string endpoint;
 
     bool is_blackbox = false;
 };
@@ -136,31 +41,61 @@ class Experiment{
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
-        void ConfigureNode(NodeManager::Node& node);
+        void ConfigureNodes();
+
+        NodeManager::ControlMessage* GetProto();
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
-        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
 
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
 
-        std::string GetNodeModelLoggerPort(const std::string& ip) const;
-
         std::set<std::string> GetTopics() const;
 
-        std::vector<std::string> GetPublisherAddress(const NodeManager::Port& port);
         std::string GetOrbEndpoint(const std::string& port_id);
 
         std::string GetTaoReplierServerAddress(const NodeManager::Port& port);
         std::string GetTaoServerName(const NodeManager::Port& port);
 
-        bool IsDirty() const;
+        std::string GetPublicEventPortName(const std::string& public_port_local_id);
 
-        void UpdatePort(const std::string& port_guid);
+        Port& GetPort(const std::string& id);
+
+
+        bool IsDirty() const;
+        void SetDirty();
+
+
+        void UpdatePort(const std::string& external_port_label);
 
         void SetDeploymentMessage(const NodeManager::ControlMessage& control_message);
-        void GetUpdate(NodeManager::ControlMessage& control_message);
+        NodeManager::ControlMessage* GetUpdate();
+
+        void AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint);
+        void RemoveLoganClientEndpoint(const std::string& client_id);
+        const std::unordered_map<std::string, std::string>& GetLoganClientEndpointMap() const;
+
+        void AddModelLoggerEndpoint(const std::string& client_id, const std::string& endoint);
+        void RemoveModelLoggerEndpoint(const std::string& client_id);
+        const std::unordered_map<std::string, std::string>& GetModelLoggerEndpointMap() const;
+
+        void AddZmqEndpoint(const std::string& port_id, const std::string& endpoint);
+        void RemoveZmqEndpoint(const std::string& port_id);
+        const std::unordered_map<std::string, std::string>& GetZmqEndpointMap() const;
+
+        void AddTaoEndpoint(const std::string& port_id, const std::string& endpoint);
+        void RemoveTaoEndpoint(const std::string& port_id);
+        const std::unordered_map<std::string, std::string>& GetTaoEndpointMap() const;
+
+        void AddConnection(const std::string& connected_id, const std::string& port_id);
+        void AddTopic(const std::string& topic);
+
+        void AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
+        void RemoveExternalEndpoint(const std::string& external_port_internal_id);
+
+
 
     private:
     
@@ -179,8 +114,8 @@ class Experiment{
         std::string master_ip_address_;
         std::string manager_port_;
 
-        //node_id -> protobuf node
-        std::unordered_map<std::string, std::unique_ptr<NodeManager::Node> > node_map_;
+        //node_ip -> internal node map
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
 
         //node_id -> node_ip_addr
         std::unordered_map<std::string, std::string> node_address_map_;
@@ -188,35 +123,14 @@ class Experiment{
         //node_ip_address -> node_id
         std::unordered_map<std::string, std::string> node_id_map_;
 
-        //event port id -> eventport
-        std::unordered_map<std::string, EventPort> port_map_;
-
-        //subscriber_id -> publisher_id
-        std::unordered_map<std::string, std::vector<std::string> > connection_map_;
-
-        //node_id -> management_port
-        std::unordered_map<std::string, std::string> management_port_map_;
-
-        //node_id -> model_logger_port
-        std::unordered_map<std::string, std::string> modellogger_port_map_;
-
-        //node_id -> orb port
-        std::unordered_map<std::string, std::string> orb_port_map_;
-
         //list of topics used in this experiment
         std::set<std::string> topic_set_;
-
-        //map of node id -> deployed component count
-        std::unordered_map<std::string, int> deployment_map_;
 
         //map of internal port_id -> external port unique label
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
 
         //external port_id -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
-
-        std::unordered_map<std::string, std::unique_ptr<LoganClient> > logan_client_map_;
-        std::unordered_map<std::string, std::unique_ptr<LoganServer> > logan_server_map_;
 
         uint64_t time_added_;
         ExperimentState state_;
@@ -226,6 +140,19 @@ class Experiment{
         bool dirty_flag_ = false;
 
         std::set<std::string> updated_port_ids_;
+
+        //node id -> model logger fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
+        std::unordered_map<std::string, std::string> modellogger_endpoint_map_;
+
+        //logan client id -> logan client fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
+        std::unordered_map<std::string, std::string> logan_client_endpoint_map_;
+
+        //port id -> configured zmq endpoing "tcp://xxx.xxx.xxx.xxx:pppp"
+        std::unordered_map<std::string, std::string> zmq_endpoint_map_;
+
+        //Port id -> Configured tao endpoint "corbaloc:iiop:xxx.xxx.xxx.xxx:pppp/server_name;
+        std::unordered_map<std::string, std::string> tao_endpoint_map_;
+
 };
 }; //namespace EnvironmentManager
 

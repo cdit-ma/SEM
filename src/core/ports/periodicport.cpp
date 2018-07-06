@@ -18,7 +18,6 @@
 */
 
 //TODO: LOOKUP Leaky bucket model
-//TODO: HANDLE Frequency <= 5000hz
 
 PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds)
 : ::SubscriberPort<base_type>(component, name, callback, "periodic"){

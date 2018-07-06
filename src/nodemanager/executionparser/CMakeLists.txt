@@ -11,7 +11,6 @@ project(${PROJ_NAME})
 #Find PUGIXML Library
 set(PUGIXML_ROOT $ENV{PUGIXML_ROOT})
 
-
 if(NOT PUGIXML_LIBRARIES)
     # Find library PUGIXML_LIBRARIES
     find_library(PUGIXML_LIBRARIES pugixml REQUIRED "${PUGIXML_ROOT}/lib")
@@ -50,14 +49,18 @@ endif(MSVC)
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../re_common/)
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${RE_SRC_PATH})
+
+
 
 
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${PUGIXML_ROOT}/include)
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${EXECUTION_PARSER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../re_common/)
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${EXECUTION_PARSER} PRIVATE ${RE_SRC_PATH})
 
 

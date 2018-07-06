@@ -30,17 +30,12 @@ DeploymentManager::DeploymentManager(bool on_master_node,
 
     execution_->AddTerminateCallback(std::bind(&DeploymentManager::InteruptQueueThread, this));
 
-    //Get all Main messages
-    subscriber_->Filter("*");
-
     //Subscribe to NodeManager::ControlMessage Types
     subscriber_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
 
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
-    
-    subscriber_->Start();
-    
+
     registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
 }
 
@@ -103,25 +98,14 @@ NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const No
 
     const auto& host_name = startup.slave_host_name();
     
-    const auto& logger = startup.logger();
-        
-    //Handle Logger setup
-    if(!ModelLogger::setup_model_logger(host_name, logger.publisher_address(), (ModelLogger::Mode)logger.mode())){
-        slave_response.add_error_codes("Setting Model Logger Failed");
-        success = false;
-    }
+   
 
     //Setup our subscriber
     if(subscriber_){
-        if(!subscriber_->Connect(master_publisher_endpoint_)){
-            slave_response.add_error_codes("Subscriber couldn't connect to: '" + master_publisher_endpoint_ + "'");
-            success = false;
-        }
-
-        if(!subscriber_->Filter(host_name + "*")){
-            slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
-            success = false;
-        }
+        subscriber_->Connect(master_publisher_endpoint_);
+        subscriber_->Filter("*");
+        subscriber_->Filter(host_name + "*");
+        subscriber_->Start();
     }else{
         success = false;
     }

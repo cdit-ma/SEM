@@ -9,7 +9,7 @@
 #include "environment.h"
 #include "deploymenthandler.h"
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <re_common/util/execution.hpp>
 
 namespace zmq{
@@ -49,7 +49,7 @@ class DeploymentRegister{
 
         std::unique_ptr<zmq::context_t> context_;
 
-        std::unique_ptr<Environment> environment_;
+        std::unique_ptr<EnvironmentManager::Environment> environment_;
 
         std::string ip_addr_;
         std::string registration_port_;

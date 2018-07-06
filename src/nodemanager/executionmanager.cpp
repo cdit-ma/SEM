@@ -1,18 +1,12 @@
 #include "executionmanager.h"
 #include "executionparser/modelparser.h"
 #include "environmentmanager/deploymentgenerator.h"
-#include "environmentmanager/deploymentrule.h"
-#include "environmentmanager/deploymentrules/zmq/zmqrule.h"
-#include "environmentmanager/deploymentrules/dds/ddsrule.h"
-#include "environmentmanager/deploymentrules/amqp/amqprule.h"
-#include "environmentmanager/deploymentrules/tao/taorule.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
 #include <unordered_map>
 
-#include <proto/controlmessage/controlmessage.pb.h>
-
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
 
@@ -85,18 +79,16 @@ std::string ExecutionManager::GetMasterRegistrationEndpoint(){
 
 bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
-        Environment* environment = new Environment("");
+        EnvironmentManager::Environment* environment = new EnvironmentManager::Environment("");
 
-        environment->AddDeployment(deployment_message_->experiment_id(), "", Environment::DeploymentType::EXECUTION_MASTER);
+        environment->AddDeployment(deployment_message_->experiment_id(), "", EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER);
 
         DeploymentGenerator generator(*environment);
         //TODO: Add other middlewares.
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(*environment)));
-        generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(*environment)));
 
-        generator.PopulateDeployment(*deployment_message_);
+        NodeManager::ControlMessage* configured_message =  generator.PopulateDeployment(*deployment_message_);
+        deployment_message_->Clear();
+        deployment_message_ = configured_message;
     }
     else{
         requester_->Init(environment_manager_endpoint_);
@@ -119,10 +111,18 @@ bool ExecutionManager::PopulateDeployment(){
 
         for(auto& attribute : deployment_message_->attributes()){
             if(attribute.info().name() == "master_publisher_endpoint"){
-                master_publisher_endpoint_ = attribute.s(0);
+                if(attribute.s_size() > 0){
+                    master_publisher_endpoint_ = attribute.s(0);
+                }else{
+                    throw std::runtime_error("Got no Master Publisher Endpoint");
+                }
             }
             else if(attribute.info().name() == "master_registration_endpoint"){
-                master_registration_endpoint_= attribute.s(0);
+                if(attribute.s_size() > 0){
+                    master_registration_endpoint_= attribute.s(0);
+                }else{
+                    throw std::runtime_error("Got no Master Registration Endpoint");
+                }
             }
         }
     }
@@ -219,7 +219,11 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
         auto attribute = node->attributes(i);
 
         if(attribute.info().name() == "modellogger_port"){
-            logger_port = attribute.s(0);
+            if(attribute.s_size() > 0){
+                logger_port= attribute.s(0);
+            }else{
+                throw std::runtime_error("Got no Model Logger Endpoint");
+            }
         }
     }
 
@@ -286,7 +290,11 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
-            ip_address = attribute.s(0);
+            if(attribute.s_size() > 0){
+                ip_address = attribute.s(0);
+            }else{
+                throw std::runtime_error("Got no IP Address for Slave Node");
+            }
         }
     }
 

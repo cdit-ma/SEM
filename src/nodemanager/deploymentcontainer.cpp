@@ -4,7 +4,8 @@
 #include <core/worker.h>
 #include <core/modellogger.h>
 #include <core/ports/periodicport.h>
-#include <core/ports/periodicport.h>
+
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
 #include <iostream>
 #include <algorithm>
@@ -57,6 +58,25 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
         for(const auto& component_pb : node.components()){
             GetConfiguredComponent(component_pb);
         }
+
+        //Try and configure all components
+        for(const auto& logger_pb : node.loggers()){
+            switch(logger_pb.type()){
+                case NodeManager::Logger::CLIENT:{
+                    GetConfiguredLoganClient(logger_pb);
+                    break;
+                }
+                case NodeManager::Logger::MODEL:{
+                    if(!ModelLogger::is_logger_setup()){
+                        ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
         std::cout << "* Configured Slave as: " << get_name() << std::endl;
         return Activatable::Configure();
     }catch(const std::runtime_error& e){
@@ -121,6 +141,63 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     }
     return nullptr;
 }
+
+std::shared_ptr<LoganClient> DeploymentContainer::GetConfiguredLoganClient(const NodeManager::Logger& logger_pb){
+    if(logger_pb.type() == NodeManager::Logger::CLIENT && logger_pb.mode() != NodeManager::Logger::OFF){
+        //Try and get the Component first
+        auto logan_container = GetLoganClient(logger_pb.id()).lock();
+        if(!logan_container){
+            //Construct the Component
+            logan_container = ConstructLoganClient(logger_pb.id());
+        }
+
+        if(logan_container){
+            logan_container->SetEndpoint(logger_pb.publisher_address(), logger_pb.publisher_port());
+            logan_container->SetFrequency(logger_pb.frequency());
+
+            for(const auto& process : logger_pb.processes()){
+                logan_container->AddProcess(process);
+            }
+
+            logan_container->SetLiveMode(logger_pb.mode() == NodeManager::Logger::LIVE);
+        }else{
+            throw std::runtime_error("Cannot Construct Logan Client: " + logger_pb.id());
+        }
+
+        return logan_container;
+    }
+    return nullptr;
+
+}
+
+std::shared_ptr<LoganClient> DeploymentContainer::ConstructLoganClient(const std::string& id){
+    auto logan_client = std::unique_ptr<LoganClient>(new LoganClient(id));
+    if(logan_client){
+        return AddLoganClient(std::move(logan_client), id).lock();
+    }
+    return nullptr;
+}
+
+std::weak_ptr<LoganClient> DeploymentContainer::GetLoganClient(const std::string& id){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+    if(logan_clients_.count(id)){
+        return logan_clients_[id];
+    }else{
+        return std::weak_ptr<LoganClient>();
+    }
+}
+
+std::shared_ptr<LoganClient> DeploymentContainer::RemoveLoganClient(const std::string& id){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+    if(logan_clients_.count(id)){
+        auto logan_client = logan_clients_[id];
+        logan_clients_.erase(id);
+        return logan_client;
+    }
+    return nullptr;
+}
+
+
 
 std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& info){
     std::ostringstream concatenated_stream;
@@ -196,10 +273,18 @@ void DeploymentContainer::HandleActivate(){
     for(const auto& c : components_){
         c.second->Activate();
     }
+
+    for(const auto& c : logan_clients_){
+        c.second->Activate();
+    }
 }
 
 void DeploymentContainer::HandlePassivate(){
     for(const auto& c : components_){
+        c.second->Passivate();
+    }
+
+    for(const auto& c : logan_clients_){
         c.second->Passivate();
     }
 }
@@ -218,6 +303,16 @@ void DeploymentContainer::HandleTerminate(){
             results.push_back(std::async(std::launch::async, &Activatable::Terminate, component));
         }
     }
+    components_.clear();
+
+    for(const auto& p : logan_clients_){
+        auto& logan_client = p.second;
+        if(logan_client){
+            results.push_back(std::async(std::launch::async, &Activatable::Terminate, logan_client));
+        }
+    }
+    logan_clients_.clear();
+    
     for(auto& result : results){
         if(!result.get()){
             throw std::runtime_error("DeploymentContainer failed to Terminate Component");
@@ -239,6 +334,11 @@ void DeploymentContainer::HandleConfigure(){
             results.push_back(std::async(std::launch::async, &Activatable::Configure, component));
         }
     }
+
+    for(const auto& c : logan_clients_){
+        results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
+    }
+    
     for(auto& result : results){
         if(!result.get()){
             throw std::runtime_error("DeploymentContainer failed to Configure Component");
@@ -255,6 +355,18 @@ std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Compo
         throw std::runtime_error("DeploymentContainer already has a Component with name: " + name);
     }else{
         throw std::runtime_error("DeploymentContainer cannot add a Null Component with name: " + name);
+    }
+}
+
+std::weak_ptr<LoganClient> DeploymentContainer::AddLoganClient(std::unique_ptr<LoganClient> logan_client, const std::string& id){
+    std::lock_guard<std::mutex> component_lock(component_mutex_);
+    if(logan_client && logan_clients_.count(id) == 0){
+        logan_clients_[id] = std::move(logan_client);
+        return logan_clients_[id];
+    }else if(logan_client){
+        throw std::runtime_error("DeploymentContainer already has a Logan Client with ID: " + id);
+    }else{
+        throw std::runtime_error("DeploymentContainer cannot add a Null Logan Client with ID: " + id);
     }
 }
 

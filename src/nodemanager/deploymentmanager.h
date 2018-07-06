@@ -14,7 +14,7 @@
 #include <core/modellogger.h>
 #include "deploymentcontainer.h"
 #include "zmq/registrant.h"
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
 namespace zmq{class ProtoReceiver;};
 class Execution;

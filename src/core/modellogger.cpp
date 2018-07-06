@@ -2,18 +2,18 @@
 #include <ctime>
 #include <iostream>
 
-
-#include "../re_common/zmq/protowriter/cachedprotowriter.h"
-#include <proto/modelevent/modelevent.pb.h>
+#include <re_common/proto/modelevent/modelevent.pb.h>
+#include <re_common/zmq/protowriter/cachedprotowriter.h>
 
 #include "component.h"
 #include "ports/port.h"
 #include "worker.h"
 
 
-bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& endpoint, Mode mode){
+bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
     auto& s = get_model_logger();
     if(!s.is_setup()){
+        auto endpoint = "tcp://" + address + ":" + port;
         s.setup_logger(host_name, endpoint, mode);
         return true;
     }
@@ -23,6 +23,10 @@ bool ModelLogger::setup_model_logger(const std::string& host_name, const std::st
 ModelLogger& ModelLogger::get_model_logger(){
     static std::unique_ptr<ModelLogger> logger_(new ModelLogger());
     return *logger_;
+}
+
+bool ModelLogger::is_logger_setup(){
+    return get_model_logger().is_setup();
 }
 
 bool ModelLogger::shutdown_logger(){

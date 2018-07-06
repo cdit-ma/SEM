@@ -2,15 +2,11 @@
 #include <iostream>
 
 #include "deploymentgenerator.h"
-#include "deploymentrules/zmq/zmqrule.h"
-#include "deploymentrules/dds/ddsrule.h"
-#include "deploymentrules/amqp/amqprule.h"
-#include "deploymentrules/tao/taorule.h"
 
-DeploymentHandler::DeploymentHandler(Environment& env,
+DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     zmq::context_t& context,
                                     const std::string& ip_addr,
-                                    Environment::DeploymentType deployment_type,
+                                    EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string>* port_promise,
                                     const std::string& experiment_id) :
@@ -110,10 +106,10 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
     try{
         if(!removed_flag_){
-            if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
+            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
                 environment_.RemoveExperiment(experiment_id_, call_time);
             }
-            if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
+            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
                 environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
             }
             removed_flag_ = true;
@@ -166,11 +162,8 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
                 //Create generator and populate message
                 DeploymentGenerator generator(environment_);
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Amqp::DeploymentRule(environment_)));
-                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Tao::DeploymentRule(environment_)));
-                generator.PopulateDeployment(*(message.mutable_control_message()));
+                NodeManager::ControlMessage* configured_message = generator.PopulateDeployment(*(message.mutable_control_message()));
+                message.set_allocated_control_message(configured_message);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
             }
@@ -223,25 +216,25 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 }
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
-    
     message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-
-    auto update_message = message.mutable_control_message();
-
-    environment_.GetExperimentUpdate(experiment_id_, *update_message);
-
+    message.set_allocated_control_message(environment_.GetExperimentUpdate(experiment_id_));
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
 
     if(environment_.ModelNameExists(message.experiment_id())){
-        auto loggers = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint()).logger();
+        auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
 
-        *message.mutable_logger() = {loggers.begin(), loggers.end()};
 
-        message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
-    }
-    else{
+        if(environment_message){
+            message.Swap(environment_message);
+            delete environment_message;
+            message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+        }
+        else{
+            message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+        }
+    }else{
         message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
     }
 

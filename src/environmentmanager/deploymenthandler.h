@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include "environment.h"
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
 namespace NodeManager{
     class EnvironmentMessage;
@@ -15,10 +15,10 @@ namespace NodeManager{
 class DeploymentHandler{
     public:
         
-        DeploymentHandler(Environment& env,
+        DeploymentHandler(EnvironmentManager::Environment& env,
                         zmq::context_t& context,
                         const std::string& ip_addr,
-                        Environment::DeploymentType deployment_type,
+                        EnvironmentManager::Environment::DeploymentType deployment_type,
                         const std::string& deployment_ip_address,
                         std::promise<std::string>* port_promise,
                         const std::string& experiment_id);
@@ -55,9 +55,9 @@ class DeploymentHandler{
         std::string ip_addr_;
         zmq::context_t& context_;
 
-        Environment& environment_;
+        EnvironmentManager::Environment& environment_;
 
-        Environment::DeploymentType deployment_type_;
+        EnvironmentManager::Environment::DeploymentType deployment_type_;
         std::string deployment_ip_address_;
         std::string experiment_id_;
         std::map<std::string, std::string> port_map_;

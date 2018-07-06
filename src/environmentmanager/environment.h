@@ -7,10 +7,12 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include "uniquequeue.hpp"
 #include "experiment.h"
+#include "porttracker.h"
 
+namespace EnvironmentManager{
 class Environment{
 
     public:
@@ -29,18 +31,19 @@ class Environment{
         void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
 
 
-        NodeManager::EnvironmentMessage GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
 
-        void StoreControlMessage(const NodeManager::ControlMessage& control_message);
+        void FinishConfigure(const std::string& model_name);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
         void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
+        void ConfigureNodes(const std::string& model_name);
+        NodeManager::ControlMessage* GetProto(const std::string& model_name);
 
         bool ExperimentIsDirty(const std::string& model_name);
-        void GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message);
+        NodeManager::ControlMessage* GetExperimentUpdate(const std::string& model_name);
 
         bool ModelNameExists(const std::string& model_name) const;
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;
@@ -49,14 +52,8 @@ class Environment{
 
         std::string GetMasterPublisherAddress(const std::string& model_name);
         std::string GetMasterRegistrationAddress(const std::string& model_name);
-        std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
-        std::string GetTaoReplierServerAddress(const std::string& model_name, const NodeManager::Port& port);
-        std::string GetTaoServerName(const std::string& model_name, const NodeManager::Port& port);
-
-        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::Port& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
-        std::string GetOrbEndpoint(const std::string& experiment_id, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
 
@@ -78,6 +75,7 @@ class Environment{
         bool HasPublicEventPort(const std::string& port_id);
         std::string GetPublicEventPortEndpoint(const std::string& port_id);
         void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
+        void RemovePublicEventPort(const std::string& model_name, const std::string& port_id);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);
@@ -111,7 +109,7 @@ class Environment{
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
         //node_name -> node data structure
-        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
+        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::PortTracker> > node_map_;
 
         //node_name -> node_ip map
         std::unordered_map<std::string, std::string> node_ip_map_;
@@ -134,6 +132,7 @@ class Environment{
 
         //ports available on the environment manager, uses same port range as nodes.
         unique_queue<int> available_node_manager_ports_;
+};
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT
