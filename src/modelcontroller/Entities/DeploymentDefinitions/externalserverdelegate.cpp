@@ -73,7 +73,8 @@ bool MEDEA::ExternalServerDelegate::canAcceptEdge(EDGE_KIND edge_kind, Node *dst
         bool in_shared_datatype = false;
 
         if(dst->getNodeKind() == NODE_KIND::SERVER_INTERFACE){
-            for(auto parent : dst->getParentNodes()){
+
+            for(auto parent : dst->getParentNodes(-1)){
                 if(parent->getNodeKind() == NODE_KIND::SHARED_DATATYPES){
                     in_shared_datatype = true;
                     break;
