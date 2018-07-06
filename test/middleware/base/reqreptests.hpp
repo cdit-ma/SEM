@@ -150,7 +150,6 @@ void ReqRep::Basic2Basic::Busy::RunTest(
 };
 
 Base::Basic ReqRep::Basic2Basic::Timeout::Callback(Base::Basic& message){
-    std::cout << message.int_val << std::endl;
     sleep_ms(100);
     message.int_val *= 10;
     return message;
