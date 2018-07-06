@@ -113,10 +113,36 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
-    auto bufferA = manager_->CreateBuffer<float>(*this, matA, *device);
-    auto bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
+    OCLBuffer<float>* bufferA = NULL;
+    OCLBuffer<float>* bufferB = NULL;
+    OCLBuffer<float>* result_buffer = NULL;
+
+    try {
+        bufferA = manager_->CreateBuffer<float>(*this, matA, *device);
+    } catch (const std::exception& e) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            "Failed to create buffer for Matrix A in MatrixMult: \n"+std::string(e.what()));
+        return false;
+    }
+
+    try {
+        auto bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
+    } catch (const std::exception& e) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            "Failed to create buffer for Matrix B in MatrixMult: \n"+std::string(e.what()));
+        manager_->ReleaseBuffer(*this, bufferA);
+        return false;
+    }
     //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
-    auto result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
+    try {
+        auto result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
+    } catch (const std::exception& e) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            "Failed to create buffer for result matrix in MatrixMult: \n"+std::string(e.what()));
+        manager_->ReleaseBuffer(*this, bufferA);
+        manager_->ReleaseBuffer(*this, bufferB);
+        return false;
+    }
 
     bool success = MatrixMult(*bufferA, *bufferB, *result_buffer, *device);
     //auto new_matA = bufferA->ReadData(true, this);
