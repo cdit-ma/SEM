@@ -103,7 +103,7 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
 
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
-
+    std::cerr << device << std::endl;
     std::cerr << device->GetName() << std::endl;
 
     ASSERT_TRUE(buffer->is_valid());
