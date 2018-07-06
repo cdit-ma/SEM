@@ -58,7 +58,7 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 
         OpenCLDevice& GetDevice(){
             //TODO: Add a index based device getter to OpenCLManager
-            return *manager_->GetDevices(worker_)[device_.device_id];
+            return *manager_->GetDevices(worker_).at(device_.device_id);
         };
 
         DeviceParam device_;
@@ -109,6 +109,7 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
     }
 
     ASSERT_TRUE(buffer->WriteData(worker_, in_data, device));
+    std::cerr << "got past write" << std::endl;
     auto out_data = buffer->ReadData(worker_, device);
     EXPECT_EQ(in_data, out_data);
     
