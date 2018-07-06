@@ -40,6 +40,7 @@ class Component{
         std::string id_;
         std::string name_;
         std::string type_;
+        std::vector<std::string> namespaces_;
 
         bool dirty_;
 

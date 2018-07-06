@@ -53,13 +53,13 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         }
     }
 
-    std::string type;
+    //Append to the list of namespaces
     for(const auto& ns : port.info().namespaces()){
-        type += ns + "::";
+        namespaces_.emplace_back(ns);
     }
 
-    type += port.info().type();
-    SetType(type);
+    //Use the exact type
+    SetType(port.info().type());
     
     if(middleware_ != Middleware::Tao){
         for(int a = 0; a < port.attributes_size(); a++){
@@ -251,6 +251,10 @@ NodeManager::Port* Port::GetProto(){
     port->mutable_info()->set_name(name_);
     port->mutable_info()->set_id(id_);
     port->mutable_info()->set_type(type_);
+    for(const auto& ns : namespaces_){
+        port->mutable_info()->add_namespaces(ns);
+    }
+    
 
     port->set_kind(InternalPortKindToProto(kind_));
     port->set_middleware(InternalPortMiddlewareToProto(middleware_));
