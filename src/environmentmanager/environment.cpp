@@ -369,10 +369,6 @@ void Environment::AddPublicEventPort(const std::string& model_name, const std::s
 void Environment::RemovePublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& endpoint){
     if(public_event_port_map_.count(port_id)){
         public_event_port_map_[port_id]->endpoints.erase(endpoint);
-        if(public_event_port_map_[port_id]->endpoints.size() == 0){
-            public_event_port_map_.erase(port_id);
-            dependent_experiment_map_.at(port_id).erase(model_name);
-        }
     }
 }
 
