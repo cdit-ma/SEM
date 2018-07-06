@@ -11,6 +11,12 @@
 #include <middleware/ospl/pubsub/publisherport.hpp>
 #include <middleware/ospl/pubsub/subscriberport.hpp>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+boost::uuids::random_generator uuid_generator;
+
 bool setup_port(Port& port, const std::string& topic_name){
     auto d = port.GetAttribute("domain_id").lock();
     auto t = port.GetAttribute("topic_name").lock();
@@ -79,9 +85,11 @@ TEST(ospl_PubSub, Basic_Stable){
     ospl::PublisherPort<base_type, mw_type> pub_port(c, "tx_" + test_name);
     ospl::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
+    
+    auto topic_name = boost::uuids::to_string(uuid_generator()); 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, test_name));
-    EXPECT_TRUE(setup_port(sub_port, test_name));
+    EXPECT_TRUE(setup_port(pub_port, topic_name));
+    EXPECT_TRUE(setup_port(sub_port, topic_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -106,9 +114,11 @@ TEST(ospl_PubSub, Basic_Busy){
     ospl::PublisherPort<base_type, mw_type> pub_port(c, "tx_" + test_name);
     ospl::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
+    
+    auto topic_name = boost::uuids::to_string(uuid_generator()); 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, test_name));
-    EXPECT_TRUE(setup_port(sub_port, test_name));
+    EXPECT_TRUE(setup_port(pub_port, topic_name));
+    EXPECT_TRUE(setup_port(sub_port, topic_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -132,9 +142,11 @@ TEST(ospl_PubSub, Basic_Terminate){
     ospl::PublisherPort<base_type, mw_type> pub_port(c, "tx_" + test_name);
     ospl::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
+    
+    auto topic_name = boost::uuids::to_string(uuid_generator()); 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, test_name));
-    EXPECT_TRUE(setup_port(sub_port, test_name));
+    EXPECT_TRUE(setup_port(pub_port, topic_name));
+    EXPECT_TRUE(setup_port(sub_port, topic_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }

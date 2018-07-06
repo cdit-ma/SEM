@@ -9,9 +9,11 @@ find_package(Protobuf REQUIRED)
 find_package(RTI_DDS)
 
 if(NOT RTI_DDS_FOUND)
-	message(STATUS "Cannot find RTI_DDS cannot build project ${PROJ_NAME}")
-	return()
+message(STATUS "Cannot find RTI_DDS cannot build project ${PROJ_NAME}")
+return()
 endif()
+
+find_package(Boost 1.30.0 REQUIRED)
 
 # Generate the <rti> files for Aggregate
 RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
@@ -26,6 +28,7 @@ add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 # Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE ${RTI_DDS_DEFINITIONS})
 
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RTI_DDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
