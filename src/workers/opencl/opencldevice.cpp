@@ -72,6 +72,7 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 
     std::vector<cl::Device> device_vec;
     //device_vec.emplace_back(*dev_);
+	std::cerr << "Loading kernels from source" << std::endl;
 	for (const auto& other_dev : manager_.GetDevices(worker)) {
 		if (other_dev->GetName() == name_) {
 			device_vec.emplace_back(other_dev->GetRef());
