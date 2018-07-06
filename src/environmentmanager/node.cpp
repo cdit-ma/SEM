@@ -158,8 +158,7 @@ Port& Node::GetPort(const std::string& port_id) const{
 }
 
 NodeManager::Node* Node::GetUpdate(){
-    NodeManager::Node* node;
-
+    NodeManager::Node* node = 0;
     if(dirty_){
         node = new NodeManager::Node();
         node->mutable_info()->set_name(name_);
@@ -177,26 +176,33 @@ NodeManager::Node* Node::GetUpdate(){
         management_port_attribute->add_s(management_port_);
 
         for(const auto& logger : loggers_){
-            node->mutable_loggers()->AddAllocated(logger.second->GetUpdate());
+            auto log_update = logger.second->GetUpdate();
+            if(log_update){
+                node->mutable_loggers()->AddAllocated(log_update);
+            }
         }
 
         for(const auto& component : components_){
-            node->mutable_components()->AddAllocated(component.second->GetUpdate());
+            auto component_update = component.second->GetUpdate();
+            if(component_update){
+                node->mutable_components()->AddAllocated(component_update);
+            }
         }
 
         for(const auto& attribute : attributes_){
-            node->mutable_attributes()->AddAllocated(attribute.second->GetUpdate());
+            auto attribute_update = attribute.second->GetUpdate();
+            if(attribute_update){
+                node->mutable_attributes()->AddAllocated(attribute_update);
+            }
         }
-
         dirty_ = false;
     }
     return node;
 }
 
 NodeManager::Node* Node::GetProto(){
-    NodeManager::Node* node;
-
-    node = new NodeManager::Node();
+    auto node = new NodeManager::Node();
+    
     node->mutable_info()->set_name(name_);
     node->mutable_info()->set_id(id_);
     node->set_type(NodeManager::Node::HARDWARE_NODE);

@@ -245,9 +245,7 @@ NodeManager::Port* Port::GetUpdate(){
 }
 
 NodeManager::Port* Port::GetProto(){
-    NodeManager::Port* port;
-
-    port = new NodeManager::Port();
+    auto port = new NodeManager::Port();
     port->mutable_info()->set_name(name_);
     port->mutable_info()->set_id(id_);
     port->mutable_info()->set_type(type_);
@@ -291,7 +289,10 @@ NodeManager::Port* Port::GetProto(){
     }
 
     for(const auto& attribute : attributes_){
-        port->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+        auto attribute_proto = attribute.second->GetProto();
+        if(attribute_proto){
+            port->mutable_attributes()->AddAllocated(attribute_proto);
+        }
     }
 
     return port;

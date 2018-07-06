@@ -158,7 +158,6 @@ bool Logger::IsDirty(){
 NodeManager::Logger* Logger::GetUpdate(){
     auto logger_message = new NodeManager::Logger();
     if(dirty_){
-
         dirty_ = false;
     }
 

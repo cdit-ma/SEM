@@ -32,6 +32,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     time_added_ = environment_.GetClock();
 
     std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    std::cerr << "RETURNING: " << assigned_port << std::endl;
     try{
         handler_socket->bind(TCPify(ip_addr_, assigned_port));
         port_promise_->set_value(assigned_port);
@@ -158,7 +159,6 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 
     try{
         switch(message.type()){
-
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
                 //Create generator and populate message
                 DeploymentGenerator generator(environment_);
@@ -207,8 +207,9 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
         }
     }
     catch(std::exception& ex){
+        std::cerr << message.DebugString() << std::endl;
         //TODO: Add ex.what() as error message.
-        std::cerr << "DeploymentHandler::HandleRequest" << ex.what() << std::endl;
+        std::cerr << "DeploymentHandler::HandleRequest: " << ex.what() << std::endl;
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
     }
 
@@ -217,7 +218,10 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
     message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-    message.set_allocated_control_message(environment_.GetExperimentUpdate(experiment_id_));
+    auto experiment_update = environment_.GetExperimentUpdate(experiment_id_);
+    if(experiment_update){
+        message.set_allocated_control_message(experiment_update);
+    }
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){

@@ -317,7 +317,10 @@ void ExecutionManager::UpdateCallback(NodeManager::EnvironmentMessage& environme
     //can we even do that??
 
     if(environment_update.type() == NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
-        PushMessage("*", environment_update.mutable_control_message());
+        //Take a copy.
+        auto control_message = new NodeManager::ControlMessage(*environment_update.mutable_control_message());
+        control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
+        PushMessage("*", control_message);
     }
     else{
         throw std::runtime_error("Unknown message type");

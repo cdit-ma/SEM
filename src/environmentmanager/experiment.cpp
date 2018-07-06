@@ -203,12 +203,15 @@ NodeManager::ControlMessage* Experiment::GetUpdate(){
     std::unique_lock<std::mutex> lock(mutex_);
     dirty_flag_ = false;
 
-    NodeManager::ControlMessage* control_message = new NodeManager::ControlMessage();
+    auto control_message = new NodeManager::ControlMessage();
     control_message->set_experiment_id(model_name_);
 
     for(auto& node_pair : node_map_){
         if(node_pair.second->DeployedTo()){
-            control_message->mutable_nodes()->AddAllocated(node_pair.second->GetUpdate());
+            auto node_update = node_pair.second->GetUpdate();
+            if(node_update){
+                control_message->mutable_nodes()->AddAllocated(node_update);
+            }
         }
     }
 

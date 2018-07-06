@@ -31,7 +31,7 @@ class Environment{
         void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
 
 
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string model_name, const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& model_name, const std::string& ip_address);
 
         void FinishConfigure(const std::string& model_name);
         
@@ -45,8 +45,8 @@ class Environment{
         bool ExperimentIsDirty(const std::string& model_name);
         NodeManager::ControlMessage* GetExperimentUpdate(const std::string& model_name);
 
-        bool ModelNameExists(const std::string& model_name) const;
-        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;
+        bool ModelNameExists(const std::string& model_name);
+        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
         
         void SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address);
 
@@ -89,8 +89,9 @@ class Environment{
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
-        uint64_t clock_;
+        Experiment& GetExperiment(const std::string experiment_name);
         std::mutex clock_mutex_;
+        uint64_t clock_;
 
         //Port range
         int PORT_RANGE_MIN;
@@ -101,13 +102,17 @@ class Environment{
 
         std::string address_;
 
-        //Returns management port for logan client
+        //Returns management port for logan client to communicate with environment_manager
         std::string AddLoganClientServer();
 
-        bool AddExperiment(const std::string& model_name);
+        //Returns management port for re_node_manager(master) to communicate with environment_manager
+        std::string RegisterExperiment(const std::string& experiment_name);
+        
+        std::mutex experiment_mutex_;
         //model_name -> experiment data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
+        std::mutex node_mutex_;
         //node_name -> node data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::PortTracker> > node_map_;
 
@@ -127,6 +132,8 @@ class Environment{
         std::unordered_map<std::string, std::set<std::string> > dependent_experiment_map_;
 
         std::mutex port_mutex_;
+        
+        
         //initially allocated unique_queue of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct
         unique_queue<int> available_ports_;
 

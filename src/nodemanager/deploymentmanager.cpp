@@ -155,8 +155,9 @@ void DeploymentManager::Teardown(){
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(notify_mutex_);
-    //Have to copy the message
-    control_message_queue_.push(NodeManager::ControlMessage(control_message));
+
+    //Have to copy the message onto our queue
+    control_message_queue_.emplace(control_message);
     notify_lock_condition_.notify_all();
 }
 
@@ -207,12 +208,13 @@ void DeploymentManager::ProcessControlQueue(){
 
         //Process the queue
         while(!queue_.empty()){
-            const auto& control_message = queue_.front();
+            auto control_message = std::move(queue_.front());
             queue_.pop();
             auto start = std::chrono::steady_clock::now();
-            std::cout << "* " << NodeManager::ControlMessage_Type_Name(control_message.type()) << " Deployment" << std::endl;
-
             switch(control_message.type()){
+                case NodeManager::ControlMessage::CONFIGURE:{
+                    std::cerr << control_message.DebugString() << std::endl;
+                }
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
                     ConfigureDeploymentContainers(control_message);

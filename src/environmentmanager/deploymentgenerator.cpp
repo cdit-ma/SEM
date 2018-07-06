@@ -51,14 +51,15 @@ void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& contr
 
     environment_.AddExternalPorts(experiment_id, control_message);
 
-    for(int i = 0; i < control_message.nodes_size(); i++){
-        AddNodeToExperiment(experiment_id, control_message.nodes(i));
+    for(const auto& node : control_message.nodes()){
+        AddNodeToExperiment(experiment_id, node);
     }
 }
 
 void DeploymentGenerator::AddNodeToExperiment(const std::string& experiment_id, const NodeManager::Node& node){
-    for(int i = 0; i < node.nodes_size(); i++){
-        AddNodeToExperiment(experiment_id, node.nodes(i));
+    for(const auto& node : node.nodes()){
+        AddNodeToExperiment(experiment_id, node);
     }
+
     environment_.AddNodeToExperiment(experiment_id, node);
 }

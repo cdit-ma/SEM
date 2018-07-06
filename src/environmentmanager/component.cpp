@@ -84,7 +84,7 @@ std::vector<std::string> Component::GetAllPublisherPorts() const{
 }
 
 NodeManager::Component* Component::GetUpdate(){
-    NodeManager::Component* component;
+    NodeManager::Component* component = 0;
     if(dirty_){
         component = new NodeManager::Component();
 
@@ -97,11 +97,17 @@ NodeManager::Component* Component::GetUpdate(){
         }
 
         for(const auto& port : ports_){
-            component->mutable_ports()->AddAllocated(port.second->GetUpdate());
+            auto port_update = port.second->GetUpdate();
+            if(port_update){
+                component->mutable_ports()->AddAllocated(port_update);
+            }
         }
 
         for(const auto& attribute : attributes_){
-            component->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+            auto attribute_proto = attribute.second->GetProto();
+            if(attribute_proto){
+                component->mutable_attributes()->AddAllocated(attribute_proto);
+            }
         }
         dirty_ = false;
     }
