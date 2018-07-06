@@ -35,11 +35,15 @@ std::string GetDeviceName(int platform_id, int device_id){
     auto manager = OpenCLManager::GetReferenceByPlatformID(w, platform_id);
     if(manager){
         int id = 0;
-        for (auto& device : manager->GetDevices(w)){
+        /*for (auto& device : manager->GetDevices(w)){
             if(id++ == device_id){
                 std::cerr << "getting device name in tester" << std::endl;
                 return device->GetName();
             }
+        }*/
+        auto& devices = manager->GetDevices(w);
+        if (device_id < devices.size()) {
+            return devices.at(device_id)->GetName();
         }
 	}
     return std::to_string(device_id);
