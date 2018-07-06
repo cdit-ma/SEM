@@ -123,6 +123,8 @@ stage("Test"){
 node("master"){
     stage("Collate"){
         dir("test_cases"){
+            deleteDir()
+
             for(n in builder_nodes){
                 def node_name = n
                 def stash_name = node_name + "_test_cases"
@@ -140,7 +142,6 @@ node("master"){
             def test_archive = "test_results.zip"
             zip glob: globstr, zipFile: test_archive
             archiveArtifacts test_archive
-            deleteDir()
         }
 
         if(FAILED){

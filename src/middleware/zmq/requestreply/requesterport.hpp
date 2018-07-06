@@ -221,9 +221,7 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pro
         //Return the reply object
         return base_reply;
     }catch(const zmq::error_t& ex){
-        if(ex.num() != ETERM){
-            std::cerr << "zmq::RequesterPort: '" + this->get_name() + "' " << ex.what() << std::endl;
-        }
+        throw std::runtime_error("zmq::RequesterPort: '" + this->get_name() + "' " + ex.what());
     }
 };
 
