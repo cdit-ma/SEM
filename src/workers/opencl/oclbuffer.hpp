@@ -71,6 +71,9 @@ bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, c
                 "Skipping buffer write");
             return false;
         }
+        LogError(worker,
+            __func__,
+            "Continuing on despite mismatch (requested size is smaller than available memory space)";
     }
     
     bool write_success = GenericBuffer::WriteData(worker, data.data(), size_, device, blocking);
