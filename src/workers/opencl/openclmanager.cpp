@@ -232,12 +232,14 @@ OpenCLManager::~OpenCLManager() {
 	std::cerr << buffer_store_.size() << " buffers haven't been deallocated after OpenCL testing has finished" << std::endl;	
 #endif
 
-	/*for (auto& unfreed_buffer_pair : buffer_store_) {
+	/*
+	for (auto& unfreed_buffer_pair : buffer_store_) {
 #ifdef BUILD_TEST
 		std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
 #endif
 		delete unfreed_buffer_pair.second;
-	}*/
+	}
+	*/
 }
 
 // TODO: Handle the !valid_ case
