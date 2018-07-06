@@ -4,11 +4,12 @@
 //#include "openclutilities.h"
 #include "openclmanager.h"
 #include "genericbuffer.h"
+#include "opencldevice.h"
 
 #include <vector>
 
 class OpenCLManager;
-class OpenCLDevice;
+//class OpenCLDevice;
 
 template <typename T>
 class OCLBuffer : public GenericBuffer {
