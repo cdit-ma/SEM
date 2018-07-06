@@ -232,12 +232,12 @@ OpenCLManager::~OpenCLManager() {
 	std::cerr << buffer_store_.size() << " buffers haven't been deallocated after OpenCL testing has finished" << std::endl;	
 #endif
 
-	for (auto& unfreed_buffer_pair : buffer_store_) {
+	/*for (auto& unfreed_buffer_pair : buffer_store_) {
 #ifdef BUILD_TEST
 		std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
 #endif
 		delete unfreed_buffer_pair.second;
-	}
+	}*/
 }
 
 // TODO: Handle the !valid_ case
@@ -302,7 +302,7 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 	//TODO: See Dan for how to C++11 mutex good bruh
 	if (!buffer_store_.count(buffer_id)){
     	std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
-		buffer_store_.insert({buffer_id, buffer});
+		buffer_store_.insert({buffer_id, std::unique_ptr<GenericBuffer>(buffer)});
 		success = true;
 	} else {
 		LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));

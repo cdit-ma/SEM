@@ -117,7 +117,7 @@ class OpenCLManager {
 
 		std::mutex opencl_resource_mutex_;
 
-		std::map<int, GenericBuffer*> buffer_store_;
+		std::map<int, std::unique_ptr<GenericBuffer> > buffer_store_;
 		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
 
