@@ -104,6 +104,8 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
 
+    std::cerr << device->GetName() << std::endl;
+
     ASSERT_TRUE(buffer->is_valid());
 
     auto in_data = std::vector<float>(1024);
