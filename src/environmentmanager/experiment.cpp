@@ -68,13 +68,11 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         if(temp->is_blackbox){
             if(external_port.middleware() == NodeManager::Middleware::ZMQ){
                 std::string address;
-                for(int i = 0; i < message.attributes_size(); i++){
-                    auto attribute = message.attributes(i);
+                for(const auto& attribute : message.attributes()){
                     if(attribute.info().name() == "publisher_address" || attribute.info().name() == "server_address"){
                         address = attribute.s(0);
                         break;
                     }
-
                 }
                 environment_.AddPublicEventPort(model_name_, temp->external_label, address);
             }
@@ -82,12 +80,11 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
             if(external_port.middleware() == NodeManager::Middleware::TAO){
                 std::string address;
                 std::string server_name;
-                for(int i = 0; i < message.attributes_size(); i++){
-                    auto attribute = message.attributes(i);
+
+                for(const auto& attribute : message.attributes()){
                     if(attribute.info().name() == "server_address"){
                         address = attribute.s(0);
-                    }
-                    if(attribute.info().name() == "server_name"){
+                    }else if(attribute.info().name() == "server_name"){
                         server_name = attribute.s(0);
                     }
                 }
@@ -99,18 +96,17 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
+    //TODO: Handle having two copies of the same IP and throw exception?
     auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-
-    std::string ip_address = internal_node->GetIp();
+    const auto& ip_address = internal_node->GetIp();
     node_map_.emplace(ip_address, std::move(internal_node));
     auto& node_ref = node_map_.at(ip_address);
     node_address_map_.insert({node_ref->GetName(), node_ref->GetIp()});
-
+          
     //Build logan connection map
-
     auto deploy_count = node_ref->GetDeployedComponentCount();
     if(deploy_count > 0){
-        std::cout << "Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deployed: " << deploy_count << std::endl;
+        std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deployed: " << deploy_count << " Components" << std::endl;
     }
 }
 

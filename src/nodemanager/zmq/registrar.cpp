@@ -34,7 +34,7 @@ void zmq::Registrar::RegistrationLoop(){
     try{
         socket.bind(endpoint.c_str());
     }catch(const zmq::error_t& ex){
-        std::cerr << "zmq::Registrar::RegistrationLoop(): Faield to Bind: " << endpoint << " " << ex.what() << std::endl;
+        std::cerr << "zmq::Registrar::RegistrationLoop(): Failed to bind Master Registration Endpoint: " << endpoint << " " << ex.what() << std::endl;
         return;
     }
     

@@ -9,46 +9,47 @@ using namespace EnvironmentManager;
 
 Port::Port(Environment& environment, Component& parent, const NodeManager::Port& port) :
             environment_(environment), component_(parent){
+    const auto& ip = GetNode().GetIp();
 
     id_ = port.info().id();
     name_ = port.info().name();
     kind_ = ProtoPortKindToInternal(port.kind());
     middleware_ = ProtoPortMiddlewareToInternal(port.middleware());
 
-    for(int i = 0; i < port.attributes_size(); i++){
-        AddAttribute(port.attributes(i));
+    for(const auto& attribute : port.attributes()){
+        AddAttribute(attribute);
     }
 
     //If we're a zmq publisher or zmq replier port, assign a publisher port
     if(middleware_ == EnvironmentManager::Port::Middleware::Zmq){
-        
         if(kind_ == EnvironmentManager::Port::Kind::Publisher || kind_ == EnvironmentManager::Port::Kind::Replier){
-            SetPublisherPort(environment_.GetPort(component_.GetNode().GetIp()));
-            std::string endpoint = "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
+            SetPublisherPort(environment_.GetPort(ip));
+            
+            std::string endpoint = "tcp://" + ip + ":" + GetPublisherPort();
             GetExperiment().AddZmqEndpoint(id_, endpoint);
             endpoints_.insert(endpoint);
 
             //if this port is connected to any external ports, update them to have this endpoint
-            for(int i = 0; i < port.connected_external_ports_size(); i++){
+            for(const auto& connected_id : port.connected_external_ports()){
                 external_ = true;
-                GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
+                GetExperiment().AddExternalEndpoint(connected_id, endpoint);
             }
         }
     }
     if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
-        SetPublisherPort(GetNode().GetOrbPort());
+        const auto& orb_port = GetNode().GetOrbPort();
+        SetPublisherPort(orb_port);
         std::string topic = GetName() + "_" + GetId();
         SetTopic(topic);
 
         if(kind_ == Kind::Replier){
-            std::string endpoint = "corbaloc:iiop:" + GetNode().GetIp() + ":" + GetPublisherPort() + "/" + topic;
+            std::string endpoint = "corbaloc:iiop:" + ip + ":" + orb_port + "/" + topic;
             GetExperiment().AddTaoEndpoint(id_, endpoint);
             endpoints_.insert(endpoint);
 
-            //if this port is connected to any external ports, update them to have this endpoint
-            for(int i = 0; i < port.connected_external_ports_size(); i++){
+            for(const auto& connected_id : port.connected_external_ports()){
                 external_ = true;
-                GetExperiment().AddExternalEndpoint(port.connected_external_ports(i), endpoint);
+                GetExperiment().AddExternalEndpoint(connected_id, endpoint);
             }
         }
     }
@@ -60,25 +61,22 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
 
     //Use the exact type
     SetType(port.info().type());
-    
+
     if(middleware_ != Middleware::Tao){
-        for(int a = 0; a < port.attributes_size(); a++){
-            auto attribute = port.attributes(a);
+        for(const auto& attribute : port.attributes()){
             if(attribute.info().name() == "topic"){
                 SetTopic(attribute.s(0));
                 GetExperiment().AddTopic(GetTopic());
-                break;
             }
         }
     }
 
-    for(int i = 0; i < port.connected_ports_size(); i++){
-        auto connected_id = port.connected_ports(i);
+    for(const auto& connected_id : port.connected_ports()){
         AddConnectedPortId(connected_id);
         GetExperiment().AddConnection(connected_id, id_);
     }
-    for(int i = 0; i < port.connected_external_ports_size(); i++){
-        auto connected_id = port.connected_external_ports(i);
+
+    for(const auto& connected_id : port.connected_external_ports()){
         AddExternalConnectedPortId(connected_id);
         GetExperiment().AddConnection(connected_id, id_);
     }

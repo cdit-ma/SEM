@@ -9,34 +9,34 @@ using namespace EnvironmentManager;
 
 Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node& node) : 
             environment_(environment), experiment_(parent){
-
+    
     name_ = node.info().name();
     id_ = node.info().id();
 
-    for(int i = 0; i < node.attributes_size(); i++){
-        auto attribute = node.attributes(i);
+    for(const auto& attribute : node.attributes()){
         if(attribute.info().name() == "ip_address"){
             ip_ = attribute.s(0);
             break;
         }
     }
 
-    for(int i = 0; i < node.loggers_size(); i++){
-        AddLogger(node.loggers(i));
+    for(const auto& logger : node.loggers()){
+        AddLogger(logger);
     }
 
-    for(int i = 0; i < node.components_size(); i++){
-        AddComponent(node.components(i));
+    for(const auto& component : node.components()){
+        AddComponent(component);
+    }
+    
+    for(const auto& attribute : node.attributes()){
+        AddAttribute(attribute);
     }
 
-    for(int i = 0; i < node.attributes_size(); i++){
-        AddAttribute(node.attributes(i));
-    }
     //set logger port
     if(components_.size()){
         AddModelLogger();
-
     }
+    
     //set master/slave port
     if(DeployedTo()){
         management_port_ = environment_.GetPort(ip_);
@@ -94,29 +94,30 @@ void Node::SetOrbPort(const std::string& orb_port){
     orb_port_ = orb_port;
 }
 
-void Node::AddComponent(const NodeManager::Component& component){
-    components_.insert(std::make_pair(component.info().id(),
-            std::unique_ptr<EnvironmentManager::Component>(
-                new EnvironmentManager::Component(environment_, *this, component))));
+void Node::AddComponent(const NodeManager::Component& component_pb){
+    const auto& id = component_pb.info().id();
+    auto component = std::unique_ptr<EnvironmentManager::Component>(new EnvironmentManager::Component(environment_, *this, component_pb));
+    components_.insert({id, std::move(component)});
 }
 
-void Node::AddLogger(const NodeManager::Logger& logger){
-    loggers_.insert(std::make_pair(logger.id(), 
-            std::unique_ptr<EnvironmentManager::Logger>(
-                new EnvironmentManager::Logger(environment_, *this, logger))));
+void Node::AddLogger(const NodeManager::Logger& logger_pb){
+    const auto& id = logger_pb.id();
+    auto logger = std::unique_ptr<EnvironmentManager::Logger>(new EnvironmentManager::Logger(environment_, *this, logger_pb));
+    loggers_.insert({id, std::move(logger)});
 }
 
 
 void Node::AddModelLogger(){
-    loggers_.insert(std::make_pair("model_logger", 
-            std::unique_ptr<EnvironmentManager::Logger>(new EnvironmentManager::Logger(environment_, *this, 
-            EnvironmentManager::Logger::Type::Model, EnvironmentManager::Logger::Mode::Cached))));
+    const auto& id = "model_logger";
+    auto logger = std::unique_ptr<EnvironmentManager::Logger>(
+        new EnvironmentManager::Logger(environment_,*this, EnvironmentManager::Logger::Type::Model, EnvironmentManager::Logger::Mode::Cached));
+    loggers_.insert({id, std::move(logger)});
 }
 
-void Node::AddAttribute(const NodeManager::Attribute& attribute){
-    attributes_.insert(std::make_pair(attribute.info().id(), 
-            std::unique_ptr<EnvironmentManager::Attribute>(
-                new EnvironmentManager::Attribute(attribute))));
+void Node::AddAttribute(const NodeManager::Attribute& attribute_pb){
+    const auto& id = attribute_pb.info().id();
+    auto attribute = std::unique_ptr<EnvironmentManager::Attribute>(new EnvironmentManager::Attribute(attribute_pb));
+    attributes_.insert({id, std::move(attribute)});
 }
 
 void Node::SetDirty(){

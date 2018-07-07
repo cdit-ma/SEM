@@ -127,7 +127,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
-    std::cerr << "ADDING: " << ip_addr_ << " 2:" << message.update_endpoint() << std::endl;
+    
     deployments_.emplace_back(new DeploymentHandler(*environment_,
                                                     *context_,
                                                     ip_addr_,
@@ -203,11 +203,8 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
 
     if(environment_->NodeDeployedTo(experiment_id, ip_address)){
         //Have experiment_id in environment, and ip_addr has component deployed to id
-        std::string master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
-        std::string master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
-
-        std::cerr << "master_publisher_endpoint: " << master_publisher_endpoint << std::endl;
-        std::cerr << "master_registration_endpoint: " << master_registration_endpoint << std::endl;
+        const auto& master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
+        const auto& master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
 
         auto master_publisher_attribute = node->add_attributes();
         auto master_publisher_attribute_info = master_publisher_attribute->mutable_info();

@@ -25,42 +25,42 @@ class Environment{
 
         Environment(const std::string& address, int portrange_min = 30000, int portrange_max = 50000);
 
-        std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
+        std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
-        void RemoveExperiment(const std::string& model_name, uint64_t time);
-        void RemoveLoganClientServer(const std::string& model_name, const std::string& ip_address);
+        void RemoveExperiment(const std::string& experiment_name, uint64_t time);
+        void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
 
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& model_name, const std::string& ip_address);
+        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
 
-        void FinishConfigure(const std::string& model_name);
+        void FinishConfigure(const std::string& experiment_name);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
         void DeclusterNode(NodeManager::Node& message);
-        void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
+        void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNodes(const std::string& model_name);
-        NodeManager::ControlMessage* GetProto(const std::string& model_name);
+        void ConfigureNodes(const std::string& experiment_name);
+        NodeManager::ControlMessage* GetProto(const std::string& experiment_name);
 
-        bool ExperimentIsDirty(const std::string& model_name);
-        NodeManager::ControlMessage* GetExperimentUpdate(const std::string& model_name);
+        bool ExperimentIsDirty(const std::string& experiment_name);
+        NodeManager::ControlMessage* GetExperimentUpdate(const std::string& experiment_name);
 
-        bool ModelNameExists(const std::string& model_name);
-        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
+        bool ModelNameExists(const std::string& experiment_name);
+        bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
         
-        void SetExperimentMasterIp(const std::string& model_name, const std::string& ip_address);
+        void SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address);
 
-        std::string GetMasterPublisherAddress(const std::string& model_name);
-        std::string GetMasterRegistrationAddress(const std::string& model_name);
+        std::string GetMasterPublisherAddress(const std::string& experiment_name);
+        std::string GetMasterRegistrationAddress(const std::string& experiment_name);
 
-        std::string GetTopic(const std::string& model_name, const std::string& port_id);
+        std::string GetTopic(const std::string& experiment_name, const std::string& port_id);
 
-        std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
+        std::vector<std::string> CheckTopic(const std::string& experiment_name, const std::string& topic);
 
         void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
         void ExperimentTimeout(const std::string& deployment_id, uint64_t time_called);
 
-        NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
+        NodeManager::Node GetDeploymentLocation(const std::string& experiment_name, const std::string& port_id);
 
         std::string GetPort(const std::string& ip_address);
         void FreePort(const std::string& ip_address, const std::string& port_number);
@@ -69,19 +69,19 @@ class Environment{
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
 
-        void AddExternalPorts(const std::string& model_name, const NodeManager::ControlMessage& control_message);
+        void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
 
 
         bool HasPublicEventPort(const std::string& port_id);
         std::string GetPublicEventPortEndpoint(const std::string& port_id);
-        void AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address_string);
-        void RemovePublicEventPort(const std::string& model_name, const std::string& port_id);
+        void AddPublicEventPort(const std::string& experiment_name, const std::string& port_id, const std::string& address_string);
+        void RemovePublicEventPort(const std::string& experiment_name, const std::string& port_id);
 
         bool HasPendingPublicEventPort(const std::string& port_id);
         std::set<std::string> GetDependentExperiments(const std::string& port_id);
-        void AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id);
+        void AddPendingPublicEventPort(const std::string& experiment_name, const std::string& port_id);
 
-        void RemoveDependentExternalExperiment(const std::string& model_name, const std::string& port_id);
+        void RemoveDependentExternalExperiment(const std::string& experiment_name, const std::string& port_id);
 
         std::string GetAmqpBrokerAddress();
 
@@ -109,7 +109,7 @@ class Environment{
         std::string RegisterExperiment(const std::string& experiment_name);
         
         std::mutex experiment_mutex_;
-        //model_name -> experiment data structure
+        //experiment_name -> experiment data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 
         std::mutex node_mutex_;

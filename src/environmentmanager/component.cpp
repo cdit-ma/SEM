@@ -16,20 +16,18 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
         namespaces_.emplace_back(ns);
     }
 
-    for(int i = 0; i < component.ports_size(); i++){
-        ports_.insert(std::make_pair(component.ports(i).info().id(), 
-            std::unique_ptr<EnvironmentManager::Port>(
-                new EnvironmentManager::Port(environment_, *this, component.ports(i)))));
+    for(const auto& port_pb : component.ports()){
+        const auto& id = port_pb.info().id();
+        auto port = std::unique_ptr<EnvironmentManager::Port>(new EnvironmentManager::Port(environment_, *this, port_pb));
+        
+        ports_.insert({id, std::move(port)});
     }
 
-
-    //Add attributes
-    for(int i = 0; i < component.attributes_size(); i++){
-        attributes_.insert(std::make_pair(component.attributes(i).info().id(), 
-            std::unique_ptr<EnvironmentManager::Attribute>(
-                new EnvironmentManager::Attribute(component.attributes(i)))));
+    for(const auto& attr_pb : component.attributes()){
+        const auto& id = attr_pb.info().id();
+        auto attr = std::unique_ptr<EnvironmentManager::Attribute>(new EnvironmentManager::Attribute(attr_pb));
+        attributes_.insert({id, std::move(attr)});
     }
-    //add workers
 }
 
 void Component::ConfigureConnections(){

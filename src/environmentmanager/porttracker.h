@@ -34,7 +34,7 @@ class PortTracker{
             auto port = available_ports_.front();
             available_ports_.pop();
             auto port_str =  std::to_string(port);
-            std::cout << "Port Acquired: " << name_ << " : " << port_str << std::endl;
+            //std::cout << "* Port Acquired: " << name_ << " : " << port_str << std::endl;
             return port_str;
         };
 
@@ -44,7 +44,7 @@ class PortTracker{
             try{
                 port_number = std::stoi(port);
                 if(available_ports_.push(port_number)){
-                    std::cout << "Port Freed: " << name_ << " : " << port << std::endl;
+                    //std::cout << "* Port Freed: " << name_ << " : " << port << std::endl;
                 }
             }
             catch(const std::invalid_argument& ex){

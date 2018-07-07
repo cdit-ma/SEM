@@ -5,40 +5,33 @@ DeploymentGenerator::DeploymentGenerator(EnvironmentManager::Environment& enviro
 }
 
 NodeManager::ControlMessage* DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
+    const auto& experiment_id = control_message.experiment_id();
 
-    //Decluster operation mutates control message
     environment_.DeclusterExperiment(control_message);
-
-    std::string experiment_id = control_message.experiment_id();
-
     //Add experiment to environment
     AddExperiment(control_message);
 
     std::string master_ip_address;
-    for(int i = 0; i < control_message.attributes_size(); i++){
-        auto attribute = control_message.attributes(i);
+
+    for(const auto& attribute : control_message.attributes()){
         if(attribute.info().name() == "master_ip_address"){
             master_ip_address = attribute.s(0);
+            break;
         }
     }
-
+    
     environment_.SetExperimentMasterIp(experiment_id, master_ip_address);
-
     environment_.ConfigureNodes(experiment_id);
-
-    NodeManager::ControlMessage* configured_message = environment_.GetProto(experiment_id);
+    auto configured_message = environment_.GetProto(experiment_id);
     environment_.FinishConfigure(experiment_id);
-
     return configured_message;
 }
 
 void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node){
-
-    //Store node information in environment database?
-
+    //TODO: Store node information in environment database?
     //Recurse down into subnodes
-    for(int i = 0; i < node.nodes_size(); i++){
-        PopulateNode(control_message, *node.mutable_nodes(i));
+    for(auto& node : *node.mutable_nodes()){
+        PopulateNode(control_message, node);
     }
 }
 
@@ -50,7 +43,6 @@ void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& contr
     std::string experiment_id(control_message.experiment_id());
 
     environment_.AddExternalPorts(experiment_id, control_message);
-
     for(const auto& node : control_message.nodes()){
         AddNodeToExperiment(experiment_id, node);
     }
@@ -60,6 +52,5 @@ void DeploymentGenerator::AddNodeToExperiment(const std::string& experiment_id, 
     for(const auto& node : node.nodes()){
         AddNodeToExperiment(experiment_id, node);
     }
-
     environment_.AddNodeToExperiment(experiment_id, node);
 }

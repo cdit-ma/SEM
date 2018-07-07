@@ -34,12 +34,9 @@ std::string Environment::AddDeployment(const std::string& experiment_name,
                                        const std::string& ip_address,
                                        DeploymentType deployment_type){
 
-    std::cerr << "experiment_name: " << experiment_name << " = " << ip_address << std::endl;
     switch(deployment_type){
         case DeploymentType::EXECUTION_MASTER:{
-            auto port_id = RegisterExperiment(experiment_name);
-            std::cerr << "GOT: " << port_id << std::endl;
-            return port_id;
+            return RegisterExperiment(experiment_name);
         }
         case DeploymentType::LOGAN_CLIENT:{
             return AddLoganClientServer();
@@ -59,8 +56,8 @@ std::string Environment::RegisterExperiment(const std::string& experiment_name){
         experiment_map_.emplace(experiment_name, std::move(experiment));
         experiment_map_.at(experiment_name)->SetManagerPort(manager_port);
         
-        std::cout << "Added experiment: " << experiment_name << " Exposed Port: " << manager_port << std::endl;
-        std::cout << "Registered experiments: " << experiment_map_.size() << std::endl;
+        std::cout << "* Registered experiment: " << experiment_name << std::endl;
+        std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
     return experiment_map_.at(experiment_name)->GetManagerPort();
 }
@@ -230,6 +227,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
             break;
         }
     }
+
     std::lock_guard<std::mutex> lock(node_mutex_);
     if(!node_map_.count(ip)){
         auto port_tracker = std::unique_ptr<EnvironmentManager::PortTracker>(new EnvironmentManager::PortTracker(ip, available_ports_));
@@ -350,24 +348,24 @@ std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
     }
 }
 
-void Environment::AddPublicEventPort(const std::string& model_name, const std::string& port_id, const std::string& address){
+void Environment::AddPublicEventPort(const std::string& experiment_name, const std::string& port_id, const std::string& address){
+    auto port = new EnvironmentManager::EventPort();
+    port->id = port_id;
+    port->guid = port_id;
+    port->endpoint = address;
 
-    auto temp = std::unique_ptr<EnvironmentManager::EventPort>(new EnvironmentManager::EventPort());
-    public_event_port_map_.emplace(port_id, std::move(temp));
-    public_event_port_map_.at(port_id)->id = port_id;
-    public_event_port_map_.at(port_id)->guid = port_id;
-    public_event_port_map_.at(port_id)->endpoint = address;
+    public_event_port_map_.emplace(port_id, port);
 
     for(const auto& experiment_pair : experiment_map_){
         experiment_pair.second->UpdatePort(port_id);
     }
     
-    dependent_experiment_map_.at(port_id).insert(model_name);
+    dependent_experiment_map_[port_id].insert(experiment_name);
 }
 
-void Environment::RemovePublicEventPort(const std::string& model_name, const std::string& port_id){
+void Environment::RemovePublicEventPort(const std::string& experiment_name, const std::string& port_id){
     public_event_port_map_.erase(port_id);
-    dependent_experiment_map_.at(port_id).erase(model_name);
+    dependent_experiment_map_[port_id].insert(experiment_name);
 }
 
 bool Environment::HasPendingPublicEventPort(const std::string& port_id){
@@ -378,24 +376,16 @@ std::set<std::string> Environment::GetDependentExperiments(const std::string& po
     return pending_port_map_.at(port_id);
 }
 
-void Environment::AddPendingPublicEventPort(const std::string& model_name, const std::string& port_id){
-    if(!pending_port_map_.count(port_id)){
-        pending_port_map_[port_id] = std::set<std::string>();
-    }
-    pending_port_map_.at(port_id).insert(model_name);
-    if(!dependent_experiment_map_.count(port_id)){
-        dependent_experiment_map_[port_id] = std::set<std::string>();
-    }
-    dependent_experiment_map_.at(port_id).insert(model_name);
+void Environment::AddPendingPublicEventPort(const std::string& experiment_name, const std::string& port_id){
+    pending_port_map_[port_id].insert(experiment_name);
+    dependent_experiment_map_[port_id].insert(experiment_name);
 }
 
-void Environment::RemoveDependentExternalExperiment(const std::string& model_name, const std::string& port_id){
-    if(dependent_experiment_map_.count(port_id)){
-        dependent_experiment_map_.at(port_id).erase(model_name);
-        if(dependent_experiment_map_.at(port_id).size() == 0){
-            std::cout << "Removing external port: " << port_id << std::endl;
-            public_event_port_map_.erase(port_id);
-        }
+void Environment::RemoveDependentExternalExperiment(const std::string& experiment_name, const std::string& port_id){
+    dependent_experiment_map_[port_id].erase(experiment_name);
+    if(dependent_experiment_map_[port_id].size() == 0){
+        std::cout << "Removing external port: " << port_id << std::endl;
+        public_event_port_map_.erase(port_id);
     }
 }
 

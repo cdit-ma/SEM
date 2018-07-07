@@ -31,8 +31,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
     time_added_ = environment_.GetClock();
 
-    std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
-    std::cerr << "RETURNING: " << assigned_port << std::endl;
+    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
         handler_socket->bind(TCPify(ip_addr_, assigned_port));
         port_promise_->set_value(assigned_port);
@@ -154,6 +153,7 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
 
 std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     auto message_time = request.first;
+
     NodeManager::EnvironmentMessage message;
     message.ParseFromString(request.second);
 
