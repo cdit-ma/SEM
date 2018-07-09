@@ -32,7 +32,7 @@ class Environment{
 
         Environment(const std::string& address, int portrange_min = 30000, int portrange_max = 50000);
 
-        NodeManager::ControlMessage* PopulateDeployment(NodeManager::ControlMessage& message);
+        void PopulateExperiment(NodeManager::ControlMessage& message);
 
         std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
@@ -45,8 +45,10 @@ class Environment{
 
         bool ExperimentIsDirty(const std::string& experiment_name);
         NodeManager::ControlMessage* GetExperimentUpdate(const std::string& experiment_name);
+        NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
+        
 
-        bool ModelNameExists(const std::string& experiment_name);
+        bool IsExperimentRegistered(const std::string& experiment_name);
         bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
         
         void SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address);
@@ -81,13 +83,13 @@ class Environment{
         uint64_t Tick();
     private:
         void FinishConfigure(const std::string& experiment_name);
+        static void DeclusterExperiment(NodeManager::ControlMessage& message);
+        static void DeclusterNode(NodeManager::Node& message);
         
-        void DeclusterExperiment(NodeManager::ControlMessage& message);
-        void DeclusterNode(NodeManager::Node& message);
+        
         void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
         void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNodes(const std::string& experiment_name);
         ExternalPort& GetExternalPort(const std::string& external_port_label);
         Experiment& GetExperiment(const std::string experiment_name);
         void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);

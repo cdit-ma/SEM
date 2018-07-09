@@ -54,14 +54,6 @@ Node::~Node(){
     }
 }
 
-void Node::ConfigureConnections(){
-    for(const auto& logger_pair : loggers_){
-        logger_pair.second->ConfigureConnections();
-    }
-    for(const auto& component_pair : components_){
-        component_pair.second->ConfigureConnections();
-    }
-}
 
 std::string Node::GetId() const{
     return id_;
@@ -109,6 +101,17 @@ void Node::AddLogger(const NodeManager::Logger& logger_pb){
     const auto& id = logger_pb.id();
     auto logger = std::unique_ptr<EnvironmentManager::Logger>(new EnvironmentManager::Logger(environment_, *this, logger_pb));
     loggers_.insert({id, std::move(logger)});
+}
+
+bool Node::HasLogger(const std::string& logger_id){
+    return loggers_.count(logger_id) > 0;
+}
+
+Logger& Node::GetLogger(const std::string& logger_id){
+    if(HasLogger(logger_id)){
+        return *loggers_.at(logger_id);
+    }
+    throw std::runtime_error("No Logger with ID: '" + logger_id + "'");
 }
 
 
@@ -244,7 +247,10 @@ NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
         if(logger->GetType() == Logger::Type::Server){
-            message->mutable_logger()->AddAllocated(logger->GetDeploymentMessage());
+            auto logger_pb = logger->GetProto();
+            if(logger_pb){
+                message->mutable_logger()->AddAllocated(logger_pb);
+            }
         }
     }
 

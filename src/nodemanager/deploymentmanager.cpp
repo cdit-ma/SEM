@@ -212,9 +212,7 @@ void DeploymentManager::ProcessControlQueue(){
             queue_.pop();
             auto start = std::chrono::steady_clock::now();
             switch(control_message.type()){
-                case NodeManager::ControlMessage::CONFIGURE:{
-                    std::cerr << control_message.DebugString() << std::endl;
-                }
+                case NodeManager::ControlMessage::CONFIGURE:
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
                     ConfigureDeploymentContainers(control_message);

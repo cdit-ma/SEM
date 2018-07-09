@@ -130,7 +130,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
             auto port = GetConfiguredPort(component, port_pb);
             if(port->get_state() != Activatable::State::NOT_CONFIGURED){
                 //Terminate and reactivate?
-                std::cerr << "Reconfiguring Port: " << port->get_name() << std::endl;
+                std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
                 port->Terminate();
                 port->Configure();
                 port->Activate();

@@ -1,6 +1,5 @@
 #include "executionmanager.h"
 #include "executionparser/modelparser.h"
-#include "environmentmanager/deploymentgenerator.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -83,12 +82,7 @@ bool ExecutionManager::PopulateDeployment(){
 
         environment->AddDeployment(deployment_message_->experiment_id(), "", EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER);
 
-        DeploymentGenerator generator(*environment);
-        //TODO: Add other middlewares.
-
-        NodeManager::ControlMessage* configured_message =  generator.PopulateDeployment(*deployment_message_);
-        deployment_message_->Clear();
-        deployment_message_ = configured_message;
+        environment->PopulateExperiment(*deployment_message_);
     }
     else{
         requester_->Init(environment_manager_endpoint_);

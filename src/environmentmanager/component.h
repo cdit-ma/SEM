@@ -15,7 +15,6 @@ class Attribute;
 class Component{
     public:
         Component(Environment& environment, Node& parent, const NodeManager::Component& component);
-        void ConfigureConnections();
         void AddPort(const NodeManager::Port& port);
         void AddAttribute();
 
@@ -26,7 +25,6 @@ class Component{
         Port& GetPort(const std::string& port_id);
 
         bool HasPort(const std::string& port_id);
-        std::vector<std::string> GetAllPublisherPorts() const;
 
         void SetDirty();
         bool IsDirty();

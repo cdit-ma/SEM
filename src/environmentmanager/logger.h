@@ -28,7 +28,6 @@ class Logger{
         Logger(Environment& environment, Node& parent, Type type, Mode mode);
         ~Logger();
 
-        void ConfigureConnections();
 
         std::string GetId() const;
         Logger::Type GetType() const;
@@ -40,6 +39,8 @@ class Logger{
         void SetPublisherPort(const std::string& publisher_port);
         std::string GetPublisherPort() const;
 
+        std::string GetPublisherEndpoint() const;
+
         void SetFrequency(const double frequency);
         double GetFrequency() const;
 
@@ -47,15 +48,10 @@ class Logger{
         Mode GetMode() const;
 
         void AddProcess(const std::string& process);
-        void RemoveProcess(const std::string& process);
-        std::vector<std::string> GetProcesses() const;
+        const std::set<std::string>& GetProcesses();
 
-
-        void AddClientId(const std::string& client_id);
-        std::vector<std::string> GetClientIds() const;
-
-        void AddClientAddress(const std::string& client_address);
-        std::vector<std::string> GetClientAddresses() const;
+        void AddConnectedClientId(const std::string& client_id);
+        const std::set<std::string>&  GetConnectedClientIds();
 
         void SetDbFileName(const std::string& file_name);
         std::string GetDbFileName() const;
@@ -65,11 +61,7 @@ class Logger{
         bool IsDirty();
 
         NodeManager::Logger* GetUpdate();
-
         NodeManager::Logger* GetProto();
-
-
-        NodeManager::Logger* GetDeploymentMessage() const;
 
     private:
         Node& node_;
@@ -82,13 +74,17 @@ class Logger{
         std::string publisher_port_;
         std::set<std::string> processes_;
 
-        std::set<std::string> client_ids_;
-        std::set<std::string> client_addresses_;
+        std::set<std::string> connected_client_ids_;
         std::string db_file_name_;
 
 
-        bool dirty_;
+        bool dirty_ = false;
 
+        static Type TranslateProtoType(const NodeManager::Logger::Type type);
+        static NodeManager::Logger::Type TranslateInternalType(const Type type);
+
+        static Mode TranslateProtoMode(const NodeManager::Logger::Mode mode);
+        static NodeManager::Logger::Mode TranslateInternalMode(const Mode mode);
 };
 };
 

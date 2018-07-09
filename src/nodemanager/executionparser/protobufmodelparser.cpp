@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
+#include <regex>
 
 
 
@@ -357,7 +358,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                     //Set qpid_broker
                     auto broker_pb = eport_pb->add_attributes();
                     auto broker_info_pb = broker_pb->mutable_info();
-                    broker_info_pb->set_name("topic_name");
+                    broker_info_pb->set_name("broker");
                     broker_pb->set_kind(NodeManager::Attribute::STRING);
                     broker_pb->add_s(broker_addr);
                     break;
@@ -466,6 +467,18 @@ bool ProtobufModelParser::Process(){
         logger_pb->set_type(NodeManager::Logger::CLIENT);
         logger_pb->set_id(client_id);
         logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
+
+        auto processes = graphml_parser_->GetDataValue(client_id, "processes_to_log");
+
+        //Tokenize the list of process using regex
+        std::vector<std::string> split_processes{
+            std::sregex_token_iterator(processes.begin(), processes.end(), std::regex(","), -1), {}
+            };
+        for(const auto& process : split_processes){
+            logger_pb->add_processes(process);
+        }
+
+
 
         if(graphml_parser_->GetDataValue(client_id, "mode") == "LIVE"){
             logger_pb->set_mode(NodeManager::Logger::LIVE);

@@ -11,6 +11,7 @@ namespace EnvironmentManager{
 class Environment;
 class Node;
 class Port;
+class Logger;
 struct ExternalPort{
     std::string external_label;
     std::string internal_id;
@@ -30,17 +31,17 @@ class Experiment{
         Experiment(Environment& environment, std::string name);
         ~Experiment();
         
-        void SetConfigureDone();
-        bool ConfigureDone();
+        bool IsConfigured();
+        void SetConfigured();
+        const std::string& GetName() const;
 
         std::string GetManagerPort() const;
-        void SetManagerPort(const std::string& manager_port);
+        void SetManagerPort(const std::string& manager_Gport);
 
         void SetMasterIp(const std::string& ip);
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
-        void ConfigureNodes();
 
         NodeManager::ControlMessage* GetProto();
 
@@ -51,12 +52,8 @@ class Experiment{
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
 
-        std::set<std::string> GetTopics() const;
 
         std::string GetOrbEndpoint(const std::string& port_id);
-
-        std::string GetTaoReplierServerAddress(const NodeManager::Port& port);
-        std::string GetTaoServerName(const NodeManager::Port& port);
 
         std::string GetPublicEventPortName(const std::string& public_port_local_id);
 
@@ -72,26 +69,9 @@ class Experiment{
         void SetDeploymentMessage(const NodeManager::ControlMessage& control_message);
         NodeManager::ControlMessage* GetUpdate();
 
-        void AddLoganClientEndpoint(const std::string& client_id, const std::string& endoint);
-        void RemoveLoganClientEndpoint(const std::string& client_id);
-        const std::unordered_map<std::string, std::string>& GetLoganClientEndpointMap() const;
-
-        void AddModelLoggerEndpoint(const std::string& client_id, const std::string& endoint);
-        void RemoveModelLoggerEndpoint(const std::string& client_id);
-        const std::unordered_map<std::string, std::string>& GetModelLoggerEndpointMap() const;
-
-        void AddZmqEndpoint(const std::string& port_id, const std::string& endpoint);
-        void RemoveZmqEndpoint(const std::string& port_id);
-        const std::unordered_map<std::string, std::string>& GetZmqEndpointMap() const;
-
-        void AddTaoEndpoint(const std::string& port_id, const std::string& endpoint);
-        void RemoveTaoEndpoint(const std::string& port_id);
-        const std::unordered_map<std::string, std::string>& GetTaoEndpointMap() const;
-
-        void AddConnection(const std::string& connected_id, const std::string& port_id);
-        void AddTopic(const std::string& topic);
-
         std::vector< std::reference_wrapper<Port> > GetExternalProducerPorts(const std::string& external_port_label);
+        std::vector< std::reference_wrapper<Logger> > GetLoggerClients(const std::string& logger_id);
+
 
         std::string GetExternalPortLabel(const std::string& internal_port_id);
         std::string GetExternalPortInternalId(const std::string& external_port_label);
@@ -107,7 +87,7 @@ class Experiment{
 
         std::mutex mutex_;
 
-        bool configure_done_;
+        bool is_configured_ = false;
 
         Environment& environment_;
 
@@ -121,15 +101,6 @@ class Experiment{
         //node_ip -> internal node map
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
 
-        //node_id -> node_ip_addr
-        std::unordered_map<std::string, std::string> node_address_map_;
-
-        //node_ip_address -> node_id
-        std::unordered_map<std::string, std::string> node_id_map_;
-
-        //list of topics used in this experiment
-        std::set<std::string> topic_set_;
-
         //map of internal port_id -> external port unique label
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
 
@@ -142,21 +113,6 @@ class Experiment{
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to
         bool dirty_flag_ = false;
-
-        std::set<std::string> updated_port_ids_;
-
-        //node id -> model logger fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
-        std::unordered_map<std::string, std::string> modellogger_endpoint_map_;
-
-        //logan client id -> logan client fully qualified address "tcp://xxx.xxx.xxx.xxx:pppp"
-        std::unordered_map<std::string, std::string> logan_client_endpoint_map_;
-
-        //port id -> configured zmq endpoing "tcp://xxx.xxx.xxx.xxx:pppp"
-        std::unordered_map<std::string, std::string> zmq_endpoint_map_;
-
-        //Port id -> Configured tao endpoint "corbaloc:iiop:xxx.xxx.xxx.xxx:pppp/server_name;
-        std::unordered_map<std::string, std::string> tao_endpoint_map_;
-
 };
 }; //namespace EnvironmentManager
 

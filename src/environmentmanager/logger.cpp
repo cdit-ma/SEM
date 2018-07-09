@@ -9,38 +9,28 @@ Logger::Logger(Environment& environment, Node& parent, const NodeManager::Logger
                 node_(parent), environment_(environment){
     id_ = logger.id();
 
-    if(logger.type() == NodeManager::Logger::CLIENT){
-        type_ = EnvironmentManager::Logger::Type::Client;
+    type_ = TranslateProtoType(logger.type());
 
+    if(type_ ==  Type::Client){
         frequency_ = logger.frequency();
-        for(int j = 0; j < logger.processes_size(); j++){
-            processes_.insert(logger.processes(j));
-        }
+        mode_ = TranslateProtoMode(logger.mode());
 
-        if(logger.mode() == NodeManager::Logger::LIVE){
-            mode_ = EnvironmentManager::Logger::Mode::Live;
-        }else if(logger.mode() == NodeManager::Logger::CACHED){
-            mode_ = EnvironmentManager::Logger::Mode::Cached;
-        }else{
-            mode_ = EnvironmentManager::Logger::Mode::Off;
+        for(const auto& process : logger.processes()){
+            AddProcess(process);
         }
 
         publisher_port_ = environment_.GetPort(GetNode().GetIp());
-
-        std::string addr = "tcp://" + GetNode().GetIp() + ":" + publisher_port_;
-        GetExperiment().AddLoganClientEndpoint(id_, addr);
-    }
-
-    if(logger.type() == NodeManager::Logger::SERVER){
-        type_ = EnvironmentManager::Logger::Type::Server;
-
+    }else if(type_ == Type::Server){
         db_file_name_ = logger.db_file_name();
-        for(int j = 0; j < logger.client_ids_size(); j++){
-            client_ids_.insert(logger.client_ids(j));
+
+        for(const auto& client_id : logger.client_ids()){
+            AddConnectedClientId(client_id);
         }
+        AddConnectedClientId("model_logger");
     }
 }
 
+//Model Logger Constructor
 Logger::Logger(Environment& environment, Node& parent, EnvironmentManager::Logger::Type type, EnvironmentManager::Logger::Mode mode): 
                 node_(parent), environment_(environment){
     type_ = type;
@@ -48,34 +38,12 @@ Logger::Logger(Environment& environment, Node& parent, EnvironmentManager::Logge
 
     if(type_ == EnvironmentManager::Logger::Type::Model){
         publisher_port_ = environment_.GetPort(GetNode().GetIp());
-        std::string endpoint = "tcp://" + GetNode().GetIp() + ":" + publisher_port_;
-        GetExperiment().AddModelLoggerEndpoint(GetNode().GetId(), endpoint);
     }
 }
 
 Logger::~Logger(){
-    if(type_ == Type::Client){
+    if(type_ == Type::Client || type_ == Type::Model){
         environment_.FreePort(GetNode().GetIp(), publisher_port_);
-        GetExperiment().RemoveLoganClientEndpoint(id_);
-    }
-    if(type_ == Type::Model){
-        environment_.FreePort(GetNode().GetIp(), publisher_port_);
-        GetExperiment().RemoveModelLoggerEndpoint(GetNode().GetId());
-    }
-}
-
-void Logger::ConfigureConnections(){
-    if(type_ == Type::Server){
-        const auto& client_address_map = GetExperiment().GetLoganClientEndpointMap();
-        for(const auto& client_id : client_ids_){
-            if(client_address_map.count(client_id)){
-                client_addresses_.insert(client_address_map.at(client_id));
-            }
-        }
-        const auto& model_logger_address_map = GetExperiment().GetModelLoggerEndpointMap();
-        for(const auto& address_pair : model_logger_address_map){
-            client_addresses_.insert(address_pair.second);
-        }
     }
 }
 
@@ -105,6 +73,7 @@ std::string Logger::GetPublisherPort() const{
 void Logger::SetFrequency(const double frequency){
     frequency_ = frequency;
 }
+
 double Logger::GetFrequency() const{
     return frequency_;
 }
@@ -112,6 +81,7 @@ double Logger::GetFrequency() const{
 void Logger::SetMode(const Mode mode){
     mode_ = mode;
 }
+
 Logger::Mode Logger::GetMode() const{
     return mode_;
 }
@@ -119,25 +89,17 @@ Logger::Mode Logger::GetMode() const{
 void Logger::AddProcess(const std::string& process){
     processes_.insert(process);
 }
-void Logger::RemoveProcess(const std::string& process){
-    processes_.erase(processes_.find(process));
-}
-std::vector<std::string> Logger::GetProcesses() const{
-    return std::vector<std::string>(processes_.begin(), processes_.end());
+
+void Logger::AddConnectedClientId(const std::string& client_id){
+    connected_client_ids_.insert(client_id);
 }
 
-void Logger::AddClientId(const std::string& client_id){
-    client_ids_.insert(client_id);
-}
-std::vector<std::string> Logger::GetClientIds() const{
-    return std::vector<std::string>(client_ids_.begin(), client_ids_.end());
+const std::set<std::string>& Logger::GetConnectedClientIds(){
+    return connected_client_ids_;
 }
 
-void Logger::AddClientAddress(const std::string& client_address){
-    client_addresses_.insert(client_address);
-}
-std::vector<std::string> Logger::GetClientAddresses() const{
-    return std::vector<std::string>(client_addresses_.begin(), client_addresses_.end());
+const std::set<std::string>& Logger::GetProcesses(){
+    return processes_;
 }
 
 void Logger::SetDbFileName(const std::string& file_name){
@@ -148,72 +110,112 @@ std::string Logger::GetDbFileName() const{
 }
 
 void Logger::SetDirty(){
-    node_.SetDirty();
-    dirty_ = true;
+    if(!dirty_){
+        node_.SetDirty();
+        dirty_ = true;
+    }
 }
+
 bool Logger::IsDirty(){
     return dirty_;
 }
 
 NodeManager::Logger* Logger::GetUpdate(){
-    auto logger_message = new NodeManager::Logger();
-    if(dirty_){
-        dirty_ = false;
-    }
-
-    return logger_message;
+    return GetProto();
 }
 
-NodeManager::Logger* Logger::GetDeploymentMessage() const{
-    auto logger = new NodeManager::Logger();
-    if(GetType() == EnvironmentManager::Logger::Type::Server){
-        for(const auto& client_addr : GetClientAddresses()){
-            logger->add_client_addresses(client_addr);
-        }
-        logger->set_db_file_name(GetDbFileName());
-        logger->set_type(NodeManager::Logger::SERVER);
-    }
-    return logger;
+std::string Logger::GetPublisherEndpoint() const{
+    return "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
 }
 
 NodeManager::Logger* Logger::GetProto(){
-    NodeManager::Logger* logger;
+    NodeManager::Logger* logger_pb = 0;
 
-    if(GetType() == EnvironmentManager::Logger::Type::Server){
-        logger = new NodeManager::Logger();
-        for(const auto& client_addr : GetClientAddresses()){
-            logger->add_client_addresses(client_addr);
+    switch(GetType()){
+        case Type::Server:{
+            logger_pb = new NodeManager::Logger();
+            
+            //Get the clients
+            for(const auto& client_id : GetConnectedClientIds()){
+                for(const auto& logger : GetExperiment().GetLoggerClients(client_id)){
+                    logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
+                }
+            }
+
+            //Fetch the model logger
+            logger_pb->set_db_file_name(GetDbFileName());
+            break;
         }
-        logger->set_db_file_name(GetDbFileName());
-        logger->set_type(NodeManager::Logger::SERVER);
-
-    }
-
-    if(GetType() == EnvironmentManager::Logger::Type::Client){
-        logger = new NodeManager::Logger();
-        for(const auto& process : GetProcesses()){
-            logger->add_processes(process);
+        case Type::Client:{
+            logger_pb = new NodeManager::Logger();
+            logger_pb->set_mode(TranslateInternalMode(mode_));
+            for(const auto& process : GetProcesses()){
+                logger_pb->add_processes(process);
+            }
+            logger_pb->set_frequency(GetFrequency());
+            
+            logger_pb->set_publisher_address(GetNode().GetIp());
+            logger_pb->set_publisher_port(GetPublisherPort());
+            break;
         }
-        logger->set_frequency(GetFrequency());
-        logger->set_publisher_address(node_.GetIp());
-        logger->set_publisher_port(GetPublisherPort());
-        logger->set_type(NodeManager::Logger::CLIENT);
+        case Type::Model:{
+            logger_pb = new NodeManager::Logger();
+            logger_pb->set_mode(TranslateInternalMode(mode_));
+            logger_pb->set_publisher_address(GetNode().GetIp());
+            logger_pb->set_publisher_port(GetPublisherPort());
+            break;
+        }
+        default:{
+            break;
+        }
     }
 
-    if(GetType() == EnvironmentManager::Logger::Type::Model){
-        logger = new NodeManager::Logger();
-        
-        logger->set_publisher_address(node_.GetIp());
-        logger->set_publisher_port(GetPublisherPort());
-        logger->set_type(NodeManager::Logger::MODEL);
+    if(logger_pb){
+        //Set the Mode
+        logger_pb->set_type(TranslateInternalType(type_));
     }
-    if(mode_ == Mode::Off){
-        logger->set_mode(NodeManager::Logger::OFF);
-    }else if(mode_ == Mode::Cached){
-        logger->set_mode(NodeManager::Logger::CACHED);
-    }else if(mode_ == Mode::Live){
-        logger->set_mode(NodeManager::Logger::LIVE);
-    }
+    return logger_pb;
+}
 
-    return logger;
+Logger::Mode Logger::TranslateProtoMode(const NodeManager::Logger::Mode mode){
+    const static std::map<NodeManager::Logger::Mode, Mode> map_({
+        {NodeManager::Logger::OFF, Logger::Mode::Off},
+        {NodeManager::Logger::CACHED, Logger::Mode::Cached},
+        {NodeManager::Logger::LIVE, Logger::Mode::Live}});
+    if(map_.count(mode)){
+        return map_.at(mode);
+    }
+    return Mode::Off;
+}
+NodeManager::Logger::Mode Logger::TranslateInternalMode(const Mode mode){
+    const static std::map<Mode, NodeManager::Logger::Mode> map_({
+        {Mode::Off, NodeManager::Logger::OFF},
+        {Mode::Cached, NodeManager::Logger::CACHED},
+        {Mode::Live, NodeManager::Logger::LIVE}});
+    if(map_.count(mode)){
+        return map_.at(mode);
+    }
+    return NodeManager::Logger::OFF;
+}
+
+Logger::Type Logger::TranslateProtoType(const NodeManager::Logger::Type type){
+    const static std::map<NodeManager::Logger::Type, Type> map_({
+        {NodeManager::Logger::MODEL, Logger::Type::Model},
+        {NodeManager::Logger::CLIENT, Logger::Type::Client},
+        {NodeManager::Logger::SERVER, Logger::Type::Server}});
+    if(map_.count(type)){
+        return map_.at(type);
+    }
+    return Type::None;
+}
+NodeManager::Logger::Type Logger::TranslateInternalType(const Type type){
+    const static std::map<Type, NodeManager::Logger::Type> map_({
+        {Type::None, NodeManager::Logger::NONE},
+        {Type::Model, NodeManager::Logger::MODEL},
+        {Type::Client, NodeManager::Logger::CLIENT},
+        {Type::Server, NodeManager::Logger::SERVER}});
+    if(map_.count(type)){
+        return map_.at(type);
+    }
+    return NodeManager::Logger::NONE;
 }

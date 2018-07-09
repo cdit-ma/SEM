@@ -30,12 +30,6 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
     }
 }
 
-void Component::ConfigureConnections(){
-    for(auto& port_pair : ports_){
-        port_pair.second->ConfigureConnections();
-    }
-}
-
 std::string Component::GetId(){
     return id_;
 };
@@ -72,20 +66,9 @@ Port& Component::GetPort(const std::string& port_id){
     throw std::out_of_range("Component::GetPort: " + id_ + " Get: " + port_id);
 }
 
-std::vector<std::string> Component::GetAllPublisherPorts() const{
-    std::vector<std::string> out;
-    for(const auto& port : ports_){
-        out.push_back(port.second->GetPublisherPort());
-    }
-
-    return out;
-}
-
 NodeManager::Component* Component::GetUpdate(){
-    NodeManager::Component* component = 0;
     if(dirty_){
-        component = new NodeManager::Component();
-
+        auto component = new NodeManager::Component();
         component->mutable_info()->set_name(name_);
         component->mutable_info()->set_id(id_);
         component->mutable_info()->set_type(type_);
@@ -108,13 +91,13 @@ NodeManager::Component* Component::GetUpdate(){
             }
         }
         dirty_ = false;
+        return component;
     }
-    return component;
+    return nullptr;
 }
 
 NodeManager::Component* Component::GetProto(){
-    NodeManager::Component* component;
-    component = new NodeManager::Component();
+    auto component = new NodeManager::Component();
 
     component->mutable_info()->set_name(name_);
     component->mutable_info()->set_id(id_);

@@ -29,6 +29,7 @@ namespace zmq{
         protected:
             void HandleTerminate(){
                 helper_.Terminate();
+                ::RequesterPort<BaseReplyType, BaseRequestType>::HandleTerminate();
             };
         private:
             zmq::RequesterPortHelper helper_;
@@ -48,6 +49,7 @@ namespace zmq{
         protected:
             void HandleTerminate(){
                 helper_.Terminate();
+                ::RequesterPort<void, BaseRequestType>::HandleTerminate();
             };
         private:
             zmq::RequesterPortHelper helper_;
@@ -68,6 +70,7 @@ namespace zmq{
         protected:
             void HandleTerminate(){
                 helper_.Terminate();
+                ::RequesterPort<BaseReplyType, void>::HandleTerminate();
             };
         private:
             zmq::RequesterPortHelper helper_;

@@ -1,8 +1,6 @@
 #include "deploymenthandler.h"
 #include <iostream>
 
-#include "deploymentgenerator.h"
-
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     zmq::context_t& context,
                                     const std::string& ip_addr,
@@ -19,9 +17,6 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
     port_promise_ = port_promise;
     experiment_id_ = experiment_id;
 
-    if(environment_.ModelNameExists(experiment_id_)){
-        throw std::invalid_argument("DeploymentHandler: Experiment name already exists: " + experiment_id);
-    }
 
     handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
 }
@@ -75,6 +70,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     int liveness = HEARTBEAT_LIVENESS;
 
     while(!removed_flag_){
+        
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
         if(zmq::poll(sockets, HEARTBEAT_INTERVAL) >= 1){
             //Reset
@@ -99,12 +95,14 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 interval *= 2;
             }
             else{
+                std::cerr << "* Experiment: '" << experiment_id_ << "' Timed out!" << std::endl;
                 //Timed out, break out and remove deployment
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
         }
     }
+    
     RemoveDeployment(time_added_);
 }
 
@@ -165,10 +163,8 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
     try{
         switch(message.type()){
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
-                //Create generator and populate message
-                DeploymentGenerator generator(environment_);
-                NodeManager::ControlMessage* configured_message = generator.PopulateDeployment(*(message.mutable_control_message()));
-                message.set_allocated_control_message(configured_message);
+                //Register the Experiment, which will modify the control_message
+                environment_.PopulateExperiment(*(message.mutable_control_message()));
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
             }
@@ -180,17 +176,17 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                bool dirty = true;
-                try{
-                    dirty = environment_.ExperimentIsDirty(experiment_id_);
-                }
-                catch(const std::invalid_argument& ex){
+                bool dirty = false;
+                //Send an Ack
+                message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
 
-                }
-                if(dirty){
-                    HandleDirtyExperiment(message);
-                }else{
-                    message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+                try{
+                    if(environment_.ExperimentIsDirty(experiment_id_)){
+                        HandleDirtyExperiment(message);
+                    }
+                }catch(const std::exception& ex){
+                    std::cerr << "Caught Exception: " << ex.what() << std::endl;
+                    message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 }
                 break;
             }
@@ -218,18 +214,23 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
     message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-    auto experiment_update = environment_.GetExperimentUpdate(experiment_id_);
-    if(experiment_update){
-        message.set_allocated_control_message(experiment_update);
+
+    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
+        auto experiment_update = environment_.GetExperimentUpdate(experiment_id_);
+        if(experiment_update){
+            message.set_allocated_control_message(experiment_update);
+        }
+    }
+
+    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
+        environment_.ExperimentIsDirty(experiment_id_);
     }
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-
-    if(environment_.ModelNameExists(message.experiment_id())){
+    if(environment_.IsExperimentRegistered(message.experiment_id())){
         auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
-
-
+        
         if(environment_message){
             message.Swap(environment_message);
             delete environment_message;

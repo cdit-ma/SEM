@@ -33,31 +33,38 @@ Environment::Environment(const std::string& address, int port_range_min, int por
 }
 
 
-NodeManager::ControlMessage* Environment::PopulateDeployment(NodeManager::ControlMessage& message){
+void Environment::PopulateExperiment(NodeManager::ControlMessage& control_message){
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    const auto& experiment_id = message.experiment_id();
-    DeclusterExperiment(message);
-
-    AddExternalPorts(experiment_id, message);
-
-
-    for(const auto& node : message.nodes()){
-        RecursiveAddNode(experiment_id, node);
-    }
-
-    std::string master_ip_address;
-    for(const auto& attribute : message.attributes()){
-        if(attribute.info().name() == "master_ip_address"){
-            master_ip_address = attribute.s(0);
-            break;
-        }
-    }
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    //Get the experiment_name
+    const auto& experiment_name = control_message.experiment_id();
     
-    SetExperimentMasterIp(experiment_id, master_ip_address);
-    ConfigureNodes(experiment_id);
-    auto configured_message = GetProto(experiment_id);
-    FinishConfigure(experiment_id);
-    return configured_message;
+    auto& experiment = GetExperiment(experiment_name);
+    
+    if(experiment.IsConfigured()){
+        throw std::runtime_error("Experiment '" + experiment_name + "' has already been Configured once.");
+    }
+
+    //Handle Deployments etc
+    DeclusterExperiment(control_message);
+
+    //Handle the External Ports
+    experiment.AddExternalPorts(control_message);
+    
+    //Add all nodes
+    for(const auto& node : control_message.nodes()){
+        RecursiveAddNode(experiment_name, node);
+    }
+
+    //Set the Master IP
+    const auto& master_ip_address = GetAttributeByName(control_message.attributes(), "master_ip_address").s(0);
+    experiment.SetMasterIp(master_ip_address);
+
+    //Complete the Configuration
+    experiment.SetConfigured();
+    auto configured_message = experiment.GetProto();
+    control_message.Swap(configured_message);
+    delete configured_message;
 }
 
 void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node){
@@ -93,7 +100,7 @@ std::string Environment::RegisterExperiment(const std::string& experiment_name){
         experiment_map_.emplace(experiment_name, std::move(experiment));
         experiment_map_.at(experiment_name)->SetManagerPort(manager_port);
         
-        std::cout << "* Registered experiment: " << experiment_name << std::endl;
+        std::cout << "* Registered experiment: '" << experiment_name << "'" << std::endl;
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
     return experiment_map_.at(experiment_name)->GetManagerPort();
@@ -122,6 +129,7 @@ void Environment::RemoveExperiment(const std::string& experiment_name, uint64_t 
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     if(experiment_map_.count(experiment_name)){
         experiment_map_.erase(experiment_name);
+        std::cout << "* Experiment Deregistered: " << experiment_name << std::endl;
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
 }
@@ -130,11 +138,6 @@ void Environment::RemoveLoganClientServer(const std::string& experiment_name, co
 
 }
 
-void Environment::FinishConfigure(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    auto& experiment = GetExperiment(experiment_name);
-    experiment.SetConfigureDone();
-}
 
 void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
     for(auto& node : *message.mutable_nodes()){
@@ -211,24 +214,13 @@ void Environment::DeclusterNode(NodeManager::Node& node){
     }
 }
 
-void Environment::AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    auto& experiment = GetExperiment(experiment_name);
-    experiment.AddExternalPorts(control_message);
-}
 
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperiment(experiment_name);
     AddNodeToEnvironment(node);
     experiment.AddNode(node);
 }
 
-void Environment::ConfigureNodes(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    auto& experiment = GetExperiment(experiment_name);
-    experiment.ConfigureNodes();
-}
 
 NodeManager::ControlMessage* Environment::GetProto(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
@@ -236,43 +228,21 @@ NodeManager::ControlMessage* Environment::GetProto(const std::string& experiment
     return experiment.GetProto();
 }
 
-std::string Environment::GetTopic(const std::string& experiment_name, const std::string& port_id){
-    throw std::runtime_error("Environment::GetTopic NOT IMPLEMENTED");
-}
-
-//Return list of experiments using the topic name provided
-std::vector<std::string> Environment::CheckTopic(const std::string& experiment_name, const std::string& topic){
-    std::vector<std::string> out;
-
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    for (const auto& pair : experiment_map_){
-        for(const auto& check_topic : pair.second->GetTopics()){
-            if(topic == check_topic){
-                out.push_back(pair.first);
-            }
-        }
-    }
-    return out;
-}
-
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
-    std::string ip;
-    std::string node_name = node.info().name();
+    try{
+        const auto& ip = GetAttributeByName(node.attributes(), "ip_address").s(0);
+        const auto& node_name = node.info().name();
 
-    for(const auto& attribute : node.attributes()){
-        if(attribute.info().name() == "ip_address"){
-            ip = attribute.s(0);
-            break;
+        std::lock_guard<std::mutex> lock(node_mutex_);
+        if(!node_map_.count(ip)){
+            auto port_tracker = std::unique_ptr<EnvironmentManager::PortTracker>(new EnvironmentManager::PortTracker(ip, available_ports_));
+            port_tracker->SetName(node_name);
+            node_ip_map_.insert({node_name, ip});
+            node_name_map_.insert({ip, node_name});
+            node_map_.emplace(ip, std::move(port_tracker));
         }
-    }
+    }catch(const std::exception& ex){
 
-    std::lock_guard<std::mutex> lock(node_mutex_);
-    if(!node_map_.count(ip)){
-        auto port_tracker = std::unique_ptr<EnvironmentManager::PortTracker>(new EnvironmentManager::PortTracker(ip, available_ports_));
-        port_tracker->SetName(node_name);
-        node_ip_map_.insert({node_name, ip});
-        node_name_map_.insert({ip, node_name});
-        node_map_.emplace(ip, std::move(port_tracker));
     }
 }
 
@@ -326,20 +296,13 @@ bool Environment::NodeDeployedTo(const std::string& experiment_name, const std::
     return false;
 }
 
-bool Environment::ModelNameExists(const std::string& experiment_name){
-    try{
-        std::lock_guard<std::mutex> lock(experiment_mutex_);
-        return GetExperiment(experiment_name).ConfigureDone();
-    }catch(const std::invalid_argument& ex){
-    }
-    return false;
+bool Environment::IsExperimentRegistered(const std::string& experiment_name){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    return experiment_map_.count(experiment_name) > 0;
 }
 
 void Environment::SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    if(experiment_map_.count(experiment_name)){
-        experiment_map_.at(experiment_name)->SetMasterIp(ip_address);
-    }
+
 }
 
 std::string Environment::GetMasterPublisherAddress(const std::string& experiment_name){
@@ -371,6 +334,13 @@ NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string&
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     return GetExperiment(experiment_name).GetUpdate();
 }
+
+NodeManager::ControlMessage* Environment::GetLoganUpdate(const std::string& experiment_name){
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
+    return GetExperiment(experiment_name).GetUpdate();
+}
+
+
 
 //XXX: Hardcoded as This machine
 std::string Environment::GetAmqpBrokerAddress(){
@@ -424,7 +394,7 @@ void Environment::AddExternalConsumerPort(const std::string& experiment_name, co
         external_eventport_map_.emplace(external_port_label, external_port);
     }
     auto& external_port = GetExternalPort(external_port_label);
-    std::cerr << "* Experiment Name: " << experiment_name << " Consumes: " << external_port_label << std::endl;
+    std::cout << "* Experiment Name: '" << experiment_name << "' Consumes: '" << external_port_label << "'" << std::endl;
     external_port.consumer_experiments.insert(experiment_name);
 }
 
@@ -436,7 +406,7 @@ void Environment::AddExternalProducerPort(const std::string& experiment_name, co
     }
     auto& external_port = GetExternalPort(external_port_label);
     external_port.producer_experiments.insert(experiment_name);
-    std::cerr << "* Experiment Name: " << experiment_name << " Produces: " << external_port_label << std::endl;
+    std::cout << "* Experiment Name: '" << experiment_name << "' Produces: '" << external_port_label << "'" << std::endl;
 
     //Update Consumers
     for(const auto& consumer_experiment_name : external_port.consumer_experiments){
@@ -448,14 +418,11 @@ void Environment::AddExternalProducerPort(const std::string& experiment_name, co
 void Environment::RemoveExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label){
     auto& external_port = GetExternalPort(external_port_label);
     external_port.consumer_experiments.erase(experiment_name);
-    std::cerr << "* Experiment Name: " << experiment_name << " No Longer Consumes: " << external_port_label << std::endl;
 }
 
 void Environment::RemoveExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label){
     auto& external_port = GetExternalPort(external_port_label);
     external_port.producer_experiments.erase(experiment_name);
-    std::cerr << "* Experiment Name: " << experiment_name << " No Longer Produces: " << external_port_label << std::endl;
-
     //Update Consumers
     for(const auto& consumer_experiment_name : external_port.consumer_experiments){
         auto& consumer_experiment = GetExperiment(consumer_experiment_name);

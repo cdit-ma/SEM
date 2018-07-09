@@ -28,15 +28,17 @@ class ModelLogger{
 
         enum class LifeCycleEvent{
             STARTED = 0,
-            ACTIVATED = 1,
-            PASSIVATED = 2,
-            TERMINATED = 3,
+            CONFIGURED = 1,
+            ACTIVATED = 2,
+            PASSIVATED = 3,
+            TERMINATED = 4,
         };
 
         enum class WorkloadEvent{
             STARTED = 0,
             FINISHED = 1,
             MESSAGE = 2,
+            ERROR = 3
         };
 
         enum class ComponentEvent{
@@ -65,8 +67,6 @@ class ModelLogger{
         void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEvent event);
         void LogComponentEvent(const Port& port, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
-        void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
-        void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 
         const std::string& get_hostname() const;
         void set_hostname(const std::string& hostname);

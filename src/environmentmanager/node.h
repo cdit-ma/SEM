@@ -23,8 +23,6 @@ class Node{
         ~Node();
         Node(const Node& parent, const std::string& id, const std::string& name, const std::string& ip_address);
 
-        void ConfigureConnections();
-
         //Info getters
         std::string GetId() const;
         std::string GetName() const;
@@ -53,6 +51,9 @@ class Node{
         void AddAttribute(const NodeManager::Attribute& attribute);
         void AddLogger(const NodeManager::Logger& logger);
         void AddModelLogger();
+
+        bool HasLogger(const std::string& logger_id);
+        Logger& GetLogger(const std::string& logger_id);
 
         //Update requirement management
         void SetDirty();

@@ -223,7 +223,7 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
     }
-    else if(!environment_->ModelNameExists(experiment_id)){
+    else if(!environment_->IsExperimentRegistered(experiment_id)){
         //Dont have an experiment with this id, send back a no_type s.t. client re-trys in a bit
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
