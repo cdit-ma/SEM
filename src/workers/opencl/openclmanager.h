@@ -117,7 +117,7 @@ class OpenCLManager {
 
 		std::mutex opencl_resource_mutex_;
 
-		std::map<int, GenericBuffer*> buffer_store_;
+		std::map<int, std::unique_ptr<GenericBuffer> > buffer_store_;
 		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
 
@@ -142,7 +142,9 @@ OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, const std::vecto
 
 template <typename T>
 void OpenCLManager::ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer) {
-	delete buffer;
+	//delete buffer;
+	//buffer_store_.erase(buffer->GetID());
+	UntrackBuffer(buffer->GetID());
 }
 
 #endif // OPENCL_MANAGER_H

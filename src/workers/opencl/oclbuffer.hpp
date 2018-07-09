@@ -4,11 +4,12 @@
 //#include "openclutilities.h"
 #include "openclmanager.h"
 #include "genericbuffer.h"
+#include "opencldevice.h"
 
 #include <vector>
 
 class OpenCLManager;
-class OpenCLDevice;
+//class OpenCLDevice;
 
 template <typename T>
 class OCLBuffer : public GenericBuffer {
@@ -50,21 +51,30 @@ OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, size_t num
 template <typename T>
 OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking)
     : OCLBuffer(worker, manager, data.size()) {
-    WriteData(worker, data, device, blocking);
+    bool write_success = WriteData(worker, data, device, blocking);
+    if (!write_success) {
+        throw std::runtime_error("Unable to write data to buffer during creation");
+    }
 }
 
 template <typename T>
 bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, const OpenCLDevice& device, bool blocking) {
 
     // Warn if size mismatch, abort if overflow would occur
-    if (data.size() !=  GetNumElements()) {
+    if (data.size() != GetNumElements()) {
         LogError(worker,
             __func__,
-            "Attempting to write vector data to a buffer of different length: "
+            "Warning: Attempting to write vector data to a buffer of different length: "
                 +std::to_string(data.size())+" when expecting "+std::to_string(GetNumElements()));
         if (data.size() > GetNumElements()) {
+            LogError(worker,
+                __func__,
+                "Skipping buffer write");
             return false;
         }
+        LogError(worker,
+            __func__,
+            "Continuing on despite mismatch (requested size is smaller than available memory space)");
     }
     
     bool write_success = GenericBuffer::WriteData(worker, data.data(), size_, device, blocking);
