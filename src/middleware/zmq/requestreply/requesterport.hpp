@@ -84,6 +84,7 @@ std::unique_ptr<zmq::socket_t> zmq::RequesterPortHelper::GetReqSocket(const std:
     }
     
     auto socket = helper.get_socket(*context_, ZMQ_REQ);
+    socket->setsockopt(ZMQ_LINGER, 0);
     try{
         socket->connect(endpoint.c_str());
     }catch(const zmq::error_t& ex){

@@ -56,6 +56,8 @@ NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
 */ 
 std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind){
     std::set<std::string> source_ids;
+
+    bool is_assembly_edge = edge_kind == "Edge_Assembly";
     
     //Get all edges connected to node_id
     for(const auto& edge_id : entity_edge_ids_[node_id]){
@@ -65,11 +67,20 @@ std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const st
                 //Get the source of this edge
                 const auto& edge_source = graphml_parser_->GetAttribute(edge_id, "source");
                 
+                bool recurse_edges = true;
+                if(is_assembly_edge){
+                    //Treat External Delegate Ports as Terminations so we don't break intra-model connectivity
+                    const auto& source_kind = graphml_parser_->GetDataValue(edge_source, "kind");
+                    if(source_kind == "PubSubPortDelegate" || source_kind == "RequestPortDelegate"){
+                        recurse_edges = false;
+                    }
+                }
+                
                 //Get the edges originating from the source
                 const auto& connected_sources = GetTerminalSourcesByEdgeKind(edge_source, edge_kind);
 
                 //If we have edges originating from the source, append them
-                if(connected_sources.size()){
+                if(recurse_edges && connected_sources.size()){
                     for(const auto& source_id : connected_sources){
                         source_ids.insert(source_id);
                     }
