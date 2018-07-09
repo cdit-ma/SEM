@@ -114,7 +114,7 @@ Port::~Port(){
 }
 
 void Port::ConfigureConnections(){
-    //TODO: DO DYNAMIC REQONFIGURE ON GET PROTO
+    //TODO: DO DYNAMIC REQONFIGURE ON GET PROTO (RE-250)
     if(middleware_ == Middleware::Zmq){
         if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
             const auto& endpoint_map = GetExperiment().GetZmqEndpointMap();
@@ -138,8 +138,6 @@ void Port::ConfigureConnections(){
             }
         }
     }
-
-    //TODO: RECONFIGURE EXTERNAL PORTS 
 }
 
 void Port::AddAttribute(const NodeManager::Attribute& attribute){
@@ -149,7 +147,6 @@ void Port::AddAttribute(const NodeManager::Attribute& attribute){
 }
 
 void Port::UpdateExternalEndpoints(){
-    //TODO: RECONFIGURE EXTERNAL PORTS 
     SetDirty();
 }
 
@@ -404,7 +401,6 @@ void Port::FillTaoProto(NodeManager::Port* port){
 
     const auto& orb_endpoint = GetNode().GetIp() + ":" + GetNode().GetOrbPort();
     {
-        //TODO: Need Unique Port per HardwareNode per experiment for both Requester/Replier
         auto orb_attr = port->add_attributes();
         auto orb_info = orb_attr->mutable_info();
         orb_info->set_name("orb_endpoint");
@@ -413,7 +409,6 @@ void Port::FillTaoProto(NodeManager::Port* port){
     }
 
     if(kind_ == Kind::Requester){
-        //TODO: Need Unique Port per HardwareNode per experiment for both Requester/Replier
         auto server_addr_attr = port->add_attributes();
         auto server_addr_info = server_addr_attr->mutable_info();
         server_addr_info->set_name("server_address");

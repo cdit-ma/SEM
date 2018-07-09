@@ -27,7 +27,7 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
 }
 
 void DeploymentHandler::Terminate(){
-    //TODO: send terminate messages to node manager attached to this thread.
+    //TODO: (RE-253) send terminate messages to node manager attached to this thread
     handler_thread_->join();
 }
 
@@ -90,10 +90,10 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
                 break;
             }
-            //TODO: Update experiments status to be ACTIVE
+            //TODO: Update experiments status to be ACTIVE (RE-253)
         }
         else if(--liveness == 0){
-            //TODO: Update experiments status to be TIMEOUT
+            //TODO: Update experiments status to be TIMEOUT (RE-253)
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;
@@ -208,10 +208,9 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
         }
     }
     catch(std::exception& ex){
-        std::cerr << message.DebugString() << std::endl;
-        //TODO: Add ex.what() as error message.
         std::cerr << "DeploymentHandler::HandleRequest: " << ex.what() << std::endl;
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        message.add_error_messages(std::string(ex.what()));
     }
 
     return message.SerializeAsString();

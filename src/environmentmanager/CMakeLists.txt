@@ -13,7 +13,6 @@ find_package(Protobuf REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.cpp
@@ -28,7 +27,6 @@ set(SOURCE
     )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h

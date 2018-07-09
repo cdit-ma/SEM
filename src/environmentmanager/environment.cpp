@@ -143,7 +143,7 @@ void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
 }
 
 void Environment::DeclusterNode(NodeManager::Node& node){
-    //TODO: change this to have 2nd mode for distribution (reflecting components running on nodes from other experiments)
+    //TODO: Look into a Smart Deployment Algorithm to spread load (RE-254)
     if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
         std::queue<NodeManager::Component> component_queue;
         std::queue<NodeManager::Logger> logging_servers;
