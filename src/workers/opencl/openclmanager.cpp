@@ -322,7 +322,6 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
 
     bool did_all_succeed = true;
     for (const auto& device : device_list_) {
-		std::cerr << "loading binaries for " << device->GetName() << std::endl;
         std::string dev_name = SanitisePathString(device->GetName()).substr(0, 15);
 		std::string plat_name = SanitisePathString(platform_name_).substr(0, 15);
 
@@ -339,7 +338,7 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
 		}
         if (!success) {
             LogError(worker, __func__,
-                "Failed to load binary for device "+dev_name);
+                "Note: Failed to load binary for device "+dev_name+", will attempt to compile kernels on demand at runtime");
             did_all_succeed = false;
         } else {
 			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
