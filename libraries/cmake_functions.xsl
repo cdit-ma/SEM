@@ -117,6 +117,22 @@
     </xsl:function>
 
     <!--
+        Sets a variable
+        ie. set(${variable} ${value})
+    -->
+    <xsl:function name="cmake:set_variable_if_not_set" as="xs:string*">
+        <xsl:param name="variable" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:sequence select="cmake:if_start(concat('NOT ', $variable), $tab)" />
+        <xsl:sequence select="cmake:set_variable($variable, $value, $tab + 1)" />
+        <xsl:sequence select="cmake:if_end(concat('NOT ', $variable), $tab)" />
+    </xsl:function>
+
+    
+
+    <!--
         Sets the project name
 
         ie. set(PROJ_NAME ${project_name})
@@ -274,12 +290,13 @@
     <xsl:function name="cmake:set_output_directory">
         <xsl:param name="var" as="xs:string"/>
         <xsl:param name="output_directory" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer" />
         
-        <xsl:value-of select="cmake:set_variable($var, $output_directory, 0)" />
-        <xsl:value-of select="cmake:if_start('MSVC', 0)" />
-        <xsl:value-of select="cmake:set_variable(concat($var, '_DEBUG'), cmake:wrap_variable($var), 1)" />
-        <xsl:value-of select="cmake:set_variable(concat($var, '_RELEASE'), cmake:wrap_variable($var), 1)" />
-        <xsl:value-of select="cmake:if_end('MSVC', 0)" />
+        <xsl:value-of select="cmake:set_variable($var, $output_directory, $tab)" />
+        <xsl:value-of select="cmake:if_start('MSVC', $tab)" />
+        <xsl:value-of select="cmake:set_variable(concat($var, '_DEBUG'), cmake:wrap_variable($var), $tab + 1)" />
+        <xsl:value-of select="cmake:set_variable(concat($var, '_RELEASE'), cmake:wrap_variable($var), $tab + 1)" />
+        <xsl:value-of select="cmake:if_end('MSVC', $tab)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
@@ -288,7 +305,8 @@
     -->
     <xsl:function name="cmake:set_runtime_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
-        <xsl:value-of select="cmake:set_output_directory('CMAKE_RUNTIME_OUTPUT_DIRECTORY', $output_directory)" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_RUNTIME_OUTPUT_DIRECTORY', $output_directory, $tab)" />
     </xsl:function>
 
     <!--
@@ -296,7 +314,8 @@
     -->
     <xsl:function name="cmake:set_library_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
-        <xsl:value-of select="cmake:set_output_directory('CMAKE_LIBRARY_OUTPUT_DIRECTORY', $output_directory)" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_LIBRARY_OUTPUT_DIRECTORY', $output_directory, $tab)" />
     </xsl:function>
 
     <!--
@@ -304,7 +323,8 @@
     -->
     <xsl:function name="cmake:set_archive_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
-        <xsl:value-of select="cmake:set_output_directory('CMAKE_ARCHIVE_OUTPUT_DIRECTORY', $output_directory)" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_ARCHIVE_OUTPUT_DIRECTORY', $output_directory, $tab)" />
     </xsl:function>
 
     <!--

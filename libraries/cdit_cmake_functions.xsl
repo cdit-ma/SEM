@@ -669,6 +669,8 @@
         <!-- Target Include Directories -->
         <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
+        <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
         <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
         <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
         <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
@@ -749,10 +751,11 @@
         Sets up RE_PATH
     -->
     <xsl:function name="cmake:setup_re_path">
-        <xsl:value-of select="cmake:comment('CDIT Runtime Paths', 0)" />
-        <xsl:value-of select="cmake:set_variable('RE_PATH', cmake:get_env_var('RE_PATH'), 0)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), 0)" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:value-of select="cmake:comment('CDIT Runtime Paths', $tab)" />
+        <xsl:value-of select="cmake:set_variable_if_not_set('RE_PATH', cmake:get_env_var('RE_PATH'), $tab)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), $tab)" />
     </xsl:function>
 
     <!--
@@ -761,12 +764,14 @@
     <xsl:function name="cmake:get_top_cmakelists">
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
         <xsl:value-of select="cmake:set_cpp11()" />
-        <xsl:value-of select="cmake:setup_re_path()" />
-
+        
+        <!-- Don't set if we have valid values already, If we aren't the top level, don't redefine -->
+        <xsl:value-of select="concat('get_directory_property(IS_SUB_REPO PARENT_DIRECTORY)', o:nl(1))" />
+        <xsl:value-of select="cmake:if_start('NOT IS_SUB_REPO', 0)" />
         <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(), 'lib'))" />
-
-        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
-        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
+        <xsl:value-of select="cmake:set_library_output_directory($lib_dir, 1)" />
+        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir, 1)" />
+        <xsl:value-of select="cmake:if_end('NOT IS_SUB_REPO', 0)" />
         <xsl:value-of select="cmake:add_subdirectories(('components', 'ports', 'classes', 'datatypes'))" />
     </xsl:function>
 
