@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
-#include <regex>
 
 
 
@@ -469,11 +468,15 @@ bool ProtobufModelParser::Process(){
         logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
 
         auto processes = graphml_parser_->GetDataValue(client_id, "processes_to_log");
+        std::transform(processes.begin(), processes.end(), processes.begin(), [](char ch) {
+            return ch == ',' ? ' ' : ch;
+        });
 
-        //Tokenize the list of process using regex
-        std::vector<std::string> split_processes{
-            std::sregex_token_iterator(processes.begin(), processes.end(), std::regex(","), -1), {}
-            };
+
+        std::istringstream iss(processes);
+        std::vector<std::string> split_processes(std::istream_iterator<std::string>{iss},
+                                 std::istream_iterator<std::string>());
+
         for(const auto& process : split_processes){
             logger_pb->add_processes(process);
         }
