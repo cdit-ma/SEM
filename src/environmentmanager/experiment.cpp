@@ -68,7 +68,7 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
             auto port = new ExternalPort();
             port->internal_id = internal_id;
             port->external_label = external_port.info().name();
-            external_port_map_.emplace(internal_id, port);
+            external_port_map_.emplace(internal_id, std::unique_ptr<ExternalPort>(port));
             external_id_to_internal_id_map_[port->external_label] = internal_id;
         }else{
             throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate external port id: '" + internal_id + "'");

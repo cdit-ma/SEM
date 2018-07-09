@@ -67,11 +67,11 @@ void Environment::PopulateExperiment(NodeManager::ControlMessage& control_messag
     delete configured_message;
 }
 
-void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node){
-    for(const auto& node : node.nodes()){
+void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node_pb){
+    for(const auto& node : node_pb.nodes()){
         RecursiveAddNode(experiment_id, node);
     }
-    AddNodeToExperiment(experiment_id, node);
+    AddNodeToExperiment(experiment_id, node_pb);
 }
 
 std::string Environment::AddDeployment(const std::string& experiment_name,
@@ -200,17 +200,17 @@ void Environment::DeclusterNode(NodeManager::Node& node){
         }
 
         //put a copy of all logging clients on all child nodes
-        for(auto& node : *node.mutable_nodes()){
+        for(auto& node_pb : *node.mutable_nodes()){
             for(const auto& logger : logging_clients){
-                auto new_logger = node.add_loggers();
+                auto new_logger = node_pb.add_loggers();
                 //Copy the Logger
                 *new_logger = logger;
             }
         }
     }
 
-    for(auto& node : *node.mutable_nodes()){
-        DeclusterNode(node);
+    for(auto& node_pb : *node.mutable_nodes()){
+        DeclusterNode(node_pb);
     }
 }
 
@@ -391,7 +391,7 @@ void Environment::AddExternalConsumerPort(const std::string& experiment_name, co
     if(!external_eventport_map_.count(external_port_label)){
         auto external_port = new ExternalPort();
         external_port->external_label = external_port_label;
-        external_eventport_map_.emplace(external_port_label, external_port);
+        external_eventport_map_.emplace(external_port_label, std::unique_ptr<ExternalPort>(external_port));
     }
     auto& external_port = GetExternalPort(external_port_label);
     std::cout << "* Experiment Name: '" << experiment_name << "' Consumes: '" << external_port_label << "'" << std::endl;
@@ -402,7 +402,7 @@ void Environment::AddExternalProducerPort(const std::string& experiment_name, co
     if(!external_eventport_map_.count(external_port_label)){
         auto external_port = new ExternalPort();
         external_port->external_label = external_port_label;
-        external_eventport_map_.emplace(external_port_label, external_port);
+        external_eventport_map_.emplace(external_port_label, std::unique_ptr<ExternalPort>(external_port));
     }
     auto& external_port = GetExternalPort(external_port_label);
     external_port.producer_experiments.insert(experiment_name);

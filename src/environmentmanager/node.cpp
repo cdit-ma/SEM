@@ -94,13 +94,13 @@ void Node::SetOrbPort(const std::string& orb_port){
 void Node::AddComponent(const NodeManager::Component& component_pb){
     const auto& id = component_pb.info().id();
     auto component = std::unique_ptr<EnvironmentManager::Component>(new EnvironmentManager::Component(environment_, *this, component_pb));
-    components_.insert({id, std::move(component)});
+    components_.emplace(id, std::move(component));
 }
 
 void Node::AddLogger(const NodeManager::Logger& logger_pb){
     const auto& id = logger_pb.id();
     auto logger = std::unique_ptr<EnvironmentManager::Logger>(new EnvironmentManager::Logger(environment_, *this, logger_pb));
-    loggers_.insert({id, std::move(logger)});
+    loggers_.emplace(id, std::move(logger));
 }
 
 bool Node::HasLogger(const std::string& logger_id){
@@ -119,13 +119,13 @@ void Node::AddModelLogger(){
     const auto& id = "model_logger";
     auto logger = std::unique_ptr<EnvironmentManager::Logger>(
         new EnvironmentManager::Logger(environment_,*this, EnvironmentManager::Logger::Type::Model, EnvironmentManager::Logger::Mode::Cached));
-    loggers_.insert({id, std::move(logger)});
+    loggers_.emplace(id, std::move(logger));
 }
 
 void Node::AddAttribute(const NodeManager::Attribute& attribute_pb){
     const auto& id = attribute_pb.info().id();
     auto attribute = std::unique_ptr<EnvironmentManager::Attribute>(new EnvironmentManager::Attribute(attribute_pb));
-    attributes_.insert({id, std::move(attribute)});
+    attributes_.emplace(id, std::move(attribute));
 }
 
 void Node::SetDirty(){
