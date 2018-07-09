@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cassert>
 #include <queue>
+#include <algorithm>
+#include <vector>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, int port_range_min, int port_range_max){
@@ -367,7 +369,11 @@ Environment::ExternalPort& Environment::GetExternalPort(const std::string& exter
 std::vector< std::reference_wrapper<Port> > Environment::GetExternalProducerPorts(const std::string& external_port_label){
     std::vector< std::reference_wrapper<Port> > producer_ports;
     const auto& external_port = GetExternalPort(external_port_label);
-    for(const auto& experiment_name : external_port.producer_experiments){
+
+    std::vector<std::string> producer_experiments(external_port.producer_experiments.begin(), external_port.producer_experiments.end());
+    //Sort the Experiment names
+    std::sort(producer_experiments.begin(), producer_experiments.end());
+    for(const auto& experiment_name : producer_experiments){
         auto& experiment = GetExperiment(experiment_name);
         for(auto& port : experiment.GetExternalProducerPorts(external_port_label)){
             producer_ports.emplace_back(port);

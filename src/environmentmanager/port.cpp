@@ -305,30 +305,25 @@ void Port::FillZmqProto(NodeManager::Port* port){
         case Kind::Publisher:
         case Kind::Subscriber:{
             auto publisher_address_attr = port->add_attributes();
-            auto publisher_address_attr_info = publisher_address_attr->mutable_info();
-            publisher_address_attr_info->set_name("publisher_address");
+            publisher_address_attr->mutable_info()->set_name("publisher_address");
             publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
             if(kind_ == Kind::Publisher){
-                const auto& publisher_endpoint = GetPublisherEndpoint();
-                std::cerr << "PUB: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
-                publisher_address_attr->add_s(GetPublisherEndpoint());
+                const auto& endpoint = GetPublisherEndpoint();
+                publisher_address_attr->add_s(endpoint);
             }
             else{
                 for(auto port_id : connected_port_ids_){
                     auto& publisher_port = GetExperiment().GetPort(port_id);
-                    const auto& publisher_endpoint = publisher_port.GetPublisherEndpoint();
-                    std::cerr << "SUB1: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
-                    publisher_address_attr->add_s(publisher_endpoint);
+                    const auto& endpoint = publisher_port.GetPublisherEndpoint();
+                    publisher_address_attr->add_s(endpoint);
                 }
                 for(auto internal_port_id : connected_external_port_ids_){
                     auto external_port_label = GetExperiment().GetExternalPortLabel(internal_port_id);
                     
-
                     for(auto& publisher_port : environment_.GetExternalProducerPorts(external_port_label)){
-                        const auto& publisher_endpoint = publisher_port.get().GetPublisherEndpoint();
-                        std::cerr << "SUB2: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
-                        publisher_address_attr->add_s(publisher_endpoint);
+                        const auto& endpoint = publisher_port.get().GetPublisherEndpoint();
+                        publisher_address_attr->add_s(endpoint);
                     }
                 }
             }
@@ -337,12 +332,27 @@ void Port::FillZmqProto(NodeManager::Port* port){
         case Kind::Requester:
         case Kind::Replier:{
             auto server_address_attr = port->add_attributes();
-            auto server_address_attr_info = server_address_attr->mutable_info();
-            server_address_attr_info->set_name("server_address");
+            server_address_attr->mutable_info()->set_name("server_address");
             server_address_attr->set_kind(NodeManager::Attribute::STRING);
 
-            if(!endpoints_.empty()){
-                server_address_attr->add_s(*(endpoints_.begin()));
+            if(kind_ == Kind::Replier){
+                const auto& endpoint = GetPublisherEndpoint();
+                server_address_attr->add_s(endpoint);
+            }
+            else{
+                for(auto port_id : connected_port_ids_){
+                    auto& publisher_port = GetExperiment().GetPort(port_id);
+                    const auto& endpoint = publisher_port.GetPublisherEndpoint();
+                    server_address_attr->add_s(endpoint);
+                }
+                for(auto internal_port_id : connected_external_port_ids_){
+                    auto external_port_label = GetExperiment().GetExternalPortLabel(internal_port_id);
+                    
+                    for(auto& publisher_port : environment_.GetExternalProducerPorts(external_port_label)){
+                        const auto& endpoint = publisher_port.get().GetPublisherEndpoint();
+                        server_address_attr->add_s(endpoint);
+                    }
+                }
             }
             break;
         }
