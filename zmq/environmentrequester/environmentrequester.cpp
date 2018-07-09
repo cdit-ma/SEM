@@ -469,7 +469,6 @@ void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message)
     }else{
         if(update_callback_){
             update_callback_(message);
-            return;
         }else{
             throw std::runtime_error("Update callback not set");
         }
