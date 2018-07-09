@@ -126,7 +126,7 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     }
 
     try {
-        auto bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
+        bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
     } catch (const std::exception& e) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to create buffer for Matrix B in MatrixMult: \n"+std::string(e.what()));
@@ -135,7 +135,7 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     }
     //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
     try {
-        auto result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
+        result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
     } catch (const std::exception& e) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to create buffer for result matrix in MatrixMult: \n"+std::string(e.what()));
