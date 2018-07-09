@@ -32,10 +32,8 @@ class DeploymentRegister{
         //Request handlers
         void RequestHandler(NodeManager::EnvironmentMessage& message);
         void HandleAddDeployment(NodeManager::EnvironmentMessage& message);
-        void HandleNodeQuery(NodeManager::EnvironmentMessage& message);
         void HandleAddLoganClient(NodeManager::EnvironmentMessage& message);
-        void HandleAddLoganServer(NodeManager::EnvironmentMessage& message);
-        void HandleLoganClientListQuery(NodeManager::EnvironmentMessage& message);
+        void HandleNodeQuery(NodeManager::EnvironmentMessage& message);
 
         //Helpers
         std::string TCPify(const std::string& ip_address, const std::string& port) const;
