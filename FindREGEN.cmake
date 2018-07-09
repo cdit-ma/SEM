@@ -5,13 +5,8 @@ include(FindPackageHandleStandardArgs)
 SET(GENERATE_XSL "generate_project.xsl")
 
 function(REGEN_GENERATE_CPP)
-    set(oneValueArgs GRAPHML PROJECT_PREFIX GENERATED_DIRS)
+    set(oneValueArgs GRAPHML PROJECT_PREFIX)
     cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "" ${ARGN})
-
-    if(NOT ARGS_GENERATED_DIRS)
-        message(SEND_ERROR "Error: REGEN_GENERATE_CPP() called without a GENERATED_DIRS")
-        return()
-    endif()
 
     set(WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR})
     
@@ -37,12 +32,6 @@ function(REGEN_GENERATE_CPP)
         message("--->  ${GENERATE_XSL} Error Output  [END]  <---")
         return()
     endif()
-    list(APPEND ${ARGS_GENERATED_DIRS} "${WORKING_DIR}/classes")
-    list(APPEND ${ARGS_GENERATED_DIRS} "${WORKING_DIR}/components")
-    list(APPEND ${ARGS_GENERATED_DIRS} "${WORKING_DIR}/datatypes")
-    list(APPEND ${ARGS_GENERATED_DIRS} "${WORKING_DIR}/ports")
-
-    set(${ARGS_GENERATED_DIRS} ${${ARGS_GENERATED_DIRS}} PARENT_SCOPE)
 endfunction()
 
 if(NOT REGEN_PATH)
