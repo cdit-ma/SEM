@@ -6,20 +6,12 @@
 #include <mutex>
 
 namespace EnvironmentManager{
-struct EventPort{
-    std::string id;
-    std::string guid;
-    std::string type;
-    std::string node_ip;
-    std::string port_number;
-    std::string topic;
 
-    //list of publisher ids
-    std::vector<std::string> connected_ports;
-
-    std::string endpoint;
-
+struct ExternalEventPort{
+    std::string unique_label;
+    std::set<std::string> endpoints;
 };
+
 class PortTracker{
     public:
         PortTracker(const std::string& ip_address, unique_queue<int> port_set){

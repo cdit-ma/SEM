@@ -83,7 +83,12 @@ std::string Node::GetManagementPort() const{
 bool Node::HasOrbPort() const{
     return !orb_port_.empty();
 }
-std::string Node::GetOrbPort(){
+
+std::string Node::GetOrbPort() const{
+    return orb_port_;
+}
+
+std::string Node::AssignOrbPort(){
     if(!HasOrbPort()){
         orb_port_ = environment_.GetPort(ip_);
     }

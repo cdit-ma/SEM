@@ -28,16 +28,10 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
             std::string endpoint = "tcp://" + ip + ":" + GetPublisherPort();
             GetExperiment().AddZmqEndpoint(id_, endpoint);
             endpoints_.insert(endpoint);
-
-            //if this port is connected to any external ports, update them to have this endpoint
-            for(const auto& connected_id : port.connected_external_ports()){
-                external_ = true;
-                GetExperiment().AddExternalEndpoint(connected_id, endpoint);
-            }
         }
     }
     if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
-        const auto& orb_port = GetNode().GetOrbPort();
+        const auto& orb_port = GetNode().AssignOrbPort();
         SetPublisherPort(orb_port);
         std::string topic = GetName() + "_" + GetId();
         SetTopic(topic);
@@ -46,12 +40,29 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
             std::string endpoint = "corbaloc:iiop:" + ip + ":" + orb_port + "/" + topic;
             GetExperiment().AddTaoEndpoint(id_, endpoint);
             endpoints_.insert(endpoint);
-
-            for(const auto& connected_id : port.connected_external_ports()){
-                external_ = true;
-                GetExperiment().AddExternalEndpoint(connected_id, endpoint);
-            }
         }
+    }
+
+    for(const auto& connected_id : port.connected_external_ports()){
+        AddExternalConnectedPortId(connected_id);
+        switch(kind_){
+            case EnvironmentManager::Port::Kind::Publisher:
+            case EnvironmentManager::Port::Kind::Replier:{
+                GetExperiment().AddExternalProducerPort(connected_id, id_);
+                break;
+            }
+            case EnvironmentManager::Port::Kind::Subscriber:
+            case EnvironmentManager::Port::Kind::Requester:{
+                GetExperiment().AddExternalConsumerPort(connected_id, id_);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    for(const auto& connected_id : port.connected_ports()){
+        AddConnectedPortId(connected_id);
     }
 
     //Append to the list of namespaces
@@ -71,15 +82,7 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         }
     }
 
-    for(const auto& connected_id : port.connected_ports()){
-        AddConnectedPortId(connected_id);
-        GetExperiment().AddConnection(connected_id, id_);
-    }
 
-    for(const auto& connected_id : port.connected_external_ports()){
-        AddExternalConnectedPortId(connected_id);
-        GetExperiment().AddConnection(connected_id, id_);
-    }
 }
 
 Port::~Port(){
@@ -91,13 +94,27 @@ Port::~Port(){
         GetExperiment().RemoveZmqEndpoint(id_);
     }
 
-    if(external_){
-        GetExperiment().RemoveExternalEndpoint(id_);
+     //Set if we are external
+    for(const auto& connected_id : connected_external_port_ids_){
+        switch(kind_){
+            case EnvironmentManager::Port::Kind::Publisher:
+            case EnvironmentManager::Port::Kind::Replier:{
+                GetExperiment().RemoveExternalProducerPort(connected_id, id_);
+                break;
+            }
+            case EnvironmentManager::Port::Kind::Subscriber:
+            case EnvironmentManager::Port::Kind::Requester:{
+                GetExperiment().RemoveExternalConsumerPort(connected_id, id_);
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
 void Port::ConfigureConnections(){
-
+    //TODO: DO DYNAMIC REQONFIGURE ON GET PROTO
     if(middleware_ == Middleware::Zmq){
         if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
             const auto& endpoint_map = GetExperiment().GetZmqEndpointMap();
@@ -122,12 +139,7 @@ void Port::ConfigureConnections(){
         }
     }
 
-    for(const auto& external_connected_port_id : connected_external_port_ids_){
-        auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
-        if(environment_.HasPublicEventPort(external_port_label)){
-            AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
-        }
-    }
+    //TODO: RECONFIGURE EXTERNAL PORTS 
 }
 
 void Port::AddAttribute(const NodeManager::Attribute& attribute){
@@ -137,19 +149,8 @@ void Port::AddAttribute(const NodeManager::Attribute& attribute){
 }
 
 void Port::UpdateExternalEndpoints(){
-    if(kind_ == Kind::Requester || kind_ == Kind::Subscriber){
-        //Clear out our external endpoints
-        external_endpoints_.clear();
-
-        //Repopulate them from the environment
-        for(const auto& external_connected_port_id : connected_external_port_ids_){
-            auto external_port_label = GetExperiment().GetPublicEventPortName(external_connected_port_id);
-            if(environment_.HasPublicEventPort(external_port_label)){
-                SetDirty();
-                AddExternalConnectedEndpoint(environment_.GetPublicEventPortEndpoint(external_port_label));
-            }
-        }
-    }
+    //TODO: RECONFIGURE EXTERNAL PORTS 
+    SetDirty();
 }
 
 std::string Port::GetId() const{
@@ -203,8 +204,11 @@ void Port::RemoveConnectedEndpoint(const std::string& endpoint){
     endpoints_.erase(endpoints_.find(endpoint));
 }
 
-void Port::AddExternalConnectedEndpoint(const std::string& endpoint){
-    external_endpoints_.insert(endpoint);
+void Port::AddExternalConnectedEndpoints(const std::set<std::string> endpoints){
+    for(const auto& endpoint : endpoints){
+        std::cerr << "ADDING: EP: " << endpoint << std::endl;
+        external_endpoints_.insert(endpoint);
+    }
 }
 
 void Port::RemoveExternalConnectedEndpoint(const std::string& endpoint){
@@ -233,7 +237,7 @@ bool Port::IsDirty() const{
 }
 
 NodeManager::Port* Port::GetUpdate(){
-    NodeManager::Port* port;
+    NodeManager::Port* port = 0;
 
     if(dirty_){
         port = GetProto();
@@ -244,14 +248,14 @@ NodeManager::Port* Port::GetUpdate(){
 
 NodeManager::Port* Port::GetProto(){
     auto port = new NodeManager::Port();
-    port->mutable_info()->set_name(name_);
-    port->mutable_info()->set_id(id_);
-    port->mutable_info()->set_type(type_);
+    auto port_info = port->mutable_info();
+    port_info->set_name(name_);
+    port_info->set_id(id_);
+    port_info->set_type(type_);
     for(const auto& ns : namespaces_){
-        port->mutable_info()->add_namespaces(ns);
+        port_info->add_namespaces(ns);
     }
     
-
     port->set_kind(InternalPortKindToProto(kind_));
     port->set_middleware(InternalPortMiddlewareToProto(middleware_));
 
@@ -306,14 +310,26 @@ void Port::FillZmqProto(NodeManager::Port* port){
             publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
             if(kind_ == Kind::Publisher){
-                publisher_address_attr->add_s(*(endpoints_.begin()));
+                const auto& publisher_endpoint = GetPublisherEndpoint();
+                std::cerr << "PUB: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
+                publisher_address_attr->add_s(GetPublisherEndpoint());
             }
             else{
-                for(auto endpoint : endpoints_){
-                    publisher_address_attr->add_s(endpoint);
+                for(auto port_id : connected_port_ids_){
+                    auto& publisher_port = GetExperiment().GetPort(port_id);
+                    const auto& publisher_endpoint = publisher_port.GetPublisherEndpoint();
+                    std::cerr << "SUB1: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
+                    publisher_address_attr->add_s(publisher_endpoint);
                 }
-                for(auto endpoint : external_endpoints_){
-                    publisher_address_attr->add_s(endpoint);
+                for(auto internal_port_id : connected_external_port_ids_){
+                    auto external_port_label = GetExperiment().GetExternalPortLabel(internal_port_id);
+                    
+
+                    for(auto& publisher_port : environment_.GetExternalProducerPorts(external_port_label)){
+                        const auto& publisher_endpoint = publisher_port.get().GetPublisherEndpoint();
+                        std::cerr << "SUB2: " << id_ << " " << name_ << " " << publisher_endpoint << std::endl;
+                        publisher_address_attr->add_s(publisher_endpoint);
+                    }
                 }
             }
             break;
@@ -520,4 +536,23 @@ NodeManager::Middleware Port::InternalPortMiddlewareToProto(Port::Middleware mid
         }
     }
     return NodeManager::Middleware::NO_MIDDLEWARE;
+}
+
+std::string Port::GetPublisherEndpoint() const{
+    const auto& node = GetNode();
+    const auto& ip = node.GetIp();
+    switch(middleware_){
+        case Port::Middleware::Tao:{
+            const auto& port = node.GetOrbPort();
+            const auto& topic = GetTopic();
+            return "corbaloc:iiop:" + ip + ":" + port + "/" + topic;
+        }
+        case Port::Middleware::Zmq:{
+            const auto& port = GetPublisherPort();
+            return "tcp://" + ip + ":" + port;
+        }
+        default:
+            break;
+    }
+    throw std::runtime_error("GetPublisherEndpoint(): Middleware doens't provide Publisher Endpoint");
 }

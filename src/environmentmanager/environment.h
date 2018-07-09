@@ -13,9 +13,16 @@
 #include "porttracker.h"
 
 namespace EnvironmentManager{
-class Environment{
 
-    public:
+class Environment{
+    private:
+        struct ExternalPort{
+            std::string external_label;
+            std::set<std::string> producer_experiments;
+            std::set<std::string> consumer_experiments;
+        };
+
+    public: 
         enum class DeploymentType{
             EXECUTION_MASTER,
             EXECTUION_SLAVE,
@@ -71,17 +78,16 @@ class Environment{
 
         void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
 
+        
+        std::vector< std::reference_wrapper<Port> > GetExternalProducerPorts(const std::string& external_port_label);
 
-        bool HasPublicEventPort(const std::string& port_id);
-        std::string GetPublicEventPortEndpoint(const std::string& port_id);
-        void AddPublicEventPort(const std::string& experiment_name, const std::string& port_id, const std::string& address_string);
-        void RemovePublicEventPort(const std::string& experiment_name, const std::string& port_id);
+        void AddExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label);
+        void AddExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label);
 
-        bool HasPendingPublicEventPort(const std::string& port_id);
-        std::set<std::string> GetDependentExperiments(const std::string& port_id);
-        void AddPendingPublicEventPort(const std::string& experiment_name, const std::string& port_id);
+        void RemoveExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label);
+        void RemoveExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label);
 
-        void RemoveDependentExternalExperiment(const std::string& experiment_name, const std::string& port_id);
+
 
         std::string GetAmqpBrokerAddress();
 
@@ -89,6 +95,7 @@ class Environment{
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
+        ExternalPort& GetExternalPort(const std::string& external_port_label);
         Experiment& GetExperiment(const std::string experiment_name);
         std::mutex clock_mutex_;
         uint64_t clock_;
@@ -124,12 +131,7 @@ class Environment{
 
         //event port guid -> event port data structure
         //event port guid takes form "experiment_id.{component_assembly_label}*n.component_instance_label.event_port_label"
-        std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::EventPort> > public_event_port_map_;
-
-        //event port guid -> set of experiment ids
-        //keeps track of experiments waiting for port of this guid to become live.
-        std::unordered_map<std::string, std::set<std::string> > pending_port_map_;
-        std::unordered_map<std::string, std::set<std::string> > dependent_experiment_map_;
+        std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_eventport_map_;
 
         std::mutex port_mutex_;
         

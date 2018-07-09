@@ -12,8 +12,15 @@ Experiment::Experiment(Environment& environment, const std::string name) : envir
 Experiment::~Experiment(){
     try{
         for(const auto& external_port_pair : external_port_map_){
-            const auto& external_port_label = external_port_pair.second->external_label;
-            environment_.RemoveDependentExternalExperiment(model_name_, external_port_label);
+            const auto& port = external_port_pair.second;
+            const auto& external_port_label = port->external_label;
+
+            if(port->consumer_ids.size() > 0){
+                environment_.RemoveExternalConsumerPort(model_name_, external_port_label);
+            }
+            if(port->producer_ids.size() > 0){
+                environment_.RemoveExternalProducerPort(model_name_, external_port_label);
+            }
         }
 
         //Delete all nodes, frees all ports in destructors
@@ -53,44 +60,15 @@ void Experiment::SetMasterIp(const std::string& ip){
 
 void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
     for(const auto& external_port : message.external_ports()){
-        auto temp = new ExternalPort();
-        temp->id = external_port.info().id();
-        temp->external_label = external_port.info().name();
-        for(const auto& connected_port_id : external_port.connected_ports()){
-            temp->connected_ports.insert(connected_port_id);
-        }
-        temp->is_blackbox = external_port.is_blackbox();
-        external_port_map_[external_port.info().id()] = std::unique_ptr<ExternalPort>(temp);
-
-        external_id_to_internal_id_map_[temp->external_label] = temp->id;
-
-        //populate public blackbox endpoint based on model supplied info
-        if(temp->is_blackbox){
-            if(external_port.middleware() == NodeManager::Middleware::ZMQ){
-                std::string address;
-                for(const auto& attribute : message.attributes()){
-                    if(attribute.info().name() == "publisher_address" || attribute.info().name() == "server_address"){
-                        address = attribute.s(0);
-                        break;
-                    }
-                }
-                environment_.AddPublicEventPort(model_name_, temp->external_label, address);
-            }
-
-            if(external_port.middleware() == NodeManager::Middleware::TAO){
-                std::string address;
-                std::string server_name;
-
-                for(const auto& attribute : message.attributes()){
-                    if(attribute.info().name() == "server_address"){
-                        address = attribute.s(0);
-                    }else if(attribute.info().name() == "server_name"){
-                        server_name = attribute.s(0);
-                    }
-                }
-                std::string full_address = "corbaloc:iiop:" + address + "/" + server_name;
-                environment_.AddPublicEventPort(model_name_, temp->external_label, full_address);
-            }
+        const auto& internal_id = external_port.info().id();
+        if(!external_port_map_.count(internal_id)){
+            auto port = new ExternalPort();
+            port->internal_id = internal_id;
+            port->external_label = external_port.info().name();
+            external_port_map_.emplace(internal_id, port);
+            external_id_to_internal_id_map_[port->external_label] = internal_id;
+        }else{
+            throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate external port id: '" + internal_id + "'");
         }
     }
 }
@@ -163,13 +141,12 @@ void Experiment::SetDirty(){
 void Experiment::UpdatePort(const std::string& external_port_label){
     if(configure_done_){
         if(external_id_to_internal_id_map_.count(external_port_label)){
-            std::string internal_id = external_id_to_internal_id_map_.at(external_port_label);
+            const auto& internal_id = external_id_to_internal_id_map_.at(external_port_label);
 
-            const auto& external_port = external_port_map_.at(internal_id);
-            auto local_port_update_ids = external_port->connected_ports;
+            const auto& external_port = GetExternalPort(internal_id);
 
-            for(const auto& update_id : local_port_update_ids){
-                GetPort(update_id).UpdateExternalEndpoints();
+            for(const auto& port_id : external_port.consumer_ids){
+                GetPort(port_id).UpdateExternalEndpoints();
             }
         }
     }
@@ -301,18 +278,65 @@ void Experiment::AddTopic(const std::string& topic){
 
 }
 
-void Experiment::AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint){
+EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){
     if(external_port_map_.count(external_port_internal_id)){
-        const auto& external_port = external_port_map_.at(external_port_internal_id);
-        environment_.AddPublicEventPort(model_name_, external_port->external_label, endpoint);
-        external_port->endpoint = endpoint;
+        return *external_port_map_.at(external_port_internal_id);
+    }else{
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' doesn't have external port id: '" + external_port_internal_id + "'");
     }
 }
 
-void Experiment::RemoveExternalEndpoint(const std::string& external_port_internal_id){
-    if(external_port_map_.count(external_port_internal_id)){
-        const auto& external_port = external_port_map_.at(external_port_internal_id);
-        environment_.RemovePublicEventPort(model_name_, external_port->external_label);
-        external_port->endpoint = "";
+void Experiment::AddExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
+    auto& external_port = GetExternalPort(external_port_internal_id);
+    environment_.AddExternalConsumerPort(model_name_, external_port.external_label);
+    std::cerr << model_name_ << " Added External Consumer: " << internal_port_id << " FOR: " << external_port.external_label << std::endl;
+    external_port.consumer_ids.insert(internal_port_id);
+}
+
+void Experiment::AddExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
+    auto& external_port = GetExternalPort(external_port_internal_id);
+    environment_.AddExternalProducerPort(model_name_, external_port.external_label);
+    std::cerr << model_name_ << " Added External Producer: " << internal_port_id << " FOR: " << external_port.external_label << std::endl;
+    external_port.producer_ids.insert(internal_port_id);
+}
+
+void Experiment::RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
+    auto& external_port = GetExternalPort(external_port_internal_id);
+    environment_.RemoveExternalConsumerPort(model_name_, external_port.external_label);
+    external_port.consumer_ids.erase(internal_port_id);
+    std::cerr << model_name_ << " Removed External Consumer: " << internal_port_id << " FOR: " << external_port.external_label << std::endl;
+}
+
+void Experiment::RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
+    auto& external_port = GetExternalPort(external_port_internal_id);
+    environment_.RemoveExternalProducerPort(model_name_, external_port.external_label);
+    external_port.producer_ids.erase(internal_port_id);
+    std::cerr << model_name_ << " Removed External Producer: " << internal_port_id << " FOR: " << external_port.external_label << std::endl;
+}
+
+std::vector< std::reference_wrapper<Port> > Experiment::GetExternalProducerPorts(const std::string& external_port_label){
+    std::vector< std::reference_wrapper<Port> > producer_ports;
+    
+    try{
+        const auto& internal_port_id = GetExternalPortInternalId(external_port_label);
+        
+        const auto& external_port = GetExternalPort(internal_port_id);
+        for(const auto& port_id : external_port.producer_ids){
+            producer_ports.emplace_back(GetPort(port_id));
+        }
+    }catch(const std::runtime_error& ex){
     }
+    
+    return producer_ports;
+}
+
+std::string Experiment::GetExternalPortLabel(const std::string& internal_port_id){
+    auto& external_port = GetExternalPort(internal_port_id);
+    return external_port.external_label;
+}
+std::string Experiment::GetExternalPortInternalId(const std::string& external_port_label){
+    if(external_id_to_internal_id_map_.count(external_port_label)){
+        return external_id_to_internal_id_map_.at(external_port_label);
+    }
+    throw std::runtime_error("Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
 }

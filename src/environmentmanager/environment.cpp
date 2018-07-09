@@ -335,60 +335,6 @@ NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string&
     return GetExperiment(experiment_name).GetUpdate();
 }
 
-bool Environment::HasPublicEventPort(const std::string& port_id){
-    return public_event_port_map_.count(port_id);
-}
-
-std::string Environment::GetPublicEventPortEndpoint(const std::string& port_id){
-    if(public_event_port_map_.count(port_id)){
-        return public_event_port_map_.at(port_id)->endpoint;
-    }
-    else{
-        throw std::invalid_argument("Endpoint with id: " + port_id + " not found!");
-    }
-}
-
-void Environment::AddPublicEventPort(const std::string& experiment_name, const std::string& port_id, const std::string& address){
-    auto port = new EnvironmentManager::EventPort();
-    port->id = port_id;
-    port->guid = port_id;
-    port->endpoint = address;
-
-    public_event_port_map_.emplace(port_id, port);
-
-    for(const auto& experiment_pair : experiment_map_){
-        experiment_pair.second->UpdatePort(port_id);
-    }
-    
-    dependent_experiment_map_[port_id].insert(experiment_name);
-}
-
-void Environment::RemovePublicEventPort(const std::string& experiment_name, const std::string& port_id){
-    public_event_port_map_.erase(port_id);
-    dependent_experiment_map_[port_id].insert(experiment_name);
-}
-
-bool Environment::HasPendingPublicEventPort(const std::string& port_id){
-    return pending_port_map_.count(port_id);
-}
-
-std::set<std::string> Environment::GetDependentExperiments(const std::string& port_id){
-    return pending_port_map_.at(port_id);
-}
-
-void Environment::AddPendingPublicEventPort(const std::string& experiment_name, const std::string& port_id){
-    pending_port_map_[port_id].insert(experiment_name);
-    dependent_experiment_map_[port_id].insert(experiment_name);
-}
-
-void Environment::RemoveDependentExternalExperiment(const std::string& experiment_name, const std::string& port_id){
-    dependent_experiment_map_[port_id].erase(experiment_name);
-    if(dependent_experiment_map_[port_id].size() == 0){
-        std::cout << "Removing external port: " << port_id << std::endl;
-        public_event_port_map_.erase(port_id);
-    }
-}
-
 //XXX: Hardcoded as This machine
 std::string Environment::GetAmqpBrokerAddress(){
     return address_ + ":5672";
@@ -409,4 +355,69 @@ uint64_t Environment::Tick(){
     std::lock_guard<std::mutex> lock(clock_mutex_);
     clock_++;
     return clock_;
+}
+
+Environment::ExternalPort& Environment::GetExternalPort(const std::string& external_port_label){
+    if(external_eventport_map_.count(external_port_label)){
+        return *external_eventport_map_[external_port_label];
+    }
+    throw std::runtime_error("Environment doesn't have an External Port with ID: '" + external_port_label + "'");
+}
+
+std::vector< std::reference_wrapper<Port> > Environment::GetExternalProducerPorts(const std::string& external_port_label){
+    std::vector< std::reference_wrapper<Port> > producer_ports;
+    const auto& external_port = GetExternalPort(external_port_label);
+    for(const auto& experiment_name : external_port.producer_experiments){
+        auto& experiment = GetExperiment(experiment_name);
+        for(auto& port : experiment.GetExternalProducerPorts(external_port_label)){
+            producer_ports.emplace_back(port);
+        }
+    }
+    return producer_ports;
+}
+
+void Environment::AddExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label){
+    if(!external_eventport_map_.count(external_port_label)){
+        auto external_port = new ExternalPort();
+        external_port->external_label = external_port_label;
+        external_eventport_map_.emplace(external_port_label, external_port);
+    }
+    auto& external_port = GetExternalPort(external_port_label);
+    std::cerr << "* Experiment Name: " << experiment_name << " Consumes: " << external_port_label << std::endl;
+    external_port.consumer_experiments.insert(experiment_name);
+}
+
+void Environment::AddExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label){
+    if(!external_eventport_map_.count(external_port_label)){
+        auto external_port = new ExternalPort();
+        external_port->external_label = external_port_label;
+        external_eventport_map_.emplace(external_port_label, external_port);
+    }
+    auto& external_port = GetExternalPort(external_port_label);
+    external_port.producer_experiments.insert(experiment_name);
+    std::cerr << "* Experiment Name: " << experiment_name << " Produces: " << external_port_label << std::endl;
+
+    //Update Consumers
+    for(const auto& consumer_experiment_name : external_port.consumer_experiments){
+        auto& consumer_experiment = GetExperiment(consumer_experiment_name);
+        consumer_experiment.UpdatePort(external_port_label);
+    }
+}
+
+void Environment::RemoveExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label){
+    auto& external_port = GetExternalPort(external_port_label);
+    external_port.consumer_experiments.erase(experiment_name);
+    std::cerr << "* Experiment Name: " << experiment_name << " No Longer Consumes: " << external_port_label << std::endl;
+}
+
+void Environment::RemoveExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label){
+    auto& external_port = GetExternalPort(external_port_label);
+    external_port.producer_experiments.erase(experiment_name);
+    std::cerr << "* Experiment Name: " << experiment_name << " No Longer Produces: " << external_port_label << std::endl;
+
+    //Update Consumers
+    for(const auto& consumer_experiment_name : external_port.consumer_experiments){
+        auto& consumer_experiment = GetExperiment(consumer_experiment_name);
+        consumer_experiment.UpdatePort(external_port_label);
+    }
 }

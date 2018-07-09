@@ -38,6 +38,7 @@ class Port{
         Port::Kind GetKind() const;
         Port::Middleware GetMiddleware() const;
         std::string GetPublisherPort() const;
+        std::string GetPublisherEndpoint() const;
         std::string GetTopic() const;
         Component& GetComponent() const;
         Node& GetNode() const;
@@ -49,7 +50,7 @@ class Port{
         
         void AddConnectedEndpoint(const std::string& endpoint);
         void RemoveConnectedEndpoint(const std::string& endpoint);
-        void AddExternalConnectedEndpoint(const std::string& endpoint);
+        void AddExternalConnectedEndpoints(std::set<std::string> endpoints);
         void RemoveExternalConnectedEndpoint(const std::string& endpoint);
         void AddConnectedPortId(const std::string& port_id);
         void AddExternalConnectedPortId(const std::string& port_id);
@@ -85,9 +86,7 @@ class Port{
         Kind kind_;
         Middleware middleware_;
 
-        bool external_ = false;
-
-        bool dirty_;
+        bool dirty_ = false;
 
         std::string topic_name_;
 
@@ -107,8 +106,6 @@ class Port{
         void FillDdsProto(NodeManager::Port* port);
         void FillQpidProto(NodeManager::Port* port);
         void FillTaoProto(NodeManager::Port* port);
-
-
 };
 };
 

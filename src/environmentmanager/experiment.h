@@ -12,12 +12,11 @@ class Environment;
 class Node;
 class Port;
 struct ExternalPort{
-    std::string id;
     std::string external_label;
-    std::set<std::string> connected_ports;
-    std::string endpoint;
-
-    bool is_blackbox = false;
+    std::string internal_id;
+    
+    std::set<std::string> producer_ids;
+    std::set<std::string> consumer_ids;
 };
 
 enum class ExperimentState{
@@ -92,12 +91,17 @@ class Experiment{
         void AddConnection(const std::string& connected_id, const std::string& port_id);
         void AddTopic(const std::string& topic);
 
-        void AddExternalEndpoint(const std::string& external_port_internal_id, const std::string& endpoint);
-        void RemoveExternalEndpoint(const std::string& external_port_internal_id);
+        std::vector< std::reference_wrapper<Port> > GetExternalProducerPorts(const std::string& external_port_label);
 
+        std::string GetExternalPortLabel(const std::string& internal_port_id);
+        std::string GetExternalPortInternalId(const std::string& external_port_label);
 
-
+        void AddExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
+        void AddExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
+        void RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
+        void RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
     private:
+        ExternalPort& GetExternalPort(const std::string& external_port_internal_id);
     
         std::string GetNodeIpByName(const std::string& node_name);
 
@@ -129,7 +133,7 @@ class Experiment{
         //map of internal port_id -> external port unique label
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
 
-        //external port_id -> internal port id
+        //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
         uint64_t time_added_;
