@@ -32,6 +32,41 @@ Environment::Environment(const std::string& address, int port_range_min, int por
     clock_ = 0;
 }
 
+
+NodeManager::ControlMessage* Environment::PopulateDeployment(NodeManager::ControlMessage& message){
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
+    const auto& experiment_id = message.experiment_id();
+    DeclusterExperiment(message);
+
+    AddExternalPorts(experiment_id, message);
+
+
+    for(const auto& node : message.nodes()){
+        RecursiveAddNode(experiment_id, node);
+    }
+
+    std::string master_ip_address;
+    for(const auto& attribute : message.attributes()){
+        if(attribute.info().name() == "master_ip_address"){
+            master_ip_address = attribute.s(0);
+            break;
+        }
+    }
+    
+    SetExperimentMasterIp(experiment_id, master_ip_address);
+    ConfigureNodes(experiment_id);
+    auto configured_message = GetProto(experiment_id);
+    FinishConfigure(experiment_id);
+    return configured_message;
+}
+
+void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node){
+    for(const auto& node : node.nodes()){
+        RecursiveAddNode(experiment_id, node);
+    }
+    AddNodeToExperiment(experiment_id, node);
+}
+
 std::string Environment::AddDeployment(const std::string& experiment_name,
                                        const std::string& ip_address,
                                        DeploymentType deployment_type){
@@ -306,7 +341,6 @@ void Environment::SetExperimentMasterIp(const std::string& experiment_name, cons
     }
 }
 
-
 std::string Environment::GetMasterPublisherAddress(const std::string& experiment_name){
     try{
         std::lock_guard<std::mutex> lock(experiment_mutex_);
@@ -328,12 +362,12 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& experim
 }
 
 bool Environment::ExperimentIsDirty(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     return GetExperiment(experiment_name).IsDirty();
 }
 
 NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     return GetExperiment(experiment_name).GetUpdate();
 }
 
