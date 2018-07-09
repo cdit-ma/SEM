@@ -32,21 +32,15 @@ class Environment{
 
         Environment(const std::string& address, int portrange_min = 30000, int portrange_max = 50000);
 
+        NodeManager::ControlMessage* PopulateDeployment(NodeManager::ControlMessage& message);
+
         std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
         void RemoveExperiment(const std::string& experiment_name, uint64_t time);
         void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
-
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
 
-        void FinishConfigure(const std::string& experiment_name);
-        
-        void DeclusterExperiment(NodeManager::ControlMessage& message);
-        void DeclusterNode(NodeManager::Node& message);
-        void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
-        void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNodes(const std::string& experiment_name);
         NodeManager::ControlMessage* GetProto(const std::string& experiment_name);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
@@ -64,21 +58,12 @@ class Environment{
 
         std::vector<std::string> CheckTopic(const std::string& experiment_name, const std::string& topic);
 
-        void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
-        void ExperimentTimeout(const std::string& deployment_id, uint64_t time_called);
-
-        NodeManager::Node GetDeploymentLocation(const std::string& experiment_name, const std::string& port_id);
-
         std::string GetPort(const std::string& ip_address);
         void FreePort(const std::string& ip_address, const std::string& port_number);
 
-        
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
 
-        void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
-
-        
         std::vector< std::reference_wrapper<Port> > GetExternalProducerPorts(const std::string& external_port_label);
 
         void AddExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label);
@@ -87,16 +72,24 @@ class Environment{
         void RemoveExternalConsumerPort(const std::string& experiment_name, const std::string& external_port_label);
         void RemoveExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label);
 
-
-
         std::string GetAmqpBrokerAddress();
 
         uint64_t GetClock();
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
+        void FinishConfigure(const std::string& experiment_name);
+        
+        void DeclusterExperiment(NodeManager::ControlMessage& message);
+        void DeclusterNode(NodeManager::Node& message);
+        void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
+        void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
+        void AddNodeToEnvironment(const NodeManager::Node& node);
+        void ConfigureNodes(const std::string& experiment_name);
         ExternalPort& GetExternalPort(const std::string& external_port_label);
         Experiment& GetExperiment(const std::string experiment_name);
+        void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);
+
         std::mutex clock_mutex_;
         uint64_t clock_;
 
@@ -114,7 +107,9 @@ class Environment{
 
         //Returns management port for re_node_manager(master) to communicate with environment_manager
         std::string RegisterExperiment(const std::string& experiment_name);
-        
+
+        std::mutex configure_experiment_mutex_;
+
         std::mutex experiment_mutex_;
         //experiment_name -> experiment data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;

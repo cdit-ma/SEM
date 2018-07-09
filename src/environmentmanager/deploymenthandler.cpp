@@ -18,6 +18,11 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
     deployment_ip_address_ = deployment_ip_address;
     port_promise_ = port_promise;
     experiment_id_ = experiment_id;
+
+    if(environment_.ModelNameExists(experiment_id_)){
+        throw std::invalid_argument("DeploymentHandler: Experiment name already exists: " + experiment_id);
+    }
+
     handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
 }
 
@@ -172,10 +177,6 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
                 RemoveDeployment(message_time);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
-            }
-
-            case NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT:{
-                
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{

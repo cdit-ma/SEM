@@ -55,8 +55,10 @@ void DeploymentRegister::RegistrationLoop() noexcept{
         try{
             reply = ZMQReceiveRequest(*rep);
         }catch(const zmq::error_t& exception){
-            std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
-            break;
+            if(exception.num() != ETERM){
+                std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
+                break;
+            }
         }
 
         NodeManager::EnvironmentMessage message;
@@ -86,7 +88,9 @@ void DeploymentRegister::RegistrationLoop() noexcept{
             ZMQSendReply(*rep, message.SerializeAsString());
         }
         catch(const zmq::error_t& exception){
-            std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+            if(exception.num() != ETERM){
+                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+            }
             break;
         }
     }
@@ -106,11 +110,6 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
 
         case NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT:{
             HandleAddLoganClient(message);
-            break;
-        }
-
-        case NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY:{
-            HandleLoganClientListQuery(message);
             break;
         }
 
@@ -232,17 +231,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
-}
-
-void DeploymentRegister::HandleLoganClientListQuery(NodeManager::EnvironmentMessage& message){
-    // std::string experiment_id = message.experiment_id();
-
-    // auto client_addresses = environment_->GetLoganClientList(experiment_id);
-
-    // for(const auto& client_address : client_addresses){
-    //     auto logger = message.add_logger();
-    //     logger->set_publisher_address(client_address);
-    // }
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{
