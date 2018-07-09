@@ -57,8 +57,8 @@ void DeploymentRegister::RegistrationLoop() noexcept{
         }catch(const zmq::error_t& exception){
             if(exception.num() != ETERM){
                 std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
-                break;
             }
+            break;
         }
 
         NodeManager::EnvironmentMessage message;
@@ -70,7 +70,9 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 RequestHandler(message);
             }
             catch(const zmq::error_t& exception){
-                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+                if(exception.num() != ETERM){
+                    std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+                }
                 break;
             }
             catch(const std::exception& exception){
@@ -81,6 +83,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 std::cerr << error_string << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 message.add_error_messages(error_string);
+                break;
             }
         }
 

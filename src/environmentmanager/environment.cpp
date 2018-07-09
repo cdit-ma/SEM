@@ -118,8 +118,8 @@ NodeManager::EnvironmentMessage* Environment::GetLoganDeploymentMessage(const st
 
 
 void Environment::RemoveExperiment(const std::string& experiment_name, uint64_t time_called){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     if(experiment_map_.count(experiment_name)){
         experiment_map_.erase(experiment_name);
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
