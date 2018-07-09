@@ -37,9 +37,12 @@ message Component{
 
 message Port{
     enum Kind{
-        TX = 0;
-        RX = 1;
-        PE = 2;
+        NONE = 0;
+        PERIODIC = 1;
+        PUBLISHER = 2;
+        SUBSCRIBER = 3;
+        REQUESTER = 4;
+        REPLIER = 5;
     }
 
     string id = 1;          //Id of instance
@@ -51,11 +54,11 @@ message Port{
 
 message LifecycleEvent{
     enum Type{
-        STARTED = 0;
-        ACTIVATED = 1;
-        PASSIVATED = 2;
-        TERMINATED = 3;
-        FAILED = 4;
+        NONE = 0;
+        CONFIGURED = 1;
+        ACTIVATED = 2;
+        PASSIVATED = 3;
+        TERMINATED = 4;
     }
     Info info = 1;
     Type type = 2;
@@ -75,6 +78,7 @@ message WorkloadEvent{
         STARTED = 0;
         FINISHED = 1;
         MESSAGE = 2;
+        ERROR = 3;
     }
     Info info = 1;
     Type event_type = 2;
