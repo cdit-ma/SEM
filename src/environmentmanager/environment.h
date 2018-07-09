@@ -74,6 +74,8 @@ class Environment{
 
         std::string GetAmqpBrokerAddress();
 
+        static const NodeManager::Attribute& GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name);
+
         uint64_t GetClock();
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();

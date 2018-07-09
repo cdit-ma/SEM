@@ -74,17 +74,23 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
-    //TODO: Handle having two copies of the same IP and throw exception?
-    auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-    const auto& ip_address = internal_node->GetIp();
-    node_map_.emplace(ip_address, std::move(internal_node));
-    auto& node_ref = node_map_.at(ip_address);
-    node_address_map_.insert({node_ref->GetName(), node_ref->GetIp()});
-          
-    //Build logan connection map
-    auto deploy_count = node_ref->GetDeployedComponentCount();
-    if(deploy_count > 0){
-        std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deployed: " << deploy_count << " Components" << std::endl;
+    auto ip_address = Environment::GetAttributeByName(node.attributes(), "ip_address").s(0);
+
+    if(!node_map_.count(ip_address)){
+        auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
+        const auto& ip_address = internal_node->GetIp();
+        node_map_.emplace(ip_address, std::move(internal_node));
+        auto& node_ref = node_map_.at(ip_address);
+        node_address_map_.insert({node_ref->GetName(), node_ref->GetIp()});
+            
+        //Build logan connection map
+        auto deploy_count = node_ref->GetDeployedComponentCount();
+        if(deploy_count > 0){
+            std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deployed: " << deploy_count << " Components" << std::endl;
+        }
+    }
+    else{
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate node with ip address: '" + ip_address + "'");
     }
 }
 

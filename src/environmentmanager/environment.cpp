@@ -461,3 +461,12 @@ void Environment::RemoveExternalProducerPort(const std::string& experiment_name,
         consumer_experiment.UpdatePort(external_port_label);
     }
 }
+
+const NodeManager::Attribute& Environment::GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name){
+    for(const auto& attribute : attribute_list){
+        if(attribute.info().name() == attribute_name){
+            return attribute;
+        }
+    }
+    throw std::invalid_argument("No attribute found with name " + attribute_name);
+}
