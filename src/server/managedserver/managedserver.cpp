@@ -20,7 +20,7 @@ ManagedServer::ManagedServer(Execution& execution, const std::string& address, c
 
     auto retry_count = 0;
 
-    NodeManager::EnvironmentMessage message;
+    NodeManager::EnvironmentMessage message; 
 
 
     while(retry_count ++ < MAX_RETRY_COUNT){
@@ -72,6 +72,9 @@ void ManagedServer::HandleUpdate(NodeManager::EnvironmentMessage& message){
     switch(message.type()){
         case NodeManager::EnvironmentMessage::ERROR_RESPONSE:{
             Terminate();
+            break;
+        }
+        case NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT:{
             break;
         }
         default:{
