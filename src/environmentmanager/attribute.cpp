@@ -46,7 +46,7 @@ std::string Attribute::GetName() const{
 }
 
 NodeManager::Attribute* Attribute::GetUpdate(){
-    NodeManager::Attribute* attribute;
+    NodeManager::Attribute* attribute = 0;
     if(dirty_){
         attribute = new NodeManager::Attribute();
 
@@ -83,8 +83,8 @@ NodeManager::Attribute* Attribute::GetUpdate(){
 }
 
 NodeManager::Attribute* Attribute::GetProto(){
-    NodeManager::Attribute* attribute = new NodeManager::Attribute();
-
+    auto attribute = new NodeManager::Attribute();
+    
     attribute->mutable_info()->set_name(name_);
     attribute->mutable_info()->set_id(id_);
 

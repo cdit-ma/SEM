@@ -55,7 +55,9 @@ void DeploymentRegister::RegistrationLoop() noexcept{
         try{
             reply = ZMQReceiveRequest(*rep);
         }catch(const zmq::error_t& exception){
-            std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
+            if(exception.num() != ETERM){
+                std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
+            }
             break;
         }
 
@@ -68,7 +70,9 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 RequestHandler(message);
             }
             catch(const zmq::error_t& exception){
-                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+                if(exception.num() != ETERM){
+                    std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+                }
                 break;
             }
             catch(const std::exception& exception){
@@ -79,6 +83,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 std::cerr << error_string << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 message.add_error_messages(error_string);
+                break;
             }
         }
 
@@ -86,7 +91,9 @@ void DeploymentRegister::RegistrationLoop() noexcept{
             ZMQSendReply(*rep, message.SerializeAsString());
         }
         catch(const zmq::error_t& exception){
-            std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+            if(exception.num() != ETERM){
+                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
+            }
             break;
         }
     }
@@ -109,11 +116,6 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
             break;
         }
 
-        case NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY:{
-            HandleLoganClientListQuery(message);
-            break;
-        }
-
         default:{
             throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
             break;
@@ -127,7 +129,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
-
+    
     deployments_.emplace_back(new DeploymentHandler(*environment_,
                                                     *context_,
                                                     ip_addr_,
@@ -203,8 +205,8 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
 
     if(environment_->NodeDeployedTo(experiment_id, ip_address)){
         //Have experiment_id in environment, and ip_addr has component deployed to id
-        std::string master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
-        std::string master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
+        const auto& master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
+        const auto& master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
 
         auto master_publisher_attribute = node->add_attributes();
         auto master_publisher_attribute_info = master_publisher_attribute->mutable_info();
@@ -221,7 +223,7 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
     }
-    else if(!environment_->ModelNameExists(experiment_id)){
+    else if(!environment_->IsExperimentRegistered(experiment_id)){
         //Dont have an experiment with this id, send back a no_type s.t. client re-trys in a bit
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
@@ -232,17 +234,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
-}
-
-void DeploymentRegister::HandleLoganClientListQuery(NodeManager::EnvironmentMessage& message){
-    // std::string experiment_id = message.experiment_id();
-
-    // auto client_addresses = environment_->GetLoganClientList(experiment_id);
-
-    // for(const auto& client_address : client_addresses){
-    //     auto logger = message.add_logger();
-    //     logger->set_publisher_address(client_address);
-    // }
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{

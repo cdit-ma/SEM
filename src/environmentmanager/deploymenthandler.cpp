@@ -1,8 +1,6 @@
 #include "deploymenthandler.h"
 #include <iostream>
 
-#include "deploymentgenerator.h"
-
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     zmq::context_t& context,
                                     const std::string& ip_addr,
@@ -18,11 +16,13 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
     deployment_ip_address_ = deployment_ip_address;
     port_promise_ = port_promise;
     experiment_id_ = experiment_id;
+
+
     handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
 }
 
 void DeploymentHandler::Terminate(){
-    //TODO: send terminate messages to node manager attached to this thread.
+    //TODO: (RE-253) send terminate messages to node manager attached to this thread
     handler_thread_->join();
 }
 
@@ -31,7 +31,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
     time_added_ = environment_.GetClock();
 
-    std::string assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
         handler_socket->bind(TCPify(ip_addr_, assigned_port));
         port_promise_->set_value(assigned_port);
@@ -70,6 +70,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     int liveness = HEARTBEAT_LIVENESS;
 
     while(!removed_flag_){
+        
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
         if(zmq::poll(sockets, HEARTBEAT_INTERVAL) >= 1){
             //Reset
@@ -85,21 +86,23 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
                 break;
             }
-            //TODO: Update experiments status to be ACTIVE
+            //TODO: Update experiments status to be ACTIVE (RE-253)
         }
         else if(--liveness == 0){
-            //TODO: Update experiments status to be TIMEOUT
+            //TODO: Update experiments status to be TIMEOUT (RE-253)
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;
             }
             else{
+                std::cerr << "* Experiment: '" << experiment_id_ << "' Timed out!" << std::endl;
                 //Timed out, break out and remove deployment
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
         }
     }
+    
     RemoveDeployment(time_added_);
 }
 
@@ -153,17 +156,15 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
 
 std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     auto message_time = request.first;
+
     NodeManager::EnvironmentMessage message;
     message.ParseFromString(request.second);
 
     try{
         switch(message.type()){
-
             case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
-                //Create generator and populate message
-                DeploymentGenerator generator(environment_);
-                NodeManager::ControlMessage* configured_message = generator.PopulateDeployment(*(message.mutable_control_message()));
-                message.set_allocated_control_message(configured_message);
+                //Register the Experiment, which will modify the control_message
+                environment_.PopulateExperiment(*(message.mutable_control_message()));
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
             }
@@ -174,22 +175,18 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
                 break;
             }
 
-            case NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT:{
-                
-            }
-
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                bool dirty = true;
-                try{
-                    dirty = environment_.ExperimentIsDirty(experiment_id_);
-                }
-                catch(const std::invalid_argument& ex){
+                bool dirty = false;
+                //Send an Ack
+                message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
 
-                }
-                if(dirty){
-                    HandleDirtyExperiment(message);
-                }else{
-                    message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+                try{
+                    if(environment_.ExperimentIsDirty(experiment_id_)){
+                        HandleDirtyExperiment(message);
+                    }
+                }catch(const std::exception& ex){
+                    std::cerr << "Caught Exception: " << ex.what() << std::endl;
+                    message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 }
                 break;
             }
@@ -207,9 +204,9 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
         }
     }
     catch(std::exception& ex){
-        //TODO: Add ex.what() as error message.
-        std::cerr << "DeploymentHandler::HandleRequest" << ex.what() << std::endl;
+        std::cerr << "DeploymentHandler::HandleRequest: " << ex.what() << std::endl;
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        message.add_error_messages(std::string(ex.what()));
     }
 
     return message.SerializeAsString();
@@ -217,15 +214,23 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
 
 void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
     message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-    message.set_allocated_control_message(environment_.GetExperimentUpdate(experiment_id_));
+
+    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
+        auto experiment_update = environment_.GetExperimentUpdate(experiment_id_);
+        if(experiment_update){
+            message.set_allocated_control_message(experiment_update);
+        }
+    }
+
+    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
+        environment_.ExperimentIsDirty(experiment_id_);
+    }
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-
-    if(environment_.ModelNameExists(message.experiment_id())){
+    if(environment_.IsExperimentRegistered(message.experiment_id())){
         auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
-
-
+        
         if(environment_message){
             message.Swap(environment_message);
             delete environment_message;

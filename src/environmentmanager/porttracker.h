@@ -6,20 +6,12 @@
 #include <mutex>
 
 namespace EnvironmentManager{
-struct EventPort{
-    std::string id;
-    std::string guid;
-    std::string type;
-    std::string node_ip;
-    std::string port_number;
-    std::string topic;
 
-    //list of publisher ids
-    std::vector<std::string> connected_ports;
-
-    std::string endpoint;
-
+struct ExternalEventPort{
+    std::string unique_label;
+    std::set<std::string> endpoints;
 };
+
 class PortTracker{
     public:
         PortTracker(const std::string& ip_address, unique_queue<int> port_set){
@@ -34,7 +26,7 @@ class PortTracker{
             auto port = available_ports_.front();
             available_ports_.pop();
             auto port_str =  std::to_string(port);
-            std::cout << "Port Acquired: " << name_ << " : " << port_str << std::endl;
+            //std::cout << "* Port Acquired: " << name_ << " : " << port_str << std::endl;
             return port_str;
         };
 
@@ -44,7 +36,7 @@ class PortTracker{
             try{
                 port_number = std::stoi(port);
                 if(available_ports_.push(port_number)){
-                    std::cout << "Port Freed: " << name_ << " : " << port << std::endl;
+                    //std::cout << "* Port Freed: " << name_ << " : " << port << std::endl;
                 }
             }
             catch(const std::invalid_argument& ex){
