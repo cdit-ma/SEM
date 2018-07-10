@@ -7,7 +7,6 @@
 class GraphmlParserInt{
     public:
         GraphmlParserInt(const std::string& filename){};
-        virtual bool IsValid() = 0;
         
         virtual std::vector<std::string> FindNodes(const std::string& kind, const std::string& parent_id = "") = 0;
         virtual std::vector<std::string> FindEdges(const std::string& kind = "") = 0;

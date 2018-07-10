@@ -25,6 +25,8 @@ class DeploymentHandler{
 
         void Terminate();
 
+        void PrintError(const std::string& message);
+
 
     private:
         //Heartbeat constants (ms)

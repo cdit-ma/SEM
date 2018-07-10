@@ -324,10 +324,17 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& experim
     }
     return std::string();
 }
+bool Environment::GotExperiment(const std::string& experiment_name){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    return experiment_map_.count(experiment_name);
+}
 
 bool Environment::ExperimentIsDirty(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    return GetExperiment(experiment_name).IsDirty();
+    if(GotExperiment(experiment_name)){
+        return GetExperiment(experiment_name).IsDirty();
+    }
+    return false;
 }
 
 NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string& experiment_name){

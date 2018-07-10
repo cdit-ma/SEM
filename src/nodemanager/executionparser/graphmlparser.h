@@ -11,7 +11,6 @@ class GraphmlParser : public GraphmlParserInt{
 
     public:
         GraphmlParser(const std::string& filename);
-        bool IsValid();
         std::vector<std::string> FindNodes(const std::string& kind, const std::string& parent_id = "");
         std::vector<std::string> FindEdges(const std::string& kind = "");
 
@@ -32,4 +31,4 @@ class GraphmlParser : public GraphmlParserInt{
 
 
 };
-#endif //"GRAPHMLPARSER_H"
+#endif //GRAPHMLPARSER_H

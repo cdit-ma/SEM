@@ -15,11 +15,11 @@
 
 std::string VERSION_NAME = "re_node_manager";
 
-Execution* exe = 0;
+Execution execution;
 
 void signal_handler(int sig)
 {
-    exe->Interrupt();
+    execution.Interrupt();
 }
 
 int main(int argc, char **argv){
@@ -27,7 +27,6 @@ int main(int argc, char **argv){
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
-    exe = new Execution();
 
     //Shared arguments
     std::string environment_manager_endpoint;
@@ -144,31 +143,29 @@ int main(int argc, char **argv){
     std::unique_ptr<ExecutionManager> execution_manager;
 
     if(success && is_master){
-        execution_manager = std::move(std::unique_ptr<ExecutionManager>(new ExecutionManager(address,
-                                                    graphml_path,
-                                                    execution_duration,
-                                                    exe,
-                                                    experiment_id,
-                                                    environment_manager_endpoint)));
-
-        success = execution_manager->IsValid();
+        try{
+            auto em = new ExecutionManager(address, graphml_path, execution_duration, &execution, experiment_id, environment_manager_endpoint);
+            execution_manager = std::unique_ptr<ExecutionManager>(em);
+            success = execution_manager->IsValid();
+        }catch(const std::exception& ex){
+            std::cerr << "* Error: " << ex.what() << std::endl;
+            success = false;
+        }
     }
 
-    
-
     if(success && is_slave){
-        deployment_manager = std::move(
-            std::unique_ptr<DeploymentManager>(
-                new DeploymentManager(is_master, dll_path, exe, experiment_id, address, environment_manager_endpoint)
-            )
-        );
+        try{
+            auto dm = new DeploymentManager(is_master, dll_path, &execution, experiment_id, address, environment_manager_endpoint);
+            deployment_manager = std::unique_ptr<DeploymentManager>(dm);
+        }catch(const std::exception& ex){
+            std::cerr << "* Error: " << ex.what() << std::endl;
+            success = false;
+        }
     }
 
     if(success){
         //Use execution class to wait for interrupt
-        exe->Start();
+        execution.Start();
     }
-
-    delete exe;
     return success ? 0 : 1;
 }

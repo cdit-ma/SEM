@@ -21,6 +21,16 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
     handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
 }
 
+void DeploymentHandler::PrintError(const std::string& message){
+    std::cerr << "* ";
+    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
+        std::cerr << "Runtime Environment: ";
+    }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
+        std::cerr << "Logan Server: ";
+    }
+    std::cerr << "Experiment[" << experiment_id_ << "] IP: " << ip_addr_  << ": " << message << std::endl;
+}   
+
 void DeploymentHandler::Terminate(){
     //TODO: (RE-253) send terminate messages to node manager attached to this thread
     handler_thread_->join();
@@ -54,7 +64,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             ZMQSendReply(*handler_socket, initial_message);
         }
         catch(const zmq::error_t& exception){
-            std::cerr << "Exception in DeploymentHandler::HeartbeatLoop (initial): " << exception.what() << std::endl;
+            PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + exception.what());
             RemoveDeployment(time_added_);
             return;
         }
@@ -83,7 +93,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 ZMQSendReply(*handler_socket, message);
             }
             catch(const zmq::error_t& exception){
-                std::cerr << "Exception in DeploymentHandler::HeartbeatLoop(rec): " << exception.what() << std::endl;
+                PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + exception.what());
                 break;
             }
             //TODO: Update experiments status to be ACTIVE (RE-253)
@@ -95,7 +105,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
                 interval *= 2;
             }
             else{
-                std::cerr << "* Experiment: '" << experiment_id_ << "' Timed out!" << std::endl;
+                PrintError("Timed out!");
                 //Timed out, break out and remove deployment
                 break;
             }
@@ -118,8 +128,8 @@ void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
             removed_flag_ = true;
         }
     }
-    catch(...){
-        std::cerr << "Exception in DeploymentHandler::RemoveDeployment" << std::endl;
+    catch(const std::exception& ex){
+        PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + ex.what());
     }
 }
 
@@ -176,18 +186,24 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                bool dirty = false;
-                //Send an Ack
                 message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
 
-                try{
-                    if(environment_.ExperimentIsDirty(experiment_id_)){
-                        HandleDirtyExperiment(message);
+                if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
+                    try{
+                        if(environment_.ExperimentIsDirty(experiment_id_)){
+                            HandleDirtyExperiment(message);
+                        }
+                    }catch(const std::exception& ex){
+                        PrintError(std::string("Failed to Update Dirty Experiment: ") + ex.what());
+                        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                     }
-                }catch(const std::exception& ex){
-                    std::cerr << "Caught Exception: " << ex.what() << std::endl;
-                    message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
+                    if(!environment_.GotExperiment(experiment_id_)){
+                        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                    }
                 }
+                
+                
                 break;
             }
 
@@ -204,7 +220,7 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
         }
     }
     catch(std::exception& ex){
-        std::cerr << "DeploymentHandler::HandleRequest: " << ex.what() << std::endl;
+        PrintError("Failed to HandleRequest[" + NodeManager::EnvironmentMessage_Type_Name(message.type()) + "]: " + ex.what());
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
         message.add_error_messages(std::string(ex.what()));
     }

@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include <set>
+#include "graphmlparserint.h"
 
 class GraphmlParserInt;
 namespace Graphml{
@@ -54,8 +56,8 @@ namespace Graphml{
             std::string GetDeploymentJSON();
         private:
             std::string to_lower(const std::string& str);
-            bool Process();
-            GraphmlParserInt* graphml_parser_;
+            void Process();
+            std::unique_ptr<GraphmlParserInt> graphml_parser_;
 
             std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
             std::string GetIiopAddress(const std::string& ip, const unsigned int port_number);

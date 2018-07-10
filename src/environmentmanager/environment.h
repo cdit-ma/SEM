@@ -44,6 +44,7 @@ class Environment{
         NodeManager::ControlMessage* GetProto(const std::string& experiment_name);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
+        bool GotExperiment(const std::string& experiment_name);
         NodeManager::ControlMessage* GetExperimentUpdate(const std::string& experiment_name);
         NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
         

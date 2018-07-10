@@ -112,7 +112,7 @@ NodeManager::EnvironmentMessage* Experiment::GetLoganDeploymentMessage(const std
         return node_map_.at(ip_address)->GetLoganDeploymentMessage();
     }
     else{
-        throw std::invalid_argument("Experiment::GetLoganDeploymentMessage No node found with ip " + ip_address);
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' Doesn't have a Node with IP address: '" + ip_address + "'");
     }
 }
 

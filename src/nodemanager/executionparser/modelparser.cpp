@@ -1,10 +1,11 @@
 #include "modelparser.h"
-#include "graphmlparser.h"
+
 #include "datatypes.h"
 
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include "graphmlparser.h"
 
 
 //Converts std::string to lower
@@ -19,19 +20,15 @@ bool string_list_contains(const std::vector<std::string> list, const std::string
 }
 
 Graphml::ModelParser::ModelParser(const std::string filename){
-    //Setup the parser
-    graphml_parser_ = new GraphmlParser(filename);
-    success = graphml_parser_->IsValid() && Process();
+    graphml_parser_ = std::unique_ptr<GraphmlParserInt>(new GraphmlParser(filename));
+    Process();
 }
 
 bool Graphml::ModelParser::IsValid(){
     return success;
 }
 
-bool Graphml::ModelParser::Process(){
-    if(!graphml_parser_){
-        return false;
-    }
+void Graphml::ModelParser::Process(){
     int count = 0;
     model_ = new Model();
     std::vector<std::string> modelIdVec = graphml_parser_->FindNodes("Model");
@@ -485,8 +482,6 @@ bool Graphml::ModelParser::Process(){
     if(string_list_contains(model_->middlewares, "ZMQ") || string_list_contains(model_->middlewares, "QPID")){
         model_->middlewares.push_back("PROTO");
     }
-    
-    return true;
 
 }
 

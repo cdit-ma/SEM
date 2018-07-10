@@ -15,11 +15,9 @@
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     experiment_id_ = experiment_id;
     graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
-    is_valid_ = graphml_parser_->IsValid();
-    if(is_valid_){
-        pre_process_success_ = PreProcess();
-        process_success_ = Process();
-    }
+    pre_process_success_ = PreProcess();
+    process_success_ = Process();
+    
 }
 
 //Pretty json prints deployment protbuf controlmessage
