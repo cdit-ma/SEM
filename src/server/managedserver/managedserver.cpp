@@ -21,30 +21,29 @@ ManagedServer::ManagedServer(Execution& execution, const std::string& address, c
     auto retry_count = 0;
 
     NodeManager::EnvironmentMessage message; 
-
-
-    while(retry_count ++ < MAX_RETRY_COUNT){
+    bool got_response = false;
+    while(true){
         try{
             message = requester_->GetLoganInfo(address);
 
-            switch(message.type()){
-                case NodeManager::EnvironmentMessage::LOGAN_RESPONSE:{
-                    //Got a valid response
-                    break;
-                }
-                default:{
-                    throw std::runtime_error("Unknown Type");
-                }
+            if(message.type() == NodeManager::EnvironmentMessage::LOGAN_RESPONSE){
+                break;
+            }else if(message.type() == NodeManager::EnvironmentMessage::LOGAN_QUERY){
+                got_response = true;
             }
-            break;
-        }catch(const std::exception& ex){
-            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }catch(const std::exception& ex){}
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        
+        if(retry_count++ >= MAX_RETRY_COUNT){
+            if(got_response){
+                throw std::runtime_error("No experiment alive requires Logan Server.");
+            }else{
+                throw std::runtime_error("Couldn't communicate with Environment Manager.");
+            }
         }
     }
 
-    if(retry_count >= MAX_RETRY_COUNT){
-        throw std::runtime_error("Couldn't communicate with Environment Manager.");
-    }
+    
 
     for(const auto logger : message.logger()){
         if(logger.type() == NodeManager::Logger::SERVER){
@@ -64,6 +63,7 @@ ManagedServer::ManagedServer(Execution& execution, const std::string& address, c
 }
 
 void ManagedServer::Terminate(){
+    
     servers_.clear();
     execution_.Interrupt();
 }
