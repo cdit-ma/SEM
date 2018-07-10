@@ -109,32 +109,6 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     return reply_message.control_message();
 }
 
-std::vector<std::string> EnvironmentRequester::GetLoganClientList(){
-    NodeManager::EnvironmentMessage message;
-
-    message.set_experiment_id(experiment_id_);
-    message.set_type(NodeManager::EnvironmentMessage::LOGAN_CLIENT_LIST_QUERY);
-
-    auto socket = ConstructRequestPort();
-    socket->connect(manager_address_);
-
-    ZMQSendRequest(*socket, message.SerializeAsString());
-    auto reply = ZMQReceiveReply(*socket);
-
-    if(reply.empty()){
-        throw std::runtime_error("Request timed out when getting logan clients.");
-    }
-
-    NodeManager::EnvironmentMessage reply_message;
-    reply_message.ParseFromString(reply);
-
-    std::vector<std::string> out;
-
-    for(int i = 0; i < reply_message.logger_size(); i++){
-        out.push_back(reply_message.logger(i).publisher_address());
-    }
-    return out;
-}
 
 void EnvironmentRequester::Start(){
     try{
@@ -371,18 +345,12 @@ NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::st
 
     NodeManager::EnvironmentMessage reply_message;
 
-    try{
-        auto response = QueueRequest(request_message.SerializeAsString());
-        auto response_msg = response.get();
-        if(response_msg.empty()){
-            throw std::runtime_error("Got empty response message in EnvironmentRequester::AddDeployment");
-        }
-        reply_message.ParseFromString(response_msg);
+    auto response = QueueRequest(request_message.SerializeAsString());
+    const auto& response_msg = response.get();
+    if(response_msg.empty()){
+        throw std::runtime_error("GetLoganInfo: Got no response");
     }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
-        throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
-    }
+    reply_message.ParseFromString(response_msg);
 
     return reply_message;
 }
@@ -444,16 +412,14 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t& socket){
         }
         catch(zmq::error_t error){
             //TODO: Handle this
-            std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
+            //std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
         }
         std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
         //Update and get current lamport time
         std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
         long lamport_time = SetClock(std::stoull(incoming_time));
-
         return contents;
-
     }
     else{
         std::cerr << "Communication with environment manager timed out" << std::endl;

@@ -39,7 +39,6 @@ class EnvironmentRequester{
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
         
         NodeManager::EnvironmentMessage GetLoganInfo(const std::string& node_ip_address);
-        std::vector<std::string> GetLoganClientList();
         void SetIPAddress(const std::string& ip_address);
 
         void AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
@@ -71,7 +70,7 @@ class EnvironmentRequester{
         void HeartbeatLoop();
 
         std::future<void> heartbeat_future_;
-        //std::unique_ptr<std::thread> heartbeat_thread_;
+
         bool end_flag_ = false;
 
         //Request helpers
