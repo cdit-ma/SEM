@@ -25,9 +25,13 @@ node("master"){
     //Set the Label
     currentBuild.description = GIT_BRANCH
     print("GIT_BRANCH: " + GIT_BRANCH)
+
     stage("Checkout"){
-        checkout scm
+        dir("re"){
+            checkout scm
+        }
     }
+    
     stage("Archive"){
         files = []
         
