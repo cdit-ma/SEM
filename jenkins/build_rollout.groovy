@@ -32,16 +32,14 @@ node("master"){
         files = []
         
         dir("re"){
-            utils.runScript('git bundle create ../artifacts/re.bundle ' + GIT_BRANCH)
-            utils.runScript('git-archive-all ../artifacts/re.tar.gz')
+            utils.runScript('git bundle create ../re.bundle ' + GIT_BRANCH)
+            utils.runScript('git-archive-all ../re.tar.gz')
             files += 're.bundle'
             files += 're.tar.gz'
         }
-        dir("artifacts"){
-            //Create archive
-            utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
-            archiveArtifacts(ROLLOUT_FILE_NAME)
-            deleteDir();
-        }
+        //Create archive
+        utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
+        archiveArtifacts(ROLLOUT_FILE_NAME)
+        deleteDir();
     }
 }
