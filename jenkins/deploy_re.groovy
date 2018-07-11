@@ -12,7 +12,7 @@ def utils = new Utils(this);
 
 final PROJECT_NAME = 're'
 def git_url = "/srv/git"
-def re_nodes = nodesByLabel("re")
+def re_nodes = nodesByLabel("deploy_re")
 
 
 final ARCHIVE_NAME = PROJECT_NAME + ".tar.gz"
