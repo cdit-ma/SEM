@@ -22,7 +22,7 @@ final STASH_NAME = ARCHIVE_NAME + "_stash"
 stage('Checkout'){
     node('master'){
         dir(git_url){
-            stash include: ARCHIVE_NAME, name: STASH_NAME
+            stash includes: ARCHIVE_NAME, name: STASH_NAME
         }
     }
 }
@@ -33,14 +33,15 @@ for(n in re_nodes){
     def node_name = n
     step_build[node_name] = {
         node(node_name){
-            dir("${RE_PATH}"){
+            dir("${HOME}/re"){
                 deleteDir()
             }
             unstash STASH_NAME
 
-            utils.runScript("tar -xfC " + ARCHIVE_NAME + " ${RE_PATH}/.." )
+            //Build into HOME
+            utils.runScript("tar -xf " + ARCHIVE_NAME + " -C ${HOME}" )
 
-            dir("${RE_PATH}/build"){
+            dir("${HOME}/re/build"){
                 touch '.dummy'
                 print("Running in: " + pwd())
                 def result = utils.buildProject("Ninja", "")
