@@ -24,7 +24,6 @@ node("master"){
 
     //Set the Label
     currentBuild.description = GIT_BRANCH
-    print("GIT_BRANCH: " + GIT_BRANCH)
 
     stage("Checkout"){
         dir("re"){
@@ -36,7 +35,6 @@ node("master"){
         files = []
         
         dir("re"){
-            print(pwd())
             utils.runScript('git bundle create ../re.bundle ' + GIT_BRANCH)
             utils.runScript('git-archive-all ../re.tar.gz')
             files += 're.bundle'
@@ -45,6 +43,5 @@ node("master"){
         //Create archive
         utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
         archiveArtifacts(ROLLOUT_FILE_NAME)
-        //deleteDir();
     }
 }

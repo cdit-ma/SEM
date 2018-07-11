@@ -38,6 +38,7 @@ for(n in re_nodes){
                 utils.runScript("tar -xf " + ARCHIVE_NAME)
             }
             dir("${RE_PATH}/build"){
+                touch '.dummy'
                 def result = utils.buildProject("Ninja", "")
                 if(!result){
                     error('Failed to compile')
