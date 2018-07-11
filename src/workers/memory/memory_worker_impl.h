@@ -12,6 +12,9 @@ class Memory_Worker_Impl{
         size_t GetAllocatedCount();
 
     private:
+
+        bool _NonThreadSafeDeallocate(size_t kilobytes);
+
          /// Type definition for the container of allocations.
         typedef std::list <char *> Memory_Allocations;
 
