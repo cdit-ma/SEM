@@ -33,12 +33,13 @@ for(n in re_nodes){
     def node_name = n
     step_build[node_name] = {
         node(node_name){
-            dir("${RE_PATH}/.."){
-                touch '.dummy'
-                print("Running in: " + pwd())
-                unstash STASH_NAME
-                utils.runScript("tar -xf " + ARCHIVE_NAME)
+            dir("${RE_PATH}"){
+                deleteDir()
             }
+            unstash STASH_NAME
+
+            utils.runScript("tar -xfC " + ARCHIVE_NAME + "${RE_PATH}/.." )
+            
             dir("${RE_PATH}/build"){
                 touch '.dummy'
                 print("Running in: " + pwd())
