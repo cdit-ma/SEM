@@ -36,6 +36,7 @@ node("master"){
         files = []
         
         dir("re"){
+            print(pwd())
             utils.runScript('git bundle create ../re.bundle ' + GIT_BRANCH)
             utils.runScript('git-archive-all ../re.tar.gz')
             files += 're.bundle'
