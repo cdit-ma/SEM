@@ -17,6 +17,7 @@ import cditma.Utils
 
 
 node("master"){
+    echo sh(returnStdout: true, script: 'env')
     final GIT_USER = env.GIT_CREDENTIALS_ID
     final GIT_BRANCH = env.SEM_BRANCH ? env.SEM_BRANCH : env.GIT_TAG
     final CDITMA_GIT_URL = "https://github.com/cdit-ma/"
