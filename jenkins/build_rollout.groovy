@@ -15,15 +15,17 @@ This script requires the following Jenkins plugins:
 import cditma.Utils
 
 
-final GIT_USER = env.GIT_CREDENTIALS_ID
-final GIT_BRANCH = env.SEM_BRANCH ? env.SEM_BRANCH : env.GIT_TAG
-final CDITMA_GIT_URL = "https://github.com/cdit-ma/"
-final ROLLOUT_FILE_NAME = "re-" + GIT_BRANCH + "-rollout.tar.gz"
 
 node("master"){
+    final GIT_USER = env.GIT_CREDENTIALS_ID
+    final GIT_BRANCH = env.SEM_BRANCH ? env.SEM_BRANCH : env.GIT_TAG
+    final CDITMA_GIT_URL = "https://github.com/cdit-ma/"
+    final ROLLOUT_FILE_NAME = "re-" + GIT_BRANCH + "-rollout.tar.gz"
+
     //Set the Label
     currentBuild.description = GIT_BRANCH
     print("GIT_USER: " + GIT_USER)
+    print("GIT_BRANCH: " + GIT_BRANCH)
     stage("Checkout"){
         //Check out Scripts
         dir("scripts"){
