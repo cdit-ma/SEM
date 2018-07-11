@@ -28,31 +28,11 @@ node("master"){
     print("GIT_USER: " + GIT_USER)
     print("GIT_BRANCH: " + GIT_BRANCH)
     stage("Checkout"){
-        //Check out Scripts
-        dir("scripts"){
-            git(
-                branch: 'develop',
-                credentialsId: GIT_USER,
-                url: CDITMA_GIT_URL + "scripts"
-            )
-        }
-        dir("re"){
-            git(
-                branch: GIT_BRANCH,
-                credentialsId: GIT_USER,
-                url: CDITMA_GIT_URL + "re"
-            )
-        }
+        checkout scm
     }
     stage("Archive"){
         files = []
-
-        dir("scripts"){
-            Utils.runScript('git bundle ../artifacts/scripts.bundle develop')
-            Utils.runScript('git-archive-all ../artifacts/scripts.tar.gz')
-            files += 'scripts.bundle'
-            files += 'scripts.tar.gz'
-        }
+        
         dir("re"){
             Utils.runScript('git bundle ../artifacts/re.bundle ' + GIT_BRANCH)
             Utils.runScript('git-archive-all ../artifacts/re.tar.gz')
