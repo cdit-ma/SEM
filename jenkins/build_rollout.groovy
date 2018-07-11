@@ -18,13 +18,12 @@ import cditma.Utils
 
 node("master"){
     echo sh(returnStdout: true, script: 'env')
-    final GIT_BRANCH = scm.SEM_BRANCH ? scm.SEM_BRANCH : scm.GIT_TAG
+    final GIT_BRANCH = env.JOB_BASE_NAME
     final CDITMA_GIT_URL = "https://github.com/cdit-ma/"
     final ROLLOUT_FILE_NAME = "re-" + GIT_BRANCH + "-rollout.tar.gz"
 
     //Set the Label
     currentBuild.description = GIT_BRANCH
-    print("GIT_USER: " + GIT_USER)
     print("GIT_BRANCH: " + GIT_BRANCH)
     stage("Checkout"){
         checkout scm
