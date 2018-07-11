@@ -133,10 +133,15 @@ bool ModelController::SetupController(QString file_path)
 
 ModelController::~ModelController()
 {
-    QList<Entity*> entities;
-    entities << workerDefinitions << model;
+    setModelAction(MODEL_ACTION::DESTRUCTING);
+    QList<Entity*> entities {workerDefinitions, model};
+    auto destruct_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
     destructEntities(entities);
+    auto destruct_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "DESTRUCTING MODEL: " <<  destruct_finished - destruct_start << "MS";
     delete entity_factory;
+    auto destruct_ef_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "DESTRUCTING entity factory: " <<  destruct_ef_finished - destruct_finished << "MS";
 }
 
 /**
@@ -177,40 +182,28 @@ QString ModelController::exportGraphML(Entity* entity){
 QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges, bool functional_export){
     QSet<Key*> keys;
 
-    QSet<Entity*> entities;
     QSet<Node*> top_nodes;
+    QSet<Node*> all_nodes;
     QSet<Edge*> edges;
     
     //Get the entities
     for(auto entity : selection){
-        //Insert into the list of entities
-        entities.insert(entity);
         if(entity->isNode()){
             auto node = (Node*) entity;
-            top_nodes.insert(node);
 
-            //Add all the children to the list of entities (So we can check if we own all edges) 
-            for(auto child : node->getChildren()){
-                entities.insert(child);
-            }
-
-            //Add all of the edges
-            for(auto edge : node->getEdges(-1)){
-                entities.insert(edge);
-                edges.insert(edge);
-            }
+            top_nodes += node;
+            all_nodes += node;
+            all_nodes += node->getAllChildren();
+            
+            edges += node->getAllEdges();
+        
         }else if(entity->isEdge()){
-            auto edge = (Edge*) entity;
-            edges.insert(edge);
+            edges += (Edge*) entity;
         }
     }
 
-    //Get the Keys
-    for(auto entity : entities){
-        for(auto key : entity->getKeys()){
-            keys.insert(key);
-        }
-    }
+    std::for_each(all_nodes.begin(), all_nodes.end(), [&keys](Node* n){keys += n->getKeys();});
+    std::for_each(edges.begin(), edges.end(), [&keys](Edge* e){keys += e->getKeys();});
 
     QString xml;
     xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -233,19 +226,21 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
         
         //Sort the edges to be lowest to highest IDS for determinism
         auto edge_list = edges.toList();
-        std::sort(edge_list.begin(), edge_list.end(), [](const Edge* e1, const Edge* e2){
+        std::sort(edge_list.begin(), edge_list.end(), [](const Entity* e1, const Entity* e2){
             return e1->getID() > e2->getID();
         });
 
-        for(auto edge : edge_list){
+        for(auto entity : edge_list){
+            auto edge = (Edge*) entity;
+
             auto src = edge->getSource();
             auto dst = edge->getDestination();
             //Only export the edge if we contain both sides, unless we should export all
             bool export_edge = all_edges;
             
             if(!export_edge){
-                bool contains_src = entities.contains(src);
-                bool contains_dst = entities.contains(dst);
+                bool contains_src = all_nodes.contains(src);
+                bool contains_dst = all_nodes.contains(dst);
                 if(contains_src && contains_dst){
                     export_edge = true;
                 }else{
@@ -663,7 +658,7 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, 
 
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
-        for(auto edge: src->getEdgesOfKind(edge_kind, 0)){
+        for(auto edge : src->getEdgesOfKind(edge_kind)){
             if(edge){
                 auto is_source = edge->getSource() == src;
                 
@@ -984,7 +979,7 @@ QList<Entity*> ModelController::getOrderedEntities(QList<Entity*> entities){
     for(auto node : entities){
         bool got_parent = false;
         //Check the node if we have a parent for it.
-        for(auto top: top_entities){
+        for(auto top : top_entities){
             if(top->isNode()){
                 auto parent_node = (Node*) top;
                 if(parent_node->isAncestorOf(node)){
@@ -994,7 +989,7 @@ QList<Entity*> ModelController::getOrderedEntities(QList<Entity*> entities){
             }
         }
         if(!got_parent){
-            top_entities << node;
+            top_entities += node;
         }
     }
     return top_entities;
@@ -1220,7 +1215,7 @@ QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_
     
     for(auto &dependant_kinds : dependant_kind_list){
         //For each child in parent, check to see if any Nodes match Label/Type
-        for(auto target_child : target_node->getChildrenOfKinds(dependant_kinds, 0)){
+        for(auto target_child : target_node->getChildrenOfKinds(dependant_kinds)){
             if(target_child->getDefinition() == definition){
                 matching_nodes << target_child;
             }else if(target_child->getDefinition()){
@@ -1283,15 +1278,14 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     QSet<Entity*> nodes;
     QSet<Entity*> edges;
 
+    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    
     for(auto entity : entities){
         if(entity){
             if(entity->isNode()){
                 auto node = (Node*) entity;
                 nodes.insert(node);
                 for(auto dependant : node->getNestedDependants()){
-                    for(auto child_node : dependant->getChildren()){
-                        nodes.insert(child_node);
-                    }
                     nodes.insert(dependant);
                 }
             }else if(entity->isEdge()){
@@ -1300,25 +1294,31 @@ bool ModelController::destructEntities(QList<Entity*> entities)
             }
         }
     }
-  
+
+    auto delete_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "CONSTRUCT DESTRUCT LIST: " <<  delete_list - start << "MS: " << nodes.count();
+    
     //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
 
+    auto sort_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "SORTED DESTRUCT LIST: " <<  sort_list - delete_list << "MS";
+
     //Get all the edges
     for(auto n : sorted_nodes){
-        auto node = (Node*) n;
-        for(auto edge : node->getEdges()){
-            edges.insert(edge);
+        for(auto edge : ((Node*)n)->getAllEdges()){
+            edges += edge;
         }
     }
+
+    auto edge_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "CONSTRUCT EDGE DESTRUCT LIST: " <<  edge_list - sort_list << "MS";
 
     if(!edges.empty()){
         //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(edges.toList(), true);
-
-        //qCritical() << "EDGE BACKUP: " << action.xml;
         addActionToStack(action);
 
         //Destruct all the edges
@@ -1327,18 +1327,24 @@ bool ModelController::destructEntities(QList<Entity*> entities)
         }
     }
 
+    auto edge_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "DESTRUCTED EDGES: " <<  edge_deleted - edge_list << "MS";
+
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
-        //qCritical() << "Exporting: " << node->toString();
-        //Create an undo state for each top level item
+        
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.entity_id = entity->getID();
         action.parent_id = node->getParentNodeID();
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(entity);
+        
         addActionToStack(action);
         destructNode_(node);
     }
+
+    auto nodes_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "DESTRUCTED NOIDES: " <<  nodes_deleted - edge_deleted << "MS";
     return true;
 }
 
@@ -1622,7 +1628,7 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
                     }
                 }
                 
-                for(auto edge : node->getEdges()){
+                for(auto edge : node->getAllEdges()){
                     if(edge->isImplicitlyConstructed()){
                         storeEntity(edge, -1);
                     }
@@ -1770,7 +1776,7 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
                 auto instance_kind = *(definition->getInstanceKinds().begin());
 
                 Node* instance_node = 0;
-                for(auto child : eventport->getChildrenOfKind(instance_kind, 0)){
+                for(auto child : eventport->getChildrenOfKind(instance_kind)){
                     instance_node = child;
                     break;
                 }
@@ -1901,7 +1907,7 @@ QSet<EDGE_KIND> ModelController::getCurrentEdgeKinds(QList<int> ids)
     for(auto entity : getUnorderedEntities(ids)){
         if(entity->isNode()){
             auto node = (Node*) entity;
-            for(auto edge : node->getEdges(0)){
+            for(auto edge : node->getEdges()){
                 edge_kinds.insert(edge->getEdgeKind());
             }
         }
@@ -2139,6 +2145,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
         ProgressUpdated_("Parsing Project");
         ProgressChanged_(-1);
     }
+    
+    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
     while(xml.readNext() != QXmlStreamReader::EndDocument){
         auto kind = getGraphMLKindFromString(xml.name());
@@ -2254,6 +2262,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
     }
 
+    
+    auto parsing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
+
     QList<Entity*> to_remove;
     
     //Handle unique ids
@@ -2342,6 +2354,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
     destructEntities(to_remove);
+
+    auto removing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";
     
     //This is will update as a percentage
     double entities_total_perc = entity_hash.size() / 100.0;
@@ -2417,7 +2432,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 }
             }
 
-            for(auto edge : node->getEdges()){
+            for(auto edge : node->getAllEdges()){
                 if(edge->isImplicitlyConstructed()){
                     entity->AddImplicitlyConstructedEdgeID(edge->getEdgeKind(), edge->getID());
                 }
@@ -2494,12 +2509,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
         storeNode(node, -1, false, false);
     }
 
+    auto constructing_node_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Constructing Nodes took: " <<  constructing_node_finished -removing_finished << "MS";
+
     QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
+    QHash<EDGE_KIND, QQueue<TempEntity*> > edge_map_2;
+
     QList<TempEntity*> edges_list;
-    //QHash<QString, TempEntity*> entity_hash;
-
-
 
     for(auto id : edge_ids){
         auto entity = entity_hash.value(id, 0);
@@ -2562,6 +2579,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
     }
 
+    
+
     auto entity_fac = entity_factory;
 
     //Have to sort edges so the higher a Edge's Target is, the sooner that edge gets processed
@@ -2584,11 +2603,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
     for(auto edge : edges_list){
         if(edge->gotEdgeKind()){
-            auto next_edge_kind = edge->getEdgeKind();
+            auto edge_kind = edge->getEdgeKind();
             //Insert the item in the lookup
-            edge_map.insertMulti(next_edge_kind, edge);
+            edge_map_2[edge_kind].enqueue(edge);
         }
     }
+
+    auto constructing_edge_type_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Testing edge types: " <<  constructing_edge_type_finished - constructing_node_finished << "MS";
 
 
     if(UPDATE_PROGRESS){
@@ -2598,29 +2620,28 @@ bool ModelController::importGraphML(QString document, Node *parent)
     int edge_iterations = 0;
     auto edge_kind_keys = GetEdgeOrderIndexes();
 
-    while(!edge_map.isEmpty()){
-        QList<TempEntity*> edges;
-        QList<TempEntity*> unconstructed_edges;
-        
+    while(true){
         int constructed_edges = 0;
-        EDGE_KIND edge_kind = EDGE_KIND::NONE;
+        QQueue<TempEntity*> unconstructed_edges;
+        
+        auto current_edge_kind = EDGE_KIND::NONE;
         
         //Find the first index which still has edges left
-        for(auto kind : edge_kind_keys){
-            if(edge_map.contains(kind)){
-                edges = edge_map.values(kind);
-                edge_kind = kind;
+        for(auto edge_kind : edge_kind_keys){
+            if(edge_map_2[edge_kind].size()){
+                current_edge_kind = edge_kind;
                 break;
             }
         }
+        
+        if(current_edge_kind == EDGE_KIND::NONE){
+            break;
+        }
 
-        //Reverse the edges, (QMap inserts in a stack form LIFO)
-        std::reverse(edges.begin(), edges.end());
+        auto& edges = edge_map_2[current_edge_kind];
+        while(edges.size()){
+            auto entity = edges.dequeue();
 
-        for(auto entity : edges){
-            //Remove this edge from the map
-            edge_map.remove(edge_kind, entity);
-            
             //Get the src/dst node from the edge
             auto src_node = entity_factory->GetNode(entity->getSourceID());
             auto dst_node = entity_factory->GetNode(entity->getTargetID());
@@ -2628,11 +2649,13 @@ bool ModelController::importGraphML(QString document, Node *parent)
             Edge* edge = 0;
             if(src_node && dst_node){
                 bool need_to_store = false;
+                
                 //Check if we have an edge first
-                edge = src_node->getEdgeTo(dst_node, edge_kind);
+                edge = src_node->getEdgeTo(dst_node, current_edge_kind);
 
                 if(!edge){
-                    edge = construct_edge(edge_kind, src_node, dst_node, false);
+                    //Try and construct Edge
+                    edge = construct_edge(current_edge_kind, src_node, dst_node, false);
                     need_to_store = true;
                 }
 
@@ -2660,10 +2683,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 if(UPDATE_PROGRESS){
                     ProgressChanged_(++entities_made / entities_total_perc);
                 }
-                constructed_edges++;
+                constructed_edges ++;
             }else{
                 //If we couldn't construct an edge, push it onto the list of edges we couldn't construct
-                unconstructed_edges.push_back(entity);
+                unconstructed_edges.enqueue(entity);
             }
         }
 
@@ -2671,14 +2694,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
         for(auto entity : unconstructed_edges){
             //If no edges were constructed this pass, it means no edges can be made of this EDGE_KIND
             if(constructed_edges == 0){
-                //Remove the current edgeKind, so we can try the next (If it has one)
-                entity->removeEdgeKind(entity->getEdgeKind());
+                //Remove the current edge kind, So try the next valid edge kind (If it has one)
+                entity->removeEdgeKind(current_edge_kind);
             }
 
             if(entity->gotEdgeKind()){
-                auto next_edge_kind = entity->getEdgeKind();
-                //Reinsert back into the map (Goes to the start)
-                edge_map.insertMulti(next_edge_kind, entity);
+                auto edge_kind = entity->getEdgeKind();
+                //Enqueueing from a QStack should mean we flip the queue
+                edge_map_2[edge_kind].enqueue(entity);
             }else{
                 //Can't find source/destination
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge_kinds.";
@@ -2688,6 +2711,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
         edge_iterations ++;
     }
+
+    auto constructing_edges_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Constructing edges took: " <<  constructing_edges_finished - constructing_edge_type_finished << "MS : ITTERATIONS: " << edge_iterations << " COUNT: " << edges_list.size();
 
     if(UPDATE_PROGRESS){
         ProgressChanged_(100);

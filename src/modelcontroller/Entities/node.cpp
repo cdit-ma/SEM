@@ -360,7 +360,9 @@ bool Node::addChild(Node *child)
 {
     if(child && !containsChild(child) && canAdoptChild(child)){
         auto node_kind = child->getNodeKind();
-        children_.insert(node_kind, child);
+
+        node_kind_count_[node_kind]++;
+        new_nodes_ += child;
 
         child->setParentNode(this, branch_count_++);
         childAdded(child);
@@ -417,8 +419,7 @@ bool Node::indirectlyConnectedTo(Node *node)
 
 bool Node::containsChild(Node *child)
 {
-    auto node_kind = child ? child->getNodeKind() : NODE_KIND::NONE;
-    return children_.contains(node_kind, child);
+    return new_nodes_.contains(child);
 }
 
 QList<Node *> Node::getChildren(int depth)
@@ -434,38 +435,47 @@ QList<Node *> Node::getChildren(int depth)
     return child_list;
 }
 
-QList<Edge*> Node::getEdges(int depth){
-    return getEdgesOfKind(EDGE_KIND::NONE, depth);
+QSet<Edge*> Node::getEdges(){
+    return new_edges_;
 }
+QSet<Node*> Node::getAllChildren(){
+    QSet<Node*> children;
 
-int Node::getEdgeOfKindCount(EDGE_KIND edge_kind){
-    return edges_.count(edge_kind);
-}
-
-int Node::getEdgeCount(){
-    return edges_.count();
-}
-
-QList<Edge *> Node::getEdgesOfKind(EDGE_KIND edge_kind, int depth)
-{
-    QSet<Edge*> edge_set;
-
-    if(edge_kind == EDGE_KIND::NONE){
-        edge_set += edges_.values().toSet();
-    }else{
-        edge_set += edges_.values(edge_kind).toSet();
+    for(auto child : new_nodes_){
+        children += child;
+        children += child->getAllChildren();
     }
 
-    //While we still have Children, Recurse
-    if(depth != 0){
-        for(auto child : getChildren(0)){
-            edge_set += child->getEdgesOfKind(edge_kind, depth - 1).toSet();
+    return children;
+}
+
+QSet<Edge*> Node::getAllEdges(){
+    auto edges = getEdges();
+    
+    for(auto child : getAllChildren()){
+        edges += child->getEdges();
+    }
+    return edges;
+}
+
+int Node::getEdgeOfKindCount(EDGE_KIND edge_kind) const{
+    return edge_kind_count_.value(edge_kind, 0);
+}
+
+int Node::getEdgeCount() const{
+    return new_edges_.count();
+}
+
+QSet<Edge *> Node::getEdgesOfKind(EDGE_KIND edge_kind) const
+{
+    QSet<Edge*> edges;
+
+    for(auto edge : new_edges_){
+        if(edge->getEdgeKind() == edge_kind){
+            edges += edge;
         }
     }
-
-    auto edge_list = edge_set.toList();
-    std::sort(edge_list.begin(), edge_list.end(), Edge::SortByKind);
-    return edge_list;
+    return edges;
 }
 
 
@@ -482,14 +492,14 @@ QList<Node *> Node::getSiblings()
 
 
 QList<Node *> Node::getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth){
-    QList<Node*> returnableList;
-
+    QList<Node*> nodes;
+    
     for(auto child : getChildren(depth)){
         if(kinds.contains(child->getNodeKind())){
-            returnableList.append(child);
+            nodes.append(child);
         }
     }
-    return returnableList;
+    return nodes;
 }
 
 QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
@@ -499,11 +509,11 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
 
 int Node::getChildrenCount()
 {
-    return children_.size();
+    return new_nodes_.size();
 }
 
 int Node::getChildrenOfKindCount(NODE_KIND kind){
-    return children_.count(kind);
+    return node_kind_count_.value(kind, 0);
 }
 
 void Node::childRemoved(Node* child){
@@ -513,14 +523,11 @@ void Node::childRemoved(Node* child){
 
 bool Node::removeChild(Node *child)
 {
-    int removeCount = 0;
-
-    if(child){
+    if(containsChild(child)){
         auto node_kind = child->getNodeKind();
-        removeCount = children_.remove(node_kind, child);
-    }
-
-    if(removeCount > 0){
+        
+        node_kind_count_[node_kind]--;
+        new_nodes_ -= child;
         childRemoved(child);
         return true;
     }
@@ -567,8 +574,6 @@ bool Node::ancestorOf(Edge *edge)
         return true;
     }
     return false;
-
-    return getEdges(-1).contains(edge);
 }
 
 bool Node::isAncestorOf(GraphML *item)
@@ -614,7 +619,7 @@ bool Node::isDescendantOf(Node *b)
 
 Edge* Node::getEdgeTo(Node *node, EDGE_KIND edge_kind)
 {
-    for(auto edge : getEdgesOfKind(edge_kind, 0)){
+    for(auto edge : getEdgesOfKind(edge_kind)){
         if(edge->isConnected(node)){
             return edge;
         }
@@ -632,35 +637,9 @@ bool Node::gotEdgeTo(Node *node, EDGE_KIND edge_kind)
 
 bool Node::containsEdge(Edge *edge)
 {
-    if(edge){
-        return edges_.contains(edge->getEdgeKind(), edge);
-    }
-    return false;
+    return new_edges_.contains(edge);
 }
 
-
-
-QList<Key *> Node::getKeys(int depth)
-{
-    
-    QSet<Data*> datas;
-
-    datas += getData().toSet();
-
-    for(auto node : getChildren(depth)){
-        datas += node->getData().toSet();
-    }
-
-    for(auto edge : getEdgesOfKind(EDGE_KIND::NONE, depth)){
-        datas += edge->getData().toSet();
-    }
-
-    QSet<Key*> keys;
-    for(auto data : datas){
-        keys +=  data->getKey();
-    }
-    return keys.toList();
-}
 
 
 bool Node::isDefinition() const
@@ -773,16 +752,14 @@ QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> dependants;
 
-    
+    //All our children are dependants
+    dependants += getAllChildren();
+
     for(auto dependant : getDependants()){
         dependants += dependant;
         dependants += dependant->getNestedDependants();
     }
-
-    for(auto child : getChildren(0)){
-        dependants += child;
-        dependants += child->getNestedDependants();
-    }
+    
 
     return dependants;
 }
@@ -811,14 +788,16 @@ void Node::removeImplementation(Node *impl)
 void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
-        edges_.insertMulti(edge->getEdgeKind(), edge);
+        new_edges_ += edge;
+        edge_kind_count_[edge->getEdgeKind()] ++;
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     if(edge){
-        edges_.remove(edge->getEdgeKind(), edge);
+        new_edges_ -= edge;
+        edge_kind_count_[edge->getEdgeKind()] --;
     }
 }
 void Node::AddUUID(){
@@ -891,9 +870,10 @@ QString Node::toGraphML(int indent_depth, bool functional_export)
 
 QList<Node *> Node::getOrderedChildNodes()
 {
-    auto child_list = children_.values();
+    auto child_list = new_nodes_.toList();
     std::sort(child_list.begin(), child_list.end(), Entity::SortByIndex);
     return child_list;
+
 }
 
 void Node::setChainableDefinition(){
@@ -1207,7 +1187,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
                 }
                 auto got_data_edge = false;
 
-                for(auto edge : edges_.values(edge_kind)){
+                for(auto edge : getEdgesOfKind(edge_kind)){
                     if(edge->getSource() == this){
                         got_data_edge = true;
                         break;
@@ -1237,7 +1217,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::AGGREGATE:
         case EDGE_KIND::QOS:{
             //Can only have 1 Edge is Source
-            for(auto edge : edges_.values(edge_kind)){
+            for(auto edge : getEdgesOfKind(edge_kind)){
                 if(edge->getSource() == this){
                     //qCritical() << "6";
                     return false;
@@ -1275,7 +1255,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 auto got_data_edge = false;
 
-                for(auto edge : edges_.values(edge_kind)){
+                for(auto edge : getEdgesOfKind(edge_kind)){
                     if(edge->getDestination() == this){
                         got_data_edge = true;
                         break;

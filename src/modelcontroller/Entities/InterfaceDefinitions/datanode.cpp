@@ -36,7 +36,7 @@ bool DataNode::hasOutputData()
 
 DataNode *DataNode::getInputData()
 {
-    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
+    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA)){
         if(edge->getDestination() == this){
             return (DataNode*) edge->getSource();
         }
@@ -46,7 +46,7 @@ DataNode *DataNode::getInputData()
 
 DataNode *DataNode::getOutputData()
 {
-    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
+    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA)){
         if(edge->getSource() == this){
             return (DataNode*) edge->getDestination();
         }

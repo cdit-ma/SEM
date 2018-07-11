@@ -660,7 +660,7 @@ void EntityFactory::DeregisterNode(Node* node){
     clearAcceptedEdgeKinds(node);
     
     auto children = node->getChildren(0);
-    auto edges = node->getEdges(0);
+    auto edges = node->getEdges();
 
     if(children.size()){
         qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Children";

@@ -145,6 +145,7 @@ class Node : public Entity
 
         //Children Getters
         bool containsChild(Node* child);
+        QSet<Node*> getAllChildren();
         QList<Node *> getChildren(int depth =-1);
         QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
         QList<Node *> getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth =-1);
@@ -162,12 +163,12 @@ class Node : public Entity
         bool gotEdgeTo(Node* node, EDGE_KIND edge_kind);
 
 
-        QList<Edge*> getEdges(int depth=-1);
+        QSet<Edge*> getEdges();
+        QSet<Edge*> getAllEdges();
         
-        int getEdgeCount();
-        int getEdgeOfKindCount(EDGE_KIND kind);
-        QList<Edge *> getEdgesOfKind(EDGE_KIND edge_kind, int depth = -1);
-        QList<Key *> getKeys(int depth=-1);
+        int getEdgeCount() const;
+        int getEdgeOfKindCount(EDGE_KIND kind) const;
+        QSet<Edge *> getEdgesOfKind(EDGE_KIND edge_kind) const;
 
         bool isDefinition() const;
         bool isInstance() const;
@@ -215,8 +216,14 @@ class Node : public Entity
         QSet<Node*> instances_;
         QSet<Node*> implementations_;
 
-        QMultiMap<EDGE_KIND, Edge*> edges_;
-        QMultiMap<NODE_KIND, Node*> children_;
+        //QMultiMap<EDGE_KIND, Edge*> edges_;
+        //QMultiMap<NODE_KIND, Node*> children_;
+
+        QSet<Node*> new_nodes_;
+        QSet<Edge*> new_edges_;
+
+        QHash<NODE_KIND, int> node_kind_count_;
+        QHash<EDGE_KIND, int> edge_kind_count_;
 
         QSet<NODE_TYPE> node_types_;
         QSet<NODE_KIND> accepted_node_kinds_;

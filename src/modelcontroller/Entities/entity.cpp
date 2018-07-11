@@ -71,10 +71,10 @@ bool Entity::addData(Data *data)
  * @param dataList
  * @return All added
  */
-bool Entity::addData(QList<Data *> dataList)
+bool Entity::addData(QList<Data *>& data_list)
 {
     bool success = true;
-    foreach(Data* data, dataList){
+    for(auto data : data_list){
         if(!addData(data)){
             success = false;
         }
@@ -108,18 +108,15 @@ void Entity::_dataRemoved(Data *data)
  * @param keyName - The name of the Data's key
  * @return The Data, or NULL
  */
-Data *Entity::getData(QString keyName) const
+Data *Entity::getData(const QString& key_name) const
 {
-    Key* key = getKey(keyName);
+    auto key = getKey(key_name);
     return getData(key);
 }
 
-Key *Entity::getKey(QString keyName) const
+Key *Entity::getKey(const QString& key_name) const
 {
-    if(key_lookup_.contains(keyName)){
-        return key_lookup_[keyName];
-    }
-    return 0;
+    return key_lookup_.value(key_name, 0);
 }
 
 /**
@@ -130,10 +127,7 @@ Key *Entity::getKey(QString keyName) const
  */
 Data *Entity::getData(Key *key) const
 {
-    if(key && data_map_.contains(key)){
-        return data_map_[key];
-    }
-    return 0;
+    return data_map_.value(key, 0);
 }
 
 /**
@@ -146,9 +140,9 @@ QList<Data *> Entity::getData() const
     return data_map_.values();
 }
 
-QList<Key *> Entity::getKeys() const
+QSet<Key *> Entity::getKeys() const
 {
-    return key_lookup_.values();
+    return key_lookup_.values().toSet();
 }
 
 QStringList Entity::getKeyNames() const
@@ -156,20 +150,16 @@ QStringList Entity::getKeyNames() const
     return key_lookup_.keys();
 }
 
-bool Entity::gotData(QString keyName) const
+bool Entity::gotData() const{
+    return data_map_.size();
+}
+bool Entity::gotData(const QString& key_name) const
 {
-    if(keyName.isEmpty()){
-        return !data_map_.isEmpty();
-    }else{
-        return getData(keyName);
-    }
+    return getData(key_name);
 }
 
 bool Entity::gotData(Key* key) const{
-    if(key){
-        return getData(key->getName());
-    }
-    return false;
+    return data_map_.contains(key);
 }
 
 bool Entity::isNode() const
@@ -191,13 +181,9 @@ bool Entity::isReadOnly() const
     return false;
 }
 
-QVariant Entity::getDataValue(QString keyName) const
+QVariant Entity::getDataValue(const QString& key_name) const
 {
-    Data* data = getData(keyName);
-    if(data){
-        return data->getValue();
-    }
-    return QVariant();
+    return getDataValue(getKey(key_name));
 }
 
 QVariant Entity::getDataValue(Key *key) const
@@ -209,9 +195,9 @@ QVariant Entity::getDataValue(Key *key) const
     return QVariant();
 }
 
-bool Entity::setDataValue(QString keyName, QVariant value)
+bool Entity::setDataValue(const QString& key_name, QVariant value)
 {
-    return setDataValue(getKey(keyName), value);
+    return setDataValue(getKey(key_name), value);
 }
 
 bool Entity::setDataValue(Key *key, QVariant value)
@@ -281,9 +267,9 @@ bool Entity::removeData(Data *data)
  * @param keyName the name of the key to delete
  * @return removed successfully
  */
-bool Entity::removeData(QString keyName)
+bool Entity::removeData(const QString& key_name)
 {
-    return removeData(getData(keyName));
+    return removeData(getData(key_name));
 }
 
 QString Entity::toString() const
