@@ -13,7 +13,7 @@ This script requires the following Jenkins plugins:
 
 @Library('cditma-utils')
 import cditma.Utils
-
+def utils = new Utils(this);
 
 
 node("master"){
@@ -32,14 +32,14 @@ node("master"){
         files = []
         
         dir("re"){
-            Utils.runScript('git bundle ../artifacts/re.bundle ' + GIT_BRANCH)
-            Utils.runScript('git-archive-all ../artifacts/re.tar.gz')
+            utils.runScript('git bundle ../artifacts/re.bundle ' + GIT_BRANCH)
+            utils.runScript('git-archive-all ../artifacts/re.tar.gz')
             files += 're.bundle'
             files += 're.tar.gz'
         }
         dir("artifacts"){
             //Create archive
-            Utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
+            utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
             archiveArtifacts(ROLLOUT_FILE_NAME)
             deleteDir();
         }
