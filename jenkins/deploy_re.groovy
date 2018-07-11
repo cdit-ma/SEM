@@ -34,11 +34,14 @@ for(n in re_nodes){
     step_build[node_name] = {
         node(node_name){
             dir("${RE_PATH}/.."){
+                touch '.dummy'
+                print("Running in: " + pwd())
                 unstash STASH_NAME
                 utils.runScript("tar -xf " + ARCHIVE_NAME)
             }
             dir("${RE_PATH}/build"){
                 touch '.dummy'
+                print("Running in: " + pwd())
                 def result = utils.buildProject("Ninja", "")
                 if(!result){
                     error('Failed to compile')
