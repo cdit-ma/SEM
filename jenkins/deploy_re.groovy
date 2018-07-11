@@ -37,11 +37,13 @@ for(n in re_nodes){
                 deleteDir()
             }
             unstash STASH_NAME
+            sleep(1)
 
             //Build into HOME
             utils.runScript("tar -xf " + ARCHIVE_NAME + " -C ${HOME}" )
 
             dir("${HOME}/re/build"){
+                sleep(1)
                 touch '.dummy'
                 print("Running in: " + pwd())
                 def result = utils.buildProject("Ninja", "")
