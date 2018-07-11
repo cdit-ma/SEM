@@ -38,8 +38,8 @@ for(n in re_nodes){
             }
             unstash STASH_NAME
 
-            utils.runScript("tar -xfC " + ARCHIVE_NAME + "${RE_PATH}/.." )
-            
+            utils.runScript("tar -xfC " + ARCHIVE_NAME + " ${RE_PATH}/.." )
+
             dir("${RE_PATH}/build"){
                 touch '.dummy'
                 print("Running in: " + pwd())
