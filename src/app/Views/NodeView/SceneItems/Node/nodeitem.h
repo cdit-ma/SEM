@@ -35,7 +35,7 @@ public:
     QList<EntityItem*> getChildEntities() const;
 
     void addChildEdge(EdgeItem* edgeItem);
-    void removeChildEdge(int ID);
+    void removeChildEdge(EdgeItem* edgeItem);
     QList<EdgeItem*> getChildEdges() const;
 
     QRectF getNearestGridOutline();
@@ -244,8 +244,8 @@ private:
 
     QPointF previousMovePoint;
     
-    QHash<int, NodeItem*> childNodes;
-    QHash<int, EdgeItem*> childEdges;
+    QSet<NodeItem*> child_nodes;
+    QSet<EdgeItem*> child_edges;
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

@@ -759,6 +759,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
     if(!item || item->getViewAspect() != containedAspect){
         return;
     }
+    
 
     NodeItem* parentNode = getParentNodeItem(item);
 
@@ -766,8 +767,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
         setContainedNodeViewItem(item);
         return;
     }
-
-
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
@@ -787,7 +786,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INSTANCE){
                 return;
             }
-            
+
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:
                 node_item = new HardwareNodeItem(item, parentNode);

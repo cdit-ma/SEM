@@ -87,7 +87,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
 EdgeItem::~EdgeItem()
 {
     if(getParentNodeItem()){
-        getParentNodeItem()->removeChildEdge(getID());
+        getParentNodeItem()->removeChildEdge(this);
     }
 
     unsetParent();

@@ -35,17 +35,17 @@ public:
 
     VIEW_ASPECT getViewAspect();
 
-    QVariant getData(QString keyName) const;
+    QVariant getData(const QString& keyName) const;
     QStringList getKeys() const;
-    bool hasData(QString keyName) const;
+    bool hasData(const QString& keyName) const;
 
-    bool isDataProtected(QString keyName) const;
-    bool isDataVisual(QString keyName) const;
+    bool isDataProtected(const QString& keyName) const;
+    bool isDataVisual(const QString& keyName) const;
 
     bool isReadOnly() const;
 
-    void updateProtectedKeys(QList<QString> protected_keys);
-    void updateProtectedKey(QString key_name, bool is_protected);
+    void updateProtectedKeys(const QList<QString>& protected_keys);
+    void updateProtectedKey(const QString& key_name, bool is_protected);
 
     bool setDefaultIcon(const QString& prefix, const QString& name);
     bool setIcon(const QString& prefix, const QString& name);
@@ -69,7 +69,7 @@ public:
     QSet<QSharedPointer<NotificationObject> > getNotifications();
     QSet<QSharedPointer<NotificationObject> > getNestedNotifications();
 
-    QList<QVariant> getValidValuesForKey(QString keyName) const;
+    QList<QVariant> getValidValuesForKey(const QString& keyName) const;
 signals:
     void labelChanged(QString label);
     void iconChanged();
@@ -86,8 +86,8 @@ signals:
     void destructing(int ID);
 protected:
     void updateIcon();
-    void changeData(QString keyName, QVariant data, bool is_protected = false);
-    void removeData(QString keyName);
+    void changeData(const QString& keyName, QVariant data, bool is_protected = false);
+    void removeData(const QString& keyName);
     virtual void childAdded(ViewItem* child);
     virtual void childRemoved(ViewItem* child);
     

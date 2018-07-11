@@ -120,16 +120,16 @@ NodeItem::~NodeItem()
     }
 
     //remove children nodes.
-    while(!childNodes.isEmpty()){
-        int key = childNodes.keys().takeFirst();
-        NodeItem* child = childNodes[key];
-        removeChildNode(child);
+    while(child_nodes.size()){
+        auto node = *child_nodes.begin();
+        removeChildNode(node);
+        delete node;
     }
 
-    //remove children nodes.
-    while(!childEdges.isEmpty()){
-        int key = childEdges.keys().takeFirst();
-        removeChildEdge(key);
+    while(child_edges.size()){
+        auto edge = *child_edges.begin();
+        removeChildEdge(edge);
+        delete edge;
     }
 }
 
@@ -164,15 +164,14 @@ bool NodeItem::isRightJustified() const
 
 void NodeItem::addChildNode(NodeItem *nodeItem)
 {
-    int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
-    if(!childNodes.contains(ID)){
+    if(!child_nodes.contains(nodeItem)){
         nodeItem->setParentItem(this);
         connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
         connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
         connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
         
-        childNodes[ID] = nodeItem;
+        child_nodes += nodeItem;
         nodeItem->setBaseBodyColor(getBaseBodyColor());
 
         nodeItem->setVisible(isExpanded());
@@ -186,7 +185,7 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
 void NodeItem::removeChildNode(NodeItem* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
-    if(childNodes.remove(nodeItem->getID()) > 0){
+    if(child_nodes.remove(nodeItem) > 0){
         //Unset child moving.
         nodeItem->unsetParent();
 
@@ -221,31 +220,31 @@ int NodeItem::getSortOrderRowSubgroup() const{
 
 bool NodeItem::hasChildNodes() const
 {
-    return !childNodes.isEmpty();
+    return child_nodes.size();
 }
 
 QList<NodeItem *> NodeItem::getChildNodes() const
 {
-    return childNodes.values();
+    return child_nodes.toList();
 }
 
 QList<NodeItem*> NodeItem::getSortedChildNodes() const{
-    auto children = getChildNodes();
-    std::sort(children.begin(), children.end(), [](const NodeItem* n1, const NodeItem* n2){
+    auto nodes = getChildNodes();
+    std::sort(nodes.begin(), nodes.end(), [](const NodeItem* n1, const NodeItem* n2){
         return n1->getSortOrder() < n2->getSortOrder();
     });
-    return children;
+    return nodes;
 }
 
 
 QList<EntityItem *> NodeItem::getChildEntities() const
 {
     QList<EntityItem*> children;
-    foreach(NodeItem* node, getChildNodes()){
-        children.append(node);
+    for(auto node : child_nodes){
+        children += node;
     }
-    foreach(EdgeItem* edge, getChildEdges()){
-        children.append(edge);
+    for(auto edge : child_edges){
+        children += edge;
     }
     return children;
 }
@@ -253,10 +252,9 @@ QList<EntityItem *> NodeItem::getChildEntities() const
 
 void NodeItem::addChildEdge(EdgeItem *edgeItem)
 {
-    int ID = edgeItem->getID();
-    if(!childEdges.contains(ID)){
+    if(!child_edges.contains(edgeItem)){
         edgeItem->setParentItem(this);
-        childEdges[ID] = edgeItem;
+        child_edges += edgeItem;
 
         edgeItem->setBaseBodyColor(getBaseBodyColor().darker(120));
 
@@ -265,18 +263,17 @@ void NodeItem::addChildEdge(EdgeItem *edgeItem)
     }
 }
 
-void NodeItem::removeChildEdge(int ID)
+void NodeItem::removeChildEdge(EdgeItem *edgeItem)
 {
-    if(childEdges.contains(ID)){
-        EdgeItem* item = childEdges[ID];
-        item->unsetParent();
-        childEdges.remove(ID);
+    if(child_edges.contains(edgeItem)){
+        edgeItem->unsetParent();
+        child_edges.remove(edgeItem);
     }
 }
 
 QList<EdgeItem *> NodeItem::getChildEdges() const
 {
-    return childEdges.values();
+    return child_edges.toList();
 }
 
 

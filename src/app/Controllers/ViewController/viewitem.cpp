@@ -86,24 +86,23 @@ bool ViewItem::isEdge() const
 }
 
 
-QVariant ViewItem::getData(QString key_name) const
+QVariant ViewItem::getData(const QString& key_name) const
 {
     return _data.value(key_name);
 }
 
 QStringList ViewItem::getKeys() const
 {
-    QStringList keys;
     return _data.keys();
 }
 
-bool ViewItem::hasData(QString keyName) const
+bool ViewItem::hasData(const QString& keyName) const
 {
     bool has_local = _data.contains(keyName);
     return has_local;
 }
 
-bool ViewItem::isDataProtected(QString key_name) const
+bool ViewItem::isDataProtected(const QString& key_name) const
 {
     if(isReadOnly()){
         return true;
@@ -112,7 +111,7 @@ bool ViewItem::isDataProtected(QString key_name) const
     }
 }
 
-bool ViewItem::isDataVisual(QString) const
+bool ViewItem::isDataVisual(const QString&) const
 {
     return false;
 }
@@ -255,7 +254,7 @@ ViewController* ViewItem::getController(){
 }
 
 
-QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
+QList<QVariant> ViewItem::getValidValuesForKey(const QString& keyName) const
 {
     QList<QVariant> valid_values;
     if(controller){
@@ -264,7 +263,7 @@ QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
     return valid_values;
 }
 
-void ViewItem::changeData(QString keyName, QVariant data, bool is_protected)
+void ViewItem::changeData(const QString& keyName, QVariant data, bool is_protected)
 {
     bool addedData = !_data.contains(keyName);
     _data[keyName] = data;
@@ -295,7 +294,7 @@ void ViewItem::updateIcon(){
     setIcon(icon_prefix, icon);
 }
 
-void ViewItem::removeData(QString keyName)
+void ViewItem::removeData(const QString& keyName)
 {
     if(_data.contains(keyName)){
         _data.remove(keyName);
@@ -304,12 +303,12 @@ void ViewItem::removeData(QString keyName)
 }
 
 
-void ViewItem::updateProtectedKeys(QList<QString> protected_keys){
+void ViewItem::updateProtectedKeys(const QList<QString>& protected_keys){
     this->protected_keys = protected_keys.toSet();
 }
 
 
-void ViewItem::updateProtectedKey(QString key_name, bool is_protected){
+void ViewItem::updateProtectedKey(const QString& key_name, bool is_protected){
     if(is_protected){
         protected_keys.insert(key_name);
     }else{
