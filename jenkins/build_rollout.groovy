@@ -31,7 +31,7 @@ node("master"){
             checkout scm
         }
     }
-    
+
     stage("Archive"){
         files = []
         
@@ -44,6 +44,6 @@ node("master"){
         //Create archive
         utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' ' + files.join(' '))
         archiveArtifacts(ROLLOUT_FILE_NAME)
-        deleteDir();
+        //deleteDir();
     }
 }
