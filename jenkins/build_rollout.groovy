@@ -23,7 +23,7 @@ final ROLLOUT_FILE_NAME = "re-" + GIT_BRANCH + "-rollout.tar.gz"
 node("master"){
     //Set the Label
     currentBuild.description = GIT_BRANCH
-    
+    print("GIT_USER: " + GIT_USER)
     stage("Checkout"){
         //Check out Scripts
         dir("scripts"){
