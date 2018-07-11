@@ -130,7 +130,7 @@ private:
         QRectF child_rect;
 
         QList<CellIconRect> child_gap_rects;
-        QMap<NodeItem*, QPointF> child_offsets;
+        QHash<NodeItem*, QPointF> child_offsets;
         QList<NodeItem*> children;
         int prefix_gap_index = -1;
         int suffix_gap_index = -1;
@@ -140,8 +140,8 @@ private:
 
     bool sub_areas_dirty = true;
 
-    QMap<CellIndex, PersistentCellInfo> cell_infos;
-    QMap<CellIndex, Cell> cells;
+    QHash<CellIndex, PersistentCellInfo> cell_infos;
+    QHash<CellIndex, Cell> cells;
     QRectF cell_rect;
 
     qreal cell_spacing;

@@ -11,8 +11,8 @@ Entity::Entity(EntityFactoryBroker& broker, GRAPHML_KIND kind):GraphML(broker, k
 Entity::~Entity()
 {
     disconnect(this);
+
     for(auto data : data_map_){
-        //Unregister the data so we don't bother calling back into this class
         data->setParent(0);
         delete data;
     }
@@ -49,10 +49,10 @@ bool Entity::addData(Data *data)
         return false;
     }
 
-    QString keyName = key->getName();
+    const auto& key_name = key->getName();
 
-    if(!key_lookup_.contains(keyName)){
-        key_lookup_.insert(keyName, key);
+    if(!key_lookup_.contains(key_name)){
+        key_lookup_.insert(key_name, key);
     }
 
     if(!data_map_.contains(key)){
@@ -145,10 +145,6 @@ QSet<Key *> Entity::getKeys() const
     return key_lookup_.values().toSet();
 }
 
-QStringList Entity::getKeyNames() const
-{
-    return key_lookup_.keys();
-}
 
 bool Entity::gotData() const{
     return data_map_.size();
@@ -159,7 +155,7 @@ bool Entity::gotData(const QString& key_name) const
 }
 
 bool Entity::gotData(Key* key) const{
-    return data_map_.contains(key);
+    return getData(key);
 }
 
 bool Entity::isNode() const
@@ -235,30 +231,16 @@ bool Entity::removeData(Key *key)
  */
 bool Entity::removeData(Data *data)
 {
-    if(data){
-        if(!data_map_.values().contains(data)){
-            return false;
-
-        }
-        Key* key = data->getKey();
-        if(!key){
-            //Can't remove data which doesn't have a valid key.
-            return false;
-        }
-        int count = 0;
-        count += data_map_.remove(key);
-        count += key_lookup_.remove(key->getName());
-
-        data->setParent(0);
-        
-        emit dataRemoved(getID(), key->getName());
-
-        return count == 2;
-    }else{
-        //Can't remove null data.
+    if(!data){
         return false;
     }
-    return true;
+    auto key = data->getKey();
+    int count = data_map_.remove(key);
+    count += key_lookup_.remove(key->getName());
+
+    data->setParent(0);
+    emit dataRemoved(getID(), key->getName());
+    return count == 2;
 }
 
 /**

@@ -82,7 +82,7 @@ public:
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> IDs);
     
     QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
-    QMap<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
+    QHash<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
 
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
@@ -191,7 +191,7 @@ private:
     QList<Entity *> getOrderedEntities(QList<Entity *> entities);
     QList<Entity*> getUnorderedEntities(QList<int> IDs);
 
-    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
+    QHash<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
 
     Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);

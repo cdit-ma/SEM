@@ -59,7 +59,7 @@ public:
     QStringList _getIDs();
     
 
-    QMap<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
+    QHash<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
     QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
     QList<ViewItem*> filterList(QString query, QList<NodeViewItem*> view_items){
         return filterList(query, ViewController::ToViewItemList(view_items));

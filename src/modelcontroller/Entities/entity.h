@@ -4,6 +4,7 @@
 
 #include <QHash>
 #include <QVariant>
+#include <QSet>
 
 class Data;
 class Key;
@@ -40,7 +41,6 @@ public:
     bool isImplicitlyConstructed() const;
     void _dataChanged(Data* data);
     void _dataRemoved(Data* data);
-    QStringList getKeyNames() const;
 
     bool gotData() const;
     bool gotData(const QString& key_name) const;
@@ -65,11 +65,11 @@ public:
     void setImplicitlyConstructed(bool implicitly_constructed = true);
 protected:
     void setLabelFunctional(bool functional = true);
+    Key* getKey(const QString& key_name) const;
 signals:
     void dataChanged(int ID, QString key_name, QVariant data, bool is_protected);
     void dataRemoved(int ID, QString key_name);
 private:
-    Key* getKey(const QString& key_name) const;
     bool is_label_functional_ = true;
     bool is_implicitly_constructed_ = false;
     

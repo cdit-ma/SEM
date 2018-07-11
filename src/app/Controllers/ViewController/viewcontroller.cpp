@@ -402,10 +402,10 @@ QStringList ViewController::_getSearchSuggestions()
     return suggestions.toList();
 }
 
-QMap<QString, ViewItem *> ViewController::getSearchResults(QString query, QList<ViewItem*> view_items)
+QHash<QString, ViewItem *> ViewController::getSearchResults(QString query, QList<ViewItem*> view_items)
 {
     auto keys = getSearchableKeys();
-    QMap<QString, ViewItem*> results;
+    QHash<QString, ViewItem*> results;
     
     QRegExp rx("*" + query + "*");
     rx.setPatternSyntax(QRegExp::WildcardUnix);

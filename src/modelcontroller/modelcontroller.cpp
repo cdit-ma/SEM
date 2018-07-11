@@ -73,7 +73,7 @@ ModelController::ModelController():QObject(0)
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
     qRegisterMetaType<QSet<EDGE_DIRECTION> >("QSet<EDGE_DIRECTION>");
     qRegisterMetaType<DataUpdate>("DataUpdate");
-    
+
 }
 
 void ModelController::ConnectViewController(ViewControllerInterface* view_controller){
@@ -885,8 +885,8 @@ bool ModelController::_replicate(QList<Entity *> items)
 
 
 
-QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_ids, EDGE_KIND edge_kind){
-    QMap<EDGE_DIRECTION, int> id_map;
+QHash<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_ids, EDGE_KIND edge_kind){
+    QHash<EDGE_DIRECTION, int> id_map;
 
     QReadLocker lock(&lock_);
 
@@ -899,8 +899,8 @@ QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_id
     return id_map;
 }
 
-QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> src_nodes, EDGE_KIND edge_kind){
-    QMap<EDGE_DIRECTION, Node*> node_map;
+QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> src_nodes, EDGE_KIND edge_kind){
+    QHash<EDGE_DIRECTION, Node*> node_map;
     
     bool srcs_accept_source_edge = true;
     bool srcs_accept_target_edge = true;
@@ -2333,7 +2333,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     }
                     
                     //Remove all visual data.
-                    for(auto key_name : entity->getKeys()){
+                    for(const auto& key_name : entity->getKeys()){
                         if(isKeyNameVisual(key_name)){
                             entity->removeData(key_name);
                         }

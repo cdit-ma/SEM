@@ -1,7 +1,7 @@
 #include "tempentity.h"
 #include "entityfactory.h"
 
-int str_to_int(QString str){
+int str_to_int(const QString& str){
     bool ok;
     int int_val = str.toInt(&ok, 10);
 
@@ -68,7 +68,7 @@ QString TempEntity::getKind()
     return kind_str;
 }
 
-void TempEntity::setIDStr(QString id_str){
+void TempEntity::setIDStr(const QString& id_str){
     this->id_str = id_str;
     //Try and convert the id_str to int, -1 on fail
     this->previous_id = str_to_int(id_str);
@@ -109,7 +109,7 @@ bool TempEntity::gotID(){
     return actual_id != -1;
 }
 
-QList<TempEntity*> TempEntity::getChildren(){
+const QList<TempEntity*>& TempEntity::getChildren(){
     return children;
 }
 
@@ -143,22 +143,22 @@ int TempEntity::getTargetID() const
     return target_id;
 }
 
-void TempEntity::setSourceIDStr(QString id)
+void TempEntity::setSourceIDStr(const QString& id)
 {
     source_id_str = id;
 }
 
-QString TempEntity::getSourceIDStr()
+const QString& TempEntity::getSourceIDStr()
 {
     return source_id_str;
 }
 
-void TempEntity::setTargetIDStr(QString id)
+void TempEntity::setTargetIDStr(const QString& id)
 {
     target_id_str = id;
 }
 
-QString TempEntity::getTargetIDStr()
+const QString& TempEntity::getTargetIDStr()
 {
     return target_id_str;
 }
@@ -191,22 +191,22 @@ bool TempEntity::gotEdgeKind()
     return !edge_kinds.isEmpty();
 }
 
-QVariant TempEntity::getDataValue(QString key_name){
+QVariant TempEntity::getDataValue(const QString& key_name){
     return data.value(key_name, QVariant());
 }
 
-bool TempEntity::gotData(QString key_name){
+bool TempEntity::gotData(const QString& key_name){
     return data.contains(key_name);
 }
 
-void TempEntity::addData(QString key_name, QVariant value){
+void TempEntity::addData(const QString& key_name, QVariant value){
     data[key_name] = value;
     if(key_name == "kind"){
         kind_str = value.toString();
     }
 }
 
-void TempEntity::removeData(QString key_name){
+void TempEntity::removeData(const QString& key_name){
     data.remove(key_name);
 }
 

@@ -871,7 +871,12 @@ QString Node::toGraphML(int indent_depth, bool functional_export)
 QList<Node *> Node::getOrderedChildNodes()
 {
     auto child_list = new_nodes_.toList();
-    std::sort(child_list.begin(), child_list.end(), Entity::SortByIndex);
+    auto index_key = getKey("index");
+    std::sort(child_list.begin(), child_list.end(), [index_key](const Node* a, const Node* b){
+        auto a_ind = a->getDataValue(index_key).toInt();
+        auto b_ind = b->getDataValue(index_key).toInt();
+        return a_ind < b_ind;
+    });
     return child_list;
 
 }

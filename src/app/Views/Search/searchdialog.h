@@ -19,7 +19,7 @@ class SearchDialog : public QFrame
 public:
     explicit SearchDialog(QWidget *parent = 0);
 
-    void DisplaySearchResults(QString query, QMap<QString, ViewItem*> results);
+    void DisplaySearchResults(QString query, QHash<QString, ViewItem*> results);
 signals:
 
     void SearchQuery(QString query);
@@ -80,7 +80,7 @@ private:
     QSet<int> current_search_items;
     QHash<int, SearchItemWidget*> search_items;
 
-    QMap<ViewItem*, QString> search_key_lookups;
+    QHash<ViewItem*, QString> search_key_lookups;
 
     int current_visible = 0;
     int filtered_match_count = 0;

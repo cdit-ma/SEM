@@ -199,22 +199,37 @@ bool Data::linkData(Data* data, bool setup_bind){
 
 void Data::addParentData(Data* data){
     if(data && !parent_datas.contains(data)){
-        parent_datas.insert(data);
+        bool was_protected = isProtected();
+        parent_datas += data;
         store_value();
 
         connect(data, &Data::dataChanged, this, &Data::setValue);
-        setValue(data->getValue());
-        //Force an update
-        updateChildren(true);
+        
+        const auto& new_value = data->getValue();
+        
+        if(new_value != getValue()){
+            //If the new value is different, change it
+            setValue(new_value);
+        }else if(parent && !was_protected){
+            //Notify that our data has changed protected state
+            parent->_dataChanged(this);
+        }
     }
 }
 
 void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
+        bool was_protected = isProtected();
         parent_datas.remove(data);
+        bool is_protected = isProtected();
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
-        restore_value();
-        updateChildren(true);
+        
+        if(parent_datas.empty()){
+            restore_value();
+            if(parent){
+                parent->_dataChanged(this);
+            }
+        }
     }
 }
 

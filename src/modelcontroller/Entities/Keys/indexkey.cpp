@@ -53,7 +53,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     //Remove our self
     siblings.removeAll(node);
 
-    QMap<const Node*, int> desired_index;
+    QHash<const Node*, int> desired_index;
 
     //Re-insert at the desired location
     siblings.insert(new_index, node);
@@ -65,7 +65,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     }
 
     //Sort the List by Row (Lowest to Highest) and also by Index (Lowest to Highest)
-    std::sort(siblings.begin(), siblings.end(), [&desired_index, &old_index](const Node* node1, const Node* node2){
+    std::sort(siblings.begin(), siblings.end(), [=](const Node* node1, const Node* node2){
         if(node1 == node2){
             return false;
         }
@@ -79,8 +79,6 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
             if(node1_subgroup == node2_subgroup){
                 auto node1_index = desired_index[node1];
                 auto node2_index = desired_index[node2];
-                //int node1_index = node1->getDataValue("index").toInt();
-                //int node2_index = node2->getDataValue("index").toInt();
                 if(node1_index == node2_index){
                     qCritical() << "Got Invalid index' which are the same";
                 }else{

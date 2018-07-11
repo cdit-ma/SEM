@@ -214,7 +214,7 @@ void StackNodeItem::updateCells(){
         //Clear the cells 
         cells.clear();
 
-        QMap<int, CellIndex> last_cell_in_row;
+        QHash<int, CellIndex> last_cell_in_row;
         QMultiMap<int, int> row_cols;
 
         //Put all of the children in their appropriate Row/Column.

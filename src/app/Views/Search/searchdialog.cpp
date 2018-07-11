@@ -36,7 +36,7 @@ void SearchDialog::setQuery(QString query){
  * @param query
  * @param results
  */
-void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> results)
+void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*> results)
 {
     setQuery(query);
 

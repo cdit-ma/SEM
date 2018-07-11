@@ -201,7 +201,7 @@ private:
 
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
 
-    QMap<Notification::Severity, int> notification_counts_;
+    QHash<Notification::Severity, int> notification_counts_;
     QSet<Notification::Severity> hovered_notifications_;
     
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
