@@ -32,7 +32,7 @@ node("master"){
         files = []
         
         dir("re"){
-            utils.runScript('git bundle ../artifacts/re.bundle ' + GIT_BRANCH)
+            utils.runScript('git bundle create ../artifacts/re.bundle ' + GIT_BRANCH)
             utils.runScript('git-archive-all ../artifacts/re.tar.gz')
             files += 're.bundle'
             files += 're.tar.gz'
