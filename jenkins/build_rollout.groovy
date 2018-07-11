@@ -18,7 +18,6 @@ import cditma.Utils
 
 node("master"){
     echo sh(returnStdout: true, script: 'env')
-    final GIT_USER = scm.GIT_CREDENTIALS_ID
     final GIT_BRANCH = scm.SEM_BRANCH ? scm.SEM_BRANCH : scm.GIT_TAG
     final CDITMA_GIT_URL = "https://github.com/cdit-ma/"
     final ROLLOUT_FILE_NAME = "re-" + GIT_BRANCH + "-rollout.tar.gz"
