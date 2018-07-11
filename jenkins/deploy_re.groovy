@@ -12,10 +12,10 @@ def utils = new Utils(this);
 
 final PROJECT_NAME = 're'
 def git_url = "/srv/git"
-def re_nodes = utils.getLabelledNodes(PROJECT_NAME);
+def re_nodes = nodesByLabel("re")
 
 
-final ARCHIVE_NAME = PROJECT_NAME +".tar.gz"
+final ARCHIVE_NAME = PROJECT_NAME + ".tar.gz"
 final STASH_NAME = ARCHIVE_NAME + "_stash"
 
 //Checkout and stash re source archive (stored on Master's local git repo)
