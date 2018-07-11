@@ -10,15 +10,19 @@ import cditma.Utils
 
 def utils = new Utils(this);
 
-def PROJECT_NAME = 're'
+final PROJECT_NAME = 're'
 def git_url = "/srv/git"
 def re_nodes = utils.getLabelledNodes(PROJECT_NAME);
 
-//Checkout and stash re source (stored on Master's local git repo)
+
+final ARCHIVE_NAME = PROJECT_NAME +".tar.gz"
+final STASH_NAME = ARCHIVE_NAME + "_stash"
+
+//Checkout and stash re source archive (stored on Master's local git repo)
 stage('Checkout'){
     node('master'){
-        dir(git_url + "/" + PROJECT_NAME){
-            stash include: "**", name: "source_code"
+        dir(git_url){
+            stash include: ARCHIVE_NAME, name: STASH_NAME
         }
     }
 }
@@ -29,14 +33,14 @@ for(n in re_nodes){
     def node_name = n
     step_build[node_name] = {
         node(node_name){
-            dir("${RE_PATH}"){
-                deleteDir()
-                unstash "source_code"
-                dir("build"){
-                    def result = utils.buildProject("Ninja", "")
-                    if(!result){
-                        error('Failed to compile')
-                    }
+            dir("${RE_PATH}/.."){
+                unstash STASH_NAME
+                utils.runScript("tar -xf " + ARCHIVE_NAME)
+            }
+            dir("${RE_PATH}/build"){
+                def result = utils.buildProject("Ninja", "")
+                if(!result){
+                    error('Failed to compile')
                 }
             }
         }
