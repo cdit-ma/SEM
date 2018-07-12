@@ -65,13 +65,39 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
+    
+    <xsl:function name="cdit:get_enum_proto_file">
+        <xsl:param name="enum" />
+
+        <xsl:variable name="label" select="graphml:get_label($enum)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($enum)" />
+        <xsl:variable name="proto_label" select="o:title_case($label)" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_enum_proto_file', 0)" />
+
+
+        <!-- Using Protobuf 3 -->
+        <xsl:value-of select="proto:syntax('proto3')" />
+
+        <xsl:variable name="flattened_namespace" select="o:join_list($namespace, '.')" />
+        <xsl:value-of select="proto:package($flattened_namespace)" />
+
+        <xsl:value-of select="proto:enum($proto_label)" />
+        <xsl:for-each select="graphml:get_child_nodes_of_kind($enum, 'EnumMember')">
+            <xsl:variable name="member_label" select="cdit:get_enum_member_type(., 'proto')" />
+            <xsl:value-of select="proto:enum_value($member_label, position() - 1)" />
+        </xsl:for-each>
+        <xsl:value-of select="cpp:scope_end(0)" />
+    </xsl:function>
 
     <xsl:function name="cdit:get_proto_file">
         <xsl:param name="aggregate" />
 
-        <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
+        <!-- Get the definitions of the Data Libraries used in this Aggregate -->
         <xsl:variable name="aggregate_definitions" select="cdit:get_required_aggregates($aggregate, false())" />
-        <xsl:variable name="enums" select="cdit:get_required_enums($aggregate)" />
+        <xsl:variable name="enum_definitions" select="cdit:get_required_enums($aggregate)" />
+        <xsl:variable name="required_datatypes" select="($aggregate_definitions, $enum_definitions)" />
 
         
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
@@ -87,35 +113,13 @@
         <xsl:value-of select="proto:syntax('proto3')" />
 
         <!-- Import the definitions of each aggregate instance used -->
-        <xsl:for-each select="$aggregate_definitions">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .proto files', 0)" />
             </xsl:if>
             
             <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., 'proto')" />
             <xsl:value-of select="proto:import($required_file)" />
-            
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
-
-        <!-- Declare the enums used -->
-        <xsl:for-each select="$enums">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Declare enums', 0)" />
-            </xsl:if>
-
-            <xsl:variable name="enum_label" select="cdit:get_enum_type(., 'proto')" />
-
-            <xsl:value-of select="proto:enum($enum_label)" />
-
-            <xsl:for-each select="graphml:get_child_nodes_of_kind(., 'EnumMember')">
-                <xsl:variable name="member_label" select="cdit:get_enum_member_type(., 'proto')" />
-                <xsl:value-of select="proto:enum_value($member_label, position() - 1)" />
-            </xsl:for-each>
-
-            <xsl:value-of select="cpp:scope_end(0)" />
             
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -192,6 +196,15 @@
         <xsl:value-of select="idl:get_enum($enum_namespace, $enum_label, $enum_members, $tab)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_idl_enum_file">
+        <xsl:param name="enum" />
+        <xsl:param name="middleware" />
+
+        <!-- Preamble -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_enum_file', 0)" />
+        <xsl:value-of select="cdit:get_idl_enum($enum, 0)" />
+    </xsl:function>
+
     
 
     <xsl:function name="cdit:get_idl_datatype">
@@ -199,14 +212,13 @@
         <xsl:param name="middleware" />
 
         <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
+        <!-- Get the definitions of the Data Libraries used in this Aggregate -->
+        <xsl:variable name="aggregate_definitions" select="cdit:get_required_aggregates($aggregate, false())" />
+        <xsl:variable name="enum_definitions" select="cdit:get_required_enums($aggregate)" />
+        <xsl:variable name="required_datatypes" select="($aggregate_definitions, $enum_definitions)" />
 
         <xsl:variable name="vectors" select="graphml:get_child_nodes_of_kind($aggregate, 'Vector')" />
 
-        <xsl:variable name="enum_instances" select="graphml:get_child_nodes_of_kind(($vectors, $aggregate), 'EnumInstance')" />
-        <xsl:variable name="enums" select="graphml:get_definitions($enum_instances)" />
-        
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="label" select="o:title_case($aggregate_label)" />
@@ -222,26 +234,13 @@
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
 
         <!-- Import the definitions of each aggregate instance used -->
-        <xsl:for-each select="$aggregate_definitions">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
             </xsl:if>
             <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., $middleware)" />
             <xsl:value-of select="idl:include($required_file)" />
             
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
-
-        <!-- Declare the enums used, need to define guard them for multiple includes -->
-        <xsl:for-each select="$enums">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Define Enumerations', 0)" />
-            </xsl:if>
-            
-            <xsl:value-of select="cdit:get_idl_enum(., 0)" />
-
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>

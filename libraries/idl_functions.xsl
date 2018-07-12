@@ -205,7 +205,7 @@
 
         <xsl:variable name="enum_namespace" select="o:trim_list($enum_namespaces)" />
 
-        <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label, 'IDL', 'ENUM'), '_'))" />
+        <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label, 'DATATYPE', 'IDL'), '_'))" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($enum_guard_name)" />

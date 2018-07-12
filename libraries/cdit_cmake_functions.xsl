@@ -380,6 +380,62 @@
         <xsl:value-of select="cmake:get_relative_path(('ports', 'requestreply', 'middleware', graphml:get_namespace($aggregate), 'LABEL'))" />
     </xsl:function>
 
+    
+    <!--
+        Gets the translate_cmake file
+    -->
+    <xsl:function name="cdit:get_enum_cmake">
+        <xsl:param name="enum"/>
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="proj_name" select="cmake:get_aggregate_shared_library_name($enum, $middleware)" />
+                
+        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
+
+
+        <xsl:variable name="middleware_sources" select="cmake:get_middleware_generated_source_var($middleware)" />
+        <xsl:variable name="middleware_headers" select="cmake:get_middleware_generated_header_var($middleware)" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_enum_cmake', 0)" />
+        <xsl:value-of select="cmake:set_project_name($proj_name)" />
+        <xsl:value-of select="o:nl(1)" />
+        
+        <!-- Find the Middleware specific package -->
+        <xsl:value-of select="cmake:find_middleware_package($middleware)" />
+        <xsl:value-of select="cmake:generate_middleware_compiler($enum, (), $middleware)" />
+        
+        <xsl:variable name="args" select="o:join_list((cmake:wrap_variable($middleware_sources), cmake:wrap_variable($middleware_headers)), ' ')" />
+        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'SHARED', $args)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Target Include Directories -->
+        <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
+        <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Set RTI specific settings -->
+        <xsl:if test="$middleware = 'rti'">
+            <xsl:value-of select="cmake:comment('Set RTI Definitions', 0)" />
+            <xsl:variable name="rti_definitions" select="cmake:wrap_variable(concat(cmake:get_middleware_package($middleware), '_DEFINITIONS'))" />
+
+            <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', $rti_definitions, 0)" />
+        </xsl:if>
+
+        <!-- Use Windows specific settings -->
+        <xsl:if test="$middleware = 'proto'">
+            <xsl:value-of select="cmake:comment('Windows specific protobuf settings', 0)" />
+            <xsl:value-of select="cmake:if_start('MSVC', 0)" />
+            <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', '-DPROTOBUF_USE_DLLS', 1)" />
+            <xsl:value-of select="cmake:if_end('MSVC', 0)" />
+            <xsl:value-of select="o:nl(1)" />
+        </xsl:if>
+
+        <!-- Target Link Libraries -->
+        <xsl:value-of select="cmake:comment('Link against the middleware libraries', 0)" />
+        <xsl:value-of select="cmake:target_link_middleware_libraries('PROJ_NAME', $middleware, 0)" />
+    </xsl:function>
+
     <!--
         Gets the translate_cmake file
     -->
@@ -390,6 +446,9 @@
         
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, false())" />
+        <xsl:variable name="required_enums" select="cdit:get_required_enums($aggregate)" />
+        <xsl:variable name="required_datatypes" select="($required_aggregates, $required_enums)" />
+        
         
         <xsl:variable name="proj_name" select="cmake:get_aggregate_shared_library_name($aggregate, $middleware)" />
         
@@ -426,7 +485,7 @@
         <!-- Find the Middleware specific package -->
         <xsl:value-of select="cmake:find_middleware_package($middleware)" />
 
-        <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $required_aggregates, $middleware)" />
+        <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $required_datatypes, $middleware)" />
 
         <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
@@ -453,7 +512,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include required binary directories -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
@@ -493,7 +552,7 @@
         </xsl:if>
             
         <!-- Link against required binaries -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Link against', o:wrap_angle($middleware_extension), 'libraries'), 0)" />
             </xsl:if>
@@ -515,6 +574,8 @@
         
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate, false())" />
+        <xsl:variable name="required_enums" select="cdit:get_required_enums($aggregate)" />
+        <xsl:variable name="required_datatypes" select="(($required_aggregates, $required_enums))" />
 
         <xsl:variable name="datatype_middleware" select="cdit:get_datatype_middleware($middleware)" />
 
@@ -567,7 +628,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include required binary directories -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
@@ -614,6 +675,8 @@
         
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($server_interface, false())" />
+        <xsl:variable name="required_enums" select="cdit:get_required_enums($server_interface)" />
+        <xsl:variable name="required_datatypes" select="(($required_aggregates, $required_enums))" />
 
         <xsl:variable name="datatype_middleware" select="cdit:get_datatype_middleware($middleware)" />
 
@@ -648,7 +711,7 @@
 
         <xsl:if test="$middleware = 'tao'">
             <!-- Run the middlewares compiler over the middleware file-->
-            <xsl:value-of select="cmake:generate_middleware_compiler($server_interface, $required_aggregates, $middleware)" />
+            <xsl:value-of select="cmake:generate_middleware_compiler($server_interface, $required_datatypes, $middleware)" />
             <xsl:value-of select="o:nl(1)" />
         </xsl:if>
 
@@ -685,7 +748,7 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include required binary directories -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
@@ -721,7 +784,7 @@
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable(cmake:get_middleware_helper_var($middleware)), 0)" />
         
         <!-- Include required binary directories -->
-        <xsl:for-each select="$required_aggregates">
+        <xsl:for-each select="$required_datatypes">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment('Link against the base aggregate', 0)" />
             </xsl:if>

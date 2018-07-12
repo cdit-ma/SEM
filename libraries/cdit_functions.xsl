@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v3.0.7'" />
+        <xsl:value-of select="'re_gen-v3.0.8'" />
     </xsl:function>
 
     <!--
@@ -893,16 +893,9 @@
         
         <!-- Get All Aggregates Used in this entity -->
         <xsl:variable name="enum_definitions" select="graphml:get_definitions(graphml:get_descendant_nodes_of_kind($entity, 'EnumInstance'))" />
-
-
-        <xsl:variable name="ignored_definitions" as="element()*">
-            <xsl:for-each select="cdit:get_required_aggregates($entity, false())">
-                <xsl:sequence select="cdit:get_required_enums(.)" />
-            </xsl:for-each>
-        </xsl:variable>
         
         <!-- Return the Aggregates Required, which are not nested -->
-        <xsl:sequence select="$enum_definitions except $ignored_definitions" />
+        <xsl:sequence select="$enum_definitions" />
     </xsl:function>
 
     <xsl:function name="cdit:get_function_name" as="xs:string">
@@ -1766,6 +1759,23 @@
         <!-- Filter out any non-aggregates -->
         <xsl:sequence select="graphml:get_definitions($required_aggregates)[graphml:get_kind(.) = 'Aggregate']" />
     </xsl:function>
+
+    <!--
+        Gets the required Aggregates to generate for a particular middleware
+    -->
+    <xsl:function name="cdit:get_enums_for_middleware" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)?" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="generate_all" as="xs:boolean" />
+
+        <xsl:variable name="required_aggregates" select="cdit:get_aggregates_for_middleware($model, $middleware, $generate_all)" />
+
+        <xsl:variable name="required_enum_instances" select="graphml:get_descendant_nodes_of_kind($required_aggregates, 'EnumInstance')" />
+
+        <xsl:sequence select="graphml:get_definitions($required_enum_instances)" />
+    </xsl:function>
+
+    
 
     <!--
         Gets the required Pub/Sub Ports Aggregates (Definition) to generate for a particular middleware

@@ -45,6 +45,7 @@
             <xsl:variable name="datatype_aggregates" select="cdit:get_aggregates_for_middleware($model, $middleware, $generate_all)" />
             <xsl:variable name="pubsub_aggregates" select="cdit:get_pubsub_aggregates_for_middleware($model, $middleware, $generate_all)" />
             <xsl:variable name="server_interfaces" select="cdit:get_serverinterfaces_for_middleware($model, $middleware, $generate_all)" />
+            <xsl:variable name="enum_definitions" select="cdit:get_enums_for_middleware($model, $middleware, if($middleware = 'base') then true() else $generate_all)" />
             
             <!-- Generate the Shared Library translate/middleware classes -->
             <xsl:if test="cdit:build_shared_library($middleware)">
@@ -103,10 +104,60 @@
                         </xsl:result-document>
                     </xsl:if>
                 </xsl:for-each>
+
+                <xsl:for-each select="$enum_definitions">
+                    <xsl:variable name="enum" select="." />
+                    
+                    <xsl:variable name="qualified_type" select="cdit:get_aggregate_qualified_type($enum, $middleware)" />
+                    <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($enum, $middleware)" />
+                    <xsl:variable name="enum_path" select="cdit:get_aggregate_path_for_middleware(., $middleware)" />
+                
+                    <xsl:value-of select="o:message(('Generating Enum:', o:wrap_quote($qualified_type)) )" />
+
+                    <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
+                        <!-- Generate the Proto File -->
+                        <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
+                            <xsl:variable name="proto_file" select="concat($file_label, '.proto')" />
+                            <xsl:result-document href="{o:write_file(($enum_path, $proto_file))}">
+                                <xsl:value-of select="cdit:get_enum_proto_file($enum)" />
+                            </xsl:result-document>
+                        </xsl:if>
+
+                        <!-- Generate the CMakeFile -->
+                        <xsl:result-document href="{o:write_file(($enum_path, cmake:cmake_file()))}">
+                            <xsl:value-of select="cdit:get_enum_cmake($enum, $middleware)" />
+                        </xsl:result-document>
+                    </xsl:if>
+
+                    <!-- Generate the IDL File -->
+                    <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
+                        <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
+                        <xsl:result-document href="{o:write_file(($enum_path, $idl_file))}">
+                            <xsl:value-of select="cdit:get_idl_enum_file($enum, $middleware)" />
+                        </xsl:result-document>
+
+                         <!-- Generate the CMakeFile -->
+                        <xsl:result-document href="{o:write_file(($enum_path, cmake:cmake_file()))}">
+                            <xsl:value-of select="cdit:get_enum_cmake($enum, $middleware)" />
+                        </xsl:result-document>
+                    </xsl:if>
+
+                       
+                    
+
+                    
+
+                    <xsl:if test="$middleware = 'base'">
+                        <xsl:result-document href="{o:write_file(($enum_path, cmake:cmake_file()))}" />
+                        <xsl:result-document href="{o:write_file(($enum_path, concat($file_label, '.h')))}">
+                            <xsl:value-of select="cdit:get_enum_h(.)" />
+                        </xsl:result-document>
+                    </xsl:if>
+                </xsl:for-each>
                 
                 <!-- Generate the middleware CMakeFile -->
                 <xsl:result-document href="{o:write_file((('datatypes', $middleware), cmake:cmake_file()))}">
-                    <xsl:value-of select="cdit:get_middleware_cmake($datatype_aggregates)" />
+                    <xsl:value-of select="cdit:get_middleware_cmake(($datatype_aggregates, $enum_definitions))" />
                 </xsl:result-document>
             </xsl:if>
 
@@ -168,12 +219,6 @@
             </xsl:if>
         </xsl:for-each>
 
-        <!-- Generate the Enum headers -->
-        <xsl:for-each select="$enums">
-            <xsl:result-document href="{o:write_file(cdit:get_aggregate_h_path('Base', .))}">
-                <xsl:value-of select="cdit:get_enum_h(.)" />
-            </xsl:result-document>
-        </xsl:for-each>
 
         <xsl:for-each select="$component_impls">
             <xsl:variable name="component_impl" select="." />
