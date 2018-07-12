@@ -25,7 +25,7 @@ void Memory_Worker::Allocate(int kilobytes){
     // Bounds check for negative sizes
     if (kilobytes < 0) {
         Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, 
-            "Deallocation Failed; attempting to deallocate with a negative number");
+            "Allocation Failed; attempting to deallocate with a negative number");
     } else {
         try {
             //Do work
