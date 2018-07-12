@@ -43,8 +43,6 @@ ManagedServer::ManagedServer(Execution& execution, const std::string& address, c
         }
     }
 
-    
-
     for(const auto logger : message.logger()){
         if(logger.type() == NodeManager::Logger::SERVER){
             std::vector<std::string> client_list;
