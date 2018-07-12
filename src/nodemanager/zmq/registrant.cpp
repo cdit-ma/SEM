@@ -39,6 +39,7 @@ void zmq::Registrant::RegistrationLoop(){
 
     try{
         if(!deployment_manager_.QueryEnvironmentManager()){
+            std::cerr << "FAILED TO QUEUEY" << std::endl;
             deployment_manager_.Teardown();
             return;
         }

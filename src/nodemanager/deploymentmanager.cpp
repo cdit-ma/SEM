@@ -155,7 +155,6 @@ void DeploymentManager::Teardown(){
 void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(notify_mutex_);
-
     //Have to copy the message onto our queue
     control_message_queue_.emplace(control_message);
     notify_lock_condition_.notify_all();

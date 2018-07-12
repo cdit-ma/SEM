@@ -253,7 +253,6 @@ NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
             }
         }
     }
-
     return message;
 
 }

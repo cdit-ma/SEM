@@ -49,7 +49,7 @@ class Environment{
         NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
         
 
-        bool IsExperimentRegistered(const std::string& experiment_name);
+        bool IsExperimentConfigured(const std::string& experiment_name);
         bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
         
         void SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address);

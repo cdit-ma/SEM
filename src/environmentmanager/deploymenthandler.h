@@ -65,6 +65,9 @@ class DeploymentHandler{
         std::map<std::string, std::string> port_map_;
         long time_added_;
 
+        std::mutex logan_ip_mutex_;
+        std::set<std::string> registered_logan_ip_addresses;
+
         std::unique_ptr<std::thread> handler_thread_;
 
         std::promise<std::string>* port_promise_;

@@ -12,18 +12,17 @@
 
 std::string VERSION_NAME = "re_environment_manager";
 
-Execution* exe = 0;
+Execution execution;
 
 void signal_handler(int sig)
 {
-    exe->Interrupt();
+    execution.Interrupt();
 }
 
 int main(int argc, char **argv){
 
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
-    exe = new Execution();
 
     static const std::string default_registration_port = "20000";
 
@@ -58,17 +57,12 @@ int main(int argc, char **argv){
         registration_port = default_registration_port;
     }
 
-    auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(*exe, ip_address, registration_port));
+    auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(execution, ip_address, registration_port));
     deployment_register->Start();
 
     std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
     std::cout << "* Endpoint: " << "tcp://" << ip_address << ":" << registration_port << std::endl << std::endl;
     std::cout << "------------------[Running]------------------" << std::endl << std::endl;
-
-    exe->Start();
-
-    delete exe;
-    std::cout << std::endl;
-
+    execution.Start();
     return 0;
 }

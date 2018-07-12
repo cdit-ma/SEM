@@ -32,7 +32,7 @@ void DeploymentHandler::PrintError(const std::string& message){
 }   
 
 void DeploymentHandler::Terminate(){
-    //TODO: (RE-253) send terminate messages to node manager attached to this thread
+    //TODO: (RE-253) send TERMINATE messages to node manager attached to this thread
     handler_thread_->join();
 }
 
@@ -68,7 +68,6 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
             RemoveDeployment(time_added_);
             return;
         }
-        
     }
     //Break out early if we never get our first heartbeat
     else{
@@ -198,12 +197,14 @@ std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> re
                         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                     }
                 }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-                    if(!environment_.GotExperiment(experiment_id_)){
-                        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                    std::lock_guard<std::mutex> lock(logan_ip_mutex_);
+                    if(registered_logan_ip_addresses.count(ip_addr_)){
+                        //If we were registered, now we don't have the experiment anymore, Terminate
+                        if(!environment_.GotExperiment(experiment_id_)){
+                            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                        }
                     }
                 }
-                
-                
                 break;
             }
 
@@ -244,19 +245,22 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 }
 
 void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-    if(environment_.IsExperimentRegistered(message.experiment_id())){
-        auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
-        
-        if(environment_message){
-            message.Swap(environment_message);
-            delete environment_message;
-            message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
-        }
-        else{
-            message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
-        }
-    }else{
-        message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
-    }
+    message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
 
+
+    if(environment_.IsExperimentConfigured(message.experiment_id())){
+        std::lock_guard<std::mutex> lock(logan_ip_mutex_);
+        if(!registered_logan_ip_addresses.count(ip_addr_)){
+            auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
+            if(environment_message){
+                message.Swap(environment_message);
+                delete environment_message;
+                message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
+                registered_logan_ip_addresses.insert(ip_addr_);
+            }
+        }else{
+            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        }
+    }
+    
 }

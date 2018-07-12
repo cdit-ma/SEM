@@ -296,9 +296,15 @@ bool Environment::NodeDeployedTo(const std::string& experiment_name, const std::
     return false;
 }
 
-bool Environment::IsExperimentRegistered(const std::string& experiment_name){
+bool Environment::IsExperimentConfigured(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
-    return experiment_map_.count(experiment_name) > 0;
+    try{
+        auto& experiment = GetExperiment(experiment_name);
+        return experiment.IsConfigured();
+    }catch(const std::exception& ex){
+
+    }
+    return false;
 }
 
 void Environment::SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address){
