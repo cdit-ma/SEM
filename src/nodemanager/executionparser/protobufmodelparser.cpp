@@ -457,6 +457,8 @@ bool ProtobufModelParser::Process(){
         NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
+        }else{
+            continue;
         }
 
         auto logger_pb = node_pb->add_loggers();
@@ -494,6 +496,8 @@ bool ProtobufModelParser::Process(){
         NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
+        }else{
+            continue;
         }
 
         auto logger_pb = node_pb->add_loggers();

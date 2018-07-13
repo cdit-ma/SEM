@@ -19,8 +19,13 @@ final build_id = env.BUILD_ID
 final CLEANUP = false
 
 def experiment_name = "${EXPERIMENT_NAME}"
+def USE_CACHE_BUILD = false
+
 if(experiment_name.isEmpty()){
     experiment_name = "deploy_model_" + build_id
+}else{
+    currentBuild.displayName = "#" + build_id + " - " + experiment_name
+    USE_CACHE_BUILD = true
 }
 
 //Set the current build description
@@ -63,7 +68,7 @@ node(builder_nodes[0]){
     //Stash the model file
     stash includes: MODEL_FILE, name: 'model'
     
-
+    //Generate the code on the first builder node
     stage('C++ Generation'){
         dir(build_id + "/Codegen"){
             unstash 'model'
@@ -107,79 +112,58 @@ for(n in builder_nodes){
     //Define the Builder instructions
     builder_map[node_name] = {
         node(node_name){
+            //Cache dir is the experiment_name
             def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-            def new_stash_name = "new_" + stash_name
-            def build_dir = stash_name
+            def build_dir = experiment_name
+            if(USE_CACHE_BUILD){
+                //Cache dir is the experiment_name
+                def cached_dir = stash_name + "/" + experiment_name
 
-            dir(build_dir){
-                def cached_dir = experiment_name
-                //Make a list of files to delete
-                def files_to_remove = []
-
+                //Temporarily unstash into the build folder
                 dir(build_id){
                     //Unstash the generated code
                     unstash 'codegen'
 
-                    for(file in findFiles(glob: '**')){
-                        def file_path = file.path
-                        def remove_file = false
-                        
-                        //Ignore graphml/zip files
-                        for(ext in [".graphml", ".zip"]){
-                            if(file_path.endsWith(ext)){
-                                remove_file = true
-                            }
-                        }
+                    def relative_cached_dir = "../" + cached_dir
 
-                        if(!remove_file){
-                            //Check to see if the corresponding file exists in the cached dir
-                            def dst_path = "../" + cached_dir + "/" + file_path
-                            if(fileExists(dst_path)){
-                                def src_file_sha = sha1(file_path)
-                                def dst_file_sha = sha1(dst_path)
-                                if(src_file_sha == dst_file_sha){
-                                    remove_file = true
-                                }
-                            }
-                        }
-
-                        if(remove_file){
-                            files_to_remove += file_path
-                        }
-                    }
-
-                    //Write all files to be removed into a file, then remove them in bash, hide the output
-                    writeFile file: 'files_to_remove.list', text: files_to_remove.join("\n")
-                    if(utils.runScript('while read file ; do rm "$file" ; done < files_to_remove.list  > /dev/null 2>&1') != 0){
+                    //Make the relative cached dir
+                    if(utils.runScript('mkdir -p "' + relative_cached_dir + '"') != 0){
                         print("Cannot remove files")
                     }
-                    
-                    //Stash only the different files
-                    stash name: new_stash_name, allowEmpty: true
-                    //Delete old directory
+
+                    //Run RSync to copy the newly generated code
+                    if(utils.runScript('rsync -a --ignore-times --exclude "*.zip" --exclude "*.graphml" . "' + relative_cached_dir + '"') != 0){
+                        print("Cannot remove files")
+                    }
+                }
+                //Set the build dir to the cached dir after we have rsynced the files
+                build_dir = cached_dir
+            }else{
+                dir(build_id){
+                    //Unstash the generated code
+                    unstash 'codegen'
+                }
+                build_dir = build_id
+            }
+
+            dir(build_dir){
+                dir("lib"){
+                    //Clear any cached binaries
                     deleteDir()
                 }
-                
-                dir(cached_dir){
-                    unstash name: new_stash_name
-
-                    dir("build"){
-                        if(!utils.buildProject("Ninja", "")){
-                            error("CMake failed on Builder Node: " + node_name)
-                        }
+                dir("build"){
+                    if(!utils.buildProject("Ninja", "")){
+                        error("CMake failed on Builder Node: " + node_name)
                     }
-                    dir("lib"){
-                        //Stash all Libraries
-                        stash includes: '**', name: stash_name
-                        //Remove the binary directory once we are done
-                        deleteDir()
-                    }
+                }
+                dir("lib"){
+                    //Stash all Libraries
+                    stash includes: '**', name: stash_name
                 }
             }
         }
     }
 }
-
 
 //Produce the execution map
 for(n in nodes){
@@ -214,14 +198,14 @@ for(n in nodes){
                         ("LOGAN_" + node_name): {
                             //Run Logan
                             if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + logan_args) != 0){
-                                FAILURE_LIST << ("Logan failed on node: " + node_name)
+                                FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
                                 FAILED = true
                             }
                         },
                         ("RE_" + node_name): {
                             //Run re_node_manager
                             if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
                                 FAILED = true
                             }
                         }
