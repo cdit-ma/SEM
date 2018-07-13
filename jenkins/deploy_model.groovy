@@ -132,7 +132,7 @@ for(n in builder_nodes){
                     }
 
                     //Run RSync to copy the newly generated code
-                    if(utils.runScript('rsync -a --ignore-times --exclude "*.zip" --exclude "*.graphml" . "' + relative_cached_dir + '"') != 0){
+                    if(utils.runScript('rsync -rpgoD --checksum --exclude "*.zip" --exclude "*.graphml" . "' + relative_cached_dir + '"') != 0){
                         print("Cannot remove files")
                     }
                 }
@@ -152,7 +152,7 @@ for(n in builder_nodes){
                     deleteDir()
                 }
                 dir("build"){
-                    if(!utils.buildProject("Ninja", "")){
+                    if(!utils.buildProject("Ninja", "", false)){
                         error("CMake failed on Builder Node: " + node_name)
                     }
                 }
@@ -170,10 +170,12 @@ for(n in nodes){
     def node_name = n;
     execution_map[node_name] = {
         node(node_name){
+            //Get the ip address
+            final ip_addr = env.IP_ADDRESS
+            if(!ip_addr){
+                error("Runtime Node: " + node_name + " doesn't have an IP_ADDRESS env var.")
+            }
             dir(build_id){
-                //Get the IP of this node
-                def ip_addr = utils.getNodeIpAddress(node_name)
-                
                 dir("lib"){
                     //Unstash the required libraries for this node.
                     //Have to run in the lib directory due to dll linker paths
