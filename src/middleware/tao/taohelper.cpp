@@ -61,7 +61,7 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
         }
 
         if(!CORBA::is_nil(orb)){
-            std::cerr << "CONSTRUCTED ORB: " << orb << ": orb_endpoint: " << orb_endpoint << std::endl;
+            //std::cerr << "CONSTRUCTED ORB: " << orb << ": orb_endpoint: " << orb_endpoint << std::endl;
             //Start an async task to run the ORB, and attach it into a thread manager object
             auto thread_manager = std::unique_ptr<ThreadManager>(new ThreadManager());
             thread_manager->SetFuture(std::async(std::launch::async, OrbThread, std::ref(*thread_manager), orb));

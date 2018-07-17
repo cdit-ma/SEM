@@ -11,8 +11,8 @@
 #include <middleware/tao/requestreply/replierport.hpp>
 #include <middleware/tao/requestreply/requesterport.hpp>
 
-//const std::string ip_addr("127.0.0.1");
-const std::string ip_addr("192.168.111.96");
+const std::string ip_addr("127.0.0.1");
+//const std::string ip_addr("192.168.1.108");
 const std::string replier_addr(ip_addr + ":5000");
 const std::string requester_addr(ip_addr + ":5010");
 
@@ -123,7 +123,7 @@ TEST(tao_ReqRep, Basic2Basic_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Basic2Basic_Busy){
+TEST(tao_ReqRep, LONG_Basic2Basic_Busy){
     using namespace ::ReqRep::Basic2Basic::Busy;
 
     //Define the base types
@@ -156,7 +156,7 @@ TEST(tao_ReqRep, Basic2Basic_Busy){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Basic2Basic_Timeout){
+TEST(tao_ReqRep, LONG_Basic2Basic_Timeout){
     using namespace ::ReqRep::Basic2Basic::Timeout;
     
     //Define the base types
@@ -222,7 +222,7 @@ TEST(tao_ReqRep, Basic2Void_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Basic2Void_Busy){
+TEST(tao_ReqRep, LONG_Basic2Void_Busy){
     using namespace ::ReqRep::Basic2Void::Busy;
     
     //Define the base types
@@ -256,7 +256,7 @@ TEST(tao_ReqRep, Basic2Void_Busy){
 }
 
 
-TEST(tao_ReqRep, Basic2Void_Timeout){
+TEST(tao_ReqRep, LONG_Basic2Void_Timeout){
     using namespace ::ReqRep::Basic2Void::Timeout;
     
     //Define the base types
@@ -322,7 +322,7 @@ TEST(tao_ReqRep, Void2Basic_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Void2Basic_Busy){
+TEST(tao_ReqRep, LONG_Void2Basic_Busy){
     using namespace ::ReqRep::Void2Basic::Busy;
     
     //Define the base types

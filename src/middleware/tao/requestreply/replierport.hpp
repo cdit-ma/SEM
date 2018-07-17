@@ -196,7 +196,6 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
     
     server.reset();
     thread_manager.Thread_Terminated();
-    std::cerr << "THREAD DED" << std::endl;
 };
 
 #endif //TAO_INEVENTPORT_H

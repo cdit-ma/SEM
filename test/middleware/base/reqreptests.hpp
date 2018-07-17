@@ -106,7 +106,7 @@ void ReqRep::Basic2Basic::Stable::RunTest(
 };
 
 Base::Basic ReqRep::Basic2Basic::Busy::Callback(Base::Basic& message){
-    sleep_ms(500);
+    sleep_ms(50);
     message.int_val *= 10;
     return message;
 }
@@ -130,7 +130,7 @@ void ReqRep::Basic2Basic::Busy::RunTest(
         Base::Basic b;
         b.int_val = i;
         b.str_val = std::to_string(i);
-        auto c = req_port.SendRequest(b, std::chrono::milliseconds(200));
+        auto c = req_port.SendRequest(b, std::chrono::milliseconds(250));
         EXPECT_TRUE(c.first);
         if(c.first){
             EXPECT_EQ(b.int_val * 10, c.second.int_val);
@@ -172,10 +172,11 @@ void ReqRep::Basic2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, Base::Ba
     EXPECT_TRUE(rep_port.Activate());
     EXPECT_TRUE(req_port.Activate());
 
-    int send_count = 10;
+    int send_count = 100;
     int timeout_ms = 50;
     double busy_timeout = 100.0;
 
+    auto start = std::chrono::high_resolution_clock::now();
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
         Base::Basic b;
@@ -184,8 +185,10 @@ void ReqRep::Basic2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, Base::Ba
         auto c = req_port.SendRequest(b, std::chrono::milliseconds(timeout_ms));
         EXPECT_FALSE(c.first);
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    auto expected_rx = (send_count * timeout_ms) / busy_timeout;
+    auto expected_rx = duration / busy_timeout;
     auto confidence = 0.80;
     int low_rx = expected_rx * confidence;
     int high_rx = expected_rx / confidence;
@@ -206,8 +209,8 @@ void ReqRep::Basic2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, Base::Ba
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, 0);
-    EXPECT_GT(total_rxd, low_rx);
-    EXPECT_LT(total_rxd, high_rx);
+    EXPECT_GE(total_rxd, low_rx);
+    EXPECT_LE(total_rxd, high_rx);
     EXPECT_EQ(total_rxd, proc_rxd);
 };
 
@@ -262,7 +265,7 @@ void ReqRep::Basic2Void::Stable::RunTest(
 };
 
 void ReqRep::Basic2Void::Busy::Callback(Base::Basic& message){
-    sleep_ms(100);
+    sleep_ms(50);
 };
 
 void ReqRep::Basic2Void::Busy::RunTest(
@@ -283,7 +286,7 @@ void ReqRep::Basic2Void::Busy::RunTest(
         Base::Basic b;
         b.int_val = i;
         b.str_val = std::to_string(i);
-        auto c = req_port.SendRequest(b, std::chrono::milliseconds(200));
+        auto c = req_port.SendRequest(b, std::chrono::milliseconds(250));
         EXPECT_TRUE(c);
     }
     
@@ -324,6 +327,7 @@ void ReqRep::Basic2Void::Timeout::RunTest(::RequesterPort<void, Base::Basic>& re
     int timeout_ms = 50;
     double busy_timeout = 100.0;
 
+    auto start = std::chrono::high_resolution_clock::now();
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
         Base::Basic b;
@@ -332,8 +336,10 @@ void ReqRep::Basic2Void::Timeout::RunTest(::RequesterPort<void, Base::Basic>& re
         auto c = req_port.SendRequest(b, std::chrono::milliseconds(timeout_ms));
         EXPECT_FALSE(c);
     }
-
-    auto expected_rx = (send_count * timeout_ms) / busy_timeout;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    
+    auto expected_rx = duration / busy_timeout;
     auto confidence = 0.80;
     int low_rx = expected_rx * confidence;
     int high_rx = expected_rx / confidence;
@@ -354,8 +360,8 @@ void ReqRep::Basic2Void::Timeout::RunTest(::RequesterPort<void, Base::Basic>& re
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, 0);
-    EXPECT_GT(total_rxd, low_rx);
-    EXPECT_LT(total_rxd, high_rx);
+    EXPECT_GE(total_rxd, low_rx);
+    EXPECT_LE(total_rxd, high_rx);
     EXPECT_EQ(total_rxd, proc_rxd);
 };
 
@@ -414,7 +420,7 @@ void ReqRep::Void2Basic::Stable::RunTest(
 };
 
 Base::Basic ReqRep::Void2Basic::Busy::Callback(){
-    sleep_ms(100);
+    sleep_ms(50);
     Base::Basic message;
     message.int_val = 10;
     message.str_val = "Void2Basic";
@@ -436,7 +442,7 @@ void ReqRep::Void2Basic::Busy::RunTest(
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
-        auto c = req_port.SendRequest(std::chrono::milliseconds(200));
+        auto c = req_port.SendRequest(std::chrono::milliseconds(250));
         EXPECT_TRUE(c.first);
         if(c.first){
             EXPECT_EQ(c.second.int_val, 10);
@@ -483,13 +489,16 @@ void ReqRep::Void2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, void>& re
     int timeout_ms = 50;
     double busy_timeout = 100.0;
 
+    auto start = std::chrono::high_resolution_clock::now();
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
         auto c = req_port.SendRequest(std::chrono::milliseconds(timeout_ms));
         EXPECT_FALSE(c.first);
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    auto expected_rx = (send_count * timeout_ms) / busy_timeout;
+    auto expected_rx = duration / busy_timeout;
     auto confidence = 0.80;
     int low_rx = expected_rx * confidence;
     int high_rx = expected_rx / confidence;
@@ -510,7 +519,7 @@ void ReqRep::Void2Basic::Timeout::RunTest(::RequesterPort<Base::Basic, void>& re
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, 0);
-    EXPECT_GT(total_rxd, low_rx);
-    EXPECT_LT(total_rxd, high_rx);
+    EXPECT_GE(total_rxd, low_rx);
+    EXPECT_LE(total_rxd, high_rx);
     EXPECT_EQ(total_rxd, proc_rxd);
 };
