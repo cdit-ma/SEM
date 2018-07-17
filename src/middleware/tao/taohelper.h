@@ -6,7 +6,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <future>
+#include <list>
 
+#include <tao/TimeBaseC.h>
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
 #include <tao/IORTable/IORTable.h>
@@ -25,6 +27,7 @@ namespace tao{
         CORBA::ORB_ptr get_orb(const std::string& orb_endpoint, bool debug_mode = false);
         PortableServer::POA_var get_poa(CORBA::ORB_ptr orb, const std::string& poa_name);
         void register_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id, const std::string& corba_str);
+        void deregister_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id);
         CORBA::Object_ptr resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id);
 
         bool register_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name);

@@ -11,14 +11,41 @@
 #include <middleware/tao/requestreply/replierport.hpp>
 #include <middleware/tao/requestreply/requesterport.hpp>
 
+//const std::string ip_addr("127.0.0.1");
+const std::string ip_addr("192.168.111.96");
+const std::string replier_addr(ip_addr + ":5000");
+const std::string requester_addr(ip_addr + ":5010");
 
-bool setup_port(Port& port, std::string port_address){
-    auto address = port.GetAttribute("server_address").lock();
-    if(address){
-        address->set_String("inproc://" + port_address);
-        return true;
-    }
-    return false;
+const std::string replier_orb_addr("iiop://" + replier_addr);
+const std::string requester_orb_addr("iiop://" + requester_addr);
+
+const std::string replier_connect_addr("corbaloc:iiop:" + replier_addr);
+
+
+bool setup_replier_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
+	auto pn = port.GetAttribute("server_name").lock();
+	auto oa = port.GetAttribute("orb_endpoint").lock();
+	if(pn && oa){
+		oa->set_String(orb_address);
+		pn->set_String(publisher_name);
+		return true;
+	}
+	return false;
+};
+
+bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name, const std::string& publisher_address){
+    auto oa = port.GetAttribute("orb_endpoint").lock();
+	auto pa = port.GetAttribute("server_address").lock();
+	auto pn = port.GetAttribute("server_name").lock();
+	if(pa && pn && oa){
+		//std::cerr << "server_name: " << publisher_name << std::endl;
+		//std::cerr << "server_address: " << publisher_address << std::endl;
+		oa->set_String(orb_address);
+		pn->set_String(publisher_name);
+		pa->set_String(publisher_address);
+		return true;
+	}
+	return false;
 }
 
 Base::Basic EmptyCallback(Base::Basic& m){
@@ -32,7 +59,7 @@ class tao_RequesterPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = ConstructRequesterPort<tao::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic, ::Basic2Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, port_name));
+            EXPECT_TRUE(setup_requester_port(*port, requester_orb_addr, port_name, replier_connect_addr + "/" + port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -45,8 +72,9 @@ class tao_ReplierPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             component->RegisterCallback<Base::Basic, Base::Basic>(port_name, EmptyCallback);
-            auto port = ConstructReplierPort<tao::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic, POA::Basic2Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, port_name));
+            auto port = ConstructReplierPort<tao::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic, POA_Basic2Basic>>(port_name, component);
+            
+            EXPECT_TRUE(setup_replier_port(*port, replier_orb_addr, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -71,17 +99,23 @@ TEST(tao_ReqRep, Basic2Basic_Stable){
     using mw_reply_type = ::Basic;
     using mw_request_type = ::Basic;
 
+    using mw_reply_server_type = ::POA_Basic2Basic;
+    using mw_reply_client_type = ::Basic2Basic;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
 
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+
+    
+
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -100,17 +134,21 @@ TEST(tao_ReqRep, Basic2Basic_Busy){
     using mw_reply_type = ::Basic;
     using mw_request_type = ::Basic;
 
+    using mw_reply_server_type = ::POA_Basic2Basic;
+    using mw_reply_client_type = ::Basic2Basic;
+
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
 
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -129,6 +167,9 @@ TEST(tao_ReqRep, Basic2Basic_Timeout){
     using mw_reply_type = ::Basic;
     using mw_request_type = ::Basic;
 
+    using mw_reply_server_type = ::POA_Basic2Basic;
+    using mw_reply_client_type = ::Basic2Basic;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -136,11 +177,11 @@ TEST(tao_ReqRep, Basic2Basic_Timeout){
     auto component = std::make_shared<Component>("c_" + test_name);
     
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -159,6 +200,9 @@ TEST(tao_ReqRep, Basic2Void_Stable){
     using mw_request_type = ::Basic;
     using mw_reply_type = void;
 
+    using mw_reply_server_type = ::POA_Basic2Void;
+    using mw_reply_client_type = ::Basic2Void;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -166,11 +210,11 @@ TEST(tao_ReqRep, Basic2Void_Stable){
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
 
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -189,6 +233,9 @@ TEST(tao_ReqRep, Basic2Void_Busy){
     using mw_request_type = ::Basic;
     using mw_reply_type = void;
 
+    using mw_reply_server_type = ::POA_Basic2Void;
+    using mw_reply_client_type = ::Basic2Void;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -196,11 +243,45 @@ TEST(tao_ReqRep, Basic2Void_Busy){
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
 
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
+
+    RunTest(*requester_port, *replier_port);
+
+    delete requester_port;
+    delete replier_port;
+}
+
+
+TEST(tao_ReqRep, Basic2Void_Timeout){
+    using namespace ::ReqRep::Basic2Void::Timeout;
+    
+    //Define the base types
+    using base_request_type = Base::Basic;
+    using base_reply_type = void;
+    
+    //Define the proto types
+    using mw_request_type = ::Basic;
+    using mw_reply_type = void;
+
+    using mw_reply_server_type = ::POA_Basic2Void;
+    using mw_reply_client_type = ::Basic2Void;
+
+    const auto test_name = get_long_test_name();
+    const auto req_name = "rq_" + test_name;
+    const auto rep_name = "rp_" + test_name;
+
+    auto component = std::make_shared<Component>("c_" + test_name);
+    component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
+
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
+    
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -219,6 +300,9 @@ TEST(tao_ReqRep, Void2Basic_Stable){
     using mw_request_type = void;
     using mw_reply_type = ::Basic;
 
+    using mw_reply_server_type = ::POA_Void2Basic;
+    using mw_reply_client_type = ::Void2Basic;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -226,11 +310,11 @@ TEST(tao_ReqRep, Void2Basic_Stable){
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
 
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -249,6 +333,9 @@ TEST(tao_ReqRep, Void2Basic_Busy){
     using mw_request_type = void;
     using mw_reply_type = ::Basic;
 
+    using mw_reply_server_type = ::POA_Void2Basic;
+    using mw_reply_client_type = ::Void2Basic;
+
     const auto test_name = get_long_test_name();
     const auto req_name = "rq_" + test_name;
     const auto rep_name = "rp_" + test_name;
@@ -256,11 +343,11 @@ TEST(tao_ReqRep, Void2Basic_Busy){
     auto component = std::make_shared<Component>("c_" + test_name);
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
 
-    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
-    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
+    auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
+    auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, test_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
 

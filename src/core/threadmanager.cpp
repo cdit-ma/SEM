@@ -50,7 +50,9 @@ void ThreadManager::Thread_Activated(){
 bool ThreadManager::Thread_WaitForActivate(){
     //Any Transition should wake up the activate function
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);
-    transition_condition_.wait(transition_lock);
+    transition_condition_.wait(transition_lock, [this]{
+        return transitions_.count(Transition::ACTIVATE) || transitions_.count(Transition::TERMINATE);
+    });
     return transitions_.count(Transition::ACTIVATE);
 };
 
@@ -65,7 +67,9 @@ bool ThreadManager::WaitForActivated(){
 void ThreadManager::Thread_WaitForTerminate(){
     //Any Transition should wake up the activate function
     std::unique_lock<std::mutex> transition_lock(transition_mutex_);
-    transition_condition_.wait(transition_lock);
+    transition_condition_.wait(transition_lock, [this]{
+        return transitions_.count(Transition::TERMINATE);
+    });
     transitions_.count(Transition::TERMINATE);
 }
 
