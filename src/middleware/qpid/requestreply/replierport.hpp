@@ -139,7 +139,7 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoR
         success = false;
     }
 
-    if(success){
+if(success){
         thread_manager.Thread_Configured();
         if(thread_manager.Thread_WaitForActivate()){
             thread_manager.Thread_Activated();
@@ -255,6 +255,7 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
         }
     }
     thread_manager.Thread_Terminated();
+    
 };
 
 #endif //QPID_PORT_REPLIER_HPP

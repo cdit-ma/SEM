@@ -5,7 +5,6 @@ project(${PROJ_NAME})
 # Find package ZMQ
 find_package(TAO)
 
-
 if(NOT TAO_FOUND)
 	message(STATUS "Cannot find TAO cannot build project ${PROJ_NAME}")
 	return()
@@ -13,6 +12,7 @@ endif()
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
     ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
@@ -25,9 +25,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-if(MSVC)
-
-elseif(UNIX)
+if(UNIX)
     target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
@@ -37,4 +35,3 @@ target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} tao_helper)
-target_link_libraries(${PROJ_NAME} lib_test_basic_proto)

@@ -29,15 +29,17 @@ qpid::messaging::Sender qpid::PortHelper::GetSender(const std::string& topic_nam
     std::lock_guard<std::mutex> lock(mutex_);
     if(!session_)
         throw std::runtime_error("Not QPid Session");
-    return session_.createSender("amq.topic/" + topic_name);
+
+        
+    return session_.createSender("amq.topic/" + topic_name);//";{create:always, delete:always, node:{type:queue,x-declare:{arguments:{'qpid.last_value_queue_key':sender}}}}");
 }
 
 qpid::messaging::Receiver qpid::PortHelper::GetReceiver(const std::string& topic_name){
     std::lock_guard<std::mutex> lock(mutex_);
     if(!session_)
         throw std::runtime_error("Not QPid Session");
-    
-    return session_.createReceiver("amq.topic/" + topic_name);
+
+    return session_.createReceiver("amq.topic/" + topic_name);// + ";{create:always, delete:always, node:{type:queue,x-declare:{arguments:{'qpid.last_value_queue_key':sender}}}}");
 }
 
 qpid::messaging::Sender qpid::PortHelper::GetSender(const qpid::messaging::Address& address){

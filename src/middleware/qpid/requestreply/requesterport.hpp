@@ -206,6 +206,7 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::Process
 
     //Convert request
     qpid::messaging::Message qpid_request(request_str);
+    qpid_request.setProperty("sender", "POOP");
     qpid_request.setReplyTo(receiver.getAddress());
 
     //Send the request
