@@ -1,6 +1,0 @@
-
-#include "NO_FILE_BOYO.idl"
-
-struct InvalidType{
-    long a;
-}

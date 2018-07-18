@@ -1,4 +1,0 @@
-
-struct InvalidType{
-    std::vector<char> a;
-}

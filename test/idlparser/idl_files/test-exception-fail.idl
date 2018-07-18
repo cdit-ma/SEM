@@ -1,8 +1,0 @@
-exception WithdrawalFailure{ 
-    string reason; 
-};
-
-//Deliberately error here, so we can test if this gets passed!
-struct enums{
-    global_enum b;
-};

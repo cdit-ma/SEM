@@ -1,3 +1,0 @@
-struct InnerTest1{
-    string a;
-}
