@@ -1,7 +1,0 @@
-#include <nested_test/inner_test1.idl>
-#include "nested_test/inner_test2.idl"
-
-struct NestTest{
-    InnerTest1 a;
-    InnerNS::InnerTest2 b;
-}

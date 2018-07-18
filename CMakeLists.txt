@@ -31,7 +31,7 @@ set(CMAKE_AUTORCC ON)
 #Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
-option(BUILD_TEST "Build MEDEA Test" ON)
+#option(BUILD_TEST "Build MEDEA Test" ON)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     #Pass Version info into cmakevars.h
@@ -55,12 +55,6 @@ if(BUILD_APP)
     message(STATUS "Building MEDEA App")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
 endif(BUILD_APP)
-
-if(BUILD_TEST)
-    message(STATUS "Building MEDEA Tests")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
-endif(BUILD_TEST)
-
 
 SET(CPACK_GENERATOR "IFW;ZIP") 
 # Set CPACK generic info
@@ -95,7 +89,6 @@ INCLUDE(CPack)
 cpack_add_component (MEDEA DISPLAY_NAME "Core: MEDEA Modelling Tool" REQUIRED)
 cpack_add_component (idl2graphml DISPLAY_NAME "Util: IDL to GraphML parsing shell tool")
 cpack_add_component (medea_cli DISPLAY_NAME "Util: MEDEA cli shell tool")
-cpack_add_component (medea_test DISPLAY_NAME "Util: MEDEA tests" DISABLED)
 
 if(WIN32)
     # Do the windows only options
