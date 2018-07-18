@@ -138,10 +138,10 @@ ModelController::~ModelController()
     auto destruct_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
     destructEntities(entities);
     auto destruct_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "DESTRUCTING MODEL: " <<  destruct_finished - destruct_start << "MS";
+    //qCritical() << "DESTRUCTING MODEL: " <<  destruct_finished - destruct_start << "MS";
     delete entity_factory;
     auto destruct_ef_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "DESTRUCTING entity factory: " <<  destruct_ef_finished - destruct_finished << "MS";
+    //qCritical() << "DESTRUCTING entity factory: " <<  destruct_ef_finished - destruct_finished << "MS";
 }
 
 /**
@@ -1296,13 +1296,13 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     }
 
     auto delete_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "CONSTRUCT DESTRUCT LIST: " <<  delete_list - start << "MS: " << nodes.count();
+    //qCritical() << "CONSTRUCT DESTRUCT LIST: " <<  delete_list - start << "MS: " << nodes.count();
     
     //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
 
     auto sort_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "SORTED DESTRUCT LIST: " <<  sort_list - delete_list << "MS";
+    //qCritical() << "SORTED DESTRUCT LIST: " <<  sort_list - delete_list << "MS";
 
     //Get all the edges
     for(auto n : sorted_nodes){
@@ -1312,7 +1312,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     }
 
     auto edge_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "CONSTRUCT EDGE DESTRUCT LIST: " <<  edge_list - sort_list << "MS";
+    //qCritical() << "CONSTRUCT EDGE DESTRUCT LIST: " <<  edge_list - sort_list << "MS";
 
     if(!edges.empty()){
         //Create an undo state which groups all edges together
@@ -1328,7 +1328,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     }
 
     auto edge_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "DESTRUCTED EDGES: " <<  edge_deleted - edge_list << "MS";
+    //qCritical() << "DESTRUCTED EDGES: " <<  edge_deleted - edge_list << "MS";
 
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
@@ -1344,7 +1344,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     }
 
     auto nodes_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "DESTRUCTED NOIDES: " <<  nodes_deleted - edge_deleted << "MS";
+    //qCritical() << "DESTRUCTED NOIDES: " <<  nodes_deleted - edge_deleted << "MS";
     return true;
 }
 
@@ -2264,7 +2264,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
     
     auto parsing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
+    //qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
 
     QList<Entity*> to_remove;
     
@@ -2356,7 +2356,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     destructEntities(to_remove);
 
     auto removing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";
+    //qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";
     
     //This is will update as a percentage
     double entities_total_perc = entity_hash.size() / 100.0;
@@ -2510,7 +2510,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     auto constructing_node_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Constructing Nodes took: " <<  constructing_node_finished -removing_finished << "MS";
+    //qCritical() << "Constructing Nodes took: " <<  constructing_node_finished -removing_finished << "MS";
 
     QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
@@ -2610,7 +2610,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     auto constructing_edge_type_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Testing edge types: " <<  constructing_edge_type_finished - constructing_node_finished << "MS";
+    //qCritical() << "Testing edge types: " <<  constructing_edge_type_finished - constructing_node_finished << "MS";
 
 
     if(UPDATE_PROGRESS){
@@ -2713,7 +2713,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     auto constructing_edges_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Constructing edges took: " <<  constructing_edges_finished - constructing_edge_type_finished << "MS : ITTERATIONS: " << edge_iterations << " COUNT: " << edges_list.size();
+    //qCritical() << "Constructing edges took: " <<  constructing_edges_finished - constructing_edge_type_finished << "MS : ITTERATIONS: " << edge_iterations << " COUNT: " << edges_list.size();
 
     if(UPDATE_PROGRESS){
         ProgressChanged_(100);
