@@ -145,7 +145,7 @@
                     <xsl:value-of select="proto:member($proto_type, $label, $index)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
-                    <xsl:variable name="proto_type" select="cdit:get_enum_type(., 'proto')" />
+                    <xsl:variable name="proto_type" select="proto:get_aggregate_qualified_type(graphml:get_definition(.))" />
                     <xsl:value-of select="proto:member($proto_type, $label, $index)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">

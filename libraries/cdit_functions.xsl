@@ -422,12 +422,12 @@
         <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="enum_definition" select="graphml:get_definition($enum)" />
-        <xsl:variable name="enum_namespace" select="graphml:get_namespace($enum_definition)" />
+        <!--<xsl:variable name="enum_namespace" select="graphml:get_namespace($enum_definition)" />-->
         <xsl:variable name="label" select="o:title_case(graphml:get_label($enum_definition))" />
 
         <xsl:choose>
             <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                <xsl:value-of select="o:join_list(($enum_namespace, $label), '_')" />
+                <xsl:value-of select="$label" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$label" />
@@ -1380,11 +1380,6 @@
             <xsl:choose>
                 <xsl:when test="$middleware = 'base'">
                     <xsl:value-of select="cpp:combine_namespaces(('Base', $enum_namespace))" />
-                </xsl:when>
-                <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                    <!-- Protobuf Enums are defined within the Aggregates namespace -->
-                    <xsl:variable name="aggregate" select="graphml:get_parent_node($enum_instance)" />
-                    <xsl:value-of select="graphml:get_namespace(graphml:get_definition($aggregate))" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="$enum_namespace" />
