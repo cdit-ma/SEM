@@ -221,7 +221,6 @@
 
         
         <xsl:value-of select="cmake:comment(('Run the', $middleware, 'Compiler over the', o:wrap_angle($middleware_extension), 'files'), 0)" />
-
         <xsl:variable name="compiler_args" as="xs:string*">
             <xsl:sequence select="$source" />
             <xsl:sequence select="$header" />
@@ -230,7 +229,6 @@
                 <xsl:sequence select="'EXPORT_MACRO'" />
                 <xsl:sequence select="'__attribute__((visibility("default")))'" />-->
             </xsl:if>
-
             <xsl:sequence select="$middleware_file" />
         </xsl:variable>
         <xsl:variable name="compiler_arg" select="o:join_list($compiler_args, ' ')" />

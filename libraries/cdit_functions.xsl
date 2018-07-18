@@ -470,6 +470,7 @@
       
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
 
+
         <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
     </xsl:function>
 
@@ -1379,10 +1380,10 @@
         <xsl:variable name="namespace" as="xs:string*">
             <xsl:choose>
                 <xsl:when test="$middleware = 'base'">
-                    <xsl:value-of select="cpp:combine_namespaces(('Base', $enum_namespace))" />
+                    <xsl:sequence select="cpp:combine_namespaces(('Base', $enum_namespace))" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="$enum_namespace" />
+                    <xsl:sequence select="$enum_namespace" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -1888,9 +1889,9 @@
         <!-- Get the Type and Namespace of the Aggregate -->
         <xsl:variable name="aggregate_def" select="graphml:get_definition($aggregate)" />
 
-        <xsl:variable name="namespace">
+        <xsl:variable name="namespace" as="xs:string*">
             <xsl:if test="lower-case($middleware) != 'base'">
-                <xsl:value-of select="graphml:get_namespace($aggregate_def)" />
+                <xsl:sequence select="graphml:get_namespace($aggregate_def)" />
             </xsl:if>
         </xsl:variable>
 
