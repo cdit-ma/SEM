@@ -215,9 +215,9 @@ void ViewItem::removeChild(ViewItem *child)
     }
 }
 
-QList<ViewItem *> ViewItem::getDirectChildren() const
+QSet<ViewItem *> ViewItem::getDirectChildren() const
 {
-    return child_nodes_.toList() + child_edges_.toList();
+    return child_nodes_ + child_edges_;
 }
 
 QList<ViewItem* > ViewItem::getNestedChildren(){

@@ -74,21 +74,25 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
 }
 
 void NodeItem::updateVisualEdgeKinds(){
+    /*
+        TODO: 37.97% function time of Import spends in this call
+        Of which 96.33 % is spent in getNestedVisualEdgeKindDirections()
+        This is a 10 second improvement on a 30 second model and needs to be patched
+    */
+    const QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
     my_visual_edge_kinds.clear();
     all_visual_edge_kinds.clear();
 
-    QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
 
     auto node_view_item = getNodeViewItem();
 
     if(node_view_item){
-
         for(auto edge_kind : valid_edge_kinds){
             for(auto edge_direction : node_view_item->getVisualEdgeKindDirections(edge_kind)){
                 my_visual_edge_kinds.insert(edge_direction, edge_kind);
             }
             for(auto edge_direction : node_view_item->getNestedVisualEdgeKindDirections(edge_kind)){
-                all_visual_edge_kinds.insert(edge_direction, edge_kind);
+                my_visual_edge_kinds.insert(edge_direction, edge_kind);
             }
         }
     }
@@ -194,10 +198,14 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
     }
 }
 
+
+
 int NodeItem::getSortOrder() const
 {
+    const QString key_index("index");
+    
     bool okay = false;
-    auto index = getData("sortOrder").toInt(&okay);
+    auto index = getData(key_index).toInt(&okay);
 
     if(!okay){
         index = -1;
@@ -206,8 +214,11 @@ int NodeItem::getSortOrder() const
 }
 
 int NodeItem::getSortOrderRow() const{
+    const QString key_row("row");
+
     bool okay = false;
-    auto row = getData("row").toInt(&okay);
+    
+    auto row = getData(key_row).toInt(&okay);
 
     if(!okay){
         row = 0;
@@ -216,8 +227,9 @@ int NodeItem::getSortOrderRow() const{
 }
 
 int NodeItem::getSortOrderRowSubgroup() const{
+    const QString key_column("column");
     bool okay = false;
-    auto column = getData("column").toInt(&okay);
+    auto column = getData(key_column).toInt(&okay);
 
     if(!okay){
         column = 0;

@@ -194,9 +194,12 @@ private:
     void lockHover(bool hovered, const QPointF& pos);
     
     
-
+    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
+    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
+    
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> all_visual_edge_kinds;
+    
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;

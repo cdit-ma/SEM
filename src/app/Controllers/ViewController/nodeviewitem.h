@@ -27,8 +27,8 @@ public:
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
-    QList<EdgeViewItem*> getEdges() const;
-    QList<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
+    QSet<EdgeViewItem*> getEdges() const;
+    QSet<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
     bool gotEdge(EDGE_KIND edgeKind) const;
     
     bool isAncestorOf(NodeViewItem* item);
@@ -48,13 +48,15 @@ protected:
     void setNodeTypes(QSet<NODE_TYPE> types);
     void childAdded(ViewItem* child);
     void childRemoved(ViewItem* child);
+    
 signals:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void visualEdgeKindsChanged();
     void nestedVisualEdgeKindsChanged();
 private:
-
+    void childVisualEdgeKindsChanged();
+    
     QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > visual_edge_kinds;
     QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > owned_edge_kinds;
     QHash<EDGE_KIND, QSet<EdgeViewItem*> > edges;

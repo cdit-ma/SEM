@@ -57,7 +57,7 @@ public:
 
     
     void removeChild(ViewItem* child);
-    QList<ViewItem *> getDirectChildren() const;
+    QSet<ViewItem *> getDirectChildren() const;
     QList<ViewItem* > getNestedChildren();
 
     ViewItem* getParentItem() const;

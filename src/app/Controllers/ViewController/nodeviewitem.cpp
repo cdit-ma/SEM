@@ -15,8 +15,8 @@ NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString l
 NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
     node_kind = kind;
-    //changeData("isExpanded", true);
 }
+
 
 
 NODE_KIND NodeViewItem::getNodeKind() const
@@ -59,7 +59,6 @@ void NodeViewItem::childAdded(ViewItem* child){
     if(child && child->isNode()){
         auto node = (NodeViewItem*) child;
         connect(node, &NodeViewItem::visualEdgeKindsChanged, this, &NodeViewItem::nestedVisualEdgeKindsChanged);
-        
     }
 }
 
@@ -91,7 +90,6 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
             set.insert(direction);
             
             if(set.size() > size){
-                //owned_edge_kinds.insert(kind, direction);
                 emit visualEdgeKindsChanged();
             }
         }
@@ -132,21 +130,21 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
     }
 }
 
-QList<EdgeViewItem *> NodeViewItem::getEdges() const
+QSet<EdgeViewItem *> NodeViewItem::getEdges() const
 {
     QSet<EdgeViewItem *> e;
     for(const auto& edge_kind : edges.keys()){
         e += edges[edge_kind];
     }
-    return e.toList();
+    return e;
 }
 
-QList<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edge_kind) const
+QSet<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edge_kind) const
 {
     if(edge_kind == EDGE_KIND::NONE){
         return getEdges();
     }else{
-        return edges[edge_kind].toList();
+        return edges[edge_kind];
     }
 }
 
@@ -193,7 +191,7 @@ QSet<EDGE_DIRECTION> NodeViewItem::getVisualEdgeKindDirections(EDGE_KIND kind){
 }
 
 QSet<EDGE_KIND> NodeViewItem::getNestedVisualEdgeKinds(){
-    auto kinds = getVisualEdgeKinds();
+    QSet<EDGE_KIND> kinds= getVisualEdgeKinds();
 
     for(auto child : getDirectChildren()){
         if(child->isNode()){
@@ -205,20 +203,16 @@ QSet<EDGE_KIND> NodeViewItem::getNestedVisualEdgeKinds(){
 }
 
 QSet<EDGE_DIRECTION> NodeViewItem::getNestedVisualEdgeKindDirections(EDGE_KIND kind){
-    auto max_count = 2;
-    auto directions = getVisualEdgeKindDirections(kind);
-
+    QSet<EDGE_DIRECTION> set = getVisualEdgeKindDirections(kind);
     for(auto child : getDirectChildren()){
-        if(child->isNode()){
-            auto node = (NodeViewItem*) child;
-            directions += node->getNestedVisualEdgeKindDirections(kind);
-        }
-        if(directions.size() == 2){
+        if(set.size() == 2){
             break;
+        }else if(child->isNode()){
+            auto node = (NodeViewItem*) child;
+            set += node->getNestedVisualEdgeKindDirections(kind);
         }
     }
-
-    return directions;
+    return set;
 }
 
 void NodeViewItem::setNodeTypes(QSet<NODE_TYPE> types){

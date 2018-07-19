@@ -28,6 +28,7 @@
 
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
+    
     setMinimumSize(200, 200);
     setupStateMachine();
     
@@ -438,44 +439,45 @@ void NodeView::centerSelection()
 void NodeView::centerConnections(ViewItem* item)
 {
     if(item){
-        QList<EdgeViewItem*> edges;
+        QSet<EdgeViewItem*> edges;
         if(item->isNode()){
             edges = ((NodeViewItem*)item)->getEdges();
         }else if(item->isEdge()){
-            edges.append((EdgeViewItem*)item);
+            edges += ((EdgeViewItem*)item);
         }
 
-        QList<ViewItem*> toSelect;
-        QList<EntityItem*> toCenter;
+        QSet<ViewItem*> to_select;
+        QSet<EntityItem*> to_center;
+        
+        for(auto e : edges){
+            auto s = e->getSource();
+            auto d = e->getDestination();
+            
+            auto src = getEntityItem(s);
+            auto dst = getEntityItem(d);
+            auto edge = getEntityItem(e);
 
-        foreach(EdgeViewItem* e, edges){
-            ViewItem* s = e->getSource();
-            ViewItem* d = e->getDestination();
-
-            EntityItem* src = getEntityItem(s);
-            EntityItem* dst = getEntityItem(d);
-            EntityItem* edge = getEntityItem(e);
-
-            if(src && !toSelect.contains(s)){
-                toCenter.append(src);
-                toSelect.append(s);
+            if(src && s){
+                to_select += s;
+                to_center += src;
             }
 
-            if(dst && !toSelect.contains(d)){
-                toCenter.append(dst);
-                toSelect.append(d);
+            if(dst && d){
+                to_select += d;
+                to_center += dst;
             }
 
-            if(edge && !toSelect.contains(e)){
-                toCenter.append(edge);
-                toSelect.append(e);
+            if(edge && e){
+                to_select += e;
+                to_center += edge;
             }
         }
-        if(!toSelect.isEmpty()){
+
+        if(to_select.size()){
             if(selectionHandler){
-                selectionHandler->toggleItemsSelection(toSelect);
+                selectionHandler->toggleItemsSelection(to_select.toList());
             }
-            centerOnItems(toCenter);
+            centerOnItems(to_center.toList());
         }else{
             clearSelection();
         }
