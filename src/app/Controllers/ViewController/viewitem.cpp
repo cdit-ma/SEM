@@ -188,9 +188,12 @@ void ViewItem::childRemoved(ViewItem* child){
 void ViewItem::addChild(ViewItem *child)
 {
     if(child){
-        GRAPHML_KIND ek = child->getEntityKind();
-        if(!children.contains(ek, child)){
-            children.insertMulti(ek, child);
+        auto& set = child->isNode() ? child_nodes_ : child_edges_;
+        
+        auto pre_size = set.size();
+        set.insert(child);
+
+        if(set.size() > pre_size){
             child->setParentViewItem(this);
             connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
             childAdded(child);
@@ -201,15 +204,20 @@ void ViewItem::addChild(ViewItem *child)
 void ViewItem::removeChild(ViewItem *child)
 {
     if(child){
-        GRAPHML_KIND ek = child->getEntityKind();
-        children.remove(ek, child);
-        childRemoved(child);
+        auto& set = child->isNode() ? child_nodes_ : child_edges_;
+        
+        auto pre_size = set.size();
+        set.remove(child);
+
+        if(set.size() < pre_size){
+            childRemoved(child);
+        }
     }
 }
 
 QList<ViewItem *> ViewItem::getDirectChildren() const
 {
-    return children.values();
+    return child_nodes_.toList() + child_edges_.toList();
 }
 
 QList<ViewItem* > ViewItem::getNestedChildren(){

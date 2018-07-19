@@ -100,7 +100,10 @@ private:
 
     ViewItem* _parent = 0;
     DataTableModel* table_model_ = 0;
-    QMultiMap<GRAPHML_KIND, ViewItem*> children;
+
+    QSet<ViewItem*> child_nodes_;
+    QSet<ViewItem*> child_edges_;
+    
     ViewController* controller;
 
     QHash<QString, QVariant> _data;

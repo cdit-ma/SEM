@@ -196,26 +196,33 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 
 int NodeItem::getSortOrder() const
 {
-    if(hasData("index")){
-        return getData("index").toInt();
-    }else if(hasData("sortOrder")){
-        return getData("sortOrder").toInt();
+    bool okay = false;
+    auto index = getData("sortOrder").toInt(&okay);
+
+    if(!okay){
+        index = -1;
     }
-    return -1;
+    return index;
 }
 
 int NodeItem::getSortOrderRow() const{
-    if(hasData("row")){
-        return getData("row").toInt();
+    bool okay = false;
+    auto row = getData("row").toInt(&okay);
+
+    if(!okay){
+        row = 0;
     }
-    return 0;
+    return row;
 }
 
 int NodeItem::getSortOrderRowSubgroup() const{
-    if(hasData("column")){
-        return getData("column").toInt();
+    bool okay = false;
+    auto column = getData("column").toInt(&okay);
+
+    if(!okay){
+        column = 0;
     }
-    return 0;
+    return column;
 }
 
 bool NodeItem::hasChildNodes() const

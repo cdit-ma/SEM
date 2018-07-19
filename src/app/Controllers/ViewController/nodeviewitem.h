@@ -54,12 +54,14 @@ signals:
     void visualEdgeKindsChanged();
     void nestedVisualEdgeKindsChanged();
 private:
-    QMultiMap<EDGE_KIND, EDGE_DIRECTION> visual_edge_kinds;
-    QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;
+
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > visual_edge_kinds;
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > owned_edge_kinds;
+    QHash<EDGE_KIND, QSet<EdgeViewItem*> > edges;
 
     QSet<NODE_TYPE> node_types;
 
-    QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
+    //QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND node_kind;
     int parent_id = -1;
 };
