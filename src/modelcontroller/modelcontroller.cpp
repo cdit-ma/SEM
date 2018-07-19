@@ -85,6 +85,7 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
         connect(view_controller, &ViewControllerInterface::SetData, this, &ModelController::setData, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::RemoveData, this, &ModelController::removeData, Qt::QueuedConnection);
 
+        connect(view_controller, &ViewControllerInterface::constructDDSQOSProfile, this, &ModelController::constructDDSQOSProfile, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ConstructNodeAtIndex, this, &ModelController::constructNodeAtIndex, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ConstructNodeAtPos, this, &ModelController::constructNodeAtPos, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ConstructConnectedNodeAtIndex, this, &ModelController::constructConnectedNodeAtIndex, Qt::QueuedConnection);
@@ -583,6 +584,11 @@ void ModelController::constructNodeAtPos(int parent_id, NODE_KIND kind, QPointF 
         setData_(node, "y", pos.y());
     }
     emit ActionFinished();
+}
+void ModelController::constructDDSQOSProfile(){
+    if(assemblyDefinitions){
+        constructNodeAtIndex(assemblyDefinitions->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
+    }
 }
 
 void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int index)

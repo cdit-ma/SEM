@@ -138,6 +138,8 @@ signals:
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
+
+    
 public slots:
     void incrementSelectedKey(QString key_name);
     void decrementSelectedKey(QString key_name);
@@ -229,7 +231,7 @@ public slots:
     void editLabel();
     void editReplicationCount();
 
-    void constructDDSQOSProfile();
+    
     void requestSearchSuggestions();
 
     void setControllerReady(bool ready);
@@ -283,8 +285,6 @@ private:
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
 
-    QList<ViewItem*> getItemsOfKind(NODE_KIND kind);
-    QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
 
 
     QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
@@ -298,13 +298,11 @@ private:
 
     ViewItem* getViewItem(int ID);
 
-    QHash<QString, int> treeLookup;
-    QMultiMap<NODE_KIND, int> nodeKindLookups;
-    QMultiMap<EDGE_KIND, int> edgeKindLookups;
-
     QHash<int, ViewItem*> viewItems;
+
+    int model_id_ = -1;
     
-    QList<int> topLevelItems;
+    QSet<int> topLevelItems;
     ViewItem* rootItem;
 
     BaseDockWidget* codeViewer = 0;

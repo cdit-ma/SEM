@@ -32,7 +32,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setupStateMachine();
     
     QRectF sceneRect;
-    sceneRect.setSize(QSize(10000,10000));
+    sceneRect.setSize(QSize(50000,50000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
@@ -129,9 +129,6 @@ void NodeView::setViewController(ViewController *viewController)
 
 void NodeView::translate(QPointF point)
 {
-    /*for(auto t : getTopLevelEntityItems()){
-        t->setPos(t->getPos() + point);
-    }*/
     QGraphicsView::translate(point.x(), point.y());
 }
 
@@ -143,7 +140,7 @@ void NodeView::scale(qreal sx, qreal sy)
 
         //Limit to zoom 25% between 400%
 
-        zoom = qMax(0.25, zoom);
+        //zoom = qMax(0.25, zoom);
         zoom = qMin(zoom, 5.0);
 
         //m11 and m22 are x/y scaling respectively
@@ -210,6 +207,7 @@ QRectF NodeView::getViewportRect()
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
+    //return;
     if(item){
         if(item->isNode()){
             nodeViewItem_Constructed((NodeViewItem*)item);

@@ -97,8 +97,9 @@ private:
     void destruct();
 
 private:
-    ViewItem* _parent;
-    DataTableModel* tableModel;
+
+    ViewItem* _parent = 0;
+    DataTableModel* table_model_ = 0;
     QMultiMap<GRAPHML_KIND, ViewItem*> children;
     ViewController* controller;
 

@@ -15,9 +15,7 @@ NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString l
 NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
     node_kind = kind;
-    changeData("isExpanded", true);
-    //changeData("x", 0);
-    //changeData("y", 0);
+    //changeData("isExpanded", true);
 }
 
 

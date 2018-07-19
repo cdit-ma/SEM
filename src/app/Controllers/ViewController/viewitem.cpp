@@ -28,8 +28,6 @@ ViewItem::ViewItem(ViewController *controller, GRAPHML_KIND entity_kind)
     this->controller = controller;
     this->ID = -2;
     this->entityKind = entity_kind;
-    _parent = 0 ;
-    tableModel = 0;
 }
 
 ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
@@ -42,10 +40,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     permanent_protected_keys.insert("ID");
     changeData("ID", ID);
     
-
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
-    _parent = 0 ;
-    tableModel = new DataTableModel(this);;
 }
 
 ViewItem::~ViewItem()
@@ -67,7 +62,10 @@ int ViewItem::getID() const
 
 DataTableModel *ViewItem::getTableModel()
 {
-    return tableModel;
+    if(!table_model_){
+        table_model_ = new DataTableModel(this);
+    }
+    return table_model_;
 }
 
 GRAPHML_KIND ViewItem::getEntityKind() const

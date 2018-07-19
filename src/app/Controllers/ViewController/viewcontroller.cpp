@@ -707,8 +707,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
 
 ViewItem *ViewController::getModel()
 {
-    int ID = nodeKindLookups.value(NODE_KIND::MODEL, -1);
-    return getViewItem(ID);
+    return getViewItem(model_id_);
 }
 
 
@@ -1036,22 +1035,18 @@ bool ViewController::destructViewItem(ViewItem *item)
 
         
         if(viewItem->isNode()){
-            //qCritical() << "ViewController: Destructing Node: " << ID << " " << viewItem->getData("kind").toString();
-            //Remove node from nodeKind Map
-            NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
-            nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
+            if(ID == model_id_){
+                model_id_ = -1;
+            }
         }else if(viewItem->isEdge()){
-            //Remove Edge from edgeKind map
-            EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
-            //qCritical() << "ViewController: Destructing Edge: " << ID << " " << viewItem->getData("kind").toString() << " " << edgeItem->getSourceID() << "->" << edgeItem->getDestinationID();
-            edgeItem->disconnectEdge();
-            edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
+            auto edge_item = (EdgeViewItem*)viewItem;
+            edge_item->disconnectEdge();
         }
 
 
         //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
-        topLevelItems.removeAll(ID);
+        topLevelItems.remove(ID);
 
         //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
@@ -1240,15 +1235,6 @@ void ViewController::editReplicationCount()
 }
 
 
-void ViewController::constructDDSQOSProfile()
-{
-    foreach(ViewItem* item, getItemsOfKind(NODE_KIND::ASSEMBLY_DEFINITIONS)){
-        if(item){
-            emit ConstructNodeAtIndex(item->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
-        }
-    }
-}
-
 
 void ViewController::TeardownController()
 {   
@@ -1260,9 +1246,6 @@ void ViewController::TeardownController()
         emit ProjectFileChanged("");
         emit ProjectModified(false);
         destructViewItem(rootItem);
-
-        nodeKindLookups.clear();
-        edgeKindLookups.clear();
 
         //This will destruct!
         disconnect(controller);
@@ -1401,29 +1384,6 @@ bool ViewController::_closeProject(bool show_welcome)
     TeardownController();
     return true;
 }
-QList<ViewItem *> ViewController::getItemsOfKind(EDGE_KIND kind)
-{
-    QList<ViewItem*> items;
-    foreach(int ID, edgeKindLookups.values(kind)){
-        ViewItem* item = getViewItem(ID);
-        if(item && item->isEdge()){
-            items.append(item);
-        }
-    }
-    return items;
-}
-
-QList<ViewItem *> ViewController::getItemsOfKind(NODE_KIND kind)
-{
-    QList<ViewItem*> items;
-    foreach(int ID, nodeKindLookups.values(kind)){
-        ViewItem* item = getViewItem(ID);
-        if(item && item->isNode()){
-            items.append(item);
-        }
-    }
-    return items;
-}
 
 VIEW_ASPECT ViewController::getNodeViewAspect(int ID){
     VIEW_ASPECT aspect;
@@ -1462,10 +1422,8 @@ void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst
     auto parent = getSharedParent(src, dst);
     if(src && dst && parent){
         auto edge_item = new EdgeViewItem(this, id, src, dst, kind);
-        edgeKindLookups.insertMulti(kind, id);
-
+        
         SetParentNode(parent, edge_item);
-
         src->addEdgeItem(edge_item);
         dst->addEdgeItem(edge_item);
 
@@ -1488,6 +1446,10 @@ void ViewController::StoreViewItem(ViewItem* view_item){
             }
         }
         if(view_item->isNode()){
+            auto node_item = (NodeViewItem*) view_item;
+            if(node_item->getNodeKind() == NODE_KIND::MODEL){
+                model_id_ = id;
+            }
             NodeTypesChanged(id);
             NodeEdgeKindsChanged(id);
         }
@@ -1507,7 +1469,7 @@ void ViewController::highlight(QList<int> ids){
 void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
     if(!parent){
         parent = rootItem;
-        topLevelItems.append(child->getID());
+        topLevelItems.insert(child->getID());
     }
 
     if(parent){
@@ -1518,8 +1480,6 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
 void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind){
     auto node_item = new NodeViewItem(this, id, node_kind);
     auto parent_item = getNodeViewItem(parent_id);
-    
-    nodeKindLookups.insertMulti(node_kind, id);
     SetParentNode(parent_item, node_item);
     StoreViewItem(node_item);
 }

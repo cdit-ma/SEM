@@ -135,7 +135,7 @@ private slots:
 
     void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
-
+    void constructDDSQOSProfile();
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void destructEdges(QList<int> srcIDs, QList<int> dstID, EDGE_KIND edgeClass);
