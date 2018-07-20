@@ -92,7 +92,7 @@ void NodeItem::updateVisualEdgeKinds(){
                 my_visual_edge_kinds.insert(edge_direction, edge_kind);
             }
             for(auto edge_direction : node_view_item->getNestedVisualEdgeKindDirections(edge_kind)){
-                my_visual_edge_kinds.insert(edge_direction, edge_kind);
+                all_visual_edge_kinds.insert(edge_direction, edge_kind);
             }
         }
     }
