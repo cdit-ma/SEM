@@ -218,7 +218,7 @@ void StackNodeItem::updateCells(){
         QMultiMap<int, int> row_cols;
 
         //Put all of the children in their appropriate Row/Column.
-        for(auto child : getSortedChildNodes()){
+        for(const auto& child : getSortedChildNodes()){
             auto index = GetCellIndex(child);
             bool inserted = !cells.contains(index);
             auto& cell = cells[index];

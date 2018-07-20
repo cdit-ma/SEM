@@ -57,6 +57,9 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     connect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
     connect(this, &NodeItem::childPositionChanged, this, &NodeItem::childPosChanged);
 
+    connect(this, &NodeItem::childIndexChanged, this, &NodeItem::SortedChildrenDirty);
+
+
 
     updateVisualEdgeKinds();
     updateNotifications();
@@ -191,26 +194,37 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
 {
     //If we have added a child, and there is only one. emit a signal
     if(!child_nodes.contains(nodeItem)){
+        child_nodes += nodeItem;
+        SortedChildrenDirty();
+
         nodeItem->setParentItem(this);
         connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
         connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
         connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
         
-        child_nodes += nodeItem;
-        nodeItem->setBaseBodyColor(getBaseBodyColor());
 
+        nodeItem->setBaseBodyColor(getBaseBodyColor());
         nodeItem->setVisible(isExpanded());
+
+        
+
         childPosChanged(nodeItem);
         emit childCountChanged();
     }
 }
 
-
+void NodeItem::SortedChildrenDirty(){
+    if(!sorted_child_nodes_dirty){
+        sorted_child_nodes_dirty = true;
+        sorted_child_nodes.clear();
+    }
+}
 
 void NodeItem::removeChildNode(NodeItem* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
     if(child_nodes.remove(nodeItem) > 0){
+        SortedChildrenDirty();
         //Unset child moving.
         nodeItem->unsetParent();
 
@@ -223,19 +237,11 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 
 int NodeItem::getSortOrder() const
 {
-    const QString key_index("index");
-    
-    bool okay = false;
-    auto index = getData(key_index).toInt(&okay);
-
-    if(!okay){
-        index = -1;
-    }
-    return index;
+    return sort_order;
 }
 
 int NodeItem::getSortOrderRow() const{
-    const QString key_row("row");
+    static const QString key_row("row");
 
     bool okay = false;
     
@@ -248,7 +254,7 @@ int NodeItem::getSortOrderRow() const{
 }
 
 int NodeItem::getSortOrderRowSubgroup() const{
-    const QString key_column("column");
+    static const QString key_column("column");
     bool okay = false;
     auto column = getData(key_column).toInt(&okay);
 
@@ -263,17 +269,26 @@ bool NodeItem::hasChildNodes() const
     return child_nodes.size();
 }
 
-QList<NodeItem *> NodeItem::getChildNodes() const
+QSet<NodeItem *> NodeItem::getChildNodes()
 {
-    return child_nodes.toList();
+    return child_nodes;
 }
 
-QList<NodeItem*> NodeItem::getSortedChildNodes() const{
-    auto nodes = getChildNodes();
-    std::sort(nodes.begin(), nodes.end(), [](const NodeItem* n1, const NodeItem* n2){
-        return n1->getSortOrder() < n2->getSortOrder();
-    });
-    return nodes;
+const QList<NodeItem*>& NodeItem::getSortedChildNodes(){
+    if(sorted_child_nodes_dirty){
+        RecalcSortedChildNodes();
+    }
+    return sorted_child_nodes;
+}
+
+void NodeItem::RecalcSortedChildNodes(){
+    if(sorted_child_nodes_dirty){
+        sorted_child_nodes = child_nodes.toList();
+        std::sort(sorted_child_nodes.begin(), sorted_child_nodes.end(), [](const NodeItem* n1, const NodeItem* n2){
+            return n1->getSortOrder() < n2->getSortOrder();
+        });
+        sorted_child_nodes_dirty = false;
+    }
 }
 
 
@@ -697,13 +712,12 @@ void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
         }else if(key_name == "readOnly"){
             update();
         }else if(key_name =="index"){
-            emit indexChanged();
-        }else if(key_name =="row"){
-            emit indexChanged();
-        }else if(key_name =="column"){
-            emit indexChanged();
+            auto index = data.toInt();
+            if(sort_order != index){
+                sort_order = index;
+                emit indexChanged();
+            }
         }
-
         if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
             update();
         }

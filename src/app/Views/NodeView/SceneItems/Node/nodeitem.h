@@ -30,8 +30,10 @@ public:
     int getSortOrderRowSubgroup() const;
 
     bool hasChildNodes() const;
-    QList<NodeItem*> getChildNodes() const;
-    QList<NodeItem*> getSortedChildNodes() const;
+    QSet<NodeItem*> getChildNodes();
+    const QList<NodeItem*>& getSortedChildNodes();
+
+    void RecalcSortedChildNodes();
     QList<EntityItem*> getChildEntities() const;
 
     void addChildEdge(EdgeItem* edgeItem);
@@ -218,6 +220,8 @@ private:
     qreal model_width = 0;
     qreal model_height = 0;
 
+    int sort_order = -1;
+
     QMarginsF margin;
     QMarginsF bodyPadding;
 
@@ -226,6 +230,8 @@ private:
 
     void clearEdgeKnobPressedState();
     void clearNotificationKnobPressedState();
+
+    void SortedChildrenDirty();
 
     bool edge_knob_pressed = false;
     bool edge_knob_dragged = false;
@@ -247,8 +253,13 @@ private:
 
     QPointF previousMovePoint;
     
-    QSet<NodeItem*> child_nodes;
+
     QSet<EdgeItem*> child_edges;
+    
+    QSet<NodeItem*> child_nodes;
+    QList<NodeItem*> sorted_child_nodes;
+    bool sorted_child_nodes_dirty = true;
+    
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
