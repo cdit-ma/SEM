@@ -59,6 +59,7 @@ void NodeViewItem::childAdded(ViewItem* child){
     if(child && child->isNode()){
         auto node = (NodeViewItem*) child;
         connect(node, &NodeViewItem::visualEdgeKindsChanged, this, &NodeViewItem::nestedVisualEdgeKindsChanged);
+        nestedVisualEdgeKindsChanged();
     }
 }
 
@@ -66,6 +67,7 @@ void NodeViewItem::childRemoved(ViewItem* child){
     if(child && child->isNode()){
         auto node = (NodeViewItem*) child;
         disconnect(node, &NodeViewItem::visualEdgeKindsChanged, this, &NodeViewItem::nestedVisualEdgeKindsChanged);
+        nestedVisualEdgeKindsChanged();
     }
 }
 
@@ -85,9 +87,11 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
             emit edgeAdded(direction, kind, edge->getID());
             
 
-            auto& set = owned_edge_kinds[kind];
+            auto& set = visual_edge_kinds[kind];
+            auto& nested_set = nested_edge_kinds[kind];
             auto size = set.size();
             set.insert(direction);
+            nested_set.insert(direction);
             
             if(set.size() > size){
                 emit visualEdgeKindsChanged();
@@ -120,9 +124,9 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
                 }
             }
             
-            if(last_edge){
-                //Test the edges map for any more edges in this directio
-                auto& set = owned_edge_kinds[kind];
+            if(last_edge && !valid_edge_kinds[kind].contains(direction)){
+                //Test the edges map for any more edges in this direction
+                auto& set = visual_edge_kinds[kind];
                 set.remove(direction);
                 emit visualEdgeKindsChanged();
             }
@@ -173,46 +177,69 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
     return is_ancestor;
 }
 
-void NodeViewItem::addVisualEdgeKind(EDGE_KIND kind, EDGE_DIRECTION direction){
-    visual_edge_kinds[kind].insert(direction);
-}
 
-void NodeViewItem::clearVisualEdgeKinds(){
-    visual_edge_kinds.clear();
-}
-
+/*
 QSet<EDGE_KIND> NodeViewItem::getVisualEdgeKinds(){
     auto kinds = visual_edge_kinds.keys() + owned_edge_kinds.keys();
     return kinds.toSet();
+}*/
+
+const QSet<EDGE_DIRECTION>& NodeViewItem::getVisualEdgeKindDirections(EDGE_KIND kind){
+    return visual_edge_kinds[kind];
 }
 
-QSet<EDGE_DIRECTION> NodeViewItem::getVisualEdgeKindDirections(EDGE_KIND kind){
-    return visual_edge_kinds.value(kind) + owned_edge_kinds.value(kind);
+const QHash<EDGE_KIND, QSet<EDGE_DIRECTION> >& NodeViewItem::getNestedVisualEdges(){
+    return nested_edge_kinds;
 }
 
-QSet<EDGE_KIND> NodeViewItem::getNestedVisualEdgeKinds(){
-    QSet<EDGE_KIND> kinds= getVisualEdgeKinds();
-
+void NodeViewItem::nestedVisualEdgeKindsChanged(){
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > new_nested_edge_kinds = visual_edge_kinds;
+    
     for(auto child : getDirectChildren()){
         if(child->isNode()){
             auto node = (NodeViewItem*) child;
-            kinds += node->getNestedVisualEdgeKinds();
+            const auto& child_map = node->getNestedVisualEdges();
+            for(const auto key : child_map.keys()){
+                new_nested_edge_kinds[key] += child_map[key];
+            }
         }
     }
-    return kinds;
+
+
+
+    //Update our map
+    if(nested_edge_kinds != new_nested_edge_kinds){
+        nested_edge_kinds = new_nested_edge_kinds;
+        emit visualEdgeKindsChanged();
+    }
 }
 
-QSet<EDGE_DIRECTION> NodeViewItem::getNestedVisualEdgeKindDirections(EDGE_KIND kind){
-    QSet<EDGE_DIRECTION> set = getVisualEdgeKindDirections(kind);
-    for(auto child : getDirectChildren()){
-        if(set.size() == 2){
-            break;
-        }else if(child->isNode()){
-            auto node = (NodeViewItem*) child;
-            set += node->getNestedVisualEdgeKindDirections(kind);
+void NodeViewItem::setValidEdgeKinds(QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > required_edge_kinds){
+    //copy the updated valid edge_kinds
+    valid_edge_kinds = required_edge_kinds;
+
+    //Update required_edge_kinds to include our list
+    for(const auto& edge_kind : edges.uniqueKeys()){
+        for(auto edge : edges.value(edge_kind)){
+            auto is_source = edge->getSource() == this;
+            auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+            required_edge_kinds[edge_kind].insert(direction);
         }
     }
-    return set;
+
+    if(required_edge_kinds != visual_edge_kinds){
+        visual_edge_kinds = required_edge_kinds;
+        nested_edge_kinds.unite(required_edge_kinds);
+        //Update
+        emit visualEdgeKindsChanged();
+    }
+}
+
+const QSet<EDGE_DIRECTION>& NodeViewItem::getNestedVisualEdgeKindDirections(EDGE_KIND kind){
+    for(const auto key : visual_edge_kinds.keys()){
+        nested_edge_kinds[key] += visual_edge_kinds[key];
+    }
+    return nested_edge_kinds[kind];
 }
 
 void NodeViewItem::setNodeTypes(QSet<NODE_TYPE> types){

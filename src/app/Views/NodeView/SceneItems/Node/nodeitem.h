@@ -71,10 +71,10 @@ public:
     QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
 
 
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getAllVisualEdgeKinds() const;
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getAllVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getVisualEdgeKinds() const;
 
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getCurrentVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getCurrentVisualEdgeKinds() const;
 
     
 
@@ -197,8 +197,8 @@ private:
     //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
     //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
     
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> all_visual_edge_kinds;
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
     
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 

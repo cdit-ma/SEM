@@ -1515,15 +1515,22 @@ void ViewController::NodeEdgeKindsChanged(int id)
     auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto edge_kinds = getValidEdgeKinds({id});
-            node_item->clearVisualEdgeKinds();
+
+            const auto& edge_kinds = getValidEdgeKinds({id});
+
+            QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > valid_edge_kinds;
+
+            //Sources
             for(auto edge_kind : edge_kinds.first){
-                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);
+                valid_edge_kinds[edge_kind].insert(EDGE_DIRECTION::SOURCE);
             }
+
             for(auto edge_kind : edge_kinds.second){
-                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::TARGET);
+                valid_edge_kinds[edge_kind].insert(EDGE_DIRECTION::TARGET);
             }
-            emit node_item->visualEdgeKindsChanged();
+
+            //Set the required edges
+            node_item->setValidEdgeKinds(valid_edge_kinds);
         }
     }
 }

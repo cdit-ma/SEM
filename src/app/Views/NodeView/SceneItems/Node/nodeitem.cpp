@@ -40,7 +40,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
         connect(node_view_item, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(node_view_item, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
         connect(node_view_item, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
-        connect(node_view_item, &NodeViewItem::nestedVisualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
+        connect(node_view_item, &NodeViewItem::nestedVisualEdgeKindsChanged2, this, &NodeItem::updateVisualEdgeKinds);
         connect(node_view_item, &NodeViewItem::notificationsChanged, this, &NodeItem::updateNotifications);
         connect(node_view_item, &NodeViewItem::nestedNotificationsChanged, this, &NodeItem::updateNestedNotifications);
     }
@@ -73,30 +73,51 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     addHoverFunction(EntityRect::LOCKED_STATE_ICON, std::bind(&NodeItem::lockHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+const QList<EDGE_KIND> sorted_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
+
 void NodeItem::updateVisualEdgeKinds(){
     /*
         TODO: 37.97% function time of Import spends in this call
         Of which 96.33 % is spent in getNestedVisualEdgeKindDirections()
         This is a 10 second improvement on a 30 second model and needs to be patched
     */
-    const QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
-    my_visual_edge_kinds.clear();
-    all_visual_edge_kinds.clear();
+    
+    //my_visual_edge_kinds.clear();
+    //all_visual_edge_kinds.clear();
+
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > new_my_visual_edge_kinds;
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > new_all_visual_edge_kinds;
+
 
 
     auto node_view_item = getNodeViewItem();
 
     if(node_view_item){
-        for(auto edge_kind : valid_edge_kinds){
-            for(auto edge_direction : node_view_item->getVisualEdgeKindDirections(edge_kind)){
-                my_visual_edge_kinds.insert(edge_direction, edge_kind);
+        for(const auto&  edge_kind : sorted_edge_kinds){
+            for(const auto&  edge_direction : node_view_item->getVisualEdgeKindDirections(edge_kind)){
+                new_my_visual_edge_kinds[edge_direction] += edge_kind;
             }
-            for(auto edge_direction : node_view_item->getNestedVisualEdgeKindDirections(edge_kind)){
-                all_visual_edge_kinds.insert(edge_direction, edge_kind);
+            for(const auto& edge_direction : node_view_item->getNestedVisualEdgeKindDirections(edge_kind)){
+                
+                new_all_visual_edge_kinds[edge_direction] += edge_kind;
             }
         }
     }
-    update();
+
+    bool req_update = false;
+    if(new_my_visual_edge_kinds != my_visual_edge_kinds){
+        my_visual_edge_kinds = new_my_visual_edge_kinds;
+        req_update = true;
+    }
+
+    if(new_all_visual_edge_kinds != all_visual_edge_kinds){
+        all_visual_edge_kinds = new_all_visual_edge_kinds;
+        req_update = true;
+    }
+
+    if(req_update){
+        update();
+    }
 }
 
 void NodeItem::updateNestedNotifications(){
@@ -520,15 +541,15 @@ qreal NodeItem::getHeight() const
     }
 }
 
-const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getAllVisualEdgeKinds() const{
+const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& NodeItem::getAllVisualEdgeKinds() const{
     return all_visual_edge_kinds;
 }
 
-const  QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getVisualEdgeKinds() const{
+const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& NodeItem::getVisualEdgeKinds() const{
     return my_visual_edge_kinds;
 }
 
-const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& NodeItem::getCurrentVisualEdgeKinds() const{
+const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& NodeItem::getCurrentVisualEdgeKinds() const{
     return isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
 }
 
@@ -843,17 +864,17 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state >= RENDER_STATE::REDUCED){
         painter->save();
-        auto& my_edges = getVisualEdgeKinds();
+        const auto& my_edges = getVisualEdgeKinds();
 
-        auto& edges = getCurrentVisualEdgeKinds();
+        const auto& edges = getCurrentVisualEdgeKinds();
         
-        for(auto edge_direction : edges.uniqueKeys()){
-            for(auto edge_kind : edges.values(edge_direction)){
+        for(auto edge_direction : edges.keys()){
+            for(auto edge_kind : edges.value(edge_direction)){
                 auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
                 auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
                 bool is_hovered = IsEdgeKnobHovered({edge_direction, edge_kind});
                 bool got_edge = attached_edges.contains({edge_direction, edge_kind});
-                bool my_edge = my_edges.contains(edge_direction, edge_kind);
+                bool my_edge = my_edges[edge_direction].contains(edge_kind);
                 
                 QColor brush_color;
                 if(is_hovered){
@@ -948,8 +969,8 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
             const auto& edge_knobs = getCurrentVisualEdgeKinds();
 
             //Add Edge Knobs
-            for(auto edge_direction : edge_knobs.uniqueKeys()){
-                for(auto edge_kind : edge_knobs.values(edge_direction)){
+            for(auto edge_direction : edge_knobs.keys()){
+                for(auto edge_kind : edge_knobs.value(edge_direction)){
                     if(edge_kind != EDGE_KIND::NONE){
                         path.addEllipse(getEdgeConnectIconRect(edge_direction, edge_kind));
                     }
@@ -982,20 +1003,31 @@ QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind
     return rect;
 }
 
+
+
 QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     //Get the total rect
     auto rect = getEdgeDirectionRect(direction);
 
     if(kind != EDGE_KIND::NONE){
         const auto& edge_knobs = getCurrentVisualEdgeKinds();
+        const auto& edge_set = edge_knobs.value(direction);
         double pos = 0;
         {
-            const auto& list = edge_knobs.values(direction);
-            pos = list.size() - (list.indexOf(kind) + 1);
+            int current_index = 0;
+            //COUNT THEM
+            for(const auto& e_k : sorted_edge_kinds){
+                if(e_k == kind){
+                    break;
+                }else if(edge_set.contains(e_k)){
+                    current_index++;
+                }
+            }
+            pos = current_index;
         }
         
         //Get our position 
-        double count = edge_knobs.count(direction);
+        double count = edge_set.size();
         if(count == 0){
             count = 1;
         }
@@ -1102,9 +1134,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     clearEdgeKnobPressedState();
     clearNotificationKnobPressedState();
 
-    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = my_visual_edge_kinds.values(direction);
-        for(auto edge_kind : edge_kinds){
+    for(const auto& direction : my_visual_edge_kinds.keys()){
+        const auto& edge_kinds = my_visual_edge_kinds.value(direction);
+        for(const auto& edge_kind : edge_kinds){
             auto rect = getEdgeConnectRect(direction, edge_kind);
             if(rect.contains(event->pos())){
                 edge_knob_pressed = true;
@@ -1324,9 +1356,9 @@ void NodeItem::edgeKnobHover(bool hovered, const QPointF& pos){
 
     const auto& my_edges = getVisualEdgeKinds();
 
-    for(auto direction : my_visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = my_visual_edge_kinds.values(direction);
-        edge_kinds.push_front(EDGE_KIND::NONE);
+    for(const auto& direction : my_visual_edge_kinds.keys()){
+        auto edge_kinds = my_visual_edge_kinds.value(direction);
+        edge_kinds.insert(EDGE_KIND::NONE);
         for(auto edge_kind : edge_kinds){
             QPair<EDGE_DIRECTION, EDGE_KIND> edge_knob = {direction, edge_kind};
 
@@ -1336,7 +1368,7 @@ void NodeItem::edgeKnobHover(bool hovered, const QPointF& pos){
                 should_update = true;
             }
 
-            if(in_rect && my_edges.contains(direction, edge_kind)){
+            if(in_rect && my_edges[direction].contains(edge_kind)){
                 AddCursor(Qt::ArrowCursor);
                 AddTooltip("Click to show <" + EntityFactory::getPrettyEdgeKindString(edge_kind)+ "> Connect Menu.\nOr Click and drag to enter connect mode.");
             }
