@@ -1140,7 +1140,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 guiItems[ID] = node_item;
                 setupConnections(node_item);
 
-                if(!scene()->items().contains(node_item)){
+                if(!parentNode){
                     scene()->addItem(node_item);
                     
                     topLevelGUIItemIDs.append(ID);

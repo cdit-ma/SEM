@@ -126,7 +126,7 @@ class Node : public Entity
         QSet<Node*> getNestedDependants();
         
 
-        QString toGraphML(int indentDepth = 0, bool functional_export = false);
+        void ToGraphmlStream(QTextStream& stream, int indend_depth);
    
     
         //Node kind getters
@@ -195,7 +195,6 @@ class Node : public Entity
     private:
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);
-        QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
         QList<Node*> getOrderedChildNodes();
         void setTop(int index = 0);
 

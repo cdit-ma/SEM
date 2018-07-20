@@ -59,8 +59,7 @@ public:
     bool setDataValue(Key* key, QVariant value);
 
     QStringList getProtectedKeys();
-
-    virtual QString toGraphML(int indentDepth=0, bool function_only = false) = 0;
+    
     QString toString() const;
     void setImplicitlyConstructed(bool implicitly_constructed = true);
 protected:

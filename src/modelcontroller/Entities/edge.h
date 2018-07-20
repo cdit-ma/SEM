@@ -29,7 +29,7 @@ public:
     EDGE_KIND getEdgeKind() const;
 
     //Return the graphml representation of this
-    QString toGraphML(int indentationLevel = 0, bool function_only = false);
+    void ToGraphmlStream(QTextStream& stream, int indend_depth);
     QString toString();
 private:
     EDGE_KIND kind;

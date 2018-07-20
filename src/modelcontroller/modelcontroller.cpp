@@ -207,8 +207,11 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
     std::for_each(edges.begin(), edges.end(), [&keys](Edge* e){keys += e->getKeys();});
 
     QString xml;
-    xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    xml +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+    QTextStream stream(&xml);
+
+
+    stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    stream << "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
     
     
     auto key_list = keys.toList();
@@ -216,13 +219,13 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
     
     //Define the key graphml
     for(auto key : key_list){
-        xml += key->toGraphML(1, functional_export);
+        key->ToGraphmlStream(stream, 1);
     }
 
     {
-        xml +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
+        stream << "\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
         for(auto entity : top_nodes){
-            xml += entity->toGraphML(2, functional_export);
+            entity->ToGraphmlStream(stream, 2);
         }
         
         //Sort the edges to be lowest to highest IDS for determinism
@@ -263,12 +266,14 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
                 }
             }
             if(export_edge){
-                xml += edge->toGraphML(2, functional_export);
+                edge->ToGraphmlStream(stream, 2);
             }
         }
-        xml += "\t</graph>\n";
+        stream << "\t</graph>\n";
     }
-    xml += "</graphml>";
+    stream << "\t</graph>\n";
+
+    stream << "</graphml>";
     return xml;
 }
 

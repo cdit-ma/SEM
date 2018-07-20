@@ -134,19 +134,14 @@ bool Key::setData(Data* data, QVariant data_value){
     return data_changed;
 }
 
-QString Key::toGraphML(int indent_depth, bool functional_export)
-{
-    QString xml;
-    bool should_export = !functional_export || !is_visual_;
-    if(should_export){
-        QTextStream stream(&xml); 
-        QString tab = QString("\t").repeated(indent_depth);
-        stream << tab << "<key attr.name=\"" << getName() << "\"";
-        stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
-        stream << " id=\"" << getID()<< "\"/>\n";
-    }
 
-    return xml;
+void Key::ToGraphmlStream(QTextStream& stream, int indent_depth){
+    stream << QString("\t").repeated(indent_depth);
+    stream << "<key ";
+    stream << "attr.name=\"" << getName() << "\"";
+    stream << "attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
+    stream << "id=\"" << getID() << "\"";
+    stream << "/>\n";
 }
 
 QString Key::toString() const
