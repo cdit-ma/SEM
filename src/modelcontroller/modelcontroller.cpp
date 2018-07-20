@@ -271,7 +271,6 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
         }
         stream << "\t</graph>\n";
     }
-    stream << "\t</graph>\n";
 
     stream << "</graphml>";
     return xml;

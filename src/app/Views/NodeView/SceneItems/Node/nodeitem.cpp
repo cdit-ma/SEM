@@ -18,6 +18,10 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
 {
     node_view_item = viewItem;
 
+    addRequiredData("index");
+    addRequiredData("row");
+    addRequiredData("column");
+
     setMoveEnabled(true);
     setExpandEnabled(true);
 
@@ -237,31 +241,15 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 
 int NodeItem::getSortOrder() const
 {
-    return sort_order;
+    return index_;
 }
 
 int NodeItem::getSortOrderRow() const{
-    static const QString key_row("row");
-
-    bool okay = false;
-    
-    auto row = getData(key_row).toInt(&okay);
-
-    if(!okay){
-        row = 0;
-    }
-    return row;
+    return row_;
 }
 
 int NodeItem::getSortOrderRowSubgroup() const{
-    static const QString key_column("column");
-    bool okay = false;
-    auto column = getData(key_column).toInt(&okay);
-
-    if(!okay){
-        column = 0;
-    }
-    return column;
+    return column_;
 }
 
 bool NodeItem::hasChildNodes() const
@@ -713,10 +701,14 @@ void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
             update();
         }else if(key_name =="index"){
             auto index = data.toInt();
-            if(sort_order != index){
-                sort_order = index;
+            if(index_ != index){
+                index_ = index;
                 emit indexChanged();
             }
+        }else if(key_name =="row"){
+            row_ = data.toInt();
+        }else if(key_name =="column"){
+            column_ = data.toInt();
         }
         if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
             update();

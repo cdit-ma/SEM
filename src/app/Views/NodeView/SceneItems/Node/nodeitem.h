@@ -220,7 +220,9 @@ private:
     qreal model_width = 0;
     qreal model_height = 0;
 
-    int sort_order = -1;
+    int index_ = -1;
+    int row_ = 0;
+    int column_ = 0;
 
     QMarginsF margin;
     QMarginsF bodyPadding;
