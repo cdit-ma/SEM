@@ -72,14 +72,14 @@ QMarginsF StackNodeItem::getDefaultCellMargin() const{
     return QMarginsF(getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing());
 }
 
-QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
+QMarginsF StackNodeItem::getCellMargin(const CellIndex& index){
     if(cell_infos.contains(index)){
         return cell_infos[index].margin;
     }
     return getDefaultCellMargin();
 }
 
-Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index) const{
+Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index){
     if(cell_infos.contains(index)){
         return cell_infos[index].orientation;
     }
@@ -94,7 +94,7 @@ void StackNodeItem::setDefaultCellSpacing(qreal spacing){
     cell_spacing = spacing;
 }
 
-qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
+qreal StackNodeItem::getCellSpacing(const CellIndex& index){
     auto grid_size = getGridSize();
 
     if(cell_infos.contains(index)){
