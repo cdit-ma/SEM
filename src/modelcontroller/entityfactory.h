@@ -7,6 +7,7 @@
 #include <QQueue>
 #include <functional>
 
+#include "strings.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
 
@@ -65,8 +66,8 @@ public:
     static NODE_KIND getViewAspectKind(VIEW_ASPECT aspect);
 
 
-    static NODE_KIND getNodeKind(QString node_kind);
-    static EDGE_KIND getEdgeKind(QString edge_kind);
+    static NODE_KIND getNodeKind(const QString& node_kind);
+    static EDGE_KIND getEdgeKind(const QString& edge_kind);
 
     static QString getNodeKindString(NODE_KIND node_kind);
     static QString getEdgeKindString(EDGE_KIND edge_kind);
@@ -84,11 +85,11 @@ public:
     Node* CreateTempNode(NODE_KIND node_kind);
     
     Data* AttachData(Entity* entity, Key* key, ProtectedState protect_state, QVariant value = QVariant());
-    Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protect_state, QVariant value = QVariant());
+    Data* AttachData(Entity* entity, const QString& key_name, QVariant::Type type, ProtectedState protect_state, QVariant value = QVariant());
 
 
 
-    Key* GetKey(QString key_name, QVariant::Type type);
+    Key* GetKey(const QString& key_name, QVariant::Type type);
     
     int CacheEntity(GraphML* graphml, int desired_id = -1);
     
@@ -108,11 +109,11 @@ protected:
     
     //Key getters
     Key* GetKey(int id);
-    Key* GetKey(QString key_name);
+    Key* GetKey(const QString& key_name);
     
     QList<Key*> GetKeys();
 
-    Entity* GetEntityByUUID(QString uuid);
+    Entity* GetEntityByUUID(const QString& uuid);
 
     //Called by secondary constructors of Node/Edge subclasses
     void RegisterNodeKind(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor);    
@@ -123,14 +124,14 @@ protected:
     
     bool UnregisterTempID(GraphML* graphml);
 
-    void EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid);
+    void EntitiesUUIDChanged(Entity* entity, const QString& old_uuid, const QString& new_uuid);
 private:
     void CacheEntityAsUnregistered(GraphML* graphml);
 
     void AcceptedEdgeKindsChanged(Node* node);
     void clearAcceptedEdgeKinds(Node* node);
-    void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
-    void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
+    void addNodeKind(NODE_KIND kind, const QString& kind_str, std::function<Node* ()> constructor);
+    void addEdgeKind(EDGE_KIND kind, const QString& kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
     
     GraphML* getGraphML(int id) const;

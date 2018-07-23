@@ -8,37 +8,40 @@
 #include <QDebug>
 #include <QStringBuilder>
 
+const QString Type_Boolean("boolean");
+const QString Type_Int("int");
+const QString Type_LongLong("longlong");
+const QString Type_Double("double");
+const QString Type_String("string");
+
+
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
-    if(type == QVariant::Bool){
-        return "boolean";
-    }else if(type == QVariant::Int){
-        return "int";
-    }else if(type == QVariant::LongLong){
-        return "longlong";
-    }else if(type == QVariant::Double){
-        return "double";
+    switch(type){
+        case QVariant::Bool:
+            return Type_Boolean;
+        case QVariant::Int:
+            return Type_Int;
+        case QVariant::LongLong:
+            return Type_LongLong;
+        case QVariant::Double:
+            return Type_Double;
+        default:
+            return Type_String;
     }
-    return "string";
 }
 
-QVariant::Type Key::getTypeFromGraphML(const QString typeString)
+QVariant::Type Key::getTypeFromGraphML(const QString& type_string)
 {
-    QString typeStringLow = typeString.toLower();
+    const static QHash<QString, QVariant::Type> type_map({
+        {Type_Boolean, QVariant::Bool},
+        {Type_Int, QVariant::Int},
+        {Type_LongLong, QVariant::LongLong},
+        {Type_Double, QVariant::Double},
+        {Type_String, QVariant::String}
+    });
 
-    if(typeString == "boolean"){
-        return QVariant::Bool;
-    }else if(typeString == "int"){
-        return QVariant::Int;
-    }else if(typeString == "long" || typeString == "longlong"){
-        return QVariant::LongLong;
-    }else if(typeString == "float" || typeString == "double"){
-        return QVariant::Double;
-    }else if(typeString == "string"){
-        return QVariant::String;
-    }
-
-    return QVariant::nameToType(typeStringLow.toStdString().c_str());
+    return type_map.value(type_string, (QVariant::Type)0);
 }
 
 Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type type) : GraphML(broker, GRAPHML_KIND::KEY){
@@ -76,14 +79,6 @@ bool Key::forceDataValue(Data* data, QVariant value){
         result = data->forceValue(value);
     }
     return result;
-}
-
-void Key::setVisual(bool is_visual){
-    is_visual_ = is_visual;
-}
-
-bool Key::isVisual() const{
-    return is_visual_;
 }
 
 QVariant Key::validateDataChange(Data *data, QVariant new_value)

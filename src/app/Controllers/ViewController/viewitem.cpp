@@ -1,6 +1,7 @@
 #include "viewitem.h"
 #include "viewcontroller.h"
 #include "../../../modelcontroller/modelcontroller.h"
+#include "../../../modelcontroller/strings.h"
 
 
 #include <QDebug>
@@ -8,14 +9,14 @@
 #include <QQueue>
 
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
-    auto a_kind = a->getData("label").toString();
-    auto b_kind = b->getData("label").toString();
+    auto a_kind = a->getData(KeyName::Label).toString();
+    auto b_kind = b->getData(KeyName::Label).toString();
     return a_kind < b_kind;
 }
 
 bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
-    auto a_kind = a->getData("kind").toString();
-    auto b_kind = b->getData("kind").toString();
+    auto a_kind = a->getData(KeyName::Kind).toString();
+    auto b_kind = b->getData(KeyName::Kind).toString();
     if(a_kind == b_kind){
         return SortByLabel(a, b);
     }else{
@@ -116,11 +117,10 @@ bool ViewItem::isDataVisual(const QString&) const
 
 bool ViewItem::isReadOnly() const
 {
-    bool readOnly = false;
-    if(hasData("readOnly")){
-        readOnly = getData("readOnly").toBool();
+    if(hasData(KeyName::ReadOnly)){
+        return getData(KeyName::ReadOnly).toBool();
     }
-    return readOnly;
+    return false;
 }
 
 bool ViewItem::setDefaultIcon(const QString& prefix, const QString& name)
@@ -287,16 +287,16 @@ void ViewItem::changeData(const QString& keyName, QVariant data, bool is_protect
         emit dataChanged(keyName, data);
     }
 
-    if(keyName == "label"){
+    if(keyName == KeyName::Label){
         emit labelChanged(data.toString());
-    }else if(keyName == "icon" || keyName == "icon_prefix"){
+    }else if(keyName == KeyName::Icon || keyName == KeyName::IconPrefix){
         updateIcon();
     }
 }
 
 void ViewItem::updateIcon(){
-    auto icon = _data.value("icon", "").toString();
-    auto icon_prefix = _data.value("icon_prefix", "").toString();
+    auto icon = _data.value(KeyName::Icon, "").toString();
+    auto icon_prefix = _data.value(KeyName::IconPrefix, "").toString();
     setIcon(icon_prefix, icon);
 }
 

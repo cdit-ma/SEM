@@ -8,6 +8,7 @@
 #include "Node/nodeitem.h"
 
 
+
 EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 {
     this->parent_item = parent_item;

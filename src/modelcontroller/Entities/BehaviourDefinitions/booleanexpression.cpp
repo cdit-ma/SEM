@@ -29,7 +29,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
 
 
     //setup Data
-    auto label = broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "???");
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "???");
     auto data_value = broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
     
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);

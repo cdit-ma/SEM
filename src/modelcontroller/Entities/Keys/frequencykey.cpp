@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 
-FrequencyKey::FrequencyKey(EntityFactoryBroker& broker): Key(broker, "frequency", QVariant::Double){
+FrequencyKey::FrequencyKey(EntityFactoryBroker& broker): Key(broker, KeyName::Frequency, QVariant::Double){
 
 }   
 

@@ -273,12 +273,12 @@ QList<EDGE_KIND> EntityFactory::getEdgeKinds()
 }
 
 
-NODE_KIND EntityFactory::getNodeKind(QString kind)
+NODE_KIND EntityFactory::getNodeKind(const QString& kind)
 {
     return globalFactory()->node_kind_lookup.value(kind, NODE_KIND::NONE);
 }
 
-EDGE_KIND EntityFactory::getEdgeKind(QString kind)
+EDGE_KIND EntityFactory::getEdgeKind(const QString& kind)
 {
     return globalFactory()->edge_kind_lookup.value(kind, EDGE_KIND::NONE);
 }
@@ -594,52 +594,45 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_com
 }
 
 
-Key *EntityFactory::GetKey(QString key_name)
+Key *EntityFactory::GetKey(const QString& key_name)
 {
     return key_lookup_.value(key_name, 0);
 }
 
-QSet<QString> VisualKeyNames(){
-    return {"x", "y", "width", "height", "isExpanded", "readOnly"};
-}
-
-Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
+Key *EntityFactory::GetKey(const QString& key_name, QVariant::Type type)
 {
     if(key_lookup_.contains(key_name)){
         return key_lookup_[key_name];
     }else{
         Key* key = 0;
-        if(key_name == "label"){
+        if(key_name == KeyName::Label){
             key = new LabelKey(factory_broker_);
-        }else if(key_name == "index"){
+        }else if(key_name == KeyName::Index){
             key = new IndexKey(factory_broker_);    
-        }else if(key_name == "row"){
+        }else if(key_name == KeyName::Row){
             key = new RowKey(factory_broker_);    
-        }else if(key_name == "column"){
+        }else if(key_name == KeyName::Column){
             key = new ColumnKey(factory_broker_);    
-        }else if(key_name == "uuid"){
+        }else if(key_name == KeyName::UUID){
             key = new ExportIDKey(factory_broker_, std::bind(&EntityFactory::EntitiesUUIDChanged, this, std::placeholders::_1,std::placeholders::_2, std::placeholders::_3));
-        }else if(key_name == "replicate_count"){
+        }else if(key_name == KeyName::ReplicateCount){
             key = new ReplicateCountKey(factory_broker_);    
-        }else if(key_name == "frequency"){
+        }else if(key_name == KeyName::Frequency){
             key = new FrequencyKey(factory_broker_);    
-        }else if(key_name == "inner_type"){
+        }else if(key_name == KeyName::InnerType){
             key = new InnerTypeKey(factory_broker_);    
-        }else if(key_name == "outer_type"){
+        }else if(key_name == KeyName::OuterType){
             key = new OuterTypeKey(factory_broker_);    
-        }else if(key_name == "type"){
+        }else if(key_name == KeyName::Type){
             key = new TypeKey(factory_broker_);    
-        }else if(key_name == "namespace"){
+        }else if(key_name == KeyName::Namespace){
             key = new NamespaceKey(factory_broker_);
-        }else if(key_name == "operation"){
+        }else if(key_name == KeyName::Operation){
             key = new OperationKey(factory_broker_);
         }else{
             key = new Key(factory_broker_, key_name, type);
         }
         
-        if(VisualKeyNames().contains(key_name)){
-            key->setVisual(true);
-        }
         key_lookup_[key_name] = key;
         
         //Need to Cache as Unregistered
@@ -729,7 +722,7 @@ Entity* EntityFactory::GetEntity(int id) const{
     return 0;
 }
 
-Entity* EntityFactory::GetEntityByUUID(QString uuid){
+Entity* EntityFactory::GetEntityByUUID(const QString& uuid){
     auto id = uuid_lookup_.value(uuid, -1);
     return GetEntity(id);
 }
@@ -773,7 +766,6 @@ Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protect
     if(entity && key){
         data = entity->getData(key);
 
-        bool constructed_data = !data;
         if(!data){
             data = new Data(factory_broker_, key, value, false);
 
@@ -806,7 +798,7 @@ Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protect
     return data;
 }
 
-Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
+Data* EntityFactory::AttachData(Entity* entity, const QString& key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
     return AttachData(entity, GetKey(key_name, type), protected_state, value);
 }
 
@@ -961,7 +953,7 @@ void EntityFactory::clearAcceptedEdgeKinds(Node* node){
 }
 
 
-void EntityFactory::EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid){
+void EntityFactory::EntitiesUUIDChanged(Entity* entity, const QString& old_uuid, const QString& new_uuid){
     if(entity){
         uuid_lookup_.remove(old_uuid);
 

@@ -4,13 +4,18 @@
 
 #include <QRegularExpression>
 
-LabelKey::LabelKey(EntityFactoryBroker& broker): Key(broker, "label", QVariant::String){
+LabelKey::LabelKey(EntityFactoryBroker& broker): Key(broker, KeyName::Label, QVariant::String){
     //QStringList invalidChars;
     //invalidChars << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
     //invalidChars << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
 }
 
+
 QVariant LabelKey::ValidateSystemLabel(Data* data, QVariant data_value){
+    static const QString tab_str("\t");
+    static const QString space_str(" ");
+    static const QString underscore_str("_");
+
     auto new_label = data_value.toString();
 
     if(new_label.isEmpty()){
@@ -18,8 +23,8 @@ QVariant LabelKey::ValidateSystemLabel(Data* data, QVariant data_value){
         new_label = data->getValue().toString();
     }
 
-    new_label.replace("\t", " ");
-    new_label.replace(" ", "_");
+    new_label.replace(tab_str, space_str);
+    new_label.replace(space_str, underscore_str);
     return new_label;
 }
 
@@ -54,7 +59,7 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
         QList<int> matched_numbers;
 
         foreach(auto sibling, node->getSiblings()){
-            auto sibling_label = sibling->getDataValue("label").toString();
+            auto sibling_label = sibling->getDataValue(KeyName::Label).toString();
             if(sibling_label == new_label){
                 exact_match = true;
             }else{

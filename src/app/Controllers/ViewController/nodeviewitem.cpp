@@ -8,8 +8,8 @@
 NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller, GRAPHML_KIND::NODE)
 {
     node_kind = kind;
-    changeData("kind", EntityFactory::getNodeKindString(kind));
-    changeData("label", label);
+    changeData(KeyName::Kind, EntityFactory::getNodeKindString(kind));
+    changeData(KeyName::Label, label);
 }
 
 NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)

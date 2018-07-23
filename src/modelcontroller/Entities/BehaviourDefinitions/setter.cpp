@@ -31,7 +31,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
 
 
     //setup Data
-    auto label = broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 
     //Attach Children

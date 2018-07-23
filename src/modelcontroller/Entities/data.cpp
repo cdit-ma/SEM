@@ -152,6 +152,7 @@ QVariant Data::getValue() const
 {
     return value;
 }
+
 QString SanitizeString(const QString& str){
     const static QString str_illegal_and("&");
     const static QString str_safe_and("&amp;");
@@ -229,9 +230,7 @@ void Data::addParentData(Data* data){
 
 void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
-        bool was_protected = isProtected();
         parent_datas.remove(data);
-        bool is_protected = isProtected();
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
         
         if(parent_datas.empty()){

@@ -116,7 +116,6 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             int src_depth_to_ancestor = getDepthFromCommonAncestor(port);
             int dst_depth_to_ancestor = port->getDepthFromCommonAncestor(this);
             int depth_delta = src_depth_to_ancestor - dst_depth_to_ancestor;
-            int abs_depth_delta = abs(depth_delta);
             int total_depth = src_depth_to_ancestor + dst_depth_to_ancestor;
 
             if(total_depth > 4){

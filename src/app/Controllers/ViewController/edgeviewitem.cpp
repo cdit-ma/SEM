@@ -22,8 +22,8 @@ EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src
 EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString label): ViewItem(controller, GRAPHML_KIND::EDGE)
 {
     edgeKind = kind;
-    changeData("kind", EntityFactory::getEdgeKindString(kind));
-    changeData("label", label);
+    changeData(KeyName::Kind, EntityFactory::getEdgeKindString(kind));
+    changeData(KeyName::Label, label);
 }
 
 EdgeViewItem::~EdgeViewItem()

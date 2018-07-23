@@ -27,7 +27,7 @@
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
 
-inline QPair<bool, QString> readFile(QString filePath)
+inline QPair<bool, QString> readFile(const QString& filePath)
 {
     QPair<bool, QString> result;
 
@@ -103,7 +103,7 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
     }
 }
 
-bool ModelController::SetupController(QString file_path)
+bool ModelController::SetupController(const QString& file_path)
 {
     QWriteLocker lock(&lock_);
     setupModel();
@@ -318,7 +318,7 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
 
 
 
-bool ModelController::setData_(Entity *entity, QString key_name, QVariant value, bool add_action)
+bool ModelController::setData_(Entity *entity, const QString& key_name, QVariant value, bool add_action)
 {
     bool data_changed = false;
     if(entity){
@@ -355,7 +355,7 @@ bool ModelController::setData_(Entity *entity, QString key_name, QVariant value,
  * @param keyName - The Name of the Key of the Data
  * @param addAction - Add an undo state
  */
-bool ModelController::destructData_(Entity* entity, QString key_name)
+bool ModelController::destructData_(Entity* entity, const QString& key_name)
 {  
     if(entity){
         //Get the data
@@ -756,7 +756,7 @@ QList<Node *> ModelController::getNodes(QList<int> ids)
 }
 
 
-void ModelController::triggerAction(QString actionName)
+void ModelController::triggerAction(const QString& actionName)
 {
     actionCount++;
     currentAction = actionName;
@@ -848,7 +848,7 @@ QString ModelController::cut(QList<int> ids)
     return data;
 }
 
-void ModelController::paste(QList<int> ids, QString xml)
+void ModelController::paste(QList<int> ids, const QString& xml)
 {
     QWriteLocker lock(&lock_);
 
@@ -865,7 +865,7 @@ void ModelController::paste(QList<int> ids, QString xml)
     emit ActionFinished();
 }
 
-bool ModelController::_paste(Node* node, QString xml)
+bool ModelController::_paste(Node* node, const QString& xml)
 {
     if(node){
         triggerAction("Pasting Selection.");
@@ -1005,7 +1005,7 @@ QList<Entity*> ModelController::getOrderedEntities(QList<Entity*> entities){
     return top_entities;
 }
 
-QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
+QList<QVariant> ModelController::getValidKeyValues(int id, const QString& key_name)
 {
     QReadLocker lock(&lock_);
     QList<QVariant> valid_values;
@@ -1072,7 +1072,7 @@ QList<DataUpdate> ModelController::getEntityDataList(int ID){
 }
 
 
-QVariant ModelController::getEntityDataValue(int ID, QString key_name){
+QVariant ModelController::getEntityDataValue(int ID, const QString& key_name){
     QReadLocker lock(&lock_);
     QVariant value;
 
@@ -1093,7 +1093,7 @@ QSet<NODE_TYPE> ModelController::getNodesTypes(int ID){
 }
 
 
-void ModelController::setProjectSaved(QString path)
+void ModelController::setProjectSaved(const QString& path)
 {
     setProjectModified(false);
     if(path != ""){
@@ -1828,20 +1828,8 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
     return false;
 }
 
-bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link){
-    if(src && dst){
-        auto src_data = src->getData(src_key);
-        auto dst_data = dst->getData(dst_key);
-        if(src_data && dst_data){
-            return src_data->linkData(dst_data, setup_link);
-        }
-    }
-    return false;
-}
 
-
-
-bool ModelController::isGraphMLValid(QString inputGraphML)
+bool ModelController::isGraphMLValid(const QString& inputGraphML)
 {
     //Construct a Stream Reader for the XML graph
     QXmlStreamReader xmlErrorChecking(inputGraphML);
@@ -2012,7 +2000,7 @@ QSet<NODE_KIND> ModelController::getGUINodeKinds(){
  * @param keyName - The name of the Key
  * @param dataValue - The new value of the Data.
  */
-void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
+void ModelController::setData(int parentID, const QString& keyName, QVariant dataValue)
 {
     Entity* graphML = entity_factory->GetEntity(parentID);
     if(graphML){
@@ -2021,7 +2009,7 @@ void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
     }
 }
 
-void ModelController::removeData(int id, QString key_name)
+void ModelController::removeData(int id, const QString& key_name)
 {
     destructData_(entity_factory->GetEntity(id), key_name);
 }
@@ -2071,7 +2059,7 @@ void ModelController::ProgressChanged_(int progress){
     }
 }
 
-void ModelController::ProgressUpdated_(QString description){
+void ModelController::ProgressUpdated_(const QString& description){
     if(description != last_description){
         last_description = description;
         emit ShowProgress(true, description);
@@ -2079,15 +2067,12 @@ void ModelController::ProgressUpdated_(QString description){
     }
 }
 
-bool ModelController::isKeyNameVisual(QString key_name){
-    QStringList visual_keynames;
-    visual_keynames << "x" << "y" << "width" <<  "height" << "isExpanded";
-    return visual_keynames.contains(key_name);
+bool ModelController::isKeyNameVisual(const QString& key_name){
+    static const QSet<QString> visual_key_names({"x", "y", "width", "height", "isExpanded"});
+    return visual_key_names.contains(key_name);
 }
 
-double ModelController::compare_version(QString current_version, QString compare_version){
-    
-
+double ModelController::compare_version(const QString& current_version, const QString& compare_version){
     auto compare_first =  compare_version.indexOf(".") + 1;
     auto compare_second =  compare_version.indexOf(".", compare_first);
 
@@ -2111,7 +2096,7 @@ double ModelController::compare_version(QString current_version, QString compare
     return compare_v - current_v;
 }
 
-bool ModelController::importGraphML(QString document, Node *parent)
+bool ModelController::importGraphML(const QString& document, Node *parent)
 {
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
@@ -2756,7 +2741,7 @@ void ModelController::setProjectModified(bool dirty)
     }
 }
 
-void ModelController::setProjectPath(QString path)
+void ModelController::setProjectPath(const QString& path)
 {
     if(project_path != path){
         project_path = path;

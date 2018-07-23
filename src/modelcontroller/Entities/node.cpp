@@ -102,8 +102,6 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     
     switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
-            auto parent_node = getParentNode();
-
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
             
@@ -1072,10 +1070,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     }
     
     auto def_got_inner_type = definition->gotData(key_inner_type);
-    auto def_got_outer_type = definition->gotData(key_outer_type);
 
     auto inst_got_inner_type = instance->gotData(key_inner_type);
-    auto inst_got_outer_type = instance->gotData(key_outer_type);
 
 
     bind_values[key_inner_type] += key_inner_type;
