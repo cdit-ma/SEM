@@ -23,10 +23,10 @@ signals:
     void req_dataChanged(int ID, QString keyName, QVariant data);
 
 public slots:
-    void updatedData(QString keyName);
-    void removedData(QString keyName);
+    void updatedData(const QString& keyName);
+    void removedData(const QString& keyName);
 
-    void addData(QString keyName);
+    void addData(const QString& keyName);
     void clearData();
 
     // QAbstractItemModel interface
@@ -41,7 +41,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void sort(int column, Qt::SortOrder order);
 private:
-    int getIndex(QString keyName) const;
+    int getIndex(const QString& keyName) const;
     QString getKey(const QModelIndex &index) const;
     QString getKey(int row) const;
     bool isIndexProtected(const QModelIndex &index) const;
@@ -55,17 +55,10 @@ private:
 
     void setupDataBinding();
 
-    ViewItem* entity;
+    ViewItem* entity = 0;
 
-
-
-
-    QSet<QString> multiline_keys;
-    QSet<QString> icon_keys;
-
-    QStringList ignoredKeys;
-    QStringList editableKeys;
-    QStringList lockedKeys;
+    QList<QString> editableKeys;
+    QList<QString> lockedKeys;
 };
 
 #endif // DATATABLEMODEL_H
