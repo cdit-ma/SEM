@@ -15,7 +15,6 @@ void ProgressPopup::ProgressUpdated(bool set_visible, QString description){
     auto is_visible = isVisible();
     if(set_visible != is_visible){
         if(set_visible){
-
             QMetaObject::invokeMethod(this, "adjustSize", Qt::QueuedConnection);
             //Centralize it
             WindowManager::MoveWidget(this);
@@ -32,6 +31,7 @@ void ProgressPopup::UpdateProgressBar(int value){
     }else{
         progress_bar->setRange(0, 100);
         progress_bar->setValue(value);
+        progress_bar->update();
         if (value >= 100){
             // Animation on ubuntu caused phantom window issues. Singleshot sleep timer resolves.
             //https://stackoverflow.com/questions/18037618/qt-qdialog-not-hiding-properly-when-show-hide-called-quickly

@@ -1386,11 +1386,10 @@ bool ViewController::_closeProject(bool show_welcome)
 }
 
 VIEW_ASPECT ViewController::getNodeViewAspect(int ID){
-    VIEW_ASPECT aspect;
     if(controller){
-        aspect = controller->getNodeViewAspect(ID);
+        return controller->getNodeViewAspect(ID);
     }
-    return aspect;
+    return VIEW_ASPECT::NONE;
 }
 
 bool ViewController::isNodeAncestor(int ID, int ID2){

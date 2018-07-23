@@ -25,7 +25,7 @@ class ViewController;
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES, CAN_CHANGE_INDEX, CAN_CHANGE_ROW, CAN_GENERATE_CODE};
-enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO, DESTRUCTING};
+enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO, DESTRUCTING, SETUP};
 
 struct HistoryAction{
     struct Action{
@@ -62,54 +62,38 @@ inline QString getActionTypeString(ACTION_TYPE type){
 class ModelController: public QObject
 {
     Q_OBJECT
+
 public:
+    void ConnectViewController(ViewControllerInterface* view_controller);
     ModelController();
     ~ModelController();
-
-    QString getProjectPath();
-    void setProjectPath(const QString& path);
-
-    bool isProjectSaved();
-    int getProjectActionCount();
-    void setProjectSaved(const QString& path);
-
     QString getProjectAsGraphML(bool functional_export = false);
 
-
-    QSet<EDGE_KIND> getCurrentEdgeKinds(QList<int> IDs);
-    
-    QSet<NODE_KIND> getValidNodeKinds(int ID);
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> IDs);
-    
+    QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
     QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
     QHash<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
-
-    
+    QSet<NODE_KIND> getValidNodeKinds(int ID);
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> IDs);
+    QSet<EDGE_KIND> getCurrentEdgeKinds(QList<int> IDs);
     QList<QVariant> getValidKeyValues(int ID, const QString& keyName);
-
-    
-    QSet<NODE_TYPE> getNodesTypes(int ID);
-    VIEW_ASPECT getNodeViewAspect(int ID);
-    int getSharedParent(int ID, int ID2);
-    bool isNodeAncestor(int ID, int ID2);
-
-    QVariant getEntityDataValue(int ID, const QString& key_name);
-
-
-
-    QList<DataUpdate> getEntityDataList(int ID);
-
-    QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
-
     bool canUndo();
     bool canRedo();
 
-    int getDefinition(int ID);
     int getImplementation(int ID);
+    int getDefinition(int ID);
+    int getSharedParent(int ID, int ID2);
+    bool isProjectSaved();
+    int getProjectActionCount();
+    void setProjectPath(const QString& path);
+    QString getProjectPath();
+    void setProjectSaved(const QString& path);
+    VIEW_ASPECT getNodeViewAspect(int ID);
+    bool isNodeAncestor(int ID, int ID2);
+    QVariant getEntityDataValue(int ID, const QString& key_name);
+    QList<DataUpdate> getEntityDataList(int ID);
+    QSet<NODE_TYPE> getNodesTypes(int ID);
 
-    void ConnectViewController(ViewControllerInterface* view_controller);
-
-    //Clipboard functionality
+        //Clipboard functionality
     QString cut(QList<int> ids);
     QString copy(QList<int> ids);
 
@@ -329,6 +313,7 @@ private:
    
     QThread* controller_thread = 0;
     EntityFactory* entity_factory = 0;
+
     QReadWriteLock lock_;
 
     QSet<MODEL_ACTION> model_actions;

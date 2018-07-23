@@ -54,7 +54,9 @@ inline QString getXMLAttribute(const QXmlStreamReader &xml, const QString& attri
     }
 }
 
-ModelController::ModelController():QObject(0)
+ModelController::ModelController():
+QObject(0),
+lock_(QReadWriteLock::Recursive)
 {
     controller_thread = new QThread();
     moveToThread(controller_thread);
@@ -105,10 +107,11 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
 
 bool ModelController::SetupController(const QString& file_path)
 {
-    QWriteLocker lock(&lock_);
+    setModelAction(MODEL_ACTION::SETUP);
     setupModel();
     loadWorkerDefinitions();
     clearHistory();
+    unsetModelAction(MODEL_ACTION::SETUP);
 
     auto file = readFile(file_path);
     bool success = true;
@@ -155,6 +158,8 @@ void ModelController::loadWorkerDefinitions()
         QStringList extensions{"*.worker"};
         //QStringList extensions{"*memory*.worker"};
 
+        
+        
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
@@ -1916,8 +1921,7 @@ QSet<EDGE_KIND> ModelController::getCurrentEdgeKinds(QList<int> ids)
 
 QSet<NODE_KIND> ModelController::getValidNodeKinds(int ID)
 {
-    
-    QWriteLocker lock(&lock_);
+    QReadLocker lock(&lock_);
     QSet<NODE_KIND> node_kinds;
 
     auto parent_node = entity_factory->GetNode(ID);
@@ -2022,7 +2026,6 @@ void ModelController::removeData(int id, const QString& key_name)
  */
 bool ModelController::importProjects(QStringList xml_list)
 {
-    QWriteLocker lock(&lock_);
     bool success = true;
     ProgressUpdated_("Importing Projects");
     if(xml_list.length() > 0){
@@ -2098,6 +2101,7 @@ double ModelController::compare_version(const QString& current_version, const QS
 
 bool ModelController::importGraphML(const QString& document, Node *parent)
 {
+    QWriteLocker lock(&lock_);
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
 
@@ -2133,7 +2137,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     const bool IS_UNDO_REDO = isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO);
     const bool IS_PASTE = isModelAction(MODEL_ACTION::PASTE);
     const bool IS_PARTIAL_IMPORT = IS_UNDO_REDO || IS_PASTE;
-    const bool UPDATE_PROGRESS = !isModelAction(MODEL_ACTION::NONE);
+    const bool IS_SETUP = isModelAction(MODEL_ACTION::SETUP);
+    const bool UPDATE_PROGRESS = !isModelAction(MODEL_ACTION::NONE) && !IS_SETUP;
     const bool GENERATE_UUID_FROM_ID = IS_IMPORT && (parent == workerDefinitions);
 
     if(UPDATE_PROGRESS){
@@ -2349,6 +2354,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
     destructEntities(to_remove);
+
+    lock.unlock();
 
     auto removing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";

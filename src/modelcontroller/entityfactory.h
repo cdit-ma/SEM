@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QQueue>
 #include <functional>
+#include <QReadWriteLock>
 
 #include "strings.h"
 #include "nodekinds.h"
@@ -102,8 +103,8 @@ protected:
     void DeregisterEdge(Edge* edge);
     void DeregisterGraphML(GraphML* graphml);
     //Getters
-    Entity* GetEntity(int id) const;
-    Node* GetNode(int id) const;
+    Entity* GetEntity(int id);
+    Node* GetNode(int id);
     Edge* GetEdge(int id);
     Data* GetData(int id);
     
@@ -120,7 +121,7 @@ protected:
     void RegisterEdgeKind(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactoryBroker&, Node*, Node*)> constructor);
 
     bool RegisterEntity(GraphML* graphml, int desired_id = -1);
-    bool IsEntityRegistered(GraphML* graphml);
+    bool UnsafeIsEntityRegistered(GraphML* graphml);
     
     bool UnregisterTempID(GraphML* graphml);
 
@@ -134,7 +135,7 @@ private:
     void addEdgeKind(EDGE_KIND kind, const QString& kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
     
-    GraphML* getGraphML(int id) const;
+    GraphML* getGraphML(int id);
 
     
     Node* _createNode(NODE_KIND kind, bool is_temporary = false, bool complex = true);
@@ -142,12 +143,19 @@ private:
 
     bool doesNodeStructExist(NODE_KIND kind);
     bool doesEdgeStructExist(EDGE_KIND kind);
-    NodeLookupStruct* getNodeStruct(NODE_KIND kind);
-    EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
+
+
+    const NodeLookupStruct& getNodeStruct(NODE_KIND kind);
+    const EdgeLookupStruct& getEdgeStruct(EDGE_KIND kind);
+
+
 private:
     int getFreeID(int preferred_id);
     int getUnregisteredFreeID();
+
+
     //Hashes
+    QReadWriteLock struct_lock_;
     QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
     QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;
 
@@ -162,6 +170,8 @@ private:
     //Edge Map
     QHash<EDGE_KIND, QSet<Node*> > accepted_source_edge_map;
     QHash<EDGE_KIND, QSet<Node*> > accepted_target_edge_map;
+
+    QReadWriteLock entity_lock_;
 
     QHash<int, GraphML*> hash_;
     QHash<int, GraphML*> unregistered_hash_;
