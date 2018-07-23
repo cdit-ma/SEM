@@ -1249,6 +1249,7 @@ void ViewController::TeardownController()
 
         //This will destruct!
         disconnect(controller);
+
         controller->disconnect(this);
         emit controller->InitiateTeardown();
         controller = 0;

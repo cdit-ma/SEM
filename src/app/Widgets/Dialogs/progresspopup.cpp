@@ -11,14 +11,16 @@ ProgressPopup::ProgressPopup():PopupWidget(PopupWidget::TYPE::TOOL, 0){
 }
 
 void ProgressPopup::ProgressUpdated(bool set_visible, QString description){
+    //qCritical() << (set_visible ? "[SHOW]: " + description : "[HIDE]") << QThread::currentThread();
+
     label_text->setText(description);
     auto is_visible = isVisible();
     if(set_visible != is_visible){
         if(set_visible){
-            QMetaObject::invokeMethod(this, "adjustSize", Qt::QueuedConnection);
             //Centralize it
+            QMetaObject::invokeMethod(this, "show", Qt::QueuedConnection);
+            QMetaObject::invokeMethod(this, "adjustSize", Qt::QueuedConnection);
             WindowManager::MoveWidget(this);
-            show();
         }else{
             progress_bar->reset();
         }

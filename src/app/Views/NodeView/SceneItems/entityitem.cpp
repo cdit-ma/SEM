@@ -58,6 +58,7 @@ QList<EntityItem::EntityRect> EntityItem::GetEntityRects(){
 
 EntityItem::~EntityItem()
 {
+    disconnect(this);
     disconnectViewItem();
 }
 

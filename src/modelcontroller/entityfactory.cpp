@@ -557,7 +557,7 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
     try{
         edge = getEdgeStruct(kind).constructor(factory_broker_, source, destination);
     }catch(const std::exception& ex){
-        qCritical() << "EntityFactory::CreateEdge() Failed: " << ex.what();
+        //qCritical() << "EntityFactory::CreateEdge() Failed: " << ex.what();
     }
 
     if(edge){

@@ -258,6 +258,7 @@ private:
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item);
     bool destructViewItem(ViewItem* item);
+
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
 

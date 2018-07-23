@@ -99,6 +99,8 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeView::viewItem_Constructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeView::viewItem_Destructed);
 
+        
+
         connect(viewController->getActionController()->edit_clearSelection, &QAction::triggered, this, &NodeView::trans_inactive);
 
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
@@ -220,8 +222,6 @@ void NodeView::viewItem_Constructed(ViewItem *item)
 
 void NodeView::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
-
-
     EntityItem* item = getEntityItem(ID);
     if(item){
         topLevelGUIItemIDs.removeAll(ID);

@@ -146,6 +146,7 @@ void NodeItem::updateNotifications(){
 
 NodeItem::~NodeItem()
 {
+    disconnect(this);
     //Unset
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildNode(this);

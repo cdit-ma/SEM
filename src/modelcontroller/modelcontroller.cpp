@@ -2027,7 +2027,7 @@ void ModelController::removeData(int id, const QString& key_name)
 bool ModelController::importProjects(QStringList xml_list)
 {
     bool success = true;
-    ProgressUpdated_("Importing Projects");
+    //ProgressUpdated_("Importing Projects");
     if(xml_list.length() > 0){
         triggerAction("Importing GraphML Projects.");
         setModelAction(MODEL_ACTION::IMPORT);
@@ -2101,7 +2101,6 @@ double ModelController::compare_version(const QString& current_version, const QS
 
 bool ModelController::importGraphML(const QString& document, Node *parent)
 {
-    QWriteLocker lock(&lock_);
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
 
@@ -2265,6 +2264,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     
     auto parsing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
+
+    //Gain the write lock
+    QWriteLocker lock(&lock_);
 
     QList<Entity*> to_remove;
     

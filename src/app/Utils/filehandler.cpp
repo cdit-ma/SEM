@@ -15,7 +15,7 @@ FileHandler::FileHandler():QObject()
 {
     fileDialog = new QFileDialog(0);
     fileDialog->setModal(true);
-    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
+    //fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     //Get Path.
     QString directory = SettingsController::settings()->getSetting(SETTINGS::GENERAL_MODEL_PATH).toString();
     fileDialog->setDirectory(directory);

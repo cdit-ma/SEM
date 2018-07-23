@@ -362,8 +362,8 @@ void MainWindow::setupTools()
 {
     //Setup Progress Bar
     auto progress_bar = new ProgressPopup();
-    connect(view_controller, &ViewController::ShowProgress, progress_bar, &ProgressPopup::ProgressUpdated, Qt::DirectConnection);
-    connect(view_controller, &ViewController::ProgressUpdated, progress_bar, &ProgressPopup::UpdateProgressBar, Qt::DirectConnection);
+    connect(view_controller, &ViewController::ShowProgress, progress_bar, &ProgressPopup::ProgressUpdated);
+    connect(view_controller, &ViewController::ProgressUpdated, progress_bar, &ProgressPopup::UpdateProgressBar);
    
     setupMenuBar();
 

@@ -1,5 +1,6 @@
 #include "viewcontrollerint.h"
 #include "modelcontroller.h"
+#include <QCoreApplication>
 
 void ViewControllerInterface::ConnectModelController(ModelController* model_controller){
     if(model_controller){
@@ -21,13 +22,10 @@ void ViewControllerInterface::ConnectModelController(ModelController* model_cont
         connect(model_controller, &ModelController::ActionFinished, this, &ViewControllerInterface::ActionFinished, Qt::QueuedConnection);
         connect(model_controller, &ModelController::Notification, this, &ViewControllerInterface::AddNotification, Qt::QueuedConnection);
 
-        //connect(model_controller, &ModelController::ShowProgress, this, &ViewControllerInterface::ShowProgress, Qt::BlockingQueuedConnection );
-        //connect(model_controller, &ModelController::ProgressChanged, this, &ViewControllerInterface::ProgressUpdated, Qt::BlockingQueuedConnection );
-        connect(model_controller, &ModelController::ShowProgress, this, &ViewControllerInterface::ShowProgress, Qt::BlockingQueuedConnection );
-        connect(model_controller, &ModelController::ProgressChanged, this, &ViewControllerInterface::ProgressUpdated, Qt::BlockingQueuedConnection);
+        connect(model_controller, &ModelController::ShowProgress, this, &ViewControllerInterface::ShowProgress, Qt::QueuedConnection);
+        connect(model_controller, &ModelController::ProgressChanged, this, &ViewControllerInterface::ProgressUpdated, Qt::QueuedConnection);
 
         connect(model_controller, &ModelController::UndoRedoUpdated, this, &ViewControllerInterface::UndoRedoUpdated, Qt::QueuedConnection);
-
         model_controller->ConnectViewController(this);
     }
 };
