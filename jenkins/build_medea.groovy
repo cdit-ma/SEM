@@ -18,7 +18,7 @@ stage("Checkout"){
 def step_build_test = [:]
 def step_archive = [:]
 
-def medea_nodes = utils.getLabelledNodes("MEDEA")
+def medea_nodes = nodesByLabel("build_medea")
 for(n in medea_nodes){
     def node_name = n
 
