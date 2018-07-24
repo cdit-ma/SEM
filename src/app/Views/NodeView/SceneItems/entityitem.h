@@ -69,7 +69,6 @@ public:
     NodeItem* getParentNodeItem() const;
 
     void unsetParent();
-    bool isTopLevelItem() const;
     bool isReadOnly() const;
 
 
@@ -127,17 +126,14 @@ public:
     virtual QRectF viewRect() const;
     QRectF sceneViewRect() const;
 
-    QSize iconSize() const;
     QSize smallIconSize() const;
     QPainterPath shape() const;
-    QPainterPath sceneShape() const;
 
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
     virtual QPointF validateMove(QPointF delta);
 
-    bool intersectsRectInScene(QRectF rectInScene) const;
     bool isDataProtected(QString keyName) const;
 
     void addRequiredData(const QString& keyName);
@@ -175,7 +171,6 @@ public:
 public:
     //State Handlers
     void handleExpand(bool expand);
-    void handleHover(bool hovered);
     void handleSelection(bool append);
 
 protected:
@@ -261,7 +256,6 @@ public:
 
 protected:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
-    void paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void AddTooltip(const QString& tooltip);
     void AddCursor(const QCursor& cursor);
 private:

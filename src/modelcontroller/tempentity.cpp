@@ -86,11 +86,6 @@ QString TempEntity::getIDStr(){
     return id_str;
 }
 
-bool TempEntity::gotPreviousID()
-{
-    return previous_id != -1;
-}
-
 int TempEntity::getPreviousID()
 {
     return previous_id;
@@ -230,15 +225,8 @@ bool TempEntity::GotImplicitlyConstructedNodeID(NODE_KIND kind){
     return implicit_nodes[kind].count() > 0;
 }
 
-bool TempEntity::GotImplicitlyConstructedEdgeID(EDGE_KIND kind){
-    return implicit_edges[kind].count() > 0;
-}
-
 int TempEntity::TakeNextImplicitlyConstructedNodeID(NODE_KIND kind){
     return implicit_nodes[kind].dequeue();
-}
-int TempEntity::TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind){
-    return implicit_edges[kind].dequeue();
 }
 
 void TempEntity::setImplicitlyConstructed(){
@@ -248,13 +236,6 @@ bool TempEntity::isImplicitlyConstructed(){
     return implicitly_constructed;
 }
 
-QQueue<int> TempEntity::GetLeftOverImplicitlyConstructedNodeIds(){
-    QQueue<int> values;
-    for(auto queue : implicit_nodes.values()){
-        values += queue;
-    }
-    return values;
-}   
 
 bool TempEntity::isUUIDMatched(){
     return uuid_matched;

@@ -29,7 +29,6 @@ public:
     QToolBar* getToolbar();
 
     Monitor* getMonitor(QString job_name, int build_number);
-    JenkinsMonitor* getJenkinsMonitor(QString name, int build_number);
     ConsoleMonitor* getConsoleMonitor(QString name);
     void refreshRecentBuildsByName(QString job_name);
 private:

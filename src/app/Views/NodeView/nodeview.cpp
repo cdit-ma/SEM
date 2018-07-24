@@ -102,6 +102,7 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController->getActionController()->edit_clearSelection, &QAction::triggered, this, &NodeView::trans_inactive);
 
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
+
         connect(selectionHandler, &SelectionHandler::itemSelectionChanged, this, &NodeView::selectionHandler_ItemSelectionChanged);
         connect(selectionHandler, &SelectionHandler::itemActiveSelectionChanged, this, &NodeView::selectionHandler_ItemActiveSelectionChanged);
 
@@ -200,11 +201,6 @@ QColor NodeView::getBackgroundColor()
 }
 
 
-QRectF NodeView::getViewportRect()
-{
-    return viewportRect();
-}
-
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
@@ -218,16 +214,6 @@ void NodeView::viewItem_Constructed(ViewItem *item)
     }
 }
 
-void NodeView::ResetView(){
-    auto my_scene = scene();
-    delete my_scene;
-    setScene(new QGraphicsScene(this));
-    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
-
-    topLevelGUIItemIDs.clear();
-    guiItems.clear();
-    containedNodeViewItem = 0;
-}
 
 void NodeView::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
@@ -493,11 +479,6 @@ void NodeView::centerConnections(ViewItem* item)
     }
 }
 
-QList<int> NodeView::getIDsInView()
-{
-    return guiItems.keys();
-}
-
 
 void NodeView::item_Selected(ViewItem *item, bool append)
 {
@@ -739,23 +720,6 @@ void NodeView::activeViewDockChanged(ViewDockWidget* dw){
         is_active = active;
         update();
     }
-}
-
-QPointF NodeView::getTopLeftOfSelection(){
-    auto vi = selectionHandler->getActiveSelectedItem();
-    auto item = getEntityItem(vi);
-
-    QPointF top_left = viewportRect().topLeft();
-    if(item){
-        top_left = item->mapFromScene(top_left);
-        if(top_left.x() < 20){
-            top_left.setX(0);
-        }
-        if(top_left.y() < 20){
-            top_left.setY(0);
-        }
-    }
-    return top_left;
 }
 
 QRectF NodeView::viewportRect()
@@ -1272,15 +1236,6 @@ EntityItem *NodeView::getEntityItem(ViewItem *item) const
         e = getEntityItem(item->getID());
     }
     return e;
-}
-
-NodeItem *NodeView::getNodeItem(ViewItem *item) const
-{
-    EntityItem* e = getEntityItem(item->getID());
-    if(e && e->isNodeItem()){
-        return (NodeItem*) e;
-    }
-    return 0;
 }
 
 void NodeView::zoom(int delta, QPoint anchorScreenPos)

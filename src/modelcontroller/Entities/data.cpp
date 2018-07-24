@@ -105,34 +105,12 @@ bool Data::setValue(QVariant value)
     return _setValue(value, true);
 }
 
-
-bool Data::isParentData(Data* data)
-{
-    return parent_datas.contains(data);
-}
-
-
-void Data::clearValue()
-{
-    setValue("");
-    updateChildren();
-}
-
 bool Data::CompareData(const Data* a, const Data* b){
     if(a && b){
         return a->getValue() == b->getValue();
     }
     return false;
 }
-
-bool Data::compare(const Data *data) const
-{
-    if(data){
-        return value == data->getValue();
-    }
-    return false;
-}
-
 
 Key *Data::getKey() const
 {
@@ -301,18 +279,6 @@ void Data::addValidValues(QList<QVariant> values){
 
     //Revalidate
     revalidateData();
-}
-
-void Data::removeValidValue(QVariant value){
-    valid_values_.removeAll(value);
-}
-
-void Data::clearValidValues(){
-    valid_values_.clear();
-}
-
-bool Data::gotValidValues(){
-    return valid_values_.size();
 }
 
 QList<QVariant> Data::getValidValues(){

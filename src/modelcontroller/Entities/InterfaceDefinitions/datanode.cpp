@@ -29,11 +29,6 @@ bool DataNode::hasInputData()
    return getInputData();
 }
 
-bool DataNode::hasOutputData()
-{
-    return getOutputData();
-}
-
 DataNode *DataNode::getInputData()
 {
     for(auto edge : getEdgesOfKind(EDGE_KIND::DATA)){
@@ -44,23 +39,6 @@ DataNode *DataNode::getInputData()
     return 0;
 }
 
-DataNode *DataNode::getOutputData()
-{
-    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA)){
-        if(edge->getSource() == this){
-            return (DataNode*) edge->getDestination();
-        }
-    }
-    return 0;
-}
-
-void DataNode::setMultipleDataReceiver(bool receiver)
-{
-    is_multiple_data_receiver_ = receiver;
-    if(receiver){
-        setDataReceiver(true);
-    }
-}
 
 void DataNode::setMultipleDataProducer(bool producer)
 {
@@ -108,51 +86,6 @@ bool DataNode::isMultipleDataProducer() const
     return is_multiple_data_producer_;
 }
 
-
-bool DataNode::comparableTypes(DataNode *node)
-{
-    QStringList numberTypes;
-    numberTypes << "Float" << "Double" << "Integer" << "Boolean";
-
-    if(node){
-        if(node->getNodeKind() == NODE_KIND::VARIADIC_PARAMETER){
-           return true;
-        }
-
-        //Types
-        QString type1 = getDataValue("type").toString();
-        QString type2 = node->getDataValue("type").toString();
-
-        if(type1 == type2 && type1 != ""){
-            //Allow direct matches.
-            return true;
-        }
-
-        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
-            //Allow matches of numbers
-            return true;
-        }
-
-
-        if(type2 == "Vector"){
-            auto kind = getNodeKind();
-            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
-               return true;
-            }
-        }
-        if(type1 == "Vector"){
-            auto kind = node->getNodeKind();
-            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
-               return true;
-            }
-        }
-        if(type2 == ""){
-            return true;
-        }
-    }
-    return false;
-
-}
 
 bool DataNode::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
@@ -262,15 +195,6 @@ bool DataNode::isContainedInVariable(){
     return _contained_in_variable;
 }
 
-bool DataNode::isContainedInFunctionCall(){
-    RunContainmentChecks();
-    return _contained_in_function_call;
-}
-
-bool DataNode::isContainedInAggregateInstance(){
-    RunContainmentChecks();
-    return _contained_in_aggregate_instance;
-}
 
 void DataNode::RunContainmentChecks(){
     if(getParentNode() && !_run_containment_checks){

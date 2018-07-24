@@ -111,10 +111,6 @@ int NotificationItem::getID()
     return -1;
 }
 
-QSharedPointer<NotificationObject> NotificationItem::getNotification() const{
-    return notification;
-}
-
 
 /**
  * @brief NotificationItem::getEntityID

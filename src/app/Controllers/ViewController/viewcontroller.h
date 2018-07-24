@@ -48,8 +48,6 @@ public:
 
     
 
-    JenkinsManager* getJenkinsManager();
-    ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
 
@@ -76,7 +74,6 @@ public:
 
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
-    NodeViewItem* getNodeItem(NODE_KIND kind);
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
@@ -88,7 +85,6 @@ public:
     QSet<NODE_KIND> getValidNodeKinds();
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -108,8 +104,6 @@ public:
     void EditDataValue(int ID, QString key_name);
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
-
-    void setController(ModelController* c);
 
 
     bool isNodeAncestor(int ID, int ID2);
@@ -145,13 +139,8 @@ public slots:
     void decrementSelectedKey(QString key_name);
     
     void welcomeScreenToggled(bool visible);
-    void highlight(QList<int> ids);
 
 
-    void modelValidated(QString reportPath);
-    void importGraphMLFile(QString graphmlPath);
-    void importGraphMLExtract(QString data);
-    
 
     void showCodeViewer(QString tabName, QString content);
 
@@ -232,7 +221,6 @@ public slots:
     void editReplicationCount();
 
     
-    void requestSearchSuggestions();
 
     void setControllerReady(bool ready);
     void openURL(QString url);
@@ -263,8 +251,6 @@ private:
 
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
-
-    QList<NodeView*> getNodeViewsContainingID(int ID);
 
     NodeViewItem* getNodeViewItem(int ID);
 

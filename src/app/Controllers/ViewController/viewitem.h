@@ -40,12 +40,9 @@ public:
     bool hasData(const QString& keyName) const;
 
     bool isDataProtected(const QString& keyName) const;
-    bool isDataVisual(const QString& keyName) const;
 
     bool isReadOnly() const;
 
-    void updateProtectedKeys(const QList<QString>& protected_keys);
-    void updateProtectedKey(const QString& key_name, bool is_protected);
 
     bool setDefaultIcon(const QString& prefix, const QString& name);
     bool setIcon(const QString& prefix, const QString& name);

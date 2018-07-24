@@ -36,11 +36,6 @@ DockItem *ViewManagerWidget::getDockItem(int ID)
     return dockItems.value(ID, 0);
 }
 
-WindowItem *ViewManagerWidget::getWindowItem(int ID)
-{
-    return windowItems.value(ID, 0);
-}
-
 void ViewManagerWidget::windowConstructed(BaseWindow *window)
 {
     if(window->getType() == BaseWindow::VIEW_WINDOW){

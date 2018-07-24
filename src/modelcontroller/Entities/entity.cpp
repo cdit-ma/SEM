@@ -205,17 +205,6 @@ bool Entity::setDataValue(Key *key, QVariant value)
      return false;
 }
 
-QStringList Entity::getProtectedKeys()
-{
-    QStringList protectedKeys;
-
-    for(auto data : getData()){
-        if(data->isProtected()){
-            protectedKeys.append(data->getKeyName());
-        }
-    }
-    return protectedKeys;
-}
 
 bool Entity::removeData(Key *key)
 {
@@ -259,12 +248,6 @@ QString Entity::toString() const
     return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue("kind").toString() ,getDataValue("label").toString());
 }
 
-
-bool Entity::SortByIndex(const Entity* a, const Entity* b){
-    auto a_ind = a->getDataValue("index").toInt();
-    auto b_ind = b->getDataValue("index").toInt();
-    return a_ind < b_ind;
-}
 
 bool Entity::isLabelFunctional() const{
     return is_label_functional_;

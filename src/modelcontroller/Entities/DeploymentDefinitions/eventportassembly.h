@@ -14,26 +14,15 @@ protected:
     void MiddlewareUpdated();
 
 public:
-    bool isPortDelegate() const;
 
     bool isPubPortDelegate() const;
     bool isSubPortDelegate() const;
-    bool isReqPortDelegate() const;
     bool isPubSubPortDelegate() const;
 
-    bool isSubPortAssembly() const;
-    bool isPubPortAssembly() const;
-
     
-    bool isPortInstance() const;
-
-    bool isRepPortInstance() const;
-    bool isReqPortInstance() const;
     bool isSubPortInstance() const;
     bool isPubPortInstance() const;
-
     
-
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

@@ -38,7 +38,6 @@ public:
 
     void addChildEdge(EdgeItem* edgeItem);
     void removeChildEdge(EdgeItem* edgeItem);
-    QList<EdgeItem*> getChildEdges() const;
 
     QRectF getNearestGridOutline();
     QPointF getNearestGridPointToCenter();
@@ -83,9 +82,7 @@ public:
     virtual bool isExpandEnabled();
     virtual QRectF childrenRect() const;
 
-    QSizeF getSize() const;
 
-    void adjustExpandedSize(QSizeF delta);
 
     void setMinimumWidth(qreal width);
     void setMinimumHeight(qreal height);
@@ -105,8 +102,6 @@ public:
     void setBodyPadding(QMarginsF bodyPadding);
 
     QPointF getMarginOffset() const;
-    QPointF getBottomRightMarginOffset() const;
-    QPointF getTopLeftSceneCoordinate() const;
 
     qreal getWidth() const;
     qreal getHeight() const;

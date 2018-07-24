@@ -164,21 +164,6 @@ QSet<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edge_kind) const
     }
 }
 
-bool NodeViewItem::gotEdge(EDGE_KIND edge_kind) const
-{
-    if(edge_kind == EDGE_KIND::NONE){
-        for(const auto& edge_kind : edges.keys()){
-            if(edges[edge_kind].size()){
-                return true;
-            }
-        }
-        return false;
-    }else{
-        return edges[edge_kind].size();
-    }
-}
-
-
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
     bool is_ancestor = false;

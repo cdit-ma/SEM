@@ -15,8 +15,6 @@ class Entity: public GraphML
     friend class Key;
 
     Q_OBJECT
-public:
-    static bool SortByIndex(const Entity* a, const Entity* b);
 protected:
     Entity(EntityFactoryBroker& factory, GRAPHML_KIND graphml_kind);
     ~Entity();
@@ -58,8 +56,6 @@ public:
     bool setDataValue(const QString& key_name, QVariant value);
     bool setDataValue(Key* key, QVariant value);
 
-    QStringList getProtectedKeys();
-    
     QString toString() const;
     void setImplicitlyConstructed(bool implicitly_constructed = true);
 protected:

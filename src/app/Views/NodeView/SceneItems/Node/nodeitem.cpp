@@ -317,12 +317,6 @@ void NodeItem::removeChildEdge(EdgeItem *edgeItem)
     }
 }
 
-QList<EdgeItem *> NodeItem::getChildEdges() const
-{
-    return child_edges.toList();
-}
-
-
 
 bool NodeItem::setMoveFinished()
 {
@@ -377,18 +371,7 @@ QRectF NodeItem::childrenRect() const
 
 }
 
-QSizeF NodeItem::getSize() const
-{
-    QSizeF size;
-    size.setWidth(getWidth());
-    size.setHeight(getHeight());
-    return size;
-}
 
-void NodeItem::adjustExpandedSize(QSizeF delta)
-{
-    setExpandedSize(getExpandedSize() + delta);
-}
 
 void NodeItem::setMinimumWidth(qreal width)
 {
@@ -519,15 +502,6 @@ QPointF NodeItem::getMarginOffset() const
     return QPointF(margin.left(), margin.top());
 }
 
-QPointF NodeItem::getBottomRightMarginOffset() const
-{
-    return QPointF(margin.right(), margin.bottom());
-}
-
-QPointF NodeItem::getTopLeftSceneCoordinate() const
-{
-    return sceneBoundingRect().topLeft();
-}
 
 qreal NodeItem::getWidth() const
 {

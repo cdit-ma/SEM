@@ -200,16 +200,6 @@ void Node::setNodeType(NODE_TYPE type)
     }
 }
 
-void Node::removeNodeType(NODE_TYPE type)
-{
-    if(node_types_.contains(type)){
-        node_types_.remove(type);
-        emit typesChanged();
-    }
-}
-
-
-
 Node *Node::getCommonAncestor(Node *dst)
 {
     int height = getDepthFromCommonAncestor(dst);
@@ -653,11 +643,6 @@ bool Node::isInstance() const
 bool Node::isInstanceImpl() const
 {
     return isInstance() || isImpl();
-}
-
-bool Node::isAspect() const
-{
-    return isNodeOfType(NODE_TYPE::ASPECT);
 }
 
 bool Node::isImpl() const
@@ -1308,18 +1293,6 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
     return true;
 }
 
-QSet<EDGE_KIND> Node::getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const{
-    QSet<EDGE_KIND> accepted_kinds;
-
-    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
-
-    for(auto edge_kind : direction_set){
-        if(canCurrentlyAcceptEdgeKind(edge_kind, direction)){
-            accepted_kinds.insert(edge_kind);
-        }
-    }
-    return accepted_kinds;
-}
 
 QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;

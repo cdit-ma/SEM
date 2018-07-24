@@ -146,18 +146,6 @@ void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
     cell_info.spacing = spacing;
 }
 
-void StackNodeItem::SetCellMargins(int row, int col, QMarginsF margins){
-    auto& cell_info = SetupCellInfo(row, col);
-
-    cell_info.margin = margins;
-}
-
-void StackNodeItem::SetCellMinimumSize(int row, int col, qreal width, qreal height){
-    auto& cell_info = SetupCellInfo(row, col);
-    cell_info.minimum_width = width;
-    cell_info.minimum_height = height;
-}
-
 
 void StackNodeItem::SetRenderCellGapIcons(int row, int col, bool render, QString icon_path, QString icon_name){
     auto& cell_info = SetupCellInfo(row, col);
@@ -181,20 +169,6 @@ void StackNodeItem::SetRenderCellSuffixIcon(int row, int col, bool render, QStri
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.render_suffix_icon = render;
     cell_info.suffix_icon = qMakePair(icon_path, icon_name);
-}
-
-QPointF StackNodeItem::getStemAnchorPoint() const
-{
-    //QPointF offset;
-    return gridRect().topLeft();
-}
-
-int StackNodeItem::GetHorizontalGap() const{
-    return 2 * getGridSize();
-}
-
-int StackNodeItem::GetVerticalGap() const{
-    return getGridSize();
 }
 
 QRectF StackNodeItem::getRowRect(int row) const{

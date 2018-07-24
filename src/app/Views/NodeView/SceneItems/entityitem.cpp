@@ -99,10 +99,6 @@ void EntityItem::unsetParent()
     setParentItem(0);
 }
 
-bool EntityItem::isTopLevelItem() const
-{
-    return parent_item == 0;
-}
 
 bool EntityItem::isReadOnly() const
 {
@@ -271,15 +267,6 @@ QRectF EntityItem::translatedBoundingRect() const
     return rect;
 }
 
-/**
- * @brief EntityItemNew::intersectsRectInScene - Checks to see if a Rectangle in Scene Coordinated contains this EntityItems's SceneRect
- * @param rectInScene - A rectangle in scene coordinate space
- * @return
- */
-bool EntityItem::intersectsRectInScene(QRectF rectInScene) const
-{
-    return rectInScene.contains(sceneBoundingRect());
-}
 
 bool EntityItem::isDataProtected(QString key_name) const
 {
@@ -324,10 +311,6 @@ QRectF EntityItem::sceneViewRect() const
     return mapToScene(viewRect()).boundingRect();
 }
 
-QSize EntityItem::iconSize() const
-{
-    return QSize(32,32);
-}
 
 QSize EntityItem::smallIconSize() const
 {
@@ -339,10 +322,6 @@ QPainterPath EntityItem::shape() const
     return getElementPath(EntityRect::SHAPE);
 }
 
-QPainterPath EntityItem::sceneShape() const
-{
-    return mapToScene(shape());
-}
 
 void EntityItem::setIgnorePosition(bool ignore)
 {
@@ -474,13 +453,6 @@ void EntityItem::handleExpand(bool expand)
         if(expand != is_expanded){
             emit req_expanded(this, expand);
         }
-    }
-}
-
-void EntityItem::handleHover(bool hovered)
-{
-    if(hovered != is_hovered){
-        setHovered(hovered);
     }
 }
 
@@ -914,14 +886,6 @@ void EntityItem::paintPixmapRect(QPainter* painter, QString imageAlias, QString 
     painter->restore();
 }
 
-void EntityItem::paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect)
-{
-    painter->save();
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(Theme::theme()->getMainImageColor(imageAlias, imageName));
-    painter->drawEllipse(rect);
-    painter->restore();
-}
 
 QColor EntityItem::getAltBodyColor() const{
     return alt_body_color;

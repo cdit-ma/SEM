@@ -17,7 +17,6 @@ protected:
     ~BaseWindow();
 
 public:
-    bool hasDockWidgets();
     QList<BaseDockWidget*> getDockWidgets();
     int getID();
     WindowType getType();

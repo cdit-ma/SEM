@@ -282,26 +282,6 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
 }
 
 
-
-int ModelController::GetEdgeOrderIndex(EDGE_KIND kind){
-    switch(kind){
-        case EDGE_KIND::DEFINITION:
-            return 0;
-        case EDGE_KIND::AGGREGATE:
-            return 1;
-        case EDGE_KIND::DATA:
-            return 2;
-        case EDGE_KIND::QOS:
-            return 3;
-        case EDGE_KIND::ASSEMBLY:
-            return 4;
-        case EDGE_KIND::DEPLOYMENT:
-            return 5;
-        default:
-            return 100;
-    }
-}
-
 QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
     QList<EDGE_KIND> indices;
 
@@ -1988,16 +1968,6 @@ QList<int> ModelController::getConstructablesConnectableNodes(int constructable_
 }
 
 
-QSet<NODE_KIND> ModelController::getGUINodeKinds(){
-    auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
-    node_set.remove(NODE_KIND::NONE);
-    node_set.remove(NODE_KIND::IDL);
-    return node_set;
-}
-
-
-
-
 /**
  * @brief NewController::setData Sets the Value of the Data of an Entity.
  * @param parentID - The ID of the Entity
@@ -2044,14 +2014,6 @@ bool ModelController::importProjects(QStringList xml_list)
     emit ShowProgress(false);
     emit ActionFinished();
     return success;
-}
-
-bool ModelController::isDataVisual(Data* data){
-    if(data){
-        return isKeyNameVisual(data->getKeyName());
-    }else{
-        return false;
-    }
 }
 
 

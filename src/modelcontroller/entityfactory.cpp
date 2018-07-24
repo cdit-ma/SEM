@@ -532,10 +532,6 @@ EntityFactory *EntityFactory::getNewFactory()
 
 
 
-bool EntityFactory::doesEdgeStructExist(EDGE_KIND kind){
-    return edge_struct_lookup.contains(kind);
-}
-
 const EntityFactory::NodeLookupStruct& EntityFactory::getNodeStruct(NODE_KIND kind){
     QReadLocker lock(&struct_lock_);
     auto node = node_struct_lookup.value(kind, 0);
@@ -639,10 +635,6 @@ Key *EntityFactory::GetKey(const QString& key_name, QVariant::Type type)
     }
 }
 
-QList<Key*> EntityFactory::GetKeys(){
-    return key_lookup_.values();
-}
-
 void EntityFactory::DeregisterNode(Node* node){
     if(!node){
         return;
@@ -735,22 +727,6 @@ Node* EntityFactory::GetNode(int id){
     return 0;
 }
 
-Edge* EntityFactory::GetEdge(int id){
-    auto item = getGraphML(id);
-    if(item && item->getGraphMLKind() == GRAPHML_KIND::EDGE){
-        return (Edge*) item;
-    }
-    return 0;
-}
-
-Data* EntityFactory::GetData(int id){
-    auto item = getGraphML(id);
-    if(item && item->getGraphMLKind() == GRAPHML_KIND::DATA){
-        return (Data*) item;
-    }
-    return 0;
-}
-
 Key* EntityFactory::GetKey(int id){
     auto item = getGraphML(id);
     if(item && item->getGraphMLKind() == GRAPHML_KIND::KEY){
@@ -758,8 +734,6 @@ Key* EntityFactory::GetKey(int id){
     }
     return 0;
 }
-
-    
 
 Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protected_state, QVariant value){
     Data* data = 0;

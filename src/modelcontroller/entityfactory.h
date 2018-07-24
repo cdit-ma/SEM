@@ -105,15 +105,11 @@ protected:
     //Getters
     Entity* GetEntity(int id);
     Node* GetNode(int id);
-    Edge* GetEdge(int id);
-    Data* GetData(int id);
     
     //Key getters
     Key* GetKey(int id);
     Key* GetKey(const QString& key_name);
     
-    QList<Key*> GetKeys();
-
     Entity* GetEntityByUUID(const QString& uuid);
 
     //Called by secondary constructors of Node/Edge subclasses
@@ -140,9 +136,6 @@ private:
     
     Node* _createNode(NODE_KIND kind, bool is_temporary = false, bool complex = true);
     Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
-
-    bool doesNodeStructExist(NODE_KIND kind);
-    bool doesEdgeStructExist(EDGE_KIND kind);
 
 
     const NodeLookupStruct& getNodeStruct(NODE_KIND kind);

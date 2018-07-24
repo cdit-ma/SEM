@@ -87,7 +87,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
 EdgeItem::~EdgeItem()
 {
     disconnect(this);
-    
+
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildEdge(this);
     }
@@ -421,39 +421,6 @@ QRectF EdgeItem::dstIconCircle() const
 }
 
 
-QPolygonF EdgeItem::getTriangle() const{
-    //http://www.mathopenref.com/triangleincircle.html
-
-    QRectF cr = translatedCenterCircleRect();
-
-
-    QPolygonF poly;
-
-    auto center = cr.center();
-    cr.setHeight(1);
-    cr.setWidth(1);
-    cr.moveCenter(center);
-
-    auto delta = 0;
-
-    
-    if(srcCurveEntersCenterLeft){
-        poly << cr.bottomLeft();
-        poly << cr.topLeft();
-        center.rx() += delta;
-    }else{
-        poly << cr.bottomRight();
-        poly << cr.topRight();
-        center.rx() -= delta;
-    }
-    poly << center;
-
-    //auto br = poly.boundingRect();
-    //auto diff = br.center() - center;
-    //poly.translate(diff);
-    return poly;
-}
-
 /**
  * @brief EdgeItem::getCenterCircleTermination Gets the left or right point of the center circle, given a particular center point.
  * @param left Get the left or right side
@@ -496,15 +463,6 @@ QRectF EdgeItem::translatedCenterCircleRect(QPointF center) const
     QRectF r = centerCircleRect();
     r.moveCenter(center);
     return r;
-}
-
-/**
-* @brief EdgeItem::sceneCenterCircleRect Returns the scene coordinate rectangle for the center circle
-* @return
-*/
-QRectF EdgeItem::sceneCenterCircleRect() const
-{
-    return mapToScene(translatedCenterCircleRect()).boundingRect();
 }
 
 
@@ -719,61 +677,6 @@ void EdgeItem::resetCenter()
     }
 }
 
-/**
- * @brief EdgeItem::srcExitsLeft Returns whether or not the Edge should leave the Source on the Left or right side.
- * @param center - The Center position of the EdgeItem (if unset, the stored center point will be used)
- * @return True for left, False for right
- */
-bool EdgeItem::srcExitsLeft(QPointF center) const{
-
-    QPointF srcLeft = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, EDGE_KIND::NONE);
-    QPointF srcRight = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
-    //Allow for the arrow head
-    QPointF ctrLeft = getCenterCircleTermination(true, center) - QPointF(ARROW_SIZE, 0);
-    QPointF ctrRight = getCenterCircleTermination(false, center) + QPointF(ARROW_SIZE, 0);;
-
-    bool exitsLeft = ctrLeft.x() <= srcRight.x();
-
-    if(ctrRight.x() > srcLeft.x() && ctrLeft.x() < srcRight.x()){
-        //If the center is inside the left/right of the src, check if we are on the left of the dst
-        exitsLeft = srcLeftOfDst();
-    }
-    return exitsLeft;
-}
-
-/**
- * @brief EdgeItem::dstExitsLeft Returns whether or not the Edge should leave the Destination on the Left or right side.
- * @param center - The Center position of the EdgeItem (if unset, the stored center point will be used)
- * @return True for left, False for right
- */
-bool EdgeItem::dstExitsLeft(QPointF center) const{
-    //Allow for the arrow head
-    QPointF dstLeft = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE) - QPointF(ARROW_SIZE, 0);
-    QPointF dstRight = vDst->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, EDGE_KIND::NONE) + QPointF(ARROW_SIZE, 0);
-    QPointF ctrLeft = getCenterCircleTermination(true, center);
-    QPointF ctrRight = getCenterCircleTermination(false, center);
-
-    bool exitsLeft = ctrLeft.x() <= dstRight.x();
-
-    if(ctrRight.x() > dstLeft.x() && ctrLeft.x() < dstRight.x()){
-        //If the center is inside the left/right of the dst, check if we are on the left of the src
-        exitsLeft = !srcLeftOfDst();
-    }
-
-    return exitsLeft;
-
-}
-
-/**
- * @brief EdgeItem::srcLeftOfDst Determines if the Source is on the left of the Destination
- * @return True for src left of destination, false for src right of destination
- */
-bool EdgeItem::srcLeftOfDst() const
-{
-    QPointF srcLeft = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
-    QPointF dstLeft = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, EDGE_KIND::NONE);
-    return srcLeft.x() <= dstLeft.x();
-}
 
 /**
  * @brief EdgeItem::getFirstVisibleParent Gets the first visible parent, starting at the actual NodeItem the EdgeItem is connected to.

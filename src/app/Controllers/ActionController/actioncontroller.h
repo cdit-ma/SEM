@@ -23,7 +23,6 @@ public:
 
     void connectSelectionController();
 
-    RootAction* getRootAction(QString actionKey);
     void connectViewController(ViewController* controller);
 
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
@@ -31,7 +30,6 @@ public:
 
     QList<QAction*> getAllActions();
     QList<QAction*> getNodeViewActions();
-    QList<QAction*> getGlobalActions();
 private:
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 signals:

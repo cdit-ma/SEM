@@ -157,7 +157,6 @@ private:
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
     double compare_version(const QString& current_version, const QString& version);
-    QSet<NODE_KIND> getGUINodeKinds();
     bool canReplicate(const QList<Entity *>& ordered_selection);
     bool canCut(const QList<Entity *>& ordered_selection);
     bool canCopy(const QList<Entity *>& ordered_selection);
@@ -181,11 +180,9 @@ private:
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);
     Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
-    int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
 
     void clearHistory();
-    bool isDataVisual(Data* data);
     static bool isKeyNameVisual(const QString& key_name);
 
     Node* construct_component_node(Node* parent, int index);

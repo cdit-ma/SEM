@@ -722,12 +722,6 @@ QAction* ContextMenu::construct_base_action(QMenu* menu, QString label){
     return action;
 }
 
-void ContextMenu::clear_menu_cache(QMenu* menu){
-    if(menu){
-        menu->setProperty("load_count", 10);
-    }
-}
-
 QAction* ContextMenu::construct_viewitem_action(ViewItem* item, QMenu* menu){
     if(item){
         auto id = item->getID();

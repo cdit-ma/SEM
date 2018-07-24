@@ -123,10 +123,6 @@ bool ViewItem::isDataProtected(const QString& key_name) const
     }
 }
 
-bool ViewItem::isDataVisual(const QString&) const
-{
-    return false;
-}
 
 bool ViewItem::isReadOnly() const
 {
@@ -322,18 +318,6 @@ void ViewItem::removeData(const QString& keyName)
 }
 
 
-void ViewItem::updateProtectedKeys(const QList<QString>& protected_keys){
-    this->protected_keys = protected_keys.toSet();
-}
-
-
-void ViewItem::updateProtectedKey(const QString& key_name, bool is_protected){
-    if(is_protected){
-        protected_keys.insert(key_name);
-    }else{
-        protected_keys.remove(key_name);
-    }
-}
 
 void ViewItem::addNotification(QSharedPointer<NotificationObject> notification){
     notifications_.insert(notification);

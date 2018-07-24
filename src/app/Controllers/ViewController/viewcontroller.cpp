@@ -242,15 +242,6 @@ ViewController::~ViewController()
     delete root_item;
 }
 
-JenkinsManager *ViewController::getJenkinsManager()
-{
-    return jenkins_manager;
-}
-
-ExecutionManager *ViewController::getExecutionManager()
-{
-    return execution_manager;
-}
 
 
 SelectionController *ViewController::getSelectionController()
@@ -433,33 +424,6 @@ ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* 
     node_view->setViewController(this);
 
     return (ViewDockWidget*)dock_widget;
-}
-
-QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND kind)
-{
-    QList<ViewItem *> list;
-
-    if(selectionController){
-        foreach(ViewItem* item, selectionController->getSelection()){
-            if(item && item->isNode()){
-                NodeViewItem* nodeItem = (NodeViewItem*) item;
-                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
-                    NodeViewItem* src = edge->getSource();
-                    NodeViewItem* other = edge->getDestination();
-                    if(src != item){
-                        other = src;
-                    }
-                    if(!list.contains(other)){
-                        list.append(other);
-                    }
-                }
-            }
-        }
-    }
-    return list;
-}
-NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
-    return nodeKindItems.value(kind, 0);
 }
 
 QSet<NODE_KIND> ViewController::getValidNodeKinds()
@@ -699,34 +663,6 @@ ViewItem *ViewController::getModel()
     return getViewItem(model_id_);
 }
 
-
-void ViewController::requestSearchSuggestions()
-{
-    emit vc_gotSearchSuggestions(_getSearchSuggestions());
-}
-
-void ViewController::setController(ModelController *c)
-{
-    
-}
-
-
-void ViewController::modelValidated(QString reportPath)
-{
-}
-
-void ViewController::importGraphMLFile(QString graphmlPath)
-{
-    _importProjectFiles(QStringList(graphmlPath));
-}
-
-void ViewController::importGraphMLExtract(QString data)
-{
-    if(!data.isEmpty()){
-        // fit the contents in all the view aspects after import when no model has been imported yet?
-        emit ImportProjects(QStringList(data));
-    }
-}
 
 DefaultDockWidget* ViewController::constructDockWidget(QString title, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window){
     auto window_manager = WindowManager::manager();
@@ -1046,21 +982,6 @@ ViewItem *ViewController::getActiveSelectedItem() const
         return selectionController->getActiveSelectedItem();
     }
     return 0;
-}
-
-QList<NodeView *> ViewController::getNodeViewsContainingID(int ID)
-{
-    QList<NodeView *> nodeViews;
-
-    for(auto dock : WindowManager::manager()->getViewDockWidgets()){
-        if(dock){
-            auto node_view = dock->getNodeView();
-            if(node_view && node_view->getIDsInView().contains(ID)){
-                nodeViews.append(node_view);
-            }
-        }
-    }
-    return nodeViews;
 }
 
 
@@ -1426,12 +1347,6 @@ void ViewController::StoreViewItem(ViewItem* view_item){
         connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
         connect(view_item, &ViewItem::showNotifications, NotificationManager::manager(), &NotificationManager::ShowNotificationPanel);
         emit vc_viewItemConstructed(view_item);
-    }
-}
-
-void ViewController::highlight(QList<int> ids){
-    for(auto id : ids){
-        emit vc_highlightItem(id, true);
     }
 }
 

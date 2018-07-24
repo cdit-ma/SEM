@@ -544,19 +544,6 @@ void MainWindow::setupMenuCornerWidget()
     menu_bar->setCornerWidget(notificationToolbar);
 }
 
-void MainWindow::updateMenuBar(){
-    auto corner_widget = menu_bar->cornerWidget();
-    if(corner_widget){
-        auto size = menu_bar->actionGeometry(action_controller->menu_file->menuAction());
-        auto size_2 = corner_widget->sizeHint();
-
-        auto max_size = qMax(size.height(), size_2.height());
-        corner_widget->setFixedHeight(max_size);
-        //Ignore the padding
-        //menu_bar->setFixedHeight(max_size + 12);
-    }
-}
-
 
 /**
  * @brief MainWindow::setupDockablePanels

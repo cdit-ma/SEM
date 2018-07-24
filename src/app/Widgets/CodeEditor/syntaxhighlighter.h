@@ -17,7 +17,6 @@ struct ParenthesisInfo
     int position;
     int actualPosition;
     bool isOpening() const;
-    bool isClosing() const;
     char getMatching() const;
 };
 

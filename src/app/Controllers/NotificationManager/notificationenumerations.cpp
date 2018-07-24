@@ -34,14 +34,6 @@ QSet<Notification::Severity> Notification::getSeverities(){
     return {Severity::NONE, Severity::RUNNING, Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
 }
 
-const QList<Notification::Type>& Notification::getSortedTypes(){
-    return sorted.type;
-}
-
-const QList<Notification::Category>& Notification::getSortedCategories(){
-    return sorted.categories;
-}
-
 const QList<Notification::Severity>& Notification::getSortedSeverities(){
     return sorted.severities;
 }

@@ -22,25 +22,6 @@ OptionGroupBox::OptionGroupBox(QString title, SortOrder sort_order, QWidget* par
 }
 
 
-/**
- * @brief OptionGroupBox::getCheckedKeys
- * @return
- */
-QList<QVariant> OptionGroupBox::getCheckedKeys()
-{
-    return checkedKeys;
-}
-
-
-/**
- * @brief OptionGroupBox::isAllChecked
- * @return
- */
-bool OptionGroupBox::isAllChecked()
-{
-    return checkedKeys.count() == actions_lookup.count();
-}
-
 bool OptionGroupBox::isResetChecked(){
     return reset_action && reset_action->isChecked();
 }

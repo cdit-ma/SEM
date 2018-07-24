@@ -29,19 +29,14 @@ public:
     ViewItem* getContainedViewItem();
 
     QColor getBackgroundColor();
-    QRectF getViewportRect();
     SelectionHandler* getSelectionHandler();
 
-    QPointF getTopLeftOfSelection();
-    
     void alignHorizontal();
     void alignVertical();
 
     void centerSelection();
 
     void update_minimap();
-
-    QList<int> getIDsInView();
 signals:
     void trans_inactive();
     void trans_InActive2Moving();
@@ -75,7 +70,6 @@ private slots:
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
-    void ResetView();
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
@@ -152,7 +146,6 @@ private:
 
     EntityItem* getEntityItem(int ID) const;
     EntityItem* getEntityItem(ViewItem* item) const;
-    NodeItem* getNodeItem(ViewItem* item) const;
 
     void zoom(int delta, QPoint anchorScreenPos = QPoint());
 

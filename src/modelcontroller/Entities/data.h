@@ -37,12 +37,8 @@ public:
 
     void registerParent(Entity* parent);
     
-    bool isParentData(Data* data);
-    //Data* getParentData();
     
     bool revalidateData();
-    void clearValue();
-    bool compare(const Data* data) const;
 
 
     Key* getKey() const;
@@ -56,11 +52,7 @@ public:
     void addValidValue(QVariant value);
     void addValidValues(QList<QVariant> values);
 
-    void removeValidValue(QVariant value);
-    void clearValidValues();
     QList<QVariant> getValidValues();
-    bool gotValidValues();
-
 protected:
 
     void store_value();

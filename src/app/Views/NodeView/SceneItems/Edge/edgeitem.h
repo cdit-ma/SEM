@@ -53,16 +53,9 @@ private:
     QRectF dstIconCircle() const;
 
     QRectF centerCircleRect() const;
-    QRectF sceneCenterCircleRect() const;
     QRectF translatedCenterCircleRect(QPointF center = QPointF()) const;
-    QPolygonF getTriangle() const;
 
     QPointF getCenterCircleTermination(bool left, QPointF center = QPointF()) const;
-
-
-    bool srcExitsLeft(QPointF center = QPointF()) const;
-    bool dstExitsLeft(QPointF center = QPointF()) const;
-    bool srcLeftOfDst() const;
 
 
     void updateSrcCurve(QPointF srcP, QPointF ctrP, bool srcP_Left, bool ctrP_Left);

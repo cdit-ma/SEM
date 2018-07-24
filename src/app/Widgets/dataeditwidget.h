@@ -16,7 +16,6 @@ public:
     
     void setIcon(QString icon_path, QString icon_name);
     void setIconVisible(bool visible);
-    QString getLabel();
 
     SETTING_TYPE getType();
     void setHighlighted(bool highlighted);

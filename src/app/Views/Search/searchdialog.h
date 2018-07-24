@@ -9,7 +9,6 @@
 #include <QSet>
 
 #include "../../Controllers/ViewController/viewitem.h"
-#include "../../Utils/filtergroup.h"
 #include "searchitemwidget.h"
 #include "../../Widgets/optiongroupbox.h"
 
@@ -32,7 +31,6 @@ private slots:
     void filtersChanged();
 
     void searchItemSelected(int ID);
-    void resetPanel();
 public slots:
     void viewItemDestructed(int ID, ViewItem* item);
 private:

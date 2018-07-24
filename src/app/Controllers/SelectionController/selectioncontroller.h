@@ -14,7 +14,6 @@ public:
 
     SelectionHandler* constructSelectionHandler(QObject* object);
     void registerSelectionHandler(QObject* object, SelectionHandler* handler);
-    void unregisterSelectionHandler(QObject* object, SelectionHandler* handler);
 
     QVector<ViewItem*> getSelection();
     QList<int> getSelectionIDs();
@@ -22,7 +21,6 @@ public:
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
-    int getFirstSelectedItemID();
 
 signals:
     void zoomIn();

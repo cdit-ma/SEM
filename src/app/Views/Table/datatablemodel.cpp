@@ -255,14 +255,6 @@ bool DataTableModel::setData(const QModelIndex &index, const QVariant &value, in
     return false;
 }
 
-bool DataTableModel::insertRows(int row, int count, const QModelIndex &parent)
-{
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return true;
-}
-
 
 Qt::ItemFlags DataTableModel::flags(const QModelIndex &index) const
 {
