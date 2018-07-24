@@ -17,6 +17,18 @@ NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):V
     node_kind = kind;
 }
 
+NodeViewItem::~NodeViewItem(){
+    auto edges_to_delete = edges;
+    edges.clear();
+
+    for(auto edge_kind : edges_to_delete.uniqueKeys()){
+        for(auto edge : edges_to_delete[edge_kind]){
+            edge->disconnectEdge();
+        }
+    }
+}
+
+
 
 
 NODE_KIND NodeViewItem::getNodeKind() const

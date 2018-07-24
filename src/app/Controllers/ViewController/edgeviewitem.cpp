@@ -29,6 +29,7 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString l
 EdgeViewItem::~EdgeViewItem()
 {
     disconnectEdge();
+    
 }
 
 EDGE_KIND EdgeViewItem::getEdgeKind() const

@@ -201,7 +201,9 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
     try{
         return globalFactory()->getNodeStruct(kind).kind_str;
     }catch(const std::exception& ex){
-        qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        if(kind != NODE_KIND::NONE){
+            qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        }
     }
     return "INVALID_NODE";
 }
@@ -210,7 +212,9 @@ QString EntityFactory::getPrettyNodeKindString(NODE_KIND kind){
     try{
         return globalFactory()->getNodeStruct(kind).pretty_kind_str;
     }catch(const std::exception& ex){
-        qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        if(kind != NODE_KIND::NONE){
+            qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        }
     }
     return "INVALID_NODE";
 }
@@ -219,7 +223,9 @@ QString EntityFactory::getPrettyEdgeKindString(EDGE_KIND kind){
     try{
         return globalFactory()->getEdgeStruct(kind).pretty_kind_str;
     }catch(const std::exception& ex){
-        qCritical() << " No Registered EDGE_KIND: " << (uint)kind;
+        if(kind != EDGE_KIND::NONE){
+            qCritical() << " No Registered EDGE_KIND: " << (uint)kind;
+        }
     }
     return "INVALID_EDGE";
 }

@@ -17,6 +17,7 @@ class NodeViewItem: public ViewItem
 public:
     NodeViewItem(ViewController* controller, NODE_KIND kind, QString label);
     NodeViewItem(ViewController* controller, int ID, NODE_KIND kind);
+    ~NodeViewItem();
 
 
     NODE_KIND getNodeKind() const;

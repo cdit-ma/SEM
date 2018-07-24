@@ -99,8 +99,6 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeView::viewItem_Constructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeView::viewItem_Destructed);
 
-        
-
         connect(viewController->getActionController()->edit_clearSelection, &QAction::triggered, this, &NodeView::trans_inactive);
 
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
@@ -218,6 +216,17 @@ void NodeView::viewItem_Constructed(ViewItem *item)
             edgeViewItem_Constructed((EdgeViewItem*)item);
         }
     }
+}
+
+void NodeView::ResetView(){
+    auto my_scene = scene();
+    delete my_scene;
+    setScene(new QGraphicsScene(this));
+    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+
+    topLevelGUIItemIDs.clear();
+    guiItems.clear();
+    containedNodeViewItem = 0;
 }
 
 void NodeView::viewItem_Destructed(int ID, ViewItem *viewItem)

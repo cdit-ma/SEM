@@ -46,6 +46,19 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
+    if(_parent){
+        _parent->removeChild(this);
+        _parent = 0;
+    }
+
+    while(child_nodes_.size()){
+        removeChild(*child_nodes_.begin());
+    }
+
+    while(child_edges_.size()){
+        removeChild(*child_edges_.begin());
+    }
+
 }
 
 VIEW_ASPECT ViewItem::getViewAspect()
@@ -168,10 +181,10 @@ const IconPair& ViewItem::getIcon() const
 
 void ViewItem::destruct()
 {
-    auto parent = getParentItem();
-    if(parent){
-        parent->removeChild(this);
-    }
+    /*if(_parent){
+        _parent->removeChild(this);
+        _parent = 0;
+    }*/
     
     if(hasRegisteredObjects()){
         emit destructing(ID);

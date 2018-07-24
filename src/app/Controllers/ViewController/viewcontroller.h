@@ -56,7 +56,7 @@ public:
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
     QStringList _getSearchSuggestions();
-    QStringList _getIDs();
+    QStringList GetIDs();
     
 
     QHash<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
@@ -257,7 +257,9 @@ private:
     void _showWiki(ViewItem* item=0);
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item);
-    bool destructViewItem(ViewItem* item);
+    
+    void DestructViewItem(ViewItem* item);
+    void ResetViewItems();
 
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
@@ -294,17 +296,13 @@ private:
     bool _controllerReady = false;
 
 
-    bool clearVisualItems();
-
 
     ViewItem* getViewItem(int ID);
 
-    QHash<int, ViewItem*> viewItems;
-
+    ViewItem* root_item = 0;
+    QHash<int, ViewItem*> view_items_;
     int model_id_ = -1;
     
-    QSet<int> topLevelItems;
-    ViewItem* rootItem;
 
     BaseDockWidget* codeViewer = 0;
     CodeBrowser* codeBrowser = 0;
@@ -320,8 +318,6 @@ private:
 
     ContextMenu* menu = 0;
     ModelController* controller = 0;
-    QMutex mutex;
-    
     QTimer autosave_timer_;
     bool is_autosave_enabled_ = false;
     int autosave_id_ = 0;

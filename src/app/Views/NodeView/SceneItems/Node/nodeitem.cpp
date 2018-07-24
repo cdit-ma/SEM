@@ -155,14 +155,16 @@ NodeItem::~NodeItem()
     //remove children nodes.
     while(child_nodes.size()){
         auto node = *child_nodes.begin();
-        removeChildNode(node);
-        delete node;
+        node->unsetParent();
+        child_nodes.remove(node);
+        //removeChildNode(node);
+        //delete node;
     }
 
     while(child_edges.size()){
         auto edge = *child_edges.begin();
         removeChildEdge(edge);
-        delete edge;
+        //delete edge;
     }
 }
 

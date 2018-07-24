@@ -87,6 +87,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
 EdgeItem::~EdgeItem()
 {
     disconnect(this);
+    
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildEdge(this);
     }
