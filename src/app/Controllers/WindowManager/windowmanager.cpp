@@ -427,6 +427,7 @@ void WindowManager::dockWidget_Close(int ID)
         if(sourceWindow == currentWindow || sourceWindow == 0){
             //If the source window is the current window we should destruct the dock.
             destructDockWidget(dock_widget);
+
         }else{
             //Reparent back into source window.
             reparentDockWidget(dock_widget, sourceWindow);

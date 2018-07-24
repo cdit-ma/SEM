@@ -76,7 +76,7 @@ private slots:
     void themeChanged();
 
 public slots:
-    void fitToScreen();
+    
     void selectAll();
     void clearSelection();
 
@@ -89,6 +89,8 @@ public slots:
     void zoomOut(){
         minimap_Zoom(-1);
     }
+    void AllFitToScreen(bool if_active);
+    void FitToScreen();
     
 private slots:
     
@@ -110,9 +112,11 @@ private slots:
 
 
     void centerItem(int ID);
+    
     void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
+    void fitToScreen();
     void themeItem(EntityItem* item);
 
     QColor body_color;

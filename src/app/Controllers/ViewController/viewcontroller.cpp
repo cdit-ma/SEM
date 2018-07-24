@@ -904,7 +904,7 @@ void ViewController::spawnSubView(ViewItem * item)
                 //Set the NodeView to be contained on this NodeViewItem
                 dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
                 //Fit the contents of the dockwidget to screen
-                dockWidget->getNodeView()->fitToScreen();
+                dockWidget->getNodeView()->FitToScreen();
             }else{
                 WindowManager::manager()->destructDockWidget(dockWidget);
             }

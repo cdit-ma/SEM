@@ -69,7 +69,6 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     themeChanged();
 
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
-    
 }
 
 
@@ -116,17 +115,24 @@ void NodeView::setViewController(ViewController *viewController)
 
 
         connect(viewController, &ViewController::vc_centerItem, this, &NodeView::centerItem);
-        connect(viewController, &ViewController::vc_fitToScreen, [=](bool only_if_active){
-            if(is_active || !only_if_active){
-                fitToScreen();
-            }
-        });
+        connect(viewController, &ViewController::vc_fitToScreen, this, &NodeView::AllFitToScreen);
 
         connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeView::centerConnections);
 
 
         connect(viewController, &ViewController::vc_highlightItem, this, &NodeView::highlightItem);
     }
+}
+
+void NodeView::AllFitToScreen(bool only_if_active){
+    if(is_active || !only_if_active){
+        FitToScreen();
+    }
+}
+
+void NodeView::FitToScreen()
+{
+    centerOnItems(getTopLevelEntityItems());
 }
 
 void NodeView::translate(QPointF point)
@@ -419,10 +425,6 @@ void NodeView::item_RemoveData(ViewItem *item, QString keyName)
     }
 }
 
-void NodeView::fitToScreen()
-{
-    centerOnItems(getTopLevelEntityItems());
-}
 
 
 void NodeView::centerSelection()
@@ -1634,7 +1636,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     if(event->button() == Qt::MiddleButton){
         EntityItem* item = getEntityAtPos(scenePos);
         if(!item){
-            fitToScreen();
+            FitToScreen();
             event->accept();
         }
     }
