@@ -6,8 +6,8 @@
 
 #include <exception>
 
-OpenCL_Worker::OpenCL_Worker(const Component& component, std::string inst_name)
-    : Worker(component, __func__, inst_name) {
+OpenCL_Worker::OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name)
+    : Worker(bc, __func__, inst_name) {
 
     platform_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "platform_id").lock();
     if (platform_id_ != NULL) {
