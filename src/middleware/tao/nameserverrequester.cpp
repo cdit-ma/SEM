@@ -22,6 +22,7 @@ void PrintContext(CosNaming::NamingContext_ptr naming_context, std::string paren
     }
 }
 
+//tao_nslist -ORBInitRef NameService=corbaloc:iiop:>/NameService
 int main(int){
     auto& helper;
 
