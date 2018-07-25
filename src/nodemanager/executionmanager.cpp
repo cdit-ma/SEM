@@ -1,6 +1,5 @@
 #include "executionmanager.h"
 #include "executionparser/modelparser.h"
-#include "environmentmanager/deploymentgenerator.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -29,6 +28,7 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
         execution_ = execution;
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
+    
 
     
 
@@ -50,6 +50,7 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     if(!environment_manager_endpoint.empty()){
         requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id_,
                                                             EnvironmentRequester::DeploymentType::RE_MASTER));
+        requester_->AddUpdateCallback(std::bind(&ExecutionManager::UpdateCallback, this, std::placeholders::_1));
     }
 
     parse_succeed_ = PopulateDeployment();
@@ -66,7 +67,7 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
 
         if(parse_succeed_ && execution){
             std::cout << "--------[Slave Registration]--------" << std::endl;
-            execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
+            execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, execution_duration);
         }
     }else{
         std::cout << "* Deployment Parsing Failed!" << std::endl;
@@ -83,12 +84,7 @@ bool ExecutionManager::PopulateDeployment(){
 
         environment->AddDeployment(deployment_message_->experiment_id(), "", EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER);
 
-        DeploymentGenerator generator(*environment);
-        //TODO: Add other middlewares.
-
-        NodeManager::ControlMessage* configured_message =  generator.PopulateDeployment(*deployment_message_);
-        deployment_message_->Clear();
-        deployment_message_ = configured_message;
+        environment->PopulateExperiment(*deployment_message_);
     }
     else{
         requester_->Init(environment_manager_endpoint_);
@@ -317,7 +313,10 @@ void ExecutionManager::UpdateCallback(NodeManager::EnvironmentMessage& environme
     //can we even do that??
 
     if(environment_update.type() == NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
-        PushMessage("*", environment_update.mutable_control_message());
+        //Take a copy.
+        auto control_message = new NodeManager::ControlMessage(*environment_update.mutable_control_message());
+        control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
+        PushMessage("*", control_message);
     }
     else{
         throw std::runtime_error("Unknown message type");
@@ -341,9 +340,8 @@ void ExecutionManager::TriggerExecution(bool execute){
 void ExecutionManager::TerminateExecution(){
     //Interupt
     TriggerExecution(false);
-    if(execution_thread_){
-        //Notify
-        execution_thread_->join();
+    if(execution_future_.valid()){
+        execution_future_.get();
     }
 }
 
@@ -364,7 +362,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     std::cout << "-------------[Execution]------------" << std::endl;
 
     if(execute){
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        //std::this_thread::sleep_for(std::chrono::seconds(0));
         std::cout << "* Activating Deployment" << std::endl;
         
         //Send Activate function
@@ -372,7 +370,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
         activate->set_type(NodeManager::ControlMessage::ACTIVATE);
         PushMessage("*", activate);
 
-        requester_->AddUpdateCallback(std::bind(&ExecutionManager::UpdateCallback, this, std::placeholders::_1));
+        
 
         {
             std::unique_lock<std::mutex> lock(execution_mutex_);
@@ -415,7 +413,5 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     if(!local_mode_){
         requester_->RemoveDeployment();
     }
-
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     execution_->Interrupt();
 }

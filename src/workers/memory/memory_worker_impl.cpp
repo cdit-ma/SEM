@@ -6,7 +6,7 @@
 Memory_Worker_Impl::~Memory_Worker_Impl(){
     std::lock_guard<std::mutex> guard(lock_);
     auto size = memory_.size();
-    Deallocate(size);
+    _NonThreadSafeDeallocate(size);
 }
 
 //TODO: handle the case where caller may be interested in allocation of continuous block
@@ -30,8 +30,13 @@ bool Memory_Worker_Impl::Allocate(size_t kilobytes) {
 }
 
 bool Memory_Worker_Impl::Deallocate(size_t kilobytes) {
-    bool result = true;
     std::lock_guard<std::mutex> guard(lock_);
+
+    return _NonThreadSafeDeallocate(kilobytes);
+}
+
+bool Memory_Worker_Impl::_NonThreadSafeDeallocate(size_t kilobytes) {
+    bool result = true;
 
     // Make sure we are not trying to deallocate more memory
     // that what is currently allocated.

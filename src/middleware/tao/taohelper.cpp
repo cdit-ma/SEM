@@ -14,7 +14,7 @@ tao::TaoHelper::~TaoHelper(){
     for(auto& pair : orb_lookup_){
         try{
             //Interupt the thread running the orb, it'll handle destruction
-            pair.second->shutdown(false);
+            pair.second->shutdown(true);
         }catch(const CORBA::Exception& e){
             std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
         }
@@ -49,8 +49,8 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
             auto endpoint = strdup(orb_endpoint.c_str());
             auto orb_id = strdup(orb_endpoint.c_str());
             auto debug_str = strdup(debug_mode ? "10" : "0");
-            int argc = 6;
-            char* argv[6] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str, "-ORBId", orb_id};
+            int argc = 8;
+            char* argv[8] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str, "-ORBId", orb_id, "-ORBCollocation", "no"};
             orb = CORBA::ORB_init (argc, argv);
             
             delete[] endpoint;
@@ -61,9 +61,11 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
         }
 
         if(!CORBA::is_nil(orb)){
+            //std::cerr << "CONSTRUCTED ORB: " << orb << ": orb_endpoint: " << orb_endpoint << std::endl;
             //Start an async task to run the ORB, and attach it into a thread manager object
             auto thread_manager = std::unique_ptr<ThreadManager>(new ThreadManager());
             thread_manager->SetFuture(std::async(std::launch::async, OrbThread, std::ref(*thread_manager), orb));
+
 
             //Wait for activated
             auto success = thread_manager->WaitForActivated();
@@ -105,17 +107,14 @@ PortableServer::POA_var tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
         auto root_poa = get_root_poa(orb);
         
         PortableServer::POA_ptr poa = 0;
-
         try{
             poa = root_poa->find_POA(poa_name.c_str(), true);
-            std::cout << "FOUND POA" << std::endl;
+            //std::cerr << "FOUND POA: " << poa_name << std::endl;
         }catch(const PortableServer::POA::AdapterNonExistent& e){
             poa = 0;
         }
 
-        if(poa){
-            std::cout << "Found POA: " << poa_name << std::endl;
-        }else{
+        if(!poa){
             // Construct the policy list for the LoggingServerPOA.
             CORBA::PolicyList policies (3);
             policies.length (3);
@@ -124,15 +123,12 @@ PortableServer::POA_var tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
             policies[2] = root_poa->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
             
             // Get the POA manager object
-            PortableServer::POAManager_var manager = root_poa->the_POAManager();
-
-            if(manager->get_state() != PortableServer::POAManager::ACTIVE){
-                manager->activate();
-            }
+            auto poa_manager = root_poa->the_POAManager();
+            poa_manager->activate();
             
-            
+            //std::cerr << "Creating POA: " << poa_name << std::endl;
             // Create the child POA for the test logger factory servants.
-            poa = root_poa->create_POA(poa_name.c_str(), manager, policies);
+            poa = root_poa->create_POA(poa_name.c_str(), poa_manager, policies);
 
             // Destroy the POA policies
             for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
@@ -149,6 +145,8 @@ PortableServer::POA_var tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
 
 bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name){
     if(orb && poa){
+
+        
         PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId(object_name.c_str());
         
         //Activate the object with the obj_id
@@ -156,16 +154,14 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
 
         //Get the reference to the obj, using the obj_id
         auto obj_ref = poa->id_to_reference(obj_id);
+        //obj_ref->_remove_ref();
 
         //Get the IOR from the object
         CORBA::String_var ior = orb->object_to_string(obj_ref);
-        
-        obj_ref->_remove_ref();
 
         auto ior_table = GetIORTable(orb);
        
         if(ior_table){
-            
             ior_table->rebind(object_name.c_str(), ior);
             return true;
         }
@@ -182,6 +178,10 @@ bool tao::TaoHelper::deregister_servant(CORBA::ORB_ptr orb, PortableServer::POA_
     if(orb && poa){
         CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId (object_name.c_str());
         poa->deactivate_object(obj_id);
+
+        //Remove from the maps
+        registered_poas_.erase(poa);
+        poa->destroy(1,1);
         
 
         auto ior_table = GetIORTable(orb);
@@ -199,6 +199,16 @@ void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::s
             auto object = orb->string_to_object(corba_str.c_str());
             //orb->unregister_initial_reference(obj_id.c_str());
             orb->register_initial_reference(obj_id.c_str(), object);
+        }catch(const CORBA::Exception& e){
+            std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
+        }
+    }
+}
+
+void tao::TaoHelper::deregister_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id){
+    if(orb){
+        try{
+            orb->unregister_initial_reference(obj_id.c_str());
         }catch(const CORBA::Exception& e){
             std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
         }

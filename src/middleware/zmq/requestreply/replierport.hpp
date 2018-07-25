@@ -157,7 +157,8 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
                 auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
                 delete base_request_ptr;
                 //Send reply
-                socket->send(String2Zmq(reply_str));
+                socket->
+                send(String2Zmq(reply_str));
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){

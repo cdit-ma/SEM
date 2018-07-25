@@ -10,15 +10,19 @@ import cditma.Utils
 
 def utils = new Utils(this);
 
-def PROJECT_NAME = 're'
+final PROJECT_NAME = 're'
 def git_url = "/srv/git"
-def re_nodes = utils.getLabelledNodes(PROJECT_NAME);
+def re_nodes = nodesByLabel("deploy_re")
 
-//Checkout and stash re source (stored on Master's local git repo)
+
+final ARCHIVE_NAME = PROJECT_NAME + ".tar.gz"
+final STASH_NAME = ARCHIVE_NAME + "_stash"
+
+//Checkout and stash re source archive (stored on Master's local git repo)
 stage('Checkout'){
     node('master'){
-        dir(git_url + "/" + PROJECT_NAME){
-            stash include: "**", name: "source_code"
+        dir(git_url){
+            stash includes: ARCHIVE_NAME, name: STASH_NAME
         }
     }
 }
@@ -27,16 +31,27 @@ stage('Checkout'){
 def step_build = [:]
 for(n in re_nodes){
     def node_name = n
+    if(node_name == ""){
+        node_name = "master"
+    }
     step_build[node_name] = {
         node(node_name){
-            dir("${RE_PATH}"){
+            dir("${HOME}/re"){
                 deleteDir()
-                unstash "source_code"
-                dir("build"){
-                    def result = utils.buildProject("Ninja", "")
-                    if(!result){
-                        error('Failed to compile')
-                    }
+            }
+            unstash STASH_NAME
+            sleep(1)
+
+            //Build into HOME
+            utils.runScript("tar -xf " + ARCHIVE_NAME + " -C ${HOME}" )
+
+            dir("${HOME}/re/build"){
+                sleep(1)
+                touch '.dummy'
+                print("Running in: " + pwd())
+                def result = utils.buildProject("Ninja", "")
+                if(!result){
+                    error('Failed to compile')
                 }
             }
         }

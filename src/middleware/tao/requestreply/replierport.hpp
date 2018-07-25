@@ -49,7 +49,7 @@ namespace tao{
     //Generic templated RequesterHandler
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
     struct RequestHandler{
-        static void Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt> > server);
+        static void Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt> > server, const std::string orb_endpoint, const std::string server_address);
     };
 
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
@@ -108,12 +108,14 @@ tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, T
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
 void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::HandleConfigure(){
+    auto server = GetServer();
+    
+    std::lock_guard<std::mutex> lock(mutex_);
     if(thread_manager_)
         throw std::runtime_error("tao Replier Port: '" + this->get_name() + "': Has an errant ThreadManager!");
     
-    auto server = GetServer();
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
-    auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server));
+    auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server), orb_endpoint_->String(), server_name_->String());
     thread_manager_->SetFuture(std::move(future));
     thread_manager_->Configure();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
@@ -150,10 +152,10 @@ void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
 void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::InterruptLoop(){
+    std::lock_guard<std::mutex> lock(mutex_);
     if(thread_manager_){
-        return thread_manager_->Terminate();
+        thread_manager_->SetTerminate();
     }
-    return true;
 }
 
 
@@ -161,6 +163,7 @@ void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
 std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>> tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::GetServer(){
     std::lock_guard<std::mutex> lock(mutex_);
+    
     auto& helper = tao::TaoHelper::get_tao_helper();
     auto orb = helper.get_orb(orb_endpoint_->String());
 
@@ -179,14 +182,19 @@ std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType,
 
 //Generic templated RequestHandler
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
-void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>> server){
+void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>> server, const std::string orb_endpoint, const std::string server_name){
     auto& helper = tao::TaoHelper::get_tao_helper();
+    auto orb = helper.get_orb(orb_endpoint);
+    auto poa = helper.get_poa(orb, server_name);
+    
     thread_manager.Thread_Configured();
     if(thread_manager.Thread_WaitForActivate()){
         thread_manager.Thread_Activated();
         thread_manager.Thread_WaitForTerminate();
     }
-    //helper.deregister_servant(orb, poa, tao_server, server_name);
+    helper.deregister_servant(orb, poa, server.get(), server_name);
+    
+    server.reset();
     thread_manager.Thread_Terminated();
 };
 

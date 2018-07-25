@@ -7,7 +7,7 @@ GraphmlParser::GraphmlParser(const std::string& filename) : GraphmlParserInt(fil
     auto result = doc.load_file(filename.c_str());
     legal_parse = result.status == pugi::status_ok;;
     if(!legal_parse){
-        std::cerr << "GraphmlParser:Parse(" + filename + ") Error: " << result.description() << std::endl;
+        throw std::runtime_error("GraphmlParser:Parse(" + filename + ") Error: " + result.description());
     }
 
     //Pre fill attribute map
@@ -23,10 +23,6 @@ GraphmlParser::GraphmlParser(const std::string& filename) : GraphmlParserInt(fil
         auto id = node.attribute("id").value();
         id_lookup_[id] = node;
     }
-}
-
-bool GraphmlParser::IsValid(){
-    return legal_parse;
 }
 
 std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const std::string& parent_id){

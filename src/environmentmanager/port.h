@@ -37,47 +37,46 @@ class Port{
         std::string GetId() const;
         Port::Kind GetKind() const;
         Port::Middleware GetMiddleware() const;
-        std::string GetPublisherPort() const;
+        std::string GetProducerPort() const;
+        std::string GetProducerEndpoint() const;
         std::string GetTopic() const;
         Component& GetComponent() const;
         Node& GetNode() const;
         Experiment& GetExperiment() const;
-
-        void SetType(const std::string& type);
-        void SetPublisherPort(const std::string& publisher_port);
-        void SetTopic(const std::string& topic_name);
-        
-        void AddConnectedEndpoint(const std::string& endpoint);
-        void RemoveConnectedEndpoint(const std::string& endpoint);
-        void AddExternalConnectedEndpoint(const std::string& endpoint);
-        void RemoveExternalConnectedEndpoint(const std::string& endpoint);
-        void AddConnectedPortId(const std::string& port_id);
-        void AddExternalConnectedPortId(const std::string& port_id);
-
-        void ConfigureConnections();
-        void AddAttribute(const NodeManager::Attribute& attribute);
-
-        void UpdateExternalEndpoints();
-
-        bool IsConnectedTo(const std::string& port_id) const;
-
-        void SetDirty();
-        bool IsDirty() const;
-
+        Environment& GetEnvironment() const;
         NodeManager::Port* GetUpdate();
         NodeManager::Port* GetProto();
+        void SetDirty();
+        bool IsDirty() const;
+    private:
+        void SetType(const std::string& type);
+        void SetProducerPort(const std::string& publisher_port);
+        void SetTopic(const std::string& topic_name);
 
+        void AddInternalConnectedPortId(const std::string& port_id);
+        void AddExternalConnectedPortId(const std::string& port_id);
 
-        Kind ProtoPortKindToInternal(NodeManager::Port::Kind kind);
-        NodeManager::Port::Kind InternalPortKindToProto(Port::Kind middleware);
-        Middleware ProtoPortMiddlewareToInternal(NodeManager::Middleware middleware);
-        NodeManager::Middleware InternalPortMiddlewareToProto(Port::Middleware middleware);
+        void AddAttribute(const NodeManager::Attribute& attribute);
+        
+        const std::set<std::string>& GetInternalConnectedPortIds();
+        const std::set<std::string>& GetExternalConnectedPortIds();
+        
+        static Kind TranslateProtoKind(const NodeManager::Port::Kind kind);
+        static NodeManager::Port::Kind TranslateInternalKind(const Port::Kind middleware);
+        static NodeManager::Middleware TranslateInternalMiddleware(const Port::Middleware middleware);
+        static Middleware TranslateProtoMiddleware(const NodeManager::Middleware middleware);
 
+        static void FillZmqPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
+        static void FillDdsPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
+        static void FillQpidPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
+        static void FillTaoPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
 
+        static void FillTopicPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
 
     private:
         Environment& environment_;
         Component& component_;
+
         std::string id_;
         std::string name_;
         std::string type_;
@@ -85,30 +84,15 @@ class Port{
         Kind kind_;
         Middleware middleware_;
 
-        bool external_ = false;
-
-        bool dirty_;
+        bool dirty_ = false;
 
         std::string topic_name_;
+        std::string producer_port_;;
 
-        std::set<std::string> endpoints_;
-        std::set<std::string> external_endpoints_;
-
-        std::string tao_replier_server_name_;
-
-        std::string publisher_port_;
-
-        std::set<std::string> connected_port_ids_;
+        std::set<std::string> connected_internal_port_ids_;
         std::set<std::string> connected_external_port_ids_;
 
         std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
-
-        void FillZmqProto(NodeManager::Port* port);
-        void FillDdsProto(NodeManager::Port* port);
-        void FillQpidProto(NodeManager::Port* port);
-        void FillTaoProto(NodeManager::Port* port);
-
-
 };
 };
 

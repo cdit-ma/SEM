@@ -69,7 +69,7 @@ class ExecutionManager{
         std::string experiment_id_;
         std::string environment_manager_endpoint_;
 
-        std::thread* execution_thread_ = 0;
+        std::future<void> execution_future_;
 
         NodeManager::ControlMessage* deployment_message_;
 
@@ -90,7 +90,7 @@ class ExecutionManager{
         Execution* execution_;
         std::unique_ptr<EnvironmentRequester> requester_;
         
-        zmq::ProtoWriter* proto_writer_;
+        zmq::ProtoWriter* proto_writer_ = 0;
         std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
 
         std::mutex slave_state_mutex_;

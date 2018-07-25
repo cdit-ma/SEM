@@ -15,11 +15,9 @@
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     experiment_id_ = experiment_id;
     graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
-    is_valid_ = graphml_parser_->IsValid();
-    if(is_valid_){
-        pre_process_success_ = PreProcess();
-        process_success_ = Process();
-    }
+    pre_process_success_ = PreProcess();
+    process_success_ = Process();
+    
 }
 
 //Pretty json prints deployment protbuf controlmessage
@@ -56,6 +54,8 @@ NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
 */ 
 std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind){
     std::set<std::string> source_ids;
+
+    bool is_assembly_edge = edge_kind == "Edge_Assembly";
     
     //Get all edges connected to node_id
     for(const auto& edge_id : entity_edge_ids_[node_id]){
@@ -65,11 +65,20 @@ std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const st
                 //Get the source of this edge
                 const auto& edge_source = graphml_parser_->GetAttribute(edge_id, "source");
                 
+                bool recurse_edges = true;
+                if(is_assembly_edge){
+                    //Treat External Delegate Ports as Terminations so we don't break intra-model connectivity
+                    const auto& source_kind = graphml_parser_->GetDataValue(edge_source, "kind");
+                    if(source_kind == "PubSubPortDelegate" || source_kind == "RequestPortDelegate"){
+                        recurse_edges = false;
+                    }
+                }
+                
                 //Get the edges originating from the source
                 const auto& connected_sources = GetTerminalSourcesByEdgeKind(edge_source, edge_kind);
 
                 //If we have edges originating from the source, append them
-                if(connected_sources.size()){
+                if(recurse_edges && connected_sources.size()){
                     for(const auto& source_id : connected_sources){
                         source_ids.insert(source_id);
                     }
@@ -346,7 +355,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                     //Set qpid_broker
                     auto broker_pb = eport_pb->add_attributes();
                     auto broker_info_pb = broker_pb->mutable_info();
-                    broker_info_pb->set_name("topic_name");
+                    broker_info_pb->set_name("broker");
                     broker_pb->set_kind(NodeManager::Attribute::STRING);
                     broker_pb->add_s(broker_addr);
                     break;
@@ -448,6 +457,8 @@ bool ProtobufModelParser::Process(){
         NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
+        }else{
+            continue;
         }
 
         auto logger_pb = node_pb->add_loggers();
@@ -455,6 +466,22 @@ bool ProtobufModelParser::Process(){
         logger_pb->set_type(NodeManager::Logger::CLIENT);
         logger_pb->set_id(client_id);
         logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
+
+        auto processes = graphml_parser_->GetDataValue(client_id, "processes_to_log");
+        std::transform(processes.begin(), processes.end(), processes.begin(), [](char ch) {
+            return ch == ',' ? ' ' : ch;
+        });
+
+
+        std::istringstream iss(processes);
+        std::vector<std::string> split_processes(std::istream_iterator<std::string>{iss},
+                                 std::istream_iterator<std::string>());
+
+        for(const auto& process : split_processes){
+            logger_pb->add_processes(process);
+        }
+
+
 
         if(graphml_parser_->GetDataValue(client_id, "mode") == "LIVE"){
             logger_pb->set_mode(NodeManager::Logger::LIVE);
@@ -469,6 +496,8 @@ bool ProtobufModelParser::Process(){
         NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
+        }else{
+            continue;
         }
 
         auto logger_pb = node_pb->add_loggers();

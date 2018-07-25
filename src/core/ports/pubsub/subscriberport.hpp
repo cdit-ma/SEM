@@ -92,6 +92,7 @@ void SubscriberPort<BaseType>::HandleConfigure(){
     }else{
         throw std::runtime_error("SubscriberPort has an active ThreadManager");
     }
+    Port::HandleConfigure();
 };
 
 template <class BaseType>
@@ -102,12 +103,14 @@ void SubscriberPort<BaseType>::HandleActivate(){
     }else{
         throw std::runtime_error("Got no Thread Manager");
     }
+    Port::HandleActivate();
 };
 
 
 template <class BaseType>
 void SubscriberPort<BaseType>::HandlePassivate(){
     InterruptLoop();
+    Port::HandlePassivate();
 };
 
 template <class BaseType>
@@ -118,6 +121,7 @@ void SubscriberPort<BaseType>::HandleTerminate(){
         thread_manager_->Terminate();
         thread_manager_.reset();
     }
+    Port::HandleTerminate();
 };
 
 template <class BaseType>

@@ -25,6 +25,8 @@ class DeploymentHandler{
 
         void Terminate();
 
+        void PrintError(const std::string& message);
+
 
     private:
         //Heartbeat constants (ms)
@@ -62,6 +64,9 @@ class DeploymentHandler{
         std::string experiment_id_;
         std::map<std::string, std::string> port_map_;
         long time_added_;
+
+        std::mutex logan_ip_mutex_;
+        std::set<std::string> registered_logan_ip_addresses;
 
         std::unique_ptr<std::thread> handler_thread_;
 

@@ -6,7 +6,7 @@
 // -String parameter: EXECUTION_TIME
 // -String parameter: EXPERIMENT_NAME
 // -String parameter: ENVIRONMENT_MANAGER_ADDRESS
-
+//
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
@@ -19,8 +19,13 @@ final build_id = env.BUILD_ID
 final CLEANUP = false
 
 def experiment_name = "${EXPERIMENT_NAME}"
+def USE_CACHE_BUILD = false
+
 if(experiment_name.isEmpty()){
     experiment_name = "deploy_model_" + build_id
+}else{
+    currentBuild.displayName = "#" + build_id + " - " + experiment_name
+    USE_CACHE_BUILD = true
 }
 
 //Set the current build description
@@ -62,7 +67,8 @@ node(builder_nodes[0]){
     sleep(1)
     //Stash the model file
     stash includes: MODEL_FILE, name: 'model'
-
+    
+    //Generate the code on the first builder node
     stage('C++ Generation'){
         dir(build_id + "/Codegen"){
             unstash 'model'
@@ -106,13 +112,47 @@ for(n in builder_nodes){
     //Define the Builder instructions
     builder_map[node_name] = {
         node(node_name){
+            //Cache dir is the experiment_name
             def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-            dir(build_id + "/" + stash_name){
-                //Unstash the generated code
-                unstash 'codegen'
+            def build_dir = experiment_name
+            if(USE_CACHE_BUILD){
+                //Cache dir is the experiment_name
+                def cached_dir = stash_name + "/" + experiment_name
 
+                //Temporarily unstash into the build folder
+                dir(build_id){
+                    //Unstash the generated code
+                    unstash 'codegen'
+
+                    def relative_cached_dir = "../" + cached_dir
+
+                    //Make the relative cached dir
+                    if(utils.runScript('mkdir -p "' + relative_cached_dir + '"') != 0){
+                        print("Cannot remove files")
+                    }
+
+                    //Run RSync to copy the newly generated code
+                    if(utils.runScript('rsync -rpgoD --checksum --exclude "*.zip" --exclude "*.graphml" . "' + relative_cached_dir + '"') != 0){
+                        print("Cannot remove files")
+                    }
+                }
+                //Set the build dir to the cached dir after we have rsynced the files
+                build_dir = cached_dir
+            }else{
+                dir(build_id){
+                    //Unstash the generated code
+                    unstash 'codegen'
+                }
+                build_dir = build_id
+            }
+
+            dir(build_dir){
+                dir("lib"){
+                    //Clear any cached binaries
+                    deleteDir()
+                }
                 dir("build"){
-                    if(!utils.buildProject("Ninja", "")){
+                    if(!utils.buildProject("Ninja", "", false)){
                         error("CMake failed on Builder Node: " + node_name)
                     }
                 }
@@ -120,10 +160,6 @@ for(n in builder_nodes){
                     //Stash all Libraries
                     stash includes: '**', name: stash_name
                 }
-            }
-            //Delete the Dir
-            if(CLEANUP){
-                deleteDir()
             }
         }
     }
@@ -134,49 +170,53 @@ for(n in nodes){
     def node_name = n;
     execution_map[node_name] = {
         node(node_name){
+            //Get the ip address
+            final ip_addr = env.IP_ADDRESS
+            if(!ip_addr){
+                error("Runtime Node: " + node_name + " doesn't have an IP_ADDRESS env var.")
+            }
             dir(build_id){
-                //Get the IP of this node
-                def ip_addr = utils.getNodeIpAddress(node_name)
-                
                 dir("lib"){
                     //Unstash the required libraries for this node.
                     //Have to run in the lib directory due to dll linker paths
                     unstash "code_" + utils.getNodeOSVersion(node_name)
                     
-                    def args = " -n " + experiment_name
+                    def args = ' -n "' + experiment_name + '"'
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
                     args += " -l ."
 
-                    def logan_args = ""
-                    logan_args += " -n " + experiment_name
+                    def logan_args = ' -n "' + experiment_name + '"'
                     logan_args += " -e " + env_manager_addr
                     logan_args += " -a " + ip_addr
 
                     if(node_name == master_node){
                         unstash 'model'
                         args += " -t " + execution_time
-                        args += " -d " + MODEL_FILE
+                        args += ' -d "' + MODEL_FILE  + '"'
                     }
 
                     parallel(
-                        ("LOGAN_ " + node_name): {
+                        ("LOGAN_" + node_name): {
                             //Run Logan
-                            if(utils.runScript("${LOGAN_PATH}/bin/logan_clientserver" + logan_args) != 0){
-                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                            if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + logan_args) != 0){
+                                FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
                                 FAILED = true
                             }
                         },
-                        ("RE_ " + node_name): {
+                        ("RE_" + node_name): {
                             //Run re_node_manager
                             if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                                FAILURE_LIST << ("Experiment slave failed on node: " + node_name)
+                                FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
                                 FAILED = true
                             }
                         }
                     )
-
-                    archiveArtifacts artifacts: '**.sql', allowEmptyArchive: true
+                    
+                    //Archive any sql databases produced
+                    if(findFiles(glob: '**/*.sql').size() > 0){
+                        archiveArtifacts artifacts: '**/*.sql'
+                    }
                 }
                 //Delete the Dir
                 if(CLEANUP){

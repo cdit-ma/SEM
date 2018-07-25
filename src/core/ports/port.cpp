@@ -57,6 +57,7 @@ void Port::EventIgnored(const BaseMessage& message){
 }
 
 void Port::HandleConfigure(){
+    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::CONFIGURED);
 }
 
 void Port::HandleActivate(){
