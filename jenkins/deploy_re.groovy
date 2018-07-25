@@ -31,6 +31,9 @@ stage('Checkout'){
 def step_build = [:]
 for(n in re_nodes){
     def node_name = n
+    if(node_name == ""){
+        node_name = "master"
+    }
     step_build[node_name] = {
         node(node_name){
             dir("${HOME}/re"){
