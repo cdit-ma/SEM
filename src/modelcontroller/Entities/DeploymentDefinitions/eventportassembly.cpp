@@ -27,29 +27,7 @@ bool EventPortAssembly::isPubPortDelegate() const
     return getNodeKind() == NODE_KIND::PORT_PUBLISHER_DELEGATE;
 }
 
-bool EventPortAssembly::isSubPortAssembly() const
-{
-    return isSubPortDelegate() || isSubPortInstance();;
-}
 
-bool EventPortAssembly::isPubPortAssembly() const
-{
-    return isPubPortDelegate() || isPubPortInstance() ;
-}
-
-bool EventPortAssembly::isPortDelegate() const
-{
-    return isSubPortDelegate() || isPubPortDelegate() || isReqPortDelegate();
-}
-
-bool EventPortAssembly::isPortInstance() const
-{
-    return isSubPortInstance() || isPubPortInstance() || isReqPortInstance()  || isRepPortInstance();
-}
-
-bool EventPortAssembly::isReqPortDelegate() const{
-    return getNodeKind() == NODE_KIND::PORT_REQUEST_DELEGATE;
-}
 
 bool EventPortAssembly::isPubSubPortDelegate() const{
     return getNodeKind() == NODE_KIND::PORT_PUBSUB_DELEGATE;
@@ -63,16 +41,6 @@ bool EventPortAssembly::isSubPortInstance() const
 bool EventPortAssembly::isPubPortInstance() const
 {
     return getNodeKind() == NODE_KIND::PORT_PUBLISHER_INST;
-}
-
-bool EventPortAssembly::isRepPortInstance() const
-{
-    return getNodeKind() == NODE_KIND::PORT_REPLIER_INST;
-}
-
-bool EventPortAssembly::isReqPortInstance() const
-{
-    return getNodeKind() == NODE_KIND::PORT_REQUESTER_INST;
 }
 
 #include <QDebug>
@@ -116,7 +84,6 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             int src_depth_to_ancestor = getDepthFromCommonAncestor(port);
             int dst_depth_to_ancestor = port->getDepthFromCommonAncestor(this);
             int depth_delta = src_depth_to_ancestor - dst_depth_to_ancestor;
-            int abs_depth_delta = abs(depth_delta);
             int total_depth = src_depth_to_ancestor + dst_depth_to_ancestor;
 
             if(total_depth > 4){

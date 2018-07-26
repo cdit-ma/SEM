@@ -8,42 +8,56 @@
 #include <QDebug>
 #include <QStringBuilder>
 
-QString Key::getGraphMLTypeName(const QVariant::Type type)
+//The type of the GraphML-Attribute can be either boolean, int, long, float, double, or string.
+const QString Type_Boolean("boolean");
+const QString Type_Int("int");
+const QString Type_Long("long");
+const QString Type_Double("double");
+const QString Type_Float("float");
+const QString Type_String("string");
+
+const QString& Key::getGraphMLTypeName(const QVariant::Type type)
 {
-    if(type == QVariant::Bool){
-        return "boolean";
-    }else if(type == QVariant::Int){
-        return "int";
-    }else if(type == QVariant::LongLong){
-        return "longlong";
-    }else if(type == QVariant::Double){
-        return "double";
+    switch(type){
+        case QVariant::Bool:
+            return Type_Boolean;
+        case QVariant::Int:
+            return Type_Int;
+        case QVariant::LongLong:
+            return Type_Long;
+        case QVariant::Double:
+            return Type_Double;
+        case QVariant::String:
+            return Type_String;
+        default:
+            return Type_String;
     }
-    return "string";
 }
 
-QVariant::Type Key::getTypeFromGraphML(const QString typeString)
+QVariant::Type Key::getTypeFromGraphML(const QString& type_string)
 {
-    QString typeStringLow = typeString.toLower();
-
-    if(typeString == "boolean"){
-        return QVariant::Bool;
-    }else if(typeString == "int"){
-        return QVariant::Int;
-    }else if(typeString == "long" || typeString == "longlong"){
-        return QVariant::LongLong;
-    }else if(typeString == "float" || typeString == "double"){
-        return QVariant::Double;
-    }else if(typeString == "string"){
+    const static QHash<QString, QVariant::Type> type_map({
+        {Type_Boolean, QVariant::Bool},
+        {Type_Int, QVariant::Int},
+        {Type_Long, QVariant::LongLong},
+        {Type_Double, QVariant::Double},
+        {Type_Float, QVariant::Double},
+        {Type_String, QVariant::String}
+    });
+    if(type_map.contains(type_string)){
+        return type_map.value(type_string);
+    }else{
+        qCritical() << "Key::getTypeFromGraphML(): Cannot Find Type: " << type_string;
         return QVariant::String;
     }
-
-    return QVariant::nameToType(typeStringLow.toStdString().c_str());
 }
 
-Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type type) : GraphML(broker, GRAPHML_KIND::KEY){
-    key_name_ = key_name;
-    key_type_ = type;
+Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type key_type)
+: GraphML(broker, GRAPHML_KIND::KEY),
+key_name_(key_name),
+key_type_(key_type)
+{
+
 }
 
 Key::~Key()
@@ -60,12 +74,12 @@ bool Key::isProtected() const
     return is_protected_;
 }
 
-QString Key::getName() const
+const QString& Key::getName() const
 {
     return key_name_;
 }
 
-QVariant::Type Key::getType() const
+const QVariant::Type Key::getType() const
 {
     return key_type_;
 }
@@ -76,14 +90,6 @@ bool Key::forceDataValue(Data* data, QVariant value){
         result = data->forceValue(value);
     }
     return result;
-}
-
-void Key::setVisual(bool is_visual){
-    is_visual_ = is_visual;
-}
-
-bool Key::isVisual() const{
-    return is_visual_;
 }
 
 QVariant Key::validateDataChange(Data *data, QVariant new_value)
@@ -134,19 +140,14 @@ bool Key::setData(Data* data, QVariant data_value){
     return data_changed;
 }
 
-QString Key::toGraphML(int indent_depth, bool functional_export)
-{
-    QString xml;
-    bool should_export = !functional_export || !is_visual_;
-    if(should_export){
-        QTextStream stream(&xml); 
-        QString tab = QString("\t").repeated(indent_depth);
-        stream << tab << "<key attr.name=\"" << getName() << "\"";
-        stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
-        stream << " id=\"" << getID()<< "\"/>\n";
-    }
 
-    return xml;
+void Key::ToGraphmlStream(QTextStream& stream, int indent_depth){
+    stream << QString("\t").repeated(indent_depth);
+    stream << "<key";
+    stream << " attr.name=\"" << getName() << "\"";
+    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
+    stream << " id=\"" << getID() << "\"";
+    stream << "/>\n";
 }
 
 QString Key::toString() const

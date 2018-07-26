@@ -38,11 +38,6 @@ QList<QAction *> DockTitleBar::getToolActions()
     return actions;
 }
 
-void DockTitleBar::setToolBarIconSize(int height)
-{
-    setIconSize(QSize(height, height));
-}
-
 void DockTitleBar::setIcon(QString iconPath, QString iconName){
     icon_path.first = iconPath;
     icon_path.second = iconName;
@@ -92,14 +87,6 @@ QAction *DockTitleBar::getAction(DockTitleBar::DOCK_ACTION action)
     }
 }
 
-void DockTitleBar::addToolAction(QAction* action, Qt::Alignment alignment)
-{
-    if (alignment == Qt::AlignLeft) {
-        insertAction(iconAction, action);
-    } else if (alignment == Qt::AlignRight) {
-        addAction(action);
-    }
-}
 void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName){
     if(action){
         action->setIcon(Theme::theme()->getIcon(iconPath, iconName));//, true));

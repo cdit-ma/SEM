@@ -35,17 +35,14 @@ public:
 
     VIEW_ASPECT getViewAspect();
 
-    QVariant getData(QString keyName) const;
+    QVariant getData(const QString& keyName) const;
     QStringList getKeys() const;
-    bool hasData(QString keyName) const;
+    bool hasData(const QString& keyName) const;
 
-    bool isDataProtected(QString keyName) const;
-    bool isDataVisual(QString keyName) const;
+    bool isDataProtected(const QString& keyName) const;
 
     bool isReadOnly() const;
 
-    void updateProtectedKeys(QList<QString> protected_keys);
-    void updateProtectedKey(QString key_name, bool is_protected);
 
     bool setDefaultIcon(const QString& prefix, const QString& name);
     bool setIcon(const QString& prefix, const QString& name);
@@ -57,7 +54,7 @@ public:
 
     
     void removeChild(ViewItem* child);
-    QList<ViewItem *> getDirectChildren() const;
+    QSet<ViewItem *> getDirectChildren() const;
     QList<ViewItem* > getNestedChildren();
 
     ViewItem* getParentItem() const;
@@ -69,7 +66,7 @@ public:
     QSet<QSharedPointer<NotificationObject> > getNotifications();
     QSet<QSharedPointer<NotificationObject> > getNestedNotifications();
 
-    QList<QVariant> getValidValuesForKey(QString keyName) const;
+    QList<QVariant> getValidValuesForKey(const QString& keyName) const;
 signals:
     void labelChanged(QString label);
     void iconChanged();
@@ -86,8 +83,8 @@ signals:
     void destructing(int ID);
 protected:
     void updateIcon();
-    void changeData(QString keyName, QVariant data, bool is_protected = false);
-    void removeData(QString keyName);
+    void changeData(const QString& keyName, QVariant data, bool is_protected = false);
+    void removeData(const QString& keyName);
     virtual void childAdded(ViewItem* child);
     virtual void childRemoved(ViewItem* child);
     
@@ -97,9 +94,13 @@ private:
     void destruct();
 
 private:
-    ViewItem* _parent;
-    DataTableModel* tableModel;
-    QMultiMap<GRAPHML_KIND, ViewItem*> children;
+
+    ViewItem* _parent = 0;
+    DataTableModel* table_model_ = 0;
+
+    QSet<ViewItem*> child_nodes_;
+    QSet<ViewItem*> child_edges_;
+    
     ViewController* controller;
 
     QHash<QString, QVariant> _data;

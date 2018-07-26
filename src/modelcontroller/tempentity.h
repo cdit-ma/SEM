@@ -6,7 +6,7 @@
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
-#include <QMap>
+#include <QHash>
 #include <QQueue>
 
 class TempEntity
@@ -27,9 +27,8 @@ public:
 
     NODE_KIND getNodeKind();
 
-    void setIDStr(QString id_str);
+    void setIDStr(const QString& id_str);
     QString getIDStr();
-    bool gotPreviousID();
     int getPreviousID();
 
     void setID(int ID);
@@ -38,17 +37,17 @@ public:
     void setImplicitlyConstructed();
     bool isImplicitlyConstructed();
 
-    QList<TempEntity*> getChildren();
+    const QList<TempEntity*>& getChildren();
     
     const QList<NODE_KIND>& getParentStack();
 
-    void setSourceIDStr(QString id);
-    QString getSourceIDStr();
+    void setSourceIDStr(const QString& id);
+    const QString& getSourceIDStr();
     int getSourceIDInt();;
     int getTargetIDInt();;
     
-    void setTargetIDStr(QString id);
-    QString getTargetIDStr();
+    void setTargetIDStr(const QString& id);
+    const QString& getTargetIDStr();
 
     void setSourceID(int id);
     int getSourceID();
@@ -66,11 +65,11 @@ public:
     EDGE_KIND getEdgeKind();
     bool gotEdgeKind();
     
-    QVariant getDataValue(QString key);
-    bool gotData(QString key_name);
-    void addData(QString key_name, QVariant value);
+    QVariant getDataValue(const QString& key);
+    bool gotData(const QString& key_name);
+    void addData(const QString& key_name, QVariant value);
     QList<QString> getKeys();
-    void removeData(QString key_name);
+    void removeData(const QString& key_name);
     void clearData();
 
     void AddImplicitlyConstructedNodeID(NODE_KIND kind, int id);
@@ -78,8 +77,6 @@ public:
     
     bool GotImplicitlyConstructedNodeID(NODE_KIND kind);
     bool GotImplicitlyConstructedEdgeID(EDGE_KIND kind);
-
-    QQueue<int> GetLeftOverImplicitlyConstructedNodeIds();
 
     int TakeNextImplicitlyConstructedNodeID(NODE_KIND kind);
     int TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind);
@@ -93,8 +90,8 @@ private:
     QList<TempEntity*> children;
     QList<EDGE_KIND> edge_kinds;
 
-    QMap<NODE_KIND, QQueue<int> > implicit_nodes;
-    QMap<EDGE_KIND, QQueue<int> > implicit_edges;
+    QHash<NODE_KIND, QQueue<int> > implicit_nodes;
+    QHash<EDGE_KIND, QQueue<int> > implicit_edges;
     
     int line_number = -1;
     QString id_str;

@@ -29,14 +29,9 @@ bool DataNode::hasInputData()
    return getInputData();
 }
 
-bool DataNode::hasOutputData()
-{
-    return getOutputData();
-}
-
 DataNode *DataNode::getInputData()
 {
-    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
+    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA)){
         if(edge->getDestination() == this){
             return (DataNode*) edge->getSource();
         }
@@ -44,23 +39,6 @@ DataNode *DataNode::getInputData()
     return 0;
 }
 
-DataNode *DataNode::getOutputData()
-{
-    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
-        if(edge->getSource() == this){
-            return (DataNode*) edge->getDestination();
-        }
-    }
-    return 0;
-}
-
-void DataNode::setMultipleDataReceiver(bool receiver)
-{
-    is_multiple_data_receiver_ = receiver;
-    if(receiver){
-        setDataReceiver(true);
-    }
-}
 
 void DataNode::setMultipleDataProducer(bool producer)
 {
@@ -108,51 +86,6 @@ bool DataNode::isMultipleDataProducer() const
     return is_multiple_data_producer_;
 }
 
-
-bool DataNode::comparableTypes(DataNode *node)
-{
-    QStringList numberTypes;
-    numberTypes << "Float" << "Double" << "Integer" << "Boolean";
-
-    if(node){
-        if(node->getNodeKind() == NODE_KIND::VARIADIC_PARAMETER){
-           return true;
-        }
-
-        //Types
-        QString type1 = getDataValue("type").toString();
-        QString type2 = node->getDataValue("type").toString();
-
-        if(type1 == type2 && type1 != ""){
-            //Allow direct matches.
-            return true;
-        }
-
-        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
-            //Allow matches of numbers
-            return true;
-        }
-
-
-        if(type2 == "Vector"){
-            auto kind = getNodeKind();
-            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
-               return true;
-            }
-        }
-        if(type1 == "Vector"){
-            auto kind = node->getNodeKind();
-            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
-               return true;
-            }
-        }
-        if(type2 == ""){
-            return true;
-        }
-    }
-    return false;
-
-}
 
 bool DataNode::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
@@ -262,15 +195,6 @@ bool DataNode::isContainedInVariable(){
     return _contained_in_variable;
 }
 
-bool DataNode::isContainedInFunctionCall(){
-    RunContainmentChecks();
-    return _contained_in_function_call;
-}
-
-bool DataNode::isContainedInAggregateInstance(){
-    RunContainmentChecks();
-    return _contained_in_aggregate_instance;
-}
 
 void DataNode::RunContainmentChecks(){
     if(getParentNode() && !_run_containment_checks){
@@ -340,7 +264,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
-        auto is_generic_provider = destination->getDataValue("is_generic_param").toBool();
+        auto is_generic_provider = destination->getDataValue(KeyName::IsGenericParam).toBool();
 
         //Try and do special data linking
         if(is_generic_provider && destination_parent){
@@ -359,7 +283,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
                     auto destination_second_parent = destination_parent->getParentNode();
 
                     if(destination_second_parent && destination_second_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
-                        const auto& class_name = destination_second_parent  ->getDataValue("class").toString();
+                        const auto& class_name = destination_second_parent  ->getDataValue(KeyName::Class).toString();
                         
                         //Workers OpenCL_Worker and Vector_Operations need special data linking
                         if(class_name == "OpenCL_Worker" || class_name == "Vector_Operations"){
@@ -374,26 +298,24 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             
             
             for(auto parameter : children_to_bind){
-                if(parameter->getDataValue("is_generic_param").toBool()){
+                if(parameter->getDataValue(KeyName::IsGenericParam).toBool()){
                     if(bind_inner_type){
-                        LinkData(source, "inner_type", parameter, "inner_type", setup);
+                        LinkData(source, KeyName::InnerType, parameter, KeyName::InnerType, setup);
                     }
                     if(bind_outer_type){
-                        LinkData(source, "outer_type", parameter, "outer_type", setup);
+                        LinkData(source,KeyName::OuterType, parameter, KeyName::OuterType, setup);
                     }
                 }
             }
         }
 
         auto bind_source = source;
-        auto source_key = "label";
-        auto target_key = "value";
 
         if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
             bind_source = source_parent;
         }
 
-        LinkData(bind_source, source_key, destination, target_key, setup);
+        LinkData(bind_source, KeyName::Label, destination, KeyName::Value, setup);
 
         if(destination->getNodeKind() == NODE_KIND::VARIABLE_PARAMETER){
             TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);

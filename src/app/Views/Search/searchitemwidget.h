@@ -31,10 +31,7 @@ public:
     void addMatchedKeys(QSet<QString> keys);
     void addMatchedKey(QString key);
     void addPersistentKey(QString key);
-    void removePersistentKey(QString key);
-    void removeMatchedKey(QString key);
     void clearMatchedKeys();
-    bool gotMatchedKey(QString key);
 
     void setSelected(bool selected);
 

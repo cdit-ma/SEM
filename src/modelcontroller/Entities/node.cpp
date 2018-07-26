@@ -102,8 +102,6 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     
     switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
-            auto parent_node = getParentNode();
-
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
             
@@ -201,16 +199,6 @@ void Node::setNodeType(NODE_TYPE type)
         emit typesChanged();
     }
 }
-
-void Node::removeNodeType(NODE_TYPE type)
-{
-    if(node_types_.contains(type)){
-        node_types_.remove(type);
-        emit typesChanged();
-    }
-}
-
-
 
 Node *Node::getCommonAncestor(Node *dst)
 {
@@ -360,7 +348,9 @@ bool Node::addChild(Node *child)
 {
     if(child && !containsChild(child) && canAdoptChild(child)){
         auto node_kind = child->getNodeKind();
-        children_.insert(node_kind, child);
+
+        node_kind_count_[node_kind]++;
+        new_nodes_ += child;
 
         child->setParentNode(this, branch_count_++);
         childAdded(child);
@@ -417,8 +407,7 @@ bool Node::indirectlyConnectedTo(Node *node)
 
 bool Node::containsChild(Node *child)
 {
-    auto node_kind = child ? child->getNodeKind() : NODE_KIND::NONE;
-    return children_.contains(node_kind, child);
+    return new_nodes_.contains(child);
 }
 
 QList<Node *> Node::getChildren(int depth)
@@ -434,38 +423,47 @@ QList<Node *> Node::getChildren(int depth)
     return child_list;
 }
 
-QList<Edge*> Node::getEdges(int depth){
-    return getEdgesOfKind(EDGE_KIND::NONE, depth);
+QSet<Edge*> Node::getEdges(){
+    return new_edges_;
 }
+QSet<Node*> Node::getAllChildren(){
+    QSet<Node*> children;
 
-int Node::getEdgeOfKindCount(EDGE_KIND edge_kind){
-    return edges_.count(edge_kind);
-}
-
-int Node::getEdgeCount(){
-    return edges_.count();
-}
-
-QList<Edge *> Node::getEdgesOfKind(EDGE_KIND edge_kind, int depth)
-{
-    QSet<Edge*> edge_set;
-
-    if(edge_kind == EDGE_KIND::NONE){
-        edge_set += edges_.values().toSet();
-    }else{
-        edge_set += edges_.values(edge_kind).toSet();
+    for(auto child : new_nodes_){
+        children += child;
+        children += child->getAllChildren();
     }
 
-    //While we still have Children, Recurse
-    if(depth != 0){
-        for(auto child : getChildren(0)){
-            edge_set += child->getEdgesOfKind(edge_kind, depth - 1).toSet();
+    return children;
+}
+
+QSet<Edge*> Node::getAllEdges(){
+    auto edges = getEdges();
+    
+    for(auto child : getAllChildren()){
+        edges += child->getEdges();
+    }
+    return edges;
+}
+
+int Node::getEdgeOfKindCount(EDGE_KIND edge_kind) const{
+    return edge_kind_count_.value(edge_kind, 0);
+}
+
+int Node::getEdgeCount() const{
+    return new_edges_.count();
+}
+
+QSet<Edge *> Node::getEdgesOfKind(EDGE_KIND edge_kind) const
+{
+    QSet<Edge*> edges;
+
+    for(auto edge : new_edges_){
+        if(edge->getEdgeKind() == edge_kind){
+            edges += edge;
         }
     }
-
-    auto edge_list = edge_set.toList();
-    std::sort(edge_list.begin(), edge_list.end(), Edge::SortByKind);
-    return edge_list;
+    return edges;
 }
 
 
@@ -482,14 +480,14 @@ QList<Node *> Node::getSiblings()
 
 
 QList<Node *> Node::getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth){
-    QList<Node*> returnableList;
-
+    QList<Node*> nodes;
+    
     for(auto child : getChildren(depth)){
         if(kinds.contains(child->getNodeKind())){
-            returnableList.append(child);
+            nodes.append(child);
         }
     }
-    return returnableList;
+    return nodes;
 }
 
 QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
@@ -499,11 +497,11 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
 
 int Node::getChildrenCount()
 {
-    return children_.size();
+    return new_nodes_.size();
 }
 
 int Node::getChildrenOfKindCount(NODE_KIND kind){
-    return children_.count(kind);
+    return node_kind_count_.value(kind, 0);
 }
 
 void Node::childRemoved(Node* child){
@@ -513,14 +511,11 @@ void Node::childRemoved(Node* child){
 
 bool Node::removeChild(Node *child)
 {
-    int removeCount = 0;
-
-    if(child){
+    if(containsChild(child)){
         auto node_kind = child->getNodeKind();
-        removeCount = children_.remove(node_kind, child);
-    }
-
-    if(removeCount > 0){
+        
+        node_kind_count_[node_kind]--;
+        new_nodes_ -= child;
         childRemoved(child);
         return true;
     }
@@ -567,8 +562,6 @@ bool Node::ancestorOf(Edge *edge)
         return true;
     }
     return false;
-
-    return getEdges(-1).contains(edge);
 }
 
 bool Node::isAncestorOf(GraphML *item)
@@ -614,7 +607,7 @@ bool Node::isDescendantOf(Node *b)
 
 Edge* Node::getEdgeTo(Node *node, EDGE_KIND edge_kind)
 {
-    for(auto edge : getEdgesOfKind(edge_kind, 0)){
+    for(auto edge : getEdgesOfKind(edge_kind)){
         if(edge->isConnected(node)){
             return edge;
         }
@@ -632,35 +625,9 @@ bool Node::gotEdgeTo(Node *node, EDGE_KIND edge_kind)
 
 bool Node::containsEdge(Edge *edge)
 {
-    if(edge){
-        return edges_.contains(edge->getEdgeKind(), edge);
-    }
-    return false;
+    return new_edges_.contains(edge);
 }
 
-
-
-QList<Key *> Node::getKeys(int depth)
-{
-    
-    QSet<Data*> datas;
-
-    datas += getData().toSet();
-
-    for(auto node : getChildren(depth)){
-        datas += node->getData().toSet();
-    }
-
-    for(auto edge : getEdgesOfKind(EDGE_KIND::NONE, depth)){
-        datas += edge->getData().toSet();
-    }
-
-    QSet<Key*> keys;
-    for(auto data : datas){
-        keys +=  data->getKey();
-    }
-    return keys.toList();
-}
 
 
 bool Node::isDefinition() const
@@ -676,11 +643,6 @@ bool Node::isInstance() const
 bool Node::isInstanceImpl() const
 {
     return isInstance() || isImpl();
-}
-
-bool Node::isAspect() const
-{
-    return isNodeOfType(NODE_TYPE::ASPECT);
 }
 
 bool Node::isImpl() const
@@ -773,16 +735,14 @@ QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> dependants;
 
-    
+    //All our children are dependants
+    dependants += getAllChildren();
+
     for(auto dependant : getDependants()){
         dependants += dependant;
         dependants += dependant->getNestedDependants();
     }
-
-    for(auto child : getChildren(0)){
-        dependants += child;
-        dependants += child->getNestedDependants();
-    }
+    
 
     return dependants;
 }
@@ -811,14 +771,16 @@ void Node::removeImplementation(Node *impl)
 void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
-        edges_.insertMulti(edge->getEdgeKind(), edge);
+        new_edges_ += edge;
+        edge_kind_count_[edge->getEdgeKind()] ++;
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     if(edge){
-        edges_.remove(edge->getEdgeKind(), edge);
+        new_edges_ -= edge;
+        edge_kind_count_[edge->getEdgeKind()] --;
     }
 }
 void Node::AddUUID(){
@@ -862,38 +824,40 @@ void Node::setParentNode(Node *parent, int branch)
     parentNodeUpdated();
 }
 
-QString Node::toGraphML(int indent_depth, bool functional_export)
-{
-    QString xml;
-    QTextStream stream(&xml); 
-
-    QString tab = QString("\t").repeated(indent_depth);
-    stream << tab << "<node id=\"" << getID() << "\">\n";
+void Node::ToGraphmlStream(QTextStream& stream, int indent_depth){
+    const auto tab = QString("\t").repeated(indent_depth);
     
+    stream << tab;
+    stream << "<node id=\"" << getID() << "\">\n";
+
     auto data_list = getData();
     std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
     for(auto data : data_list){
-        stream << data->toGraphML(indent_depth + 1, functional_export);
+        data->ToGraphmlStream(stream, indent_depth + 1);
     }
 
     //Children are in a <graph>
     if(getChildrenCount() > 0){
         stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
         for(auto child : getChildren(0)){
-            stream << child->toGraphML(indent_depth + 2, functional_export);
+            child->ToGraphmlStream(stream, indent_depth + 2);
         }
         stream << tab << "\t</graph>\n";
     }
-
-    stream <<  tab << "</node>\n";
-    return xml;
+    stream << tab << "</node>\n";
 }
 
 QList<Node *> Node::getOrderedChildNodes()
 {
-    auto child_list = children_.values();
-    std::sort(child_list.begin(), child_list.end(), Entity::SortByIndex);
+    auto child_list = new_nodes_.toList();
+    auto index_key = getKey("index");
+    std::sort(child_list.begin(), child_list.end(), [index_key](const Node* a, const Node* b){
+        auto a_ind = a->getDataValue(index_key).toInt();
+        auto b_ind = b->getDataValue(index_key).toInt();
+        return a_ind < b_ind;
+    });
     return child_list;
+
 }
 
 void Node::setChainableDefinition(){
@@ -966,6 +930,25 @@ void Node::LinkData(Node* source, const QString &source_key, Node* destination, 
 }
 
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
+    static const QString key_key("key");
+    static const QString key_icon("icon");
+    static const QString key_icon_prefix("icon_prefix");
+    static const QString key_value("value");
+    static const QString key_is_generic_param("is_generic_param");
+    static const QString key_is_optional_param("is_optional_param");
+    static const QString key_worker("worker");
+    static const QString key_workerID("workerID");
+    static const QString key_type("type");
+    static const QString key_inner_type("inner_type");
+    static const QString key_outer_type("outer_type");
+    static const QString key_description("description");
+    static const QString key_class("class");
+    static const QString key_is_variadic("is_variadic");
+    static const QString key_label("label");
+    static const QString key_operation("operation");
+    static const QString key_index("index");
+    
+
     if(!definition || !instance){
         return;
     }
@@ -977,24 +960,26 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     
     auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
 
-    QMultiMap<QString, QString> bind_values;
-    QMultiMap<QString, QString> copy_values;
+    
+    QHash<QString, QSet<QString> > bind_values;
+    QHash<QString, QSet<QString> > copy_values;
     QSet<QString> required_instance_keys;
-    bind_values.insert("key", "key");
 
-    bind_values.insert("icon", "icon");
-    bind_values.insert("icon_prefix", "icon_prefix");
-    
-    copy_values.insert("value", "value");
+    bind_values[key_key] += key_key;
+    bind_values[key_icon] += key_icon;
+    bind_values[key_icon_prefix] += key_icon_prefix;
 
-    required_instance_keys.insert("icon");
-    required_instance_keys.insert("icon_prefix");
+    copy_values[key_value] += key_value;
 
-    
-    bind_values.insert("is_generic_param", "is_generic_param");
-    bind_values.insert("is_optional_param", "is_optional_param");
-    required_instance_keys.insert("is_generic_param");
-    required_instance_keys.insert("is_optional_param");
+    required_instance_keys += key_icon;
+    required_instance_keys += key_icon_prefix;
+
+
+    bind_values[key_is_generic_param] += key_is_generic_param;
+    bind_values[key_is_optional_param] += key_is_optional_param;
+
+    required_instance_keys += key_is_generic_param;
+    required_instance_keys += key_is_optional_param;
 
     bool bind_index = false;
     bool bind_labels = true;
@@ -1032,9 +1017,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
-                    copy_values.insert("value", "value");
-                    if(definition->gotData("worker")){
-                        bind_values.insert("worker", "type");
+                    copy_values[key_value] += key_value;
+                    if(definition->gotData(key_worker)){
+                        bind_values[key_worker] += key_type;
                         bind_types = false;
                     }
                 }
@@ -1042,24 +1027,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             }
             case NODE_KIND::FUNCTION_CALL:
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
-                    bind_values.insert("workerID", "workerID");
-                    bind_values.insert("operation", "operation");
+                    bind_values[key_workerID] += key_workerID;
+                    bind_values[key_operation] += key_operation;
                 }
-                bind_values.insert("description", "description");
-                bind_values.insert("class", "class");
-                bind_values.insert("is_variadic", "is_variadic");
-                bind_values.insert("label", "label");
-                required_instance_keys.insert("is_variadic");
+                bind_values[key_description] += key_description;
+                bind_values[key_class] += key_class;
+                bind_values[key_is_variadic] += key_is_variadic;
+                bind_values[key_label] += key_label;
+                required_instance_keys.insert(key_is_variadic);
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
-                bind_values.insert("operation", "operation");
-                bind_values.insert("description", "description");
-                bind_values.insert("class", "class");
-                bind_values.insert("is_variadic", "is_variadic");
+                bind_values[key_operation] += key_operation;
+                bind_values[key_description] += key_description;
+                bind_values[key_class] += key_class;
+                bind_values[key_is_variadic] += key_is_variadic;
                 
                 
-                required_instance_keys.insert("is_variadic");
+                required_instance_keys.insert(key_is_variadic);
                 break;
             }
             default:
@@ -1069,35 +1054,33 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         bind_labels = false;
     }
     
-    auto def_got_inner_type = definition->gotData("inner_type");
-    auto def_got_outer_type = definition->gotData("outer_type");
+    auto def_got_inner_type = definition->gotData(key_inner_type);
 
-    auto inst_got_inner_type = instance->gotData("inner_type");
-    auto inst_got_outer_type = instance->gotData("outer_type");
+    auto inst_got_inner_type = instance->gotData(key_inner_type);
 
 
-    bind_values.insert("inner_type", "inner_type");
-    bind_values.insert("outer_type", "outer_type");
+    bind_values[key_inner_type] += key_inner_type;
+    bind_values[key_outer_type] += key_outer_type;
 
 
 
     if(bind_types){
         if(!def_got_inner_type && inst_got_inner_type){
-            bind_values.insert("type", "inner_type");
-        }else if(definition->gotData("type")){
-            bind_values.insert("type", "type");
-        }else if(definition->gotData("label")){
-            bind_values.insert("label", "type");
+            bind_values[key_type] += key_inner_type;
+        }else if(definition->gotData(key_type)){
+            bind_values[key_type] += key_type;
+        }else if(definition->gotData(key_label)){
+            bind_values[key_label] += key_type;
         }
     }
 
     if(bind_labels){
-        bind_values.insert("label", "label");
+        bind_values[key_label] += key_label;
     }
 
     //Bind Index
     if(bind_index){
-        bind_values.insert("index", "index");
+        bind_values[key_index] += key_index;
 }
 
     for(auto key_name : required_instance_keys){
@@ -1113,15 +1096,15 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         }
     }
 
-    for(auto definition_key : bind_values.uniqueKeys()){
-        for(auto instance_key : bind_values.values(definition_key)){
+    for(const auto& definition_key : bind_values.keys()){
+        for(const auto& instance_key : bind_values[definition_key]){
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 
     if(setup){
-        for(auto definition_key : copy_values.uniqueKeys()){
-            for(auto instance_key : copy_values.values(definition_key)){
+        for(const auto& definition_key : copy_values.keys()){
+            for(const auto& instance_key : copy_values[definition_key]){
                 auto def_data = definition->getData(definition_key);
                 auto inst_data = instance->getData(instance_key);
 
@@ -1207,7 +1190,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
                 }
                 auto got_data_edge = false;
 
-                for(auto edge : edges_.values(edge_kind)){
+                for(auto edge : getEdgesOfKind(edge_kind)){
                     if(edge->getSource() == this){
                         got_data_edge = true;
                         break;
@@ -1237,7 +1220,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::AGGREGATE:
         case EDGE_KIND::QOS:{
             //Can only have 1 Edge is Source
-            for(auto edge : edges_.values(edge_kind)){
+            for(auto edge : getEdgesOfKind(edge_kind)){
                 if(edge->getSource() == this){
                     //qCritical() << "6";
                     return false;
@@ -1275,7 +1258,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 auto got_data_edge = false;
 
-                for(auto edge : edges_.values(edge_kind)){
+                for(auto edge : getEdgesOfKind(edge_kind)){
                     if(edge->getDestination() == this){
                         got_data_edge = true;
                         break;
@@ -1310,18 +1293,6 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
     return true;
 }
 
-QSet<EDGE_KIND> Node::getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const{
-    QSet<EDGE_KIND> accepted_kinds;
-
-    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
-
-    for(auto edge_kind : direction_set){
-        if(canCurrentlyAcceptEdgeKind(edge_kind, direction)){
-            accepted_kinds.insert(edge_kind);
-        }
-    }
-    return accepted_kinds;
-}
 
 QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;

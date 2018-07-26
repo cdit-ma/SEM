@@ -17,14 +17,11 @@ public:
     void setActive(bool active);
     QList<QAction*> getToolActions();
 
-    void setToolBarIconSize(int height);
     void setIcon(QString iconPath, QString iconName);
     //QPixmap getIcon();
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
-
-    void addToolAction(QAction* action, Qt::Alignment alignment);
 
 private slots:
     void themeChanged();

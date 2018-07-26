@@ -2,12 +2,12 @@
 #include "../data.h"
 #include "../node.h"
 #include <QDebug>
-IndexKey::IndexKey(EntityFactoryBroker& broker): Key(broker, "index", QVariant::Int){
+
+IndexKey::IndexKey(EntityFactoryBroker& broker): Key(broker, KeyName::Index, QVariant::Int){
 
 }
 
 QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
-    
     int new_index = data_value.toInt();
     int old_index = data->getValue().toInt();
     
@@ -53,7 +53,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     //Remove our self
     siblings.removeAll(node);
 
-    QMap<const Node*, int> desired_index;
+    QHash<const Node*, int> desired_index;
 
     //Re-insert at the desired location
     siblings.insert(new_index, node);
@@ -65,22 +65,20 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     }
 
     //Sort the List by Row (Lowest to Highest) and also by Index (Lowest to Highest)
-    std::sort(siblings.begin(), siblings.end(), [&desired_index, &old_index](const Node* node1, const Node* node2){
+    std::sort(siblings.begin(), siblings.end(), [=](const Node* node1, const Node* node2){
         if(node1 == node2){
             return false;
         }
         
-        int node1_row = node1->getDataValue("row").toInt();
-        int node2_row = node2->getDataValue("row").toInt();
+        int node1_row = node1->getDataValue(KeyName::Row).toInt();
+        int node2_row = node2->getDataValue(KeyName::Row).toInt();
         if(node1_row == node2_row){
-            auto node1_subgroup = node1->getDataValue("column").toInt();
-            auto node2_subgroup = node2->getDataValue("column").toInt();
+            auto node1_subgroup = node1->getDataValue(KeyName::Column).toInt();
+            auto node2_subgroup = node2->getDataValue(KeyName::Column).toInt();
             
             if(node1_subgroup == node2_subgroup){
                 auto node1_index = desired_index[node1];
                 auto node2_index = desired_index[node2];
-                //int node1_index = node1->getDataValue("index").toInt();
-                //int node2_index = node2->getDataValue("index").toInt();
                 if(node1_index == node2_index){
                     qCritical() << "Got Invalid index' which are the same";
                 }else{
@@ -100,7 +98,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     //Force the siblings to be reset
     for(int i = 0; i < siblings.count(); i++){
         auto sibling = siblings[i];
-        auto sibling_data = sibling->getData("index");
+        auto sibling_data = sibling->getData(KeyName::Index);
         
         if(sibling_data){
             //Get the index the sibling node
@@ -124,7 +122,7 @@ void IndexKey::RevalidateChildrenIndex(Node* parent){
 
         if(children.size()){
             auto child = children.last();
-            child->setDataValue("index", child->getDataValue("index"));
+            child->setDataValue(KeyName::Index, child->getDataValue(KeyName::Index));
         }
     }
 }

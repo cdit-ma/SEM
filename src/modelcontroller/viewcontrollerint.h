@@ -30,6 +30,7 @@ protected:
     virtual void NodeTypesChanged(int id) = 0;
     virtual void AddNotification(MODEL_SEVERITY severity, QString title, QString description, int id) = 0;
     virtual void ModelReady(bool ready) = 0;
+
 signals:
     void SetupModelController(QString file_path = "");
     void ImportProjects(QList<QString> graphml_datalist);
@@ -52,6 +53,7 @@ signals:
     void Paste(QList<int> entity_ids, QString paste_data);
     void Replicate(QList<int> entity_ids);
 
+    void constructDDSQOSProfile();
     void ConstructNodeAtIndex(int parent_id, NODE_KIND node_kind, int index);
     void ConstructNodeAtPos(int parent_id, NODE_KIND node_kind, QPointF position);
     

@@ -155,11 +155,6 @@ bool ParenthesisInfo::isOpening() const
 
 }
 
-bool ParenthesisInfo::isClosing() const
-{
-    return character == ')' || character == '}' || character == ']' || character == '>';
-}
-
 char ParenthesisInfo::getMatching() const
 {
     switch(character){

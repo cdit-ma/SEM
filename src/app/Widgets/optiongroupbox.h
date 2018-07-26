@@ -35,9 +35,6 @@ public:
         }
         return options;
     }
-
-    QList<QVariant> getCheckedKeys();
-    bool isAllChecked();
     bool isResetChecked();
     int getOptionCount();
     

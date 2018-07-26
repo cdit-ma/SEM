@@ -63,8 +63,7 @@ void SearchManager::PopupSearch(){
 void SearchManager::PopupGoto(){
     auto popup = getGotoPopup();
     if(popup){
-        auto ids = viewController->_getIDs();
-        popup->updateIDs(ids);
+        popup->updateIDs(viewController->GetIDs());
         WindowManager::MoveWidget(popup);
         popup->show();
         popup->takeFocus();

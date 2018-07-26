@@ -25,7 +25,7 @@ class ViewController;
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES, CAN_CHANGE_INDEX, CAN_CHANGE_ROW, CAN_GENERATE_CODE};
-enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
+enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO, DESTRUCTING, SETUP};
 
 struct HistoryAction{
     struct Action{
@@ -62,63 +62,47 @@ inline QString getActionTypeString(ACTION_TYPE type){
 class ModelController: public QObject
 {
     Q_OBJECT
+
 public:
+    void ConnectViewController(ViewControllerInterface* view_controller);
     ModelController();
     ~ModelController();
-
-    QString getProjectPath();
-    void setProjectPath(QString path);
-
-    bool isProjectSaved();
-    int getProjectActionCount();
-    void setProjectSaved(QString path="");
-
     QString getProjectAsGraphML(bool functional_export = false);
 
-
-    QSet<EDGE_KIND> getCurrentEdgeKinds(QList<int> IDs);
-    
+    QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
+    QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
+    QHash<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
     QSet<NODE_KIND> getValidNodeKinds(int ID);
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> IDs);
-    
-    QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
-    QMap<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
-
-    
-    QList<QVariant> getValidKeyValues(int ID, QString keyName);
-
-    
-    QSet<NODE_TYPE> getNodesTypes(int ID);
-    VIEW_ASPECT getNodeViewAspect(int ID);
-    int getSharedParent(int ID, int ID2);
-    bool isNodeAncestor(int ID, int ID2);
-
-    QVariant getEntityDataValue(int ID, QString key_name);
-
-
-
-    QList<DataUpdate> getEntityDataList(int ID);
-
-    QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
-
+    QSet<EDGE_KIND> getCurrentEdgeKinds(QList<int> IDs);
+    QList<QVariant> getValidKeyValues(int ID, const QString& keyName);
     bool canUndo();
     bool canRedo();
 
-    int getDefinition(int ID);
     int getImplementation(int ID);
+    int getDefinition(int ID);
+    int getSharedParent(int ID, int ID2);
+    bool isProjectSaved();
+    int getProjectActionCount();
+    void setProjectPath(const QString& path);
+    QString getProjectPath();
+    void setProjectSaved(const QString& path);
+    VIEW_ASPECT getNodeViewAspect(int ID);
+    bool isNodeAncestor(int ID, int ID2);
+    QVariant getEntityDataValue(int ID, const QString& key_name);
+    QList<DataUpdate> getEntityDataList(int ID);
+    QSet<NODE_TYPE> getNodesTypes(int ID);
 
-    void ConnectViewController(ViewControllerInterface* view_controller);
-
-    //Clipboard functionality
+        //Clipboard functionality
     QString cut(QList<int> ids);
     QString copy(QList<int> ids);
 
 public slots:
-    bool SetupController(QString file_path="");
+    bool SetupController(const QString& file_path);
     bool importProjects(QStringList xmlDataList);
 private slots:
     
-    void paste(QList<int> ids, QString xml);
+    void paste(QList<int> ids, const QString& xml);
     void replicate(QList<int> ids);
     void remove(QList<int> ids);
     void undo();
@@ -126,8 +110,8 @@ private slots:
 
 
     //Model Functionality
-    void setData(int id, QString key_name, QVariant value);
-    void removeData(int id, QString key_name);
+    void setData(int id, const QString& key_name, QVariant value);
+    void removeData(int id, const QString& key_name);
 
     //Node/Edge Functionality    
     void constructNodeAtPos(int parentID, NODE_KIND kind, QPointF centerPoint);
@@ -135,13 +119,13 @@ private slots:
 
     void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
-
+    void constructDDSQOSProfile();
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void destructEdges(QList<int> srcIDs, QList<int> dstID, EDGE_KIND edgeClass);
     void destructAllEdges(QList<int> srcIDs, EDGE_KIND edge_kind, QSet<EDGE_DIRECTION> edge_direction);
 
-    void triggerAction(QString actionName);
+    void triggerAction(const QString& actionName);
 
     void addDependantsToDependants(Node* parent_node, Node* dependant);
 signals:
@@ -172,8 +156,7 @@ private:
     Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
-    double compare_version(QString current_version, QString version);
-    QSet<NODE_KIND> getGUINodeKinds();
+    double compare_version(const QString& current_version, const QString& version);
     bool canReplicate(const QList<Entity *>& ordered_selection);
     bool canCut(const QList<Entity *>& ordered_selection);
     bool canCopy(const QList<Entity *>& ordered_selection);
@@ -191,18 +174,16 @@ private:
     QList<Entity *> getOrderedEntities(QList<Entity *> entities);
     QList<Entity*> getUnorderedEntities(QList<int> IDs);
 
-    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
+    QHash<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
 
     Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);
     Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
-    int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
 
     void clearHistory();
-    bool isDataVisual(Data* data);
-    static bool isKeyNameVisual(QString key_name);
+    static bool isKeyNameVisual(const QString& key_name);
 
     Node* construct_component_node(Node* parent, int index);
 
@@ -212,17 +193,17 @@ private:
 
     //Helper functions.
     QString _copy(QList<Entity*> selection);
-    bool _paste(Node* node, QString xmlData);
+    bool _paste(Node* node, const QString& xmlData);
     bool _clear();
     bool _replicate(QList<Entity*> items);
 
 
-    bool setData_(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
+    bool setData_(Entity* parent, const QString& keyName, QVariant dataValue, bool addAction = true);
     
     //Checks to see if the provided GraphML document is Valid XML.
-    bool isGraphMLValid(QString inputGraphML);
+    bool isGraphMLValid(const QString& inputGraphML);
 
-    bool importGraphML(QString document, Node* parent = 0);
+    bool importGraphML(const QString& document, Node* parent = 0);
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QList<int> ids, bool all_edges = false);
     QString exportGraphML(QList<Entity*> entities, bool all_edges = false, bool functional_export = false);
@@ -258,7 +239,7 @@ private:
     
     void destructEdge_(Edge* edge);
     void destructNode_(Node* node);
-    bool destructData_(Entity* parent, QString key_name);
+    bool destructData_(Entity* parent, const QString& key_name);
 
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
@@ -266,9 +247,6 @@ private:
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
 
-    
-
-    bool linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link);
     
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
@@ -298,7 +276,7 @@ private:
     QList<Node*> getNodes(QList<int> IDs);
 private:
     void ProgressChanged_(int ID);
-    void ProgressUpdated_(QString description);
+    void ProgressUpdated_(const QString& description);
     QString last_description;
     int last_progress = -2;
     //List of undeleteable nodes
@@ -332,6 +310,7 @@ private:
    
     QThread* controller_thread = 0;
     EntityFactory* entity_factory = 0;
+
     QReadWriteLock lock_;
 
     QSet<MODEL_ACTION> model_actions;

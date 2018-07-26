@@ -49,23 +49,16 @@ public:
     virtual void setActive(bool focussed);
     bool isActive();
 
-    void setMaximized(bool maximized);
 
     void setFocusEnabled(bool enabled);
-    bool isFocusEnabled();
     void setIconVisible(bool visible);
 
     void setCloseVisible(bool visible);
     void setHideVisible(bool visible);
     void setMaximizeVisible(bool visible);
     void setPopOutVisible(bool visible);
-    void setProtectVisible(bool visible);
 
     void setMaximizeToggled(bool toggled);
-    void setMaximizeEnabled(bool enabled);
-    void setPopOutToggled(bool toggled);
-    void setProtectToggled(bool toggled);
-
     void close();
 signals:
     void iconChanged();
@@ -91,7 +84,6 @@ private:
     void closeOrHide();
     void setActionVisible(DockTitleBar::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBar::DOCK_ACTION action, bool toggled);
-    void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
 
     QString title;

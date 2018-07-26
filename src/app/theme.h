@@ -61,8 +61,6 @@ public:
 
     QMovie* getGif(const QString& path, const QString& name);
 
-    QColor getSelectedItemBorderColor();
-    QString getSelectedItemBorderColorHex();
 
     QColor getActiveWidgetBorderColor();
     QString getActiveWidgetBorderColorHex();
@@ -74,10 +72,6 @@ public:
     QString getMenuIconColorHex(ColorRole role = ColorRole::NORMAL);
 
     QColor getAspectBackgroundColor(VIEW_ASPECT aspect);
-    QString getAspectBackgroundColorHex(VIEW_ASPECT aspect);
-
-    QColor getDefaultImageTintColor();
-    QString getDefaultImageTintColorHex();
 
     QColor getMainImageColor(const QString& prefix, const QString& alias);
     QColor getMainImageColor(IconPair path);
@@ -108,7 +102,6 @@ public:
     void setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias);
 
     void setIconAlias(const QString& prefix, const QString& alias, const QString& icon_prefix, const QString& icon_alias);
-    void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(const QString& prefix, const QString& alias, QColor color);
 
     void setSeverityColor(Notification::Severity severity, QColor color);
@@ -127,10 +120,8 @@ public:
     QStringList getIcons(const QString& icon_prefix);
 
     QSize getIconSize();
-    QSize getSmallIconSize();
     QSize getLargeIconSize();
 
-    QString getBorderWidth();
     QString getCornerRadius();
     QString getSharpCornerRadius();
 
@@ -150,20 +141,11 @@ public:
     QString getMenuStyleSheet(int icon_size = 32);
     QString getToolBarStyleSheet();
     QString getAbstractItemViewStyleSheet();
-    QString getAltAbstractItemViewStyleSheet();
-    QString getComboBoxStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
-    QString getToolButtonStyleSheet();
     QString getLineEditStyleSheet(QString widget_name="QLineEdit");
-    QString getTextEditStyleSheet();
-    QString getRadioButtonStyleSheet();
-    QString getMessageBoxStyleSheet();
-    QString getPopupWidgetStyleSheet();
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
-    QString getTitleLabelStyleSheet();
-    QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
     QFont getFont() const;
     QFont getLargeFont() const;
@@ -176,7 +158,6 @@ public slots:
 private:
     void clearIconMap();
     void preloadImages();
-    bool preloadImage(const QString& resource_name);
 
 struct ImageLoad{
     QString resource_name;
@@ -199,7 +180,6 @@ struct ImageLoad{
 
     QImage getImage(const QString& resource_name);
     QColor getTintColor(const QString& resource_name);
-    QSize getOriginalSize(const QString& resource_name);
 
     static IconPair SplitImagePath(const QString& path);
 
@@ -267,7 +247,6 @@ struct ImageLoad{
     bool themeChanged = false;
     bool valid = false;
 public:
-    static QColor blendColors(const QColor color1, const QColor color2, qreal blendRatio=0.5);
     static QString QColorToHex(const QColor color);
     static Theme* theme();
     static void teardownTheme();

@@ -82,7 +82,6 @@ class Node : public Entity
         bool canAcceptNodeKind(const Node* node) const;
 
         void setNodeType(NODE_TYPE type);
-        void removeNodeType(NODE_TYPE type);
         void setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept = true);
         bool canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edgeKind, Node* dst) const;
@@ -101,8 +100,9 @@ class Node : public Entity
         bool isValidImplKind(NODE_KIND kind) const;
         bool isValidDefinitionKind(NODE_KIND kind) const;
         QSet<NODE_KIND> getInstanceKinds() const;
-        QSet<NODE_KIND> getDefinitionKinds() const;
         QSet<NODE_KIND> getImplKinds() const;
+        QSet<NODE_KIND> getDefinitionKinds() const;
+        
 
         //Definition Getters
         QList<Node*> getRequiredInstanceDefinitions();
@@ -126,7 +126,7 @@ class Node : public Entity
         QSet<Node*> getNestedDependants();
         
 
-        QString toGraphML(int indentDepth = 0, bool functional_export = false);
+        void ToGraphmlStream(QTextStream& stream, int indend_depth);
    
     
         //Node kind getters
@@ -145,6 +145,7 @@ class Node : public Entity
 
         //Children Getters
         bool containsChild(Node* child);
+        QSet<Node*> getAllChildren();
         QList<Node *> getChildren(int depth =-1);
         QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
         QList<Node *> getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth =-1);
@@ -162,17 +163,16 @@ class Node : public Entity
         bool gotEdgeTo(Node* node, EDGE_KIND edge_kind);
 
 
-        QList<Edge*> getEdges(int depth=-1);
+        QSet<Edge*> getEdges();
+        QSet<Edge*> getAllEdges();
         
-        int getEdgeCount();
-        int getEdgeOfKindCount(EDGE_KIND kind);
-        QList<Edge *> getEdgesOfKind(EDGE_KIND edge_kind, int depth = -1);
-        QList<Key *> getKeys(int depth=-1);
+        int getEdgeCount() const;
+        int getEdgeOfKindCount(EDGE_KIND kind) const;
+        QSet<Edge *> getEdgesOfKind(EDGE_KIND edge_kind) const;
 
         bool isDefinition() const;
         bool isInstance() const;
         bool isInstanceImpl() const;
-        bool isAspect() const;
         bool isImpl() const;
 
         QSet<NODE_TYPE> getTypes() const;
@@ -185,7 +185,6 @@ class Node : public Entity
         QSet<NODE_KIND> getAcceptedNodeKinds() const;
         virtual QSet<NODE_KIND> getUserConstructableNodeKinds() const;
         bool isNodeOfType(NODE_TYPE type) const;
-        QSet<EDGE_KIND> getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const;
         QSet<EDGE_KIND> getAcceptedEdgeKind(EDGE_DIRECTION direction) const;
 
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
@@ -194,7 +193,6 @@ class Node : public Entity
     private:
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);
-        QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
         QList<Node*> getOrderedChildNodes();
         void setTop(int index = 0);
 
@@ -215,8 +213,14 @@ class Node : public Entity
         QSet<Node*> instances_;
         QSet<Node*> implementations_;
 
-        QMultiMap<EDGE_KIND, Edge*> edges_;
-        QMultiMap<NODE_KIND, Node*> children_;
+        //QMultiMap<EDGE_KIND, Edge*> edges_;
+        //QMultiMap<NODE_KIND, Node*> children_;
+
+        QSet<Node*> new_nodes_;
+        QSet<Edge*> new_edges_;
+
+        QHash<NODE_KIND, int> node_kind_count_;
+        QHash<EDGE_KIND, int> edge_kind_count_;
 
         QSet<NODE_TYPE> node_types_;
         QSet<NODE_KIND> accepted_node_kinds_;

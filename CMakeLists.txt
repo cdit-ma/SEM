@@ -20,7 +20,7 @@ if(NOT DEFINED ENV{Qt5_DIR})
 endif()
 
 #Set MEDEA Options
-SET(VERSION_NO "3.0.7")
+SET(VERSION_NO "3.1.0")
 SET(VERSION "${VERSION_NO}-RE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "MEDEAv${VERSION}")

@@ -30,13 +30,14 @@ public:
     int getSortOrderRowSubgroup() const;
 
     bool hasChildNodes() const;
-    QList<NodeItem*> getChildNodes() const;
-    QList<NodeItem*> getSortedChildNodes() const;
+    QSet<NodeItem*> getChildNodes();
+    const QList<NodeItem*>& getSortedChildNodes();
+
+    void RecalcSortedChildNodes();
     QList<EntityItem*> getChildEntities() const;
 
     void addChildEdge(EdgeItem* edgeItem);
-    void removeChildEdge(int ID);
-    QList<EdgeItem*> getChildEdges() const;
+    void removeChildEdge(EdgeItem* edgeItem);
 
     QRectF getNearestGridOutline();
     QPointF getNearestGridPointToCenter();
@@ -71,19 +72,17 @@ public:
     QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
 
 
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getAllVisualEdgeKinds() const;
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getAllVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getVisualEdgeKinds() const;
 
-    const QMultiMap<EDGE_DIRECTION, EDGE_KIND>& getCurrentVisualEdgeKinds() const;
+    const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& getCurrentVisualEdgeKinds() const;
 
     
 
     virtual bool isExpandEnabled();
     virtual QRectF childrenRect() const;
 
-    QSizeF getSize() const;
 
-    void adjustExpandedSize(QSizeF delta);
 
     void setMinimumWidth(qreal width);
     void setMinimumHeight(qreal height);
@@ -103,8 +102,6 @@ public:
     void setBodyPadding(QMarginsF bodyPadding);
 
     QPointF getMarginOffset() const;
-    QPointF getBottomRightMarginOffset() const;
-    QPointF getTopLeftSceneCoordinate() const;
 
     qreal getWidth() const;
     qreal getHeight() const;
@@ -194,14 +191,17 @@ private:
     void lockHover(bool hovered, const QPointF& pos);
     
     
-
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> my_visual_edge_kinds;
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> all_visual_edge_kinds;
+    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
+    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
+    
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
+    QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
+    
     QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
 
-    QMap<Notification::Severity, int> notification_counts_;
+    QHash<Notification::Severity, int> notification_counts_;
     QSet<Notification::Severity> hovered_notifications_;
     
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
@@ -215,6 +215,10 @@ private:
     qreal model_width = 0;
     qreal model_height = 0;
 
+    int index_ = -1;
+    int row_ = 0;
+    int column_ = 0;
+
     QMarginsF margin;
     QMarginsF bodyPadding;
 
@@ -223,6 +227,8 @@ private:
 
     void clearEdgeKnobPressedState();
     void clearNotificationKnobPressedState();
+
+    void SortedChildrenDirty();
 
     bool edge_knob_pressed = false;
     bool edge_knob_dragged = false;
@@ -244,8 +250,13 @@ private:
 
     QPointF previousMovePoint;
     
-    QHash<int, NodeItem*> childNodes;
-    QHash<int, EdgeItem*> childEdges;
+
+    QSet<EdgeItem*> child_edges;
+    
+    QSet<NodeItem*> child_nodes;
+    QList<NodeItem*> sorted_child_nodes;
+    bool sorted_child_nodes_dirty = true;
+    
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

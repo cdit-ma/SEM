@@ -63,7 +63,7 @@ void NodeViewMinimap::activeViewDockWidgetChanged(ViewDockWidget *viewDock, View
         setBackgroundColor(node_view->getBackgroundColor());
         setScene(node_view->scene());
         
-        connect(this, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::fitToScreen);
+        connect(this, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::FitToScreen);
         connect(this, &NodeViewMinimap::minimap_Pan, node_view, &NodeView::minimap_Pan);
         connect(this, &NodeViewMinimap::minimap_Zoom, node_view, &NodeView::minimap_Zoom);
         connect(node_view, &NodeView::viewport_changed, this, &NodeViewMinimap::viewportRectChanged);

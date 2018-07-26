@@ -11,11 +11,11 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem) :
     setExpandedWidth(getMinimumHeight());
     setMinimumWidth(getMinimumWidth());
 
-    addRequiredData("index");
-    addRequiredData("row");
-    addRequiredData("column");
+    addRequiredData(KeyName::Index);
+    addRequiredData(KeyName::Row);
+    addRequiredData(KeyName::Column);
 
-    setPrimaryTextKey("label");
+    setPrimaryTextKey(KeyName::Label);
     getTextItem(EntityRect::PRIMARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::SECONDARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::TERTIARY_TEXT)->setAlignment(Qt::AlignCenter);

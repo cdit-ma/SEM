@@ -3,7 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 
-InnerTypeKey::InnerTypeKey(EntityFactoryBroker& broker): Key(broker, "inner_type", QVariant::String){
+InnerTypeKey::InnerTypeKey(EntityFactoryBroker& broker): Key(broker, KeyName::InnerType, QVariant::String){
 
 }
 
@@ -13,7 +13,7 @@ bool InnerTypeKey::setData(Data* data, QVariant data_value){
     auto entity = data->getParent();
     if(entity && entity->isNode()){
         auto node = (Node*) entity;
-        auto node_type = node->getData("type");
+        auto node_type = node->getData(KeyName::Type);
         if(node_type){
             node_type->setValue(node_type->getValue());
         }

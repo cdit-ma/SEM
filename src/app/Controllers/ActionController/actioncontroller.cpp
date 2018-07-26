@@ -156,24 +156,6 @@ void ActionController::connectSelectionController()
 }
 
 
-/**
- * @brief ActionController::getRootAction
- * This will return a copy of the root action specified by kind if it exists.
- * If it doesn't, it will construct the root action and then return a copy of it.
- * @param action
- * @param stealth
- * @return
- */
-RootAction* ActionController::getRootAction(QString actionKey)
-{
-
-    RootAction* action = 0;
-    if(actionHash.contains(actionKey)){
-        action = actionHash[actionKey];
-    }
-    return action;
-}
-
 RootAction *ActionController::createRootAction(QString category, QString name, QString hashKey, QString iconPath, QString aliasPath)
 {
     RootAction* action = new RootAction(category, name, this);
@@ -613,15 +595,6 @@ QList<QAction *> ActionController::getNodeViewActions()
     return view_actions;
 }
 
-QList<QAction *> ActionController::getGlobalActions(){
-    QList<QAction*> actions;
-    for(auto action : allActions){
-        if(action->shortcutContext() == Qt::ApplicationShortcut){
-            actions.append(action);
-        }
-    }
-    return actions;
-}
 
 void ActionController::setupActions()
 {

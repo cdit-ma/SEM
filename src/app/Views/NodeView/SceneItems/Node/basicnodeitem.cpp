@@ -14,7 +14,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : Nod
    
     
 
-    setPrimaryTextKey("label");
+    setPrimaryTextKey(KeyName::Label);
 
     bool require_x_y = true;
     if(parentContainer && parentContainer->isSortOrdered()){
@@ -25,12 +25,12 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : Nod
     }
 
     if(require_x_y){
-        addRequiredData("x");
-        addRequiredData("y");
+        addRequiredData(KeyName::X);
+        addRequiredData(KeyName::Y);
     }else{
-        addRequiredData("index");
-        addRequiredData("row");
-        addRequiredData("column");
+        addRequiredData(KeyName::Index);
+        addRequiredData(KeyName::Row);
+        addRequiredData(KeyName::Column);
     }
     reloadRequiredData();
 }

@@ -28,11 +28,12 @@
 
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
+    
     setMinimumSize(200, 200);
     setupStateMachine();
     
     QRectF sceneRect;
-    sceneRect.setSize(QSize(10000,10000));
+    sceneRect.setSize(QSize(50000,50000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
@@ -68,7 +69,6 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     themeChanged();
 
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
-    
 }
 
 
@@ -101,6 +101,7 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController->getActionController()->edit_clearSelection, &QAction::triggered, this, &NodeView::trans_inactive);
 
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
+
         connect(selectionHandler, &SelectionHandler::itemSelectionChanged, this, &NodeView::selectionHandler_ItemSelectionChanged);
         connect(selectionHandler, &SelectionHandler::itemActiveSelectionChanged, this, &NodeView::selectionHandler_ItemActiveSelectionChanged);
 
@@ -114,11 +115,7 @@ void NodeView::setViewController(ViewController *viewController)
 
 
         connect(viewController, &ViewController::vc_centerItem, this, &NodeView::centerItem);
-        connect(viewController, &ViewController::vc_fitToScreen, [=](bool only_if_active){
-            if(is_active || !only_if_active){
-                fitToScreen();
-            }
-        });
+        connect(viewController, &ViewController::vc_fitToScreen, this, &NodeView::AllFitToScreen);
 
         connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeView::centerConnections);
 
@@ -127,11 +124,19 @@ void NodeView::setViewController(ViewController *viewController)
     }
 }
 
+void NodeView::AllFitToScreen(bool only_if_active){
+    if(is_active || !only_if_active){
+        FitToScreen();
+    }
+}
+
+void NodeView::FitToScreen()
+{
+    centerOnItems(getTopLevelEntityItems());
+}
+
 void NodeView::translate(QPointF point)
 {
-    /*for(auto t : getTopLevelEntityItems()){
-        t->setPos(t->getPos() + point);
-    }*/
     QGraphicsView::translate(point.x(), point.y());
 }
 
@@ -143,7 +148,7 @@ void NodeView::scale(qreal sx, qreal sy)
 
         //Limit to zoom 25% between 400%
 
-        zoom = qMax(0.25, zoom);
+        //zoom = qMax(0.25, zoom);
         zoom = qMin(zoom, 5.0);
 
         //m11 and m22 are x/y scaling respectively
@@ -202,14 +207,10 @@ QColor NodeView::getBackgroundColor()
 }
 
 
-QRectF NodeView::getViewportRect()
-{
-    return viewportRect();
-}
-
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
+    //return;
     if(item){
         if(item->isNode()){
             nodeViewItem_Constructed((NodeViewItem*)item);
@@ -219,10 +220,9 @@ void NodeView::viewItem_Constructed(ViewItem *item)
     }
 }
 
+
 void NodeView::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
-
-
     EntityItem* item = getEntityItem(ID);
     if(item){
         topLevelGUIItemIDs.removeAll(ID);
@@ -425,10 +425,6 @@ void NodeView::item_RemoveData(ViewItem *item, QString keyName)
     }
 }
 
-void NodeView::fitToScreen()
-{
-    centerOnItems(getTopLevelEntityItems());
-}
 
 
 void NodeView::centerSelection()
@@ -440,53 +436,49 @@ void NodeView::centerSelection()
 void NodeView::centerConnections(ViewItem* item)
 {
     if(item){
-        QList<EdgeViewItem*> edges;
+        QSet<EdgeViewItem*> edges;
         if(item->isNode()){
             edges = ((NodeViewItem*)item)->getEdges();
         }else if(item->isEdge()){
-            edges.append((EdgeViewItem*)item);
+            edges += ((EdgeViewItem*)item);
         }
 
-        QList<ViewItem*> toSelect;
-        QList<EntityItem*> toCenter;
+        QSet<ViewItem*> to_select;
+        QSet<EntityItem*> to_center;
+        
+        for(auto e : edges){
+            auto s = e->getSource();
+            auto d = e->getDestination();
+            
+            auto src = getEntityItem(s);
+            auto dst = getEntityItem(d);
+            auto edge = getEntityItem(e);
 
-        foreach(EdgeViewItem* e, edges){
-            ViewItem* s = e->getSource();
-            ViewItem* d = e->getDestination();
-
-            EntityItem* src = getEntityItem(s);
-            EntityItem* dst = getEntityItem(d);
-            EntityItem* edge = getEntityItem(e);
-
-            if(src && !toSelect.contains(s)){
-                toCenter.append(src);
-                toSelect.append(s);
+            if(src && s){
+                to_select += s;
+                to_center += src;
             }
 
-            if(dst && !toSelect.contains(d)){
-                toCenter.append(dst);
-                toSelect.append(d);
+            if(dst && d){
+                to_select += d;
+                to_center += dst;
             }
 
-            if(edge && !toSelect.contains(e)){
-                toCenter.append(edge);
-                toSelect.append(e);
+            if(edge && e){
+                to_select += e;
+                to_center += edge;
             }
         }
-        if(!toSelect.isEmpty()){
+
+        if(to_select.size()){
             if(selectionHandler){
-                selectionHandler->toggleItemsSelection(toSelect);
+                selectionHandler->toggleItemsSelection(to_select.toList());
             }
-            centerOnItems(toCenter);
+            centerOnItems(to_center.toList());
         }else{
             clearSelection();
         }
     }
-}
-
-QList<int> NodeView::getIDsInView()
-{
-    return guiItems.keys();
 }
 
 
@@ -732,23 +724,6 @@ void NodeView::activeViewDockChanged(ViewDockWidget* dw){
     }
 }
 
-QPointF NodeView::getTopLeftOfSelection(){
-    auto vi = selectionHandler->getActiveSelectedItem();
-    auto item = getEntityItem(vi);
-
-    QPointF top_left = viewportRect().topLeft();
-    if(item){
-        top_left = item->mapFromScene(top_left);
-        if(top_left.x() < 20){
-            top_left.setX(0);
-        }
-        if(top_left.y() < 20){
-            top_left.setY(0);
-        }
-    }
-    return top_left;
-}
-
 QRectF NodeView::viewportRect()
 {
     return mapToScene(viewport()->rect()).boundingRect();
@@ -759,6 +734,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
     if(!item || item->getViewAspect() != containedAspect){
         return;
     }
+    
 
     NodeItem* parentNode = getParentNodeItem(item);
 
@@ -766,8 +742,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
         setContainedNodeViewItem(item);
         return;
     }
-
-
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
@@ -787,7 +761,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INSTANCE){
                 return;
             }
-            
+
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:
                 node_item = new HardwareNodeItem(item, parentNode);
@@ -1141,7 +1115,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 guiItems[ID] = node_item;
                 setupConnections(node_item);
 
-                if(!scene()->items().contains(node_item)){
+                if(!parentNode){
                     scene()->addItem(node_item);
                     
                     topLevelGUIItemIDs.append(ID);
@@ -1264,15 +1238,6 @@ EntityItem *NodeView::getEntityItem(ViewItem *item) const
         e = getEntityItem(item->getID());
     }
     return e;
-}
-
-NodeItem *NodeView::getNodeItem(ViewItem *item) const
-{
-    EntityItem* e = getEntityItem(item->getID());
-    if(e && e->isNodeItem()){
-        return (NodeItem*) e;
-    }
-    return 0;
 }
 
 void NodeView::zoom(int delta, QPoint anchorScreenPos)
@@ -1671,7 +1636,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     if(event->button() == Qt::MiddleButton){
         EntityItem* item = getEntityAtPos(scenePos);
         if(!item){
-            fitToScreen();
+            FitToScreen();
             event->accept();
         }
     }

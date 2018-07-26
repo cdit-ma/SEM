@@ -71,7 +71,6 @@ private:
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
     void menu_focussed(QMenu* menu);
-    void clear_menu_cache(QMenu* menu);
 
 
     

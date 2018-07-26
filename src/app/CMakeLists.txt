@@ -26,7 +26,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
@@ -120,7 +119,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h

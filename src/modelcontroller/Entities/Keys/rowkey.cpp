@@ -2,14 +2,13 @@
 #include "../data.h"
 #include "../node.h"
 #include <QDebug>
-RowKey::RowKey(EntityFactoryBroker& broker): Key(broker, "row", QVariant::Int){
+RowKey::RowKey(EntityFactoryBroker& broker): Key(broker, KeyName::Row, QVariant::Int){
 
 }
 
 
 QVariant RowKey::validateDataChange(Data* data, QVariant data_value){
     int new_row = data_value.toInt();
-    int old_row = data->getValue().toInt();
     Node* node = 0;
     Node* parent_node = 0;
 
@@ -42,7 +41,7 @@ bool RowKey::setData(Data* data, QVariant data_value){
     //If our row has been changed, we should update the index such that it ends up last in the column it's been moved to
     if(entity && entity->isNode()){
         auto node = (Node*) entity;
-        auto node_index = node->getData("index");
+        auto node_index = node->getData(KeyName::Index);
         if(node_index){
             node_index->setValue(-1);
         }

@@ -25,12 +25,12 @@ class EntityFactoryBroker
         void DeregisterEdge(Edge* edge);
     public:
         Node* ConstructChildNode(Node& parent, NODE_KIND node_kind);
-        Key* GetKey(QString key_name, QVariant::Type type);
+        Key* GetKey(const QString& key_name, QVariant::Type type);
 
         Data* AttachData(Entity* entity, Key* key, ProtectedState protected_state, QVariant value = QVariant());
-        Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value = QVariant());
+        Data* AttachData(Entity* entity, const QString& key_name, QVariant::Type type, ProtectedState protected_state, QVariant value = QVariant());
 
-        void RemoveData(Entity* entity, QString key_name);
+        void RemoveData(Entity* entity, const QString& key_name);
 
         void AcceptedEdgeKindsChanged(Node* node);
 

@@ -42,10 +42,6 @@ QVariant Setting::getDefaultValue() const
     return defaultValue;
 }
 
-QString Setting::getTooltip() const
-{
-    return tooltip;
-}
 
 QPair<QString, QString> Setting::getIcon() const
 {
@@ -77,10 +73,6 @@ void Setting::setDefaultValue(QVariant value)
     }
 }
 
-bool Setting::resetValue()
-{
-    return setValue(defaultValue);
-}
 
 bool Setting::setValue(QVariant value)
 {

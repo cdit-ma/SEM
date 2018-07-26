@@ -27,12 +27,12 @@ Node* EntityFactoryBroker::ConstructChildNode(Node& parent, NODE_KIND node_kind)
     return factory_.ConstructChildNode(parent, node_kind);
 }
 
-Key* EntityFactoryBroker::GetKey(QString key_name, QVariant::Type type){
+Key* EntityFactoryBroker::GetKey(const QString& key_name, QVariant::Type type){
     return factory_.GetKey(key_name, type);
 }
 
 
-void EntityFactoryBroker::RemoveData(Entity* entity, QString key_name){
+void EntityFactoryBroker::RemoveData(Entity* entity, const QString& key_name){
     auto data = entity->getData(key_name);
     factory_.DestructEntity(data);
 }
@@ -41,7 +41,7 @@ Data* EntityFactoryBroker::AttachData(Entity* entity, Key* key, ProtectedState p
     return factory_.AttachData(entity, key, protected_state, value);
 }
 
-Data* EntityFactoryBroker::AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
+Data* EntityFactoryBroker::AttachData(Entity* entity, const QString& key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
     return AttachData(entity, GetKey(key_name, type), protected_state, value);
 }
 

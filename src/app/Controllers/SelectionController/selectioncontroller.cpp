@@ -42,17 +42,6 @@ void SelectionController::registerSelectionHandler(QObject *object, SelectionHan
     }
 }
 
-void SelectionController::unregisterSelectionHandler(QObject *object, SelectionHandler *handler)
-{
-    if(selectionHandlerIDLookup.contains(object)){
-        int sID = selectionHandlerIDLookup[object];
-        if(sID == handler->getID()){
-            handler->unregisterObject(object);
-            selectionHandlerIDLookup.remove(object);
-        }
-    }
-}
-
 QVector<ViewItem *> SelectionController::getSelection()
 {
     if(currentHandler){
@@ -105,17 +94,6 @@ int SelectionController::getActiveSelectedID(){
         id = active->getID();
     }
     return id;
-}
-int SelectionController::getFirstSelectedItemID()
-{
-    int ID = -1;
-    if(currentHandler){
-        ViewItem* item = currentHandler->getFirstSelectedItem();
-        if(item){
-            ID = item->getID();
-        }
-    }
-    return ID;
 }
 
 void SelectionController::activeViewDockWidgetChanged(ViewDockWidget *dockWidget)

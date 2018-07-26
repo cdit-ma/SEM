@@ -38,7 +38,7 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
 
 bool Model::canAdoptChild(Node *child)
 {
-    if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+    if(!getChildrenOfKind(child->getNodeKind()).isEmpty()){
         return false;
     }
 

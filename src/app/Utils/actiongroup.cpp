@@ -9,27 +9,6 @@ ActionGroup::ActionGroup(QObject* parent) : QActionGroup(parent)
     checkedActionCount = 0;
 }
 
-RootAction *ActionGroup::getGroupVisibilityAction()
-{
-    if(!masterAction){
-        masterAction = new RootAction("Test", 0);
-        updateMasterAction();
-    }
-    return masterAction;
-}
-
-QList<RootAction *> ActionGroup::getRootActions()
-{
-    QList<RootAction* > rootActions;
-    foreach(QAction* action, actions()){
-        RootAction* rootAction = qobject_cast<RootAction*>(action);
-        if(rootAction){
-            rootActions.append(rootAction);
-        }
-    }
-    return rootActions;
-}
-
 void ActionGroup::addSeperator()
 {
     QAction* seperator = new QAction(this);
@@ -91,10 +70,6 @@ void ActionGroup::removeAction(QAction *a)
     QActionGroup::removeAction(a);
 }
 
-bool ActionGroup::containsCheckedActions()
-{
-    return checkedActionCount > 0;
-}
 
 /**
  * @brief ActionGroup::updateMasterAction

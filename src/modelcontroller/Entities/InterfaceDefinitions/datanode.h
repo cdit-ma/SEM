@@ -12,13 +12,10 @@ protected:
 public:
     static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();
-    bool hasOutputData();
 
     DataNode* getInputData();
-    DataNode* getOutputData();
 
     void setPromiscuousDataLinker(bool set);
-    void setMultipleDataReceiver(bool receiver);
     void setMultipleDataProducer(bool receiver);
 
     void setDataProducer(bool producer);
@@ -30,13 +27,10 @@ public:
     bool isMultipleDataReceiver() const;
     bool isMultipleDataProducer() const;
 
-    bool comparableTypes(DataNode* node);
     virtual bool canAcceptEdge(EDGE_KIND edge_kind, Node *dst);
 
     bool isContainedInVector();
     bool isContainedInVariable();
-    bool isContainedInFunctionCall();
-    bool isContainedInAggregateInstance();
 
     Node* getContainmentNode();
     Node* getChildOfContainmentNode();

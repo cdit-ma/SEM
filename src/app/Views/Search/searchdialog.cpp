@@ -36,7 +36,7 @@ void SearchDialog::setQuery(QString query){
  * @param query
  * @param results
  */
-void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> results)
+void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*> results)
 {
     setQuery(query);
 
@@ -192,23 +192,6 @@ void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
         selected_id = -1;
     }
 }
-
-/**
- * @brief SearchDialog::resetPanel
- */
-void SearchDialog::resetPanel()
-{
-    selected_id = -1;
-    setQuery("");
-
-    // clear previous data filters
-    data_filters->removeOptions();
-    data_filters->setResetButtonText("All");
-
-    clearSearchItems();
-    info_label->setVisible(true);
-}
-
 
 /**
  * @brief SearchDialog::setupLayout

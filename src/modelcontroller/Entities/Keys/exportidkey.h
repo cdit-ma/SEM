@@ -11,12 +11,12 @@ class ExportIDKey : public Key
 public:
     ExportIDKey(EntityFactoryBroker& factory, std::function<void (Entity*, QString, QString)> uuid_notifier);
     //If it's a valid UUID, use it, if its another string MD5 it, else generate a new one.
-    static QString GetUUIDOfValue(const QString str_value);
+    static QString GetUUIDOfValue(const QString& str_value);
 
     QVariant validateDataChange(Data* data, QVariant dataValue);
     bool setData(Data* data, QVariant dataValue);
 private:
-    static QString getMD5UUID(const QString str);
+    static QString getMD5UUID(const QString& str);
     
     std::function<void (Entity*, QString, QString)> uuid_notifier_;
 

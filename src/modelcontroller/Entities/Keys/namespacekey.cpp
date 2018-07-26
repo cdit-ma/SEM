@@ -4,7 +4,7 @@
 #include <QDebug>
 
 
-NamespaceKey::NamespaceKey(EntityFactoryBroker& broker): Key(broker, "namespace", QVariant::String){
+NamespaceKey::NamespaceKey(EntityFactoryBroker& broker): Key(broker, KeyName::Namespace, QVariant::String){
 
 }
 
@@ -39,9 +39,6 @@ QVariant NamespaceKey::validateDataChange(Data* data, QVariant data_value){
 
     auto node_kind = node->getNodeKind();
     auto parent_kind = parent_node->getNodeKind();
-
-
-    auto node_namespace = node->getData(this);
     auto parent_namespace = parent_node->getData(this);
 
     auto parent_namespace_value = parent_namespace ? parent_namespace->getValue().toString() : "";
@@ -53,7 +50,7 @@ QVariant NamespaceKey::validateDataChange(Data* data, QVariant data_value){
     }
 
     if(node_kind == NODE_KIND::NAMESPACE){
-        new_namespace = CombineNamespaces(parent_namespace_value, node->getData("label")->getValue().toString());
+        new_namespace = CombineNamespaces(parent_namespace_value, node->getData(KeyName::Label)->getValue().toString());
     }
 
     return new_namespace;

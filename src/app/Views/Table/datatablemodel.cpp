@@ -4,18 +4,17 @@
 
 #include <QDebug>
 
+const static QSet<QString> multiline_keys({"processes_to_log","code"});
+const static QSet<QString> icon_keys({"icon", "icon_prefix"});
+const static QSet<QString> ignoredKeys({"x", "y", "width", "height", "readOnly", "isExpanded"});
+
+//TODO: FIX ME
 DataTableModel::DataTableModel(ViewItem *item)
 {
     entity = item;
     //Register the table
     entity->registerObject(this);
 
-    multiline_keys << "processes_to_log" << "code";
-    icon_keys << "icon" << "icon_prefix";
-    ignoredKeys << "x" << "y" << "width" << "height" << "readOnly";
-    
-    
-    ignoredKeys << "isExpanded";
     setupDataBinding();
 }
 
@@ -24,7 +23,7 @@ DataTableModel::~DataTableModel()
     entity->unregisterObject(this);
 }
 
-void DataTableModel::updatedData(QString keyName)
+void DataTableModel::updatedData(const QString& keyName)
 {
     int row = getIndex(keyName);
     if(row > -1){
@@ -34,7 +33,7 @@ void DataTableModel::updatedData(QString keyName)
     }
 }
 
-void DataTableModel::removedData(QString keyName)
+void DataTableModel::removedData(const QString& keyName)
 {
     //Get the Index of the data to be removed.
     int row = getIndex(keyName);
@@ -49,7 +48,7 @@ void DataTableModel::removedData(QString keyName)
     }
 }
 
-void DataTableModel::addData(QString keyName)
+void DataTableModel::addData(const QString& keyName)
 {
     //If we haven't seen this Data Before.
 
@@ -87,7 +86,7 @@ void DataTableModel::clearData()
     endRemoveRows();
 }
 
-int DataTableModel::getIndex(QString keyName) const
+int DataTableModel::getIndex(const QString& keyName) const
 {
     int index = -1;
     if(lockedKeys.contains(keyName)){
@@ -248,20 +247,12 @@ bool DataTableModel::setData(const QModelIndex &index, const QVariant &value, in
         int column = index.column();
         int row = index.row();
         if(column == 0 && !isIndexProtected(index)){
-            QString key = getKey(row);
+            const auto& key = getKey(row);
             emit req_dataChanged(entity->getID(), key, value);
             return true;
         }
     }
     return false;
-}
-
-bool DataTableModel::insertRows(int row, int count, const QModelIndex &parent)
-{
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return true;
 }
 
 

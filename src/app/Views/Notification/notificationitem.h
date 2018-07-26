@@ -18,7 +18,6 @@ public:
 
     int getID();
     int getEntityID();
-    QSharedPointer<NotificationObject> getNotification() const;
     void setSelected(bool select);
 signals:
     void highlightEntity(int entityID, bool highlight);

@@ -16,10 +16,6 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     global_vars = QProcessEnvironment::systemEnvironment();
 }
 
-QString ProcessRunner::getEnvVar(QString key){
-    return global_vars.value(key, "");
-}
-
 /**
  * @brief CUTSManager::getEnvFromScript Executes a .bat/.sh script and constructs a QProcessEnvironment to put the newly set environment variables into.
  * @param scriptPath The path to the script file.

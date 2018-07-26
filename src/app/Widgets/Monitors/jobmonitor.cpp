@@ -74,9 +74,6 @@ ConsoleMonitor* JobMonitor::getConsoleMonitor(QString name){
     return qobject_cast<ConsoleMonitor*>(getMonitor(name, 0));
 };
 
-JenkinsMonitor* JobMonitor::getJenkinsMonitor(QString name, int build_number){
-    return qobject_cast<JenkinsMonitor*>(getMonitor(name, build_number));
-};
 
 void JobMonitor::updateMonitorIcon(Monitor* monitor, Theme* theme){
     if(monitor){

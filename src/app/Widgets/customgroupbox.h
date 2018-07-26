@@ -26,8 +26,6 @@ public:
     QAction* addWidget(QWidget* widget);
     QAction* insertWidget(QAction* beforeAction, QWidget* widget);
 
-    QAction* getTopAction();
-
 public slots:
     void themeChanged();
 
