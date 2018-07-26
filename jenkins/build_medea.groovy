@@ -7,6 +7,9 @@ import cditma.Utils
 def utils = new Utils(this);
 
 final GIT_BRANCH = env.JOB_BASE_NAME
+final BRANCH_NAME = env.BRANCH_NAME
+print(BRANCH_NAME)
+print(env)
 final FILE_NAME = "MEDEA-" + GIT_BRANCH
 
 
@@ -16,7 +19,7 @@ stage("Checkout"){
             checkout scm
         }
         stash includes: "**", name: "source_code"
-        
+
         def git_bundle = FILE_NAME + '.bundle'
         def git_tar_gz = FILE_NAME + '.tar.gz'
         dir(PROJECT_NAME){
