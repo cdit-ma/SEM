@@ -8,8 +8,7 @@ def utils = new Utils(this);
 
 final GIT_BRANCH = env.JOB_BASE_NAME
 final BRANCH_NAME = env.BRANCH_NAME
-print(BRANCH_NAME)
-print(env)
+sh 'printenv'
 final FILE_NAME = "MEDEA-" + GIT_BRANCH
 
 
