@@ -281,6 +281,28 @@
     </xsl:function>
 
     
+    <xsl:function name="cdit:test_transition_functions">
+        <xsl:param name="component_impls" as="element(gml:node)*"/>
+
+        <xsl:variable name="results">
+            <xsl:for-each select="$component_impls">
+                <xsl:variable name="component" select="." />
+                <xsl:variable name="transition_functions" select="graphml:get_child_nodes_of_kind($component, ('TransitionFunction'))" />
+                <xsl:variable name="types" select="for $var in $transition_functions return graphml:get_data_value($var, 'type')" />
+
+                <!-- This should select all non data linked entities -->
+                <xsl:for-each select="$transition_functions">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    <xsl:variable name="type" select="graphml:get_type(.)" />
+                    <xsl:variable name="duplicate_types" select="count($types[$type = .])" />
+                    <xsl:value-of select="cdit:output_result($id, $duplicate_types = 1, o:join_list(('Got duplicate TransitionFunction of Type ', $type), ''), false(), 2)" />        
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('ComponentImpl Duplicate Transition Functions', $results, 1)" />
+    </xsl:function>
+
 
     <!-- Tests that all ComponentImpls have all their parameters set via either data-linking or value -->
     <xsl:function name="cdit:test_componentimpl_data">
@@ -543,7 +565,7 @@
                     <xsl:variable name="variables_in_scope" select="graphml:get_child_nodes_of_kind($all_ancestors, ('Variable')) except $variable" />
                     <xsl:variable name="labels" select="for $var in $variables_in_scope return cdit:get_variable_name($var)" />
 
-                     <xsl:variable name="duplicate_count" select="count($labels[$label = .])" />
+                    <xsl:variable name="duplicate_count" select="count($labels[$label = .])" />
                     <xsl:value-of select="cdit:output_result($id, $duplicate_count = 0, o:join_list(('Variable with generated label', o:wrap_quote($label), 'is not unique with scope'), ' '), false(), 2)" />
                 </xsl:for-each>
             </xsl:for-each>
@@ -790,6 +812,7 @@
 
         <xsl:value-of select="cdit:test_componentimpl_data(($classes, $component_impls))" />
         <xsl:value-of select="cdit:test_log_function(($classes, $component_impls))" />
+        <xsl:value-of select="cdit:test_transition_functions(($classes, $component_impls))" />
         
     </xsl:function>
 
