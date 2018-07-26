@@ -182,6 +182,20 @@ void EnvironmentRequester::HeartbeatLoop(){
     if(!reply.empty()){
         NodeManager::EnvironmentMessage initial_reply;
         initial_reply.ParseFromString(reply);
+        if(initial_reply.type() == NodeManager::EnvironmentMessage::ERROR_RESPONSE){
+            for(auto error_message : initial_reply.error_messages()){
+                std::cout << error_message << std::endl;
+            }
+            if(!request_queue_.empty()){
+                while(!request_queue_.empty()){
+                    auto request = request_queue_.front();
+                    request_queue_.pop();
+                    request.response_->set_value("");
+                }
+            }
+            environment_manager_not_found_ = true;
+            return;
+        }
         manager_update_endpoint_ = initial_reply.update_endpoint();
     }
     else{
