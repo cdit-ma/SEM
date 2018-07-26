@@ -8,12 +8,12 @@ def utils = new Utils(this);
 
 final GIT_BRANCH = env.JOB_BASE_NAME
 final BRANCH_NAME = env.BRANCH_NAME
-sh 'printenv'
 final FILE_NAME = "MEDEA-" + GIT_BRANCH
 
 
 stage("Checkout"){
     node("master"){
+        sh 'printenv'
         dir(PROJECT_NAME){
             checkout scm
         }
