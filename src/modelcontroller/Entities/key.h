@@ -18,7 +18,7 @@ class Key : public GraphML
 public:
     
     //Used for conversion to and from for export
-    static QString getGraphMLTypeName(const QVariant::Type type);
+    static const QString& getGraphMLTypeName(const QVariant::Type type);
     static QVariant::Type getTypeFromGraphML(const QString& typeString);
 
     friend class EntityFactory;
@@ -28,8 +28,8 @@ protected:
     void setProtected(bool protect);
 public:
     bool isProtected() const;
-    QString getName() const;
-    QVariant::Type getType() const;
+    const QString& getName() const;
+    const QVariant::Type getType() const;
 
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);
@@ -42,8 +42,8 @@ signals:
     void validation_failed(int ID, QString error);
     void validateError(QString, QString, int);
 private:
-    QString key_name_;
-    QVariant::Type key_type_;
+    const QString key_name_;
+    const QVariant::Type key_type_;
     bool is_protected_ = false;
 };
 

@@ -8,14 +8,15 @@
 #include <QDebug>
 #include <QStringBuilder>
 
+//The type of the GraphML-Attribute can be either boolean, int, long, float, double, or string.
 const QString Type_Boolean("boolean");
 const QString Type_Int("int");
-const QString Type_LongLong("longlong");
+const QString Type_Long("long");
 const QString Type_Double("double");
+const QString Type_Float("float");
 const QString Type_String("string");
 
-
-QString Key::getGraphMLTypeName(const QVariant::Type type)
+const QString& Key::getGraphMLTypeName(const QVariant::Type type)
 {
     switch(type){
         case QVariant::Bool:
@@ -23,9 +24,11 @@ QString Key::getGraphMLTypeName(const QVariant::Type type)
         case QVariant::Int:
             return Type_Int;
         case QVariant::LongLong:
-            return Type_LongLong;
+            return Type_Long;
         case QVariant::Double:
             return Type_Double;
+        case QVariant::String:
+            return Type_String;
         default:
             return Type_String;
     }
@@ -36,17 +39,25 @@ QVariant::Type Key::getTypeFromGraphML(const QString& type_string)
     const static QHash<QString, QVariant::Type> type_map({
         {Type_Boolean, QVariant::Bool},
         {Type_Int, QVariant::Int},
-        {Type_LongLong, QVariant::LongLong},
+        {Type_Long, QVariant::LongLong},
         {Type_Double, QVariant::Double},
+        {Type_Float, QVariant::Double},
         {Type_String, QVariant::String}
     });
-
-    return type_map.value(type_string, (QVariant::Type)0);
+    if(type_map.contains(type_string)){
+        return type_map.value(type_string);
+    }else{
+        qCritical() << "Key::getTypeFromGraphML(): Cannot Find Type: " << type_string;
+        return QVariant::String;
+    }
 }
 
-Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type type) : GraphML(broker, GRAPHML_KIND::KEY){
-    key_name_ = key_name;
-    key_type_ = type;
+Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type key_type)
+: GraphML(broker, GRAPHML_KIND::KEY),
+key_name_(key_name),
+key_type_(key_type)
+{
+
 }
 
 Key::~Key()
@@ -63,12 +74,12 @@ bool Key::isProtected() const
     return is_protected_;
 }
 
-QString Key::getName() const
+const QString& Key::getName() const
 {
     return key_name_;
 }
 
-QVariant::Type Key::getType() const
+const QVariant::Type Key::getType() const
 {
     return key_type_;
 }

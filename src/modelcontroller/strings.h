@@ -23,13 +23,14 @@ namespace KeyName{
     extern const QString Namespace;
     extern const QString Operation;
     extern const QString OuterType;
+    extern const QString ReadOnly;
     extern const QString ReplicateCount;
     extern const QString Row;
     extern const QString Type;
     extern const QString UUID;
+    extern const QString Value;
     extern const QString Worker;
     extern const QString WorkerID;
-    extern const QString ReadOnly;
     extern const QString X;
     extern const QString Y;
 };
