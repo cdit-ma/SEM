@@ -327,6 +327,12 @@
         <xsl:value-of select="cmake:set_output_directory('CMAKE_ARCHIVE_OUTPUT_DIRECTORY', $output_directory, $tab)" />
     </xsl:function>
 
+    <xsl:function name="cmake:set_property">
+        <xsl:param name="property" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'set_property(', $property, ')', o:nl(1))" />
+    </xsl:function>
+
     <!--
         Gets a system environment variable
         ie. $env{variable_name}
@@ -335,4 +341,19 @@
         <xsl:param name="variable_name" as="xs:string" />
         <xsl:value-of select="concat('$ENV', o:wrap_curly($variable_name))" />
     </xsl:function>
+
+    <!--
+        Sets a project to use ccache if available
+    -->
+    <xsl:function name="cmake:use_ccache">
+        <xsl:param name="tab" as="xs:integer" />
+        
+        <xsl:value-of select="concat(o:t($tab), 'find_program(CCACHE_FOUND ccache)', o:nl(1))" />
+        <xsl:value-of select="cmake:if_start('CCACHE_FOUND', $tab)" />
+        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache', 1)" />
+        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_LINK ccache', 1)" />
+        <xsl:value-of select="cmake:if_end('CCACHE_FOUND', $tab)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
 </xsl:stylesheet>

@@ -1703,20 +1703,13 @@
         <xsl:param name="generate_all" as="xs:boolean" />
 
         <xsl:variable name="required_classes" as="element(gml:node)*">
-            <xsl:choose>
-                <xsl:when test="$generate_all = true()">
-                    <xsl:sequence select="graphml:get_nodes_of_kind($model, 'Class')" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:for-each select="cdit:get_components_to_build($model, $generate_all)">
-                        <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'ClassInstance')">
-                            <xsl:if test="graphml:is_class_instance_worker(.) = false()">
-                                <xsl:sequence select="graphml:get_definition(.)" />
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:for-each>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:for-each select="cdit:get_components_to_build($model, $generate_all)">
+                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'ClassInstance')">
+                    <xsl:if test="graphml:is_class_instance_worker(.) = false()">
+                        <xsl:sequence select="graphml:get_definition(.)" />
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:for-each>
         </xsl:variable>
 
         <xsl:sequence select="o:remove_duplicates($required_classes)" />
