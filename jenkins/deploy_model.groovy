@@ -19,13 +19,11 @@ final build_id = env.BUILD_ID
 final CLEANUP = false
 
 def experiment_name = "${EXPERIMENT_NAME}"
-def USE_CACHE_BUILD = false
 
 if(experiment_name.isEmpty()){
     experiment_name = "deploy_model_" + build_id
 }else{
     currentBuild.displayName = "#" + build_id + " - " + experiment_name
-    USE_CACHE_BUILD = true
 }
 
 //Set the current build description
@@ -114,39 +112,9 @@ for(n in builder_nodes){
         node(node_name){
             //Cache dir is the experiment_name
             def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-            def build_dir = experiment_name
-            if(USE_CACHE_BUILD){
-                //Cache dir is the experiment_name
-                def cached_dir = stash_name + "/" + experiment_name
-
-                //Temporarily unstash into the build folder
-                dir(build_id){
-                    //Unstash the generated code
-                    unstash 'codegen'
-
-                    def relative_cached_dir = "../" + cached_dir
-
-                    //Make the relative cached dir
-                    if(utils.runScript('mkdir -p "' + relative_cached_dir + '"') != 0){
-                        print("Cannot remove files")
-                    }
-
-                    //Run RSync to copy the newly generated code
-                    if(utils.runScript('rsync -rpgoD --checksum --exclude "*.zip" --exclude "*.graphml" . "' + relative_cached_dir + '"') != 0){
-                        print("Cannot remove files")
-                    }
-                }
-                //Set the build dir to the cached dir after we have rsynced the files
-                build_dir = cached_dir
-            }else{
-                dir(build_id){
-                    //Unstash the generated code
-                    unstash 'codegen'
-                }
-                build_dir = build_id
-            }
-
-            dir(build_dir){
+            dir(UNIQUE_ID){
+                //Unstash the generated code
+                unstash 'codegen'
                 dir("lib"){
                     //Clear any cached binaries
                     deleteDir()
@@ -157,9 +125,10 @@ for(n in builder_nodes){
                     }
                 }
                 dir("lib"){
-                    //Stash all Libraries
+                    //Stash all built libraries
                     stash includes: '**', name: stash_name
                 }
+                deleteDir()
             }
         }
     }
