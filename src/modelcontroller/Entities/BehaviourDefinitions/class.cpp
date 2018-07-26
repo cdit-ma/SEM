@@ -20,6 +20,7 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     addInstanceKind(NODE_KIND::CLASS_INSTANCE);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
+    setAcceptsNodeKind(NODE_KIND::TRANSITION_FUNCTION);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);

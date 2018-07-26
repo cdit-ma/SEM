@@ -121,6 +121,7 @@
 #include "Entities/BehaviourDefinitions/class.h"
 #include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
+#include "Entities/BehaviourDefinitions/transitionfunction.h"
 
 #include "Entities/InterfaceDefinitions/requestreply/serverinterface.h"
 #include "Entities/InterfaceDefinitions/requestreply/replierport.h"
@@ -400,6 +401,7 @@ entity_lock_(QReadWriteLock::Recursive)
     
     
     FunctionCall::RegisterWithEntityFactory(registry_broker);
+    MEDEA::TransitionFunction::RegisterWithEntityFactory(registry_broker);
 
     //Instance Elements
     ComponentInstance::RegisterWithEntityFactory(registry_broker);

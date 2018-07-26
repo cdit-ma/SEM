@@ -72,6 +72,7 @@ enum class NODE_KIND
         CLASS,
         CLASS_INSTANCE,
         FUNCTION,
+        TRANSITION_FUNCTION,
 
         ATTRIBUTE_IMPL,
         BRANCH,
