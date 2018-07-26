@@ -24,8 +24,6 @@ private slots:
     void resetToolDockWidgets();
 private:
     bool isWelcomeScreenVisible();
-    
-    Q_INVOKABLE void updateMenuBar();
     void setModelTitle(QString model_title="");
 
     void setDockWidgetIcon(BaseDockWidget* dockwidget, QString icon_path, QString icon_alias, Theme* theme = 0);

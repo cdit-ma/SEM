@@ -23,26 +23,6 @@ Parameter::Parameter(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
     broker.AttachData(this, "value", QVariant::String, ProtectedState::PROTECTED);
 }
 
-bool Parameter::isInputParameter() const
-{
-    return getNodeKind() == NODE_KIND::INPUT_PARAMETER;
-}
-
-bool Parameter::isVariadicParameter() const
-{
-    return getNodeKind() == NODE_KIND::VARIADIC_PARAMETER;
-}
-
-bool Parameter::isReturnParameter() const
-{
-    return getNodeKind() == NODE_KIND::RETURN_PARAMETER;
-}
-
-bool Parameter::isVariableParameter() const
-{
-    return getNodeKind() == NODE_KIND::VARIABLE_PARAMETER;
-}
-
 bool Parameter::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

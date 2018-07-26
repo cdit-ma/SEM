@@ -102,8 +102,6 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     
     switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
-            auto parent_node = getParentNode();
-
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
             
@@ -201,16 +199,6 @@ void Node::setNodeType(NODE_TYPE type)
         emit typesChanged();
     }
 }
-
-void Node::removeNodeType(NODE_TYPE type)
-{
-    if(node_types_.contains(type)){
-        node_types_.remove(type);
-        emit typesChanged();
-    }
-}
-
-
 
 Node *Node::getCommonAncestor(Node *dst)
 {
@@ -657,11 +645,6 @@ bool Node::isInstanceImpl() const
     return isInstance() || isImpl();
 }
 
-bool Node::isAspect() const
-{
-    return isNodeOfType(NODE_TYPE::ASPECT);
-}
-
 bool Node::isImpl() const
 {
     return isNodeOfType(NODE_TYPE::IMPLEMENTATION);
@@ -841,31 +824,27 @@ void Node::setParentNode(Node *parent, int branch)
     parentNodeUpdated();
 }
 
-QString Node::toGraphML(int indent_depth, bool functional_export)
-{
-    QString xml;
-    QTextStream stream(&xml); 
-
-    QString tab = QString("\t").repeated(indent_depth);
-    stream << tab << "<node id=\"" << getID() << "\">\n";
+void Node::ToGraphmlStream(QTextStream& stream, int indent_depth){
+    const auto tab = QString("\t").repeated(indent_depth);
     
+    stream << tab;
+    stream << "<node id=\"" << getID() << "\">\n";
+
     auto data_list = getData();
     std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
     for(auto data : data_list){
-        stream << data->toGraphML(indent_depth + 1, functional_export);
+        data->ToGraphmlStream(stream, indent_depth + 1);
     }
 
     //Children are in a <graph>
     if(getChildrenCount() > 0){
         stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
         for(auto child : getChildren(0)){
-            stream << child->toGraphML(indent_depth + 2, functional_export);
+            child->ToGraphmlStream(stream, indent_depth + 2);
         }
         stream << tab << "\t</graph>\n";
     }
-
-    stream <<  tab << "</node>\n";
-    return xml;
+    stream << tab << "</node>\n";
 }
 
 QList<Node *> Node::getOrderedChildNodes()
@@ -951,6 +930,25 @@ void Node::LinkData(Node* source, const QString &source_key, Node* destination, 
 }
 
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
+    static const QString key_key("key");
+    static const QString key_icon("icon");
+    static const QString key_icon_prefix("icon_prefix");
+    static const QString key_value("value");
+    static const QString key_is_generic_param("is_generic_param");
+    static const QString key_is_optional_param("is_optional_param");
+    static const QString key_worker("worker");
+    static const QString key_workerID("workerID");
+    static const QString key_type("type");
+    static const QString key_inner_type("inner_type");
+    static const QString key_outer_type("outer_type");
+    static const QString key_description("description");
+    static const QString key_class("class");
+    static const QString key_is_variadic("is_variadic");
+    static const QString key_label("label");
+    static const QString key_operation("operation");
+    static const QString key_index("index");
+    
+
     if(!definition || !instance){
         return;
     }
@@ -962,24 +960,26 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     
     auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
 
-    QMultiMap<QString, QString> bind_values;
-    QMultiMap<QString, QString> copy_values;
+    
+    QHash<QString, QSet<QString> > bind_values;
+    QHash<QString, QSet<QString> > copy_values;
     QSet<QString> required_instance_keys;
-    bind_values.insert("key", "key");
 
-    bind_values.insert("icon", "icon");
-    bind_values.insert("icon_prefix", "icon_prefix");
-    
-    copy_values.insert("value", "value");
+    bind_values[key_key] += key_key;
+    bind_values[key_icon] += key_icon;
+    bind_values[key_icon_prefix] += key_icon_prefix;
 
-    required_instance_keys.insert("icon");
-    required_instance_keys.insert("icon_prefix");
+    copy_values[key_value] += key_value;
 
-    
-    bind_values.insert("is_generic_param", "is_generic_param");
-    bind_values.insert("is_optional_param", "is_optional_param");
-    required_instance_keys.insert("is_generic_param");
-    required_instance_keys.insert("is_optional_param");
+    required_instance_keys += key_icon;
+    required_instance_keys += key_icon_prefix;
+
+
+    bind_values[key_is_generic_param] += key_is_generic_param;
+    bind_values[key_is_optional_param] += key_is_optional_param;
+
+    required_instance_keys += key_is_generic_param;
+    required_instance_keys += key_is_optional_param;
 
     bool bind_index = false;
     bool bind_labels = true;
@@ -1017,9 +1017,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
-                    copy_values.insert("value", "value");
-                    if(definition->gotData("worker")){
-                        bind_values.insert("worker", "type");
+                    copy_values[key_value] += key_value;
+                    if(definition->gotData(key_worker)){
+                        bind_values[key_worker] += key_type;
                         bind_types = false;
                     }
                 }
@@ -1027,24 +1027,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             }
             case NODE_KIND::FUNCTION_CALL:
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
-                    bind_values.insert("workerID", "workerID");
-                    bind_values.insert("operation", "operation");
+                    bind_values[key_workerID] += key_workerID;
+                    bind_values[key_operation] += key_operation;
                 }
-                bind_values.insert("description", "description");
-                bind_values.insert("class", "class");
-                bind_values.insert("is_variadic", "is_variadic");
-                bind_values.insert("label", "label");
-                required_instance_keys.insert("is_variadic");
+                bind_values[key_description] += key_description;
+                bind_values[key_class] += key_class;
+                bind_values[key_is_variadic] += key_is_variadic;
+                bind_values[key_label] += key_label;
+                required_instance_keys.insert(key_is_variadic);
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
-                bind_values.insert("operation", "operation");
-                bind_values.insert("description", "description");
-                bind_values.insert("class", "class");
-                bind_values.insert("is_variadic", "is_variadic");
+                bind_values[key_operation] += key_operation;
+                bind_values[key_description] += key_description;
+                bind_values[key_class] += key_class;
+                bind_values[key_is_variadic] += key_is_variadic;
                 
                 
-                required_instance_keys.insert("is_variadic");
+                required_instance_keys.insert(key_is_variadic);
                 break;
             }
             default:
@@ -1054,35 +1054,33 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         bind_labels = false;
     }
     
-    auto def_got_inner_type = definition->gotData("inner_type");
-    auto def_got_outer_type = definition->gotData("outer_type");
+    auto def_got_inner_type = definition->gotData(key_inner_type);
 
-    auto inst_got_inner_type = instance->gotData("inner_type");
-    auto inst_got_outer_type = instance->gotData("outer_type");
+    auto inst_got_inner_type = instance->gotData(key_inner_type);
 
 
-    bind_values.insert("inner_type", "inner_type");
-    bind_values.insert("outer_type", "outer_type");
+    bind_values[key_inner_type] += key_inner_type;
+    bind_values[key_outer_type] += key_outer_type;
 
 
 
     if(bind_types){
         if(!def_got_inner_type && inst_got_inner_type){
-            bind_values.insert("type", "inner_type");
-        }else if(definition->gotData("type")){
-            bind_values.insert("type", "type");
-        }else if(definition->gotData("label")){
-            bind_values.insert("label", "type");
+            bind_values[key_type] += key_inner_type;
+        }else if(definition->gotData(key_type)){
+            bind_values[key_type] += key_type;
+        }else if(definition->gotData(key_label)){
+            bind_values[key_label] += key_type;
         }
     }
 
     if(bind_labels){
-        bind_values.insert("label", "label");
+        bind_values[key_label] += key_label;
     }
 
     //Bind Index
     if(bind_index){
-        bind_values.insert("index", "index");
+        bind_values[key_index] += key_index;
 }
 
     for(auto key_name : required_instance_keys){
@@ -1098,15 +1096,15 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         }
     }
 
-    for(auto definition_key : bind_values.uniqueKeys()){
-        for(auto instance_key : bind_values.values(definition_key)){
+    for(const auto& definition_key : bind_values.keys()){
+        for(const auto& instance_key : bind_values[definition_key]){
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 
     if(setup){
-        for(auto definition_key : copy_values.uniqueKeys()){
-            for(auto instance_key : copy_values.values(definition_key)){
+        for(const auto& definition_key : copy_values.keys()){
+            for(const auto& instance_key : copy_values[definition_key]){
                 auto def_data = definition->getData(definition_key);
                 auto inst_data = instance->getData(instance_key);
 
@@ -1295,18 +1293,6 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
     return true;
 }
 
-QSet<EDGE_KIND> Node::getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const{
-    QSet<EDGE_KIND> accepted_kinds;
-
-    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
-
-    for(auto edge_kind : direction_set){
-        if(canCurrentlyAcceptEdgeKind(edge_kind, direction)){
-            accepted_kinds.insert(edge_kind);
-        }
-    }
-    return accepted_kinds;
-}
 
 QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;

@@ -72,14 +72,14 @@ QMarginsF StackNodeItem::getDefaultCellMargin() const{
     return QMarginsF(getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing());
 }
 
-QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
+QMarginsF StackNodeItem::getCellMargin(const CellIndex& index){
     if(cell_infos.contains(index)){
         return cell_infos[index].margin;
     }
     return getDefaultCellMargin();
 }
 
-Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index) const{
+Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index){
     if(cell_infos.contains(index)){
         return cell_infos[index].orientation;
     }
@@ -94,7 +94,7 @@ void StackNodeItem::setDefaultCellSpacing(qreal spacing){
     cell_spacing = spacing;
 }
 
-qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
+qreal StackNodeItem::getCellSpacing(const CellIndex& index){
     auto grid_size = getGridSize();
 
     if(cell_infos.contains(index)){
@@ -146,18 +146,6 @@ void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
     cell_info.spacing = spacing;
 }
 
-void StackNodeItem::SetCellMargins(int row, int col, QMarginsF margins){
-    auto& cell_info = SetupCellInfo(row, col);
-
-    cell_info.margin = margins;
-}
-
-void StackNodeItem::SetCellMinimumSize(int row, int col, qreal width, qreal height){
-    auto& cell_info = SetupCellInfo(row, col);
-    cell_info.minimum_width = width;
-    cell_info.minimum_height = height;
-}
-
 
 void StackNodeItem::SetRenderCellGapIcons(int row, int col, bool render, QString icon_path, QString icon_name){
     auto& cell_info = SetupCellInfo(row, col);
@@ -183,20 +171,6 @@ void StackNodeItem::SetRenderCellSuffixIcon(int row, int col, bool render, QStri
     cell_info.suffix_icon = qMakePair(icon_path, icon_name);
 }
 
-QPointF StackNodeItem::getStemAnchorPoint() const
-{
-    //QPointF offset;
-    return gridRect().topLeft();
-}
-
-int StackNodeItem::GetHorizontalGap() const{
-    return 2 * getGridSize();
-}
-
-int StackNodeItem::GetVerticalGap() const{
-    return getGridSize();
-}
-
 QRectF StackNodeItem::getRowRect(int row) const{
 
     QRectF rect;
@@ -218,7 +192,7 @@ void StackNodeItem::updateCells(){
         QMultiMap<int, int> row_cols;
 
         //Put all of the children in their appropriate Row/Column.
-        for(auto child : getSortedChildNodes()){
+        for(const auto& child : getSortedChildNodes()){
             auto index = GetCellIndex(child);
             bool inserted = !cells.contains(index);
             auto& cell = cells[index];

@@ -14,10 +14,8 @@ public:
     void addOption(QString option, SETTING_TYPE type, QVariant default_value = QVariant());
     void setOptionIcon(QString option, QString icon_path, QString icon_alias);
     void setOptionEnabled(QString option, bool enabled);
-    SETTING_TYPE getOptionType(QString option);
     QVariant getOptionValue(QString option);
 
-    void clearOptions();
     QHash<QString, QVariant> getOptions();
 private:
     void setupLayout();

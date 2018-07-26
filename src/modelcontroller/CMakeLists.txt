@@ -167,6 +167,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
 )
 
 set(HEADERS

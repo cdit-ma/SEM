@@ -26,7 +26,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
@@ -120,7 +119,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
@@ -213,11 +211,11 @@ else()
 endif()
 
 # Copy files
-set(REGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen/")
-set(REGEN_DST_DIR "${COPY_DEST}/Resources/re_gen/")
+set(REGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen")
+set(REGEN_DST_DIR "${COPY_DEST}/Resources/re_gen")
 
-set(SCRIPTS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/")
-set(SCRIPTS_DST_DIR "${COPY_DEST}/Resources/scripts/")
+set(SCRIPTS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts")
+set(SCRIPTS_DST_DIR "${COPY_DEST}/Resources/scripts")
 
 set(CHANGELOG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../../changelog.md")
 set(CHANGELOG_DST "${COPY_DEST}/changelog.md")
@@ -247,7 +245,7 @@ if(WIN32)
 	# Copy Resources as part of install for windows
     INSTALL(DIRECTORY ${REGEN_SRC_DIR} DESTINATION "./Resources" COMPONENT RE_GEN)
     INSTALL(DIRECTORY ${SCRIPTS_SRC_DIR} DESTINATION "./Resources" COMPONENT SCRIPTS)
-    INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION "./" COMPONENT ${PROJ_NAME} FILES_MATCHING PATTERN "changelog.md")
+    INSTALL(FILES ${CHANGELOG_SRC} DESTINATION "./" COMPONENT ${PROJ_NAME})
     INSTALL(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ DESTINATION "./" COMPONENT QT_LIBS FILES_MATCHING PATTERN "*.dll" PATTERN "*.qm")
 endif()
 

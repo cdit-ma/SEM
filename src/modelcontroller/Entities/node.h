@@ -82,7 +82,6 @@ class Node : public Entity
         bool canAcceptNodeKind(const Node* node) const;
 
         void setNodeType(NODE_TYPE type);
-        void removeNodeType(NODE_TYPE type);
         void setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept = true);
         bool canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edgeKind, Node* dst) const;
@@ -101,8 +100,9 @@ class Node : public Entity
         bool isValidImplKind(NODE_KIND kind) const;
         bool isValidDefinitionKind(NODE_KIND kind) const;
         QSet<NODE_KIND> getInstanceKinds() const;
-        QSet<NODE_KIND> getDefinitionKinds() const;
         QSet<NODE_KIND> getImplKinds() const;
+        QSet<NODE_KIND> getDefinitionKinds() const;
+        
 
         //Definition Getters
         QList<Node*> getRequiredInstanceDefinitions();
@@ -126,7 +126,7 @@ class Node : public Entity
         QSet<Node*> getNestedDependants();
         
 
-        QString toGraphML(int indentDepth = 0, bool functional_export = false);
+        void ToGraphmlStream(QTextStream& stream, int indend_depth);
    
     
         //Node kind getters
@@ -173,7 +173,6 @@ class Node : public Entity
         bool isDefinition() const;
         bool isInstance() const;
         bool isInstanceImpl() const;
-        bool isAspect() const;
         bool isImpl() const;
 
         QSet<NODE_TYPE> getTypes() const;
@@ -186,7 +185,6 @@ class Node : public Entity
         QSet<NODE_KIND> getAcceptedNodeKinds() const;
         virtual QSet<NODE_KIND> getUserConstructableNodeKinds() const;
         bool isNodeOfType(NODE_TYPE type) const;
-        QSet<EDGE_KIND> getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const;
         QSet<EDGE_KIND> getAcceptedEdgeKind(EDGE_DIRECTION direction) const;
 
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
@@ -195,7 +193,6 @@ class Node : public Entity
     private:
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);
-        QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
         QList<Node*> getOrderedChildNodes();
         void setTop(int index = 0);
 

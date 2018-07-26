@@ -48,15 +48,13 @@ public:
 
     
 
-    JenkinsManager* getJenkinsManager();
-    ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
     QStringList _getSearchSuggestions();
-    QStringList _getIDs();
+    QStringList GetIDs();
     
 
     QHash<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
@@ -76,7 +74,6 @@ public:
 
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
-    NodeViewItem* getNodeItem(NODE_KIND kind);
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
@@ -88,7 +85,6 @@ public:
     QSet<NODE_KIND> getValidNodeKinds();
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -108,8 +104,6 @@ public:
     void EditDataValue(int ID, QString key_name);
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
-
-    void setController(ModelController* c);
 
 
     bool isNodeAncestor(int ID, int ID2);
@@ -145,13 +139,8 @@ public slots:
     void decrementSelectedKey(QString key_name);
     
     void welcomeScreenToggled(bool visible);
-    void highlight(QList<int> ids);
 
 
-    void modelValidated(QString reportPath);
-    void importGraphMLFile(QString graphmlPath);
-    void importGraphMLExtract(QString data);
-    
 
     void showCodeViewer(QString tabName, QString content);
 
@@ -232,7 +221,6 @@ public slots:
     void editReplicationCount();
 
     
-    void requestSearchSuggestions();
 
     void setControllerReady(bool ready);
     void openURL(QString url);
@@ -257,11 +245,12 @@ private:
     void _showWiki(ViewItem* item=0);
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item);
-    bool destructViewItem(ViewItem* item);
+    
+    void DestructViewItem(ViewItem* item);
+    void ResetViewItems();
+
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
-
-    QList<NodeView*> getNodeViewsContainingID(int ID);
 
     NodeViewItem* getNodeViewItem(int ID);
 
@@ -293,17 +282,13 @@ private:
     bool _controllerReady = false;
 
 
-    bool clearVisualItems();
-
 
     ViewItem* getViewItem(int ID);
 
-    QHash<int, ViewItem*> viewItems;
-
+    ViewItem* root_item = 0;
+    QHash<int, ViewItem*> view_items_;
     int model_id_ = -1;
     
-    QSet<int> topLevelItems;
-    ViewItem* rootItem;
 
     BaseDockWidget* codeViewer = 0;
     CodeBrowser* codeBrowser = 0;
@@ -319,8 +304,6 @@ private:
 
     ContextMenu* menu = 0;
     ModelController* controller = 0;
-    QMutex mutex;
-    
     QTimer autosave_timer_;
     bool is_autosave_enabled_ = false;
     int autosave_id_ = 0;

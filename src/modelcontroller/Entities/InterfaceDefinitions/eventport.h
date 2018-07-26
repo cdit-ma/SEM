@@ -11,9 +11,6 @@ class EventPort : public Node
 protected:
     EventPort(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp, bool is_pubsub_port=true);
 public:
-    bool isInPort() const;
-    bool isOutPort() const;
-
     bool isPubSubPort() const;
     bool isReqRepPort() const;
 

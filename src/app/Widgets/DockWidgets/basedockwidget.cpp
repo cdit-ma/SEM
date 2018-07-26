@@ -200,22 +200,11 @@ bool BaseDockWidget::isActive()
     return _isActive;
 }
 
-void BaseDockWidget::setMaximized(bool maximized)
-{
-    setVisible(maximized);
-    setMaximizeToggled(maximized);
-    setMaximizeEnabled(!maximized);
-}
-
 void BaseDockWidget::setFocusEnabled(bool enabled)
 {
     _isFocusEnabled = enabled;
 }
 
-bool BaseDockWidget::isFocusEnabled()
-{
-    return _isFocusEnabled;
-}
 
 void BaseDockWidget::setIconVisible(bool visible)
 {
@@ -242,31 +231,12 @@ void BaseDockWidget::setPopOutVisible(bool visible)
     setActionVisible(DockTitleBar::DA_POPOUT, visible);
 }
 
-void BaseDockWidget::setProtectVisible(bool visible)
-{
-    setActionVisible(DockTitleBar::DA_PROTECT, visible);
-}
 
 void BaseDockWidget::setMaximizeToggled(bool toggled)
 {
     setActionToggled(DockTitleBar::DA_MAXIMIZE, toggled);
 }
 
-void BaseDockWidget::setMaximizeEnabled(bool enabled)
-{
-    setActionEnabled(DockTitleBar::DA_MAXIMIZE, enabled);
-
-}
-
-void BaseDockWidget::setPopOutToggled(bool toggled)
-{
-    setActionToggled(DockTitleBar::DA_POPOUT, toggled);
-}
-
-void BaseDockWidget::setProtectToggled(bool toggled)
-{
-    setActionToggled(DockTitleBar::DA_PROTECT, toggled);
-}
 
 void BaseDockWidget::close()
 {
@@ -334,14 +304,6 @@ void BaseDockWidget::setActionToggled(DockTitleBar::DOCK_ACTION action, bool tog
     QAction* a = getAction(action);
     if(a){
         a->setChecked(toggled);
-    }
-}
-
-void BaseDockWidget::setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled)
-{
-    QAction* a = getAction(action);
-    if(a){
-        a->setEnabled(enabled);
     }
 }
 

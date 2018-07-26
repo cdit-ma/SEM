@@ -3,7 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 
-ColumnKey::ColumnKey(EntityFactoryBroker& broker): Key(broker, "column", QVariant::Int){
+ColumnKey::ColumnKey(EntityFactoryBroker& broker): Key(broker, KeyName::Column, QVariant::Int){
 
 }
 
@@ -19,7 +19,7 @@ bool ColumnKey::setData(Data* data, QVariant data_value){
     //If our row has been changed, we should update the index such that it ends up last in the column it's been moved to
     if(entity && entity->isNode()){
         auto node = (Node*) entity;
-        auto node_index = node->getData("index");
+        auto node_index = node->getData(KeyName::Index);
         if(node_index){
             node_index->setValue(-1);
         }

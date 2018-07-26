@@ -13,7 +13,6 @@ public:
     QString getCategory() const;
     QString getName() const;
     QVariant getDefaultValue() const;
-    QString getTooltip() const;
     QPair<QString, QString> getIcon() const;
     bool gotIcon() const;
     void setIcon(QString path, QString name);
@@ -22,7 +21,6 @@ public:
     bool isThemeSetting() const;
 
     void setDefaultValue(QVariant value);
-    bool resetValue();
     bool setValue(QVariant value);
     QVariant getValue() const;
 private:
@@ -31,7 +29,6 @@ private:
     QString category;
     QString section;
     QString name;
-    QString tooltip;
     QVariant defaultValue;
     QVariant value;
     QPair<QString, QString> icon;

@@ -105,34 +105,12 @@ bool Data::setValue(QVariant value)
     return _setValue(value, true);
 }
 
-
-bool Data::isParentData(Data* data)
-{
-    return parent_datas.contains(data);
-}
-
-
-void Data::clearValue()
-{
-    setValue("");
-    updateChildren();
-}
-
 bool Data::CompareData(const Data* a, const Data* b){
     if(a && b){
         return a->getValue() == b->getValue();
     }
     return false;
 }
-
-bool Data::compare(const Data *data) const
-{
-    if(data){
-        return value == data->getValue();
-    }
-    return false;
-}
-
 
 Key *Data::getKey() const
 {
@@ -153,31 +131,42 @@ QVariant Data::getValue() const
     return value;
 }
 
-QString Data::toGraphML(int indentDepth, bool functional_export)
-{
-    bool should_export = !functional_export || !getKey()->isVisual();
+QString SanitizeString(const QString& str){
+    const static QString str_illegal_and("&");
+    const static QString str_safe_and("&amp;");
+    const static QString str_illegal_gt(">");
+    const static QString str_safe_gt("&gt;");
+    const static QString str_illegal_lt("<");
+    const static QString str_safe_lt("&lt;");
+    const static QString str_illegal_dq("\"");
+    const static QString str_safe_dq("&quot;");
+    const static QString str_illegal_sq("\'");
+    const static QString str_safe_sq("&apos;");
 
-    QString xml;
+    QString sanitized_string = str;
+    sanitized_string.replace(str_illegal_and, str_safe_and);
+    sanitized_string.replace(str_illegal_gt, str_safe_gt);
+    sanitized_string.replace(str_illegal_lt, str_safe_lt);
+    sanitized_string.replace(str_illegal_dq, str_safe_dq);
+    sanitized_string.replace(str_illegal_sq, str_safe_sq);
+    return sanitized_string;
+}
 
-    if(should_export){
-        QString tabSpace;
-        tabSpace.fill('\t', indentDepth);
+void Data::ToGraphmlStream(QTextStream& stream, int indent_depth){
+    auto data_string = SanitizeString(value.toString());
 
-        QString dataString = value.toString();
-
-        dataString.replace( "&", "&amp;" );
-        dataString.replace( ">", "&gt;" );
-        dataString.replace( "<", "&lt;" );
-        dataString.replace( "\"", "&quot;" );
-        dataString.replace( "\'", "&apos;" );
-
-        if(getKey()->getName() == "processes_to_log"){
-            dataString.replace("\n", ",");
-        }
-        xml += tabSpace;
-        xml += QString("<data key=\"%1\">%2</data>\n").arg(QString::number(getKey()->getID()), dataString);
+    const static QString process_key("processes_to_log");
+    if(getKey()->getName() == process_key){
+        const static QString search_str("\n");
+        const static QString replace_str(",");
+        data_string.replace(search_str, replace_str);
     }
-    return xml;
+    stream << QString("\t").repeated(indent_depth);
+    stream << "<data key=\"";
+    stream << getKey()->getID();
+    stream << "\">";
+    stream << data_string;
+    stream << "</data>\n";
 }
 
 QString Data::toString() const
@@ -219,9 +208,7 @@ void Data::addParentData(Data* data){
 
 void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
-        bool was_protected = isProtected();
         parent_datas.remove(data);
-        bool is_protected = isProtected();
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
         
         if(parent_datas.empty()){
@@ -292,18 +279,6 @@ void Data::addValidValues(QList<QVariant> values){
 
     //Revalidate
     revalidateData();
-}
-
-void Data::removeValidValue(QVariant value){
-    valid_values_.removeAll(value);
-}
-
-void Data::clearValidValues(){
-    valid_values_.clear();
-}
-
-bool Data::gotValidValues(){
-    return valid_values_.size();
 }
 
 QList<QVariant> Data::getValidValues(){

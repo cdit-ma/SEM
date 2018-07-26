@@ -43,7 +43,6 @@ public:
     HTTPResult HTTPPost(QNetworkRequest request, QByteArray post_data = QByteArray());
     HTTPResult HTTPPostMulti(QNetworkRequest request, QHttpMultiPart* post_data);
 
-    QString getEnvVar(QString key);
 signals:
     void Cancel();
     void GotProcessStdOutLine(QString line);

@@ -63,22 +63,6 @@ void SearchItemWidget::addPersistentKey(QString key){
     setupDataKey(key);
 }
 
-void SearchItemWidget::removeMatchedKey(QString key){
-    if(matched_keys.remove(key)){
-        removeDataKey(key);
-    }
-}
-
-void SearchItemWidget::removePersistentKey(QString key){
-    if(persistent_keys.remove(key)){
-        removeDataKey(key);
-    }
-}
-
-bool SearchItemWidget::gotMatchedKey(QString key){
-    return matched_keys.contains(key);
-}
-
 void SearchItemWidget::clearMatchedKeys(){
     for(auto key : matched_keys){
         removeDataKey(key);

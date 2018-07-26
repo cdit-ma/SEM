@@ -40,12 +40,9 @@ public:
     bool hasData(const QString& keyName) const;
 
     bool isDataProtected(const QString& keyName) const;
-    bool isDataVisual(const QString& keyName) const;
 
     bool isReadOnly() const;
 
-    void updateProtectedKeys(const QList<QString>& protected_keys);
-    void updateProtectedKey(const QString& key_name, bool is_protected);
 
     bool setDefaultIcon(const QString& prefix, const QString& name);
     bool setIcon(const QString& prefix, const QString& name);
@@ -57,7 +54,7 @@ public:
 
     
     void removeChild(ViewItem* child);
-    QList<ViewItem *> getDirectChildren() const;
+    QSet<ViewItem *> getDirectChildren() const;
     QList<ViewItem* > getNestedChildren();
 
     ViewItem* getParentItem() const;
@@ -100,7 +97,10 @@ private:
 
     ViewItem* _parent = 0;
     DataTableModel* table_model_ = 0;
-    QMultiMap<GRAPHML_KIND, ViewItem*> children;
+
+    QSet<ViewItem*> child_nodes_;
+    QSet<ViewItem*> child_edges_;
+    
     ViewController* controller;
 
     QHash<QString, QVariant> _data;

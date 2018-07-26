@@ -29,8 +29,8 @@ public:
 
     static bool CompareTypes(Node* node_1 , Node* node_2);
 private:
-    static QSet<QString> GetPrimitiveTypes();
-    static QSet<QString> GetNumberTypes();
+    static const QSet<QString>& GetPrimitiveTypes();
+    static const QSet<QString>& GetNumberTypes();
 
     QSet<NODE_KIND> combine_namespace_kinds;
 };

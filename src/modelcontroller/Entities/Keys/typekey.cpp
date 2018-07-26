@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "namespacekey.h"
 
-TypeKey::TypeKey(EntityFactoryBroker& broker): Key(broker, "type", QVariant::String){
+TypeKey::TypeKey(EntityFactoryBroker& broker): Key(broker, KeyName::Type, QVariant::String){
     //Combine Namespace and Type
     combine_namespace_kinds = {NODE_KIND::AGGREGATE, NODE_KIND::COMPONENT, NODE_KIND::ENUM, NODE_KIND::CLASS, NODE_KIND::SERVER_INTERFACE};
 }
@@ -32,28 +32,41 @@ QList<QVariant> TypeKey::GetValidNumberTypes(){
 }
 
 
+const QString type_String("String");
+const QString type_Boolean("Boolean");
+const QString type_Integer("Integer");
+const QString type_Double("Double");
+const QString type_Float("Float");
+const QString type_Character("Character");
 
-QSet<QString> TypeKey::GetPrimitiveTypes(){
-    return {"String", "Boolean", "Integer", "Double", "Float", "Character"};
+const QString cpptype_Boolean("bool");
+const QString cpptype_Integer("int");
+const QString cpptype_Double("double");
+const QString cpptype_Float("float");
+const QString cpptype_Character("char");
+
+
+
+const QSet<QString>&  TypeKey::GetPrimitiveTypes(){
+    const static QSet<QString> primitive_types({type_String, type_Boolean, type_Integer, type_Double, type_Float, type_Character});
+    return primitive_types;
 }
 
-QSet<QString> TypeKey::GetNumberTypes(){
-    return {"Integer", "Double", "Float", "Character"};
+const QSet<QString>&  TypeKey::GetNumberTypes(){
+    const static QSet<QString> number_types({type_Integer, type_Double, type_Float, type_Character});
+    return number_types;
 }
 
 QString TypeKey::GetCPPPrimitiveType(const QString& type){
-    if(type == "Boolean"){
-        return "bool";
-    }else if(type == "Double"){
-        return "double";
-    }else if(type == "Float"){
-        return "float";
-    }else if(type == "Integer"){
-        return "int";
-    }else if(type == "Character"){
-        return "char";
-    }
-    return type;
+    const static QHash<QString, QString> cpp_types({
+            {type_Boolean, cpptype_Boolean},
+            {type_Double, cpptype_Double},
+            {type_Float, cpptype_Float},
+            {type_Integer, cpptype_Integer},
+            {type_Character, cpptype_Character},
+        });
+
+    return cpp_types.value(type, type);
 }
 
 QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
@@ -69,16 +82,16 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
     auto node_kind = entity->isNode() ? ((Node*)entity)->getNodeKind() : NODE_KIND::NONE;
 
     if(combine_namespace_kinds.contains(node_kind)){
-        auto namespace_data = entity->getData("namespace");
-        auto label_data = entity->getData("label");
+        auto namespace_data = entity->getData(KeyName::Namespace);
+        auto label_data = entity->getData(KeyName::Label);
 
         auto namespace_value = namespace_data ? namespace_data->getValue().toString() : "";
         auto label_value = label_data ? label_data->getValue().toString() : "";
 
         new_type = NamespaceKey::CombineNamespaces(namespace_value, label_value);
     }else{
-        auto inner_type_data = entity->getData("inner_type");
-        auto outer_type_data = entity->getData("outer_type");
+        auto inner_type_data = entity->getData(KeyName::InnerType);
+        auto outer_type_data = entity->getData(KeyName::OuterType);
 
         if(inner_type_data && outer_type_data){
             auto inner_type = inner_type_data->getValue().toString();
@@ -100,13 +113,13 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
 #include <QDebug>
 
 void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
-    auto src_inner_type_data = src->getData("inner_type");
-    auto src_outer_type_data = src->getData("outer_type");
-    auto src_type_data = src->getData("type");
+    auto src_inner_type_data = src->getData(KeyName::InnerType);
+    auto src_outer_type_data = src->getData(KeyName::OuterType);
+    auto src_type_data = src->getData(KeyName::Type);
 
-    auto dst_inner_type_data = dst->getData("inner_type");
-    auto dst_outer_type_data = dst->getData("outer_type");
-    auto dst_type_data = dst->getData("type");
+    auto dst_inner_type_data = dst->getData(KeyName::InnerType);
+    auto dst_outer_type_data = dst->getData(KeyName::OuterType);
+    auto dst_type_data = dst->getData(KeyName::Type);
 
     //Got fully described data
     if(src_inner_type_data && src_outer_type_data && src_type_data){
@@ -129,9 +142,9 @@ void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
 }
 
 void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
-    auto namespace_data = node->getData("namespace");
-    auto label_data = node->getData("label");
-    auto type_data = node->getData("type");
+    auto namespace_data = node->getData(KeyName::Namespace);
+    auto label_data = node->getData(KeyName::Label);
+    auto type_data = node->getData(KeyName::Type);
     if(namespace_data && label_data && type_data){
         namespace_data->linkData(type_data, bind);
         label_data->linkData(type_data, bind);
@@ -139,8 +152,8 @@ void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
 }
 
 void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
-    auto src_type_data = src->getData("type");
-    auto dst_type_data = dst->getData("type");
+    auto src_type_data = src->getData(KeyName::Type);
+    auto dst_type_data = dst->getData(KeyName::Type);
     
     if(src_type_data && dst_type_data){
         src_type_data->linkData(dst_type_data, bind);
@@ -156,8 +169,8 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
            return true;
         }
 
-        auto type_1 = node_1->getDataValue("type").toString();
-        auto type_2 = node_2->getDataValue("type").toString();
+        auto type_1 = node_1->getDataValue(KeyName::Type).toString();
+        auto type_2 = node_2->getDataValue(KeyName::Type).toString();
 
         if(type_1 == type_2 && type_1.size()){
             //Allow Exact matches
@@ -169,22 +182,21 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
             return true;
         }
 
-        if(type_2 == ""){
+        if(type_2.isEmpty()){
             return true;
         }
 
-        auto outer_type_data_1 = node_1->getData("outer_type");
-        auto outer_type_data_2 = node_2->getData("outer_type");
+        auto outer_type_data_1 = node_1->getData(KeyName::OuterType);
+        auto outer_type_data_2 = node_2->getData(KeyName::OuterType);
 
-        auto inner_type_data_1 = node_1->getData("inner_type");
-        auto inner_type_data_2 = node_2->getData("inner_type");
+        auto inner_type_data_1 = node_1->getData(KeyName::InnerType);
+        auto inner_type_data_2 = node_2->getData(KeyName::InnerType);
 
 
         if(outer_type_data_1 && outer_type_data_2 && inner_type_data_1 && inner_type_data_2){
             auto outer_type_1 = outer_type_data_1->getValue().toString();
             auto outer_type_2 = outer_type_data_2->getValue().toString();
             auto outer_types_match = outer_type_1 == outer_type_2;
-            auto outer_types_empty = outer_types_match && outer_type_1.isEmpty();
 
             auto inner_type_1 = inner_type_data_1->getValue().toString();
             auto inner_type_2 = inner_type_data_2->getValue().toString();
@@ -195,7 +207,7 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
             if(outer_types_match){
                 if(inner_types_match && !inner_types_empty){
                     return true;
-                }else if(inner_type_2 == ""){
+                }else if(inner_type_2.isEmpty()){
                     return true;
                 }
             }

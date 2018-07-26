@@ -199,31 +199,36 @@ Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_
 
 QString EntityFactory::getNodeKindString(NODE_KIND kind)
 {
-    QString kind_str;
-    auto node_struct = globalFactory()->getNodeStruct(kind);
-    if(node_struct){
-        kind_str = node_struct->kind_str;
+    try{
+        return globalFactory()->getNodeStruct(kind).kind_str;
+    }catch(const std::exception& ex){
+        if(kind != NODE_KIND::NONE){
+            qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        }
     }
-    return kind_str;
+    return "INVALID_NODE";
 }
 
 QString EntityFactory::getPrettyNodeKindString(NODE_KIND kind){
-    QString kind_str;
-    auto node_struct = globalFactory()->getNodeStruct(kind);
-    if(node_struct){
-        kind_str = node_struct->pretty_kind_str;
+    try{
+        return globalFactory()->getNodeStruct(kind).pretty_kind_str;
+    }catch(const std::exception& ex){
+        if(kind != NODE_KIND::NONE){
+            qCritical() << " No Registered NODE_KIND: " << (uint)kind;
+        }
     }
-    return kind_str;
-
+    return "INVALID_NODE";
 }
 
 QString EntityFactory::getPrettyEdgeKindString(EDGE_KIND kind){
-    QString kind_str;
-    auto edge_struct = globalFactory()->getEdgeStruct(kind);
-    if(edge_struct){
-        kind_str = edge_struct->pretty_kind_str;
+    try{
+        return globalFactory()->getEdgeStruct(kind).pretty_kind_str;
+    }catch(const std::exception& ex){
+        if(kind != EDGE_KIND::NONE){
+            qCritical() << " No Registered EDGE_KIND: " << (uint)kind;
+        }
     }
-    return kind_str;
+    return "INVALID_EDGE";
 }
 
 QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
@@ -255,12 +260,12 @@ NODE_KIND EntityFactory::getViewAspectKind(VIEW_ASPECT aspect){
 
 QString EntityFactory::getEdgeKindString(EDGE_KIND kind)
 {
-    QString kind_str = "INVALID_EDGE";
-    auto edge_struct = globalFactory()->getEdgeStruct(kind);
-    if(edge_struct){
-        kind_str = edge_struct->kind_str;
+    try{
+        return globalFactory()->getEdgeStruct(kind).kind_str;
+    }catch(const std::exception& ex){
+        qCritical() << " No Registered EDGE_KIND: " << (uint)kind;
     }
-    return kind_str;
+    return "INVALID_EDGE";
 }
 
 QList<NODE_KIND> EntityFactory::getNodeKinds()
@@ -274,34 +279,38 @@ QList<EDGE_KIND> EntityFactory::getEdgeKinds()
 }
 
 
-NODE_KIND EntityFactory::getNodeKind(QString kind)
+NODE_KIND EntityFactory::getNodeKind(const QString& kind)
 {
     return globalFactory()->node_kind_lookup.value(kind, NODE_KIND::NONE);
 }
 
-EDGE_KIND EntityFactory::getEdgeKind(QString kind)
+EDGE_KIND EntityFactory::getEdgeKind(const QString& kind)
 {
     return globalFactory()->edge_kind_lookup.value(kind, EDGE_KIND::NONE);
 }
 
 void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& pretty_kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor){
+    QWriteLocker lock(&struct_lock_);
     auto kind_string = pretty_kind_string;
     kind_string.replace(" ", "");
-    if(doesNodeStructExist(node_kind)){
+    
+    if(node_struct_lookup.contains(node_kind)){
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Node with kind '" + kind_string.toStdString() + "'");
     }
 
-    auto node = getNodeStruct(node_kind);
+
+    //Setup our node
+    auto node = new NodeLookupStruct();
+    node->kind = node_kind;
     node->pretty_kind_str = pretty_kind_string;
     node->kind_str = kind_string;
     node->constructor = constructor;
+    node_struct_lookup[node_kind] = node;
 
     if(!node_kind_lookup.contains(kind_string)){
         auto values = node_kind_lookup.values().toSet();
 
         if(!values.contains(node_kind)){
-            //qCritical() << "EntityFactory: Registered Node Kind [" << (uint)node_kind << "]: " << kind_string;
-            //Insert into our reverse lookup
             node_kind_lookup.insert(kind_string, node_kind);
         }else{
             throw std::invalid_argument("EntityFactory: Trying to register duplicate NODE_KIND with kind string '" + kind_string.toStdString() + "'");
@@ -311,16 +320,23 @@ void EntityFactory::RegisterNodeKind(const NODE_KIND node_kind, const QString& p
     }
 }
 void EntityFactory::RegisterEdgeKind(const EDGE_KIND edge_kind, const QString& pretty_kind_string, std::function<Edge* (EntityFactoryBroker&,Node*, Node*)> constructor){
+    QWriteLocker lock(&struct_lock_);
     auto kind_string = pretty_kind_string;
     kind_string.replace(" ", "");
-    if(doesEdgeStructExist(edge_kind)){
+   
+
+    if(edge_struct_lookup.contains(edge_kind)){
         throw std::invalid_argument("EntityFactory: Trying to register duplicate Edge with kind '" + kind_string.toStdString() + "'");
     }
 
-    auto edge = getEdgeStruct(edge_kind);
+
+    //Setup our node
+    auto edge = new EdgeLookupStruct();
+    edge->kind = edge_kind;
     edge->pretty_kind_str = pretty_kind_string;
     edge->kind_str = kind_string;
     edge->constructor = constructor;
+    edge_struct_lookup[edge_kind] = edge;
 
     if(!edge_kind_lookup.contains(edge->kind_str)){
         //qCritical() << "EntityFactory: Registered Edge Kind [" << (uint)edge_kind << "]: " << kind_string;
@@ -339,7 +355,11 @@ QSet<Node*> EntityFactory::GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind, EDG
 }
 
 
-EntityFactory::EntityFactory() : factory_broker_(*this){
+EntityFactory::EntityFactory() :
+factory_broker_(*this),
+struct_lock_(QReadWriteLock::Recursive),
+entity_lock_(QReadWriteLock::Recursive)
+{
     auto& ref = *this;
     auto registry_broker = EntityFactoryRegistryBroker(ref);
     
@@ -512,32 +532,24 @@ EntityFactory *EntityFactory::getNewFactory()
     return new EntityFactory();
 }
 
-bool EntityFactory::doesNodeStructExist(NODE_KIND kind){
-    return node_struct_lookup.contains(kind);
-}
 
-bool EntityFactory::doesEdgeStructExist(EDGE_KIND kind){
-    return edge_struct_lookup.contains(kind);
-}
 
-EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
+const EntityFactory::NodeLookupStruct& EntityFactory::getNodeStruct(NODE_KIND kind){
+    QReadLocker lock(&struct_lock_);
     auto node = node_struct_lookup.value(kind, 0);
-    if(!node){
-        node = new NodeLookupStruct();
-        node->kind = kind;
-        node_struct_lookup.insert(kind, node);
+    if(node){
+        return *node;
     }
-    return node;
+    throw std::runtime_error("EntityFactory: getNodeStruct() No Registered NODE_KIND");
 }
 
-EntityFactory::EdgeLookupStruct* EntityFactory::getEdgeStruct(EDGE_KIND kind){
+const EntityFactory::EdgeLookupStruct& EntityFactory::getEdgeStruct(EDGE_KIND kind){
+    QReadLocker lock(&struct_lock_);
     auto edge = edge_struct_lookup.value(kind, 0);
-    if(!edge && kind != EDGE_KIND::NONE){
-        edge = new EdgeLookupStruct();
-        edge->kind = kind;
-        edge_struct_lookup.insert(kind, edge);
+    if(edge){
+        return *edge;
     }
-    return edge;
+    throw std::runtime_error("EntityFactory: getEdgeStruct() No Registered EDGE_KIND");
 }
 
 
@@ -546,18 +558,16 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
 {
     Edge* edge = 0;
 
-    auto edge_struct = getEdgeStruct(kind);
-  
-    if(edge_struct && edge_struct->constructor){
-        try{
-            edge = edge_struct->constructor(factory_broker_, source, destination);
-        }catch(const std::exception& ex){
-            //std::cerr << ex.what() << std::endl;
-            edge = 0;
-        }
+    try{
+        edge = getEdgeStruct(kind).constructor(factory_broker_, source, destination);
+    }catch(const std::exception& ex){
+        //qCritical() << "EntityFactory::CreateEdge() Failed: " << ex.what();
     }
 
-    CacheEntityAsUnregistered(edge);
+    if(edge){
+        CacheEntityAsUnregistered(edge);
+    }
+
     return edge;
 }
 
@@ -565,83 +575,59 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
 Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_complex)
 {
     Node* node = 0;
-    auto node_struct = getNodeStruct(kind);
 
-    if(node_struct){
-        if(node_struct->constructor){
-            try{
-                node = node_struct->constructor(factory_broker_, is_temporary);
-            }catch(const std::exception& ex){
-                std::cerr << ex.what() << std::endl;
-                node = 0;
-            }
-        }
-
-        if(node){
-            if(!is_temporary){
-                CacheEntityAsUnregistered(node);
-            }
-        }else{
-            auto node_kind_str = getNodeKindString(kind);
-            if(node_kind_str == "INVALID_NODE"){
-                node_kind_str = "NODE_KIND: '" + QString::number((uint)kind) + "'";            
-            }
-            qCritical() << "EntityFactory: Node Kind: " << node_kind_str << " cannot be created!";
-        }
-    }else{
-        qCritical() << "EntityFactory: Node Kind: " << QString::number((uint)kind) << " Not Registered";
+    try{
+        node = getNodeStruct(kind).constructor(factory_broker_, is_temporary);
+    }catch(const std::exception& ex){
+        qCritical() << "EntityFactory::CreateNode() Failed: " << ex.what();
     }
-       
+
+    if(node && !is_temporary){
+        CacheEntityAsUnregistered(node);
+    }
     return node;
 }
 
 
-Key *EntityFactory::GetKey(QString key_name)
+Key *EntityFactory::GetKey(const QString& key_name)
 {
     return key_lookup_.value(key_name, 0);
 }
 
-QSet<QString> VisualKeyNames(){
-    return {"x", "y", "width", "height", "isExpanded", "readOnly"};
-}
-
-Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
+Key *EntityFactory::GetKey(const QString& key_name, QVariant::Type type)
 {
     if(key_lookup_.contains(key_name)){
         return key_lookup_[key_name];
     }else{
         Key* key = 0;
-        if(key_name == "label"){
+        if(key_name == KeyName::Label){
             key = new LabelKey(factory_broker_);
-        }else if(key_name == "index"){
+        }else if(key_name == KeyName::Index){
             key = new IndexKey(factory_broker_);    
-        }else if(key_name == "row"){
+        }else if(key_name == KeyName::Row){
             key = new RowKey(factory_broker_);    
-        }else if(key_name == "column"){
+        }else if(key_name == KeyName::Column){
             key = new ColumnKey(factory_broker_);    
-        }else if(key_name == "uuid"){
+        }else if(key_name == KeyName::UUID){
             key = new ExportIDKey(factory_broker_, std::bind(&EntityFactory::EntitiesUUIDChanged, this, std::placeholders::_1,std::placeholders::_2, std::placeholders::_3));
-        }else if(key_name == "replicate_count"){
+        }else if(key_name == KeyName::ReplicateCount){
             key = new ReplicateCountKey(factory_broker_);    
-        }else if(key_name == "frequency"){
+        }else if(key_name == KeyName::Frequency){
             key = new FrequencyKey(factory_broker_);    
-        }else if(key_name == "inner_type"){
+        }else if(key_name == KeyName::InnerType){
             key = new InnerTypeKey(factory_broker_);    
-        }else if(key_name == "outer_type"){
+        }else if(key_name == KeyName::OuterType){
             key = new OuterTypeKey(factory_broker_);    
-        }else if(key_name == "type"){
+        }else if(key_name == KeyName::Type){
             key = new TypeKey(factory_broker_);    
-        }else if(key_name == "namespace"){
+        }else if(key_name == KeyName::Namespace){
             key = new NamespaceKey(factory_broker_);
-        }else if(key_name == "operation"){
+        }else if(key_name == KeyName::Operation){
             key = new OperationKey(factory_broker_);
         }else{
             key = new Key(factory_broker_, key_name, type);
         }
         
-        if(VisualKeyNames().contains(key_name)){
-            key->setVisual(true);
-        }
         key_lookup_[key_name] = key;
         
         //Need to Cache as Unregistered
@@ -649,10 +635,6 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         RegisterEntity(key);
         return key;
     }
-}
-
-QList<Key*> EntityFactory::GetKeys(){
-    return key_lookup_.values();
 }
 
 void EntityFactory::DeregisterNode(Node* node){
@@ -684,6 +666,7 @@ void EntityFactory::DeregisterEdge(Edge* edge){
 }
 
 void EntityFactory::DeregisterGraphML(GraphML* graphml){
+    QWriteLocker lock(&entity_lock_);
     if(graphml){
         switch(graphml->getGraphMLKind()){
             case GRAPHML_KIND::NODE:
@@ -708,7 +691,8 @@ void EntityFactory::DestructEntity(GraphML* graphml){
 }
 
 
-GraphML* EntityFactory::getGraphML(int id) const{
+GraphML* EntityFactory::getGraphML(int id){
+    QReadLocker lock(&entity_lock_);
     if(hash_.contains(id)){
         return hash_.value(id);
     }else if(unregistered_hash_.contains(id)){
@@ -717,7 +701,7 @@ GraphML* EntityFactory::getGraphML(int id) const{
     return 0;
 }
 
-Entity* EntityFactory::GetEntity(int id) const{
+Entity* EntityFactory::GetEntity(int id){
     auto item = getGraphML(id);
     if(item){
         switch(item->getGraphMLKind()){
@@ -731,31 +715,16 @@ Entity* EntityFactory::GetEntity(int id) const{
     return 0;
 }
 
-Entity* EntityFactory::GetEntityByUUID(QString uuid){
+Entity* EntityFactory::GetEntityByUUID(const QString& uuid){
+    QReadLocker lock(&entity_lock_);
     auto id = uuid_lookup_.value(uuid, -1);
     return GetEntity(id);
 }
 
-Node* EntityFactory::GetNode(int id) const{
+Node* EntityFactory::GetNode(int id){
     auto item = getGraphML(id);
     if(item && item->getGraphMLKind() == GRAPHML_KIND::NODE){
         return (Node*) item;
-    }
-    return 0;
-}
-
-Edge* EntityFactory::GetEdge(int id){
-    auto item = getGraphML(id);
-    if(item && item->getGraphMLKind() == GRAPHML_KIND::EDGE){
-        return (Edge*) item;
-    }
-    return 0;
-}
-
-Data* EntityFactory::GetData(int id){
-    auto item = getGraphML(id);
-    if(item && item->getGraphMLKind() == GRAPHML_KIND::DATA){
-        return (Data*) item;
     }
     return 0;
 }
@@ -768,14 +737,11 @@ Key* EntityFactory::GetKey(int id){
     return 0;
 }
 
-    
-
 Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protected_state, QVariant value){
     Data* data = 0;
     if(entity && key){
         data = entity->getData(key);
 
-        bool constructed_data = !data;
         if(!data){
             data = new Data(factory_broker_, key, value, false);
 
@@ -808,7 +774,7 @@ Data* EntityFactory::AttachData(Entity* entity, Key* key, ProtectedState protect
     return data;
 }
 
-Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
+Data* EntityFactory::AttachData(Entity* entity, const QString& key_name, QVariant::Type type, ProtectedState protected_state, QVariant value){
     return AttachData(entity, GetKey(key_name, type), protected_state, value);
 }
 
@@ -823,7 +789,7 @@ int EntityFactory::getFreeID(int start_id){
 }
 
 int EntityFactory::getUnregisteredFreeID(){
-
+    QWriteLocker lock(&entity_lock_);
     if(resuable_unregistered_ids_.size()){
         return resuable_unregistered_ids_.dequeue();
     }else{
@@ -832,6 +798,7 @@ int EntityFactory::getUnregisteredFreeID(){
 }
 
 bool EntityFactory::UnregisterTempID(GraphML* graphml){
+    QWriteLocker lock(&entity_lock_);
     auto current_id = graphml->getID();
 
     if(unregistered_hash_.contains(current_id)){
@@ -845,7 +812,7 @@ bool EntityFactory::UnregisterTempID(GraphML* graphml){
     }
 }
 
-bool EntityFactory::IsEntityRegistered(GraphML* graphml){
+bool EntityFactory::UnsafeIsEntityRegistered(GraphML* graphml){
     if(graphml){
         auto current_id = graphml->getID();
         return hash_.value(current_id, 0) == graphml;
@@ -854,12 +821,14 @@ bool EntityFactory::IsEntityRegistered(GraphML* graphml){
 }
 
 bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
+    QWriteLocker lock(&entity_lock_);
     if(!graphml){
         //Can't register NULL graphml
         return false;
     }
     
-    if(IsEntityRegistered(graphml)){
+    
+    if(UnsafeIsEntityRegistered(graphml)){
         //Can't register element which is already registered
         return false;
     }
@@ -872,7 +841,7 @@ bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
 
     
     if(!UnregisterTempID(graphml)){
-        throw std::runtime_error("EntityFactory: Couldn't unregister Temp Entity." + graphml->toString().toStdString());
+        throw std::runtime_error("EntityFactory: Couldn't unregister Temp Entity. '" + graphml->toString().toStdString() + "'");
     }
 
     id = getFreeID(id);
@@ -917,6 +886,8 @@ bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
 
 void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
     if(graphml){
+        QWriteLocker lock(&entity_lock_);
+        
         //If we haven't been given an id, or our hash contains our id already, we need to set a new one
         auto id = getUnregisteredFreeID();
         
@@ -924,13 +895,13 @@ void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
         graphml->setID(id);
 
         if(!unregistered_hash_.contains(id)){
-            //qCritical() << "UCACHING: " << graphml->toString() << " AS " << id;
             unregistered_hash_.insert(id, graphml);
         }
     }
 }
 
 void EntityFactory::AcceptedEdgeKindsChanged(Node* node){
+    QWriteLocker lock(&entity_lock_);
     auto source_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
     auto target_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
 
@@ -954,6 +925,7 @@ void EntityFactory::AcceptedEdgeKindsChanged(Node* node){
 }
 
 void EntityFactory::clearAcceptedEdgeKinds(Node* node){
+    QWriteLocker lock(&entity_lock_);
     for(auto edge_kind : getEdgeKinds()){
         auto& source_edge_map = accepted_source_edge_map[edge_kind];
         auto& target_edge_map = accepted_target_edge_map[edge_kind];
@@ -963,7 +935,8 @@ void EntityFactory::clearAcceptedEdgeKinds(Node* node){
 }
 
 
-void EntityFactory::EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid){
+void EntityFactory::EntitiesUUIDChanged(Entity* entity, const QString& old_uuid, const QString& new_uuid){
+    QWriteLocker lock(&entity_lock_);
     if(entity){
         uuid_lookup_.remove(old_uuid);
 

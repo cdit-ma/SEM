@@ -150,23 +150,6 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
 
 
 /**
- * @brief NotificationManager::getNotificationsOfSeverity
- * @param severity
- * @return
- */
-QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
-{
-    QList<QSharedPointer<NotificationObject> > list;
-    for (auto notification : notifications.values()) {
-        if (notification->getSeverity() == severity) {
-            list << notification;
-        }
-    }
-    return list;
-}
-
-
-/**
  * @brief NotificationManager::getNotificationsOfCategory
  * @param category
  * @return
@@ -215,12 +198,6 @@ void NotificationManager::toastLatestNotification(){
     
 }
 
-void NotificationManager::centerPopup(){
-    auto popup = getToast();
-    WindowManager::MoveWidget(popup, 0, Qt::AlignBottom);
-    popup->show();
-}
-
 
 
 
@@ -257,10 +234,6 @@ void NotificationManager::deleteNotification(int ID)
             emit notificationDeleted(notification);
         }
     }
-}
-
-QSharedPointer<NotificationObject> NotificationManager::getNotification(int id){
-    return notifications.value(id, QSharedPointer<NotificationObject>());
 }
 
 QSharedPointer<NotificationObject> NotificationManager::getLatestNotification(){

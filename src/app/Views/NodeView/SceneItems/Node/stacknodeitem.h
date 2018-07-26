@@ -15,7 +15,6 @@ public:
     static CellIndex GetCellIndex(NodeItem* child);
 
     void setAlignment(Qt::Orientation orientation);
-    QPointF getStemAnchorPoint() const;
     QPointF getElementPosition(BasicNodeItem *child);
 
     QPointF GetGridAlignedTopLeft() const;
@@ -31,13 +30,12 @@ public:
     
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
-    void SetCellMargins(int row, int col, QMarginsF margins);
-    void SetCellMinimumSize(int row, int col, qreal width=0, qreal height=0);
+
 
     void childPosChanged(EntityItem* child);
     void RecalculateCells();
 
-    Qt::Orientation getCellOrientation(const CellIndex& index) const;
+    Qt::Orientation getCellOrientation(const CellIndex& index);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -57,15 +55,13 @@ private:
     
     
     
-    QMarginsF getCellMargin(const CellIndex& index) const;
+    QMarginsF getCellMargin(const CellIndex& index);
     qreal getDefaultCellSpacing() const;
-    qreal getCellSpacing(const CellIndex& index) const;
+    qreal getCellSpacing(const CellIndex& index);
     
 
     QRectF GetGapIconRect(const Qt::Orientation orientation, const QRectF& prev_rect, const QRectF& current_rect);
 
-    int GetHorizontalGap() const;
-    int GetVerticalGap() const;
     Qt::Orientation orientation;
 
     void updateCells();

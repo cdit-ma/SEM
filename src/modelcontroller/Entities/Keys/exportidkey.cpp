@@ -8,13 +8,13 @@
 #include <QDebug>
 #include <QList>
 
-ExportIDKey::ExportIDKey(EntityFactoryBroker& broker, std::function<void (Entity*, QString, QString)> uuid_notifier): Key(broker, "uuid", QVariant::String){
+ExportIDKey::ExportIDKey(EntityFactoryBroker& broker, std::function<void (Entity*, QString, QString)> uuid_notifier): Key(broker, KeyName::UUID, QVariant::String){
     //Shouldn't be user modifyable
     setProtected(true);
     this->uuid_notifier_ = uuid_notifier;
 }
 
-QString ExportIDKey::getMD5UUID(const QString str_val){
+QString ExportIDKey::getMD5UUID(const QString& str_val){
     QString md5_str = QString(QCryptographicHash::hash(str_val.toUtf8(), QCryptographicHash::Md5).toHex());
     //format {8-4-4-4-12}
     //https://en.wikipedia.org/wiki/Universally_unique_identifier
@@ -30,7 +30,7 @@ QString ExportIDKey::getMD5UUID(const QString str_val){
     return md5_str;
 }
 
-QString ExportIDKey::GetUUIDOfValue(const QString str_val){
+QString ExportIDKey::GetUUIDOfValue(const QString& str_val){
     //Check if the data value is a valid uuid
     auto uuid = QUuid(str_val);
     

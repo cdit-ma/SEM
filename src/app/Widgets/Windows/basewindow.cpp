@@ -54,11 +54,6 @@ BaseWindow::~BaseWindow()
     removeAllDockWidgets();
 }
 
-bool BaseWindow::hasDockWidgets()
-{
-    return !currentDockWidgets.isEmpty();
-}
-
 QList<BaseDockWidget *> BaseWindow::getDockWidgets()
 {
     return currentDockWidgets.values();

@@ -17,6 +17,7 @@ class NodeViewItem: public ViewItem
 public:
     NodeViewItem(ViewController* controller, NODE_KIND kind, QString label);
     NodeViewItem(ViewController* controller, int ID, NODE_KIND kind);
+    ~NodeViewItem();
 
 
     NODE_KIND getNodeKind() const;
@@ -27,39 +28,47 @@ public:
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
-    QList<EdgeViewItem*> getEdges() const;
-    QList<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
-    bool gotEdge(EDGE_KIND edgeKind) const;
+    QSet<EdgeViewItem*> getEdges() const;
+    QSet<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
     
     bool isAncestorOf(NodeViewItem* item);
 
-    void clearVisualEdgeKinds();
-    void addVisualEdgeKind(EDGE_KIND kind, EDGE_DIRECTION direction);
 
-    QSet<EDGE_KIND> getVisualEdgeKinds();
-    QSet<EDGE_DIRECTION> getVisualEdgeKindDirections(EDGE_KIND kind);
+    
+    const QSet<EDGE_DIRECTION>& getVisualEdgeKindDirections(EDGE_KIND kind);
+    const QSet<EDGE_DIRECTION>& getNestedVisualEdgeKindDirections(EDGE_KIND kind);
 
-    QSet<EDGE_KIND> getNestedVisualEdgeKinds();
-    QSet<EDGE_DIRECTION> getNestedVisualEdgeKindDirections(EDGE_KIND kind);
+    
+
+    void setValidEdgeKinds(QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > required_edge_kinds);
 
     
 
 protected:
+    void nestedVisualEdgeKindsChanged();
     void setNodeTypes(QSet<NODE_TYPE> types);
     void childAdded(ViewItem* child);
     void childRemoved(ViewItem* child);
+
+    const QHash<EDGE_KIND, QSet<EDGE_DIRECTION> >& getNestedVisualEdges();
 signals:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void visualEdgeKindsChanged();
-    void nestedVisualEdgeKindsChanged();
+    void nestedVisualEdgeKindsChanged2();
+    void descendantVisualEdgeKindsChanged();
+    
 private:
-    QMultiMap<EDGE_KIND, EDGE_DIRECTION> visual_edge_kinds;
-    QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;
+    void childVisualEdgeKindsChanged();
+
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > nested_edge_kinds;
+
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > valid_edge_kinds;
+    QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > visual_edge_kinds;
+    QHash<EDGE_KIND, QSet<EdgeViewItem*> > edges;
 
     QSet<NODE_TYPE> node_types;
 
-    QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND node_kind;
     int parent_id = -1;
 };

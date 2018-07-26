@@ -102,15 +102,6 @@ QString Theme::getPressedColorHex()
     return Theme::QColorToHex(color);
 }
 
-QColor Theme::getSelectedItemBorderColor()
-{
-    return selectedItemBorderColor;
-}
-
-QString Theme::getSelectedItemBorderColorHex()
-{
-    return Theme::QColorToHex(getSelectedItemBorderColor());
-}
 
 QColor Theme::getActiveWidgetBorderColor()
 {
@@ -275,11 +266,6 @@ QColor Theme::getAspectBackgroundColor(VIEW_ASPECT aspect)
     return QColor();
 }
 
-QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
-{
-    QColor color = getAspectBackgroundColor(aspect);
-    return Theme::QColorToHex(color);
-}
 
 void Theme::setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias){
     setIconToggledImage("WindowIcon", window_title, visible_icon_prefix, visible_icon_alias, "Icons", "transparent");
@@ -305,16 +291,6 @@ void Theme::setIconToggledImage(const QString& prefix, const QString& alias, con
     iconToggledLookup2[name] = icon_toggle;
 }
 
-QColor Theme::getDefaultImageTintColor()
-{
-    return iconColor;
-}
-
-QString Theme::getDefaultImageTintColorHex()
-{
-    return Theme::QColorToHex(iconColor);
-}
-
 QColor Theme::getMainImageColor(const QString& prefix, const QString& alias)
 {
     QString key = getResourceName(prefix, alias);
@@ -333,19 +309,6 @@ QColor Theme::getMainImageColor(IconPair path)
     return getMainImageColor(path.first, path.second);
 }
 
-void Theme::setDefaultImageTintColor(QColor color)
-{
-    if(iconColor != color){
-        iconColor = color;
-        updateValid();
-    }
-}
-
-void Theme::setDefaultImageTintColor(const QString& prefix, const QString& alias, QColor color)
-{
-    QString longName = getResourceName(prefix, alias);
-    pixmapTintLookup[longName] = color;
-}
 
 void Theme::applyTheme()
 {
@@ -374,10 +337,6 @@ bool Theme::gotImage(const QString& resource_name){
     return image_names.contains(resource_name);
 }
 
-QString Theme::getBorderWidth()
-{
-    return "1px";
-}
 
 QString Theme::getCornerRadius()
 {
@@ -617,10 +576,6 @@ QSize Theme::getIconSize(){
 QSize Theme::getLargeIconSize(){
     return icon_size * 2;
 }
-QSize Theme::getSmallIconSize(){
-    return icon_size / 2;
-}
-
 void Theme::setIconSize(int size){
 
     auto new_size = roundQSize(QSize(size, size));
@@ -927,66 +882,6 @@ QString Theme::getAbstractItemViewStyleSheet()
             "}";
 }
 
-QString Theme::getAltAbstractItemViewStyleSheet()
-{
-    QString borderWidth = getBorderWidth();
-    return "QAbstractItemView {"
-           "border:" % borderWidth % " solid " % getDisabledBackgroundColorHex() % ";"
-           "background:" % getBackgroundColorHex() % ";"
-           "}"
-           "QAbstractItemView::item {"
-           "border-style: solid;"
-           "border-width: 0px 0px " % borderWidth % " 0px;"
-           "border-color:" % getDisabledBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "padding: 2px 2px 3px 2px;"
-           "}"
-           "QAbstractItemView::item:selected {"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "}"
-           "QAbstractItemView::item:hover {"
-           "background:" % getDisabledBackgroundColorHex() % ";"
-           "}"
-
-           "QHeaderView {"
-           "background:" % getBackgroundColorHex() % ";"
-           "border: 0px;"
-           "color:" % getTextColorHex() % ";"
-           "}"
-           "QHeaderView::section {"
-           "border-style: solid;"
-           "border-width: 0px " % borderWidth % " " % borderWidth % " 0px;"
-           "border-color:" % getDisabledBackgroundColorHex() % ";"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "padding: 0px 5px;"
-           "}";
-}
-
-QString Theme::getComboBoxStyleSheet()
-{
-    return "QComboBox {"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "selection-background-color:" % getHighlightColorHex() % ";"
-           "selection-color:" % getTextColorHex(ColorRole::SELECTED) % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "padding: 0px 5px;"
-           "margin: 0px;"
-           "}"
-           "QComboBox:hover {"
-           "background:" % getHighlightColorHex() % ";"
-           "color:" % getTextColorHex(ColorRole::SELECTED) % ";"
-           "}"
-           "QComboBox::drop-down {"
-           "subcontrol-position: top right;"
-           "padding: 0px;"
-           "width: 20px;"
-           "}"
-           "QComboBox QAbstractItemView {"
-           "color:" % getTextColorHex() % ";"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "}";
-}
 
 QString Theme::getGroupBoxStyleSheet()
 {
@@ -1021,12 +916,6 @@ QString Theme::getPushButtonStyleSheet()
            "}";
 }
 
-QString Theme::getToolButtonStyleSheet()
-{
-    return "QToolButton {"
-            "text-align: center;"
-           "}";
-}
 
 QString Theme::getLineEditStyleSheet(QString widget_name)
 {
@@ -1042,48 +931,6 @@ QString Theme::getLineEditStyleSheet(QString widget_name)
            "}" + 
            widget_name +":focus {"
            "border: 1px solid "% getHighlightColorHex() % ";"
-           "}";
-}
-
-QString Theme::getTextEditStyleSheet()
-{
-    return getLineEditStyleSheet("QPlainTextEdit");
-}
-
-QString Theme::getRadioButtonStyleSheet()
-{
-    return "QRadioButton {"
-           "padding: 8px 10px 8px 8px;"
-           "color:" % getTextColorHex() % ";"
-           "}"
-           "QRadioButton::checked {"
-           "font-weight: bold; "
-           "color:" % getHighlightColorHex() % ";"
-           "}";
-}
-
-QString Theme::getMessageBoxStyleSheet()
-{
-    return  "QMessageBox {"
-            "background:" % getAltBackgroundColorHex() % ";"
-            "padding: 2px;"
-            "}"
-            "QMessageBox QLabel {"
-            "color:" % getTextColorHex() % ";"
-            "}";
-}
-
-QString Theme::getPopupWidgetStyleSheet()
-{
-    QColor bgColor = getBackgroundColor();
-    bgColor.setAlphaF(0.85);
-
-    return "QWidget {"
-           "margin: 0px;"
-           "padding: 0px;"
-           "background:" % QColorToHex(bgColor) % ";"
-           "border-radius:" % getCornerRadius() % ";    "
-           "border: 1px outset " % getAltBackgroundColorHex() % ";"
            "}";
 }
 
@@ -1108,43 +955,6 @@ QString Theme::getLabelStyleSheet()
     return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
-QString Theme::getTitleLabelStyleSheet()
-{
-    return "color: " % getTextColorHex() % ";";
-}
-
-QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
-{
-    QColor color = getAspectBackgroundColor(aspect).darker(110);
-    QString gradientColor1 = QColorToHex(color.lighter(275));
-    QString gradientColor2 = QColorToHex(color.darker(110));
-
-    return "QAbstractButton {"
-           "color:" % QColorToHex(black()) % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "background:" % QColorToHex(color) % ";"
-           "}"
-           "QAbstractButton:hover {"
-           "color:" % QColorToHex(white()) % ";"
-           "border: 1px solid " % QColorToHex(white()) % ";"
-           "}"
-           "QAbstractButton:checked {"
-           "background:"
-           "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
-           "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
-           "}"
-           "QAbstractButton:disabled {"
-           "background:" % getDisabledBackgroundColorHex() % ";"
-           "}";
-}
-
-bool Theme::preloadImage(const QString& resource_name){
-    auto is_valid = !getImage(resource_name).isNull();
-    if(!is_valid){
-        qCritical() << "Image: " << resource_name << " Is an null image";
-    }
-    return is_valid;
-}
 
 void Theme::preloadImages()
 {   
@@ -1686,11 +1496,6 @@ QColor Theme::getTintColor(const QString& resource_name)
     return pixmapTintLookup.value(resource_name, iconColor);
 }
 
-QSize Theme::getOriginalSize(const QString& resource_name)
-{
-    QReadLocker lock(&lock_);
-    return pixmapSizeLookup.value(resource_name);
-}
 
 IconPair Theme::SplitImagePath(const QString& path)
 {
@@ -1719,17 +1524,6 @@ bool Theme::tintIcon(const QString& resource_name){
 bool Theme::tintIcon(QSize size)
 {
     return size.width() > 0 && size.width() % 96 == 0;
-}
-
-QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
-{
-    QColor resultingColor;
-    qreal color1Ratio = blendRatio;
-    qreal color2Ratio = 1 - blendRatio;
-    resultingColor.setBlue(color1Ratio * color1.blue() + color2Ratio * color2.blue());
-    resultingColor.setRed(color1Ratio * color1.red() + color2Ratio * color2.red());
-    resultingColor.setGreen(color1Ratio * color1.green() + color2Ratio * color2.green());
-    return resultingColor;
 }
 
 QString Theme::QColorToHex(const QColor color)

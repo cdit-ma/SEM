@@ -7,7 +7,7 @@
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
-    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
+    <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
 
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 

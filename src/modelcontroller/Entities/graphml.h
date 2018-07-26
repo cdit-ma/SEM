@@ -2,6 +2,7 @@
 #define GRAPHML_H
 #include <QObject>
 #include "../kinds.h"
+#include <QTextStream>
 
 class EntityFactory;
 class EntityFactoryBroker;
@@ -23,7 +24,11 @@ public:
     int getID() const; 
 
     //Pure Virtual
-    virtual QString toGraphML(int indentDepth=0, bool functional_export = false)=0;
+    QString toGraphML(int indent_depth = 0);
+
+    virtual void ToGraphmlStream(QTextStream& stream, int indent_depth = 0) = 0;
+
+
     virtual QString toString() const = 0;
 private:
     int id = -1;

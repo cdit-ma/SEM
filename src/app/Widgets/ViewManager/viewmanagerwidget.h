@@ -18,7 +18,6 @@ class ViewManagerWidget : public QWidget
 public:
     ViewManagerWidget(WindowManager* manager);
     DockItem* getDockItem(int ID);
-    WindowItem* getWindowItem(int ID);
 private slots:
     void themeChanged();
 

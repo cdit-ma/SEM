@@ -37,10 +37,8 @@ public:
     QList<QSharedPointer<NotificationObject>> getNotifications();
     
     QList<QSharedPointer<NotificationObject> > getNotificationsOfType(Notification::Type type);
-    QList<QSharedPointer<NotificationObject> > getNotificationsOfSeverity(Notification::Severity severity);
     QList<QSharedPointer<NotificationObject> > getNotificationsOfCategory(Notification::Category category);
 
-    QSharedPointer<NotificationObject> getNotification(int id);
     QSharedPointer<NotificationObject> getLatestNotification();
 
     void ShowNotificationPanel(Notification::Severity severity);
@@ -59,7 +57,6 @@ public slots:
     void toastLatestNotification();
     void deleteNotification(int ID);
 private slots:
-    void centerPopup();
     void displayToastNotification(QSharedPointer<NotificationObject> notification);
 private:
     void NotificationUpdated(QSharedPointer<NotificationObject> notification);

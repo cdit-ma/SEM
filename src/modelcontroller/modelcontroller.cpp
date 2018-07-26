@@ -27,7 +27,7 @@
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
 
-inline QPair<bool, QString> readFile(QString filePath)
+inline QPair<bool, QString> readFile(const QString& filePath)
 {
     QPair<bool, QString> result;
 
@@ -54,7 +54,9 @@ inline QString getXMLAttribute(const QXmlStreamReader &xml, const QString& attri
     }
 }
 
-ModelController::ModelController():QObject(0)
+ModelController::ModelController():
+QObject(0),
+lock_(QReadWriteLock::Recursive)
 {
     controller_thread = new QThread();
     moveToThread(controller_thread);
@@ -103,12 +105,13 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
     }
 }
 
-bool ModelController::SetupController(QString file_path)
+bool ModelController::SetupController(const QString& file_path)
 {
-    QWriteLocker lock(&lock_);
+    setModelAction(MODEL_ACTION::SETUP);
     setupModel();
     loadWorkerDefinitions();
     clearHistory();
+    unsetModelAction(MODEL_ACTION::SETUP);
 
     auto file = readFile(file_path);
     bool success = true;
@@ -155,6 +158,8 @@ void ModelController::loadWorkerDefinitions()
         QStringList extensions{"*.worker"};
         //QStringList extensions{"*memory*.worker"};
 
+        
+        
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
@@ -207,8 +212,11 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
     std::for_each(edges.begin(), edges.end(), [&keys](Edge* e){keys += e->getKeys();});
 
     QString xml;
-    xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    xml +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+    QTextStream stream(&xml);
+
+
+    stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    stream << "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
     
     
     auto key_list = keys.toList();
@@ -216,13 +224,13 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
     
     //Define the key graphml
     for(auto key : key_list){
-        xml += key->toGraphML(1, functional_export);
+        key->ToGraphmlStream(stream, 1);
     }
 
     {
-        xml +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
+        stream << "\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
         for(auto entity : top_nodes){
-            xml += entity->toGraphML(2, functional_export);
+            entity->ToGraphmlStream(stream, 2);
         }
         
         //Sort the edges to be lowest to highest IDS for determinism
@@ -263,35 +271,16 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
                 }
             }
             if(export_edge){
-                xml += edge->toGraphML(2, functional_export);
+                edge->ToGraphmlStream(stream, 2);
             }
         }
-        xml += "\t</graph>\n";
+        stream << "\t</graph>\n";
     }
-    xml += "</graphml>";
+
+    stream << "</graphml>";
     return xml;
 }
 
-
-
-int ModelController::GetEdgeOrderIndex(EDGE_KIND kind){
-    switch(kind){
-        case EDGE_KIND::DEFINITION:
-            return 0;
-        case EDGE_KIND::AGGREGATE:
-            return 1;
-        case EDGE_KIND::DATA:
-            return 2;
-        case EDGE_KIND::QOS:
-            return 3;
-        case EDGE_KIND::ASSEMBLY:
-            return 4;
-        case EDGE_KIND::DEPLOYMENT:
-            return 5;
-        default:
-            return 100;
-    }
-}
 
 QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
     QList<EDGE_KIND> indices;
@@ -314,7 +303,7 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
 
 
 
-bool ModelController::setData_(Entity *entity, QString key_name, QVariant value, bool add_action)
+bool ModelController::setData_(Entity *entity, const QString& key_name, QVariant value, bool add_action)
 {
     bool data_changed = false;
     if(entity){
@@ -351,7 +340,7 @@ bool ModelController::setData_(Entity *entity, QString key_name, QVariant value,
  * @param keyName - The Name of the Key of the Data
  * @param addAction - Add an undo state
  */
-bool ModelController::destructData_(Entity* entity, QString key_name)
+bool ModelController::destructData_(Entity* entity, const QString& key_name)
 {  
     if(entity){
         //Get the data
@@ -752,7 +741,7 @@ QList<Node *> ModelController::getNodes(QList<int> ids)
 }
 
 
-void ModelController::triggerAction(QString actionName)
+void ModelController::triggerAction(const QString& actionName)
 {
     actionCount++;
     currentAction = actionName;
@@ -844,7 +833,7 @@ QString ModelController::cut(QList<int> ids)
     return data;
 }
 
-void ModelController::paste(QList<int> ids, QString xml)
+void ModelController::paste(QList<int> ids, const QString& xml)
 {
     QWriteLocker lock(&lock_);
 
@@ -861,7 +850,7 @@ void ModelController::paste(QList<int> ids, QString xml)
     emit ActionFinished();
 }
 
-bool ModelController::_paste(Node* node, QString xml)
+bool ModelController::_paste(Node* node, const QString& xml)
 {
     if(node){
         triggerAction("Pasting Selection.");
@@ -1001,7 +990,7 @@ QList<Entity*> ModelController::getOrderedEntities(QList<Entity*> entities){
     return top_entities;
 }
 
-QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
+QList<QVariant> ModelController::getValidKeyValues(int id, const QString& key_name)
 {
     QReadLocker lock(&lock_);
     QList<QVariant> valid_values;
@@ -1068,7 +1057,7 @@ QList<DataUpdate> ModelController::getEntityDataList(int ID){
 }
 
 
-QVariant ModelController::getEntityDataValue(int ID, QString key_name){
+QVariant ModelController::getEntityDataValue(int ID, const QString& key_name){
     QReadLocker lock(&lock_);
     QVariant value;
 
@@ -1089,7 +1078,7 @@ QSet<NODE_TYPE> ModelController::getNodesTypes(int ID){
 }
 
 
-void ModelController::setProjectSaved(QString path)
+void ModelController::setProjectSaved(const QString& path)
 {
     setProjectModified(false);
     if(path != ""){
@@ -1824,20 +1813,8 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
     return false;
 }
 
-bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link){
-    if(src && dst){
-        auto src_data = src->getData(src_key);
-        auto dst_data = dst->getData(dst_key);
-        if(src_data && dst_data){
-            return src_data->linkData(dst_data, setup_link);
-        }
-    }
-    return false;
-}
 
-
-
-bool ModelController::isGraphMLValid(QString inputGraphML)
+bool ModelController::isGraphMLValid(const QString& inputGraphML)
 {
     //Construct a Stream Reader for the XML graph
     QXmlStreamReader xmlErrorChecking(inputGraphML);
@@ -1924,8 +1901,7 @@ QSet<EDGE_KIND> ModelController::getCurrentEdgeKinds(QList<int> ids)
 
 QSet<NODE_KIND> ModelController::getValidNodeKinds(int ID)
 {
-    
-    QWriteLocker lock(&lock_);
+    QReadLocker lock(&lock_);
     QSet<NODE_KIND> node_kinds;
 
     auto parent_node = entity_factory->GetNode(ID);
@@ -1992,23 +1968,13 @@ QList<int> ModelController::getConstructablesConnectableNodes(int constructable_
 }
 
 
-QSet<NODE_KIND> ModelController::getGUINodeKinds(){
-    auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
-    node_set.remove(NODE_KIND::NONE);
-    node_set.remove(NODE_KIND::IDL);
-    return node_set;
-}
-
-
-
-
 /**
  * @brief NewController::setData Sets the Value of the Data of an Entity.
  * @param parentID - The ID of the Entity
  * @param keyName - The name of the Key
  * @param dataValue - The new value of the Data.
  */
-void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
+void ModelController::setData(int parentID, const QString& keyName, QVariant dataValue)
 {
     Entity* graphML = entity_factory->GetEntity(parentID);
     if(graphML){
@@ -2017,7 +1983,7 @@ void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
     }
 }
 
-void ModelController::removeData(int id, QString key_name)
+void ModelController::removeData(int id, const QString& key_name)
 {
     destructData_(entity_factory->GetEntity(id), key_name);
 }
@@ -2030,9 +1996,8 @@ void ModelController::removeData(int id, QString key_name)
  */
 bool ModelController::importProjects(QStringList xml_list)
 {
-    QWriteLocker lock(&lock_);
     bool success = true;
-    ProgressUpdated_("Importing Projects");
+    //ProgressUpdated_("Importing Projects");
     if(xml_list.length() > 0){
         triggerAction("Importing GraphML Projects.");
         setModelAction(MODEL_ACTION::IMPORT);
@@ -2051,14 +2016,6 @@ bool ModelController::importProjects(QStringList xml_list)
     return success;
 }
 
-bool ModelController::isDataVisual(Data* data){
-    if(data){
-        return isKeyNameVisual(data->getKeyName());
-    }else{
-        return false;
-    }
-}
-
 
 void ModelController::ProgressChanged_(int progress){
     if(progress != last_progress){
@@ -2067,7 +2024,7 @@ void ModelController::ProgressChanged_(int progress){
     }
 }
 
-void ModelController::ProgressUpdated_(QString description){
+void ModelController::ProgressUpdated_(const QString& description){
     if(description != last_description){
         last_description = description;
         emit ShowProgress(true, description);
@@ -2075,15 +2032,12 @@ void ModelController::ProgressUpdated_(QString description){
     }
 }
 
-bool ModelController::isKeyNameVisual(QString key_name){
-    QStringList visual_keynames;
-    visual_keynames << "x" << "y" << "width" <<  "height" << "isExpanded";
-    return visual_keynames.contains(key_name);
+bool ModelController::isKeyNameVisual(const QString& key_name){
+    static const QSet<QString> visual_key_names({"x", "y", "width", "height", "isExpanded"});
+    return visual_key_names.contains(key_name);
 }
 
-double ModelController::compare_version(QString current_version, QString compare_version){
-    
-
+double ModelController::compare_version(const QString& current_version, const QString& compare_version){
     auto compare_first =  compare_version.indexOf(".") + 1;
     auto compare_second =  compare_version.indexOf(".", compare_first);
 
@@ -2107,7 +2061,7 @@ double ModelController::compare_version(QString current_version, QString compare
     return compare_v - current_v;
 }
 
-bool ModelController::importGraphML(QString document, Node *parent)
+bool ModelController::importGraphML(const QString& document, Node *parent)
 {
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
@@ -2144,7 +2098,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
     const bool IS_UNDO_REDO = isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO);
     const bool IS_PASTE = isModelAction(MODEL_ACTION::PASTE);
     const bool IS_PARTIAL_IMPORT = IS_UNDO_REDO || IS_PASTE;
-    const bool UPDATE_PROGRESS = !isModelAction(MODEL_ACTION::NONE);
+    const bool IS_SETUP = isModelAction(MODEL_ACTION::SETUP);
+    const bool UPDATE_PROGRESS = !isModelAction(MODEL_ACTION::NONE) && !IS_SETUP;
     const bool GENERATE_UUID_FROM_ID = IS_IMPORT && (parent == workerDefinitions);
 
     if(UPDATE_PROGRESS){
@@ -2272,6 +2227,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
     auto parsing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
 
+    //Gain the write lock
+    QWriteLocker lock(&lock_);
+
     QList<Entity*> to_remove;
     
     //Handle unique ids
@@ -2360,6 +2318,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
     destructEntities(to_remove);
+
+    lock.unlock();
 
     auto removing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";
@@ -2752,7 +2712,7 @@ void ModelController::setProjectModified(bool dirty)
     }
 }
 
-void ModelController::setProjectPath(QString path)
+void ModelController::setProjectPath(const QString& path)
 {
     if(project_path != path){
         project_path = path;

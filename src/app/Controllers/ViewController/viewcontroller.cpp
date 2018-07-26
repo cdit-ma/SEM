@@ -54,7 +54,7 @@
 
 
 ViewController::ViewController(){
-    rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
+    root_item = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
     setupEntityKindItems();
@@ -113,17 +113,6 @@ void ViewController::SettingChanged(SETTINGS key, QVariant value){
             break;
     }
 }
-/*
-void ViewController::EditDataValue(int ID, QString key_name){
-    qCritical() << "ID: " << ID << " " << key_name;
-    auto popup_editor = new PopupDataEditor();
-    auto item = getViewItem(ID);
-    if(item){
-        qCritical() << item;
-        popup_editor->edit(item, key_name);
-        WindowManager::MoveWidget(popup_editor);
-    }
-}*/
 
 void ViewController::AutosaveDurationChanged(int duration_minutes){
     is_autosave_enabled_ = duration_minutes > 0;
@@ -250,18 +239,9 @@ void ViewController::RequestJenkinsBuildJobName(QString job_name){
 
 ViewController::~ViewController()
 {
-    delete rootItem;
+    delete root_item;
 }
 
-JenkinsManager *ViewController::getJenkinsManager()
-{
-    return jenkins_manager;
-}
-
-ExecutionManager *ViewController::getExecutionManager()
-{
-    return execution_manager;
-}
 
 
 SelectionController *ViewController::getSelectionController()
@@ -365,7 +345,7 @@ QStringList getSearchableKeys(){
 QList<ViewItem*> ViewController::getSearchableEntities(){
     QList<ViewItem*> items;
 
-    for(ViewItem* item : viewItems.values()){
+    for(auto item : view_items_.values()){
         auto node_item = (NodeViewItem*) item;
         auto edge_item = (EdgeViewItem*) item;
 
@@ -379,9 +359,9 @@ QList<ViewItem*> ViewController::getSearchableEntities(){
     return items;
 }
 
-QStringList ViewController::_getIDs(){
+QStringList ViewController::GetIDs(){
     QStringList ids;
-    for(auto id : viewItems.keys()){
+    for(auto id : view_items_.keys()){
         ids += QString::number(id);
     }
     return ids;
@@ -393,7 +373,7 @@ QStringList ViewController::_getSearchSuggestions()
     QSet<QString> suggestions;
 
     for(auto item : getSearchableEntities()){
-        for(auto key : keys){
+        for(const auto& key : keys){
             if(item->hasData(key)){
                 suggestions.insert(item->getData(key).toString());
             }
@@ -444,33 +424,6 @@ ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* 
     node_view->setViewController(this);
 
     return (ViewDockWidget*)dock_widget;
-}
-
-QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND kind)
-{
-    QList<ViewItem *> list;
-
-    if(selectionController){
-        foreach(ViewItem* item, selectionController->getSelection()){
-            if(item && item->isNode()){
-                NodeViewItem* nodeItem = (NodeViewItem*) item;
-                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
-                    NodeViewItem* src = edge->getSource();
-                    NodeViewItem* other = edge->getDestination();
-                    if(src != item){
-                        other = src;
-                    }
-                    if(!list.contains(other)){
-                        list.append(other);
-                    }
-                }
-            }
-        }
-    }
-    return list;
-}
-NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
-    return nodeKindItems.value(kind, 0);
 }
 
 QSet<NODE_KIND> ViewController::getValidNodeKinds()
@@ -711,34 +664,6 @@ ViewItem *ViewController::getModel()
 }
 
 
-void ViewController::requestSearchSuggestions()
-{
-    emit vc_gotSearchSuggestions(_getSearchSuggestions());
-}
-
-void ViewController::setController(ModelController *c)
-{
-    
-}
-
-
-void ViewController::modelValidated(QString reportPath)
-{
-}
-
-void ViewController::importGraphMLFile(QString graphmlPath)
-{
-    _importProjectFiles(QStringList(graphmlPath));
-}
-
-void ViewController::importGraphMLExtract(QString data)
-{
-    if(!data.isEmpty()){
-        // fit the contents in all the view aspects after import when no model has been imported yet?
-        emit ImportProjects(QStringList(data));
-    }
-}
-
 DefaultDockWidget* ViewController::constructDockWidget(QString title, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window){
     auto window_manager = WindowManager::manager();
     if(!window){
@@ -910,10 +835,6 @@ void ViewController::setupEntityKindItems()
 
         edgeKindItems[kind] = item;
     }
-
-    //Sort the lists to be alphabetical
-    //std::sort(nodeKindItems.begin(), nodeKindItems.end(), ViewItem::SortByLabel);
-    //std::sort(edgeKindItems.begin(), edgeKindItems.end(), ViewItem::SortByLabel);
 }
 
 
@@ -983,7 +904,7 @@ void ViewController::spawnSubView(ViewItem * item)
                 //Set the NodeView to be contained on this NodeViewItem
                 dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
                 //Fit the contents of the dockwidget to screen
-                dockWidget->getNodeView()->fitToScreen();
+                dockWidget->getNodeView()->FitToScreen();
             }else{
                 WindowManager::manager()->destructDockWidget(dockWidget);
             }
@@ -1012,48 +933,34 @@ bool ViewController::canRedo()
     return false;
 }
 
+void ViewController::ResetViewItems(){
+    //Destruct the view items
+    DestructViewItem(root_item);
+    //Unset the model id
+    model_id_ = -1;
+}
 
-bool ViewController::destructViewItem(ViewItem *item)
+void ViewController::DestructViewItem(ViewItem *item)
 {
-    if(!item){
-        return false;
-    }
-    //qCritical() << "ViewController: Destruct: " << item->getID() << " " << item->getData("kind").toString() ;
+    if(item){
+        QList<ViewItem*> children;
+        children += item;
+        children += item->getNestedChildren();
 
-    QList<ViewItem*> children;
-    children.append(item);
-    children.append(item->getNestedChildren());
-    
-    QListIterator<ViewItem*> it(children);
-    it.toBack();
-    while(it.hasPrevious()){
-        ViewItem* viewItem = it.previous();
-        if(!viewItem || viewItem == rootItem){
-            continue;
-        }
-        int ID = viewItem->getID();
+        while(children.size()){
+            auto view_item = children.back();
+            children.pop_back();
 
-        
-        if(viewItem->isNode()){
-            if(ID == model_id_){
-                model_id_ = -1;
+            if(view_item != root_item){
+                int ID = view_item->getID();
+                //Remove the item from the Hash/TopLevel Hash
+                view_items_.remove(ID);
+                //Tell Views we are destructing!
+                emit vc_viewItemDestructing(ID, view_item);
+                view_item->destruct();
             }
-        }else if(viewItem->isEdge()){
-            auto edge_item = (EdgeViewItem*)viewItem;
-            edge_item->disconnectEdge();
         }
-
-
-        //Remove the item from the Hash/TopLevel Hash
-        viewItems.remove(ID);
-        topLevelItems.remove(ID);
-
-        //Tell Views we are destructing!
-        emit vc_viewItemDestructing(ID, viewItem);
-
-        viewItem->destruct();
     }
-    return true;
 }
 
 QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
@@ -1075,21 +982,6 @@ ViewItem *ViewController::getActiveSelectedItem() const
         return selectionController->getActiveSelectedItem();
     }
     return 0;
-}
-
-QList<NodeView *> ViewController::getNodeViewsContainingID(int ID)
-{
-    QList<NodeView *> nodeViews;
-
-    for(auto dock : WindowManager::manager()->getViewDockWidgets()){
-        if(dock){
-            auto node_view = dock->getNodeView();
-            if(node_view && node_view->getIDsInView().contains(ID)){
-                nodeViews.append(node_view);
-            }
-        }
-    }
-    return nodeViews;
 }
 
 
@@ -1238,20 +1130,26 @@ void ViewController::editReplicationCount()
 
 void ViewController::TeardownController()
 {   
-    QMutexLocker locker(&mutex);
     if (controller) {
         setControllerReady(false);
         emit selectionController->clearSelection();
 
+         
+       
         emit ProjectFileChanged("");
         emit ProjectModified(false);
-        destructViewItem(rootItem);
+        
+        ResetViewItems();
 
         //This will destruct!
         disconnect(controller);
         controller->disconnect(this);
         emit controller->InitiateTeardown();
         controller = 0;
+
+
+
+        
 
 
         auto manager = NotificationManager::manager();
@@ -1265,26 +1163,23 @@ void ViewController::TeardownController()
 
 void ViewController::autoSaveProject(){
     //Try and lock the mutex, if we can't lock
-    if(mutex.tryLock()){
-        if(controller && !controller->isProjectSaved()){
-            auto project_action_count = controller->getProjectActionCount();
-            auto project_path = controller->getProjectPath();
-            auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
-            
-            if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
-                //Get the data from the controller
-                auto autosave_data = controller->getProjectAsGraphML();
-                auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
-                if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
-                    //Display a notification of the autosave
-                    NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE);
-                    //update the autosave id
-                    autosave_id_ = project_action_count;
-                    emit vc_addProjectToRecentProjects(autosave_path);
-                }
+    if(controller && !controller->isProjectSaved()){
+        auto project_action_count = controller->getProjectActionCount();
+        auto project_path = controller->getProjectPath();
+        auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
+        
+        if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
+            //Get the data from the controller
+            auto autosave_data = controller->getProjectAsGraphML();
+            auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
+            if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
+                //Display a notification of the autosave
+                NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE);
+                //update the autosave id
+                autosave_id_ = project_action_count;
+                emit vc_addProjectToRecentProjects(autosave_path);
             }
         }
-        mutex.unlock();
     }
 }
 
@@ -1348,8 +1243,6 @@ bool ViewController::_saveAsProject(QString file_path)
 bool ViewController::_closeProject(bool show_welcome)
 {
     {
-        //Mutex lock things
-        QMutexLocker locker(&mutex);
         if(controller && !controller->isProjectSaved()){
             auto file_path = controller->getProjectPath();
 
@@ -1386,11 +1279,10 @@ bool ViewController::_closeProject(bool show_welcome)
 }
 
 VIEW_ASPECT ViewController::getNodeViewAspect(int ID){
-    VIEW_ASPECT aspect;
     if(controller){
-        aspect = controller->getNodeViewAspect(ID);
+        return controller->getNodeViewAspect(ID);
     }
-    return aspect;
+    return VIEW_ASPECT::NONE;
 }
 
 bool ViewController::isNodeAncestor(int ID, int ID2){
@@ -1434,10 +1326,8 @@ void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst
 void ViewController::StoreViewItem(ViewItem* view_item){
     if(view_item){
         auto id = view_item->getID();
-        if(!viewItems.contains(id)){
-            viewItems[id] = view_item;
-        }else{
-            qCritical() << "DUPLICATE ID: " << id;
+        if(!view_items_.contains(id)){
+            view_items_[id] = view_item;
         }
 
         if(controller){
@@ -1460,16 +1350,9 @@ void ViewController::StoreViewItem(ViewItem* view_item){
     }
 }
 
-void ViewController::highlight(QList<int> ids){
-    for(auto id : ids){
-        emit vc_highlightItem(id, true);
-    }
-}
-
 void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
     if(!parent){
-        parent = rootItem;
-        topLevelItems.insert(child->getID());
+        parent = root_item;
     }
 
     if(parent){
@@ -1486,19 +1369,14 @@ void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind)
 
 void ViewController::EntityDestructed(int id, GRAPHML_KIND)
 {
-    auto success = destructViewItem(getViewItem(id));
-    if(!success){
-        qCritical() << "ViewController: Destructing ID: " << id << " FAILED!";
-    }
+    DestructViewItem(getViewItem(id));
 }
 
 void ViewController::DataChanged(int id, DataUpdate data)
 {
-    ViewItem* viewItem = getViewItem(id);
-
-    if(viewItem){
-        //qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " Protected " : "");
-        viewItem->changeData(data.key_name, data.value, data.is_protected);
+    auto view_item = getViewItem(id);
+    if(view_item){
+        view_item->changeData(data.key_name, data.value, data.is_protected);
     }
 }
 
@@ -1515,15 +1393,22 @@ void ViewController::NodeEdgeKindsChanged(int id)
     auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto edge_kinds = getValidEdgeKinds({id});
-            node_item->clearVisualEdgeKinds();
+
+            const auto& edge_kinds = getValidEdgeKinds({id});
+
+            QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > valid_edge_kinds;
+
+            //Sources
             for(auto edge_kind : edge_kinds.first){
-                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);
+                valid_edge_kinds[edge_kind].insert(EDGE_DIRECTION::SOURCE);
             }
+
             for(auto edge_kind : edge_kinds.second){
-                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::TARGET);
+                valid_edge_kinds[edge_kind].insert(EDGE_DIRECTION::TARGET);
             }
-            emit node_item->visualEdgeKindsChanged();
+
+            //Set the required edges
+            node_item->setValidEdgeKinds(valid_edge_kinds);
         }
     }
 }
@@ -1591,12 +1476,8 @@ bool ViewController::OpenExistingProject(QString file_path)
 
 void ViewController::importProjects()
 {
-
     _importProjects();
 }
-
-
-
 
 void ViewController::closeProject()
 {
@@ -1861,7 +1742,6 @@ void ViewController::replicate()
 
 void ViewController::initializeController()
 {
-    QMutexLocker locker(&mutex);
     if(!controller){
         setControllerReady(false);
         controller = new ModelController();
@@ -1870,17 +1750,10 @@ void ViewController::initializeController()
 }
 
 
-
-bool ViewController::clearVisualItems()
-{
-    destructViewItem(rootItem);
-    return true;
-}
-
 ViewItem *ViewController::getViewItem(int ID)
 {
-    if(viewItems.contains(ID)){
-        return viewItems[ID];
+    if(view_items_.contains(ID)){
+        return view_items_[ID];
     }
     return 0;
 }

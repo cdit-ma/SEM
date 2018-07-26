@@ -37,29 +37,22 @@ public:
 
     void registerParent(Entity* parent);
     
-    bool isParentData(Data* data);
-    //Data* getParentData();
     
     bool revalidateData();
-    void clearValue();
-    bool compare(const Data* data) const;
 
 
     Key* getKey() const;
     QString getKeyName() const;
     QVariant getValue() const;
 
-    QString toGraphML(int indentDepth = 0, bool functional_export = false);
+    void ToGraphmlStream(QTextStream& stream, int indend_depth);
+
     QString toString() const;
 
     void addValidValue(QVariant value);
     void addValidValues(QList<QVariant> values);
 
-    void removeValidValue(QVariant value);
-    void clearValidValues();
     QList<QVariant> getValidValues();
-    bool gotValidValues();
-
 protected:
 
     void store_value();

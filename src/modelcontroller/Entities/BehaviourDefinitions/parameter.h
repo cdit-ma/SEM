@@ -12,11 +12,6 @@ class Parameter: public DataNode
 protected:
     Parameter(EntityFactoryBroker& factory, NODE_KIND node_kind, bool is_temp_node);
 public:
-    bool isInputParameter() const;
-    bool isVariadicParameter() const;
-    bool isReturnParameter() const;
-    bool isVariableParameter() const;
-
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

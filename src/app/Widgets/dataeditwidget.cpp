@@ -56,10 +56,6 @@ SETTING_TYPE DataEditWidget::getType()
     return type;
 }
 
-QString DataEditWidget::getLabel(){
-    return name;
-}
-
 void DataEditWidget::setHighlighted(bool highlighted)
 {
     isHighlighted = highlighted;

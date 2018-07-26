@@ -29,7 +29,6 @@ public:
 
     void setIDStr(const QString& id_str);
     QString getIDStr();
-    bool gotPreviousID();
     int getPreviousID();
 
     void setID(int ID);
@@ -78,8 +77,6 @@ public:
     
     bool GotImplicitlyConstructedNodeID(NODE_KIND kind);
     bool GotImplicitlyConstructedEdgeID(EDGE_KIND kind);
-
-    QQueue<int> GetLeftOverImplicitlyConstructedNodeIds();
 
     int TakeNextImplicitlyConstructedNodeID(NODE_KIND kind);
     int TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind);

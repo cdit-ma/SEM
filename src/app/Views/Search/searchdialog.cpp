@@ -194,23 +194,6 @@ void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
 }
 
 /**
- * @brief SearchDialog::resetPanel
- */
-void SearchDialog::resetPanel()
-{
-    selected_id = -1;
-    setQuery("");
-
-    // clear previous data filters
-    data_filters->removeOptions();
-    data_filters->setResetButtonText("All");
-
-    clearSearchItems();
-    info_label->setVisible(true);
-}
-
-
-/**
  * @brief SearchDialog::setupLayout
  */
 void SearchDialog::setupLayout()

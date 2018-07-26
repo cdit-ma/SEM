@@ -120,21 +120,6 @@ QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
 
 
 /**
- * @brief CustomGroupBox::getTopAction
- * @return
- */
-QAction* CustomGroupBox::getTopAction()
-{
-    if (widgetsToolbar) {
-        if (!widgetsToolbar->actions().isEmpty()) {
-            return widgetsToolbar->actions().at(0);
-        }
-    }
-    return 0;
-}
-
-
-/**
  * @brief CustomGroupBox::themeChanged
  */
 void CustomGroupBox::themeChanged()

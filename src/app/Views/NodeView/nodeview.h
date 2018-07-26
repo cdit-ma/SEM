@@ -29,19 +29,14 @@ public:
     ViewItem* getContainedViewItem();
 
     QColor getBackgroundColor();
-    QRectF getViewportRect();
     SelectionHandler* getSelectionHandler();
 
-    QPointF getTopLeftOfSelection();
-    
     void alignHorizontal();
     void alignVertical();
 
     void centerSelection();
 
     void update_minimap();
-
-    QList<int> getIDsInView();
 signals:
     void trans_inactive();
     void trans_InActive2Moving();
@@ -75,14 +70,13 @@ private slots:
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
-
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
     void themeChanged();
 
 public slots:
-    void fitToScreen();
+    
     void selectAll();
     void clearSelection();
 
@@ -95,6 +89,8 @@ public slots:
     void zoomOut(){
         minimap_Zoom(-1);
     }
+    void AllFitToScreen(bool if_active);
+    void FitToScreen();
     
 private slots:
     
@@ -116,9 +112,11 @@ private slots:
 
 
     void centerItem(int ID);
+    
     void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
+    void fitToScreen();
     void themeItem(EntityItem* item);
 
     QColor body_color;
@@ -152,7 +150,6 @@ private:
 
     EntityItem* getEntityItem(int ID) const;
     EntityItem* getEntityItem(ViewItem* item) const;
-    NodeItem* getNodeItem(ViewItem* item) const;
 
     void zoom(int delta, QPoint anchorScreenPos = QPoint());
 
