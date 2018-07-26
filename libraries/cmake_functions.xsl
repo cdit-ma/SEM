@@ -347,11 +347,11 @@
     -->
     <xsl:function name="cmake:use_ccache">
         <xsl:param name="tab" as="xs:integer" />
-        
+        <xsl:value-of select="cmake:comment('Using CCache speeds up repeat compilation time', $tab)" />
         <xsl:value-of select="concat(o:t($tab), 'find_program(CCACHE_FOUND ccache)', o:nl(1))" />
         <xsl:value-of select="cmake:if_start('CCACHE_FOUND', $tab)" />
-        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache', 1)" />
-        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_LINK ccache', 1)" />
+        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache', $tab + 1)" />
+        <xsl:value-of select="cmake:set_property('GLOBAL PROPERTY RULE_LAUNCH_LINK ccache', $tab + 1)" />
         <xsl:value-of select="cmake:if_end('CCACHE_FOUND', $tab)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>

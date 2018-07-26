@@ -825,14 +825,16 @@
     <xsl:function name="cmake:get_top_cmakelists">
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
         <xsl:value-of select="cmake:set_cpp11()" />
-        <xsl:value-of select="cmake:use_ccache(0)" />
+        
 
         
         
         <!-- Don't set if we have valid values already, If we aren't the top level, don't redefine -->
         <xsl:value-of select="concat('get_directory_property(IS_SUB_REPO PARENT_DIRECTORY)', o:nl(1))" />
-        <xsl:value-of select="cmake:setup_re_path(1)" />
+        
         <xsl:value-of select="cmake:if_start('NOT IS_SUB_REPO', 0)" />
+        <xsl:value-of select="cmake:use_ccache(1)" />
+        <xsl:value-of select="cmake:setup_re_path(1)" />
         <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(), 'lib'))" />
         <xsl:value-of select="cmake:set_library_output_directory($lib_dir, 1)" />
         <xsl:value-of select="cmake:set_archive_output_directory($lib_dir, 1)" />
