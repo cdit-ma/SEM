@@ -635,6 +635,11 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "PeriodicPort";
             break;
         }
+        case NODE_KIND::TRANSITION_FUNCTION:{
+            default_icon_prefix = "Icons";
+            default_icon_name = "loop";
+            break;
+        }
         case NODE_KIND::SHARED_DATATYPES:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "SharedDatatypes";

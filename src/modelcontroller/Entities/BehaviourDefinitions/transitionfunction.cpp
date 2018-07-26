@@ -45,7 +45,7 @@ MEDEA::TransitionFunction::TransitionFunction(::EntityFactoryBroker& broker, boo
 
 
 void MEDEA::TransitionFunction::updateLabel(){
-    QString new_label = "On";
+    QString new_label = "Handle";
     new_label += getDataValue("type").toString();
     setDataValue("label", new_label);
 }
