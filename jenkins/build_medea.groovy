@@ -7,25 +7,20 @@ import cditma.Utils
 def utils = new Utils(this);
 
 final GIT_BRANCH = env.JOB_BASE_NAME
-final BRANCH_NAME = env.BRANCH_NAME
 final FILE_NAME = "MEDEA-" + GIT_BRANCH
 
 
 stage("Checkout"){
     node("master"){
-        sh 'printenv'
         dir(PROJECT_NAME){
             checkout scm
         }
         stash includes: "**", name: "source_code"
 
-        def git_bundle = FILE_NAME + '.bundle'
-        def git_tar_gz = FILE_NAME + '.tar.gz'
+        def git_tar_gz = FILE_NAME + '-src.tar.gz'
         dir(PROJECT_NAME){
-            utils.runScript('git bundle create ../' + git_bundle + ' ' + GIT_BRANCH)
             utils.runScript('git-archive-all ../' + git_tar_gz)
         }
-        archiveArtifacts(git_bundle)
         archiveArtifacts(git_tar_gz)
     }
 }
