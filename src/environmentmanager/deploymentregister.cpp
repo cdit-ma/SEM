@@ -83,7 +83,6 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 std::cerr << error_string << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 message.add_error_messages(error_string);
-                break;
             }
         }
 
@@ -129,6 +128,11 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
+
+    if(environment_->GotExperiment(message.experiment_id())){
+        std::cerr << "DeploymentRegister::HandleAddDeployment Exception: Tried to add preexisting experiment id." << std::endl;
+        throw std::runtime_error("Tried to add preexisting experiment id.");
+    }
     
     deployments_.emplace_back(new DeploymentHandler(*environment_,
                                                     *context_,
