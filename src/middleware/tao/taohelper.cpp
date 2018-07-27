@@ -1,6 +1,7 @@
 #include "taohelper.h"
 #include <iostream>
 #include <tao/IORTable/IORTable.h>
+#include <tao/PortableServer/Servant_Base.h>
 
 
 tao::TaoHelper& tao::TaoHelper::get_tao_helper(){
@@ -154,10 +155,38 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
 
         //Get the reference to the obj, using the obj_id
         auto obj_ref = poa->id_to_reference(obj_id);
-        //obj_ref->_remove_ref();
+
+        auto name_context = GetNamingContext(orb);
+        
 
         //Get the IOR from the object
         CORBA::String_var ior = orb->object_to_string(obj_ref);
+
+
+        {
+            auto context = name_context->new_context();
+            CosNaming::Name name (1);
+            name.length (1);
+            name[0].id = "TEST";
+            
+            name_context->rebind_context(name, context);
+        }
+
+        {
+            CosNaming::Name name (2);
+            name.length (2);
+            name[0].id = "TEST";
+            name[1].id = object_name.c_str();
+
+            //name[0].id = object_name.c_str();
+
+            std::cerr << "GOT NAME CONTEXT: " << name_context << std::endl;
+
+            name_context->rebind(name, obj_ref);
+        }
+
+        
+
 
         auto ior_table = GetIORTable(orb);
        
@@ -174,14 +203,41 @@ IORTable::Table_var tao::TaoHelper::GetIORTable(CORBA::ORB_ptr orb){
     return IORTable::Table::_narrow(table_object.in());
 }
 
+CosNaming::NamingContext_ptr  tao::TaoHelper::GetNamingContext(CORBA::ORB_ptr orb){
+    auto naming_object = orb->resolve_initial_references ("NamingService");
+    return CosNaming::NamingContext::_narrow(naming_object);
+}
+
 bool tao::TaoHelper::deregister_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name){
     if(orb && poa){
         CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId (object_name.c_str());
+        //Get the reference to the obj, using the obj_id
+        auto obj_ref = poa->id_to_reference(obj_id);
+
         poa->deactivate_object(obj_id);
+
+
 
         //Remove from the maps
         registered_poas_.erase(poa);
         poa->destroy(1,1);
+        
+        auto name_context = GetNamingContext(orb);
+
+        CosNaming::Name name (2);
+        name.length (2);
+        name[0].id = "TEST";
+        name[1].id = object_name.c_str();
+
+        auto endpoint = name_context->resolve (name);
+        if(endpoint == obj_ref){
+            std::cerr << "UNBINDING NAME CONTEXT: " << name_context << " " << object_name.c_str() << std::endl;
+            
+        }else{
+            std::cerr << "DIFFERENT HANDLES?" << std::endl;
+        }
+        name_context->unbind(name);
+
         
 
         auto ior_table = GetIORTable(orb);
@@ -215,9 +271,26 @@ void tao::TaoHelper::deregister_initial_reference(CORBA::ORB_ptr orb, const std:
     }
 }
 
+
 CORBA::Object_ptr tao::TaoHelper::resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id){
     if(orb){
         return orb->resolve_initial_references(obj_id.c_str());
+    }
+    return 0;
+}
+
+CORBA::Object_ptr tao::TaoHelper::resolve_ns_references(CORBA::ORB_ptr orb, const std::string& obj_id){
+    if(orb){
+        auto name_context = GetNamingContext(orb);
+        CosNaming::Name name (2);
+        name.length (2);
+        name[0].id = "TEST";
+        name[1].id = obj_id.c_str();
+
+        auto object = name_context->resolve (name);
+
+        //std::cerr << "GOT OBJ CONTEXT: " << object << std::endl;
+        return object;
     }
     return 0;
 }

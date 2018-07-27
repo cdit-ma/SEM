@@ -1,5 +1,6 @@
-
-#include "orbsvcs/CosNamingC.h"
+#include <iostream>
+#include <middleware/tao/taohelper.h>
+#include <orbsvcs/CosNamingC.h>
 
 void PrintContext(CosNaming::NamingContext_ptr naming_context, std::string parent_name){
     CosNaming::BindingList_var binding_list;
@@ -23,19 +24,20 @@ void PrintContext(CosNaming::NamingContext_ptr naming_context, std::string paren
 }
 
 //tao_nslist -ORBInitRef NameService=corbaloc:iiop:>/NameService
-int main(int){
-    auto& helper;
+int main(int, char**){
+    auto& helper = tao::TaoHelper::get_tao_helper();
 
     auto orb = helper.get_orb("iiop://localhost:5000", false);
-    helper.register_initial_reference(orb, "NameService", "corbaloc:iiop:NAMESERVER:PORT/NameService");
+    helper.register_initial_reference(orb, "NameService", "corbaloc:iiop:mandarin01:34257/NameService");
 
     auto obj = helper.resolve_initial_references(orb, "NameService");
     auto naming_context = CosNaming::NamingContext::_narrow(obj);
     PrintContext(naming_context, "");
-
+    /*
     CosNaming::Name name(1);
     name.length(1);
     name[0].id = "???";
 
-    auto result = naming_context->resolve(name);
+    auto result = naming_context->resolve(name);*/
+    return 0;
 }

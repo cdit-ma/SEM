@@ -171,8 +171,12 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
     const auto& cached_server_name = current_server_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
+        //auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
+        auto ptr = helper.resolve_ns_references(orb_, server_name_->String());
+        std::cerr << "FOUND: " << ptr << std::endl;
+
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
+        
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
         //Timed Request 1 = 100 nanoseconds
@@ -210,10 +214,14 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
             CORBA::release(timeout_client);
             CORBA::release(client);
             return base_reply;
+        }else{
+            std::cerr << "HELLO" << std::endl;
         }
     }catch (const CORBA::TIMEOUT &timeout) {
+        std::cerr << "HELLO" << std::endl;
         throw std::runtime_error("Timeout");
     }catch(const CORBA::Exception& e){
+        std::cerr << "HELLO" << std::endl;
         throw std::runtime_error("Corba Exception");
     }
 }
@@ -251,6 +259,8 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
+
+        
         
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
@@ -284,8 +294,10 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
             delete request_ptr;
         }
     }catch (const CORBA::TIMEOUT &timeout) {
+        std::cerr << "TIMEOUT" << std::endl;
         throw std::runtime_error("Timeout");
     }catch(const CORBA::Exception& e){
+        std::cerr << "TIMEOUT" << std::endl;
         throw std::runtime_error("Corba Exception");
     }
 }
