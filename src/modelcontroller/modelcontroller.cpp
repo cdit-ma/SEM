@@ -1,13 +1,13 @@
 #include "modelcontroller.h"
-#include <QDebug>
+
 #include <algorithm>
 #include <QDateTime>
-
+#include <QDebug>
 #include <QDir>
+#include <QElapsedTimer>
+#include <QFile>
 #include <QStringBuilder>
 #include <QThread>
-#include <QFile>
-#include <QElapsedTimer>
 #include <QXmlStreamReader>
 
 #include "version.h"

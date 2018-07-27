@@ -2,12 +2,12 @@
 #include "data.h"
 #include "edge.h"
 #include <algorithm>
-#include <QDebug>
-#include <QStringBuilder>
 #include <QByteArray>
+#include <QDebug>
 #include <QStack>
+#include <QStringBuilder>
+
 #include "../entityfactorybroker.h"
-#include "../entityfactoryregistrybroker.h"
 #include "../entityfactoryregistrybroker.h"
 
 #include "InterfaceDefinitions/datanode.h"

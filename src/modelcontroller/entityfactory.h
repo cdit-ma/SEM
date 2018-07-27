@@ -1,12 +1,12 @@
-#ifndef EntityFactory_H
-#define EntityFactory_H
+#ifndef ENTITYFACTORY_H
+#define ENTITYFACTORY_H
 
-#include <QList>
-#include <QHash>
-#include <QVariant>
-#include <QQueue>
 #include <functional>
+#include <QHash>
+#include <QList>
+#include <QQueue>
 #include <QReadWriteLock>
+#include <QVariant>
 
 #include "strings.h"
 #include "nodekinds.h"
@@ -178,4 +178,4 @@ private:
     static EntityFactory* global_factory;
 };
 
-#endif // EntityFactory_H
+#endif // ENTITYFACTORY_H
