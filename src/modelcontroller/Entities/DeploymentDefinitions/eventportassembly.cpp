@@ -1,7 +1,6 @@
 #include "eventportassembly.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
 
 EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp, bool is_pubsub_port) : EventPort(broker, node_kind, is_temp, is_pubsub_port){
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);

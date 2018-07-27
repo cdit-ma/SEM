@@ -6,15 +6,11 @@
 class EntityFactoryRegistryBroker;
 class EventPortAssembly: public EventPort
 {
-
     Q_OBJECT
-
 protected:
     EventPortAssembly(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp, bool is_pubsub_port = true);
     void MiddlewareUpdated();
-
 public:
-
     bool isPubPortDelegate() const;
     bool isSubPortDelegate() const;
     bool isPubSubPortDelegate() const;
