@@ -82,6 +82,10 @@
         <!-- Define the Workload function -->
         <xsl:value-of select="cpp:define_function($return_parameter, $qualified_class, $function_name, $input_parameters, cpp:scope_start(0))" />
         <xsl:value-of select="cdit:generate_workflow_code($entity, $entity, 1)" />
+
+        <xsl:if test="$kind = 'TransitionFunction'">
+            <xsl:value-of select="cpp:invoke_static_function('Component', $function_name, '', cpp:nl(), 1)" />
+        </xsl:if>
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
