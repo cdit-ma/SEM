@@ -14,7 +14,7 @@ struct cl_comand_queue;
 
 class OpenCL_Worker : public Worker {
 public:
-    OpenCL_Worker(const Component& component, std::string inst_name);
+    OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name);
     //~OpenCL_Worker();
 
     void HandleConfigure() override;
