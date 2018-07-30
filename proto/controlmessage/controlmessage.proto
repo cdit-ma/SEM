@@ -137,6 +137,8 @@ message Port{
     string port_guid = 6;
     repeated string connected_ports = 7;
     repeated string connected_external_ports = 8;
+
+    repeated string server_name = 9;
 }
 
 message Worker{
