@@ -40,6 +40,8 @@ class Port{
         std::string GetProducerPort() const;
         std::string GetProducerEndpoint() const;
         std::string GetTopic() const;
+        std::vector<std::string> GetTaoServerName() const;
+        std::string GetTaoNamingServiceEndpoint() const;
         Component& GetComponent() const;
         Node& GetNode() const;
         Experiment& GetExperiment() const;
@@ -91,6 +93,8 @@ class Port{
 
         std::set<std::string> connected_internal_port_ids_;
         std::set<std::string> connected_external_port_ids_;
+
+        std::vector<std::string> tao_server_name_list_;
 
         std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
 };

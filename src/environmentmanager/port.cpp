@@ -41,14 +41,21 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         }
     }
 
+    //Set our server name to be our port name + our id to handle replication
     if(middleware_ == EnvironmentManager::Port::Middleware::Tao){
         const auto& orb_port = GetNode().AssignOrbPort();
         if(kind_ == EnvironmentManager::Port::Kind::Replier){
             SetProducerPort(orb_port);
         }
 
-        //TODO: Check if we are using a topic_name
+        for(auto& server_name_segment : port.server_name()){
+            tao_server_name_list_.push_back(server_name_segment);
+        }
+
         std::string topic = GetName() + "_" + GetId();
+        tao_server_name_list_.push_back(topic);
+
+        //TODO: Check if we are using a topic_name
         SetTopic(topic);
     }
 
@@ -152,6 +159,14 @@ std::string Port::GetProducerPort() const{
 
 std::string Port::GetTopic() const{
     return topic_name_;
+}
+
+std::vector<std::string> Port::GetTaoServerName() const{
+    return tao_server_name_list_;
+}
+
+std::string Port::GetTaoNamingServiceEndpoint() const{
+    return "corbaloc:iiop:" + GetEnvironment().GetTaoNamingServiceAddress();
 }
 
 void Port::AddInternalConnectedPortId(const std::string& port_id){
@@ -411,38 +426,74 @@ void Port::FillTopicPb(NodeManager::Port& port_pb, EnvironmentManager::Port& por
 }
 
 void Port::FillTaoPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port){
-    auto name_pb = port_pb.add_attributes();
-    name_pb->mutable_info()->set_name("server_name");
-    name_pb->set_kind(NodeManager::Attribute::STRING);
-    name_pb->add_s(port.GetTopic());
-
     auto& node = port.GetNode();
-    
     auto orb_pb = port_pb.add_attributes();
     orb_pb->mutable_info()->set_name("orb_endpoint");
     orb_pb->set_kind(NodeManager::Attribute::STRING);
     orb_pb->add_s("iiop://" + node.GetIp() + ":" + node.GetOrbPort());
 
-    if(port.GetKind() == Kind::Requester){
-        auto addr_pb = port_pb.add_attributes();
-        addr_pb->mutable_info()->set_name("server_name");
-        addr_pb->set_kind(NodeManager::Attribute::STRING);
-        addr_pb->add_s(port.GetTopic());
+    //If we're a replier, we can set our server name(topic) and naming service endpoint based on internal information.
+    if(port.GetKind() == Kind::Replier){
+        auto name_pb = port_pb.add_attributes();
+        name_pb->mutable_info()->set_name("server_name");
+        name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+        auto tao_name_server_list = port.GetTaoServerName();
+        for(auto& server_name_segment_ : tao_name_server_list){
+            name_pb->add_s(server_name_segment_);
+        }
 
+        auto naming_service_pb = port_pb.add_attributes();
+        naming_service_pb->mutable_info()->set_name("naming_service_endpoint");
+        naming_service_pb->set_kind(NodeManager::Attribute::STRING);
+        naming_service_pb->add_s(port.GetTaoNamingServiceEndpoint());
+    }
+
+    //If we're a requester, get server name and naming service from connected replier port.
+    if(port.GetKind() == Kind::Requester){
         //Connect all Internal ports
         for(auto port_id : port.GetInternalConnectedPortIds()){
+            //Get our connected port
             auto& publisher_port = port.GetExperiment().GetPort(port_id);
-            const auto& endpoint = publisher_port.GetProducerEndpoint();
-            addr_pb->add_s(endpoint);
+
+            //Get server name and naming service endpoint
+            const auto& tao_name_server_list = publisher_port.GetTaoServerName();
+            const auto& naming_service_endpoint = publisher_port.GetTaoNamingServiceEndpoint();
+
+            auto name_pb = port_pb.add_attributes();
+            name_pb->mutable_info()->set_name("server_name");
+            name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+            for(auto& server_name_segment_ : tao_name_server_list){
+                name_pb->add_s(server_name_segment_);
+            }
+
+            auto naming_service_pb = port_pb.add_attributes();
+            naming_service_pb->mutable_info()->set_name("naming_service_endpoint");
+            naming_service_pb->set_kind(NodeManager::Attribute::STRING);
+            naming_service_pb->add_s(naming_service_endpoint);
         }
+
+
         //Connect all External Ports
         for(const auto& port_id : port.GetExternalConnectedPortIds()){
             //Get the External Port Label from the Internal ID
             auto external_port_label = port.GetExperiment().GetExternalPortLabel(port_id);
             
             for(auto& publisher_port : port.GetEnvironment().GetExternalProducerPorts(external_port_label)){
-                const auto& endpoint = publisher_port.get().GetProducerEndpoint();
-                addr_pb->add_s(endpoint);
+                //Get server name and naming service endpoint
+                auto tao_name_server_list = publisher_port.get().GetTaoServerName();
+                auto naming_service_endpoint = publisher_port.get().GetTaoNamingServiceEndpoint();
+
+                auto name_pb = port_pb.add_attributes();
+                name_pb->mutable_info()->set_name("server_name");
+                name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+                for(auto& server_name_segment_ : tao_name_server_list){
+                    name_pb->add_s(server_name_segment_);
+                }
+
+                auto naming_service_pb = port_pb.add_attributes();
+                naming_service_pb->mutable_info()->set_name("naming_service_endpoint");
+                naming_service_pb->set_kind(NodeManager::Attribute::STRING);
+                naming_service_pb->add_s(naming_service_endpoint);
             }
         }
     }
