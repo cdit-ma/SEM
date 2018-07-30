@@ -136,8 +136,12 @@ void tao::SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseReq
 
     port.current_naming_service_name_ = port.get_id() + "_" + port.get_name() + "_NamingService";
 
-    //Register the naming service unique to this port
-    helper.register_initial_reference(port.orb_, port.current_naming_service_name_, naming_service_endpoint);
+    try{
+        //Register the naming service unique to this port
+        helper.register_initial_reference(port.orb_, port.current_naming_service_name_, naming_service_endpoint);
+    }catch(const std::exception& ex){
+        //Failed to Register shouldn't stop us from running?
+    }
 };
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>

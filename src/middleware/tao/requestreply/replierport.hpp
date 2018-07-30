@@ -182,8 +182,8 @@ std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType,
         
         //Register the nameserver
         helper.register_initial_reference(orb, current_naming_service_name_, naming_service_endpoint_->String());
-        //Register on the nameserver
         helper.register_servant_via_namingservice(orb, current_naming_service_name_, poa, server.get(), server_name_->StringList());
+
         return std::move(server);
     }
     throw std::runtime_error("Cannot build TAO Impl");
