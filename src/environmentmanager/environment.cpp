@@ -6,10 +6,12 @@
 #include <vector>
 
 using namespace EnvironmentManager;
-Environment::Environment(const std::string& address, int port_range_min, int port_range_max){
+Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
     address_ = address;
+    qpid_broker_address_ = qpid_broker_address;
+    tao_naming_service_address_ = tao_naming_service_address;
 
     MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
     MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
@@ -353,11 +355,12 @@ NodeManager::ControlMessage* Environment::GetLoganUpdate(const std::string& expe
     return GetExperiment(experiment_name).GetUpdate();
 }
 
-
-
-//XXX: Hardcoded as This machine
 std::string Environment::GetAmqpBrokerAddress(){
-    return address_ + ":5672";
+    return qpid_broker_address_;
+}
+
+std::string Environment::GetTaoNamingServiceAddress(){
+    return tao_naming_service_address_;
 }
 
 uint64_t Environment::GetClock(){

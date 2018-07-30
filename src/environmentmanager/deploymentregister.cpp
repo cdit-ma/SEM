@@ -5,6 +5,7 @@
 #include <zmq.hpp>
 
 DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
+                                        const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
                                         int portrange_min, int portrange_max) : execution_(exe){
 
     assert(portrange_min < portrange_max);
@@ -12,7 +13,7 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     registration_port_ = registration_port;
 
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, portrange_min, portrange_max));
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
 
     execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 
