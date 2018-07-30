@@ -15,7 +15,7 @@ void signal_handler (int signal_value){
 
 
 const std::string ns_addr("192.168.111.96");
-const std::string ns_port("33283");
+const std::string ns_port("35701");
 
 
 
@@ -30,31 +30,18 @@ const std::string replier_connect_addr("corbaloc:iiop:" + replier_addr);
 const std::string ns_connect_address("corbaloc:iiop:" + ns_addr + ":" + ns_port);
 
 
-bool setup_replier_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
-	auto pn = port.GetAttribute("server_name").lock();
-	auto oa = port.GetAttribute("orb_endpoint").lock();
-	if(pn && oa){
-		oa->set_String(orb_address);
-		pn->set_String(publisher_name);
+bool setup_port(Port& port, const std::string& orb_address, const std::string& name_server_endpoint, const std::vector<std::string>& server_name){
+    auto orb_attr = port.GetAttribute("orb_endpoint").lock();
+	auto ns_attr = port.GetAttribute("naming_service_endpoint").lock();
+	auto sn_attr = port.GetAttribute("server_name").lock();
+	if(orb_attr && ns_attr && sn_attr){
+		orb_attr->set_String(orb_address);
+		ns_attr->set_String(name_server_endpoint);
+		sn_attr->set_StringList(server_name);
 		return true;
 	}
 	return false;
 };
-
-bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name, const std::string& publisher_address){
-    auto oa = port.GetAttribute("orb_endpoint").lock();
-	auto pa = port.GetAttribute("server_address").lock();
-	auto pn = port.GetAttribute("server_name").lock();
-	if(pa && pn && oa){
-		//std::cerr << "server_name: " << publisher_name << std::endl;
-		//std::cerr << "server_address: " << publisher_address << std::endl;
-		oa->set_String(orb_address);
-		pn->set_String(publisher_name);
-		pa->set_String(publisher_address);
-		return true;
-	}
-	return false;
-}
 
 Base::Basic Callback(Base::Basic& message){
     std::cerr << "GOT: " << message.int_val << std::endl;
@@ -87,7 +74,7 @@ int main(int, char**){
     component->RegisterCallback<base_reply_type, base_request_type>(rep_name, Callback);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    setup_replier_port(*replier_port, replier_orb_addr, rep_name);
+    setup_port(*replier_port, replier_orb_addr, ns_connect_address, {"TEST", "POOPYFACETOMATONOSE", rep_name});
 
     auto& helper = tao::TaoHelper::get_tao_helper();
     auto orb = helper.get_orb(replier_orb_addr);

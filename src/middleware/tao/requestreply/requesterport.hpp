@@ -33,14 +33,12 @@ namespace tao{
             using middleware_request_type = TaoRequestType;
         protected:
             void HandleConfigure();
-            void HandleTerminate();
         public:
-            std::shared_ptr<Attribute> server_address_;
-            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
+            std::shared_ptr<Attribute> naming_service_endpoint_;
+            std::shared_ptr<Attribute> server_name_;
             
-            int count = 0;
-            std::string current_server_name_;
+            std::string current_naming_service_name_;
             
             std::mutex control_mutex_;
 
@@ -58,17 +56,15 @@ namespace tao{
             void ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout);
         protected:
             void HandleConfigure();
-            void HandleTerminate();
 
             using middleware_reply_type = void;
             using middleware_request_type = TaoRequestType;
         public:
-            std::shared_ptr<Attribute> server_address_;
-            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
+            std::shared_ptr<Attribute> naming_service_endpoint_;
+            std::shared_ptr<Attribute> server_name_;
             
-            int count = 0;
-            std::string current_server_name_;
+            std::string current_naming_service_name_;
             
             std::mutex control_mutex_;
 
@@ -86,17 +82,15 @@ namespace tao{
             BaseReplyType ProcessRequest(std::chrono::milliseconds timeout);
         protected:
             void HandleConfigure();
-            void HandleTerminate();
 
             using middleware_reply_type = TaoReplyType;
             using middleware_request_type = void;
         public:
-            std::shared_ptr<Attribute> server_address_;
-            std::shared_ptr<Attribute> server_name_;
             std::shared_ptr<Attribute> orb_endpoint_;
+            std::shared_ptr<Attribute> naming_service_endpoint_;
+            std::shared_ptr<Attribute> server_name_;
             
-            int count = 0;
-            std::string current_server_name_;
+            std::string current_naming_service_name_;
             
             std::mutex control_mutex_;
 
@@ -117,8 +111,8 @@ template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class 
 tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, BaseRequestType>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
-    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
+    naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
 };
 
 
@@ -128,11 +122,6 @@ void tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequest
     ::RequesterPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 };
 
-template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-void tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
-    tao::TeardownRequester<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>(*this);
-    ::RequesterPort<BaseReplyType, BaseRequestType>::HandleTerminate();
-};
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 void tao::SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port)
@@ -140,41 +129,27 @@ void tao::SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseReq
     //Gain the mutex for the client
     std::lock_guard<std::mutex> client_lock(port.client_mutex_);
     const auto& orb_endpoint = port.orb_endpoint_->String();
-    const auto& server_address = port.server_address_->String();
-    const auto& server_name = port.server_name_->String();
+    const auto& naming_service_endpoint = port.naming_service_endpoint_->String();
 
     auto& helper = tao::TaoHelper::get_tao_helper();
     port.orb_ = helper.get_orb(orb_endpoint);
-    auto count = port.count ++;
-    port.current_server_name_ = port.get_id() + "_" + server_name + "_" + std::to_string(count);
-    helper.register_initial_reference(port.orb_, port.current_server_name_, server_address);
+
+    port.current_naming_service_name_ = port.get_id() + "_" + port.get_name() + "_NamingService";
+
+    //Register the naming service unique to this port
+    helper.register_initial_reference(port.orb_, port.current_naming_service_name_, naming_service_endpoint);
 };
-
-template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-void tao::TeardownRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>& port)
-{
-    //Gain the mutex for the client
-    std::lock_guard<std::mutex> client_lock(port.client_mutex_);
-    if(port.count > 0 && port.orb_){
-        auto& helper = tao::TaoHelper::get_tao_helper();
-        helper.deregister_initial_reference(port.orb_, port.current_server_name_);
-    }
-};
-
-
 
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoClientImpl>::ProcessRequest(const BaseRequestType& message, std::chrono::milliseconds timeout){
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto& cached_server_name = current_server_name_;
+    const auto& server_name = server_name_->StringList();
+    const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        //auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
-        auto ptr = helper.resolve_ns_references(orb_, server_name_->String());
-        std::cerr << "FOUND: " << ptr << std::endl;
-
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
         
 
@@ -233,8 +208,8 @@ template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<void, BaseRequestType>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
-    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
+    naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
 };
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
@@ -245,23 +220,15 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
 
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
-void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::HandleTerminate(){
-    tao::TeardownRequester<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>(*this);
-    ::RequesterPort<void, BaseRequestType>::HandleTerminate();
-};
-
-template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
 void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::ProcessRequest(const BaseRequestType& message, std::chrono::milliseconds timeout){
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto& cached_server_name = current_server_name_;
+    const auto& server_name = server_name_->StringList();
+    const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
-
-        
-        
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
@@ -309,8 +276,8 @@ template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
 tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::RequesterPort(std::weak_ptr<Component> component, const std::string& port_name):
 ::RequesterPort<BaseReplyType, void>(component, port_name, "tao"){
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
-    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_name").lock();
-    server_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_address").lock();
+    server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
+    naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
 };
 
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
@@ -319,23 +286,16 @@ void tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>:
     ::RequesterPort<BaseReplyType, void>::HandleConfigure();
 };
 
-
-template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
-void tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::HandleTerminate(){
-    tao::TeardownRequester<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>(*this);
-    ::RequesterPort<BaseReplyType, void>::HandleTerminate();
-};
-
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
 BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::ProcessRequest(std::chrono::milliseconds timeout){
     std::lock_guard<std::mutex> lock(client_mutex_); 
     
     const auto orb_endpoint = orb_endpoint_->String();
-    const auto& cached_server_name = current_server_name_;
+    const auto& server_name = server_name_->StringList();
+    const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_initial_references(orb_, cached_server_name);
-        
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
