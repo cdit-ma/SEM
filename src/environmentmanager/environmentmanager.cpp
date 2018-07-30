@@ -57,10 +57,15 @@ int main(int argc, char **argv){
     }
 
     if(vm.count("help")){
-        std::cout << options << std::endl;
+        std::cerr << options << std::endl;
         return 0;
     }
 
+    if(ip_address.empty()){
+        std::cerr << "No ip address set, see --h for paramaters." << std::endl;
+        std::cerr << options << std::endl;
+        return 1;
+    }
 
     //If any reqired options are empty, set to default.
     if(registration_port.empty()){
@@ -70,9 +75,11 @@ int main(int argc, char **argv){
     //Broker and naming service endpoints default to same ip as environment manager.
     if(qpid_address.empty()){
         qpid_address = ip_address + ":5672";
+        std::cerr << "* No QPID broker address set, using default: " << qpid_address << std::endl;
     }
     if(tao_naming_service_address.empty()){
         tao_naming_service_address = ip_address + ":5671";
+        std::cerr << "* No Tao naming service address set, using default: " << tao_naming_service_address << std::endl;
     }
 
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(execution, ip_address, registration_port, qpid_address, tao_naming_service_address));
