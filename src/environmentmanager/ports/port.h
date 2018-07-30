@@ -37,19 +37,29 @@ class Port{
         std::string GetId() const;
         Port::Kind GetKind() const;
         Port::Middleware GetMiddleware() const;
-        std::string GetProducerPort() const;
-        std::string GetProducerEndpoint() const;
-        std::string GetTopic() const;
-        std::vector<std::string> GetTaoServerName() const;
-        std::string GetTaoNamingServiceEndpoint() const;
-        Component& GetComponent() const;
-        Node& GetNode() const;
-        Experiment& GetExperiment() const;
-        Environment& GetEnvironment() const;
+        
         NodeManager::Port* GetUpdate();
         NodeManager::Port* GetProto();
         void SetDirty();
         bool IsDirty() const;
+    
+        Component& GetComponent() const;
+        Node& GetNode() const;
+        Experiment& GetExperiment() const;
+        Environment& GetEnvironment() const;
+
+    //TODO: MOVE INTO CORRECT INSTATATIONS      
+    //ZMQ: 
+        std::string GetProducerPort() const;
+        std::string GetProducerEndpoint() const;
+    //
+        std::string GetTopic() const;
+
+    //tao:
+        std::vector<std::string> GetTaoServerName() const;
+        std::string GetTaoNamingServiceEndpoint() const;
+        
+        
     private:
         void SetType(const std::string& type);
         void SetProducerPort(const std::string& publisher_port);
@@ -63,10 +73,14 @@ class Port{
         const std::set<std::string>& GetInternalConnectedPortIds();
         const std::set<std::string>& GetExternalConnectedPortIds();
         
+
         static Kind TranslateProtoKind(const NodeManager::Port::Kind kind);
         static NodeManager::Port::Kind TranslateInternalKind(const Port::Kind middleware);
         static NodeManager::Middleware TranslateInternalMiddleware(const Port::Middleware middleware);
         static Middleware TranslateProtoMiddleware(const NodeManager::Middleware middleware);
+
+        //
+        void FillPortPb(NodeManager::Port& port_pb) = 0;
 
         static void FillZmqPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
         static void FillDdsPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
@@ -74,7 +88,6 @@ class Port{
         static void FillTaoPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
 
         static void FillTopicPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
-
     private:
         Environment& environment_;
         Component& component_;
@@ -87,6 +100,7 @@ class Port{
         Middleware middleware_;
 
         bool dirty_ = false;
+
 
         std::string topic_name_;
         std::string producer_port_;;
