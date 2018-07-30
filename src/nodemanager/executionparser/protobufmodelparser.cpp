@@ -406,22 +406,32 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                 }
                 case NodeManager::TAO:{
                     //TAO Requires tao_orb_endpoint
-                    auto server_address = graphml_parser_->GetDataValue(port_id, "tao_orb_endpoint");
-                    auto server_name = graphml_parser_->GetDataValue(port_id, "label");
+                    auto naming_server_endpoint = graphml_parser_->GetDataValue(port_id, "tao_naming_service_endpoint");
+                    auto server_name_list = graphml_parser_->GetDataValue(port_id, "tao_server_name");
+
+                    //Split slash seperated server name into seperate strings.
+                    std::transform(server_name_list.begin(), server_name_list.end(), server_name_list.begin(), [](char ch) {
+                        return ch == '/' ? ' ' : ch;
+                    });
+                    std::istringstream iss(server_name_list);
+                    std::vector<std::string> split_server_name(std::istream_iterator<std::string>{iss},
+                                            std::istream_iterator<std::string>());
 
                     //Set publisher address
-                    auto serv_addr_pb = eport_pb->add_attributes();
-                    auto serv_addr_info_pb = serv_addr_pb->mutable_info();
-                    serv_addr_info_pb->set_name("server_address");
-                    serv_addr_pb->set_kind(NodeManager::Attribute::STRING);
-                    serv_addr_pb->add_s(server_address);
+                    auto naming_server_endpoint_pb = eport_pb->add_attributes();
+                    auto naming_server_endpoint_pb_info_pb = naming_server_endpoint_pb->mutable_info();
+                    naming_server_endpoint_pb_info_pb->set_name("naming_server_endpoint");
+                    naming_server_endpoint_pb->set_kind(NodeManager::Attribute::STRING);
+                    naming_server_endpoint_pb->add_s(naming_server_endpoint);
 
                     //Set publisher address
                     auto serv_name_pb = eport_pb->add_attributes();
                     auto serv_name_info_pb = serv_name_pb->mutable_info();
                     serv_name_info_pb->set_name("server_name");
                     serv_name_pb->set_kind(NodeManager::Attribute::STRING);
-                    serv_name_pb->add_s(server_name);
+                    for(const auto& process : split_server_name){
+                        serv_name_pb->add_s(process);
+                    }
                     break;
                 }
                 default:

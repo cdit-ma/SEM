@@ -29,7 +29,6 @@ Port::Port(Environment& environment, Component& parent, const NodeManager::Port&
         if(attribute.info().name() == "topic_name"){
             SetTopic(attribute.s(0));
         }
-        //Che
         AddAttribute(attribute);
     }
 
