@@ -1,6 +1,6 @@
 #include "component.h"
 #include "node.h"
-#include "port.h"
+#include "ports/port.h"
 #include "attribute.h"
 
 using namespace EnvironmentManager;
@@ -18,9 +18,10 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
 
     for(const auto& port_pb : component.ports()){
         const auto& id = port_pb.info().id();
-        auto port = std::unique_ptr<EnvironmentManager::Port>(new EnvironmentManager::Port(environment_, *this, port_pb));
-        
-        ports_.emplace(id, std::move(port));
+        auto port = Port::ConstructPort(*this, port_pb);
+        if(port){
+            ports_.emplace(id, std::move(port));
+        }
     }
 
     for(const auto& attr_pb : component.attributes()){
@@ -40,11 +41,10 @@ Node& Component::GetNode(){
     return node_;
 }
 
-void Component::AddPort(const NodeManager::Port& port){
-    ports_.emplace(port.info().id(), 
-            std::unique_ptr<EnvironmentManager::Port>(
-                new EnvironmentManager::Port(environment_, *this, port)));
+Environment& Component::GetEnvironment() const{
+    return environment_;
 }
+
 
 void Component::SetDirty(){
     node_.SetDirty();

@@ -2,7 +2,7 @@
 #include "node.h"
 #include "component.h"
 #include "logger.h"
-#include "port.h"
+#include "ports/port.h"
 #include "attribute.h"
 
 using namespace EnvironmentManager;
