@@ -23,11 +23,9 @@ class Port : public ::EnvironmentManager::Port{
     protected:
         std::string GetProducerPort() const;
         std::string GetProducerEndpoint() const;
-        std::string GetTopic() const;
         void FillPortPb(NodeManager::Port& port_pb);
 
     private:
-        std::string topic_name_;
         std::string ip_;
         std::string producer_port_;
 };

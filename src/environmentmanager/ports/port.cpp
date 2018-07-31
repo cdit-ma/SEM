@@ -35,7 +35,8 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
         }
     }
     catch(const std::exception& ex){
-        
+        std::cerr << " * Failed to construct port: " << port.info().name() << parent.GetName() << std::endl;
+        std::cerr << ex.what() << std::endl;
     }
     return nullptr;
 }

@@ -12,8 +12,6 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
         ip_ = GetNode().GetIp();
         producer_port_ = GetEnvironment().GetPort(ip_);
     }
-
-    topic_name_ = NodeManager::GetAttribute(port.attributes(), "topic_name").s(0);
 }
 
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
@@ -30,9 +28,6 @@ std::string Port::GetProducerPort() const{
 }
 std::string Port::GetProducerEndpoint() const{
     return "tcp://" + ip_ + ":" + GetProducerPort();
-}
-std::string Port::GetTopic() const{
-    return topic_name_;
 }
 
 void Port::FillPortPb(NodeManager::Port& port_pb){

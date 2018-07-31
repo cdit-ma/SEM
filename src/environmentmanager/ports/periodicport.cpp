@@ -8,7 +8,7 @@ using namespace EnvironmentManager;
 PeriodicPort::PeriodicPort(::EnvironmentManager::Component& parent, const NodeManager::Port& port) :
     ::EnvironmentManager::Port(parent, port){
 
-    const auto& attribute = NodeManager::GetAttribute(port.attributes(), "frequency");
+    const auto& attribute = NodeManager::GetAttribute(port.attributes(), "Frequency");
     frequency_ = attribute.d();
 }
 
