@@ -13,9 +13,9 @@ namespace EnvironmentManager{
             public:
                 ~Port();
             protected:
-                std::string GetOrbEndpoint() const;
-                std::string GetNamingServiceEndpoint() const;
-                std::vector<std::string> GetTaoServerName() const;
+                const std::string& GetOrbEndpoint() const;
+                const std::string& GetNamingServiceEndpoint() const;
+                const std::vector<std::string>& GetTaoServerName() const;
 
                 void FillPortPb(NodeManager::Port& port_pb);
             private:

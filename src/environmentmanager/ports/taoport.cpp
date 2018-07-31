@@ -6,43 +6,41 @@ using namespace EnvironmentManager::tao;
 Port(Component& parent, const NodeManager::Port& port):
     ::EnvironmentManager::Port(parent, port){
 
-    const auto& orb_port = GetNode().AssignOrbPort();
-    
-    
+    //Assign port to this
+    auto& node = GetNode();
+    const auto& orb_port = node.AssignOrbPort();
 
-        std::string topic = GetName() + "_" + GetId();
-        tao_server_name_list_.push_back(topic);
+    //Set Orb endpoint
+    orb_endpoint_ = "iiop://" + node.GetIp() + ":" + orb_port;
 
-        //TODO: Check if we are using a topic_name
-        SetTopic(topic);
-    }
+    //Set the server name
+    const auto& server_name = GetName() + "_" + GetId();
+    server_name_.push_back(server_name);
 
+    //Set the naming service endpoint
+    naming_service_endpoint_ = "corbaloc:iiop:" + GetEnvironment().GetTaoNamingServiceAddress();
 }
 
 Port(Experiment& parent, const NodeManager::ExternalPort& port):
     ::EnvironmentManager::Port(parent, port){
-
-    for(const auto& server_name_segment : port.server_name()){
-        server_name_.emplace_back(server_name_segment);
-    }
 }
 
-std::vector<std::string> Port::GetServerName() const{
+const std::vector<std::string>& Port::GetServerName() const{
     return server_name_;
 }
 
-std::string Port::GetNamingServiceEndpoint() const{
+const std::string& Port::GetNamingServiceEndpoint() const{
     return naming_service_endpoint_;
 }
 
-std::string Port::GetOrbEndpoint() const{
+const std::string& Port::GetOrbEndpoint() const{
     return orb_endpoint_;
 }
 
 void Port::FillPortPb(NodeManager::Port& port_pb){
     auto& node = GetNode();
 
-    if(true /*TODO: IF !BLACKBOX*/){
+    if(isBlackbox(){
         auto orb_pb = port_pb.add_attributes();
         orb_pb->mutable_info()->set_name("orb_endpoint");
         orb_pb->set_kind(NodeManager::Attribute::STRING);
