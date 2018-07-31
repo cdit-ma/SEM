@@ -18,7 +18,7 @@ message ControlMessage{
     string host_name = 3;
     repeated Node nodes = 4;
     string experiment_id = 5;
-    repeated Attribute attributes = 6;
+    map<string, Attribute> attributes = 6;
     repeated ExternalPort external_ports = 7;
 }
 
@@ -86,7 +86,7 @@ message Node{
     NodeType type = 2;
     repeated Node nodes = 3;
     repeated Component components = 4;
-    repeated Attribute attributes = 5;
+    map<string, Attribute> attributes = 5;
 
     repeated Logger loggers = 6;
 
@@ -102,7 +102,7 @@ message ExternalPort{
     Info info = 1;
     Kind kind = 2;
     Middleware middleware = 3;
-    repeated Attribute attributes = 4;
+    map<string, Attribute> attributes = 4;
     repeated string connected_ports = 5;
     bool is_blackbox = 6;
 }
@@ -110,7 +110,7 @@ message ExternalPort{
 message Component{
     Info info = 1;
     repeated Port ports = 2;
-    repeated Attribute attributes = 3;
+    map<string, Attribute> attributes = 3;
     repeated Worker workers = 4;
     uint32 replicate_id = 5;
 }
@@ -133,7 +133,7 @@ message Port{
     Info info = 1;
     Kind kind = 2;
     Middleware middleware = 3;
-    repeated Attribute attributes = 4;
+    map<string, Attribute> attributes = 4;
     string port_guid = 6;
     repeated string connected_ports = 7;
     repeated string connected_external_ports = 8;
@@ -143,7 +143,7 @@ message Port{
 
 message Worker{
     Info info = 1;
-    repeated Attribute attributes = 2;
+    map<string, Attribute> attributes = 2;
 }
 
 message Attribute{

@@ -80,11 +80,12 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
 
     auto node = control_message->add_nodes();
     auto info = node->mutable_info();
-    auto attribute = node->add_attributes();
-    auto attribute_info = attribute->mutable_info();
-    attribute_info->set_name("ip_address");
-    attribute->set_kind(NodeManager::Attribute::STRING);
-    attribute->add_s(node_endpoint);
+
+    auto& attribute = (*node->mutable_attributes())["ip_address"];
+    auto attribute_info = attribute.mutable_info();
+    attribute.mutable_info()->set_name("ip_address");
+    attribute.set_kind(NodeManager::Attribute::STRING);
+    attribute.add_s(node_endpoint);
 
 
     //Get update endpoint
