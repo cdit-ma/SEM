@@ -223,6 +223,7 @@ std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& inf
 
 std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& port_pb){
     if(component){
+        
         const auto& port_info_pb = port_pb.info();
         const auto& middleware = NodeManager::Middleware_Name(port_pb.middleware());
         const auto namespace_str = GetNamespaceString(port_pb.info());
