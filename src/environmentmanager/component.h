@@ -15,14 +15,14 @@ class Attribute;
 class Component{
     public:
         Component(Environment& environment, Node& parent, const NodeManager::Component& component);
-        void AddPort(const NodeManager::Port& port);
         void AddAttribute();
 
         std::string GetId();
         std::string GetName();
 
-        Node& GetNode();
         Port& GetPort(const std::string& port_id);
+        Node& GetNode();
+        Environment& GetEnvironment() const;
 
         bool HasPort(const std::string& port_id);
 

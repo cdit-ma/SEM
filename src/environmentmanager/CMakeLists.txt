@@ -21,7 +21,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/port.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     )
 
@@ -34,7 +36,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/node.h
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/port.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     )
 

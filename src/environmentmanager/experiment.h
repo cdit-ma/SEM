@@ -47,6 +47,8 @@ class Experiment{
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
+        Environment& GetEnvironment() const;
+
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
 
         std::string GetMasterPublisherAddress();

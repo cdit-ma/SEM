@@ -1,7 +1,7 @@
 #include "experiment.h"
 #include "environment.h"
 #include "node.h"
-#include "port.h"
+#include "ports/port.h"
 
 using namespace EnvironmentManager;
 
@@ -37,6 +37,10 @@ Experiment::~Experiment(){
 
 const std::string& Experiment::GetName() const{
     return model_name_;
+}
+
+Environment& Experiment::GetEnvironment() const{
+    return environment_;
 }
 
 void Experiment::SetConfigured(){
