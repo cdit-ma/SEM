@@ -130,10 +130,14 @@ Port::Middleware Port::GetMiddleware() const{
 }
 
 Component& Port::GetComponent() const{
-    if(component_){
+    if(GotComponent()){
         return *(component_);
     }
     throw std::runtime_error("No Component");
+}
+
+bool Port::GotComponent() const{
+    return component_;
 }
 
 Node& Port::GetNode() const{
@@ -161,11 +165,11 @@ void Port::AddExternalConnectedPortId(const std::string& port_id){
     connected_external_port_ids_.insert(port_id);
 }
 
-const std::set<std::string>& Port::GetInternalConnectedPortIds(){
+const std::set<std::string>& Port::GetInternalConnectedPortIds() const{
     return connected_internal_port_ids_;
 }
 
-const std::set<std::string>& Port::GetExternalConnectedPortIds(){
+const std::set<std::string>& Port::GetExternalConnectedPortIds() const{
     return connected_external_port_ids_;
 }
 
@@ -304,7 +308,7 @@ void Port::FillTopicPb(NodeManager::Port& port_pb){
             
             for(auto& publisher_port : GetEnvironment().GetExternalProducerPorts(external_port_label)){
                 const auto& topic_name = publisher_port.get().GetTopic();
-                topic_names.insert(topic_name);
+                topic_names.insert(s);
             }
         }
 
@@ -320,11 +324,22 @@ void Port::FillTopicPb(NodeManager::Port& port_pb){
     }*/
 }
 
-std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts(){
-    return {};
+const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const{
+    std::vector<std::reference_wrapper<Port> > ports;
+
+    for(auto port_id : GetInternalConnectedPortIds()){
+        auto& port = GetExperiment().GetPort(port_id);
+        ports.emplace_back(port);
+    }
+
+    for(auto port_id : GetExternalConnectedPortIds()){
+        auto& port = GetExperiment().GetPort(port_id);
+        ports.emplace_back(port);
+    }
+
+    return ports;
 }
 
 bool Port::IsBlackbox() const{
-    //TODO
-    return false;
+    return !GotComponent();
 }

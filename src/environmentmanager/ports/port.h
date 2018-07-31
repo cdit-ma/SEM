@@ -40,7 +40,7 @@ class Port{
         Port::Kind GetKind() const;
         Port::Middleware GetMiddleware() const;
 
-        std::vector<std::reference_wrapper<Port> > GetConnectedPorts();
+        const std::vector<std::reference_wrapper<Port> > GetConnectedPorts() const;
         
         NodeManager::Port* GetUpdate();
         NodeManager::Port* GetProto();
@@ -48,7 +48,9 @@ class Port{
         bool IsDirty() const;
         bool IsBlackbox() const;
     
+
         Component& GetComponent() const;
+        bool GotComponent() const;
         Node& GetNode() const;
         Experiment& GetExperiment() const;
         Environment& GetEnvironment() const;
@@ -57,8 +59,8 @@ class Port{
         Port(Component& parent, const NodeManager::Port& port);
         Port(Experiment& parent, const NodeManager::ExternalPort& port);
         Kind kind_;
-        const std::set<std::string>& GetInternalConnectedPortIds();
-        const std::set<std::string>& GetExternalConnectedPortIds();
+        const std::set<std::string>& GetInternalConnectedPortIds() const;;
+        const std::set<std::string>& GetExternalConnectedPortIds() const;
         void FillTopicPb(NodeManager::Port& port_pb);
         
     private:
