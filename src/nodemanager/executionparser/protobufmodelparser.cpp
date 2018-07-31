@@ -608,6 +608,13 @@ bool ProtobufModelParser::Process(){
                     std::cerr << "Cannot parse middleware: " << middleware_str << std::endl;
                 }
                 port_pb->set_middleware(middleware);
+
+                if(middleware == NodeManager::QPID){
+                    //Set the topic_name
+                    const auto& topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+
+                    NodeManager::SetStringAttribute(port_pb->mutable_attributes(), "topic_name", topic_name);
+                }
             }
 
             //Handle Periodic Ports
@@ -785,7 +792,6 @@ std::string ProtobufModelParser::GetDeployedID(const std::string& id){
 }
 
 void ProtobufModelParser::SetAttributePb(NodeManager::Attribute& attr_pb, const std::string& type, const std::string& value){
-    std::cerr << "SETTING ATTRIBUTE: " << attr_pb.info().name() + " = " << type << " " << value << std::endl;
     NodeManager::Attribute::Kind kind;
     if(type == "Integer"){
         kind = NodeManager::Attribute::INTEGER;
@@ -1043,7 +1049,7 @@ void ProtobufModelParser::FillProtobufAttributes(::google::protobuf::Map< ::std:
     for(const auto& attribute_id : graphml_parser_->FindImmediateChildren("AttributeInstance", parent_id)){
         const auto& attr_label = graphml_parser_->GetDataValue(attribute_id, "label");
         
-        auto attr_pb = NodeManager::InsertAttribute(attrs, attr_label, NodeManager::Attribute::STRING);
+        auto& attr_pb = NodeManager::InsertAttribute(attrs, attr_label, NodeManager::Attribute::STRING);
         attr_pb.mutable_info()->set_id(attribute_id + unique_id_suffix);
 
         SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), attribute_value_map_[attribute_id]);

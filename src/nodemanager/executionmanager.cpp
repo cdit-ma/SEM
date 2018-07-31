@@ -42,6 +42,8 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     protobuf_model_parser_ = std::unique_ptr<ProtobufModelParser>(new ProtobufModelParser(graphml_path, experiment_id_));
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
+    std::cerr << deployment_message_->DebugString() << std::endl;
+
     NodeManager::SetStringAttribute(deployment_message_->mutable_attributes(), "master_ip_address", master_ip_addr_);
 
     if(!environment_manager_endpoint.empty()){
