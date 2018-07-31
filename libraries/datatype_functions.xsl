@@ -271,6 +271,30 @@
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_idl_type_def_name">
+        <xsl:param name="vector" />
+
+        <xsl:variable name="vector_child" select="graphml:get_vector_child($vector)" />
+        <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
+        <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
+
+        <xsl:variable name="idl_type">
+            <xsl:choose>
+                <xsl:when test="$vector_child_kind = 'AggregateInstance' or $vector_child_kind = 'EnumInstance'">
+                    <xsl:variable name="namespace" select="graphml:get_namespace($vector_child)" />
+                    <xsl:variable name="label" select="o:title_case(graphml:get_label($vector_child))" />
+                    <xsl:value-of select="o:join_list(($namespace, $label), '_')" />
+                </xsl:when>
+                <xsl:when test="$vector_child_kind = 'Member'">
+                    <xsl:variable name="cpp_type" select="cpp:get_primitive_type($vector_child_type)" />
+                    <xsl:value-of select="idl:get_type($cpp_type)" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="lower-case(o:join_list(('sequence', $vector_child_kind, $idl_type), '_'))" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_idl_struct">
         <xsl:param name="aggregate" />
         <xsl:param name="tab" as="xs:integer" />
@@ -278,6 +302,39 @@
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="label" select="o:title_case($aggregate_label)" />
+
+        <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+            <xsl:variable name="kind" select="graphml:get_kind(.)" />
+            <xsl:if test="$kind = 'Vector'">
+                <xsl:variable name="vector_child" select="graphml:get_vector_child(.)" />
+                <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
+                <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
+
+                <xsl:variable name="idl_type">
+                    <xsl:choose>
+                        <xsl:when test="$vector_child_kind = 'AggregateInstance'">
+                            <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
+                        </xsl:when>
+                        <xsl:when test="$vector_child_kind = 'Member'">
+                            <xsl:variable name="cpp_type" select="cpp:get_primitive_type($vector_child_type)" />
+                            <xsl:value-of select="idl:get_type($cpp_type)" />
+                        </xsl:when>
+                        <xsl:when test="$vector_child_kind = 'EnumInstance'">
+                            <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:variable name="sequence_type" select="cdit:get_idl_type_def_name(.)" />
+                <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('TYPEDEF', $sequence_type), '_'))" />
+
+                <!-- Define Guard -->
+                <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
+                    <xsl:value-of select="idl:typedef(idl:sequence_type($idl_type), $sequence_type, $tab)" />
+                <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
         
 
         <xsl:value-of select="idl:struct($label, $tab)" />
@@ -303,26 +360,11 @@
                     <xsl:variable name="idl_type" select="idl:get_aggregate_qualified_type(graphml:get_definition(.))" />
                     <xsl:value-of select="idl:member($idl_type, $label, $is_key, $tab + 1)" />
                 </xsl:when>
-                 <xsl:when test="$kind = 'Vector'">
+                <xsl:when test="$kind = 'Vector'">
                     <xsl:variable name="vector_child" select="graphml:get_vector_child(.)" />
-                    <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
-                    <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
 
-                    <xsl:variable name="idl_type">
-                        <xsl:choose>
-                            <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                                <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
-                            </xsl:when>
-                            <xsl:when test="$vector_child_kind = 'Member'">
-                                <xsl:variable name="cpp_type" select="cpp:get_primitive_type($vector_child_type)" />
-                                <xsl:value-of select="idl:get_type($cpp_type)" />
-                            </xsl:when>
-                            <xsl:when test="$vector_child_kind = 'EnumInstance'">
-                                <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:variable>
-                    <xsl:value-of select="idl:sequence_member($idl_type, $label, $is_key, $tab + 1)" />
+                    <xsl:variable name="sequence_type" select="cdit:get_idl_type_def_name(.)" />
+                    <xsl:value-of select="idl:member($sequence_type, $label, $is_key, $tab + 1)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:for-each>
@@ -931,7 +973,7 @@
             </xsl:choose>
         </xsl:variable>
         
-        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $value, cpp:nl(), $tab)" />
+        <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, $value, cpp:nl(), $tab)" />
     </xsl:function>
 
 
@@ -1067,15 +1109,15 @@
         <xsl:variable name="set_func">
             <xsl:choose>
                 <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable, $tab + 2)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'Member'">
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable, $tab + 2)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'EnumInstance'">
                     <xsl:variable name="variable_name" select="cdit:get_variable_name($vector_child)" />
 
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name, $tab + 2)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
@@ -1083,7 +1125,16 @@
         <xsl:value-of select="cpp:scope_start($tab)" />
         <xsl:value-of select="cpp:comment(('Vector', o:wrap_square($vector_child_kind), 'Type', o:wrap_angle($vector_child_type)), $tab + 1)" />
         <xsl:value-of select="cpp:comment('Iterate and set all elements in vector', $tab + 1)" />
-        <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
+
+        <xsl:choose>
+            <xsl:when test="$source_middleware = 'tao'">
+                <xsl:value-of select="cpp:for('auto i = 0', concat('i ' , o:lt(), ' ', $get_func,'.length()'), 'i ++', cpp:scope_start(0), $tab + 1)" />
+                <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, concat($get_func, o:wrap_square('i')), cpp:nl(), $tab + 2)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
+            </xsl:otherwise>
+        </xsl:choose>
         <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
                 <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $source_middleware, $target_middleware, 0)" />
@@ -1091,12 +1142,12 @@
                 <!-- Vector aggregates require translation -->
                 <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 2)" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 2)" />
-                <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
+                <xsl:value-of select="$set_func" />
                 <xsl:value-of select="cpp:delete($temp_element_variable, $tab + 2)" />
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'Member'">
                 <!-- Member aggregates require translation -->
-                <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
+                <xsl:value-of select="$set_func" />
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'EnumInstance'">
                 <xsl:variable name="get_func">
@@ -1111,7 +1162,7 @@
                 </xsl:variable>
 
                 <xsl:value-of select="cdit:cast_enum_instance($vector_child, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 2)" />
-                <xsl:value-of select="concat(o:t($tab + 2), $set_func, cpp:nl())" />
+                <xsl:value-of select="$set_func" />
             </xsl:when>
         </xsl:choose>
 

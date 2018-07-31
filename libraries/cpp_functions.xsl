@@ -118,7 +118,6 @@
         <xsl:variable name="class_name_uc" select="upper-case(concat($class_name, '_h'))"  />
         <xsl:value-of select="concat('#ifndef ', $class_name_uc, o:nl(1))" />
         <xsl:value-of select="concat('#define ', $class_name_uc, o:nl(1))" />
-        <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
     <!--
@@ -616,6 +615,8 @@
 
         <xsl:value-of select="concat(o:t($tab), 'for', o:wrap_bracket($arguments), $suffix)" />
     </xsl:function>
+
+
 
     <!--
         Compare ${val1} against ${val2} using an operator

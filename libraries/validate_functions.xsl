@@ -58,7 +58,7 @@
         <xsl:value-of select="xmlo:wrap_tag('result', concat($id_string, $success_string, $warning_string), if($result = false()) then $sanitized_error else '', $tab)" />
     </xsl:function>
 
-    <xsl:function name="cdit:test_aggregate_requires_key">
+    <xsl:function name="cdit:test_ospl_aggregate_requires_key">
         <xsl:param name="aggregates" as="element()*" />
 
         <xsl:variable name="results">  
@@ -67,11 +67,11 @@
                 <xsl:variable name="type" select="graphml:get_type(.)" />
                 <xsl:variable name="aggregate_keys" select="graphml:get_keys(.)" />
                 <xsl:variable name="got_key" select="count($aggregate_keys) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, o:join_list(('Aggregate', o:wrap_quote($type), 'has no child with data', o:wrap_quote('is_key'), 'set to true'), ' '), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, o:join_list(('Aggregate', o:wrap_quote($type), ' used by OSPL has no child with data', o:wrap_quote('is_key'), 'set to true'), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:value-of select="cdit:output_test('All Aggregate entities require a direct child to be set as key', $results, 1)" />
+        <xsl:value-of select="cdit:output_test('All Aggregate entities used by OSPL require a direct child to be set as key', $results, 1)" />
     </xsl:function>
 
     <xsl:function name="cdit:test_aggregate_unique_child_names">
@@ -776,7 +776,9 @@
         
         <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums)" />
 
-        <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->
+        
+
+        
         
         <xsl:value-of select="cdit:test_unique_child_labels('Aggregates must have unique labels', $aggregates)" />
         
@@ -821,6 +823,18 @@
 
         <xsl:variable name="component_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
         <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('PublisherPortInstance', 'SubscriberPortInstance'))" />
+        
+        <xsl:variable name="ospl_aggregates" as="element()*" >
+            <xsl:for-each select="$eventport_instances">
+                <xsl:if test="graphml:get_data_value(., 'middleware') = 'OSPL'">
+                    <xsl:variable name="port_definition" select="graphml:get_definition(.)" />
+                    <xsl:sequence select="graphml:get_definition(graphml:get_child_node($port_definition, 1))" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:test_ospl_aggregate_requires_key(o:remove_duplicates($ospl_aggregates))" />
+
         
         
         <xsl:value-of select="cdit:test_assembly_connections($component_instances)" />

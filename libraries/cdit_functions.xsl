@@ -239,25 +239,27 @@
         <xsl:value-of select="$middleware = 'tao' or $middleware = 'rti' or $middleware = 'ospl' or $middleware = 'base'" />
     </xsl:function>
 
-    <xsl:function name="cdit:invoke_middleware_add_vector_function" as="xs:string">
+    <xsl:function name="cdit:invoke_middleware_add_vector_function">
         <xsl:param name="obj" as="xs:string"/>
         <xsl:param name="operator" as="xs:string"/>
         <xsl:param name="node" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="value" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="node_kind" select="graphml:get_kind($node)" />
         <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($node, $middleware)" />
 
         <xsl:variable name="vector_child" select="graphml:get_vector_child($node)" />
         <xsl:variable name="vector_kind" select="graphml:get_kind($vector_child)" />
+        
 
         <xsl:variable name="function_value">
             <xsl:choose>
                 <xsl:when test="$middleware = 'base' and $vector_kind = 'AggregateInstance'">
                     <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
-                <xsl:when test="($middleware = 'rti' or $middleware = 'ospl' or $middleware = 'tao')">
+                <xsl:when test="($middleware = 'rti' or $middleware = 'ospl')">
                     <xsl:variable name="val">
                         <xsl:if test="$vector_kind = 'AggregateInstance'">
                             <xsl:value-of select="cpp:dereference_var($value)" />
@@ -269,6 +271,23 @@
                     <xsl:variable name="vector_size" select="cpp:invoke_function(cpp:invoke_function($obj, $operator, $variable_syntax, '', 0), cpp:dot(), 'size', '', 0)" />
                     <xsl:value-of select="cpp:join_args((concat($vector_size, ' + 1'), $val))" />
                 </xsl:when>
+
+                <xsl:when test="($middleware = 'tao')">
+                    <xsl:variable name="vector_type" select="graphml:get_type($vector_child)" />
+
+                    <xsl:choose>
+                        <xsl:when test="$vector_kind = 'AggregateInstance'">
+                            <xsl:value-of select="cpp:dereference_var($value)" />
+                        </xsl:when>
+                        <xsl:when test="$vector_kind = 'Member' and $vector_type = 'String'">
+                            <xsl:value-of select="concat($value, '.c_str()')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$value" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+
                 <xsl:otherwise>
                     <xsl:value-of select="$value" />
                 </xsl:otherwise>
@@ -276,7 +295,7 @@
         </xsl:variable>
         <xsl:variable name="function_name">
             <xsl:choose>
-                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl' or $middleware = 'tao'">
+                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
                     <!-- DDS implementations use set via accessors -->
                     <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'resize')" />
                 </xsl:when>
@@ -298,13 +317,24 @@
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="cpp:comment_inline(concat('Middleware ', $middleware, ' not implemented'))" />
-                </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $function_value, 0)" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'tao'">
+                <xsl:variable name="vector_ref" select="concat($obj, $operator, $variable_syntax)" />
+                
+                <xsl:variable name="size" select="cpp:invoke_function($vector_ref, cpp:dot(), 'length', '', 0)" />
+                <xsl:variable name="new_size" select="'size + 1'" />
+
+                <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), 'size', $size, cpp:nl(), $tab)" />
+                <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'length', $new_size, $tab), cpp:nl())" />
+                <xsl:value-of select="concat(o:t($tab), $vector_ref, o:wrap_square('size'), ' = ', $function_value, cpp:nl())" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, $function_value, $tab), cpp:nl())" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
 
