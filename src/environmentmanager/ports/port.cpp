@@ -7,6 +7,8 @@
 
 #include "zmqport.h"
 #include "qpidport.h"
+#include "taoport.h"
+#include "periodicport.h"
 
 using namespace EnvironmentManager;
 
@@ -17,7 +19,16 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
                 return std::unique_ptr<Port>(new zmq::Port(parent, port));
             }
             case NodeManager::Middleware::QPID:{
-                return  std::unique_ptr<Port>(new qpid::Port(parent, port));
+                return std::unique_ptr<Port>(new qpid::Port(parent, port));
+            }
+            case NodeManager::Middleware::TAO:{
+                return std::unique_ptr<Port>(new tao::Port(parent, port));
+            }
+            case NodeManager::Middleware::NO_MIDDLEWARE:{
+                if(port.kind() == NodeManager::Port::PERIODIC){
+                    return std::unique_ptr<Port>(new PeriodicPort(parent, port));
+                }
+                break;
             }
             default:
                 break;

@@ -7,10 +7,9 @@
 namespace EnvironmentManager{
     namespace tao{
         class Port : public ::EnvironmentManager::Port{
-            protected:
+            public:
                 Port(Component& parent, const NodeManager::Port& port);
                 Port(Experiment& parent, const NodeManager::ExternalPort& port);
-            public:
                 ~Port();
             protected:
                 const std::string& GetOrbEndpoint() const;

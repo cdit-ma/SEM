@@ -13,35 +13,36 @@ find_package(Protobuf REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
     )
 
 set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/component.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../re_common/util/execution.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/node.h
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/component.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/node.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
     )
 
 #Pass Version info into cmakevars.h
