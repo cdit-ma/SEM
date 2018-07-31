@@ -323,3 +323,8 @@ void Port::FillTopicPb(NodeManager::Port& port_pb){
 std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts(){
     return {};
 }
+
+bool Port::IsBlackbox() const{
+    //TODO
+    return false;
+}

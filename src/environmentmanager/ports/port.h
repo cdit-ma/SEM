@@ -60,6 +60,7 @@ class Port{
         const std::set<std::string>& GetInternalConnectedPortIds();
         const std::set<std::string>& GetExternalConnectedPortIds();
         void FillTopicPb(NodeManager::Port& port_pb);
+        
     private:
         void SetType(const std::string& type);
 
