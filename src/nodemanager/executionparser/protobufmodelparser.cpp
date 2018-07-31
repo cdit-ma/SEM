@@ -785,6 +785,7 @@ std::string ProtobufModelParser::GetDeployedID(const std::string& id){
 }
 
 void ProtobufModelParser::SetAttributePb(NodeManager::Attribute& attr_pb, const std::string& type, const std::string& value){
+    std::cerr << "SETTING ATTRIBUTE: " << attr_pb.info().name() + " = " << type << " " << value << std::endl;
     NodeManager::Attribute::Kind kind;
     if(type == "Integer"){
         kind = NodeManager::Attribute::INTEGER;

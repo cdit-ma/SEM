@@ -197,16 +197,6 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
     }
 
     auto slave_name = GetSlaveHostName(slave_ip);
-
-    const auto& logger_port = NodeManager::GetAttribute(node->attributes(), "modellogger_port").s(0);
-
-    if(logger_port.empty()){
-        throw std::runtime_error("Got no Model Logger Endpoint");
-    }
-
-    startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
-    startup.mutable_logger()->set_publisher_address("tcp://" + slave_ip + ":" + logger_port);
-
     startup.set_master_publisher_endpoint(master_publisher_endpoint_);
     startup.set_slave_host_name(slave_name);
     return startup;

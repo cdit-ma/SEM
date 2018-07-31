@@ -59,7 +59,7 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
         }
     }
     else if(port_kind == Kind::Requester){
-        auto server_addr_attr = NodeManager::InsertAttribute(attrs, "server_address", NodeManager::Attribute::STRINGLIST);
+        auto server_addr_attr = NodeManager::InsertAttribute(attrs, "server_address", NodeManager::Attribute::STRING);
         //Connect all Internal ports
         for(const auto& port_ref : GetConnectedPorts()){
             const auto& port = port_ref.get();

@@ -35,9 +35,11 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
         }
     }
     catch(const std::exception& ex){
+        
     }
     return nullptr;
 }
+
 std::unique_ptr<Port> Port::ConstructBlackboxPort(Experiment& parent, const NodeManager::ExternalPort& port){
     return nullptr;
 }
