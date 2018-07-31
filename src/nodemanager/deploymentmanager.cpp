@@ -6,6 +6,7 @@
 
 #include <re_common/zmq/protoreceiver/protoreceiver.h>
 #include <re_common/zmq/environmentrequester/environmentrequester.h>
+#include <re_common/proto/controlmessage/helper.h>
 
 DeploymentManager::DeploymentManager(bool on_master_node,
                                     const std::string& library_path,
@@ -70,15 +71,10 @@ bool DeploymentManager::QueryEnvironmentManager(){
             }
             case NodeManager::ControlMessage::CONFIGURE:{
                 auto& node = response.nodes(0);
-            
-                for(auto& attribute : node.attributes()){
-                    if(attribute.info().name() == "master_registration_endpoint"){
-                        master_registration_endpoint_ = attribute.s(0);
-                    }else if(attribute.info().name() == "master_publisher_endpoint"){
-                        master_publisher_endpoint_ = attribute.s(0);
-                    }
-                }
-                //Probably a success
+                const auto& attrs = node.attributes();
+                master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
+                master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
+                
                 return master_registration_endpoint_.size() && master_registration_endpoint_.size();
             }
             default:{

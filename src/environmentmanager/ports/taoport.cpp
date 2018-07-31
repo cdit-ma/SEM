@@ -2,6 +2,7 @@
 #include "../environment.h"
 #include "../component.h"
 #include "../node.h"
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager::tao;
 
@@ -45,31 +46,17 @@ const std::string& Port::GetOrbEndpoint() const{
 }
 
 void Port::FillPortPb(NodeManager::Port& port_pb){
-    auto& node = GetNode();
+    auto attrs = port_pb.mutable_attributes();
 
-    if(IsBlackbox()){
-        auto orb_pb = port_pb.add_attributes();
-        orb_pb->mutable_info()->set_name("orb_endpoint");
-        orb_pb->set_kind(NodeManager::Attribute::STRING);
-        orb_pb->add_s(GetOrbEndpoint());
+    if(!IsBlackbox()){
+        NodeManager::SetStringAttribute(attrs, "orb_endpoint", GetOrbEndpoint());
     }
 
     //If we're a replier, we can set our server name(topic) and naming service endpoint based on internal information.
     if(GetKind() == Kind::Replier){
         //Set the Server Name Attribute
-        auto server_name_pb = port_pb.add_attributes();
-        server_name_pb->mutable_info()->set_name("server_name");
-        server_name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
-
-        for(const auto& server_name : GetServerName()){
-            server_name_pb->add_s(server_name);
-        }
-
-        //Set the Naming Service Endpoint Attribute
-        auto naming_service_pb = port_pb.add_attributes();
-        naming_service_pb->mutable_info()->set_name("naming_service_endpoint");
-        naming_service_pb->set_kind(NodeManager::Attribute::STRING);
-        naming_service_pb->add_s(GetNamingServiceEndpoint());
+        NodeManager::SetStringListAttribute(attrs, "server_name", GetServerName());
+        NodeManager::SetStringAttribute(attrs, "naming_service_endpoint", GetNamingServiceEndpoint());
     }
     
     else if(GetKind() == Kind::Requester){
@@ -78,20 +65,8 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             const auto& connected_port = connected_port_ref.get();
             const auto& tao_port = (const Port&) connected_port;
 
-            //Set the Server Name Attribute
-            auto server_name_pb = port_pb.add_attributes();
-            server_name_pb->mutable_info()->set_name("server_name");
-            server_name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
-
-            for(const auto& server_name : tao_port.GetServerName()){
-                server_name_pb->add_s(server_name);
-            }
-
-            //Set the Naming Service Endpoint Attribute
-            auto naming_service_pb = port_pb.add_attributes();
-            naming_service_pb->mutable_info()->set_name("naming_service_endpoint");
-            naming_service_pb->set_kind(NodeManager::Attribute::STRING);
-            naming_service_pb->add_s(tao_port.GetNamingServiceEndpoint());
+            NodeManager::SetStringListAttribute(attrs, "server_name", tao_port.GetServerName());
+            NodeManager::SetStringAttribute(attrs, "naming_service_endpoint", tao_port.GetNamingServiceEndpoint());
             break;
         }
     }

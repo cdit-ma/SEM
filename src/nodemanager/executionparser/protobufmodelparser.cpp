@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
-
+#include <re_common/proto/controlmessage/helper.h>
 
 
 #include "graphmlparser.h"
@@ -297,11 +297,9 @@ bool ProtobufModelParser::ParseHardwareItems(NodeManager::ControlMessage* contro
         node->mutable_info()->set_id(hardware_id);
         node->mutable_info()->set_name(graphml_parser_->GetDataValue(hardware_id, "label"));
 
-        auto ip_attr = node->add_attributes();
-        auto ip_attr_info = ip_attr->mutable_info();
-        ip_attr_info->set_name("ip_address");
-        ip_attr->set_kind(NodeManager::Attribute::STRING);
-        ip_attr->add_s(graphml_parser_->GetDataValue(hardware_id, "ip_address"));
+        const auto& ip_address = graphml_parser_->GetDataValue(hardware_id, "ip_address");
+        NodeManager::SetStringAttribute(node->mutable_attributes(), "ip_address", ip_address);
+        
         node_message_map_[hardware_id] = node;
     }
     return true;
@@ -338,75 +336,42 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
         }
         eport_pb->set_middleware(middleware);
 
+        auto attrs = eport_pb->mutable_attributes();
         if(is_blackbox){
             switch(middleware){
                 case NodeManager::QPID:{
                     //QPID Requires Topic and Broker Addresss
-                    auto topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
-                    auto broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker");
-                    
-                    //Set Topic Name
-                    auto topic_pb = eport_pb->add_attributes();
-                    auto topic_info_pb = topic_pb->mutable_info();
-                    topic_info_pb->set_name("topic_name");
-                    topic_pb->set_kind(NodeManager::Attribute::STRING);
-                    topic_pb->add_s(topic_name);
+                    const auto& topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                    const auto& broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker");
 
-                    //Set qpid_broker
-                    auto broker_pb = eport_pb->add_attributes();
-                    auto broker_info_pb = broker_pb->mutable_info();
-                    broker_info_pb->set_name("broker");
-                    broker_pb->set_kind(NodeManager::Attribute::STRING);
-                    broker_pb->add_s(broker_addr);
+                    NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
+                    NodeManager::SetStringAttribute(attrs, "broker", broker_addr);
                     break;
                 }
                 case NodeManager::ZMQ:{
                     //ZMQ Requires zmq_publisher_address (PUBSUB) or zmq_server_address (SERVER)
                     if(port_kind == NodeManager::ExternalPort::PUBSUB){
-                        auto pub_addr = graphml_parser_->GetDataValue(port_id, "zmq_publisher_address");
-
-                        //Set publisher address
-                        auto pub_pb = eport_pb->add_attributes();
-                        auto pub_info_pb = pub_pb->mutable_info();
-                        pub_info_pb->set_name("publisher_address");
-                        pub_pb->set_kind(NodeManager::Attribute::STRING);
-                        pub_pb->add_s(pub_addr);
+                        const auto& pub_addr = graphml_parser_->GetDataValue(port_id, "zmq_publisher_address");
+                        NodeManager::SetStringAttribute(attrs, "publisher_address", pub_addr);
                     }else if(port_kind == NodeManager::ExternalPort::SERVER){
                         auto serv_addr = graphml_parser_->GetDataValue(port_id, "zmq_server_address");
-
-                        //Set server address
-                        auto serv_pb = eport_pb->add_attributes();
-                        auto serv_info_pb = serv_pb->mutable_info();
-                        serv_info_pb->set_name("server_address");
-                        serv_pb->set_kind(NodeManager::Attribute::STRING);
-                        serv_pb->add_s(serv_addr);
+                        NodeManager::SetStringAttribute(attrs, "server_address", serv_addr);
                     }
                     break;
                 }
                 case NodeManager::RTI:
                 case NodeManager::OSPL:{
                     //DDS Requires domain_id and topic
-                    auto topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
-                    auto domain_id = std::stoi(graphml_parser_->GetDataValue(port_id, "dds_domain_id"));
+                    const auto& topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                    const auto& domain_id = std::stoi(graphml_parser_->GetDataValue(port_id, "dds_domain_id"));
 
-                    //Set Topic Name
-                    auto topic_pb = eport_pb->add_attributes();
-                    auto topic_info_pb = topic_pb->mutable_info();
-                    topic_info_pb->set_name("topic_name");
-                    topic_pb->set_kind(NodeManager::Attribute::STRING);
-                    topic_pb->add_s(topic_name);
-
-                    //Set Topic Name
-                    auto domain_id_pb = eport_pb->add_attributes();
-                    auto domain_id_info_pb = domain_id_pb->mutable_info();
-                    domain_id_info_pb->set_name("domain_id");
-                    domain_id_pb->set_kind(NodeManager::Attribute::INTEGER);
-                    domain_id_pb->set_i(domain_id);
+                    NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
+                    NodeManager::SetIntegerAttribute(attrs, "domain_id", domain_id);
                     break;
                 }
                 case NodeManager::TAO:{
                     //TAO Requires tao_orb_endpoint
-                    auto naming_server_endpoint = graphml_parser_->GetDataValue(port_id, "tao_naming_service_endpoint");
+                    const auto& naming_server_endpoint = graphml_parser_->GetDataValue(port_id, "tao_naming_service_endpoint");
                     auto server_name_list = graphml_parser_->GetDataValue(port_id, "tao_server_name");
 
                     //Split slash seperated server name into seperate strings.
@@ -417,21 +382,8 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                     std::vector<std::string> split_server_name(std::istream_iterator<std::string>{iss},
                                             std::istream_iterator<std::string>());
 
-                    //Set publisher address
-                    auto naming_server_endpoint_pb = eport_pb->add_attributes();
-                    auto naming_server_endpoint_pb_info_pb = naming_server_endpoint_pb->mutable_info();
-                    naming_server_endpoint_pb_info_pb->set_name("naming_server_endpoint");
-                    naming_server_endpoint_pb->set_kind(NodeManager::Attribute::STRING);
-                    naming_server_endpoint_pb->add_s(naming_server_endpoint);
-
-                    //Set publisher address
-                    auto serv_name_pb = eport_pb->add_attributes();
-                    auto serv_name_info_pb = serv_name_pb->mutable_info();
-                    serv_name_info_pb->set_name("server_name");
-                    serv_name_pb->set_kind(NodeManager::Attribute::STRING);
-                    for(const auto& process : split_server_name){
-                        serv_name_pb->add_s(process);
-                    }
+                    NodeManager::SetStringAttribute(attrs, "naming_server_endpoint", naming_server_endpoint);
+                    NodeManager::SetStringListAttribute(attrs, "server_name", split_server_name);
                     break;
                 }
                 default:
@@ -621,17 +573,9 @@ bool ProtobufModelParser::Process(){
 
                 if(middleware == NodeManager::RTI || middleware == NodeManager::OSPL || middleware == NodeManager::QPID){
                     //Set the topic_name
-                    std::string topic_name;
-                    topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
+                    const auto& topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
 
-                    if(!topic_name.empty()){
-                        auto topic_pb = port_pb->add_attributes();
-                        auto topic_info_pb = topic_pb->mutable_info();
-                        topic_info_pb->set_name("topic_name");
-                        topic_pb->set_kind(NodeManager::Attribute::STRING);
-                        //Only set if we actually have a topic name
-                        topic_pb->add_s(topic_name);
-                    }
+                    NodeManager::SetStringAttribute(port_pb->mutable_attributes(), "topic_name", topic_name);
                 }
             }
 
@@ -840,7 +784,7 @@ std::string ProtobufModelParser::GetDeployedID(const std::string& id){
     return d_id;
 }
 
-void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const std::string& type, const std::string& value){
+void ProtobufModelParser::SetAttributePb(NodeManager::Attribute& attr_pb, const std::string& type, const std::string& value){
     NodeManager::Attribute::Kind kind;
     if(type == "Integer"){
         kind = NodeManager::Attribute::INTEGER;
@@ -858,7 +802,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
         std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
         kind = NodeManager::Attribute::STRING;
     }
-    attr_pb->set_kind(kind);
+    attr_pb.set_kind(kind);
     switch(kind){
         case NodeManager::Attribute::FLOAT:
         case NodeManager::Attribute::DOUBLE:{
@@ -868,7 +812,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
             }catch(std::invalid_argument){
                 double_val = 0;
             }
-            attr_pb->set_d(double_val);
+            attr_pb.set_d(double_val);
             break;
         }
         case NodeManager::Attribute::CHARACTER:{
@@ -876,7 +820,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
             auto char_str = value;
             char_str.erase(std::remove(char_str.begin(), char_str.end(), '\''), char_str.end());
             if(char_str.length() == 1){
-                attr_pb->set_i(char_str[0]);
+                attr_pb.set_i(char_str[0]);
             }else{
                 std::cerr << "Character: '" << value << "' isn't length one!" << std::endl;
             }
@@ -884,7 +828,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
         }
         case NodeManager::Attribute::BOOLEAN:{
             bool val = str2bool(value);
-            attr_pb->set_i(val);
+            attr_pb.set_i(val);
             break;
         }
         case NodeManager::Attribute::INTEGER:{
@@ -894,17 +838,17 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute* attr_pb, const 
             }catch(std::invalid_argument){
                 int_val = 0;
             }
-            attr_pb->set_i(int_val);
+            attr_pb.set_i(int_val);
             break;
         }
         case NodeManager::Attribute::STRING:{
             auto str = value;
             str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
-            attr_pb->add_s(str);
+            attr_pb.add_s(str);
             break;
         }
         default:
-            std::cerr << "Got unhandled Attribute type: " << NodeManager::Attribute_Kind_Name(attr_pb->kind()) << std::endl;
+            std::cerr << "Got unhandled Attribute type: " << NodeManager::Attribute_Kind_Name(attr_pb.kind()) << std::endl;
             break;
     }
 }
@@ -1094,13 +1038,12 @@ std::string ProtobufModelParser::GetUniquePrefix(int count){
     return str;
 }
 
-void ProtobufModelParser::FillProtobufAttributes(google::protobuf::RepeatedPtrField<NodeManager::Attribute>* entity, const std::string& parent_id, const std::string& unique_id_suffix){
+void ProtobufModelParser::FillProtobufAttributes(::google::protobuf::Map< ::std::string, ::NodeManager::Attribute >* attrs, const std::string& parent_id, const std::string& unique_id_suffix){
     for(const auto& attribute_id : graphml_parser_->FindImmediateChildren("AttributeInstance", parent_id)){
-        auto attr_pb = entity->Add();
-        auto attr_info_pb = attr_pb->mutable_info();
-
-        attr_info_pb->set_id(attribute_id + unique_id_suffix);
-        attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
+        const auto& attr_label = graphml_parser_->GetDataValue(attribute_id, "label");
+        
+        auto attr_pb = NodeManager::InsertAttribute(attrs, attr_label, NodeManager::Attribute::STRING);
+        attr_pb.mutable_info()->set_id(attribute_id + unique_id_suffix);
 
         SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), attribute_value_map_[attribute_id]);
     }

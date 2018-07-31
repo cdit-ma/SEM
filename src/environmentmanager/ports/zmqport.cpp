@@ -1,6 +1,7 @@
 #include "zmqport.h"
 #include "../environment.h"
 #include "../node.h"
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager::zmq;
 
@@ -12,11 +13,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
         producer_port_ = GetEnvironment().GetPort(ip_);
     }
 
-    for(const auto& attribute : port.attributes()){
-        if(attribute.info().name() == "topic_name"){
-            topic_name_ = attribute.s(0);
-        }
-    }
+    topic_name_ = NodeManager::GetAttribute(port.attributes(), "topic_name").s(0);
 }
 
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
@@ -40,29 +37,35 @@ std::string Port::GetTopic() const{
 
 void Port::FillPortPb(NodeManager::Port& port_pb){
     const auto& port_kind = GetKind();
+    
+    auto attrs = port_pb.mutable_attributes();
 
-    //Construct an attribute
-    auto addr_pb = port_pb.add_attributes();
 
-    if(port_kind == Kind::Publisher || port_kind == Kind::Subscriber){
-        addr_pb->mutable_info()->set_name("publisher_address");
-        addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
-    }else if(port_kind == Kind::Requester || port_kind == Kind::Replier){
-        addr_pb->mutable_info()->set_name("server_address");
-        addr_pb->set_kind(NodeManager::Attribute::STRING);
+    if(port_kind == Kind::Publisher){
+        NodeManager::SetStringAttribute(attrs, "publisher_address", GetProducerEndpoint());
     }
-        
-    if(port_kind == Kind::Publisher || port_kind == Kind::Replier){
-        const auto& endpoint = GetProducerEndpoint();
-        addr_pb->add_s(endpoint);
-    }else if(port_kind == Kind::Subscriber || port_kind == Kind::Requester){
+    else if(port_kind == Kind::Replier){
+        NodeManager::SetStringAttribute(attrs, "server_address", GetProducerEndpoint());
+    }
+    else if(port_kind == Kind::Subscriber){
+        auto publisher_addr_attr = NodeManager::InsertAttribute(attrs, "publisher_address", NodeManager::Attribute::STRINGLIST);
         //Connect all Internal ports
         for(const auto& port_ref : GetConnectedPorts()){
             const auto& port = port_ref.get();
             if(port.GetMiddleware() == ::EnvironmentManager::Port::Middleware::Zmq){
                 const auto& zmq_port = (const Port&)port;
-                const auto& endpoint = zmq_port.GetProducerEndpoint();
-                addr_pb->add_s(endpoint);
+                publisher_addr_attr.add_s(zmq_port.GetProducerEndpoint());
+            }
+        }
+    }
+    else if(port_kind == Kind::Requester){
+        auto server_addr_attr = NodeManager::InsertAttribute(attrs, "server_address", NodeManager::Attribute::STRINGLIST);
+        //Connect all Internal ports
+        for(const auto& port_ref : GetConnectedPorts()){
+            const auto& port = port_ref.get();
+            if(port.GetMiddleware() == ::EnvironmentManager::Port::Middleware::Zmq){
+                const auto& zmq_port = (const Port&)port;
+                server_addr_attr.add_s(zmq_port.GetProducerEndpoint());
             }
         }
     }

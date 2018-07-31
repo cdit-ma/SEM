@@ -21,7 +21,7 @@ class Port : public ::EnvironmentManager::Port{
         Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port);
         ~Port();
     protected:
-        std::string GetAmqpBrokerAddress() const;
+        std::string GetBrokerAddress() const;
         std::string GetTopic() const;
         void FillPortPb(NodeManager::Port& port_pb);
 

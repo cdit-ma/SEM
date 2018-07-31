@@ -2,6 +2,7 @@
 #include "node.h"
 #include "ports/port.h"
 #include "attribute.h"
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 
@@ -24,8 +25,9 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
         }
     }
 
-    for(const auto& attr_pb : component.attributes()){
-        const auto& id = attr_pb.info().id();
+    for(const auto& pair : component.attributes()){
+        const auto& id = pair.first;
+        const auto& attr_pb = pair.second;
         auto attr = std::unique_ptr<EnvironmentManager::Attribute>(new EnvironmentManager::Attribute(attr_pb));
         attributes_.emplace(id, std::move(attr));
     }
@@ -86,8 +88,10 @@ NodeManager::Component* Component::GetUpdate(){
 
         for(const auto& attribute : attributes_){
             auto attribute_proto = attribute.second->GetProto();
+
             if(attribute_proto){
-                component->mutable_attributes()->AddAllocated(attribute_proto);
+                (*component->mutable_attributes())[attribute.first] = *attribute_proto;
+                delete attribute_proto;
             }
         }
         dirty_ = false;
@@ -108,7 +112,7 @@ NodeManager::Component* Component::GetProto(){
     }
 
     for(const auto& attribute : attributes_){
-        component->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+        NodeManager::AddAllocatedAttribute(component->mutable_attributes(), attribute.second->GetProto());
     }
     return component;
 }

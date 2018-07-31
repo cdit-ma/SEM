@@ -53,6 +53,7 @@ class Experiment{
 
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
+        const std::string& GetMasterIp() const;
 
 
         std::string GetOrbEndpoint(const std::string& port_id);

@@ -2,6 +2,7 @@
 #include "environment.h"
 #include "node.h"
 #include "ports/port.h"
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 
@@ -82,7 +83,7 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 
 void Experiment::AddNode(const NodeManager::Node& node){
     if(node.type() == NodeManager::Node::HARDWARE_NODE){
-        auto ip_address = Environment::GetAttributeByName(node.attributes(), "ip_address").s(0);
+        const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
 
         if(!node_map_.count(ip_address)){
             auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
@@ -125,6 +126,10 @@ std::string Experiment::GetMasterPublisherAddress(){
         master_publisher_port_ = environment_.GetPort(master_ip_address_);
     }
     return "tcp://" + master_ip_address_ + ":" + master_publisher_port_;
+}
+
+const std::string& Experiment::GetMasterIp() const{
+    return master_ip_address_;
 }
 
 std::string Experiment::GetMasterRegistrationAddress(){
@@ -196,20 +201,12 @@ NodeManager::ControlMessage* Experiment::GetProto(){
         }
     }
 
-    auto master_ip_pb = control_message->add_attributes();
-    master_ip_pb->mutable_info()->set_name("master_ip_address");
-    master_ip_pb->set_kind(NodeManager::Attribute::STRING);
-    master_ip_pb->add_s(master_ip_address_);
+    auto attrs = control_message->mutable_attributes();
 
-    auto master_pub_pb = control_message->add_attributes();
-    master_pub_pb->mutable_info()->set_name("master_publisher_endpoint");
-    master_pub_pb->set_kind(NodeManager::Attribute::STRING);
-    master_pub_pb->add_s(GetMasterPublisherAddress());
+    NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
+    NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
+    NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
 
-    auto master_reg_pb = control_message->add_attributes();
-    master_reg_pb->mutable_info()->set_name("master_registration_endpoint");
-    master_reg_pb->set_kind(NodeManager::Attribute::STRING);
-    master_reg_pb->add_s(GetMasterRegistrationAddress());
 
     return control_message;
 }

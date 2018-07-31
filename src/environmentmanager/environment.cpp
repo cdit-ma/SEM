@@ -4,6 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
@@ -59,7 +60,7 @@ void Environment::PopulateExperiment(NodeManager::ControlMessage& control_messag
     }
 
     //Set the Master IP
-    const auto& master_ip_address = GetAttributeByName(control_message.attributes(), "master_ip_address").s(0);
+    const auto& master_ip_address = NodeManager::GetAttribute(control_message.attributes(), "master_ip_address").s(0);
     experiment.SetMasterIp(master_ip_address);
 
     //Complete the Configuration
@@ -232,7 +233,7 @@ NodeManager::ControlMessage* Environment::GetProto(const std::string& experiment
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     try{
-        const auto& ip = GetAttributeByName(node.attributes(), "ip_address").s(0);
+        const auto& ip = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
         const auto& node_name = node.info().name();
 
         std::lock_guard<std::mutex> lock(node_mutex_);

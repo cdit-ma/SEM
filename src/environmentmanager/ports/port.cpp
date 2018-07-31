@@ -227,14 +227,6 @@ NodeManager::Port* Port::GetProto(){
     }
 
     FillPortPb(*port);
-    
-    //TODO: STILL DO THIS?!
-    for(const auto& attribute : attributes_){
-        auto attribute_proto = attribute.second->GetProto();
-        if(attribute_proto){
-            port->mutable_attributes()->AddAllocated(attribute_proto);
-        }
-    }
 
     return port;
 }
