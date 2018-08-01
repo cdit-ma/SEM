@@ -10,7 +10,6 @@ namespace EnvironmentManager{
             public:
                 Port(Component& parent, const NodeManager::Port& port);
                 Port(Experiment& parent, const NodeManager::ExternalPort& port);
-                ~Port();
             protected:
                 const std::string& GetOrbEndpoint() const;
                 const std::string& GetNamingServiceEndpoint() const;

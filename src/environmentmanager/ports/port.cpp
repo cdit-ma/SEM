@@ -5,9 +5,10 @@
 #include "../experiment.h"
 #include "../attribute.h"
 
-#include "zmqport.h"
-#include "qpidport.h"
+#include "ddsport.h"
 #include "taoport.h"
+#include "qpidport.h"
+#include "zmqport.h"
 #include "periodicport.h"
 
 using namespace EnvironmentManager;
@@ -23,6 +24,10 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
             }
             case NodeManager::Middleware::TAO:{
                 return std::unique_ptr<Port>(new tao::Port(parent, port));
+            }
+            case NodeManager::Middleware::RTI:
+            case NodeManager::Middleware::OSPL:{
+                return std::unique_ptr<Port>(new dds::Port(parent, port));
             }
             case NodeManager::Middleware::NO_MIDDLEWARE:{
                 if(port.kind() == NodeManager::Port::PERIODIC){
@@ -42,6 +47,29 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
 }
 
 std::unique_ptr<Port> Port::ConstructBlackboxPort(Experiment& parent, const NodeManager::ExternalPort& port){
+    try{
+        switch(port.middleware()){
+            case NodeManager::Middleware::ZMQ:{
+                return std::unique_ptr<Port>(new zmq::Port(parent, port));
+            }
+            case NodeManager::Middleware::QPID:{
+                return std::unique_ptr<Port>(new qpid::Port(parent, port));
+            }
+            case NodeManager::Middleware::TAO:{
+                return std::unique_ptr<Port>(new tao::Port(parent, port));
+            }
+            case NodeManager::Middleware::RTI:
+            case NodeManager::Middleware::OSPL:{
+                return std::unique_ptr<Port>(new dds::Port(parent, port));
+            }
+            default:
+                break;
+        }
+    }
+    catch(const std::exception& ex){
+        std::cerr << " * Failed to construct blackbox port: " << port.info().name() << parent.GetName() << std::endl;
+        std::cerr << ex.what() << std::endl;
+    }
     return nullptr;
 }
 
@@ -49,12 +77,11 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
     experiment_(parent.GetNode().GetExperiment()),
     component_(&parent)
 {
-    
-
     id_ = port.info().id();
     name_ = port.info().name();
     kind_ = TranslateProtoKind(port.kind());
     middleware_ = TranslateProtoMiddleware(port.middleware());
+
     
     //Append to the list of namespaces
     for(const auto& ns : port.info().namespaces()){
@@ -90,39 +117,62 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
 Port::Port(Experiment& parent, const NodeManager::ExternalPort& port):
 experiment_(parent)
 {
+    id_ = port.info().id();
+    name_ = port.info().name();
+    middleware_ = TranslateProtoMiddleware(port.middleware());
 
+    is_blackbox_ = port.is_blackbox();
+    
+    //Append to the list of namespaces
+    for(const auto& ns : port.info().namespaces()){
+        namespaces_.emplace_back(ns);
+    }
+
+    //Use the exact type
+    SetType(port.info().type());
+
+    for(const auto& connected_id : port.connected_ports()){
+        AddExternalConnectedPortId(connected_id);
+        switch(kind_){
+            case EnvironmentManager::Port::Kind::Publisher:
+            case EnvironmentManager::Port::Kind::Replier:{
+                GetExperiment().AddExternalProducerPort(connected_id, id_);
+                break;
+            }
+            case EnvironmentManager::Port::Kind::Subscriber:
+            case EnvironmentManager::Port::Kind::Requester:{
+                GetExperiment().AddExternalConsumerPort(connected_id, id_);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    for(const auto& connected_id : port.connected_ports()){
+        AddInternalConnectedPortId(connected_id);
+    }
 }
 
-
-Port::~Port(){};
-
-
-// Port::~Port(){
-//     //Dont need to handle freeing tao ports, this is done at node level.
-//     if(middleware_ == Middleware::Zmq){
-//         if(kind_ == Kind::Publisher || kind_ == Kind::Replier){
-//             GetEnvironment().FreePort(GetNode().GetIp(), producer_port_);
-//         }
-//     }
-
-//      //Set if we are external
-//     for(const auto& connected_id : connected_external_port_ids_){
-//         switch(kind_){
-//             case EnvironmentManager::Port::Kind::Publisher:
-//             case EnvironmentManager::Port::Kind::Replier:{
-//                 GetExperiment().RemoveExternalProducerPort(connected_id, id_);
-//                 break;
-//             }
-//             case EnvironmentManager::Port::Kind::Subscriber:
-//             case EnvironmentManager::Port::Kind::Requester:{
-//                 GetExperiment().RemoveExternalConsumerPort(connected_id, id_);
-//                 break;
-//             }
-//             default:
-//                 break;
-//         }
-//     }
-// }
+Port::~Port(){
+    //Set if we are external
+    for(const auto& connected_id : connected_external_port_ids_){
+        switch(kind_){
+            case EnvironmentManager::Port::Kind::Publisher:
+            case EnvironmentManager::Port::Kind::Replier:{
+                GetExperiment().RemoveExternalProducerPort(connected_id, id_);
+                break;
+            }
+            case EnvironmentManager::Port::Kind::Subscriber:
+            case EnvironmentManager::Port::Kind::Requester:{
+                GetExperiment().RemoveExternalConsumerPort(connected_id, id_);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
 
 void Port::AddAttribute(const NodeManager::Attribute& attribute){
     attributes_.insert(std::make_pair(attribute.info().id(), 
@@ -292,44 +342,6 @@ NodeManager::Middleware Port::TranslateInternalMiddleware(const Port::Middleware
     return NodeManager::Middleware::NO_MIDDLEWARE;
 }
 
-void Port::FillTopicPb(NodeManager::Port& port_pb){
-    /*
-    auto topic_pb = port_pb.add_attributes();
-    topic_pb->mutable_info()->set_name("topic_name");
-    topic_pb->set_kind(NodeManager::Attribute::STRING);
-    if(GetKind() == Kind::Requester || GetKind() == Kind::Publisher){
-        topic_pb->add_s(GetTopic());
-    }else if(GetKind() == Kind::Subscriber || GetKind() == Kind::Requester){
-        std::set<std::string> topic_names;
-        //Connect all Internal ports
-        for(auto port_id : GetInternalConnectedPortIds()){
-            auto& publisher_port = GetExperiment().GetPort(port_id);
-            const auto& topic_name = publisher_port.GetTopic();
-            topic_names.insert(topic_name);
-        }
-        //Connect all External Ports
-        for(const auto& port_id : GetExternalConnectedPortIds()){
-            //Get the External Port Label from the Internal ID
-            auto external_port_label = GetExperiment().GetExternalPortLabel(port_id);
-            
-            for(auto& publisher_port : GetEnvironment().GetExternalProducerPorts(external_port_label)){
-                const auto& topic_name = publisher_port.get().GetTopic();
-                topic_names.insert(s);
-            }
-        }
-
-        //Use the first topic_name defined
-        for(const auto& topic_name : topic_names){
-            topic_pb->add_s(topic_name);
-            break;
-        }
-
-        if(topic_names.size() > 0){
-            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple topics connected to Port: '" << port.GetId() << "'" << std::endl;
-        }
-    }*/
-}
-
 const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const{
     std::vector<std::reference_wrapper<Port> > ports;
 
@@ -347,5 +359,5 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
 }
 
 bool Port::IsBlackbox() const{
-    return !GotComponent();
+    return is_blackbox_;
 }

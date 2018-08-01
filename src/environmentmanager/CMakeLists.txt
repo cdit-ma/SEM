@@ -21,6 +21,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/ddsport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.cpp
@@ -38,6 +39,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/experiment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/node.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports/ddsport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.h

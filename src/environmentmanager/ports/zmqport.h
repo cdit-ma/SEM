@@ -28,6 +28,8 @@ class Port : public ::EnvironmentManager::Port{
     private:
         std::string ip_;
         std::string producer_port_;
+
+        std::string producer_endpoint_;
 };
 };
 };

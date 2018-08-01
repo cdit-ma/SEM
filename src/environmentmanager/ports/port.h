@@ -70,8 +70,6 @@ class Port{
         void AddExternalConnectedPortId(const std::string& port_id);
 
         void AddAttribute(const NodeManager::Attribute& attribute);
-        
-        
 
         static Kind TranslateProtoKind(const NodeManager::Port::Kind kind);
         static NodeManager::Port::Kind TranslateInternalKind(const Port::Kind middleware);
@@ -79,12 +77,6 @@ class Port{
         static Middleware TranslateProtoMiddleware(const NodeManager::Middleware middleware);
 
         virtual void FillPortPb(NodeManager::Port& port_pb) = 0;
-
-        /*static void FillZmqPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
-        static void FillDdsPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
-        static void FillQpidPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);
-        static void FillTaoPortPb(NodeManager::Port& port_pb, EnvironmentManager::Port& port);*/
-
 
         Experiment& experiment_;
         Component* component_ = 0;
@@ -95,6 +87,7 @@ class Port{
         std::vector<std::string> namespaces_;
         Middleware middleware_;
 
+        bool is_blackbox_ = false;
         bool dirty_ = false;
 
         std::set<std::string> connected_internal_port_ids_;

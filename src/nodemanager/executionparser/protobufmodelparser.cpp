@@ -345,7 +345,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                     const auto& broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker");
 
                     NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
-                    NodeManager::SetStringAttribute(attrs, "broker", broker_addr);
+                    NodeManager::SetStringAttribute(attrs, "broker_address", broker_addr);
                     break;
                 }
                 case NodeManager::ZMQ:{
