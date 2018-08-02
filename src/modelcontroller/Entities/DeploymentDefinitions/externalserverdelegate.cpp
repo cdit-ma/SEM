@@ -116,14 +116,16 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
     if(external){
         if(middleware == "TAO"){
             for(auto node : elements){
-                getFactoryBroker().AttachData(node, "tao_orb_endpoint", QVariant::String, ProtectedState::UNPROTECTED, "corbaloc:iiop://IP:PORT/server_name");
+                getFactoryBroker().AttachData(node, "tao_server_name", QVariant::String, ProtectedState::UNPROTECTED, "CONTEXT/CONTEXT/server_name");
+                getFactoryBroker().AttachData(node, "tao_naming_service_endpoint", QVariant::String, ProtectedState::UNPROTECTED, "corbaloc:iiop:IP:PORT");
             }
-            LinkData(this, "tao_orb_endpoint", in_, "tao_orb_endpoint", true);
+            LinkData(this, "tao_server_name", in_, "tao_server_name", true);
+            LinkData(this, "tao_naming_service_endpoint", in_, "tao_naming_service_endpoint", true);
         }else if(middleware == "QPID"){
             for(auto node : elements){
-                getFactoryBroker().AttachData(node, "qpid_broker", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
+                getFactoryBroker().AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
             }
-            LinkData(this, "qpid_broker", in_, "qpid_broker", true);
+            LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
         }else if(middleware == "ZMQ"){
             for(auto node : elements){
                 getFactoryBroker().AttachData(node, "zmq_server_address", QVariant::String, ProtectedState::UNPROTECTED, "tcp://IP:PORT");
@@ -132,15 +134,16 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
         }
     }else{
         for(auto node : elements){
-            getFactoryBroker().RemoveData(node, "tao_orb_endpoint");
+            getFactoryBroker().RemoveData(node, "tao_server_name");
+            getFactoryBroker().RemoveData(node, "tao_naming_service_endpoint");
             getFactoryBroker().RemoveData(node, "zmq_server_address");
-            getFactoryBroker().RemoveData(node, "qpid_broker");
+            getFactoryBroker().RemoveData(node, "qpid_broker_address");
         }
     }
 
     getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
     getFactoryBroker().AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
 
-    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, true);
-    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, !external);
+    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, true);
+    getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, !external);
 }
