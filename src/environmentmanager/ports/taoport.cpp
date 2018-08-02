@@ -27,8 +27,8 @@ Port::Port(Component& parent, const NodeManager::Port& port):
 
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port):
     ::EnvironmentManager::Port(parent, port){
-    naming_service_endpoint_ = NodeManager::GetAttribute(port.attributes(), "naming_service_endpoint").s(0);
-    server_name_.push_back(NodeManager::GetAttribute(port.attributes(), "tao_server_name").s(0));
+    naming_service_endpoint_ = NodeManager::GetAttribute(port.attributes(), "naming_server_endpoint").s(0);
+    server_name_.push_back(NodeManager::GetAttribute(port.attributes(), "server_name").s(0));
 
 }
 

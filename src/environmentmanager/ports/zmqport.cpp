@@ -17,10 +17,11 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
 
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
     ::EnvironmentManager::Port(parent, port){
-    if(kind_ == EnvironmentManager::Port::Kind::Publisher){
-        producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "zmq_publisher_address").s(0);
-    } else if(kind_ == EnvironmentManager::Port::Kind::Replier){
-        producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "zmq_server_address").s(0);
+    if(GetBlackboxType() == BlackboxType::PubSub){
+        producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "publisher_address").s(0);
+    }
+    else if(GetBlackboxType() == BlackboxType::ReqRep){
+        producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "server_address").s(0);
     }
 }
 
@@ -52,25 +53,27 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
         NodeManager::SetStringAttribute(attrs, "server_address", GetProducerEndpoint());
     }
     else if(port_kind == Kind::Subscriber){
-        auto publisher_addr_attr = NodeManager::InsertAttribute(attrs, "publisher_address", NodeManager::Attribute::STRINGLIST);
+        std::vector<std::string> publisher_endpoints;
         //Connect all Internal ports
         for(const auto& port_ref : GetConnectedPorts()){
             const auto& port = port_ref.get();
             if(port.GetMiddleware() == ::EnvironmentManager::Port::Middleware::Zmq){
                 const auto& zmq_port = (const Port&)port;
-                publisher_addr_attr.add_s(zmq_port.GetProducerEndpoint());
+                publisher_endpoints.push_back(zmq_port.GetProducerEndpoint());
             }
         }
+        NodeManager::SetStringListAttribute(attrs, "publisher_address", publisher_endpoints);
     }
     else if(port_kind == Kind::Requester){
-        auto server_addr_attr = NodeManager::InsertAttribute(attrs, "server_address", NodeManager::Attribute::STRING);
         //Connect all Internal ports
+        std::vector<std::string> replier_endpoints;
         for(const auto& port_ref : GetConnectedPorts()){
             const auto& port = port_ref.get();
             if(port.GetMiddleware() == ::EnvironmentManager::Port::Middleware::Zmq){
                 const auto& zmq_port = (const Port&)port;
-                server_addr_attr.add_s(zmq_port.GetProducerEndpoint());
+                replier_endpoints.push_back(zmq_port.GetProducerEndpoint());
             }
         }
+        NodeManager::SetStringListAttribute(attrs, "server_address", replier_endpoints);
     }
 }

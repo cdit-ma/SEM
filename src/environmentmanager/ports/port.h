@@ -30,6 +30,12 @@ class Port{
             Qpid = 4,
             Tao = 5,
         };
+
+        enum class BlackboxType{
+            NotBlackbox = 0,
+            PubSub = 1,
+            ReqRep = 2,
+        };
         virtual ~Port();
 
         static std::unique_ptr<Port> ConstructPort(Component& parent, const NodeManager::Port& port);
@@ -39,6 +45,7 @@ class Port{
         std::string GetId() const;
         Port::Kind GetKind() const;
         Port::Middleware GetMiddleware() const;
+        Port::BlackboxType GetBlackboxType() const;
 
         const std::vector<std::reference_wrapper<Port> > GetConnectedPorts() const;
         
@@ -86,8 +93,8 @@ class Port{
         std::string type_;
         std::vector<std::string> namespaces_;
         Middleware middleware_;
+        BlackboxType blackbox_type_;
 
-        bool is_blackbox_ = false;
         bool dirty_ = false;
 
         std::set<std::string> connected_internal_port_ids_;

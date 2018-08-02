@@ -81,7 +81,11 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
             }
         }
         else{
-            
+            const auto& internal_id = external_port.info().id();
+            auto port = Port::ConstructBlackboxPort(*this, external_port);
+            if(port){
+                blackbox_port_map_.emplace(internal_id, std::move(port));
+            }
         }
     }
 }
@@ -172,6 +176,11 @@ Port& Experiment::GetPort(const std::string& id){
             return node_pair.second->GetPort(id);
         }
     }
+    for(const auto& port_pair : blackbox_port_map_){
+        if(port_pair.first == id){
+            return *port_pair.second;
+        }
+    }
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
@@ -219,33 +228,54 @@ NodeManager::ControlMessage* Experiment::GetProto(){
 EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){
     if(external_port_map_.count(external_port_internal_id)){
         return *external_port_map_.at(external_port_internal_id);
-    }else{
+    }
+    else{
         throw std::invalid_argument("Experiment: '" + model_name_ + "' doesn't have external port id: '" + external_port_internal_id + "'");
     }
 }
 
 void Experiment::AddExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    auto& external_port = GetExternalPort(external_port_internal_id);
-    environment_.AddExternalConsumerPort(model_name_, external_port.external_label);
-    external_port.consumer_ids.insert(internal_port_id);
+    try{
+        auto& external_port = GetExternalPort(external_port_internal_id);
+        environment_.AddExternalConsumerPort(model_name_, external_port.external_label);
+        external_port.consumer_ids.insert(internal_port_id);
+    }
+    catch(const std::exception& ex){
+        std::cerr << "** Could not add external consumer port to experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
+    }
 }
 
 void Experiment::AddExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    auto& external_port = GetExternalPort(external_port_internal_id);
-    environment_.AddExternalProducerPort(model_name_, external_port.external_label);
-    external_port.producer_ids.insert(internal_port_id);
+    try{
+        auto& external_port = GetExternalPort(external_port_internal_id);
+        environment_.AddExternalProducerPort(model_name_, external_port.external_label);
+        external_port.producer_ids.insert(internal_port_id);
+    }
+    catch(const std::exception& ex){
+        std::cerr << "** Could not add external producer port to experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
+    }
 }
 
 void Experiment::RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    auto& external_port = GetExternalPort(external_port_internal_id);
-    environment_.RemoveExternalConsumerPort(model_name_, external_port.external_label);
-    external_port.consumer_ids.erase(internal_port_id);
+    try{
+        auto& external_port = GetExternalPort(external_port_internal_id);
+        environment_.RemoveExternalConsumerPort(model_name_, external_port.external_label);
+        external_port.consumer_ids.erase(internal_port_id);
+    }
+    catch(const std::exception& ex){
+        std::cerr << "** Could not remove external consumer port from experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
+    }
 }
 
 void Experiment::RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    auto& external_port = GetExternalPort(external_port_internal_id);
-    environment_.RemoveExternalProducerPort(model_name_, external_port.external_label);
-    external_port.producer_ids.erase(internal_port_id);
+    try{
+        auto& external_port = GetExternalPort(external_port_internal_id);
+        environment_.RemoveExternalProducerPort(model_name_, external_port.external_label);
+        external_port.producer_ids.erase(internal_port_id);
+    }
+    catch(const std::exception& ex){
+        std::cerr << "** Could not remove external producer port from experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
+    }
 }
 
 std::vector< std::reference_wrapper<Port> > Experiment::GetExternalProducerPorts(const std::string& external_port_label){

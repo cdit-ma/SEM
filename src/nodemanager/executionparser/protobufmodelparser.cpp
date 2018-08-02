@@ -971,6 +971,12 @@ NodeManager::ExternalPort::Kind ProtobufModelParser::GetExternalPortKind(const s
     } else if(kind == "ServerPortDelegate"){
         return NodeManager::ExternalPort::SERVER;
     }
+    else if(kind == "RequestPortDelegate"){
+        return NodeManager::ExternalPort::SERVER;
+    }
+    else if(kind == "ReplyPortDelegate"){
+        return NodeManager::ExternalPort::SERVER;
+    }
     return NodeManager::ExternalPort::NO_KIND;
 }
 

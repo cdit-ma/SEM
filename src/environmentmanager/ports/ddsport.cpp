@@ -89,7 +89,6 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple domains connected to Port: '" << GetId() << "'" << std::endl;
         }
 
-
         //Set topic name of receiver port based on connected port.
         NodeManager::SetStringAttribute(attrs, "topic_name", *topic_names.begin());
         NodeManager::SetIntegerAttribute(attrs, "domain_id", *domain_ids.begin());

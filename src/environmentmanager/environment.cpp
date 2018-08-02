@@ -221,7 +221,12 @@ void Environment::DeclusterNode(NodeManager::Node& node){
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperiment(experiment_name);
     AddNodeToEnvironment(node);
-    experiment.AddNode(node);
+    try{
+        experiment.AddNode(node);
+    }
+    catch(const std::invalid_argument& ex){
+        std::cerr << ex.what() << std::endl;
+    }
 }
 
 

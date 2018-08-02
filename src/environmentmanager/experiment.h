@@ -107,6 +107,9 @@ class Experiment{
         //map of internal port_id -> external port unique label
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
 
+        //map of internal port_id -> blackbox port
+        std::unordered_map<std::string, std::unique_ptr<Port> > blackbox_port_map_;
+
         //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 

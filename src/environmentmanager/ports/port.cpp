@@ -81,6 +81,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
     name_ = port.info().name();
     kind_ = TranslateProtoKind(port.kind());
     middleware_ = TranslateProtoMiddleware(port.middleware());
+    blackbox_type_ = Port::BlackboxType::NotBlackbox;
 
     
     //Append to the list of namespaces
@@ -121,7 +122,14 @@ experiment_(parent)
     name_ = port.info().name();
     middleware_ = TranslateProtoMiddleware(port.middleware());
 
-    is_blackbox_ = port.is_blackbox();
+    blackbox_type_ = Port::BlackboxType::NotBlackbox;
+
+    if(port.kind() == NodeManager::ExternalPort::SERVER && port.is_blackbox()){
+        blackbox_type_ = Port::BlackboxType::ReqRep;
+    }
+    if(port.kind() == NodeManager::ExternalPort::PUBSUB && port.is_blackbox()){
+        blackbox_type_ = Port::BlackboxType::PubSub;
+    }
     
     //Append to the list of namespaces
     for(const auto& ns : port.info().namespaces()){
@@ -130,24 +138,6 @@ experiment_(parent)
 
     //Use the exact type
     SetType(port.info().type());
-
-    for(const auto& connected_id : port.connected_ports()){
-        AddExternalConnectedPortId(connected_id);
-        switch(kind_){
-            case EnvironmentManager::Port::Kind::Publisher:
-            case EnvironmentManager::Port::Kind::Replier:{
-                GetExperiment().AddExternalProducerPort(connected_id, id_);
-                break;
-            }
-            case EnvironmentManager::Port::Kind::Subscriber:
-            case EnvironmentManager::Port::Kind::Requester:{
-                GetExperiment().AddExternalConsumerPort(connected_id, id_);
-                break;
-            }
-            default:
-                break;
-        }
-    }
 
     for(const auto& connected_id : port.connected_ports()){
         AddInternalConnectedPortId(connected_id);
@@ -191,6 +181,10 @@ Port::Kind Port::GetKind() const{
 }
 Port::Middleware Port::GetMiddleware() const{
     return middleware_;
+}
+
+Port::BlackboxType Port::GetBlackboxType() const{
+    return blackbox_type_;
 }
 
 Component& Port::GetComponent() const{
@@ -359,5 +353,5 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
 }
 
 bool Port::IsBlackbox() const{
-    return is_blackbox_;
+    return (blackbox_type_ == Port::BlackboxType::PubSub) || (blackbox_type_ == Port::BlackboxType::ReqRep);
 }
