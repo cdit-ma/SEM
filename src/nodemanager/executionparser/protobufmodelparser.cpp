@@ -342,7 +342,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                 case NodeManager::QPID:{
                     //QPID Requires Topic and Broker Addresss
                     const auto& topic_name = graphml_parser_->GetDataValue(port_id, "topic_name");
-                    const auto& broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker");
+                    const auto& broker_addr = graphml_parser_->GetDataValue(port_id, "qpid_broker_address");
 
                     NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
                     NodeManager::SetStringAttribute(attrs, "broker_address", broker_addr);

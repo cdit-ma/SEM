@@ -21,6 +21,14 @@ Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::External
     ::EnvironmentManager::Port(parent, port){
     broker_address_ = NodeManager::GetAttribute(port.attributes(), "broker_address").s(0);
     topic_name_ = NodeManager::GetAttribute(port.attributes(), "topic_name").s(0);
+
+    if(broker_address_.empty()){
+        throw std::runtime_error("QPID External Port requires at broker address");
+    }
+
+    if(topic_name_.empty()){
+        throw std::runtime_error("QPID External Port requires a topic name");
+    }
 }
 
 std::string Port::GetTopic() const{

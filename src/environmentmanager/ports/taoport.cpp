@@ -28,8 +28,15 @@ Port::Port(Component& parent, const NodeManager::Port& port):
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port):
     ::EnvironmentManager::Port(parent, port){
     naming_service_endpoint_ = NodeManager::GetAttribute(port.attributes(), "naming_server_endpoint").s(0);
-    server_name_.push_back(NodeManager::GetAttribute(port.attributes(), "server_name").s(0));
+    server_name_ = NodeManager::GetAttribute(port.attributes(), "server_name").s();
 
+    if(server_name_.empty()){
+        throw std::runtime_error("TAO External Port requires at least one server_name");
+    }
+
+    if(naming_service_endpoint_.empty()){
+        throw std::runtime_error("TAO External Port a qualified naming_server_endpoint");
+    }
 }
 
 const std::vector<std::string>& Port::GetServerName() const{

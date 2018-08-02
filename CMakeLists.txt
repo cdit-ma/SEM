@@ -23,7 +23,7 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 
-SET(RE_VERSION "3.0.9")
+SET(RE_VERSION "3.1.1")
 
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
