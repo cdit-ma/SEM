@@ -193,14 +193,10 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
             CORBA::release(timeout_client);
             CORBA::release(client);
             return base_reply;
-        }else{
-            std::cerr << "HELLO" << std::endl;
         }
     }catch (const CORBA::TIMEOUT &timeout) {
-        std::cerr << "HELLO" << std::endl;
         throw std::runtime_error("Timeout");
     }catch(const CORBA::Exception& e){
-        std::cerr << "HELLO" << std::endl;
         throw std::runtime_error("Corba Exception");
     }
 }
@@ -265,10 +261,8 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
             delete request_ptr;
         }
     }catch (const CORBA::TIMEOUT &timeout) {
-        std::cerr << "TIMEOUT" << std::endl;
         throw std::runtime_error("Timeout");
     }catch(const CORBA::Exception& e){
-        std::cerr << "TIMEOUT" << std::endl;
         throw std::runtime_error("Corba Exception");
     }
 }
