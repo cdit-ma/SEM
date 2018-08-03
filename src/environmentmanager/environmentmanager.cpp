@@ -42,7 +42,7 @@ int main(int argc, char **argv){
                             "Endpoint of qpid broker.");
     
     options.add_options()("tao_naming_service_address,t", boost::program_options::value<std::string>(&tao_naming_service_address),
-                            "Endpoint of qpid broker.");
+                            "Endpoint of tao naming service.");
     options.add_options()("help,h", "Display help");
 
     boost::program_options::variables_map vm;
