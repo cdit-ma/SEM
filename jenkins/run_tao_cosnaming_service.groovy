@@ -1,23 +1,22 @@
 //This script requires the following Jenkins plugins:
 
 //Requires following parameters in jenkins job:
-// -String parameter: IP_ADDRESS
+// -String parameter: NODE_NAME
+// -String parameter: TAO_COSNAMING_PORT
 stage("Run TAO cosnaming service"){
-    def node_ = env.NODE;
-    def broker_options = ""
-
-    if(env.BROKER_OPTIONS){
-        broker_options = env.BROKER_OPTIONS
-    }
+    def node_ = env.NODE_NAME;
+    def port = env.TAO_COSNAMING_PORT
 
     node(node_){
-        def qpid_root = env.QPID_ROOT;
+        def ip_address = env.IP_ADDRESS;
+        def tao_root = env.TAO_ROOT;
 
-        if (qpid_root){
+
+        if (tao_root && ip_address && port){
             //TODO: fill the things.
-            sh qpid_root + "/sbin/qpidd " + broker_options
+            sh tao_root + "/orbsvcs/Naming_Service/tao_cosnaming -ORBEndpoint iiop://" + ip_address + ":" + port
         }else{
-            print("Missing Parameters/Environment Variables")
+            error("Missing Parameters/Environment Variables")
         }
     }
 }
