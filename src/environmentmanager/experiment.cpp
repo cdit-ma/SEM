@@ -241,7 +241,6 @@ void Experiment::AddExternalConsumerPort(const std::string& external_port_intern
         external_port.consumer_ids.insert(internal_port_id);
     }
     catch(const std::exception& ex){
-        std::cerr << "** Could not add external consumer port to experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
     }
 }
 
@@ -252,7 +251,6 @@ void Experiment::AddExternalProducerPort(const std::string& external_port_intern
         external_port.producer_ids.insert(internal_port_id);
     }
     catch(const std::exception& ex){
-        std::cerr << "** Could not add external producer port to experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
     }
 }
 
@@ -263,7 +261,6 @@ void Experiment::RemoveExternalConsumerPort(const std::string& external_port_int
         external_port.consumer_ids.erase(internal_port_id);
     }
     catch(const std::exception& ex){
-        std::cerr << "** Could not remove external consumer port from experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
     }
 }
 
@@ -274,7 +271,6 @@ void Experiment::RemoveExternalProducerPort(const std::string& external_port_int
         external_port.producer_ids.erase(internal_port_id);
     }
     catch(const std::exception& ex){
-        std::cerr << "** Could not remove external producer port from experiment: '" << GetName() << "' Exception: " << ex.what() << std::endl;
     }
 }
 
