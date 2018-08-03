@@ -238,7 +238,6 @@ std::string tao::TaoHelper::GetPOAName(const std::vector<std::string>& object_na
             poa_name += "/";
         }
     }
-    std::cerr << poa_name << std::endl;
     return poa_name;
 }
 
