@@ -26,7 +26,7 @@ class ProtobufModelParser{
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
         
-        void FillProtobufAttributes(google::protobuf::RepeatedPtrField<NodeManager::Attribute>* entity, const std::string& parent_id, const std::string& unique_id_suffix);
+        void FillProtobufAttributes(::google::protobuf::Map< ::std::string, ::NodeManager::Attribute >* attrs, const std::string& parent_id, const std::string& unique_id_suffix);
 
         std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind);
 
@@ -34,7 +34,7 @@ class ProtobufModelParser{
 
         //Parse helpers
         std::string GetDeployedID(const std::string& id);
-        void SetAttributePb(NodeManager::Attribute*, const std::string& type, const std::string& value);
+        void SetAttributePb(NodeManager::Attribute&, const std::string& type, const std::string& value);
         std::string GetDefinitionId(const std::string& id);
         std::string GetRecursiveDefinitionId(const std::string& id);
         std::string GetAggregateId(const std::string& id);

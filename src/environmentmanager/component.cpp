@@ -1,7 +1,8 @@
 #include "component.h"
 #include "node.h"
-#include "port.h"
+#include "ports/port.h"
 #include "attribute.h"
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 
@@ -18,13 +19,15 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
 
     for(const auto& port_pb : component.ports()){
         const auto& id = port_pb.info().id();
-        auto port = std::unique_ptr<EnvironmentManager::Port>(new EnvironmentManager::Port(environment_, *this, port_pb));
-        
-        ports_.emplace(id, std::move(port));
+        auto port = Port::ConstructPort(*this, port_pb);
+        if(port){
+            ports_.emplace(id, std::move(port));
+        }
     }
 
-    for(const auto& attr_pb : component.attributes()){
-        const auto& id = attr_pb.info().id();
+    for(const auto& pair : component.attributes()){
+        const auto& id = pair.first;
+        const auto& attr_pb = pair.second;
         auto attr = std::unique_ptr<EnvironmentManager::Attribute>(new EnvironmentManager::Attribute(attr_pb));
         attributes_.emplace(id, std::move(attr));
     }
@@ -40,11 +43,10 @@ Node& Component::GetNode(){
     return node_;
 }
 
-void Component::AddPort(const NodeManager::Port& port){
-    ports_.emplace(port.info().id(), 
-            std::unique_ptr<EnvironmentManager::Port>(
-                new EnvironmentManager::Port(environment_, *this, port)));
+Environment& Component::GetEnvironment() const{
+    return environment_;
 }
+
 
 void Component::SetDirty(){
     node_.SetDirty();
@@ -86,8 +88,10 @@ NodeManager::Component* Component::GetUpdate(){
 
         for(const auto& attribute : attributes_){
             auto attribute_proto = attribute.second->GetProto();
+
             if(attribute_proto){
-                component->mutable_attributes()->AddAllocated(attribute_proto);
+                (*component->mutable_attributes())[attribute.first] = *attribute_proto;
+                delete attribute_proto;
             }
         }
         dirty_ = false;
@@ -108,7 +112,7 @@ NodeManager::Component* Component::GetProto(){
     }
 
     for(const auto& attribute : attributes_){
-        component->mutable_attributes()->AddAllocated(attribute.second->GetProto());
+        NodeManager::AddAllocatedAttribute(component->mutable_attributes(), attribute.second->GetProto());
     }
     return component;
 }

@@ -18,7 +18,10 @@ namespace zmq{
 
 class DeploymentRegister{
     public:
-        DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
+        DeploymentRegister(Execution& exe, const std::string& ip_addr,
+                            const std::string& registration_port,
+                            const std::string& qpid_broker_address,
+                            const std::string& tao_naming_server_address,
                             int portrange_min = 30000, int portrange_max = 40000);
 
         void Start();

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <future>
+#include <vector>
 #include <list>
 
 #include <tao/TimeBaseC.h>
@@ -13,6 +14,7 @@
 #include <tao/PortableServer/PortableServer.h>
 #include <tao/IORTable/IORTable.h>
 #include <tao/Messaging/Messaging.h>
+#include <orbsvcs/CosNamingC.h>
 #include <core/threadmanager.h>
 
 
@@ -30,11 +32,19 @@ namespace tao{
         void deregister_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id);
         CORBA::Object_ptr resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id);
 
+        CORBA::Object_ptr resolve_reference_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, const std::vector<std::string>& object_name);
+        void register_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name);
+        void deregister_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name);
+
         bool register_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name);
         bool deregister_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name);
+
+        std::string GetPOAName(const std::vector<std::string>& object_name);
     private:
+        CosNaming::Name GetCosName(const std::vector<std::string>& object_name);
         static void OrbThread(ThreadManager& thread_manager, CORBA::ORB_ptr orb);
         IORTable::Table_var GetIORTable(CORBA::ORB_ptr orb);
+        CosNaming::NamingContext_ptr GetNamingContext(CORBA::ORB_ptr orb, const std::string& naming_service_name);
         PortableServer::POA_var get_root_poa(CORBA::ORB_ptr orb);
 
         

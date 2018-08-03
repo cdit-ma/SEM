@@ -1,6 +1,7 @@
 #include "taohelper.h"
 #include <iostream>
 #include <tao/IORTable/IORTable.h>
+#include <tao/PortableServer/Servant_Base.h>
 
 
 tao::TaoHelper& tao::TaoHelper::get_tao_helper(){
@@ -145,8 +146,6 @@ PortableServer::POA_var tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
 
 bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name){
     if(orb && poa){
-
-        
         PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId(object_name.c_str());
         
         //Activate the object with the obj_id
@@ -154,7 +153,6 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
 
         //Get the reference to the obj, using the obj_id
         auto obj_ref = poa->id_to_reference(obj_id);
-        //obj_ref->_remove_ref();
 
         //Get the IOR from the object
         CORBA::String_var ior = orb->object_to_string(obj_ref);
@@ -174,15 +172,42 @@ IORTable::Table_var tao::TaoHelper::GetIORTable(CORBA::ORB_ptr orb){
     return IORTable::Table::_narrow(table_object.in());
 }
 
+CosNaming::NamingContext_ptr tao::TaoHelper::GetNamingContext(CORBA::ORB_ptr orb, const std::string& naming_service_name){
+    try{
+        auto naming_object = orb->resolve_initial_references(naming_service_name.c_str());
+        return CosNaming::NamingContext::_narrow(naming_object);
+    }catch(const CORBA::Exception& e){
+        throw std::runtime_error("Cannot Resolve Naming Context: " + naming_service_name);
+    }
+}
+
+CosNaming::Name tao::TaoHelper::GetCosName(const std::vector<std::string>& object_name){
+    auto size = object_name.size();
+    if(size == 0){
+        throw std::runtime_error("Cannot get name for zero length vector");
+    }
+
+    CosNaming::Name name(size);
+    name.length(size);
+    
+    for(int i = 0; i < size ; i++){
+        name[i].id = object_name[i].c_str();
+    }
+
+    return name;
+}
+
 bool tao::TaoHelper::deregister_servant(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::string& object_name){
     if(orb && poa){
         CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId (object_name.c_str());
+        //Get the reference to the obj, using the obj_id
+        auto obj_ref = poa->id_to_reference(obj_id);
+
         poa->deactivate_object(obj_id);
 
         //Remove from the maps
         registered_poas_.erase(poa);
         poa->destroy(1,1);
-        
 
         auto ior_table = GetIORTable(orb);
         if(ior_table){
@@ -197,12 +222,24 @@ void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::s
     if(orb){
         try{
             auto object = orb->string_to_object(corba_str.c_str());
-            //orb->unregister_initial_reference(obj_id.c_str());
             orb->register_initial_reference(obj_id.c_str(), object);
         }catch(const CORBA::Exception& e){
-            std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
+            throw std::runtime_error("Cannot register_initial_reference: " + obj_id + " = " + corba_str);
         }
     }
+}
+
+std::string tao::TaoHelper::GetPOAName(const std::vector<std::string>& object_name){
+    std::string poa_name;
+
+    for(int i = 0; i < object_name.size(); i++){
+        poa_name += object_name[i];
+        if(i != object_name.size() - 1){
+            poa_name += "/";
+        }
+    }
+    std::cerr << poa_name << std::endl;
+    return poa_name;
 }
 
 void tao::TaoHelper::deregister_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id){
@@ -210,14 +247,84 @@ void tao::TaoHelper::deregister_initial_reference(CORBA::ORB_ptr orb, const std:
         try{
             orb->unregister_initial_reference(obj_id.c_str());
         }catch(const CORBA::Exception& e){
-            std::cerr << "Corba Exception:" << e._name() << e._info() << std::endl;
+            throw std::runtime_error("Cannot unregister_initial_reference: " + obj_id);
         }
     }
 }
+
 
 CORBA::Object_ptr tao::TaoHelper::resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id){
     if(orb){
         return orb->resolve_initial_references(obj_id.c_str());
     }
     return 0;
+}
+
+CORBA::Object_ptr tao::TaoHelper::resolve_reference_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, const std::vector<std::string>& object_name){
+    if(orb){
+        auto name_context = GetNamingContext(orb, naming_service_name);
+        if(name_context){
+            auto cos_name = GetCosName(object_name);
+            return name_context->resolve(cos_name);
+        }
+    }
+    return 0;
+}
+
+
+void tao::TaoHelper::register_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name){
+    if(orb && poa){
+        const auto& object_str = object_name.back();
+        PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId(object_str.c_str());
+        
+        //Activate the object with the obj_id
+        poa->activate_object_with_id(obj_id, servant);
+
+        //Get the reference to the obj, using the obj_id
+        auto obj_ref = poa->id_to_reference(obj_id);
+
+        auto top_context = GetNamingContext(orb, naming_service_name);
+        if(top_context){
+            auto name_context = top_context;
+
+            //Construct the contexts if they don't exist
+            for(int i = 0; i < object_name.size() - 1; i++){
+                auto context = name_context->new_context();
+                auto cos_name = GetCosName({object_name[i]});
+                name_context->rebind_context(cos_name, context);
+                name_context = context;
+            }
+
+            //Rebind the Object
+            auto cos_name = GetCosName(object_name);
+            top_context->rebind(cos_name, obj_ref);
+        }
+    }
+}
+void tao::TaoHelper::deregister_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name){
+    if(orb && poa){
+        const auto& object_str = object_name.back();
+
+        
+
+        PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId (object_str.c_str());
+        //Get the reference to the obj, using the obj_id
+        auto obj_ref = poa->id_to_reference(obj_id);
+
+        poa->deactivate_object(obj_id);
+        
+        //Remove from the maps
+        registered_poas_.erase(poa);
+        poa->destroy(1,1);
+        
+        auto name_context = GetNamingContext(orb, naming_service_name);
+
+        if(name_context){
+            auto addr = resolve_reference_via_namingservice(orb, naming_service_name, object_name);
+            if(addr->_is_equivalent(obj_ref)){
+                auto cos_name = GetCosName(object_name);
+                //name_context->unbind(cos_name);
+            }
+        }
+    }
 }

@@ -47,10 +47,13 @@ class Experiment{
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
+        Environment& GetEnvironment() const;
+
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
 
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
+        const std::string& GetMasterIp() const;
 
 
         std::string GetOrbEndpoint(const std::string& port_id);
@@ -103,6 +106,9 @@ class Experiment{
 
         //map of internal port_id -> external port unique label
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_port_map_;
+
+        //map of internal port_id -> blackbox port
+        std::unordered_map<std::string, std::unique_ptr<Port> > blackbox_port_map_;
 
         //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;

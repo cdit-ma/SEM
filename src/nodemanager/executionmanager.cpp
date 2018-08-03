@@ -8,6 +8,7 @@
 #include <re_common/proto/controlmessage/controlmessage.pb.h>
 #include <re_common/zmq/protowriter/protowriter.h>
 #include <re_common/util/execution.hpp>
+#include <re_common/proto/controlmessage/helper.h>
 
 #include <sstream>
 #include <string>
@@ -41,11 +42,9 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     protobuf_model_parser_ = std::unique_ptr<ProtobufModelParser>(new ProtobufModelParser(graphml_path, experiment_id_));
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
-    auto master_ip_address = deployment_message_->add_attributes();
-    auto master_ip_address_info = master_ip_address->mutable_info();
-    master_ip_address_info->set_name("master_ip_address");
-    master_ip_address->set_kind(NodeManager::Attribute::STRING);
-    master_ip_address->add_s(master_ip_addr_);
+    // std::cerr << deployment_message_->DebugString() << std::endl;
+
+    NodeManager::SetStringAttribute(deployment_message_->mutable_attributes(), "master_ip_address", master_ip_addr_);
 
     if(!environment_manager_endpoint.empty()){
         requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id_,
@@ -80,7 +79,7 @@ std::string ExecutionManager::GetMasterRegistrationEndpoint(){
 
 bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
-        EnvironmentManager::Environment* environment = new EnvironmentManager::Environment("");
+        EnvironmentManager::Environment* environment = new EnvironmentManager::Environment("", "", "");
 
         environment->AddDeployment(deployment_message_->experiment_id(), "", EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER);
 
@@ -93,8 +92,8 @@ bool ExecutionManager::PopulateDeployment(){
         std::this_thread::sleep_for(std::chrono::seconds(1));
         NodeManager::ControlMessage response;
         try{
+            //std::cout << deployment_message_->DebugString() << std::endl;
             response = requester_->AddDeployment(*deployment_message_);
-            //std::cout << response.DebugString() << std::endl;
         }catch(const std::runtime_error& ex){
             //If anything goes wrong, we've failed to populate our deployment. Return false
             std::cerr << "Failed to populate deployment." << std::endl;
@@ -104,22 +103,15 @@ bool ExecutionManager::PopulateDeployment(){
         *deployment_message_ = response;
 
         //std::cout << deployment_message_->DebugString() << std::endl;
+        const auto& attrs = deployment_message_->attributes();
+        master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
+        master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
 
-        for(auto& attribute : deployment_message_->attributes()){
-            if(attribute.info().name() == "master_publisher_endpoint"){
-                if(attribute.s_size() > 0){
-                    master_publisher_endpoint_ = attribute.s(0);
-                }else{
-                    throw std::runtime_error("Got no Master Publisher Endpoint");
-                }
-            }
-            else if(attribute.info().name() == "master_registration_endpoint"){
-                if(attribute.s_size() > 0){
-                    master_registration_endpoint_= attribute.s(0);
-                }else{
-                    throw std::runtime_error("Got no Master Registration Endpoint");
-                }
-            }
+        if(master_publisher_endpoint_.empty()){
+            throw std::runtime_error("Got empty Master Publisher Endpoint");
+        }
+        if(master_registration_endpoint_.empty()){
+            throw std::runtime_error("Got empty Master Registration Endpoint");
         }
     }
     return true;
@@ -207,25 +199,6 @@ const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const s
     }
 
     auto slave_name = GetSlaveHostName(slave_ip);
-
-    std::string logger_port;
-    std::string master_publisher_port;
-
-    for(int i = 0; i < node->attributes_size(); i++){
-        auto attribute = node->attributes(i);
-
-        if(attribute.info().name() == "modellogger_port"){
-            if(attribute.s_size() > 0){
-                logger_port= attribute.s(0);
-            }else{
-                throw std::runtime_error("Got no Model Logger Endpoint");
-            }
-        }
-    }
-
-    startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
-    startup.mutable_logger()->set_publisher_address("tcp://" + slave_ip + ":" + logger_port);
-
     startup.set_master_publisher_endpoint(master_publisher_endpoint_);
     startup.set_slave_host_name(slave_name);
     return startup;
@@ -276,22 +249,14 @@ bool ExecutionManager::ConstructControlMessages(){
 }
 
 void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
-
-    std::string ip_address;
-
-    for(int i = 0; i<node.nodes_size(); i++){
-        ConfigureNode(node.nodes(i));
+    for(const auto& n : node.nodes()){
+        ConfigureNode(n);
     }
 
-    for(int i = 0; i < node.attributes_size(); i++){
-        auto attribute = node.attributes(i);
-        if(attribute.info().name() == "ip_address"){
-            if(attribute.s_size() > 0){
-                ip_address = attribute.s(0);
-            }else{
-                throw std::runtime_error("Got no IP Address for Slave Node");
-            }
-        }
+    const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
+
+    if(ip_address.empty()){
+        throw std::runtime_error("Got no IP Address for Slave Node");
     }
 
     std::lock_guard<std::mutex> lock(slave_state_mutex_);

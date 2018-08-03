@@ -100,7 +100,7 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
         if(worker){
             //Handle the attributes
             for(const auto& attr : worker_pb.attributes()){
-                SetAttributeFromPb(*worker, attr);
+                SetAttributeFromPb(*worker, attr.second);
             }
         }else{
             throw std::runtime_error("Component: '" + component->get_name() + "' Doesn't have a Worker: '" + worker_name + "'");
@@ -122,7 +122,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     if(component){
         //Handle the attributes
         for(const auto& attr_pb : component_pb.attributes()){
-            SetAttributeFromPb(*component, attr_pb);
+            SetAttributeFromPb(*component, attr_pb.second);
         }
 
         //Handle the ports
@@ -223,6 +223,7 @@ std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& inf
 
 std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& port_pb){
     if(component){
+        
         const auto& port_info_pb = port_pb.info();
         const auto& middleware = NodeManager::Middleware_Name(port_pb.middleware());
         const auto namespace_str = GetNamespaceString(port_pb.info());
@@ -265,7 +266,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
 
         if(port){
             for(const auto& attr : port_pb.attributes()){
-                SetAttributeFromPb(*port, attr);
+                SetAttributeFromPb(*port, attr.second);
             }
             return port;
         }else{

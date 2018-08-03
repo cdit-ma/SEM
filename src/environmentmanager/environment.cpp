@@ -4,12 +4,15 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
+#include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
-Environment::Environment(const std::string& address, int port_range_min, int port_range_max){
+Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
     address_ = address;
+    qpid_broker_address_ = qpid_broker_address;
+    tao_naming_service_address_ = tao_naming_service_address;
 
     MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
     MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
@@ -57,7 +60,7 @@ void Environment::PopulateExperiment(NodeManager::ControlMessage& control_messag
     }
 
     //Set the Master IP
-    const auto& master_ip_address = GetAttributeByName(control_message.attributes(), "master_ip_address").s(0);
+    const auto& master_ip_address = NodeManager::GetAttribute(control_message.attributes(), "master_ip_address").s(0);
     experiment.SetMasterIp(master_ip_address);
 
     //Complete the Configuration
@@ -218,7 +221,12 @@ void Environment::DeclusterNode(NodeManager::Node& node){
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperiment(experiment_name);
     AddNodeToEnvironment(node);
-    experiment.AddNode(node);
+    try{
+        experiment.AddNode(node);
+    }
+    catch(const std::invalid_argument& ex){
+        std::cerr << ex.what() << std::endl;
+    }
 }
 
 
@@ -230,7 +238,7 @@ NodeManager::ControlMessage* Environment::GetProto(const std::string& experiment
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     try{
-        const auto& ip = GetAttributeByName(node.attributes(), "ip_address").s(0);
+        const auto& ip = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
         const auto& node_name = node.info().name();
 
         std::lock_guard<std::mutex> lock(node_mutex_);
@@ -353,11 +361,12 @@ NodeManager::ControlMessage* Environment::GetLoganUpdate(const std::string& expe
     return GetExperiment(experiment_name).GetUpdate();
 }
 
-
-
-//XXX: Hardcoded as This machine
 std::string Environment::GetAmqpBrokerAddress(){
-    return address_ + ":5672";
+    return qpid_broker_address_;
+}
+
+std::string Environment::GetTaoNamingServiceAddress(){
+    return tao_naming_service_address_;
 }
 
 uint64_t Environment::GetClock(){

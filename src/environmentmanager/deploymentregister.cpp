@@ -3,8 +3,10 @@
 #include <chrono>
 #include <exception>
 #include <zmq.hpp>
+#include <re_common/proto/controlmessage/helper.h>
 
 DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
+                                        const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
                                         int portrange_min, int portrange_max) : execution_(exe){
 
     assert(portrange_min < portrange_max);
@@ -12,7 +14,7 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     registration_port_ = registration_port;
 
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, portrange_min, portrange_max));
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
 
     execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 
@@ -193,15 +195,9 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
 
     auto control_message = message.mutable_control_message();
     auto node = message.mutable_control_message()->mutable_nodes(0);
+    auto attrs = node->mutable_attributes();
 
-    std::string ip_address;
-
-    for(int i = 0; i < node->attributes_size(); i++){
-        auto attribute = node->attributes(i);
-        if(attribute.info().name() == "ip_address"){
-            ip_address = attribute.s(0);
-        }
-    }
+    const auto& ip_address = NodeManager::GetAttribute(*attrs, "ip_address").s(0);
 
     if(ip_address.empty()){
         throw std::runtime_error("No ip_address set in message passed to HandleNodeQuery.");
@@ -212,17 +208,8 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         const auto& master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
         const auto& master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
 
-        auto master_publisher_attribute = node->add_attributes();
-        auto master_publisher_attribute_info = master_publisher_attribute->mutable_info();
-        master_publisher_attribute_info->set_name("master_publisher_endpoint");
-        master_publisher_attribute->set_kind(NodeManager::Attribute::STRING);
-        master_publisher_attribute->add_s(master_publisher_endpoint);
-
-        auto master_registration_attribute = node->add_attributes();
-        auto master_registration_attribute_info = master_registration_attribute->mutable_info();
-        master_registration_attribute_info->set_name("master_registration_endpoint");
-        master_registration_attribute->set_kind(NodeManager::Attribute::STRING);
-        master_registration_attribute->add_s(master_registration_endpoint);
+        NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", master_publisher_endpoint);
+        NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", master_registration_endpoint);
 
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);

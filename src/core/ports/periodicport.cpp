@@ -26,7 +26,7 @@ PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string
     SetMaxQueueSize(1);
 
     //Construct an attribute called frequency
-    frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "Frequency").lock();
+    frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "frequency").lock();
     if(frequency_){
         frequency_->set_Double(0);
     }

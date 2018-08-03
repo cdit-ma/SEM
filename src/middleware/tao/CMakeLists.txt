@@ -31,3 +31,5 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
 target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
 target_link_libraries(${PROJ_NAME} re_core)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/utils")

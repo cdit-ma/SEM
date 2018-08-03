@@ -30,7 +30,7 @@ class Environment{
             LOGAN_SERVER
         };
 
-        Environment(const std::string& address, int portrange_min = 30000, int portrange_max = 50000);
+        Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
 
         void PopulateExperiment(NodeManager::ControlMessage& message);
 
@@ -47,6 +47,9 @@ class Environment{
         bool GotExperiment(const std::string& experiment_name);
         NodeManager::ControlMessage* GetExperimentUpdate(const std::string& experiment_name);
         NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
+
+
+        
         
 
         bool IsExperimentConfigured(const std::string& experiment_name);
@@ -76,6 +79,7 @@ class Environment{
         void RemoveExternalProducerPort(const std::string& experiment_name, const std::string& external_port_label);
 
         std::string GetAmqpBrokerAddress();
+        std::string GetTaoNamingServiceAddress();
 
         static const NodeManager::Attribute& GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name);
 
@@ -106,6 +110,9 @@ class Environment{
         int MANAGER_PORT_RANGE_MAX;
 
         std::string address_;
+
+        std::string qpid_broker_address_;
+        std::string tao_naming_service_address_;
 
         //Returns management port for logan client to communicate with environment_manager
         std::string AddLoganClientServer();
