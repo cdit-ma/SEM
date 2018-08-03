@@ -18,7 +18,11 @@ Port::Port(Component& parent, const NodeManager::Port& port):
     orb_endpoint_ = "iiop://" + node.GetIp() + ":" + orb_port;
 
     //Set the server name
+    const auto& experiment_name = GetExperiment().GetName();
+    const auto& component_name = parent.GetName() + "_" + parent.GetId();
     const auto& server_name = GetName() + "_" + GetId();
+    server_name_.push_back(experiment_name);
+    server_name_.push_back(component_name);
     server_name_.push_back(server_name);
 
     //Set the naming service endpoint
