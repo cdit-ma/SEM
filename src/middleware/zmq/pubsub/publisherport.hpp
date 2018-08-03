@@ -46,7 +46,7 @@ zmq::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> 
     const auto port_id = ::Activatable::get_id();
 
     proxy_endpoint_ = "inproc://" + component_name + "*" + component_id + "*" + port_name + "*" + port_id;
-    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
+    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
 };
 
 template <class BaseType, class ProtoType>
@@ -101,13 +101,13 @@ void zmq::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
         throw std::runtime_error("ZMQ Publisher Port: '" + this->get_name() + "': Failed to bind: '" + proxy_endpoint_);
     }
 
-    for(const auto& endpoint : end_points_->StringList()){
-        try{
-            xpub_socket->bind(endpoint.c_str());
-        }catch(const zmq::error_t& ex){
-            throw std::runtime_error("ZMQ Publisher Port: '" + this->get_name() + "': Failed to bind: '" + endpoint);
-        }
+    const auto& endpoint = end_points_->String().c_str();
+    try{
+        xpub_socket->bind(end_points_->String().c_str());
+    }catch(const zmq::error_t& ex){
+        throw std::runtime_error("ZMQ Publisher Port: '" + this->get_name() + "': Failed to bind: '" + endpoint);
     }
+    
     //
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
