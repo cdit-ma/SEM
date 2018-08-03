@@ -248,9 +248,9 @@ bool ExecutionManager::ConstructControlMessages(){
     return true;
 }
 
-void ExecutionManager::ConfigureNode(const NodeManager::Node& n){
-    for(const auto& node : n.nodes()){
-        ConfigureNode(node);
+void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
+    for(const auto& n : node.nodes()){
+        ConfigureNode(n);
     }
 
     const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
