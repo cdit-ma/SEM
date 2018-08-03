@@ -3,6 +3,8 @@
 //Requires following parameters in jenkins job:
 // -String parameter: IP_ADDRESS
 // -String parameter: PORT
+// -String parameter: TAO_NAMING_SERVICE_ENDPOINT
+// -String parameter: QPID_BROKER_ENDPOINT
 stage("Run Environment Manager"){
     def node_ = env.NODE;
 
