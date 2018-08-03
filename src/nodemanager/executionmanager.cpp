@@ -248,8 +248,8 @@ bool ExecutionManager::ConstructControlMessages(){
     return true;
 }
 
-void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
-    for(const auto& node : node.nodes()){
+void ExecutionManager::ConfigureNode(const NodeManager::Node& n){
+    for(const auto& node : n.nodes()){
         ConfigureNode(node);
     }
 
