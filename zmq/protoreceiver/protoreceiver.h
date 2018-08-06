@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <map>
 #include <future>
+#include <set>
 
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
