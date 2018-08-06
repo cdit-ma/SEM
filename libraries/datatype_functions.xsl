@@ -389,7 +389,6 @@
         
         <xsl:variable name="parent_node" select="graphml:get_parent_node($union_member)" />
         <xsl:variable name="enum_type" select="cdit:get_qualified_union_descrimantor_type($parent_node, $middleware)" />
-        
         <xsl:variable name="case_label">
             <xsl:choose>
                 <xsl:when test="lower-case($middleware) = 'base'">
@@ -401,7 +400,7 @@
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:combine_namespaces(($enum_type, $case_label))" />
+        <xsl:value-of select="concat('::', cpp:combine_namespaces(($enum_type, $case_label)))" />
 
     </xsl:function>
 
@@ -1239,6 +1238,7 @@
             </xsl:choose>
 
             <xsl:if test="$is_union">
+                <xsl:value-of select="concat(o:t($tab + 1), 'break', cpp:nl())" />
                 <xsl:value-of select="cpp:scope_end($tab)" />
             </xsl:if>
         </xsl:for-each>
