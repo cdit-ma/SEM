@@ -687,7 +687,7 @@
             <xsl:sequence select="$port_types" />
 
             <xsl:if test="$middleware = 'tao'">
-                <xsl:sequence select="cdit:get_aggregate_qualified_type($server_interface, $datatype_middleware)" />
+                <xsl:sequence select="cpp:get_client_qualified_type($server_interface, $datatype_middleware)" />
             </xsl:if>
         </xsl:variable>
         
@@ -1259,9 +1259,10 @@
         <xsl:param name="server_interface" />
         <xsl:param name="middleware" />
 
-        <xsl:variable name="label" select="o:title_case(graphml:get_label($server_interface))" />
         <xsl:variable name="namespaces" select="graphml:get_namespace($server_interface)" />
+        <xsl:variable name="label" select="graphml:get_label($server_interface)" />
         <xsl:variable name="function_name" select="graphml:get_data_value($server_interface, 'function_name')" />
+        <xsl:variable name="interface_name" select="graphml:get_data_value($server_interface, 'interface_name')" />
         <xsl:variable name="tab" select="count($namespaces)" />
 
         <!-- Compute the define guard -->
@@ -1297,7 +1298,7 @@
         </xsl:for-each>
         
         <!-- Define the Interface -->
-        <xsl:value-of select="idl:interface($label, $tab)" />
+        <xsl:value-of select="idl:interface($interface_name, $tab)" />
 
         <xsl:variable name="aggregate_instances" select="graphml:get_definitions(($server_requests, $server_replies))" />
 

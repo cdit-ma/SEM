@@ -612,13 +612,28 @@
         <xsl:param name="server_inst" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
+        <xsl:variable name="server_def" select="graphml:get_definition($server_inst)" />
+
         <xsl:variable name="namespace" select="graphml:get_namespace($server_inst)" />
-        <xsl:variable name="label" select="cpp:get_aggregate_type_name($server_inst)" />
+        
+        <xsl:variable name="interface_name" select="graphml:get_data_value($server_def, 'interface_name')" />
 
-
-
-        <xsl:variable name="combined_namespace" select="cpp:combine_namespaces(($namespace, $label))" />
+        <xsl:variable name="combined_namespace" select="cpp:combine_namespaces(($namespace, $interface_name))" />
         <xsl:value-of select="concat('::', 'POA_', $combined_namespace)" />
+    </xsl:function>
+
+    <xsl:function name="cpp:get_client_qualified_type" as="xs:string">
+        <xsl:param name="server_inst" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="server_def" select="graphml:get_definition($server_inst)" />
+
+        <xsl:variable name="namespace" select="graphml:get_namespace($server_inst)" />
+        
+        <xsl:variable name="interface_name" select="graphml:get_data_value($server_def, 'interface_name')" />
+
+        <xsl:variable name="combined_namespace" select="cpp:combine_namespaces(($namespace, $interface_name))" />
+        <xsl:value-of select="concat('::', $combined_namespace)" />
     </xsl:function>
 
         
