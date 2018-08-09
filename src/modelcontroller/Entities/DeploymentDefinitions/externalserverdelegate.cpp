@@ -116,11 +116,13 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
     if(external){
         if(middleware == "TAO"){
             for(auto node : elements){
-                getFactoryBroker().AttachData(node, "tao_server_name", QVariant::String, ProtectedState::UNPROTECTED, "CONTEXT/CONTEXT/server_name");
+                getFactoryBroker().AttachData(node, "tao_server_name", QVariant::String, ProtectedState::UNPROTECTED, "context/server_name");
+                getFactoryBroker().AttachData(node, "tao_server_kind", QVariant::String, ProtectedState::UNPROTECTED, "kind");
                 getFactoryBroker().AttachData(node, "tao_naming_service_endpoint", QVariant::String, ProtectedState::UNPROTECTED, "corbaloc:iiop:IP:PORT");
             }
             LinkData(this, "tao_server_name", in_, "tao_server_name", true);
             LinkData(this, "tao_naming_service_endpoint", in_, "tao_naming_service_endpoint", true);
+            LinkData(this, "tao_server_kind", in_, "tao_server_kind", true);
         }else if(middleware == "QPID"){
             for(auto node : elements){
                 getFactoryBroker().AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
@@ -136,6 +138,7 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
         for(auto node : elements){
             getFactoryBroker().RemoveData(node, "tao_server_name");
             getFactoryBroker().RemoveData(node, "tao_naming_service_endpoint");
+            getFactoryBroker().RemoveData(node, "tao_server_kind");
             getFactoryBroker().RemoveData(node, "zmq_server_address");
             getFactoryBroker().RemoveData(node, "qpid_broker_address");
         }
