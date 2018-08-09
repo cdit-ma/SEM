@@ -43,7 +43,11 @@ def builder_nodes = []
 def nodes = nodesByLabel("re")
 
 //Get one node of each kind
-for(builder_type in ["builder_centos7", "builder_ubuntu18"]){
+for(builder_type in ["builder_centos7",
+                    "builder_ubuntu18",
+                    "builder_rpi2",
+                    "builder_rpi3",
+                    "builder_jetson"]){
     for(node_name in nodesByLabel(builder_type)){
         builder_nodes += node_name
         break;
