@@ -27,6 +27,8 @@ Port::Port(Component& parent, const NodeManager::Port& port):
 
     //Set the naming service endpoint
     naming_service_endpoint_ = "corbaloc:iiop:" + GetEnvironment().GetTaoNamingServiceAddress();
+    server_kind_ = NodeManager::GetAttribute(port.attributes(), "server_kind").s(0);
+
 }
 
 Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port):
@@ -35,6 +37,8 @@ Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::External
     auto& attr = NodeManager::GetAttribute(port.attributes(), "server_name");
     server_name_.insert(server_name_.end(), attr.s().begin(), attr.s().end());
 
+    server_kind_ = NodeManager::GetAttribute(port.attributes(), "server_kind").s(0);
+
     if(server_name_.empty()){
         throw std::runtime_error("TAO External Port requires at least one server_name");
     }
@@ -42,10 +46,18 @@ Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::External
     if(naming_service_endpoint_.empty()){
         throw std::runtime_error("TAO External Port a qualified naming_server_endpoint");
     }
+
+    if(server_kind_.empty()){
+        throw std::runtime_error("TAO External Port requires a server_kind.");
+    }
 }
 
 const std::vector<std::string>& Port::GetServerName() const{
     return server_name_;
+}
+
+const std::string& Port::GetServerKind() const{
+    return server_kind_;
 }
 
 const std::string& Port::GetNamingServiceEndpoint() const{
@@ -98,6 +110,7 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
         }
 
         NodeManager::SetStringListAttribute(attrs, "server_name", server_name);
+        NodeManager::SetStringAttribute(attrs, "server_kind", server_kind_);
         NodeManager::SetStringAttribute(attrs, "naming_service_endpoint", naming_service_endpoint);
     }
     
@@ -108,6 +121,7 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             const auto& tao_port = (const Port&) connected_port;
 
             NodeManager::SetStringListAttribute(attrs, "server_name", tao_port.GetServerName());
+            NodeManager::SetStringAttribute(attrs, "server_kind", tao_port.GetServerKind());
             NodeManager::SetStringAttribute(attrs, "naming_service_endpoint", tao_port.GetNamingServiceEndpoint());
             break;
         }
