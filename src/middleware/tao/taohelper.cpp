@@ -181,7 +181,7 @@ CosNaming::NamingContext_ptr tao::TaoHelper::GetNamingContext(CORBA::ORB_ptr orb
     }
 }
 
-CosNaming::Name tao::TaoHelper::GetCosName(const std::vector<std::string>& object_name){
+CosNaming::Name tao::TaoHelper::GetCosName(const std::vector<std::string>& object_name, const std::string& server_kind){
     auto size = object_name.size();
     if(size == 0){
         throw std::runtime_error("Cannot get name for zero length vector");
@@ -193,6 +193,7 @@ CosNaming::Name tao::TaoHelper::GetCosName(const std::vector<std::string>& objec
     for(int i = 0; i < size ; i++){
         name[i].id = object_name[i].c_str();
     }
+    name[size - 1].kind = server_kind.c_str();
 
     return name;
 }
@@ -259,11 +260,11 @@ CORBA::Object_ptr tao::TaoHelper::resolve_initial_references(CORBA::ORB_ptr orb,
     return 0;
 }
 
-CORBA::Object_ptr tao::TaoHelper::resolve_reference_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, const std::vector<std::string>& object_name){
+CORBA::Object_ptr tao::TaoHelper::resolve_reference_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, const std::vector<std::string>& object_name, const std::string& server_kind){
     if(orb){
         auto name_context = GetNamingContext(orb, naming_service_name);
         if(name_context){
-            auto cos_name = GetCosName(object_name);
+            auto cos_name = GetCosName(object_name, server_kind);
             return name_context->resolve(cos_name);
         }
     }
@@ -271,7 +272,7 @@ CORBA::Object_ptr tao::TaoHelper::resolve_reference_via_namingservice(CORBA::ORB
 }
 
 
-void tao::TaoHelper::register_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name){
+void tao::TaoHelper::register_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name, const std::string& server_kind){
     if(orb && poa){
         const auto& object_str = object_name.back();
         PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId(object_str.c_str());
@@ -289,18 +290,18 @@ void tao::TaoHelper::register_servant_via_namingservice(CORBA::ORB_ptr orb, cons
             //Construct the contexts if they don't exist
             for(int i = 0; i < object_name.size() - 1; i++){
                 auto context = name_context->new_context();
-                auto cos_name = GetCosName({object_name[i]});
+                auto cos_name = GetCosName({object_name[i]}, "");
                 name_context->rebind_context(cos_name, context);
                 name_context = context;
             }
 
             //Rebind the Object
-            auto cos_name = GetCosName(object_name);
+            auto cos_name = GetCosName(object_name, server_kind);
             top_context->rebind(cos_name, obj_ref);
         }
     }
 }
-void tao::TaoHelper::deregister_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name){
+void tao::TaoHelper::deregister_servant_via_namingservice(CORBA::ORB_ptr orb, const std::string& naming_service_name, PortableServer::POA_ptr poa, PortableServer::Servant servant, const std::vector<std::string>& object_name, const std::string& server_kind){
     if(orb && poa){
         const auto& object_str = object_name.back();
 
@@ -318,12 +319,12 @@ void tao::TaoHelper::deregister_servant_via_namingservice(CORBA::ORB_ptr orb, co
         
         auto name_context = GetNamingContext(orb, naming_service_name);
 
-        if(name_context){
+        /*if(name_context){
             auto addr = resolve_reference_via_namingservice(orb, naming_service_name, object_name);
             if(addr->_is_equivalent(obj_ref)){
                 auto cos_name = GetCosName(object_name);
                 //name_context->unbind(cos_name);
             }
-        }
+        }*/
     }
 }

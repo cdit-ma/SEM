@@ -28,7 +28,6 @@ std::string& Attribute::String(){
     return string_;
 }
 
-
 void Attribute::set_Integer(const int val){
     if(type_ == ATTRIBUTE_TYPE::INTEGER){
         integer_ = val;

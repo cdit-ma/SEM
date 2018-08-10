@@ -4,20 +4,28 @@
 
 namespace Base {
 	template <>
-	::Basic* Translator<::Base::Basic, ::Basic>::BaseToMiddleware(const ::Base::Basic& value){
-		auto out = new ::Basic();
+	::Basic3* Translator<::Base::Basic2, ::Basic3>::BaseToMiddleware(const ::Base::Basic2& value){
+		auto out = new ::Basic3();
 		out->str_val = value.str_val.c_str();
-		out->guid_val = value.guid_val.c_str();
-		out->int_val = value.int_val;
+		
+		out->strings.length(value.str_vals.size());
+		int count = 0;
+		for(const auto& str : value.str_vals){
+			out->strings[count++] = str.c_str();
+		}
 		return out;
 	};
 
 	template <>
-	::Base::Basic* Translator<::Base::Basic, ::Basic>::MiddlewareToBase(const ::Basic& value){
-		auto out = new ::Base::Basic();
+	::Base::Basic2* Translator<::Base::Basic2, ::Basic3>::MiddlewareToBase(const ::Basic3& value){
+		auto out = new ::Base::Basic2();
 		out->str_val = value.str_val;
-		out->guid_val = value.guid_val;
-		out->int_val = value.int_val;
+
+		for(int i = 0 ; i < value.strings.length(); i++){
+			const auto& str = value.strings[i];
+			out->str_vals.emplace_back(str);
+		}
+
 		return out;
 	};
 };

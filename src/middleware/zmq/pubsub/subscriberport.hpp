@@ -36,7 +36,7 @@ namespace zmq{
 template <class BaseType, class ProtoType>
 zmq::SubscriberPort<BaseType, ProtoType>::SubscriberPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<void, BaseType>& callback_wrapper):
 ::SubscriberPort<BaseType>(component, port_name, callback_wrapper, "zmq"){
-    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
+    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_addresses").lock();
 };
 
 template <class BaseType, class ProtoType>

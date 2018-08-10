@@ -37,6 +37,7 @@ namespace tao{
             std::shared_ptr<Attribute> orb_endpoint_;
             std::shared_ptr<Attribute> naming_service_endpoint_;
             std::shared_ptr<Attribute> server_name_;
+            std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
             
@@ -63,6 +64,7 @@ namespace tao{
             std::shared_ptr<Attribute> orb_endpoint_;
             std::shared_ptr<Attribute> naming_service_endpoint_;
             std::shared_ptr<Attribute> server_name_;
+            std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
             
@@ -89,6 +91,7 @@ namespace tao{
             std::shared_ptr<Attribute> orb_endpoint_;
             std::shared_ptr<Attribute> naming_service_endpoint_;
             std::shared_ptr<Attribute> server_name_;
+            std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
             
@@ -113,6 +116,7 @@ tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType,
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
+    server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 };
 
 
@@ -150,10 +154,11 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
     
     const auto orb_endpoint = orb_endpoint_->String();
     const auto& server_name = server_name_->StringList();
+    const auto& server_kind = server_kind_->String();
     const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
         
 
@@ -210,6 +215,7 @@ tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientImpl>::
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
+    server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 };
 
 template <class BaseRequestType, class TaoRequestType, class TaoClientImpl>
@@ -225,10 +231,11 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
     
     const auto orb_endpoint = orb_endpoint_->String();
     const auto& server_name = server_name_->StringList();
+    const auto& server_kind = server_kind_->String();
     const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
@@ -276,6 +283,7 @@ tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoClientImpl>::Requ
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
+    server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 };
 
 template <class BaseReplyType, class TaoReplyType, class TaoClientImpl>
@@ -290,10 +298,11 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
     
     const auto orb_endpoint = orb_endpoint_->String();
     const auto& server_name = server_name_->StringList();
+    const auto& server_kind = server_kind_->String();
     const auto& naming_service_name = current_naming_service_name_;
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
-        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name);
+        auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
         auto client = TaoClientImpl::_unchecked_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds

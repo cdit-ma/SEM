@@ -6,7 +6,7 @@
 #include <middleware/tao/requestreply/requesterport.hpp>
 
 const std::string ns_addr("192.168.111.96");
-const std::string ns_port("35701");
+const std::string ns_port("4355");
 
 
 
@@ -25,32 +25,34 @@ bool setup_port(Port& port, const std::string& orb_address, const std::string& n
     auto orb_attr = port.GetAttribute("orb_endpoint").lock();
 	auto ns_attr = port.GetAttribute("naming_service_endpoint").lock();
 	auto sn_attr = port.GetAttribute("server_name").lock();
-	if(orb_attr && ns_attr && sn_attr){
+	auto sk_attr = port.GetAttribute("server_kind").lock();
+	if(orb_attr && ns_attr && sn_attr && sk_attr){
 		orb_attr->set_String(orb_address);
 		ns_attr->set_String(name_server_endpoint);
 		sn_attr->set_StringList(server_name);
-		return true;
-	}
+        sk_attr->set_String("");
+        return true;
+    }
 	return false;
 }
 
-Base::Basic Callback(Base::Basic& message){
+Base::Basic2 Callback(Base::Basic2& message){
     //std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    message.int_val *= 10;
+    //message.int_val *= 10;
     return message;
 };
 
 int main(int, char**){
     //Define the base types
-    using base_request_type = Base::Basic;
-    using base_reply_type = Base::Basic;
+    using base_request_type = Base::Basic2;
+    using base_reply_type = Base::Basic2;
     
     //Define the proto types
-    using mw_reply_type = ::Basic;
-    using mw_request_type = ::Basic;
+    using mw_reply_type = ::Basic2;
+    using mw_request_type = ::Basic2;
 
-    using mw_reply_server_type = ::POA_Basic2Basic;
-    using mw_reply_client_type = ::Basic2Basic;
+    using mw_reply_server_type = ::POA_SequenceTest;
+    using mw_reply_client_type = ::SequenceTest;
 
     const auto test_name = std::string("Hello");
     const auto req_name = "rq_" + test_name;
@@ -67,16 +69,21 @@ int main(int, char**){
     std::cerr << (requester_port->Activate() ? "Activated" : "FAILED") << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     for(int i = 0 ; i < 1000; i++){
-        Base::Basic b;
-        b.int_val = i;
+        Base::Basic2 b;
+        //b.int_val = i;
         b.str_val = std::to_string(i);
+
+        for(int j = 0 ; j < i; j++){
+            b.str_vals.emplace_back("J: " + std::to_string(j));
+        }
         std::cerr << "TX: " << i << std::endl;
         auto c = requester_port->SendRequest(b, std::chrono::milliseconds(250));
         if(c.first){
             std::cerr << "GOT RX: " << i << std::endl;
-            std::cerr << c.second.int_val << std::endl;
+            //std::cerr << c.second.int_val << std::endl;
             std::cerr << c.second.str_val << std::endl;
         }else{
+            std::cerr << "CAN'T SEND" << std::endl;
             i--;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

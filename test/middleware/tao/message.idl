@@ -5,11 +5,15 @@ struct Basic{
     string guid_val;
 };
 
+
 /// A very simple interface
 interface Basic2Void
 {
 	void send(in Basic message);
 };
+
+
+
 
 /// A very simple interface
 interface Void2Basic
@@ -22,4 +26,3 @@ interface Basic2Basic
 {
 	Basic send(in Basic message);
 };
-

@@ -63,7 +63,7 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::Se
         EventIgnored(base_request);
     }
     return {false, BaseReplyType()};
-};
+    };
 
 //Specialised templated RequesterPort for void returning
 template  <class BaseRequestType>
@@ -81,7 +81,7 @@ bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& ba
         EventProcessed(base_request);
         return true;
     }catch(const std::exception& e){
-        //std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
     }
     EventIgnored(base_request);
     return false;

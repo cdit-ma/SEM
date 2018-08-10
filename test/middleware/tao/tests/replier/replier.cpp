@@ -15,7 +15,7 @@ void signal_handler (int signal_value){
 
 
 const std::string ns_addr("192.168.111.96");
-const std::string ns_port("35701");
+const std::string ns_port("4355");
 
 
 
@@ -34,19 +34,22 @@ bool setup_port(Port& port, const std::string& orb_address, const std::string& n
     auto orb_attr = port.GetAttribute("orb_endpoint").lock();
 	auto ns_attr = port.GetAttribute("naming_service_endpoint").lock();
 	auto sn_attr = port.GetAttribute("server_name").lock();
-	if(orb_attr && ns_attr && sn_attr){
+    auto sk_attr = port.GetAttribute("server_kind").lock();
+	if(orb_attr && ns_attr && sn_attr && sk_attr){
 		orb_attr->set_String(orb_address);
 		ns_attr->set_String(name_server_endpoint);
 		sn_attr->set_StringList(server_name);
+        sk_attr->set_String("");
 		return true;
 	}
 	return false;
 };
 
-Base::Basic Callback(Base::Basic& message){
-    std::cerr << "GOT: " << message.int_val << std::endl;
+Base::Basic2 Callback(Base::Basic2& message){
+    std::cerr << "GOT: " << message.str_val << std::endl;
+    std::cerr << "GOT SEQUENCE SIZE: " << message.str_vals.size() << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    message.int_val *= 10;
+    //message.int_val *= 10;
     return message;
 };
 
@@ -56,15 +59,15 @@ int main(int, char**){
     signal(SIGTERM, signal_handler);
 
     //Define the base types
-    using base_request_type = Base::Basic;
-    using base_reply_type = Base::Basic;
+    using base_request_type = Base::Basic2;
+    using base_reply_type = Base::Basic2;
     
     //Define the proto types
-    using mw_reply_type = ::Basic;
-    using mw_request_type = ::Basic;
+    using mw_reply_type = ::Basic3;
+    using mw_request_type = ::Basic3;
 
-    using mw_reply_server_type = ::POA_Basic2Basic;
-    using mw_reply_client_type = ::Basic2Basic;
+    using mw_reply_server_type = ::POA_SequenceTest;
+    using mw_reply_client_type = ::SequenceTest;
 
     const auto test_name = std::string("Hello");
     const auto req_name = "rq_" + test_name;

@@ -45,6 +45,7 @@ namespace tao{
             std::shared_ptr<Attribute> orb_endpoint_;
             std::shared_ptr<Attribute> naming_service_endpoint_;
             std::shared_ptr<Attribute> server_name_;
+            std::shared_ptr<Attribute> server_kind_;
                         
             std::string current_naming_service_name_;
     };
@@ -52,7 +53,7 @@ namespace tao{
     //Generic templated RequesterHandler
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
     struct RequestHandler{
-        static void Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt> > server, const std::string orb_endpoint, const std::string naming_service_endpoint, const std::vector<std::string> server_name);
+        static void Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt> > server, const std::string orb_endpoint, const std::string naming_service_endpoint, const std::vector<std::string> server_name, const std::string server_kind);
     };
 
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
@@ -107,6 +108,7 @@ tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, T
     orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     server_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "server_name").lock();
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
+    server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 
     current_naming_service_name_ = this->get_id() + "_" + this->get_name() + "_NamingService";
 };
@@ -121,7 +123,7 @@ void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
         throw std::runtime_error("tao Replier Port: '" + this->get_name() + "': Has an errant ThreadManager!");
     
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
-    auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server), orb_endpoint_->String(), current_naming_service_name_, server_name_->StringList());
+    auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server), orb_endpoint_->String(), current_naming_service_name_, server_name_->StringList(), server_kind_->String());
     thread_manager_->SetFuture(std::move(future));
     thread_manager_->Configure();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
@@ -182,7 +184,7 @@ std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType,
         
         //Register the nameserver
         helper.register_initial_reference(orb, current_naming_service_name_, naming_service_endpoint_->String());
-        helper.register_servant_via_namingservice(orb, current_naming_service_name_, poa, server.get(), server_name_->StringList());
+        helper.register_servant_via_namingservice(orb, current_naming_service_name_, poa, server.get(), server_name_->StringList(), server_kind_->String());
 
         return std::move(server);
     }
@@ -192,7 +194,7 @@ std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType,
 
 //Generic templated RequestHandler
 template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
-void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>> server, const std::string orb_endpoint, const std::string current_naming_service_name, const std::vector<std::string> server_name){
+void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop(ThreadManager& thread_manager, std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>> server, const std::string orb_endpoint, const std::string current_naming_service_name, const std::vector<std::string> server_name, const std::string server_kind){
     auto& helper = tao::TaoHelper::get_tao_helper();
     auto orb = helper.get_orb(orb_endpoint);
     auto poa_name = helper.GetPOAName(server_name);
@@ -203,7 +205,7 @@ void tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoReques
         thread_manager.Thread_Activated();
         thread_manager.Thread_WaitForTerminate();
     }
-    helper.deregister_servant_via_namingservice(orb, current_naming_service_name, poa, server.get(), server_name);
+    helper.deregister_servant_via_namingservice(orb, current_naming_service_name, poa, server.get(), server_name, server_kind);
     
     server.reset();
     thread_manager.Thread_Terminated();
