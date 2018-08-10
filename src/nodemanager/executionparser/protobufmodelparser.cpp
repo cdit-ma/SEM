@@ -337,6 +337,11 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
         eport_pb->set_middleware(middleware);
 
         auto attrs = eport_pb->mutable_attributes();
+
+        if(middleware == NodeManager::TAO && !is_blackbox){
+            NodeManager::SetStringAttribute(attrs, "server_kind", "medea_model");
+        }
+
         if(is_blackbox){
             switch(middleware){
                 case NodeManager::QPID:{
@@ -373,6 +378,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
                     //TAO Requires tao_orb_endpoint
                     const auto& naming_server_endpoint = graphml_parser_->GetDataValue(port_id, "tao_naming_service_endpoint");
                     auto server_name_list = graphml_parser_->GetDataValue(port_id, "tao_server_name");
+                    auto server_kind = graphml_parser_->GetDataValue(port_id, "tao_server_kind");
 
                     //Split slash seperated server name into seperate strings.
                     std::transform(server_name_list.begin(), server_name_list.end(), server_name_list.begin(), [](char ch) {
@@ -384,6 +390,7 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
 
                     NodeManager::SetStringAttribute(attrs, "naming_server_endpoint", naming_server_endpoint);
                     NodeManager::SetStringListAttribute(attrs, "server_name", split_server_name);
+                    NodeManager::SetStringAttribute(attrs, "server_kind", server_kind);
                     break;
                 }
                 default:
