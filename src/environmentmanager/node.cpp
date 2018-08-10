@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "ports/port.h"
 #include "attribute.h"
+#include "worker.h"
 #include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;

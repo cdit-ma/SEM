@@ -2,6 +2,7 @@
 #include "node.h"
 #include "ports/port.h"
 #include "attribute.h"
+#include "worker.h"
 #include <re_common/proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
@@ -23,6 +24,11 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
         if(port){
             ports_.emplace(id, std::move(port));
         }
+    }
+
+    for(const auto& worker_pb : component.workers()){
+        const auto& id = worker_pb.info().id();
+        workers_.emplace(id, std::unique_ptr<Worker>(new Worker(*this, worker_pb)));
     }
 
     for(const auto& pair : component.attributes()){
@@ -86,6 +92,13 @@ NodeManager::Component* Component::GetUpdate(){
             }
         }
 
+        for(const auto& worker : workers_){
+            auto worker_update = worker.second->GetUpdate();
+            if(worker_update){
+                component->mutable_workers()->AddAllocated(worker_update);
+            }
+        }
+
         for(const auto& attribute : attributes_){
             auto attribute_proto = attribute.second->GetProto();
 
@@ -109,6 +122,10 @@ NodeManager::Component* Component::GetProto(){
 
     for(const auto& port : ports_){
         component->mutable_ports()->AddAllocated(port.second->GetProto());
+    }
+
+    for(const auto& worker : workers_){
+        component->mutable_workers()->AddAllocated(worker.second->GetProto());
     }
 
     for(const auto& attribute : attributes_){

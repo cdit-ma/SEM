@@ -12,6 +12,8 @@ class Environment;
 class Node;
 class Port;
 class Attribute;
+class Worker;
+
 class Component{
     public:
         Component(Environment& environment, Node& parent, const NodeManager::Component& component);
@@ -43,6 +45,7 @@ class Component{
         bool dirty_;
 
         std::unordered_map<std::string, std::unique_ptr<Port> > ports_;
+        std::unordered_map<std::string, std::unique_ptr<Worker> > workers_;
         std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
 
 };
