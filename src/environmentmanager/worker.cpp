@@ -28,25 +28,21 @@ bool Worker::IsDirty(){
 }
 
 NodeManager::Worker* Worker::GetUpdate(){
-    if(dirty_){
-        auto worker = new NodeManager::Worker();
-        worker->mutable_info()->set_name(name_);
-        worker->mutable_info()->set_id(id_);
-        worker->mutable_info()->set_type(type_);
+    auto worker = new NodeManager::Worker();
+    worker->mutable_info()->set_name(name_);
+    worker->mutable_info()->set_id(id_);
+    worker->mutable_info()->set_type(type_);
 
-        for(const auto& attribute : attributes_){
-            auto attribute_proto = attribute.second->GetProto();
+    for(const auto& attribute : attributes_){
+        auto attribute_proto = attribute.second->GetProto();
 
-            if(attribute_proto){
-                (*worker->mutable_attributes())[attribute.first] = *attribute_proto;
-                delete attribute_proto;
-            }
+        if(attribute_proto){
+            (*worker->mutable_attributes())[attribute.first] = *attribute_proto;
+            delete attribute_proto;
         }
-        dirty_ = false;
-        return worker;
     }
-    return nullptr;
-
+    dirty_ = false;
+    return worker;
 }
 NodeManager::Worker* Worker::GetProto(){
     auto worker = new NodeManager::Worker();
