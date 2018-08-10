@@ -62,7 +62,7 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
                 publisher_endpoints.push_back(zmq_port.GetProducerEndpoint());
             }
         }
-        NodeManager::SetStringListAttribute(attrs, "publisher_address", publisher_endpoints);
+        NodeManager::SetStringListAttribute(attrs, "publisher_addresses", publisher_endpoints);
     }
     else if(port_kind == Kind::Requester){
         //Connect all Internal ports
