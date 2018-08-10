@@ -28,6 +28,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
     )
 
 set(HEADERS
@@ -45,6 +46,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/qpidport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
     )
 
 #Pass Version info into cmakevars.h
