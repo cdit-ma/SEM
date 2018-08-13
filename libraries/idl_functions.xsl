@@ -74,7 +74,7 @@
 
     <!--
         Produces a struct definition
-        ie. struct ${label} {
+        ie. typedef ${type} ${label};
     -->
     <xsl:function name="idl:typedef" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -173,6 +173,8 @@
     -->
     <xsl:function name="idl:sequence_type" as="xs:string">
         <xsl:param name="inner_type" as="xs:string" />
+
+        
         
         <xsl:value-of select="concat('sequence', o:wrap_angle($inner_type))" />
     </xsl:function>

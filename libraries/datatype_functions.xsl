@@ -159,7 +159,7 @@
 
                     <xsl:variable name="proto_type">
                         <xsl:choose>
-                            <xsl:when test="$vector_child_kind = 'AggregateInstance'">
+                            <xsl:when test="$vector_child_kind = 'AggregateInstance' or $vector_child_kind = 'EnumInstance'">
                                 <xsl:value-of select="proto:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
                             </xsl:when>
                             <xsl:when test="$vector_child_kind = 'Member'">
@@ -277,6 +277,7 @@
         <xsl:variable name="vector_child" select="graphml:get_vector_child($vector)" />
         <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
         <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
+        <xsl:variable name="is_array" select="graphml:evaluate_data_value_as_boolean($vector, 'is_array')" />
 
         <xsl:variable name="idl_type">
             <xsl:choose>
@@ -292,8 +293,37 @@
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:value-of select="lower-case(o:join_list(('sequence', $vector_child_kind, $idl_type), '_'))" />
+        <xsl:choose>
+            <xsl:when test="$is_array">
+                <xsl:variable name="array_size" select="graphml:get_data_value($vector, 'array_size')" />
+                <xsl:value-of select="lower-case(o:join_list(('array', $vector_child_kind, $idl_type, $array_size), '_'))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="lower-case(o:join_list(('sequence', $vector_child_kind, $idl_type), '_'))" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
+
+    <xsl:function name="cdit:get_vector_inner_idl_type">
+        <xsl:param name="vector" />
+        <xsl:variable name="vector_child" select="graphml:get_vector_child($vector)" />
+        <xsl:variable name="kind" select="graphml:get_kind($vector_child)" />
+        <xsl:variable name="type" select="graphml:get_type($vector_child)" />
+
+        <xsl:choose>
+            <xsl:when test="$kind = 'AggregateInstance'">
+                <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Member'">
+                <xsl:variable name="cpp_type" select="cpp:get_primitive_type($type)" />
+                <xsl:value-of select="idl:get_type($cpp_type)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'EnumInstance'">
+                <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
 
     <xsl:function name="cdit:get_idl_struct">
         <xsl:param name="aggregate" />
@@ -306,31 +336,23 @@
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
             <xsl:variable name="kind" select="graphml:get_kind(.)" />
             <xsl:if test="$kind = 'Vector'">
-                <xsl:variable name="vector_child" select="graphml:get_vector_child(.)" />
-                <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
-                <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
-
-                <xsl:variable name="idl_type">
-                    <xsl:choose>
-                        <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                            <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
-                        </xsl:when>
-                        <xsl:when test="$vector_child_kind = 'Member'">
-                            <xsl:variable name="cpp_type" select="cpp:get_primitive_type($vector_child_type)" />
-                            <xsl:value-of select="idl:get_type($cpp_type)" />
-                        </xsl:when>
-                        <xsl:when test="$vector_child_kind = 'EnumInstance'">
-                            <xsl:value-of select="idl:get_aggregate_qualified_type(graphml:get_definition($vector_child))" />
-                        </xsl:when>
-                    </xsl:choose>
-                </xsl:variable>
-
-                <xsl:variable name="sequence_type" select="cdit:get_idl_type_def_name(.)" />
-                <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('TYPEDEF', $sequence_type), '_'))" />
+                <xsl:variable name="vector_inner_type" select="cdit:get_vector_inner_idl_type(.)" />
+                <xsl:variable name="is_array" select="graphml:evaluate_data_value_as_boolean(., 'is_array')" />
+                
+                <xsl:variable name="sequence_label" select="cdit:get_idl_type_def_name(.)" />
+                <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('TYPEDEF', $sequence_label), '_'))" />
 
                 <!-- Define Guard -->
                 <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
-                    <xsl:value-of select="idl:typedef(idl:sequence_type($idl_type), $sequence_type, $tab)" />
+                <xsl:choose>
+                    <xsl:when test="$is_array">
+                        <xsl:variable name="array_size" select="graphml:get_data_value(., 'array_size')" />
+                        <xsl:value-of select="idl:typedef($vector_inner_type, concat($sequence_label, o:wrap_square($array_size)), $tab)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="idl:typedef(idl:sequence_type($vector_inner_type), $sequence_label, $tab)" />
+                    </xsl:otherwise>
+                </xsl:choose>
                 <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>
@@ -1100,6 +1122,7 @@
         <xsl:variable name="vector_child" select="graphml:get_vector_child($vector)" />
         <xsl:variable name="vector_child_type" select="graphml:get_type($vector_child)" />
         <xsl:variable name="vector_child_kind" select="graphml:get_kind($vector_child)" />
+        <xsl:variable name="is_array" select="graphml:evaluate_data_value_as_boolean($vector, 'is_array')" />
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $vector, $source_middleware)" />
         <xsl:variable name="temp_variable" select="concat(cdit:get_variable_name($vector), '_element')" />
@@ -1125,15 +1148,48 @@
         <xsl:value-of select="cpp:comment(('Vector', o:wrap_square($vector_child_kind), 'Type', o:wrap_angle($vector_child_type)), $tab + 1)" />
         <xsl:value-of select="cpp:comment('Iterate and set all elements in vector', $tab + 1)" />
 
-        <xsl:choose>
-            <xsl:when test="$source_middleware = 'tao'">
-                <xsl:value-of select="cpp:for('auto i = 0', concat('i ' , o:lt(), ' ', $get_func,'.length()'), 'i ++', cpp:scope_start(0), $tab + 1)" />
-                <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, concat($get_func, o:wrap_square('i')), cpp:nl(), $tab + 2)" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
-            </xsl:otherwise>
-        </xsl:choose>
+        
+        <!-- Define an array_size -->
+        
+        <xsl:variable name="size_var" select="'size'" />
+        <xsl:variable name="array_size" select="graphml:get_data_value($vector, 'array_size')" />
+
+        <xsl:variable name="array_size_value">
+            <xsl:choose>
+                <xsl:when test="$is_array and cdit:middleware_requires_idl_file($source_middleware)">
+                    <xsl:value-of select="$array_size" />
+                </xsl:when>
+                <xsl:when test="$source_middleware = 'tao'">
+                    <xsl:value-of select="concat($get_func,'.length()')" />
+                </xsl:when>
+                <xsl:when test="cdit:middleware_uses_protobuf($source_middleware)">
+                    <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($vector, $middleware)" />
+                    <xsl:value-of select="concat('value', cpp:dot(), $variable_syntax, '_size()')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat($get_func,'.size()')" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="cpp:define_variable('size_t', $size_var, $array_size_value, cpp:nl(), $tab + 1)" />
+
+        <!-- Do some tests on size -->
+        <xsl:if test="$is_array and cdit:middleware_requires_idl_file($target_middleware)">
+            <xsl:value-of select="cpp:comment('Translating into a fixed length array, test the bounds', $tab + 1)" />
+            <xsl:value-of select="concat(o:t($tab + 1), 'if(', $size_var, ' ', o:gt(), ' ', $array_size, ')', cpp:scope_start(0))" />
+            <xsl:variable name="id_val" select="o:wrap_dblquote(concat('Error translating Vector ID: ', graphml:get_id($vector), ': Trying to fit ') )" />
+            <xsl:value-of select="cpp:cerr(($id_val, $size_var, o:wrap_dblquote(concat(' elements inside a fixed length array of size ', o:wrap_square($array_size)))), $tab + 2)" />
+            <xsl:value-of select="cpp:define_variable('', $size_var, $array_size, cpp:nl(), $tab + 2)" />
+            <xsl:value-of select="cpp:scope_end($tab + 1)" />
+        </xsl:if>
+
+        <!-- Change the size of the target Vector -->
+
+        <!-- Define for loop -->
+        <xsl:value-of select="cpp:for('auto i = 0', concat('i ' , o:lt(), ' ', $size_var), 'i ++', cpp:scope_start(0), $tab + 1)" />
+        <!-- take a reference copy -->
+        <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, concat($get_func, o:wrap_square('i')), cpp:nl(), $tab + 2)" />
+
         <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
                 <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $source_middleware, $target_middleware, 0)" />

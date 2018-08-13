@@ -252,87 +252,70 @@
 
         <xsl:variable name="vector_child" select="graphml:get_vector_child($node)" />
         <xsl:variable name="vector_kind" select="graphml:get_kind($vector_child)" />
+        <xsl:variable name="vector_type" select="graphml:get_type($vector_child)" />
         
-
-        <xsl:variable name="function_value">
+        <xsl:variable name="set_value">
             <xsl:choose>
-                <xsl:when test="$middleware = 'base' and $vector_kind = 'AggregateInstance'">
+                <xsl:when test="$vector_kind = 'AggregateInstance' and $middleware != 'proto'">
                     <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
-                <xsl:when test="($middleware = 'rti' or $middleware = 'ospl')">
-                    <xsl:variable name="val">
-                        <xsl:if test="$vector_kind = 'AggregateInstance'">
-                            <xsl:value-of select="cpp:dereference_var($value)" />
-                        </xsl:if>
-                        <xsl:if test="$vector_kind != 'AggregateInstance'">
-                            <xsl:value-of select="$value" />
-                        </xsl:if>
-                    </xsl:variable>
-                    <xsl:variable name="vector_size" select="cpp:invoke_function(cpp:invoke_function($obj, $operator, $variable_syntax, '', 0), cpp:dot(), 'size', '', 0)" />
-                    <xsl:value-of select="cpp:join_args((concat($vector_size, ' + 1'), $val))" />
+                <xsl:when test="$vector_kind = 'Member' and $vector_type = 'String' and $middleware = 'tao'">
+                    <xsl:value-of select="concat($value, '.c_str()')" />
                 </xsl:when>
-
-                <xsl:when test="($middleware = 'tao')">
-                    <xsl:variable name="vector_type" select="graphml:get_type($vector_child)" />
-
-                    <xsl:choose>
-                        <xsl:when test="$vector_kind = 'AggregateInstance'">
-                            <xsl:value-of select="cpp:dereference_var($value)" />
-                        </xsl:when>
-                        <xsl:when test="$vector_kind = 'Member' and $vector_type = 'String'">
-                            <xsl:value-of select="concat($value, '.c_str()')" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="$value" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-
                 <xsl:otherwise>
                     <xsl:value-of select="$value" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="function_name">
+
+        <xsl:variable name="vector_ref">
             <xsl:choose>
                 <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
-                    <!-- DDS implementations use set via accessors -->
-                    <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'resize')" />
+                    <xsl:value-of select="cpp:invoke_function($obj, cpp:arrow(), $variable_syntax, '', 0)" />
                 </xsl:when>
                 <xsl:when test="$middleware = 'base'">
-                    <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'emplace_back')" />
+                    <xsl:value-of select="cpp:invoke_function($obj, cpp:arrow(), $variable_syntax, '', 0)" />
                 </xsl:when>
-                <xsl:when test="$middleware = 'proto'">
-                    <xsl:choose>
-                        <xsl:when test="$vector_kind = 'AggregateInstance'">
-                            <!-- Vectors with Objects in it can use a mutable_swap function -->
-                            <xsl:value-of select="concat(cpp:invoke_function('', '', concat('add_', $variable_syntax), '', 0), cpp:arrow(), 'Swap')" />
-                        </xsl:when>
-                        <xsl:when test="$vector_kind = 'Member' or $vector_kind = 'EnumInstance'">
-                            <!-- Protobuf uses swap for Instances -->
-                            <xsl:value-of select="concat('add_', $variable_syntax)" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="cpp:comment_inline(concat('Protobuf doesnt support vector with child kind ', o:wrap_quote($vector_kind)))" />
-                        </xsl:otherwise>
-                    </xsl:choose>
+                <xsl:when test="$middleware = 'tao'">
+                    <xsl:value-of select="concat($obj, $operator, $variable_syntax)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
 
+        
+        <xsl:variable name="requires_idl" select="cdit:middleware_requires_idl_file($middleware)" />
+        <xsl:variable name="is_array" select="graphml:evaluate_data_value_as_boolean($node, 'is_array')" />
         <xsl:choose>
+
+            <xsl:when test="$is_array and $requires_idl">
+                <xsl:value-of select="concat(o:t($tab), $vector_ref, o:wrap_square('i'), ' = ', $set_value, cpp:nl())" />
+            </xsl:when>
             <xsl:when test="$middleware = 'tao'">
                 <xsl:variable name="vector_ref" select="concat($obj, $operator, $variable_syntax)" />
+                <xsl:value-of select="concat(o:t($tab), 'if(i == 0)', cpp:scope_start(0))" />
+                    <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'length', 'size', $tab + 1), cpp:nl())" />
+                <xsl:value-of select="cpp:scope_end($tab)" />
                 
-                <xsl:variable name="size" select="cpp:invoke_function($vector_ref, cpp:dot(), 'length', '', 0)" />
-                <xsl:variable name="new_size" select="'size + 1'" />
-
-                <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), 'size', $size, cpp:nl(), $tab)" />
-                <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'length', $new_size, $tab), cpp:nl())" />
-                <xsl:value-of select="concat(o:t($tab), $vector_ref, o:wrap_square('size'), ' = ', $function_value, cpp:nl())" />
+                <xsl:value-of select="concat(o:t($tab), $vector_ref, o:wrap_square('i'), ' = ', $set_value, cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$requires_idl">
+                <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'resize', cpp:join_args(('i', $set_value)), $tab), cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'resize', $set_value, $tab), cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'proto' and $vector_kind = 'AggregateInstance'">
+                <xsl:variable name="added_element" select="cpp:invoke_function($obj, cpp:arrow(), concat('add_', $variable_syntax), '', 0)" />
+                <!-- Vectors with Objects in it can use a mutable_swap function -->
+                <xsl:value-of select="concat(cpp:invoke_function($added_element, cpp:arrow(), 'Swap', $set_value, $tab), cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="concat(cpp:invoke_function($obj, cpp:arrow(), concat('add_', $variable_syntax), $set_value, $tab), cpp:nl())" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'base'">
+                <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'emplace_back', $set_value, $tab), cpp:nl())" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, $function_value, $tab), cpp:nl())" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
