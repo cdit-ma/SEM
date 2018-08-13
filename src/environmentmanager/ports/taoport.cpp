@@ -27,7 +27,9 @@ Port::Port(Component& parent, const NodeManager::Port& port):
 
     //Set the naming service endpoint
     naming_service_endpoint_ = "corbaloc:iiop:" + GetEnvironment().GetTaoNamingServiceAddress();
-    server_kind_ = NodeManager::GetAttribute(port.attributes(), "server_kind").s(0);
+    if(GetKind() == Kind::Replier){
+        server_kind_ = "medea_port";
+    }    
 
 }
 

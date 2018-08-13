@@ -338,10 +338,6 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
 
         auto attrs = eport_pb->mutable_attributes();
 
-        if(middleware == NodeManager::TAO && !is_blackbox){
-            NodeManager::SetStringAttribute(attrs, "server_kind", "medea_model");
-        }
-
         if(is_blackbox){
             switch(middleware){
                 case NodeManager::QPID:{

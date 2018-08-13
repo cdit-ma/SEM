@@ -6,8 +6,8 @@
 5. ``cd re``
 6. ``mkdir build``
 7. ``cd build``
-8. ``cmake ..``
-9. * **Unix -** ``make``
+8. ``cmake .. -G Ninja``
+9. * **Unix -** ``cmake --build .``
    * **Windows -** ``msbuild logan.sln /p:Configuration=Release``
 
 Executables will be placed in re/bin
