@@ -821,6 +821,49 @@
     </xsl:function>
 
     <!--
+        Produces a try statement
+        ie. try{
+    -->
+    <xsl:function name="cpp:try" as="xs:string">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'try', cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a catch statement
+        ie. catch(${exception}(){
+    -->
+    <xsl:function name="cpp:catch" as="xs:string">
+        <xsl:param name="prefix" as="xs:string" />
+        <xsl:param name="exception" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), $prefix, 'catch', o:wrap_bracket($exception), cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a catch statement
+        ie. catch(${exception}(){
+    -->
+    <xsl:function name="cpp:throw" as="xs:string">
+        <xsl:param name="exception_type" as="xs:string" />
+        <xsl:param name="exception_value" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'throw ', $exception_type, o:wrap_bracket($exception_value), cpp:nl())" />
+    </xsl:function>
+
+    <!--
+        Produces a catch statement
+        ie. catch(const std::exception${exception}(){
+    -->
+    <xsl:function name="cpp:catch_exception" as="xs:string">
+        <xsl:param name="prefix" as="xs:string" />
+        <xsl:param name="exception_type" as="xs:string" />
+        <xsl:param name="exception_name" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cpp:catch($prefix, cpp:const_ref_var_def($exception_type, $exception_name), $tab)" />
+    </xsl:function>
+
+    <!--
         For (A,B,C)
         produces
         namespace A{

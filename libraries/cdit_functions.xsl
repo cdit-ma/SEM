@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v3.0.8'" />
+        <xsl:value-of select="'re_gen-v3.1.2'" />
     </xsl:function>
 
     <!--
@@ -282,7 +282,6 @@
             </xsl:choose>
         </xsl:variable>
 
-        
         <xsl:variable name="requires_idl" select="cdit:middleware_requires_idl_file($middleware)" />
         <xsl:variable name="is_array" select="graphml:evaluate_data_value_as_boolean($node, 'is_array')" />
         <xsl:choose>
@@ -318,6 +317,8 @@
             <xsl:otherwise>
             </xsl:otherwise>
         </xsl:choose>
+
+        
     </xsl:function>
     
 

@@ -1007,10 +1007,31 @@
         
         <xsl:variable name="temp_variable" select="cdit:get_variable_name($member)" />
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $member, $source_middleware)" />
-        <xsl:value-of select="cdit:translate_primitive_member($member, $get_func, $middleware, $source_middleware, $target_middleware, $tab)" />
+        
+        <xsl:value-of select="cpp:try($tab)" />
 
+        <xsl:value-of select="cdit:translate_primitive_member($member, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 1)" />
         <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $member, $target_middleware, $temp_variable)" />
-        <xsl:value-of select="concat(o:t($tab), $set_func, cpp:nl())" />
+        <xsl:value-of select="concat(o:t($tab +1), $set_func, cpp:nl())" />
+        
+        <!-- Catch Translation of Exceptions -->
+        <xsl:value-of select="cpp:catch_exception('}', 'std::exception', 'ex', $tab)" />
+        <!-- Define a string to throw -->
+        <xsl:variable name="str_args" as="xs:string*">
+            <xsl:sequence select="
+            o:wrap_dblquote(concat(
+            'Translating Member ',
+            o:wrap_quote(graphml:get_label($member)),
+            ' ',
+            o:wrap_square(graphml:get_type($member)),
+            ' Failed: '
+            ))" />
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:define_variable('std::string', 'error_str', o:join_list($str_args, ' + '), cpp:nl(), $tab + 1)" />
+        <xsl:value-of select="cpp:throw('std::invalid_argument', 'error_str + ex.what()', $tab + 1)" />
+        <xsl:value-of select="cpp:scope_end($tab)" />
+        <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
     <xsl:function name="cdit:translate_enum_instance">
@@ -1131,20 +1152,20 @@
         <xsl:variable name="set_func">
             <xsl:choose>
                 <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable, $tab + 2)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable, $tab + 3)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'Member'">
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable, $tab + 2)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable, $tab + 3)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'EnumInstance'">
                     <xsl:variable name="variable_name" select="cdit:get_variable_name($vector_child)" />
 
-                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name, $tab + 2)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $variable_name, $tab + 3)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:scope_start($tab)" />
+        <xsl:value-of select="cpp:try($tab)" />
         <xsl:value-of select="cpp:comment(('Vector', o:wrap_square($vector_child_kind), 'Type', o:wrap_angle($vector_child_type)), $tab + 1)" />
         <xsl:value-of select="cpp:comment('Iterate and set all elements in vector', $tab + 1)" />
 
@@ -1171,15 +1192,20 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="cpp:define_variable('size_t', $size_var, $array_size_value, cpp:nl(), $tab + 1)" />
+        <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $size_var, $array_size_value, cpp:nl(), $tab + 1)" />
 
         <!-- Do some tests on size -->
         <xsl:if test="$is_array and cdit:middleware_requires_idl_file($target_middleware)">
             <xsl:value-of select="cpp:comment('Translating into a fixed length array, test the bounds', $tab + 1)" />
             <xsl:value-of select="concat(o:t($tab + 1), 'if(', $size_var, ' ', o:gt(), ' ', $array_size, ')', cpp:scope_start(0))" />
-            <xsl:variable name="id_val" select="o:wrap_dblquote(concat('Error translating Vector ID: ', graphml:get_id($vector), ': Trying to fit ') )" />
-            <xsl:value-of select="cpp:cerr(($id_val, $size_var, o:wrap_dblquote(concat(' elements inside a fixed length array of size ', o:wrap_square($array_size)))), $tab + 2)" />
-            <xsl:value-of select="cpp:define_variable('', $size_var, $array_size, cpp:nl(), $tab + 2)" />
+            <xsl:variable name="str_args" as="xs:string*">
+                <xsl:sequence select="o:wrap_dblquote('Trying to fit: ')" />
+                <xsl:sequence select="'std::to_string(size)'" />
+                <xsl:sequence select="o:wrap_dblquote(concat(
+                ' elements inside a fixed length array of size: ',
+                $array_size))" />
+            </xsl:variable>
+            <xsl:value-of select="cpp:throw('std::invalid_argument', o:join_list($str_args, ' + '), $tab + 2)" />
             <xsl:value-of select="cpp:scope_end($tab + 1)" />
         </xsl:if>
 
@@ -1187,18 +1213,20 @@
 
         <!-- Define for loop -->
         <xsl:value-of select="cpp:for('auto i = 0', concat('i ' , o:lt(), ' ', $size_var), 'i ++', cpp:scope_start(0), $tab + 1)" />
+        <xsl:value-of select="cpp:try($tab + 2)" />
+
         <!-- take a reference copy -->
-        <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, concat($get_func, o:wrap_square('i')), cpp:nl(), $tab + 2)" />
+        <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $temp_variable, concat($get_func, o:wrap_square('i')), cpp:nl(), $tab + 3)" />
 
         <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
                 <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $source_middleware, $target_middleware, 0)" />
 
                 <!-- Vector aggregates require translation -->
-                <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 2)" />
-                <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 2)" />
+                <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 3)" />
+                <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 3)" />
                 <xsl:value-of select="$set_func" />
-                <xsl:value-of select="cpp:delete($temp_element_variable, $tab + 2)" />
+                <xsl:value-of select="cpp:delete($temp_element_variable, $tab + 3)" />
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'Member'">
                 <!-- Member aggregates require translation -->
@@ -1216,13 +1244,48 @@
                     </xsl:choose>
                 </xsl:variable>
 
-                <xsl:value-of select="cdit:cast_enum_instance($vector_child, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 2)" />
+                <xsl:value-of select="cdit:cast_enum_instance($vector_child, $get_func, $middleware, $source_middleware, $target_middleware, $tab + 3)" />
                 <xsl:value-of select="$set_func" />
             </xsl:when>
         </xsl:choose>
 
+        <!-- Catch Translation of Exceptions -->
+        <xsl:value-of select="cpp:catch_exception('}', 'std::exception', 'ex', $tab + 2)" />
+        <!-- Define a string to throw -->
+        <xsl:variable name="str_args" as="xs:string*">
+            <xsl:sequence select="
+            o:wrap_dblquote(concat(
+            'Translating Vector ',
+            $vector_child_kind,
+            ' @ i = '))" />
+            <xsl:sequence select="'std::to_string(i)'" />
+            <xsl:sequence select="o:wrap_dblquote('Failed: ')"/>
+            
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:define_variable('std::string', 'error_str', o:join_list($str_args, ' + '), cpp:nl(), $tab + 3)" />
+        <xsl:value-of select="cpp:throw('std::invalid_argument', 'error_str + ex.what()', $tab + 3)" />
+        <xsl:value-of select="cpp:scope_end($tab + 2)" />
+
         <xsl:value-of select="cpp:scope_end($tab + 1)" />
+
+        <xsl:value-of select="cpp:catch_exception('}', 'std::exception', 'ex', $tab)" />
+        <!-- Catch Exceptions -->
+        <xsl:variable name="str_args" as="xs:string*">
+            <xsl:sequence select="o:wrap_dblquote(concat(
+            'Translating Vector ',
+            o:wrap_quote(graphml:get_label($vector)),
+            ' From: ',
+            o:wrap_square($source_middleware),
+            ' To: ',
+            o:wrap_square($target_middleware),
+            ': Failed: '
+            ))"/>
+        </xsl:variable>
+        <xsl:value-of select="cpp:define_variable('std::string', 'error_str', o:join_list($str_args, ' + '), cpp:nl(), $tab + 1)" />
+        <xsl:value-of select="cpp:throw('std::invalid_argument', 'error_str + ex.what()', $tab + 1)" />
         <xsl:value-of select="cpp:scope_end($tab)" />
+        <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
     <xsl:function name="cdit:get_middleware_union_descriminator_function">
