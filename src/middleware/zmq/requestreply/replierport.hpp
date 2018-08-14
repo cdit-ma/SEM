@@ -148,21 +148,27 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
             while(true){
                 //Wait for next message
                 zmq::message_t zmq_request;
+                zmq::message_t zmq_response;
                 socket->recv(&zmq_request);
 
-                auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(Zmq2String(zmq_request));
-                    
-                //Call through the base ProcessRequest function, which calls any attached callback
-                auto base_reply = port.ProcessRequest(*base_request_ptr);
-                auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
-                delete base_request_ptr;
-                //Send reply
-                socket->
-                send(String2Zmq(reply_str));
+                const auto& request_str = Zmq2String(zmq_request);
+                try{
+                    auto base_request_ptr = std::unique_ptr<BaseRequestType>(::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str));
+                    auto base_reply = port.ProcessRequest(*base_request_ptr);
+
+                    auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                    zmq_response = String2Zmq(reply_str);
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Reply/Request Failed: ";
+                    port.ProcessGeneralException(error_str + ex.what(), true);
+                }
+
+                //Send reply, regardless if we failed
+                socket->send(zmq_response);
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }
@@ -181,18 +187,24 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
             while(true){
                 //Wait for next message
                 zmq::message_t zmq_request;
+                zmq::message_t zmq_response;
                 socket->recv(&zmq_request);
 
-                auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(Zmq2String(zmq_request));
-                    
-                //Call through the base ProcessRequest function, which calls any attached callback
-                port.ProcessRequest(*base_request_ptr);
-                delete base_request_ptr;
-                socket->send(zmq::message_t());
+                const auto& request_str = Zmq2String(zmq_request);
+                try{
+                    auto base_request_ptr = std::unique_ptr<BaseRequestType>(::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str));
+                    port.ProcessRequest(*base_request_ptr);
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Request Failed: ";
+                    port.ProcessGeneralException(error_str + ex.what(), true);
+                }
+
+                //Send reply, regardless if we failed
+                socket->send(zmq_response);
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }
@@ -213,17 +225,24 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Thread
             while(true){
                 //Wait for next message
                 zmq::message_t zmq_request;
+                zmq::message_t zmq_response;
                 socket->recv(&zmq_request);
-
-                //Call through the base ProcessRequest function, which calls any attached callback
-                auto base_reply = port.ProcessRequest();
-                auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                
+                try{
+                    //Call through the base ProcessRequest function, which calls any attached callback
+                    auto base_reply = port.ProcessRequest();
+                    auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                    zmq_response = String2Zmq(reply_str);
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Reply Failed: ";
+                    port.ProcessGeneralException(ex.what(), true);
+                }
                 //Send reply
-                socket->send(String2Zmq(reply_str));
+                socket->send(zmq_response);
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                std::cerr << "zmq::RequestHandler: '" + port.get_name() + "' " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }

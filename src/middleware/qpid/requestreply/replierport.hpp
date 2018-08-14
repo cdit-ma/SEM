@@ -150,20 +150,26 @@ if(success){
 
                     if(address){
                         const auto& request_str = request.getContent();
-                        auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
-                        //Call through the base ProcessRequest function, which calls any attached callback
-                        auto base_reply = port.ProcessRequest(*base_request_ptr);
-                        auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
-                        
-                        auto reply_sender = port_helper.GetSender(address);
-                        reply_sender.send(qpid::messaging::Message(reply_str));
-                        reply_sender.getSession().acknowledge();
+                        try{
+                            auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
+                            //Call through the base ProcessRequest function, which calls any attached callback
+                            auto base_reply = port.ProcessRequest(*base_request_ptr);
+                            auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                            
+                            auto reply_sender = port_helper.GetSender(address);
+                            reply_sender.send(qpid::messaging::Message(reply_str));
+                            reply_sender.getSession().acknowledge();
+                        }catch(const std::exception& ex){
+                            std::string error_str = "Translating Reply/Request Failed: ";
+                            port.ProcessGeneralException(error_str + ex.what(), true);
+                        }
                     }
                 }
             }catch(const qpid::messaging::MessagingException& ex){
+
             }
             catch(const std::exception& ex){
-                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }
@@ -195,19 +201,24 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
 
                     if(address){
                         const auto& request_str = request.getContent();
-                        auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
-                        //Call through the base ProcessRequest function, which calls any attached callback
-                        port.ProcessRequest(*base_request_ptr);
+                        try{
+                            auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
+                            //Call through the base ProcessRequest function, which calls any attached callback
+                            port.ProcessRequest(*base_request_ptr);
                         
-                        auto reply_sender = port_helper.GetSender(address);
-                        reply_sender.send(qpid::messaging::Message());
-                        reply_sender.getSession().acknowledge();
+                            auto reply_sender = port_helper.GetSender(address);
+                            reply_sender.send(qpid::messaging::Message());
+                            reply_sender.getSession().acknowledge();
+                        }catch(const std::exception& ex){
+                            std::string error_str = "Translating Request Failed: ";
+                            port.ProcessGeneralException(ex.what(), true);
+                        }
                     }
                 }
             }catch(const qpid::messaging::MessagingException& ex){
             }
             catch(const std::exception& ex){
-                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }
@@ -239,18 +250,23 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
 
                     if(address){
                         //Call through the base ProcessRequest function, which calls any attached callback
-                        auto base_reply = port.ProcessRequest();
-                        auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
-                        
-                        auto reply_sender = port_helper.GetSender(address);
-                        reply_sender.send(qpid::messaging::Message(reply_str));
-                        reply_sender.getSession().acknowledge();
+                        try{
+                            auto base_reply = port.ProcessRequest();
+                            auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
+                            
+                            auto reply_sender = port_helper.GetSender(address);
+                            reply_sender.send(qpid::messaging::Message(reply_str));
+                            reply_sender.getSession().acknowledge();
+                        }catch(const std::exception& ex){
+                            std::string error_str = "Translating Reply Failed: ";
+                            port.ProcessGeneralException(ex.what(), true);
+                        }
                     }
                 }
             }catch(const qpid::messaging::MessagingException& ex){
             }
             catch(const std::exception& ex){
-                std::cerr << "qpid ReplierPortHandler Port: '" << port.get_name() << "': " << ex.what() << std::endl;
+                port.ProcessGeneralException(ex.what(), true);
             }
         }
     }

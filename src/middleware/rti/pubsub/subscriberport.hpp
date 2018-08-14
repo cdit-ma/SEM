@@ -28,8 +28,6 @@ namespace rti{
         void Loop(ThreadManager& thread_manager, dds::sub::DataReader<RtiType> reader);
         dds::sub::DataReader<RtiType> GetReader();
 
-        ::Base::Translator<BaseType, RtiType> translator;
-
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;
         std::shared_ptr<Attribute> domain_id_;

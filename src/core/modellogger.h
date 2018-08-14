@@ -49,13 +49,13 @@ class ModelLogger{
             IGNORED = 4,
         };
         //Static getter functions
-        static bool setup_model_logger(const std::string& host_name, const std::string& address, const std::string& port, Mode mode);
+        static bool setup_model_logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Mode mode);
         static ModelLogger& get_model_logger();
         static bool shutdown_logger();
         static bool is_logger_setup();
         
     protected:
-        void setup_logger(const std::string& host_name, const std::string& endpoint, Mode mode);
+        void setup_logger(const std::string& experiment_name, const std::string& host_name, const std::string& endpoint, Mode mode);
         bool is_setup();
     public:
         void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
@@ -67,9 +67,12 @@ class ModelLogger{
         void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEvent event);
         void LogComponentEvent(const Port& port, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
+        void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print = false);
+        void LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print = false);
+        
 
         const std::string& get_hostname() const;
-        void set_hostname(const std::string& hostname);
+        const std::string& get_experiment_name() const;
 
     private:
         void PushMessage(google::protobuf::MessageLite* message);
@@ -77,6 +80,7 @@ class ModelLogger{
         bool active_ = true;
 
         std::string host_name_;
+        std::string experiment_name_;
         std::mutex mutex_;
 };
 

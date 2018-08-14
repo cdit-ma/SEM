@@ -20,9 +20,14 @@ namespace ospl{
                     for(const auto& sample : reader.take()){
                         //Translate and callback into the component for each valid message we receive
                         if(sample->info().valid()){
-                            auto message = std::unique_ptr<BaseType>(port_->translator.MiddlewareToBase(sample->data()));
-                            if(message){
-                                port_->EnqueueMessage(std::move(message));
+                            try{
+                                auto message = std::unique_ptr<BaseType>(::Base::Translator<BaseType, OsplType>::MiddlewareToBase(sample->data()));
+                                if(message){
+                                    port_->EnqueueMessage(std::move(message));
+                                }
+                            }catch(const std::exception& ex){
+                                std::string error_str("Failed to translate subscribed message: ");
+                                port_->ProcessGeneralException(error_str + ex.what(), true);
                             }
                         }
                     }

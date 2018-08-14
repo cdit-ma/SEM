@@ -81,13 +81,19 @@ void rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
     if(this->is_running()){
         //std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
-            auto m = translator.BaseToMiddleware(message);
-            if(m){
-                //De-reference the message and send
-                writer_.write(*m);
-                delete m;
-                this->EventProcessed(message);
-                this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+            try{
+                auto m = ::Base::Translator<BaseType, RtiType>::BaseToMiddleware(message);
+                if(m){
+                    //De-reference the message and send
+                    writer_.write(*m);
+                    delete m;
+                    this->EventProcessed(message);
+                    this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+                    return;
+                }
+            }catch(const std::exception& ex){
+                std::string error_str("Failed to Translate Message to publish: ");
+                this->ProcessMessageException(message, error_str + ex.what(), true);
             }
         }
     }

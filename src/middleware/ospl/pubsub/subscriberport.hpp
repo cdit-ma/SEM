@@ -28,7 +28,7 @@ namespace ospl{
         void Loop(ThreadManager& thread_manager, dds::sub::DataReader<OsplType> reader);
         dds::sub::DataReader<OsplType> GetReader();
 
-        ::Base::Translator<BaseType, OsplType> translator;
+        
 
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;

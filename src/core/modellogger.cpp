@@ -10,11 +10,11 @@
 #include "worker.h"
 
 
-bool ModelLogger::setup_model_logger(const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
+bool ModelLogger::setup_model_logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
     auto& s = get_model_logger();
     if(!s.is_setup()){
         auto endpoint = "tcp://" + address + ":" + port;
-        s.setup_logger(host_name, endpoint, mode);
+        s.setup_logger(experiment_name, host_name, endpoint, mode);
         return true;
     }
     return false;
@@ -43,13 +43,9 @@ bool ModelLogger::is_setup(){
     return writer_ != nullptr;
 }
 
-void ModelLogger::set_hostname(const std::string& host_name){
-    this->host_name_ = host_name;
-}
-
-void ModelLogger::setup_logger(const std::string& host_name, const std::string& endpoint, Mode mode){
-    this->host_name_ = host_name;
-    
+void ModelLogger::setup_logger(const std::string& experiment_name, const std::string& host_name, const std::string& endpoint, Mode mode){
+    host_name_ = host_name;
+    experiment_name_ = experiment_name;
     switch(mode){
         case Mode::LIVE:{
             writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
@@ -73,12 +69,19 @@ const std::string& ModelLogger::get_hostname() const{
     return host_name_;
 }
 
+const std::string& ModelLogger::get_experiment_name() const{
+    return experiment_name_;
+}
+
+
+
 std::chrono::milliseconds get_current_time(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 }
 
 
 void fill_info(re_common::Info& info){
+    info.set_experiment_name(ModelLogger::get_model_logger().get_experiment_name());
     info.set_hostname(ModelLogger::get_model_logger().get_hostname());
     info.set_timestamp(get_current_time().count() / 1000.0);
 }
@@ -190,6 +193,42 @@ void ModelLogger::LogComponentEvent(const Port& port, const ::BaseMessage& messa
     PushMessage(e);
 }
 
+void ModelLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print){
+    auto component = port.get_component();
+    int ID = message.get_base_message_id();
+    auto e = new re_common::ComponentUtilizationEvent();
+
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
+    fill_port(*e->mutable_port(), port);
+
+    e->set_port_event_id(ID);
+    e->set_type(re_common::ComponentUtilizationEvent::EXCEPTION);
+    e->set_message(error_string);
+
+    if(print){
+        std::cerr << e->DebugString() << std::endl;
+    }
+    PushMessage(e);
+}
+
+void ModelLogger::LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print){
+    auto component = port.get_component();
+    auto e = new re_common::ComponentUtilizationEvent();
+
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
+    fill_port(*e->mutable_port(), port);
+    
+    e->set_type(re_common::ComponentUtilizationEvent::EXCEPTION);
+    e->set_message(error_string);
+
+    if(print){
+        std::cerr << e->DebugString() << std::endl;
+    }
+    PushMessage(e);
+}
+
 void ModelLogger::LogMessageEvent(const Port& port){
     //Do Nothing
     auto e = new re_common::MessageEvent();
@@ -199,6 +238,7 @@ void ModelLogger::LogMessageEvent(const Port& port){
     fill_info(*e->mutable_info());
     fill_component(*e->mutable_component(), component);
     fill_port(*e->mutable_port(), port);
+
 
     PushMessage(e);
 }

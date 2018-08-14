@@ -183,21 +183,27 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
         if(timeout_client){
-            auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
-            auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
+            try{
+                auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
+                auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
 
-            auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
 
-            //Copy the message into a heap allocated object
-            BaseReplyType base_reply(*base_reply_ptr);
-            
-            //Clean up the memory from the base_reply_ptr
-            delete request_ptr;
-            delete base_reply_ptr;
-            delete reply_ptr;
-            CORBA::release(timeout_client);
-            CORBA::release(client);
-            return base_reply;
+
+                //Copy the message into a heap allocated object
+                BaseReplyType base_reply(*base_reply_ptr);
+                
+                //Clean up the memory from the base_reply_ptr
+                delete request_ptr;
+                delete base_reply_ptr;
+                delete reply_ptr;
+                CORBA::release(timeout_client);
+                CORBA::release(client);
+                return base_reply;
+            }catch(const std::exception& ex){
+                std::string error_str = "Translating Request Failed: ";
+                throw std::runtime_error(error_str + ex.what());
+            }
         }
     }catch (const CORBA::TIMEOUT &timeout) {
         throw std::runtime_error("Timeout");
@@ -259,13 +265,16 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
         if(timeout_client){
-            auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
-            timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
-            
-            //Clean up the memory from the base_reply_ptr
-            CORBA::release(timeout_client);
-            CORBA::release(client);
-            delete request_ptr;
+            try{
+                auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
+                timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
+                delete request_ptr;
+                CORBA::release(timeout_client);
+                CORBA::release(client);
+            }catch(const std::exception& ex){
+                std::string error_str = "Translating Request Failed: ";
+                throw std::runtime_error(error_str + ex.what());
+            }
         }
     }catch (const CORBA::TIMEOUT &timeout) {
         throw std::runtime_error("Timeout");
@@ -326,18 +335,23 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
         if(timeout_client){
-            auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
-            auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
+            try{
+                auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
 
-            //Copy the message into a heap allocated object
-            BaseReplyType base_reply(*base_reply_ptr);
-            
-            //Clean up the memory from the base_reply_ptr
-            delete base_reply_ptr;
-            delete reply_ptr;
-            CORBA::release(timeout_client);
-            CORBA::release(client);
-            return base_reply;
+                //Copy the message into a heap allocated object
+                BaseReplyType base_reply(*base_reply_ptr);
+                
+                //Clean up the memory from the base_reply_ptr
+                delete base_reply_ptr;
+                delete reply_ptr;
+                CORBA::release(timeout_client);
+                CORBA::release(client);
+                return base_reply;
+            }catch(const std::exception& ex){
+                std::string error_str = "Translating Request Failed: ";
+                throw std::runtime_error(error_str + ex.what());
+            }
         }
     }catch (const CORBA::TIMEOUT &timeout) {
         throw std::runtime_error("Timeout");

@@ -165,7 +165,7 @@ void DeploymentManager::ConfigureDeploymentContainers(const NodeManager::Control
             node_container = deployment_containers_[node_name];
         }else{
             //Construct one
-            node_container = std::make_shared<DeploymentContainer>();
+            node_container = std::make_shared<DeploymentContainer>(experiment_id_);
             deployment_containers_[node_name] = node_container;
             node_container->SetLibraryPath(library_path_);
         }

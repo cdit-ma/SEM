@@ -29,7 +29,7 @@ typedef std::function<ComponentCConstructor> ComponentConstructor;
 
 class DeploymentContainer : public Activatable{
     public:
-        DeploymentContainer();
+        DeploymentContainer(const std::string& experiment_name);
         ~DeploymentContainer();
         bool Configure(const NodeManager::Node& message);
         std::weak_ptr<Component> AddComponent(std::unique_ptr<Component> component, const std::string& name);
@@ -93,5 +93,7 @@ class DeploymentContainer : public Activatable{
         std::unordered_map<std::string, std::shared_ptr<LoganClient> > logan_clients_;
 
         DllLoader dll_loader;
+
+        const std::string experiment_name_;
 };
 #endif //CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H

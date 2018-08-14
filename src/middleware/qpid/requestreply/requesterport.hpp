@@ -125,14 +125,20 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
     }
     
     //Translate the base_request object into a string
-    const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
 
-    //Convert request
-    qpid::messaging::Message qpid_request(request_str);
-    qpid_request.setReplyTo(receiver.getAddress());
+    try{
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
 
-    //Send the request
-    sender.send(qpid_request);
+        //Convert request
+        qpid::messaging::Message qpid_request(request_str);
+        qpid_request.setReplyTo(receiver.getAddress());
+
+        //Send the request
+        sender.send(qpid_request);
+    }catch(const std::exception& ex){
+        std::string error_str = "Translating Request Failed: ";
+        throw std::runtime_error(error_str + ex.what());
+    }
 
     //Convert -1 timeout to qpid forever duration
     qpid::messaging::Duration qpid_timeout(timeout.count());
@@ -144,16 +150,21 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType
     qpid::messaging::Message qpid_reply = receiver.fetch(qpid_timeout);
     const auto& reply_str = qpid_reply.getContent();
     
-    auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
+    try{
+        auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
 
-    //Copy the message into a heap allocated object
-    BaseReplyType base_reply(*base_reply_ptr);
-    
-    //Clean up the memory from the base_reply_ptr
-    delete base_reply_ptr;
+        //Copy the message into a heap allocated object
+        BaseReplyType base_reply(*base_reply_ptr);
+        
+        //Clean up the memory from the base_reply_ptr
+        delete base_reply_ptr;
 
-    //Return the reply object
-    return base_reply;
+        //Return the reply object
+        return base_reply;
+    }catch(const std::exception& ex){
+        std::string error_str = "Translating Reply Failed: ";
+        throw std::runtime_error(error_str + ex.what());
+    }
 };
 
 
@@ -200,17 +211,19 @@ void qpid::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::Process
             receiver = port_helper_->GetReceiver(receiver_address);
         }
     }
-    
-    //Translate the base_request object into a string
-    const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+    try{
+        //Translate the base_request object into a string
+        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+        //Convert request
+        qpid::messaging::Message qpid_request(request_str);
+        qpid_request.setReplyTo(receiver.getAddress());
 
-    //Convert request
-    qpid::messaging::Message qpid_request(request_str);
-    qpid_request.setProperty("sender", "POOP");
-    qpid_request.setReplyTo(receiver.getAddress());
-
-    //Send the request
-    sender.send(qpid_request);
+        //Send the request
+        sender.send(qpid_request);
+    }catch(const std::exception& ex){
+        std::string error_str = "Translating Request Failed: ";
+        throw std::runtime_error(error_str + ex.what());
+    }
 
     //Convert -1 timeout to qpid forever duration
     qpid::messaging::Duration qpid_timeout(timeout.count());
@@ -280,16 +293,21 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pr
     qpid::messaging::Message qpid_reply = receiver.fetch(qpid_timeout);
     const auto& reply_str = qpid_reply.getContent();
     
-    auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
+    try{
+        auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
 
-    //Copy the message into a heap allocated object
-    BaseReplyType base_reply(*base_reply_ptr);
-    
-    //Clean up the memory from the base_reply_ptr
-    delete base_reply_ptr;
+        //Copy the message into a heap allocated object
+        BaseReplyType base_reply(*base_reply_ptr);
+        
+        //Clean up the memory from the base_reply_ptr
+        delete base_reply_ptr;
 
-    //Return the reply object
-    return base_reply;
+        //Return the reply object
+        return base_reply;
+    }catch(const std::exception& ex){
+        std::string error_str = "Translating Reply Failed: ";
+        throw std::runtime_error(error_str + ex.what());
+    }
 };
 
 #endif //QPID_PORT_REQUESTER_HPP

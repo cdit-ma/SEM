@@ -20,9 +20,14 @@ namespace rti{
                     for(const auto& sample : reader.take()){
                         //Translate and callback into the component for each valid message we receive
                         if(sample->info().valid()){
-                            auto m = std::unique_ptr<BaseType>(port_->translator.MiddlewareToBase(sample->data()));
-                            if(m){
-                                port_->EnqueueMessage(std::move(m));
+                            try{
+                                auto m = std::unique_ptr<BaseType>(::Base::Translator<BaseType, RtiType>::MiddlewareToBase(sample->data()));
+                                if(m){
+                                    port_->EnqueueMessage(std::move(m));
+                                }
+                            }catch(const std::exception& ex){
+                                std::string error_str("Failed to translate subscribed message: ");
+                                port_->ProcessGeneralException(error_str + ex.what(), true);
                             }
                         }
                     }

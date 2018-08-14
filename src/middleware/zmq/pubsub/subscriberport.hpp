@@ -123,12 +123,17 @@ void zmq::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manage
                 zmq::message_t zmq_request;
                 socket->recv(&zmq_request);
                 const auto& request_str = Zmq2String(zmq_request);
-                auto BaseType_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
-                this->EnqueueMessage(std::move(BaseType_ptr));
+                try{
+                    auto basetype_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
+                    this->EnqueueMessage(std::move(basetype_ptr));
+                }catch(const std::exception& ex){
+                    std::string error_str("Failed to translate subscribed message: ");
+                    this->ProcessGeneralException(error_str + ex.what(), true);
+                }
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                std::cerr << "zmq::SubscriberPort: '" + this->get_name() + "' " << ex.what() << std::endl;
+                this->ProcessGeneralException(ex.what(), true);
             }
         }
     }

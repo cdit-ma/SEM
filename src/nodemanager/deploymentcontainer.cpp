@@ -23,7 +23,9 @@ std::string to_lower(std::string str){
     return str;
 }
 
-DeploymentContainer::DeploymentContainer(){
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name):
+    experiment_name_(experiment_name)    
+{
     set_name("Deployment Container");
 }
 
@@ -68,7 +70,7 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                 }
                 case NodeManager::Logger::MODEL:{
                     if(!ModelLogger::is_logger_setup()){
-                        ModelLogger::setup_model_logger(node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
+                        ModelLogger::setup_model_logger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
                     }
                     break;
                 }

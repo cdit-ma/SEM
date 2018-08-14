@@ -21,8 +21,6 @@ namespace qpid{
             void HandlePassivate();
             void HandleTerminate();
         private:
-            ::Proto::Translator<BaseType, ProtoType> translator;
-
             std::mutex mutex_;
             std::unique_ptr<PortHelper> port_helper_;
             
@@ -80,10 +78,17 @@ void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
         }
 
         if(sender){
-            const auto& str = translator.BaseToString(message);
-            sender.send(qpid::messaging::Message(str));
-            this->EventProcessed(message);
-            this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+             try{
+                //Translate the base_request object into a string
+                const auto& request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
+                sender.send(qpid::messaging::Message(request_str));
+                this->EventProcessed(message);
+                this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+                return;
+            }catch(const std::exception& ex){
+                std::string error_str("Failed to Translate Message to publish: ");
+                this->ProcessMessageException(message, error_str + ex.what(), true);
+            }
         }
     }
     this->EventIgnored(message);

@@ -59,7 +59,9 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::Se
         auto base_reply = std::move(ProcessRequest(base_request, timeout));
         EventProcessed(base_request);
         return {true, std::move(base_reply)};
-    }catch(const std::exception& e){
+    }catch(const std::exception& ex){
+        std::string error_str = "Failed to Send Request: ";
+        ProcessMessageException(base_request, error_str + ex.what(), true);
         EventIgnored(base_request);
     }
     return {false, BaseReplyType()};
@@ -80,8 +82,10 @@ bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& ba
         ProcessRequest(base_request, timeout);
         EventProcessed(base_request);
         return true;
-    }catch(const std::exception& e){
-        std::cerr << e.what() << std::endl;
+    }catch(const std::exception& ex){
+        std::string error_str = "Failed to Send Request: ";
+        ProcessMessageException(base_request, error_str + ex.what(), true);
+        EventIgnored(base_request);
     }
     EventIgnored(base_request);
     return false;
@@ -105,8 +109,9 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, void>::SendRequest(s
         auto base_reply = std::move(ProcessRequest(timeout));
         EventProcessed(m);
         return {true, std::move(base_reply)};
-    }catch(const std::exception& e){
-        //std::cerr << e.what() << std::endl;
+    }catch(const std::exception& ex){
+        std::string error_str = "Sending Request Failed: ";
+        ProcessGeneralException(error_str + ex.what(), true);
     }
     return {false, BaseReplyType()};
 };

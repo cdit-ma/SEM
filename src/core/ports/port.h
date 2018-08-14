@@ -40,6 +40,8 @@ class Port : public Activatable
         void EventRecieved(const BaseMessage& message);
         void EventProcessed(const BaseMessage& message);
         void EventIgnored(const BaseMessage& message);
+        void ProcessMessageException(const BaseMessage& message, const std::string& error_str, bool print);
+        void ProcessGeneralException(const std::string& error_str, bool print);
         
         void SetKind(const Port::Kind& port_kind);
     private:

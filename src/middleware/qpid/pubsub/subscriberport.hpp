@@ -127,13 +127,17 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
                 while(true){
                     auto request = receiver.fetch();
                     const auto& request_str = request.getContent();
-                    auto base_request_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
-                    if(base_request_ptr){
-                        this->EnqueueMessage(std::move(base_request_ptr));
+
+                    try{
+                        auto basetype_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
+                        this->EnqueueMessage(std::move(basetype_ptr));
+                    }catch(const std::exception& ex){
+                        std::string error_str("Failed to translate subscribed message: ");;
+                        this->ProcessGeneralException(error_str + ex.what(), true);
                     }
                 }
             }catch(const std::exception& ex){
-            
+                this->ProcessGeneralException(ex.what(), true);
             }
         }
     }

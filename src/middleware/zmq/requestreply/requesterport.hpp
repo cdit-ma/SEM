@@ -113,11 +113,16 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
     try{
         auto socket = helper_.GetReqSocket(server_address_->String());
         
-        //Translate the base_request object into a string
-        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+        try{
+            //Translate the base_request object into a string
+            const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+            //Send the request
+            socket->send(String2Zmq(request_str));
+        }catch(const std::exception& ex){
+            std::string error_str = "Translating Request Failed: ";
+            throw std::runtime_error(error_str + ex.what());
+        }
         
-        //Send the request
-        socket->send(String2Zmq(request_str));
 
         //Poll for our timeout
         auto events =  get_zmq_helper().poll_socket(*socket, timeout);
@@ -132,18 +137,23 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
         
         //Get the string
         const auto reply_str = Zmq2String(zmq_reply);
-        
-        //Translate the string to a base_reply_ptr
-        auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
-        
-        //Copy the message into a heap allocated object
-        BaseReplyType base_reply(*base_reply_ptr);
-        
-        //Clean up the memory from the base_reply_ptr
-        delete base_reply_ptr;
 
-        //Return the reply object
-        return base_reply;
+        try{
+            //Translate the string to a base_reply_ptr
+            auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
+            
+            //Copy the message into a heap allocated object
+            BaseReplyType base_reply(*base_reply_ptr);
+            
+            //Clean up the memory from the base_reply_ptr
+            delete base_reply_ptr;
+
+            //Return the reply object
+            return base_reply;
+        }catch(const std::exception& ex){
+            std::string error_str = "Translating Reply Failed: ";
+            throw std::runtime_error(error_str + ex.what());
+        }
     }catch(const zmq::error_t& ex){
         throw std::runtime_error("zmq::RequesterPort: '" + this->get_name() + "' " + ex.what());
     }
@@ -160,12 +170,16 @@ template <class BaseRequestType, class ProtoRequestType>
 void zmq::RequesterPort<void, void, BaseRequestType, ProtoRequestType>::ProcessRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout){
     try{
         auto socket = helper_.GetReqSocket(server_address_->String());
-        
-        //Translate the base_request object into a string
-        const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
-        
-        //Send the request
-        socket->send(String2Zmq(request_str));
+
+        try{
+            //Translate the base_request object into a string
+            const auto request_str = ::Proto::Translator<BaseRequestType, ProtoRequestType>::BaseToString(base_request);
+            //Send the request
+            socket->send(String2Zmq(request_str));
+        }catch(const std::exception& ex){
+            std::string error_str = "Translating Request Failed: ";
+            throw std::runtime_error(error_str + ex.what());
+        }
 
         //Poll for our timeout
         auto events = get_zmq_helper().poll_socket(*socket, timeout);
@@ -212,18 +226,23 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pro
 
         //Get the string
         const auto reply_str = Zmq2String(zmq_reply);
-        
-        //Translate the string to a base_reply_ptr
-        auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
-        
-        //Copy the message into a heap allocated object
-        BaseReplyType base_reply(*base_reply_ptr);
-        
-        //Clean up the memory from the base_reply_ptr
-        delete base_reply_ptr;
 
-        //Return the reply object
-        return base_reply;
+        try{
+            //Translate the string to a base_reply_ptr
+            auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
+            
+            //Copy the message into a heap allocated object
+            BaseReplyType base_reply(*base_reply_ptr);
+            
+            //Clean up the memory from the base_reply_ptr
+            delete base_reply_ptr;
+
+            //Return the reply object
+            return base_reply;
+        }catch(const std::exception& ex){
+            std::string error_str = "Translating Reply Failed: ";
+                throw std::runtime_error(error_str + ex.what());
+        }
     }catch(const zmq::error_t& ex){
         throw std::runtime_error("zmq::RequesterPort: '" + this->get_name() + "' " + ex.what());
     }

@@ -153,13 +153,17 @@ void zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
 
     if(this->is_running()){
         auto& socket = GetSocket();
-        
-        //Translate the base_request object into a string
-        const auto request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
-        socket.send(String2Zmq(request_str));
-        this->EventProcessed(message);
-        this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
-        return;
+        try{
+            //Translate the base_request object into a string
+            const auto& request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
+            socket.send(String2Zmq(request_str));
+            this->EventProcessed(message);
+            this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+            return;
+        }catch(const std::exception& ex){
+            std::string error_str("Failed to Translate Message to publish: ");
+            this->ProcessMessageException(message, error_str + ex.what(), true);
+        }
     }
     this->EventIgnored(message);
 };

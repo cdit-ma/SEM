@@ -24,6 +24,7 @@ namespace tao{
     class ReplierPort : public ::ReplierPort<BaseReplyType, BaseRequestType>{
         //The Request Handle needs to be able to modify and change state of the Port
         friend class RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>;
+        friend class TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>;
         public:
             ReplierPort(std::weak_ptr<Component> component, const std::string& port_name, const CallbackWrapper<BaseReplyType, BaseRequestType>& callback_wrapper);
             ~ReplierPort(){this->Terminate();};
@@ -63,9 +64,16 @@ namespace tao{
                 eventport(port){
             };
             TaoReplyType* TAO_SERVER_FUNC_NAME(const TaoRequestType& message){
-                auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
-                auto base_result = eventport.ProcessRequest(*base_message);
-                return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                try{
+                    auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
+                    auto base_result = eventport.ProcessRequest(*base_message);
+                    return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Reply/Request Failed: ";
+                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    throw std::runtime_error(error_str + ex.what());
+                    //port.ProcessGeneralException(error_str + ex.what(), true);
+                }
             };
         private:
             tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& eventport;
@@ -78,9 +86,16 @@ namespace tao{
                 eventport(port){
             };
             void TAO_SERVER_FUNC_NAME(const TaoRequestType& message){
-                auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
-                eventport.ProcessRequest(*base_message);
-                delete base_message;
+                try{
+                    auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
+                    eventport.ProcessRequest(*base_message);
+                    delete base_message;
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Request Failed: ";
+                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    throw std::runtime_error(error_str + ex.what());
+                    //port.ProcessGeneralException(error_str + ex.what(), true);
+                }
             };
         private:
             tao::ReplierPort<void, void, BaseRequestType, TaoRequestType, TaoServerInt>& eventport;
@@ -93,8 +108,15 @@ namespace tao{
                 eventport(port){
             };
             TaoReplyType* TAO_SERVER_FUNC_NAME(){
-                auto base_result = eventport.ProcessRequest();
-                return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                try{
+                    auto base_result = eventport.ProcessRequest();
+                    return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                }catch(const std::exception& ex){
+                    std::string error_str = "Translating Reply Failed: ";
+                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    throw std::runtime_error(error_str + ex.what());
+                    //port.ProcessGeneralException(error_str + ex.what(), true);
+                }
             };
         private:
             tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& eventport;
