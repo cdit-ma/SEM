@@ -26,6 +26,7 @@ message Info{
     string hostname = 1;
     double timestamp = 2;
     uint64 uid = 3;
+    string experiment_name = 4;
 }
 
 
@@ -114,6 +115,8 @@ message ComponentUtilizationEvent{
         STARTED_FUNC = 2;
         FINISHED_FUNC = 3;
         IGNORED = 4;
+        EXCEPTION = 5;
     }
     Type type = 5;
+    string message = 6;
 }
