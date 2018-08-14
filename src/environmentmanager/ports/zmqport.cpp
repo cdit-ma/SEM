@@ -72,9 +72,9 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             const auto& port = port_ref.get();
             if(port.GetMiddleware() == ::EnvironmentManager::Port::Middleware::Zmq){
                 const auto& zmq_port = (const Port&)port;
-                replier_endpoints.push_back(zmq_port.GetProducerEndpoint());
+                NodeManager::SetStringAttribute(attrs, "server_address",(zmq_port.GetProducerEndpoint()));
+                break;
             }
         }
-        NodeManager::SetStringListAttribute(attrs, "server_address", replier_endpoints);
     }
 }
