@@ -41,7 +41,7 @@ if(NOT IS_SUB_REPO)
 	endif()
 endif()
 
-SET(LOGAN_VERSION "3.0.8")
+SET(LOGAN_VERSION "3.1.2")
 
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)

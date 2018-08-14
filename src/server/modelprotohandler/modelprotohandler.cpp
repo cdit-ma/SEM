@@ -41,6 +41,10 @@ const std::string LOGAN_HOSTNAME = "hostname";
 const std::string LOGAN_MESSAGE_ID = "id";
 const std::string LOGAN_NAME = "name";
 const std::string LOGAN_TYPE = "type";
+const std::string LOGAN_MESSAGE = "message";
+const std::string LOGAN_EXPERIMENT_NAME = "experiment_name";
+
+
 
 //Common column names
 const std::string LOGAN_COMPONENT_NAME = "component_name";
@@ -89,6 +93,7 @@ void ModelProtoHandler::CreatePortEventTable(){
 
     Table* t = new Table(database_, LOGAN_LIFECYCLE_PORT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
@@ -112,6 +117,7 @@ void ModelProtoHandler::CreateComponentEventTable(){
 
     Table* t = new Table(database_, LOGAN_LIFECYCLE_COMPONENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
@@ -130,11 +136,12 @@ void ModelProtoHandler::CreateUserEventTable(){
 
     Table* t = new Table(database_, LOGAN_EVENT_USER_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn("message", LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
 
@@ -150,6 +157,7 @@ void ModelProtoHandler::CreateWorkloadEventTable(){
     Table* t = new Table(database_, LOGAN_EVENT_WORKLOAD_TABLE);
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     //Component specific
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
@@ -177,6 +185,7 @@ void ModelProtoHandler::CreateComponentUtilizationTable(){
     Table* t = new Table(database_, LOGAN_EVENT_COMPONENT_TABLE);
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     //Component specific
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
@@ -191,6 +200,7 @@ void ModelProtoHandler::CreateComponentUtilizationTable(){
 
     t->AddColumn("port_event_id", LOGAN_INT);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
     t->Finalize();
     table_map_[LOGAN_EVENT_COMPONENT_TABLE] = t;
     database_.QueueSqlStatement(t->get_table_construct_statement());
@@ -201,6 +211,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& e
         //Process port event
         auto ins = table_map_[LOGAN_LIFECYCLE_PORT_TABLE]->get_insert_statement();
         ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
+        ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
         ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
         ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
         ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
@@ -218,6 +229,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& e
     else if(event.has_component()){
             auto ins = table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE]->get_insert_statement();
             ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
+            ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
             ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
             ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
             ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
@@ -234,7 +246,7 @@ void ModelProtoHandler::ProcessUserEvent(const re_common::UserEvent& event){
     ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
     ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
     ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
-    ins.BindString("message", event.message());
+    ins.BindString(LOGAN_MESSAGE, event.message());
     ins.BindString(LOGAN_TYPE, re_common::UserEvent::Type_Name(event.type()));
     database_.QueueSqlStatement(ins.get_statement());
 }
@@ -243,6 +255,7 @@ void ModelProtoHandler::ProcessWorkloadEvent(const re_common::WorkloadEvent& eve
     auto ins = table_map_[LOGAN_EVENT_WORKLOAD_TABLE]->get_insert_statement();
     //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
+    ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
     ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
 
     //Component
@@ -265,6 +278,7 @@ void ModelProtoHandler::ProcessComponentUtilizationEvent(const re_common::Compon
 
     //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
+    ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
     ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
 
     //Component
@@ -281,6 +295,7 @@ void ModelProtoHandler::ProcessComponentUtilizationEvent(const re_common::Compon
 
     ins.BindInt("port_event_id", event.port_event_id());
     ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event.type()));
+    ins.BindString(LOGAN_MESSAGE, event.message());
 
     database_.QueueSqlStatement(ins.get_statement());
 }
