@@ -1685,7 +1685,17 @@
                 <xsl:when test="$kind = 'VariableParameter'">
                     <xsl:value-of select="graphml:get_label($node)" />
                 </xsl:when>
-                <xsl:when test="$kind = 'AttributeImpl'">
+                <xsl:when test="$kind = 'AttributeInstance'">
+                    <xsl:variable name="parent_ref" select="cdit:get_variable_name($parent_node)" />
+                    <xsl:variable name="attribute_name" select="o:wrap_dblquote(graphml:get_label($node))" />
+                    <xsl:variable name="get_attr" select="cpp:invoke_function($parent_ref, cpp:arrow(), 'GetAttribute', $attribute_name, 0)"/>
+                
+                    <xsl:variable name="get_attr_sp" select="cpp:invoke_function($get_attr, cpp:dot(), 'lock', '', 0)"/>
+                    <xsl:variable name="get_attr_ref" select="cpp:invoke_function($get_attr_sp, cpp:arrow(), cdit:get_attribute_ref_function($node), '', 0)"/>
+
+                    <xsl:value-of select="$get_attr_ref" />
+                </xsl:when>
+                <xsl:when test="$kind = 'AttributeImpl' or $kind = 'Attribute'">
                     <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
                 </xsl:when>
                 <xsl:when test="$kind= 'AggregateInstance' or
