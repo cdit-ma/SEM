@@ -90,7 +90,30 @@
         <xsl:value-of select="cdit:output_test('All Aggregate entities require a direct child to be set as key', $results, 1)" />
     </xsl:function>
 
-    
+        
+
+    <!-- Tests all that the entity kinds provided contain at least 1 child -->
+    <xsl:function name="cdit:test_valid_server_interfaces">
+        <xsl:param name="server_interfaces" as="element(gml:node)*"/>
+        
+
+        <xsl:variable name="results">  
+            <xsl:for-each select="$server_interfaces">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
+
+                <xsl:variable name="function_name" select="graphml:get_data_value(., 'function_name')" />
+                <xsl:variable name="interface_name" select="graphml:get_data_value(., 'interface_name')" />
+                
+                <xsl:value-of select="cdit:output_result($id, string-length($function_name) > 0, o:join_list(($kind, o:wrap_quote($label), 'requires a valid function name'), ' '), false(), 2)" />
+                <xsl:value-of select="cdit:output_result($id, string-length($interface_name) > 0, o:join_list(($kind, o:wrap_quote($label), 'requires a valid interface name'), ' '), false(), 2)" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Test ServerInterfaces', $results, 1)" />
+    </xsl:function>
+
 
     <!-- Tests all that the entity kinds provided contain at least 1 child -->
     <xsl:function name="cdit:test_requires_children">
@@ -757,6 +780,8 @@
         <xsl:param name="model" as="element(gml:node)*"/>
 
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
+        <xsl:variable name="server_interfaces" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ServerInterface')" />
+
         <xsl:variable name="enums" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Enum')" />
 
         <xsl:variable name="members" as="element()*" select="graphml:get_descendant_nodes_of_kind($aggregates, 'Member')" />
@@ -775,6 +800,7 @@
         <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
         
         <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums)" />
+        <xsl:value-of select="cdit:test_valid_server_interfaces($server_interfaces)" />
 
         
 
