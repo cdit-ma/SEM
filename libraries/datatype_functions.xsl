@@ -136,10 +136,12 @@
             <xsl:variable name="index" select="graphml:get_index(.) + 1" />
             <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
             <xsl:variable name="type" select="graphml:get_type(.)" />
+            
             <xsl:variable name="is_key" select="graphml:is_key(.)" />
 
             <xsl:choose>    
                 <xsl:when test="$kind = 'Member'">
+                    
                     <xsl:variable name="cpp_type" select="cpp:get_primitive_type($type)" />
                     <xsl:variable name="proto_type" select="proto:get_type($cpp_type)" />
                     <xsl:value-of select="proto:member($proto_type, $label, $index)" />
@@ -367,8 +369,12 @@
             <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
             <xsl:variable name="type" select="graphml:get_type(.)" />
             <xsl:variable name="is_key" select="graphml:is_key(.)" />
+            <xsl:variable name="primitive_type" select="graphml:get_data_value(., 'primitive_type')" />
 
             <xsl:choose>    
+                <xsl:when test="$kind = 'Member' and $primitive_type">
+                    <xsl:value-of select="idl:member($primitive_type, $label, $is_key, $tab + 1)" />
+                </xsl:when>
                 <xsl:when test="$kind = 'Member'">
                     <xsl:variable name="cpp_type" select="cpp:get_primitive_type($type)" />
                     <xsl:variable name="idl_type" select="idl:get_type($cpp_type)" />
