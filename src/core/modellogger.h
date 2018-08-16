@@ -58,7 +58,7 @@ class ModelLogger{
         void setup_logger(const std::string& experiment_name, const std::string& host_name, const std::string& endpoint, Mode mode);
         bool is_setup();
     public:
-        void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+        void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "", bool print = false);
         void LogMessageEvent(const Port& port);
         void LogUserMessageEvent(const Component& component, std::string message);
         void LogUserFlagEvent(const Component& component, std::string message);
@@ -69,6 +69,7 @@ class ModelLogger{
         void LogComponentEvent(const Port& port, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
         void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print = false);
         void LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print = false);
+
         
 
         const std::string& get_hostname() const;

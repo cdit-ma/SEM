@@ -67,7 +67,8 @@ namespace tao{
                 try{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     auto base_result = eventport.ProcessRequest(*base_message);
-                    return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                    auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                    return tao_result_ptr;
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply/Request Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what(), true);
@@ -94,7 +95,6 @@ namespace tao{
                     std::string error_str = "Translating Request Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what(), true);
                     throw std::runtime_error(error_str + ex.what());
-                    //port.ProcessGeneralException(error_str + ex.what(), true);
                 }
             };
         private:
@@ -110,12 +110,12 @@ namespace tao{
             TaoReplyType* TAO_SERVER_FUNC_NAME(){
                 try{
                     auto base_result = eventport.ProcessRequest();
-                    return Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                    auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
+                    return tao_result_ptr;
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what(), true);
                     throw std::runtime_error(error_str + ex.what());
-                    //port.ProcessGeneralException(error_str + ex.what(), true);
                 }
             };
         private:

@@ -40,8 +40,6 @@ namespace tao{
             std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
-            
-            std::mutex control_mutex_;
 
             CORBA::ORB_var orb_ = 0;
             std::mutex client_mutex_;
@@ -67,8 +65,6 @@ namespace tao{
             std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
-            
-            std::mutex control_mutex_;
 
             CORBA::ORB_var orb_ = 0;
             std::mutex client_mutex_;
@@ -94,8 +90,6 @@ namespace tao{
             std::shared_ptr<Attribute> server_kind_;
             
             std::string current_naming_service_name_;
-            
-            std::mutex control_mutex_;
 
             CORBA::ORB_var orb_ = 0;
             std::mutex client_mutex_;
@@ -159,7 +153,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
-        auto client = TaoClientImpl::_unchecked_narrow(ptr);
+        auto client = TaoClientImpl::_narrow(ptr);
         
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
@@ -178,17 +172,15 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
         policy_list[0]->destroy();
         policy_list[0] = CORBA::Policy::_nil();
 
-        //Another interesting TAO feature is the support for _unchecked_narrow()
+        //Another interesting TAO feature is the support for _narrow()
         //This is part of the CORBA Messaging specification and essentially performs the same work as _narrow(),
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
         if(timeout_client){
             try{
                 auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
-                auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
-
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
-
+                auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
@@ -196,7 +188,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
                 //Clean up the memory from the base_reply_ptr
                 delete request_ptr;
                 delete base_reply_ptr;
-                delete reply_ptr;
+                delete tao_reply_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
                 return base_reply;
@@ -242,7 +234,7 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
-        auto client = TaoClientImpl::_unchecked_narrow(ptr);
+        auto client = TaoClientImpl::_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
         //Timed Request 1 = 100 nanoseconds
@@ -260,7 +252,7 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
         policy_list[0]->destroy();
         policy_list[0] = CORBA::Policy::_nil();
 
-        //Another interesting TAO feature is the support for _unchecked_narrow()
+        //Another interesting TAO feature is the support for _narrow()
         //This is part of the CORBA Messaging specification and essentially performs the same work as _narrow(),
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
@@ -312,7 +304,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
     try{
         auto& helper = tao::TaoHelper::get_tao_helper();
         auto ptr = helper.resolve_reference_via_namingservice(orb_, naming_service_name, server_name, server_kind);
-        auto client = TaoClientImpl::_unchecked_narrow(ptr);
+        auto client = TaoClientImpl::_narrow(ptr);
 
         //10e4 difference between 1 milliseconds and 100 nanoseconds
         //Timed Request 1 = 100 nanoseconds
@@ -330,21 +322,20 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
         policy_list[0]->destroy();
         policy_list[0] = CORBA::Policy::_nil();
 
-        //Another interesting TAO feature is the support for _unchecked_narrow()
+        //Another interesting TAO feature is the support for _narrow()
         //This is part of the CORBA Messaging specification and essentially performs the same work as _narrow(),
         //but it does not check the types remotely. If you have compile time knowledge that ensures the correctness of the narrow operation,
         //it is more efficient to use the unchecked version.
         if(timeout_client){
             try{
-                auto reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*reply_ptr);
+                auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
                 
                 //Clean up the memory from the base_reply_ptr
                 delete base_reply_ptr;
-                delete reply_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
                 return base_reply;

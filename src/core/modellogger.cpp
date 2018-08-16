@@ -9,6 +9,27 @@
 #include "ports/port.h"
 #include "worker.h"
 
+void ErrorPrint_ComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& event){
+    static std::mutex cerr_mutex;
+    std::lock_guard<std::mutex> lock(cerr_mutex);
+
+    std::cerr << "[" << event.info().hostname() << "/";
+    std::cerr << event.component().name() << "<" << event.component().type() << ">/";
+    std::cerr << event.port().name() << "<" << event.port().type() << ">";
+    std::cerr << "] Exception: " << event.message();
+    std::cerr << std::endl;
+}
+
+void Print_WorkerEvent(const re_common::WorkloadEvent& event){
+    static std::mutex cout_mutex;
+    std::lock_guard<std::mutex> lock(cout_mutex);
+
+    std::cout << "[" << event.info().hostname() << "/";
+    std::cout << event.component().name() << "<" << event.component().type() << ">/";
+    std::cerr << event.name() << "/" << event.function() << "";
+    std::cout << "] " << event.args();
+    std::cout << std::endl;
+}
 
 bool ModelLogger::setup_model_logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
     auto& s = get_model_logger();
@@ -147,7 +168,7 @@ void ModelLogger::LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEven
     PushMessage(e);
 }
 
-void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
+void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args, bool print){
     auto e = new re_common::WorkloadEvent();
 
     const auto& container = worker.get_container();
@@ -174,6 +195,9 @@ void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name
         e->set_args(args);
     }
     
+    if(print){
+        Print_WorkerEvent(*e);
+    }
 
     PushMessage(e);
 }
@@ -193,7 +217,12 @@ void ModelLogger::LogComponentEvent(const Port& port, const ::BaseMessage& messa
     PushMessage(e);
 }
 
+
+
+
 void ModelLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print){
+    
+
     auto component = port.get_component();
     int ID = message.get_base_message_id();
     auto e = new re_common::ComponentUtilizationEvent();
@@ -207,10 +236,12 @@ void ModelLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& m
     e->set_message(error_string);
 
     if(print){
-        std::cerr << e->DebugString() << std::endl;
+        ErrorPrint_ComponentUtilizationEvent(*e);
     }
     PushMessage(e);
 }
+
+
 
 void ModelLogger::LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print){
     auto component = port.get_component();
@@ -224,7 +255,7 @@ void ModelLogger::LogPortExceptionEvent(const Port& port, const std::string& err
     e->set_message(error_string);
 
     if(print){
-        std::cerr << e->DebugString() << std::endl;
+        ErrorPrint_ComponentUtilizationEvent(*e);
     }
     PushMessage(e);
 }
