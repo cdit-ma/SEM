@@ -169,28 +169,13 @@
 
     <!--
         Produces a sequence member definition
-        ie. sequence<${type}> ${label}; //@key
+        ie. sequence<${type}, ${size}> ${label}; //@key
     -->
     <xsl:function name="idl:sequence_type" as="xs:string">
         <xsl:param name="inner_type" as="xs:string" />
+        <xsl:param name="size" as="xs:string" />
 
-        
-        
-        <xsl:value-of select="concat('sequence', o:wrap_angle($inner_type))" />
-    </xsl:function>
-
-    <!--
-        Produces a sequence member definition
-        ie. sequence<${type}> ${label}; //@key
-    -->
-    <xsl:function name="idl:sequence_member" as="xs:string">
-        <xsl:param name="type" as="xs:string" />
-        <xsl:param name="label" as="xs:string" />
-        <xsl:param name="is_key" as="xs:boolean" />
-        <xsl:param name="tab" as="xs:integer" />
-
-        
-        <xsl:value-of select="idl:member(idl:sequence_type($type), $label, $is_key, $tab)" />
+        <xsl:value-of select="concat('sequence', o:wrap_angle(cpp:join_args(($inner_type, $size))))" />
     </xsl:function>
 
     <!--

@@ -301,7 +301,8 @@
                 <xsl:value-of select="lower-case(o:join_list(('array', $vector_child_kind, $idl_type, $array_size), '_'))" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="lower-case(o:join_list(('sequence', $vector_child_kind, $idl_type), '_'))" />
+                <xsl:variable name="sequence_size" select="graphml:get_data_value($vector, 'sequence_size')" />
+                <xsl:value-of select="lower-case(o:join_list(('sequence', $vector_child_kind, $idl_type, $sequence_size), '_'))" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -352,7 +353,8 @@
                         <xsl:value-of select="idl:typedef($vector_inner_type, concat($sequence_label, o:wrap_square($array_size)), $tab)" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="idl:typedef(idl:sequence_type($vector_inner_type), $sequence_label, $tab)" />
+                        <xsl:variable name="sequence_size" select="graphml:get_data_value(., 'sequence_size')" />
+                        <xsl:value-of select="idl:typedef(idl:sequence_type($vector_inner_type, $sequence_size), $sequence_label, $tab)" />
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
@@ -1180,6 +1182,7 @@
         
         <xsl:variable name="size_var" select="'size'" />
         <xsl:variable name="array_size" select="graphml:get_data_value($vector, 'array_size')" />
+        <xsl:variable name="sequence_size" select="graphml:get_data_value($vector, 'sequence_size')" />
 
         <xsl:variable name="array_size_value">
             <xsl:choose>
@@ -1200,16 +1203,21 @@
         </xsl:variable>
         <xsl:value-of select="cpp:define_variable(cpp:const_ref_auto(), $size_var, $array_size_value, cpp:nl(), $tab + 1)" />
 
+        <xsl:variable name="test_size" select="($is_array and $array_size) or $sequence_size" as="xs:boolean" />
+
         <!-- Do some tests on size -->
-        <xsl:if test="$is_array and cdit:middleware_requires_idl_file($target_middleware)">
-            <xsl:value-of select="cpp:comment('Translating into a fixed length array, test the bounds', $tab + 1)" />
-            <xsl:value-of select="concat(o:t($tab + 1), 'if(', $size_var, ' ', o:gt(), ' ', $array_size, ')', cpp:scope_start(0))" />
+        <xsl:if test="cdit:middleware_requires_idl_file($target_middleware) and $test_size">
+            <xsl:value-of select="cpp:comment('Translating into a fixed length array/sequence', $tab + 1)" />
+
+            <xsl:variable name="max_size" select="if($is_array) then $array_size else $sequence_size" />
+            
+            <xsl:value-of select="concat(o:t($tab + 1), 'if(', $size_var, ' ', o:gt(), ' ', $max_size, ')', cpp:scope_start(0))" />
             <xsl:variable name="str_args" as="xs:string*">
                 <xsl:sequence select="o:wrap_dblquote('Trying to fit: ')" />
                 <xsl:sequence select="'std::to_string(size)'" />
                 <xsl:sequence select="o:wrap_dblquote(concat(
-                ' elements inside a fixed length array of size: ',
-                $array_size))" />
+                ' elements when max length is: ',
+                $max_size))" />
             </xsl:variable>
             <xsl:value-of select="cpp:throw('std::invalid_argument', o:join_list($str_args, ' + '), $tab + 2)" />
             <xsl:value-of select="cpp:scope_end($tab + 1)" />
