@@ -112,21 +112,18 @@ message Component{
     repeated Port ports = 2;
     map<string, Attribute> attributes = 3;
     repeated Worker workers = 4;
-    uint32 replicate_id = 5;
+
+    repeated uint32 replicate_indices = 5;
+    repeated string location = 6;
 }
 
 message Port{
     enum Kind{
         NO_KIND = 0;
-        //
         PERIODIC = 1;
-        //
         PUBLISHER = 2;
-        //
         SUBSCRIBER = 3;
-        //
         REQUESTER = 4;
-        //
         REPLIER = 5;
     }
 
@@ -134,11 +131,9 @@ message Port{
     Kind kind = 2;
     Middleware middleware = 3;
     map<string, Attribute> attributes = 4;
-    string port_guid = 6;
-    repeated string connected_ports = 7;
-    repeated string connected_external_ports = 8;
-
-    repeated string server_name = 9;
+    repeated string connected_ports = 5;
+    repeated string connected_external_ports = 6;
+    repeated string server_name = 7;
 }
 
 message Worker{
