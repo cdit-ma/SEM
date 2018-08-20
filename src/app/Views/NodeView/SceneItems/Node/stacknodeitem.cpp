@@ -10,8 +10,6 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
 {
     setSortOrdered(true);
 
-    removeRequiredData("width");
-    removeRequiredData("height");
     reloadRequiredData();
     this->orientation = orientation;
 
@@ -354,8 +352,8 @@ void StackNodeItem::updateCells(){
             }
         }
 
-        if(overall_rect.width() < getMinimumWidth()){
-            overall_rect.setWidth(getMinimumWidth());
+        if(overall_rect.width() < getContractedWidth()){
+            overall_rect.setWidth(getContractedWidth());
         }
 
         
@@ -508,8 +506,11 @@ void StackNodeItem::updateCells(){
         
 
         sub_areas_dirty = false;
-        cell_rect = overall_rect;
-        resizeToChildren();
+        if(cell_rect != overall_rect){
+            cell_rect = overall_rect;
+            prepareGeometryChange();
+            emit sizeChanged();
+        }
     }
 }
 

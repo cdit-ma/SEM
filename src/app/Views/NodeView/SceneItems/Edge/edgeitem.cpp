@@ -122,13 +122,19 @@ QPointF EdgeItem::getPos() const
  */
 QRectF EdgeItem::boundingRect() const
 {
+    QRectF r = edgeRect();
+    r |= srcCurve.controlPointRect();
+    r |= dstCurve.controlPointRect();
+    return r;
+}
+
+QRectF EdgeItem::edgeRect() const
+{
     QRectF r = translatedCenterCircleRect();
     r |= srcIconCircle();
     r |= dstIconCircle();
     r |= srcArrow.controlPointRect();
     r |= dstArrow.controlPointRect();
-    r |= srcCurve.controlPointRect();
-    r |= dstCurve.controlPointRect();
     r += margins;
     return r;
 }
@@ -155,6 +161,8 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     RENDER_STATE state = getRenderState(lod);
 
     painter->setClipRect(option->exposedRect);
+
+    painter->setBrush(Qt::blue);
 
     if(!isSelected()){
         painter->save();
@@ -667,6 +675,7 @@ void EdgeItem::resetCenter()
         //Calculate new Center position
         auto center = (srcCenter + dstCenter) / 2;
         auto scene_center = mapFromScene(center);
+        
         setPos(scene_center);
 
         if(!_isCentered){

@@ -994,8 +994,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::VOID_TYPE:{
                 node_item = new BasicNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
-                node_item->setMinimumHeight(node_item->getMinimumHeight() / 2);
-                node_item->setMinimumWidth(40);
+                node_item->setContractedHeight(node_item->getContractedHeight() / 2);
+                node_item->setContractedWidth(40);
                 break;
             }
 
@@ -1007,8 +1007,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::CLASS_INSTANCE:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
-                node_item->setMinimumHeight(node_item->getMinimumHeight() / 2);
-                node_item->setMinimumWidth(40);
+                node_item->setContractedHeight(node_item->getContractedHeight() / 2);
+                node_item->setContractedWidth(40);
                 break;
             }
 

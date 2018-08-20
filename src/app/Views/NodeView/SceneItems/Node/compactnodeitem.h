@@ -10,7 +10,10 @@ public:
     CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
 public:
     QRectF getElementRect(EntityRect rect) const;
+protected:
+    QRectF childrenRect() const;
 private:
+
     bool isExpandEnabled();
 
     

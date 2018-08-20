@@ -656,10 +656,16 @@ bool EntityItem::isExpanded() const
     return is_expanded;
 }
 
+bool EntityItem::isContracted() const{
+    return !is_expanded;
+}
+
+
 void EntityItem::setExpanded(bool expand)
 {
     if(is_expanded != expand){
         is_expanded = expand;
+        prepareGeometryChange();
         emit positionChanged();
     }
 }

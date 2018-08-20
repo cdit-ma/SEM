@@ -84,19 +84,13 @@ public:
 
 
 
-    void setMinimumWidth(qreal width);
-    void setMinimumHeight(qreal height);
+    void setContractedWidth(qreal width);
+    void setContractedHeight(qreal height);
 
-    //Size/Position Functions
-    void setExpandedWidth(qreal width);
-    void setExpandedHeight(qreal height);
-    void setExpandedSize(QSizeF size);
-
-    qreal getExpandedWidth() const;
-    qreal getExpandedHeight() const;
-    QSizeF getExpandedSize() const;
-    qreal getMinimumWidth() const;
-    qreal getMinimumHeight() const;
+    
+    qreal getContractedWidth() const;
+    qreal getContractedHeight() const;
+    QSizeF getContractedSize() const;
 
     void setMargin(QMarginsF margin);
     void setBodyPadding(QMarginsF bodyPadding);
@@ -149,7 +143,6 @@ public:
     virtual void setExpanded(bool expand);
 
 
-    QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
     virtual void childPosChanged(EntityItem* child);
 signals:
     void childSizeChanged(EntityItem* child);
@@ -170,8 +163,6 @@ private:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
 
-protected:
-    void resizeToChildren();
 private:
     bool IsNotificationHovered(Notification::Severity severity) const;
     bool SetNotificationHovered(Notification::Severity severity, bool hovered);
@@ -191,9 +182,6 @@ private:
     void lockHover(bool hovered, const QPointF& pos);
     
     
-    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
-    //QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
-    
     QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > my_visual_edge_kinds;
     QHash<EDGE_DIRECTION, QSet<EDGE_KIND> > all_visual_edge_kinds;
     
@@ -208,12 +196,12 @@ private:
 
     NodeViewItem* node_view_item = 0;
 
-    qreal min_width = 0;
-    qreal min_height = 0;
+    qreal contracted_width = 0;
+    qreal contracted_height = 0;
+
     qreal expanded_width = 0;
     qreal expanded_height = 0;
-    qreal model_width = 0;
-    qreal model_height = 0;
+
 
     int index_ = -1;
     int row_ = 0;

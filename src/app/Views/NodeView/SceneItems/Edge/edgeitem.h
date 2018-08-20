@@ -18,6 +18,7 @@ public:
     QPointF getPos() const;
 
     QRectF boundingRect() const;
+    QRectF edgeRect() const;
     QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
     QRectF currentRect() const;
 

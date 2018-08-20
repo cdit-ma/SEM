@@ -35,10 +35,10 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     const int height = 20;
     const int width = 55;
 
-    setMinimumHeight(height);
-    setMinimumWidth(width);
-    setExpandedHeight(height);
-    setExpandedWidth(width);
+    setContractedWidth(width);
+    setContractedHeight(height);
+    //setExpandedHeight(height);
+    //setExpandedWidth(width);
 
     if(node_view_item){
         connect(node_view_item, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
@@ -347,11 +347,13 @@ QRectF NodeItem::gridRect() const
 QRectF NodeItem::bodyRect() const
 {
     QRectF rect;
+    //Adjust by the Margins
     rect.setTopLeft(getMarginOffset());
+    
     rect.setWidth(getWidth());
     rect.setHeight(getHeight());
-
-    rect.setTop(rect.top() + getMinimumHeight());
+    //Deal with the contracted height
+    rect.setTop(rect.top() + getContractedHeight());
     return rect;
 }
 
@@ -360,7 +362,7 @@ QRectF NodeItem::headerRect() const
     QRectF rect;
     rect.setTopLeft(getMarginOffset());
     rect.setWidth(getWidth());
-    rect.setHeight(getMinimumHeight());
+    rect.setHeight(getContractedHeight());
     return rect;
 }
 
@@ -368,117 +370,41 @@ QRectF NodeItem::headerRect() const
 QRectF NodeItem::childrenRect() const
 {
     return _childRect;
-
 }
 
 
 
-void NodeItem::setMinimumWidth(qreal width)
+void NodeItem::setContractedWidth(qreal width)
 {
-    if(min_width != width){
-        min_width = width;
-        if(!isExpanded()){
+    if(contracted_width != width){
+        contracted_width = width;
+
+        if(isContracted()){
             prepareGeometryChange();
-            update();
             emit sizeChanged();
         }
     }
 }
 
-void NodeItem::setMinimumHeight(qreal height)
+void NodeItem::setContractedHeight(qreal height)
 {
-    if(min_height != height){
-        min_height = height;
-        if(!isExpanded()){
+    if(contracted_height != height){
+        contracted_height = height;
+        if(isContracted()){
             prepareGeometryChange();
-            update();
             emit sizeChanged();
         }
     }
 }
 
-void NodeItem::setExpandedWidth(qreal width)
+qreal NodeItem::getContractedWidth() const
 {
-    //Limit by the size of all contained children.
-    qreal minWidth = childrenRect().right() - getMargin().left();
-    //Can't shrink smaller than minimum
-    minWidth = qMax(minWidth, model_width);
-    minWidth = qMax(minWidth, min_width);
-    width = qMax(width, minWidth);
-
-
-
-
-    if(expanded_width != width){
-        if(width > model_width){
-            model_width = -1;
-        }
-
-        expanded_width = width;
-
-        if(isExpanded()){
-            prepareGeometryChange();
-            update();
-            emit sizeChanged();
-        }
-    }
+    return contracted_width;
 }
 
-void NodeItem::setExpandedHeight(qreal height)
+qreal NodeItem::getContractedHeight() const
 {
-    //Limit by the size of all contained children.
-    qreal minHeight = childrenRect().bottom() - getMargin().top();
-    //Can't shrink smaller than minimum
-    minHeight = qMax(minHeight, model_height);
-    minHeight = qMax(minHeight, min_height);
-    height = qMax(height, minHeight);
-
-
-
-    if(expanded_height != height){
-        if(height > model_height){
-            model_height = -1;
-        }
-        expanded_height = height;
-        if(isExpanded()){
-            prepareGeometryChange();
-            update();
-            emit sizeChanged();
-        }
-    }
-}
-
-void NodeItem::setExpandedSize(QSizeF size)
-{
-
-    setExpandedWidth(size.width());
-    setExpandedHeight(size.height());
-}
-
-
-qreal NodeItem::getExpandedWidth() const
-{
-    return expanded_width;
-}
-
-qreal NodeItem::getExpandedHeight() const
-{
-    return expanded_height;
-}
-
-QSizeF NodeItem::getExpandedSize() const
-{
-    return QSizeF(expanded_width, expanded_height);
-}
-
-qreal NodeItem::getMinimumWidth() const
-{
-    return min_width;
-}
-
-qreal NodeItem::getMinimumHeight() const
-{
-    return min_height;
+    return contracted_height;
 }
 
 void NodeItem::setMargin(QMarginsF margin)
@@ -486,7 +412,6 @@ void NodeItem::setMargin(QMarginsF margin)
     if(this->margin != margin){
         prepareGeometryChange();
         this->margin = margin;
-        update();
     }
 }
 
@@ -505,20 +430,20 @@ QPointF NodeItem::getMarginOffset() const
 
 qreal NodeItem::getWidth() const
 {
+    auto width = getContractedWidth();
     if(isExpanded()){
-        return getExpandedWidth();
-    }else{
-        return getMinimumWidth();
+        width = qMax(width, childrenRect().right() - getMarginOffset().x());
     }
+    return width;
 }
 
 qreal NodeItem::getHeight() const
 {
+    auto height = getContractedHeight();
     if(isExpanded()){
-        return getExpandedHeight();
-    }else{
-        return getMinimumHeight();
+        height = qMax(height, childrenRect().bottom() - getMarginOffset().y());
     }
+    return height;
 }
 
 const QHash<EDGE_DIRECTION, QSet<EDGE_KIND> >& NodeItem::getAllVisualEdgeKinds() const{
@@ -560,15 +485,16 @@ void NodeItem::setExpanded(bool expand)
         //Call the base class
         EntityItem::setExpanded(expand);
 
-        prepareGeometryChange();
+        
 
         for(auto child : getChildEntities()){
             child->setVisible(isExpanded());
         }
 
-        update();
         updateNotifications();
         updateVisualEdgeKinds();
+
+        prepareGeometryChange();
         emit sizeChanged();
     }
 }
@@ -658,34 +584,29 @@ QString NodeItem::getTertiaryText() const
 
 void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
     if(isDataRequired(key_name)){
-        if(key_name == "width" || key_name == "height"){
-            qreal realData = data.toReal();
-
-            if(key_name == "width"){
-                model_width = -1;
-                setExpandedWidth(realData);
-                model_width = getExpandedWidth();
-            }else if(key_name == "height"){
-                model_height = -1;
-                setExpandedHeight(realData);
-                model_height = getExpandedHeight();
-            }
-            setExpandedSize(getGridAlignedSize());
-        }else if(key_name == "isExpanded"){
+        if(key_name == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
         }else if(key_name == "readOnly"){
             update();
-        }else if(key_name =="index"){
+        }else if(key_name == "index"){
             auto index = data.toInt();
             if(index_ != index){
                 index_ = index;
                 emit indexChanged();
             }
-        }else if(key_name =="row"){
-            row_ = data.toInt();
-        }else if(key_name =="column"){
-            column_ = data.toInt();
+        }else if(key_name == "row"){
+            auto row = data.toInt();
+            if(row_ != row){
+                row_ = row;
+                emit indexChanged();
+            }
+        }else if(key_name == "column"){
+            auto row = data.toInt();
+            if(column_ != row){
+                column_ = row;
+                emit indexChanged();
+            }
         }
         if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
             update();
@@ -701,13 +622,19 @@ void NodeItem::childPosChanged(EntityItem*)
 
     for(auto child : getChildEntities()){
         if(child->isNodeItem()){
-            rect = rect.united(child->translatedBoundingRect());
+            rect |= child->translatedBoundingRect();
         }else if(child->isEdgeItem()){
-            rect = rect.united(child->translatedBoundingRect());
+            rect |= ((EdgeItem*)child)->edgeRect();
         }
     }
-    _childRect = rect;
-    resizeToChildren();
+
+    if(rect != _childRect){
+        _childRect = rect;
+        if(isExpanded()){
+            prepareGeometryChange();
+            emit sizeChanged();
+        }
+    }
 }
 
 void NodeItem::edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID)
@@ -737,33 +664,6 @@ default:
     }
 }
 
-QSizeF NodeItem::getGridAlignedSize(QSizeF size) const
-{
-    if(size.isEmpty()){
-        size = getExpandedSize();
-    }
-
-    qreal gridSize = getGridSize();
-    //Get the nearest next grid line.
-    qreal modHeight = fmod(size.height(), gridSize);
-    qreal modWidth = fmod(size.width(), gridSize);
-
-    if(modHeight != 0){
-        size.rheight() += (gridSize - modHeight);
-    }
-    if(modWidth != 0){
-        size.rwidth() += (gridSize - modWidth);
-    }
-
-    return size;
-}
-
-void NodeItem::resizeToChildren()
-{
-    setExpandedWidth(-1);
-    setExpandedHeight(-1);
-    update();
-}
 
 
 
@@ -776,7 +676,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->setClipRect(option->exposedRect);
 
     RENDER_STATE state = getRenderState(lod);
-
+    
 
     EntityItem::paint(painter, option, widget);
     {
@@ -1018,7 +918,12 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) co
 
         //Adjust the height
         auto item_height = rect.height() / count;
+        auto item_width = rect.width();
         rect.setHeight(item_height);
+        if(item_height < item_width){
+            top_left.rx() -= (item_height - item_width) / 2.0;
+            rect.setWidth(item_height);
+        }
         //Offset the position
         top_left.ry() += (pos * item_height);
         rect.moveTopLeft(top_left);

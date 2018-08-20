@@ -5,11 +5,11 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem) :
     setMoveEnabled(false);
     setExpandEnabled(true);
 
-    setMinimumHeight(getMinimumHeight() / 2);
-    setMinimumWidth(40);
+    setContractedHeight(getContractedHeight() / 2);
+    setContractedWidth(40);
     
-    setExpandedWidth(getMinimumHeight());
-    setMinimumWidth(getMinimumWidth());
+    //setExpandedWidth(getContractedWidth());
+    //setExpandedHeight(getMinimumHeight());
 
     addRequiredData(KeyName::Index);
     addRequiredData(KeyName::Row);
@@ -19,6 +19,10 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem) :
     getTextItem(EntityRect::PRIMARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::SECONDARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::TERTIARY_TEXT)->setAlignment(Qt::AlignCenter);
+}
+
+QRectF CompactNodeItem::childrenRect() const{
+    return QRectF(0,0, getContractedWidth(), getContractedHeight() * 2);
 }
 
 QRectF CompactNodeItem::getElementRect(EntityRect rect) const{

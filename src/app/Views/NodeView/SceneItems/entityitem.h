@@ -195,6 +195,8 @@ public:
     //State Getters
     bool isSelected() const;
     bool isExpanded() const;
+    bool isContracted() const;
+    
     bool isActiveSelected() const;
     bool isHovered() const;
     bool isHighlighted() const;

@@ -4,7 +4,5 @@ DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItem *parentItem):B
 {
     setExpandEnabled(true);
     setSortOrdered(false);
-    addRequiredData("width");
-    addRequiredData("height");
     reloadRequiredData();
 }
