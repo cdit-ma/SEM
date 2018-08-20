@@ -379,10 +379,8 @@ void NodeItem::setContractedWidth(qreal width)
     if(contracted_width != width){
         contracted_width = width;
 
-        if(isContracted()){
-            prepareGeometryChange();
-            emit sizeChanged();
-        }
+        prepareGeometryChange();
+        emit sizeChanged();
     }
 }
 
@@ -390,10 +388,8 @@ void NodeItem::setContractedHeight(qreal height)
 {
     if(contracted_height != height){
         contracted_height = height;
-        if(isContracted()){
-            prepareGeometryChange();
-            emit sizeChanged();
-        }
+        prepareGeometryChange();
+        emit sizeChanged();
     }
 }
 
