@@ -15,22 +15,79 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* ControlMessage();
 
     private:
+
+        struct ComponentReplication;
+        struct Assembly{
+            Assembly(const std::string& name, const std::string& assembly_id, Assembly* parent = 0){
+                this->name = name;
+                this->assembly_id = assembly_id;
+                this->parent = parent;
+                if(parent){
+                    parent->children.push_back(this);
+                }
+            };
+            Assembly(Assembly* assembly):
+            Assembly(assembly->name, assembly->assembly_id, assembly->parent){
+                this->replication_count = assembly->replication_count;
+            };
+            
+
+            std::string name;
+            std::string assembly_id;
+
+            int replication_count = 1;
+            
+            int replication_index; //Our replication as an assembly
+
+
+
+            Assembly* parent = 0;
+
+            std::vector<Assembly*> children;
+            std::vector<ComponentReplication*> replications;
+
+        };
+
+        //Replication struct, represents one instance of a component instance that has been replicated
+        struct ComponentReplication{
+            std::string component_instance_id;
+            std::string id;
+
+            Assembly* parent;
+            std::list<std::string> GetReplicationLocation() const;
+            std::list<int> GetReplicationIndices() const;
+            std::string GetUniqueId() const;
+            std::string GetUniqueIdSuffix() const;
+        };
+
+
+
         std::list<std::string> GetNamespace(const std::string& id);
         std::unique_ptr<GraphmlParserInt> graphml_parser_;
         bool is_valid_;
         bool pre_process_success_;
         bool process_success_;
         bool PreProcess();
+
+        void GenerateReplications(Assembly* parent);
+
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
         bool ParseExternalDelegates(NodeManager::ControlMessage* control_message);
+
+        bool ParseLoggingClients();
+        bool ParseLoggingServers();
+        bool ParseComponents();
+
         bool Process();
+
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
         
         void FillProtobufAttributes(::google::protobuf::Map< ::std::string, ::NodeManager::Attribute >* attrs, const std::string& parent_id, const std::string& unique_id_suffix);
 
-        std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind);
+        std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind, std::set<std::string> prev_id);
 
         void CalculateReplication();
+        std::string GetDeployedHardwareID(const std::string& component_id);
 
         //Parse helpers
         std::string GetDeployedID(const std::string& id);
@@ -40,6 +97,10 @@ class ProtobufModelParser{
         std::string GetAggregateId(const std::string& id);
         std::string GetImplId(const std::string& id);
 
+        int GetReplicationId(const std::string& id);
+        NodeManager::Middleware ParseMiddleware(const std::string& middleware_str) const;
+
+
         std::string BuildPortGuid(const std::string& port_id);
 
         NodeManager::Port::Kind GetPortKind(const std::string& kind);
@@ -48,7 +109,16 @@ class ProtobufModelParser{
 
         std::string to_lower(const std::string& s);
         bool str2bool(std::string str);
-        std::string GetUniquePrefix(int count);
+        static std::string GetUniqueSuffix(const std::vector<int>& indices);
+        
+
+        std::vector<std::string> GetComponentInstanceLocation(ComponentReplication* component);
+        std::vector<int> GetComponentInstanceReplication(ComponentReplication* component);
+
+        NodeManager::Port* ConstructPubSubPortPb(const std::string& port_id, const std::string& unique_id_suffix);
+        NodeManager::Port* ConstructReqRepPortPb(const std::string& port_id, const std::string& unique_id_suffix);
+        NodeManager::Port* ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix);
+        NodeManager::Worker* ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix);
 
         NodeManager::ControlMessage* control_message_;
 
@@ -97,6 +167,8 @@ class ProtobufModelParser{
 
         //component id -> vector of that component's replications
         std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
+
+        std::vector<ComponentReplication*> component_instances_;
 
         std::vector<std::string> hardware_node_ids_;
         std::vector<std::string> component_ids_;

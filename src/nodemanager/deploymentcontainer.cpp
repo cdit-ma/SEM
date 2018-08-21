@@ -57,11 +57,6 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
         set_id(node.info().id());
         
         //Try and configure all components
-        for(const auto& component_pb : node.components()){
-            GetConfiguredComponent(component_pb);
-        }
-
-        //Try and configure all components
         for(const auto& logger_pb : node.loggers()){
             switch(logger_pb.type()){
                 case NodeManager::Logger::CLIENT:{
@@ -78,6 +73,12 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                     break;
             }
         }
+        
+        //Try and configure all components
+        for(const auto& component_pb : node.components()){
+            GetConfiguredComponent(component_pb);
+        }
+
 
         std::cout << "* Configured Slave as: " << get_name() << std::endl;
         return Activatable::Configure();
@@ -119,7 +120,17 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     if(!component){
         //Construct the Component
         component = ConstructComponent(component_info_pb.type(), component_info_pb.name(), GetNamespaceString(component_info_pb), component_info_pb.id());
+        
+        //Set the once off information
+        if(component){
+            const auto& location = component_pb.location();
+            const auto& replicate_indices = component_pb.replicate_indices();
+            component->SetLocation({location.begin(), location.end()});
+            component->SetReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+            std::cerr << component->GetLocalisedName() << std::endl;
+        }
     }
+
 
     if(component){
         //Handle the attributes

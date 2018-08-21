@@ -20,6 +20,10 @@ class GraphmlParser : public GraphmlParserInt{
         std::string GetDataValue(const std::string& id, const std::string& key_name);
         std::string GetParentNode(const std::string& id, int depth);
         std::string GetParentNode(const std::string& id);
+
+        std::string GetSharedParent(const std::string& left_child_id, const std::string& right_child_id);
+        int GetHeightToParent(const std::string& child_id, const std::string& parent_id);
+
     private:
         bool legal_parse = false;
         std::unordered_map<std::string, std::string> attribute_map_;
@@ -28,6 +32,9 @@ class GraphmlParser : public GraphmlParserInt{
         std::unordered_map<std::string, std::string> data_lookup_;
         std::unordered_map<std::string, std::string> attr_lookup_;
         std::unordered_map<std::string, std::string> parent_id_lookup_;
+
+        std::unordered_map<std::string, std::string> shared_parent_map_;
+        std::unordered_map<std::string, int> parent_height_depth_map_;
 
 
 };

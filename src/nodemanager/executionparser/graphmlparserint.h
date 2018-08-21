@@ -16,5 +16,9 @@ class GraphmlParserInt{
         virtual std::string GetDataValue(const std::string& id, const std::string& key_name) = 0;
         virtual std::string GetParentNode(const std::string& id, int depth) = 0;
         virtual std::string GetParentNode(const std::string& id) = 0;
+
+        virtual std::string GetSharedParent(const std::string& left_child_id, const std::string& right_child_id) = 0;
+        virtual int GetHeightToParent(const std::string& child_id, const std::string& parent_id) = 0;
+
 };
 #endif //GRAPHMLPARSERINT_H
