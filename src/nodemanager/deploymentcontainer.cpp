@@ -124,8 +124,9 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         if(component){
             const auto& location = component_pb.location();
             const auto& replicate_indices = component_pb.replicate_indices();
-            component->setLocation({location.begin(), location.end()});
-            component->setReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+            component->SetLocation({location.begin(), location.end()});
+            component->SetReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+            std::cerr << component->GetLocalisedName() << std::endl;
         }
     }
 

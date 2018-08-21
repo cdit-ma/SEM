@@ -99,14 +99,15 @@ class Component : public BehaviourContainer{
 
         const std::vector<std::string>& GetLocation() const;
         const std::vector<uint32_t>& GetReplicationIndices() const;
+        std::string GetLocalisedName();
     protected:
         virtual void HandleActivate();
         virtual void HandleConfigure();
         virtual void HandlePassivate();
         virtual void HandleTerminate();
 
-        void setLocation(const std::vector<std::string>& location);
-        void setReplicationIndices(const std::vector<uint32_t>& indices);
+        void SetLocation(const std::vector<std::string>& location);
+        void SetReplicationIndices(const std::vector<uint32_t>& indices);
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
