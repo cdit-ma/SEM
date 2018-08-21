@@ -1293,15 +1293,9 @@
         <xsl:variable name="classes" select="graphml:get_child_nodes_of_kind($component_impl, 'ClassInstance')" />
 
         <xsl:for-each-group select="$classes" group-by="graphml:get_definition(.)">
-            <xsl:variable name="worker" select="graphml:get_data_value(., 'worker')" />
-
-            <xsl:choose>
-                <!-- Ignore Vector Operations -->
-                <xsl:when test="$worker = 'Vector_Operations'" />
-                <xsl:otherwise>
-                    <xsl:sequence select="." />
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:if test="graphml:is_ignored_worker_type(.) = false()">
+                <xsl:sequence select="." />
+            </xsl:if>
         </xsl:for-each-group>
     </xsl:function>
 
@@ -1375,15 +1369,15 @@
     <!--
         Get the Header file for a Class/Worker
     -->
-    <xsl:function name="cdit:get_class_header" as="xs:string">
+    <xsl:function name="cdit:get_class_header" as="xs:string?">
         <xsl:param name="class" as="element(gml:node)"  />
         <xsl:variable name="class_def" select="graphml:get_definition($class)" />
 
         <xsl:choose>
             <xsl:when test="graphml:is_class_a_worker($class)">
                 <xsl:variable name="worker_type" select="graphml:get_class_worker_type($class)" />
-                <!-- Vector Operations isn't really a worker -->
-                <xsl:if test="$worker_type != 'Vector_Operations'">
+
+                <xsl:if test="graphml:is_ignored_worker_type($class) = false()">
                     <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($class_def, 'file'))" />
                     <xsl:value-of select="o:join_paths((cdit:get_worker_path($class_def), concat($worker_file, '.h')))" />
                 </xsl:if>

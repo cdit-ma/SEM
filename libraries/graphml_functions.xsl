@@ -514,10 +514,21 @@
     <!--
         Gets the The Worker Instances
     -->
+    <xsl:function name="graphml:is_ignored_worker_type" as="xs:boolean">
+        <xsl:param name="class" as="element()"  />
+
+        <xsl:variable name="worker_type" select="graphml:get_class_worker_type($class)" />
+        <xsl:value-of select="$worker_type = 'Vector_Operations' or $worker_type = 'Component_Info'" />
+    </xsl:function>
+
+
+    <!--
+        Gets the The Worker Instances
+    -->
     <xsl:function name="graphml:get_worker_instances" as="element(gml:node)*">
         <xsl:param name="component" as="element(gml:node)?" />
 
-        <xsl:sequence select="graphml:get_child_nodes_of_kind($component, 'ClassInstance')[graphml:is_class_instance_worker(.) = true() and graphml:get_class_worker_type(.) != 'Vector_Operations']" />
+        <xsl:sequence select="graphml:get_child_nodes_of_kind($component, 'ClassInstance')[graphml:is_class_instance_worker(.) = true() and graphml:is_ignored_worker_type(.) = false()]" />
     </xsl:function>
 
     <!--

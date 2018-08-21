@@ -101,8 +101,9 @@
             </xsl:if>
 
             <xsl:variable name="header_file" select="cdit:get_class_header(.)" />
-            
-            <xsl:value-of select="cpp:include_library_header($header_file)" />
+            <xsl:if test="$header_file != ''">
+                <xsl:value-of select="cpp:include_library_header($header_file)" />
+            </xsl:if>
             <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
         </xsl:for-each-group>
     </xsl:function>
@@ -1042,7 +1043,6 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
-    
     <xsl:function name="cdit:generate_vector_operation">
         <xsl:param name="function_call" as="element()"/>
         <xsl:param name="tab" as="xs:integer"/>
@@ -1532,6 +1532,9 @@
                             <xsl:value-of select="''" />
                         </xsl:when>
                         <!-- Invoking a function on a class needs to point against the class variable -->
+                        <xsl:when test="$function_parent_kind = 'Class' and $worker_type = 'Component_Info'">
+                            <xsl:value-of select="''" />
+                        </xsl:when>
                         <xsl:when test="$function_parent_kind = 'Class'">
                             <xsl:value-of select="cdit:get_variable_name($node)" />
                         </xsl:when>
