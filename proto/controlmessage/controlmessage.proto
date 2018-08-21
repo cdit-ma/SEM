@@ -113,7 +113,7 @@ message Component{
     map<string, Attribute> attributes = 3;
     repeated Worker workers = 4;
 
-    repeated uint32 replicate_indices = 5;
+    repeated int32 replicate_indices = 5;
     repeated string location = 6;
 }
 
