@@ -92,7 +92,7 @@ std::string Component::GetLocalisedName(){
     s_stream << logger().get_experiment_name() << "/";
     if(location_count == indices_count){
         for(int i = 0; i < location_count; i++){
-            s_stream << component_location_[i] << "_" << replication_indices_[i] << "/";
+            s_stream << component_location_[i] << "[" << replication_indices_[i] << "]/";
         }
     }
     s_stream << get_name();
