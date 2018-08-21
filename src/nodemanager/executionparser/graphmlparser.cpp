@@ -156,3 +156,43 @@ std::string GraphmlParser::GetParentNode(const std::string& id){
         return out;
     }
 }
+
+
+std::string GraphmlParser::GetSharedParent(const std::string& left_child_id, const std::string& right_child_id){
+    std::string key = left_child_id + "|" + right_child_id;
+
+    if(!shared_parent_map_.count(key)){
+        std::string shared_parent_id;
+        std::string expr(".//node[@id=\"" + left_child_id + "\"]/ancestor::* [count(. | .//node[@id=\""  + right_child_id + "\"]/ancestor::*) = count(.//node[@id=\""  + right_child_id + "\"]/ancestor::*)][1]/..");
+
+        auto result = doc.select_node(expr.c_str());
+        if(result && result.node()){
+            shared_parent_map_.insert({key, result.node().attribute("id").value()});
+        }
+    }
+    return shared_parent_map_[key];
+}
+
+int GraphmlParser::GetHeightToParent(const std::string& child_id, const std::string& parent_id){
+    std::string key = child_id + "|" + parent_id;
+    int depth = 0;
+
+    if(!parent_height_depth_map_.count(key)){
+        auto current_id = child_id;
+        while(!current_id.empty()){
+            depth ++;
+            current_id = GetParentNode(current_id);
+            if(current_id == parent_id){
+                break;
+            }
+        }
+
+        if(current_id.empty()){
+            depth = -1;
+        }
+        parent_height_depth_map_[key] = depth;
+    }
+    return parent_height_depth_map_[key];
+}
+
+

@@ -18,6 +18,14 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
         namespaces_.emplace_back(ns);
     }
 
+    for(const auto& parent: component.location()){
+        parent_stack_.push_back(parent);
+    }
+
+    for(const auto& index: component.replicate_indices()){
+        replication_indices_.push_back(index);
+    }
+
     for(const auto& port_pb : component.ports()){
         const auto& id = port_pb.info().id();
         auto port = Port::ConstructPort(*this, port_pb);
@@ -120,6 +128,14 @@ NodeManager::Component* Component::GetProto(){
     component->mutable_info()->set_id(id_);
     component->mutable_info()->set_type(type_);
 
+    for(const auto& parent : parent_stack_){
+        component->add_location(parent);
+    }
+
+    for(const auto& index : replication_indices_){
+        component->add_replicate_indices(index);
+    }
+
     for(const auto& port : ports_){
         component->mutable_ports()->AddAllocated(port.second->GetProto());
     }
@@ -131,5 +147,6 @@ NodeManager::Component* Component::GetProto(){
     for(const auto& attribute : attributes_){
         NodeManager::AddAllocatedAttribute(component->mutable_attributes(), attribute.second->GetProto());
     }
+
     return component;
 }

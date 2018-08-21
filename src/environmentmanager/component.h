@@ -48,6 +48,9 @@ class Component{
         std::unordered_map<std::string, std::unique_ptr<Worker> > workers_;
         std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
 
+        std::vector<std::string> parent_stack_;
+        std::vector<int> replication_indices_;
+
 };
 };
 

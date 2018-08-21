@@ -4,6 +4,7 @@
 #include <list>
 #include <algorithm>
 #include <future>
+#include <sstream>
 
 #include "modellogger.h"
 #include "ports/port.h"
@@ -72,6 +73,38 @@ void Component::HandleTerminate(){
     
     BehaviourContainer::HandleTerminate();
     logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
+}
+
+void Component::SetLocation(const std::vector<std::string>& location){
+    component_location_ = location;
+}
+
+void Component::SetReplicationIndices(const std::vector<uint32_t>& indices){
+    replication_indices_ = indices;
+}
+
+std::string Component::GetLocalisedName(){
+    std::ostringstream s_stream;
+
+    auto location_count = component_location_.size();
+    auto indices_count = replication_indices_.size();
+
+    s_stream << logger().get_experiment_name() << "/";
+    if(location_count == indices_count){
+        for(int i = 0; i < location_count; i++){
+            s_stream << component_location_[i] << "[" << replication_indices_[i] << "]/";
+        }
+    }
+    s_stream << get_name();
+    return s_stream.str();
+}
+
+const std::vector<std::string>& Component::GetLocation() const{
+    return component_location_;
+}
+
+const std::vector<uint32_t>& Component::GetReplicationIndices() const{
+    return replication_indices_;
 }
 
 
