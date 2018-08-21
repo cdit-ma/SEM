@@ -66,6 +66,7 @@ struct CallbackWrapper<void, void> : GenericCallbackWrapper{
 };
 
 class Component : public BehaviourContainer{
+    friend class DeploymentContainer;
     public:
         Component(const std::string& component_name = "");
         virtual ~Component();
@@ -95,11 +96,17 @@ class Component : public BehaviourContainer{
 
         bool GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type);
         bool RemoveCallback(const std::string& port_name);
+
+        const std::vector<std::string>& GetLocation() const;
+        const std::vector<uint32_t>& GetReplicationIndices() const;
     protected:
         virtual void HandleActivate();
         virtual void HandleConfigure();
         virtual void HandlePassivate();
         virtual void HandleTerminate();
+
+        void setLocation(const std::vector<std::string>& location);
+        void setReplicationIndices(const std::vector<uint32_t>& indices);
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
@@ -111,6 +118,9 @@ class Component : public BehaviourContainer{
         std::unordered_map<std::string, std::shared_ptr<Port> > ports_;
         std::unordered_map<std::string, std::unique_ptr<GenericCallbackWrapper> > callback_functions_;
         std::unordered_map<std::string, std::pair<std::reference_wrapper<const std::type_info>, std::reference_wrapper<const std::type_info> > > callback_type_hash_;
+
+        std::vector<std::string> component_location_;
+        std::vector<uint32_t> replication_indices_;
 };
 
 template<class PortType>
