@@ -78,8 +78,7 @@ int main(int argc, char **argv){
         std::cerr << "* No QPID broker address set, using default: " << qpid_address << std::endl;
     }
     if(tao_naming_service_address.empty()){
-        tao_naming_service_address = ip_address + ":5671";
-        std::cerr << "* No Tao naming service address set, using default: " << tao_naming_service_address << std::endl;
+        std::cerr << "* No Tao naming service address set. This will cause models containing TAO ports to fail." << std::endl;
     }
 
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(execution, ip_address, registration_port, qpid_address, tao_naming_service_address));
