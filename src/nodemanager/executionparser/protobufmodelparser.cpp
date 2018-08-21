@@ -52,10 +52,16 @@ NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
 
     Calling this function on node X would return {B,C,E,F} but ignore {A,D}
 */ 
-std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind){
+std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind, std::set<std::string> prev_ids){
     std::set<std::string> source_ids;
 
     bool is_assembly_edge = edge_kind == "Edge_Assembly";
+    
+    //Detect cycle
+    if(prev_ids.count(node_id)){
+        throw std::runtime_error("Cyclic link exists in edges " + edge_kind + " containing node id: " + node_id);
+    }
+    prev_ids.insert(node_id);
     
     //Get all edges connected to node_id
     for(const auto& edge_id : entity_edge_ids_[node_id]){
@@ -75,7 +81,7 @@ std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const st
                 }
                 
                 //Get the edges originating from the source
-                const auto& connected_sources = GetTerminalSourcesByEdgeKind(edge_source, edge_kind);
+                const auto& connected_sources = GetTerminalSourcesByEdgeKind(edge_source, edge_kind, prev_ids);
 
                 //If we have edges originating from the source, append them
                 if(recurse_edges && connected_sources.size()){
@@ -222,7 +228,7 @@ bool ProtobufModelParser::PreProcess(){
     //Populate port connection map using recurse edge function to follow port delegates through
     for(const auto& port_id : endpoint_ids){
         const auto& target_id = port_id;
-        for(auto source_id : GetTerminalSourcesByEdgeKind(target_id, "Edge_Assembly")){
+        for(auto source_id : GetTerminalSourcesByEdgeKind(target_id, "Edge_Assembly", {})){
             AssemblyConnection edge;
             edge.source_id = source_id;
             edge.target_id = target_id;
@@ -239,7 +245,7 @@ bool ProtobufModelParser::PreProcess(){
     //Find the values for the Attributes which have been data linked
     for(const auto& attribute_id : graphml_parser_->FindNodes("AttributeInstance", assembly_definition_id)){
         //Get all ids which feed attribute_id with Data
-        auto data_sources = GetTerminalSourcesByEdgeKind(attribute_id, "Edge_Data");
+        auto data_sources = GetTerminalSourcesByEdgeKind(attribute_id, "Edge_Data", {});
 
         auto data_value = graphml_parser_->GetDataValue(attribute_id, "value");
         if(data_sources.size() == 1){
@@ -634,8 +640,8 @@ void ProtobufModelParser::CalculateReplication(){
                 if(component_replications_.count(source_component_id) && component_replications_.count(target_component_id)){
                     //Get all ComponentInstances from the Replication
                     for(auto source_component_instance_proto : component_replications_[source_component_id]){
-                        const auto& replicate_indices = source_component_instance_proto->replicate_indices();
-                        auto s_unique = GetUniqueSuffix({replicate_indices.begin(), replicate_indices.end()});
+                        const auto& source_replicate_indices = source_component_instance_proto->replicate_indices();
+                        auto s_unique = GetUniqueSuffix({source_replicate_indices.begin(), source_replicate_indices.end()});
                         auto s_uid = ac.source_id + s_unique;
 
                         NodeManager::Port* source_port_instance_proto = 0;
@@ -650,9 +656,25 @@ void ProtobufModelParser::CalculateReplication(){
                         if(ac.inter_assembly){
                             //Connect to all!
                             for(auto target_component_instance_proto : component_replications_[target_component_id]){
-                                const auto& replicate_indices = target_component_instance_proto->replicate_indices();
-                                auto t_unique = GetUniqueSuffix({replicate_indices.begin(), replicate_indices.end()});
+                                const auto& target_replicate_indices = target_component_instance_proto->replicate_indices();
+                                auto t_unique = GetUniqueSuffix({target_replicate_indices.begin(), target_replicate_indices.end()});
                                 auto t_uid = ac.target_id + t_unique;
+
+                                auto shared_parent_id = graphml_parser_->GetSharedParent(ac.source_id, ac.target_id);
+                                auto source_height = graphml_parser_->GetHeightToParent(ac.source_id, shared_parent_id) - 1;
+                                auto target_height = graphml_parser_->GetHeightToParent(ac.target_id, shared_parent_id) - 1;
+
+                                auto source_index = source_replicate_indices.size() - source_height;
+                                auto target_index = target_replicate_indices.size() - target_height;
+
+                                if(source_index > 0 && target_index > 0){
+                                    auto source_replicate_index = source_replicate_indices[source_index];
+                                    auto target_replicate_index = target_replicate_indices[target_index];
+
+                                    if(source_replicate_index != target_replicate_index){
+                                        continue;
+                                    }
+                                }
 
                                 NodeManager::Port* target_port_instance_proto = 0;
                                 if(port_replicate_id_map_.count(t_uid)){
@@ -1178,3 +1200,4 @@ NodeManager::Worker* ProtobufModelParser::ConstructWorkerPb(const std::string& w
     FillProtobufAttributes(worker_pb->mutable_attributes(), worker_id, unique_id_suffix);
     return worker_pb;
 }
+

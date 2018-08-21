@@ -84,7 +84,7 @@ class ProtobufModelParser{
         
         void FillProtobufAttributes(::google::protobuf::Map< ::std::string, ::NodeManager::Attribute >* attrs, const std::string& parent_id, const std::string& unique_id_suffix);
 
-        std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind);
+        std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind, std::set<std::string> prev_id);
 
         void CalculateReplication();
         std::string GetDeployedHardwareID(const std::string& component_id);
