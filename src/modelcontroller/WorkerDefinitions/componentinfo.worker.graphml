@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
+    <key attr.name="is_optional_param" attr.type="boolean" for="all" id="is_optional_param"/>
+
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+
+    <graph id="G">
+        <node id="ComponentInfo">
+            <data key="kind">Class</data>
+            <data key="version">1.0.0</data>
+            <data key="worker">Component_Info</data>
+            <data key="label">Component_Info</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">circleSegment</data>
+            <data key="description">Provides Component State Getting</data>
+            <graph id="ComponentInfo:">
+                <node id="ComponentInfo::get_name">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Name</data>
+                    <data key="operation">get_name</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">label</data>
+                    <data key="description">Returns an element from a std::vector at an index.</data>
+                    <graph id="ComponentInfo::get_name:">
+                        <node id="ComponentInfo::get_name::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::get_name::out:">
+                                <node id="ComponentInfo::get_name::name">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Label</data>
+                                    <data key="type">String</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="ComponentInfo::get_id">
+                    <data key="kind">Function</data>
+                    <data key="label">Get ID</data>
+                    <data key="operation">get_id</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">fingerprint</data>
+                    <data key="description">Gets the ID of this Component Instance.</data>
+                    <graph id="ComponentInfo::get_id:">
+                        <node id="ComponentInfo::get_id::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::get_id::out:">
+                                <node id="ComponentInfo::get_id::out::name">
+                                    <data key="kind">Member</data>
+                                    <data key="type">String</data>
+                                    <data key="label">ID</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="ComponentInfo::get_type">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Type</data>
+                    <data key="operation">get_type</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">tiles</data>
+                    <data key="description">Gets the Type of this Component Instance.</data>
+                    <graph id="ComponentInfo::get_type:">
+                        <node id="ComponentInfo::get_type::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::get_type::out:">
+                                <node id="ComponentInfo::get_type::out::name">
+                                    <data key="kind">Member</data>
+                                    <data key="type">String</data>
+                                    <data key="label">Type</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="ComponentInfo::GetLocalisedName">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Localised Name</data>
+                    <data key="operation">GetLocalisedName</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">label</data>
+                    <data key="description">Gets the Type of this Component Instance.</data>
+                    <graph id="ComponentInfo::GetLocalisedName:">
+                        <node id="ComponentInfo::GetLocalisedName::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::GetLocalisedName::out:">
+                                <node id="ComponentInfo::GetLocalisedName::out::name">
+                                    <data key="kind">Member</data>
+                                    <data key="type">String</data>
+                                    <data key="label">Localised Name</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="ComponentInfo::get_location">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Location</data>
+                    <data key="operation">GetLocation</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cards</data>
+                    <data key="description">Gets the Vector which has the the name of the parent assemblies</data>
+                    <graph id="ComponentInfo::get_location:">
+                        <node id="ComponentInfo::get_location::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::get_location::out:">
+                                <node id="ComponentInfo::get_location::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="label">Location Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <graph id="ComponentInfo::get_location::vector:">
+                                        <node id="ComponentInfo::get_location::vector::name">
+                                            <data key="kind">Member</data>
+                                            <data key="type">String</data>
+                                        </node>
+                                    </graph>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+
+                <node id="ComponentInfo::GetReplicationIndices">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Replication Indices</data>
+                    <data key="operation">GetReplicationIndices</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cards</data>
+                    <data key="description">Gets the Vector which has the the replication values of the ComponentInstance</data>
+                    <graph id="ComponentInfo::GetReplicationIndices:">
+                        <node id="ComponentInfo::GetReplicationIndices::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="ComponentInfo::GetReplicationIndices::out:">
+                                <node id="ComponentInfo::GetReplicationIndices::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="label">Replication Indices Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <graph id="ComponentInfo::GetReplicationIndices::vector:">
+                                        <node id="ComponentInfo::GetReplicationIndices::vector::name">
+                                            <data key="kind">Member</data>
+                                            <data key="type">Integer</data>
+                                        </node>
+                                    </graph>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="ComponentInfo::Passivate">
+                    <data key="kind">Function</data>
+                    <data key="label">Shutdown Component</data>
+                    <data key="operation">Passivate</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">power</data>
+                    <data key="description">Shutdown the Component. Cannot be called from within a HandleTransition Function.</data>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>

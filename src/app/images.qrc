@@ -293,6 +293,7 @@
         <file alias="octagonCriticalDark">Resources/Icons/octagonCriticalDark.png</file>
         <file alias="option">Resources/Icons/option.png</file>
         <file alias="package">Resources/Icons/package.png</file>
+        <file alias="power">Resources/Icons/power.png</file>
         <file alias="pencil">Resources/Icons/pencil.png</file>
         <file alias="person">Resources/Icons/person.png</file>
         <file alias="personCircle">Resources/Icons/personCircle.png</file>

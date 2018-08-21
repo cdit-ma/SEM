@@ -5,5 +5,6 @@
             <file alias="memory.worker">WorkerDefinitions/memory.worker.graphml</file>
             <file alias="utility.worker">WorkerDefinitions/utility.worker.graphml</file>
             <file alias="vector.worker">WorkerDefinitions/vector.worker.graphml</file>
+            <file alias="componentinfo.worker">WorkerDefinitions/componentinfo.worker.graphml</file>
     </qresource>
 </RCC>
