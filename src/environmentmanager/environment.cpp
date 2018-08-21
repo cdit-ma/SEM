@@ -366,6 +366,9 @@ std::string Environment::GetAmqpBrokerAddress(){
 }
 
 std::string Environment::GetTaoNamingServiceAddress(){
+    if(tao_naming_service_address_.empty()){
+        throw std::runtime_error("TAO naming service not set in environment manager.");
+    }
     return tao_naming_service_address_;
 }
 
