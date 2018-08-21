@@ -199,13 +199,9 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
-    
     auto assembly = new Assembly(graphml_parser_->GetDataValue(assembly_definition_id, "label"), assembly_definition_id);
 
     GenerateReplications(assembly);
-
-    
-
 
     //Construct a Deployment Map which points EventPort - > QOSProfile
     for(const auto& e_id: qos_edge_ids_){
@@ -531,11 +527,10 @@ bool ProtobufModelParser::ParseComponents(){
         for(auto ns : GetNamespace(component_def_id)){
             component_info_pb->add_namespaces(ns);
         }
-        
+
         const auto& replication_indices = component_instance->GetReplicationIndices();
         const auto& location = component_instance->GetReplicationLocation();
-        
-        //
+
         *(component_pb->mutable_replicate_indices()) = {replication_indices.begin(), replication_indices.end()};
         *(component_pb->mutable_location()) = {location.begin(), location.end()};
 
