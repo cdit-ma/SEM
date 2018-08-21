@@ -119,7 +119,16 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     if(!component){
         //Construct the Component
         component = ConstructComponent(component_info_pb.type(), component_info_pb.name(), GetNamespaceString(component_info_pb), component_info_pb.id());
+        
+        //Set the once off information
+        if(component){
+            const auto& location = component_pb.location();
+            const auto& replicate_indices = component_pb.replicate_indices();
+            component->setLocation({location.begin(), location.end()});
+            component->setReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+        }
     }
+
 
     if(component){
         //Handle the attributes

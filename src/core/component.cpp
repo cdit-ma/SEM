@@ -74,6 +74,22 @@ void Component::HandleTerminate(){
     logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }
 
+void Component::setLocation(const std::vector<std::string>& location){
+    component_location_ = location;
+}
+
+void Component::setReplicationIndices(const std::vector<uint32_t>& indices){
+    replication_indices_ = indices;
+}
+
+const std::vector<std::string>& Component::GetLocation() const{
+    return component_location_;
+}
+
+const std::vector<uint32_t>& Component::GetReplicationIndices() const{
+    return replication_indices_;
+}
+
 
 std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
     std::lock_guard<std::mutex> ports_lock(port_mutex_);
