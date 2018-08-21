@@ -57,11 +57,6 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
         set_id(node.info().id());
         
         //Try and configure all components
-        for(const auto& component_pb : node.components()){
-            GetConfiguredComponent(component_pb);
-        }
-
-        //Try and configure all components
         for(const auto& logger_pb : node.loggers()){
             switch(logger_pb.type()){
                 case NodeManager::Logger::CLIENT:{
@@ -78,6 +73,12 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                     break;
             }
         }
+        
+        //Try and configure all components
+        for(const auto& component_pb : node.components()){
+            GetConfiguredComponent(component_pb);
+        }
+
 
         std::cout << "* Configured Slave as: " << get_name() << std::endl;
         return Activatable::Configure();
