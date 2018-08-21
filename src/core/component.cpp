@@ -79,7 +79,7 @@ void Component::SetLocation(const std::vector<std::string>& location){
     component_location_ = location;
 }
 
-void Component::SetReplicationIndices(const std::vector<uint32_t>& indices){
+void Component::SetReplicationIndices(const std::vector<int>& indices){
     replication_indices_ = indices;
 }
 
@@ -103,7 +103,7 @@ const std::vector<std::string>& Component::GetLocation() const{
     return component_location_;
 }
 
-const std::vector<uint32_t>& Component::GetReplicationIndices() const{
+const std::vector<int>& Component::GetReplicationIndices() const{
     return replication_indices_;
 }
 
