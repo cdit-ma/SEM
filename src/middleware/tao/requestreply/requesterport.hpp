@@ -180,7 +180,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
             try{
                 auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
                 auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(tao::GetReference(tao_reply_ptr));
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
@@ -329,7 +329,7 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
         if(timeout_client){
             try{
                 auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(tao::GetReference(tao_reply_ptr));
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);

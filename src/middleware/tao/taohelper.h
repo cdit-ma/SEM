@@ -54,6 +54,22 @@ namespace tao{
         std::unordered_map<std::string, std::unique_ptr<ThreadManager> > orb_run_futures_;
         std::unordered_set<PortableServer::POA_ptr> registered_poas_;
     };
+    template<class TaoType> 
+    TaoType &GetReference(TaoType *object) { 
+        return *object; 
+    }
+    TaoType &GetReference(TaoType &object) { 
+        return object; 
+    }
+
+    template<typename TaoType>
+    void DeleteTaoType(TaoType *object) {
+        delete object
+    }
+    template<typename TaoType>
+    void DeleteTaoType(TaoType &object) {
+        // do nothing
+    }
 };
 
 

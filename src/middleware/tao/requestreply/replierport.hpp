@@ -14,6 +14,39 @@ static_assert(false, "Requires TAO_SERVER_FUNC_NAME To Be Defined")
 //https://www.codeproject.com/Articles/24863/A-Simple-C-Client-Server-in-CORBA
 
 namespace tao{
+    // The default case for pointer TAO types
+    template<typename TaoType, bool big>
+    struct <class TaoType, bool small>
+    struct TaoTraitHelper {
+        typedef TaoType* return_type;
+    };
+
+    template<class TaoType>
+    struct TaoTraitHelper<TaoType, false> {
+        typedef TaoType return_type;
+    };
+
+    template<class TaoType>
+    struct TaoTrait : TaoTraitHelper<TaoType, sizeof(TaoType) <= 4> {};
+
+    template<class TaoType>
+    struct DelayedTaoCast {
+        DelayedTaoCast(TaoType *ptr) : m_ptr(ptr) {};
+        operator TaoType*() const { return m_ptr; }
+        operator TaoType() {
+            TaoType result(*m_ptr);
+            delete m_ptr;
+            return result;
+        }
+        private:
+    };
+
+    //helper function for instantiating DelayedTaoCast
+    template<class TaoType>
+    DelayedTaoCast<TaoType> delayedTaoCast(TaoType *ptr) {
+        return DelayedTaoCast<TaoType>(ptr);
+    }
+
     template <class BaseReplyType, class TaoReplyType, class BaseRequestType, class TaoRequestType, class TaoServerInt>
     struct RequestHandler;
 
@@ -63,12 +96,12 @@ namespace tao{
             TaoServerImpl(tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>& port):
                 eventport(port){
             };
-            TaoReplyType* TAO_SERVER_FUNC_NAME(const TaoRequestType& message){
+            typename TaoTrait<TaoReplyType>::return_type TAO_SERVER_FUNC_NAME(const TaoRequestType& message){
                 try{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     auto base_result = eventport.ProcessRequest(*base_message);
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return tao_result_ptr;
+                    return delayTaoCast(tao_result_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply/Request Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what(), true);
@@ -107,11 +140,11 @@ namespace tao{
             TaoServerImpl(tao::ReplierPort<BaseReplyType, TaoReplyType, void, void, TaoServerInt>& port):
                 eventport(port){
             };
-            TaoReplyType* TAO_SERVER_FUNC_NAME(){
+            typename TaoTrait<TaoReplyType>::return_type TAO_SERVER_FUNC_NAME(){
                 try{
                     auto base_result = eventport.ProcessRequest();
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return tao_result_ptr;
+                    return delayTaoCast(tao_result_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what(), true);
