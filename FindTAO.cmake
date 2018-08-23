@@ -37,7 +37,7 @@ function(TAO_GENERATE_CPP SRCS HDRS)
             OUTPUT  ${CURRENT_SRCS}
                     ${CURRENT_HDRS}
             COMMAND ${TAO_GEN_EXECUTABLE}
-            ARGS ${tao_include_path} -o ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
+            ARGS -Cw ${tao_include_path} -o ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FILE}
             DEPENDS ${ABS_FILE} ${TAO_GEN_EXECUTABLE} 
             COMMENT "Running tao_idl on ${FILE}"
             VERBATIM)
