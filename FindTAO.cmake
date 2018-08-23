@@ -76,15 +76,16 @@ find_library(TAO_PS_LIBRARY NAMES TAO_PortableServer HINTS ${ACE_ROOT}/lib)
 find_library(TAO_ATC_LIBRARY NAMES TAO_AnyTypeCode HINTS ${ACE_ROOT}/lib)
 find_library(TAO_IOR_LIBRARY NAMES TAO_IORTable HINTS ${ACE_ROOT}/lib)
 find_library(TAO_MESSAGING_LIBRARY NAMES TAO_Messaging HINTS ${ACE_ROOT}/lib)
-find_library(TAO_VALUE_TYPE NAMES TAO_Valuetype HINTS ${ACE_ROOT}/lib)
+find_library(TAO_VALUE_TYPE_LIBRARY NAMES TAO_Valuetype HINTS ${ACE_ROOT}/lib)
+find_library(TAO_COS_NAMING_LIBRARY NAMES TAO_CosNaming HINTS ${ACE_ROOT}/lib)
 
 find_program(TAO_GEN_EXECUTABLE
         NAMES tao_idl
         DOC "The TAO idl compiler"
         HINTS ${ACE_ROOT}/bin)
 
-set(TAO_INCLUDE_DIRS ${ACE_ROOT} ${TAO_ROOT})
-set(TAO_LIBRARIES ${TAO_LIBRARY} ${ACE_LIBRARY} ${TAO_PS_LIBRARY} ${TAO_ATC_LIBRARY} ${TAO_IOR_LIBRARY} ${TAO_MESSAGING_LIBRARY} ${TAO_VALUE_TYPE})
+set(TAO_INCLUDE_DIRS ${ACE_ROOT} ${TAO_ROOT} "${TAO_ROOT}/orbsvcs")
+set(TAO_LIBRARIES ${TAO_LIBRARY} ${ACE_LIBRARY} ${TAO_PS_LIBRARY} ${TAO_ATC_LIBRARY} ${TAO_IOR_LIBRARY} ${TAO_MESSAGING_LIBRARY} ${TAO_VALUE_TYPE_LIBRARY} ${TAO_COS_NAMING_LIBRARY})
  
 include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(TAO
