@@ -521,6 +521,95 @@
         <xsl:value-of select="cdit:output_test('EventportDelegates established correctly', $results, 1)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_kinds_requiring_instances" as="xs:string*">
+        <xsl:variable name="impl_kinds" select="('ReplierPort', 'RequesterPort', 'Component', 'Class', 'PublisherPort', 'SubscriberPort', 'Attribute')" />
+        <xsl:variable name="instance_kinds" select="($impl_kinds, 'Aggregate', 'Enum', 'InputParameterGroup', 'ReturnParameterGroup', 'Member', 'Vector')" />
+
+        <xsl:for-each select="$impl_kinds">
+            <xsl:sequence select="concat(., 'Impl')" />
+        </xsl:for-each>
+        <xsl:for-each select="$instance_kinds">
+            <xsl:sequence select="concat(., 'Instance')" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_instance_kinds" as="xs:string*">
+        <xsl:param name="kind" as="xs:string"/>
+        <xsl:choose>
+            <xsl:when test="starts-with($kind, 'ReplierPort')">
+                <xsl:sequence select="'ReplierPort'" />
+            </xsl:when>
+            <xsl:when test="starts-with($kind, 'RequesterPort')">
+                <xsl:sequence select="'RequesterPort'" />
+            </xsl:when>
+            <xsl:when test="starts-with($kind, 'PublisherPort')">
+                <xsl:sequence select="'PublisherPort'" />
+            </xsl:when>
+            <xsl:when test="starts-with($kind, 'SubscriberPort')">
+                <xsl:sequence select="'SubscriberPort'" />
+            </xsl:when>
+            <xsl:when test="starts-with($kind, 'Component')">
+                <xsl:sequence select="'Component'" />
+            </xsl:when>
+            <xsl:when test="starts-with($kind, 'Class')">
+                <xsl:sequence select="'Class'" />
+            </xsl:when>
+            <xsl:when test="$kind = 'AttributeInstance'">
+                <xsl:sequence select="'Attribute'" />
+            </xsl:when>
+            <xsl:when test="$kind = 'AggregateInstance'">
+                <xsl:sequence select="'Aggregate'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+            <xsl:when test="$kind = 'VectorInstance'">
+                <xsl:sequence select="'Vector'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+            <xsl:when test="$kind = 'EnumInstance'">
+                <xsl:sequence select="'Enum'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+            <xsl:when test="$kind = 'MemberInstance'">
+                <xsl:sequence select="'Member'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+            <xsl:when test="$kind = 'InputParameterGroupInstance'">
+                <xsl:sequence select="'InputParameterGroup'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+            <xsl:when test="$kind = 'ReturnParameterGroupInstance'">
+                <xsl:value-of select="'ReturnParameterGroup'" />
+                <xsl:sequence select="$kind" />
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
+   
+
+    <xsl:function name="cdit:test_instances">
+        <xsl:param name="model" as="element(gml:node)"/>
+
+        <xsl:variable name="instances" select="graphml:get_descendant_nodes_of_kind($model, cdit:get_kinds_requiring_instances())" />
+
+        <xsl:variable name="results">
+            <xsl:for-each select="$instances">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
+                <xsl:variable name="definition" select="graphml:get_definition(.)" />
+                <xsl:variable name="definition_kind" select="graphml:get_kind($definition)" />
+                <xsl:variable name="required_kind" select="cdit:get_instance_kinds($kind)" />
+
+
+                <xsl:variable name="port_aggregate_targets" select="graphml:get_targets(., 'Edge_Aggregate')" />
+                <xsl:value-of select="cdit:output_result($id, $definition_kind = $required_kind and $definition != ., o:join_list(($kind, o:wrap_quote($label), 'is not connected (Edge_Definition) to an entity of kind', $required_kind[1]), ' '), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+        
+        <xsl:value-of select="cdit:output_test('Test Instances', $results, 1)" />
+    </xsl:function>
+
+
 
     <xsl:function name="cdit:test_unique_topic_names">
         <xsl:param name="model" as="element(gml:node)"/>
@@ -622,12 +711,20 @@
                             <xsl:value-of select="cdit:output_result($id, $aggregate_def = $linked_aggregates[1], o:join_list(('Port', o:wrap_quote($label), 'is connected to an Aggregate different to the AggregateInstance it contains'), ' '), false(), 2)" />        
                         </xsl:when>
                         <xsl:when test="count($linked_aggregates) = 0">
-                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('Port', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('PubSub Port', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to an Aggregate'), ' '), false(), 2)" />        
                         </xsl:when>
                         <xsl:when test="count($aggregates) = 0">
-                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('Port', o:wrap_quote($label), 'does not contain an instance of an Aggregate'), ' '), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, false(), o:join_list(('PubSub Port', o:wrap_quote($label), 'does not contain an instance of an Aggregate'), ' '), false(), 2)" />        
                         </xsl:when>
                     </xsl:choose>
+                </xsl:for-each>
+
+                <xsl:for-each select="$reqrep_ports">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    <xsl:variable name="label" select="graphml:get_label(.)" />  
+                    <xsl:variable name="linked_interfaces" select="graphml:get_targets(., 'Edge_Aggregate')" />
+
+                    <xsl:value-of select="cdit:output_result($id, count($linked_interfaces) = 1, o:join_list(('ReqRep Port', o:wrap_quote($label), 'is not connected (Edge_Aggregate) to a ServerInterface'), ' '), false(), 2)" />        
                 </xsl:for-each>
                 
                 <xsl:for-each select="$pubsub_port_inst, $reqrep_port_inst">
@@ -722,7 +819,7 @@
                  
                 <xsl:variable name="is_deployed" select="$is_directly_deployed or $is_indirectly_deployed" />
                 
-                <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(('ComponentInstance', o:wrap_quote($label), 'is not deployed'), ' '), false(), 2)"/> 
+                <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(('ComponentInstance', o:wrap_quote($label), 'is not deployed'), ' '), true(), 2)"/> 
 
                 <xsl:if test="count($deployed_nodes) = 1 and count($parent_deployed_nodes) = 1">
                     <xsl:variable name="same_node" select="$deployed_nodes[1] = $parent_deployed_nodes[1]" />
@@ -774,6 +871,10 @@
         <xsl:value-of select="cdit:output_test($test, $results, 1)" />
     </xsl:function>
 
+     <xsl:function name="cdit:general_tests">
+        <xsl:param name="model" as="element(gml:node)"/>
+        <xsl:value-of select="cdit:test_instances($model)" />
+    </xsl:function>
 
 
     <xsl:function name="cdit:aggregate_tests">

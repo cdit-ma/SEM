@@ -1968,12 +1968,15 @@
         <!-- For each Aggregate Definition -->
         <xsl:for-each select="graphml:get_definitions($aggregates)">
             <xsl:if test="position() = 1">
-                <xsl:sequence select="cpp:comment(('A Include required', o:wrap_quote($middleware), graphml:get_kind(.), 'header files'), 0)" />
+                <xsl:sequence select="cpp:comment(('Include required', o:wrap_quote($middleware), graphml:get_kind(.), 'header files'), 0)" />
             </xsl:if>
             
             <xsl:variable name="header_file" select="cdit:get_aggregates_generated_middleware_header_path(., $middleware)" />
             <xsl:sequence select="cpp:include_local_header($header_file)" />
-            <xsl:sequence select="if (position() = last()) then o:nl(1) else ''" />
+
+            <xsl:if test="position() = last()">
+                <xsl:sequence select="o:nl(1)" />
+            </xsl:if>
         </xsl:for-each>
     </xsl:function>
 
