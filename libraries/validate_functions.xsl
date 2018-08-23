@@ -557,6 +557,9 @@
             <xsl:when test="$kind = 'AttributeInstance'">
                 <xsl:sequence select="'Attribute'" />
             </xsl:when>
+            <xsl:when test="$kind = 'PeriodicPortInstance'">
+                <xsl:sequence select="'PeriodicPort'" />
+            </xsl:when>
             <xsl:when test="$kind = 'AggregateInstance'">
                 <xsl:sequence select="'Aggregate'" />
                 <xsl:sequence select="$kind" />
