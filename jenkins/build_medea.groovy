@@ -53,7 +53,7 @@ for(n in medea_nodes){
 
                     if(os_name == "Linux"){
                         globstr = '*.run'
-                    }else if(os_name == "Mac OS X")
+                    }else if(os_name == "Mac OS X"){
                         globstr = '*.dmg'
                     }else if(os_name == "Windows"){
                         globstr = '*.exe'
