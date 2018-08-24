@@ -49,7 +49,7 @@ for(n in medea_nodes){
                 dir("installers"){
                     def globstr = ""
                     
-                    def os_name = utils.getOSName(node_name)
+                    def os_name = utils.getNodeOSName(node_name)
 
                     if(os_name == "Linux"){
                         globstr = '*.run'
