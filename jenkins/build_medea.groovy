@@ -48,10 +48,14 @@ for(n in medea_nodes){
                 utils.runScript("cpack")
                 dir("installers"){
                     def globstr = ""
+                    
+                    def os_name = utils.getOSName(node_name)
 
-                    if(isUnix()){
+                    if(os_name == "Linux"){
+                        globstr = '*.run'
+                    }else if(os_name == "Mac OS X")
                         globstr = '*.dmg'
-                    }else{
+                    }else if(os_name == "Windows"){
                         globstr = '*.exe'
                     }
 
