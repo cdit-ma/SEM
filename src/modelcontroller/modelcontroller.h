@@ -233,9 +233,9 @@ private:
     bool storeEntity(Entity* item, int desired_id);
     void removeEntity(Entity* item);
 
-    bool destructEntity(int ID);
-    bool destructEntity(Entity* item);
-    bool destructEntities(QList<Entity*> entities);
+    void destructEntity(int ID);
+    void destructEntity(Entity* item);
+    void destructEntities(QList<Entity*> entities);
     
     void destructEdge_(Edge* edge);
     void destructNode_(Node* node);

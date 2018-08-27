@@ -1,5 +1,6 @@
 #include "modelcontroller.h"
 
+#include <iterator>
 #include <algorithm>
 #include <QDateTime>
 #include <QDebug>
@@ -138,14 +139,8 @@ bool ModelController::SetupController(const QString& file_path)
 ModelController::~ModelController()
 {
     setModelAction(MODEL_ACTION::DESTRUCTING);
-    QList<Entity*> entities {workerDefinitions, model};
-    auto destruct_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    destructEntities(entities);
-    auto destruct_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "DESTRUCTING MODEL: " <<  destruct_finished - destruct_start << "MS";
+    destructEntities({workerDefinitions, model});
     delete entity_factory;
-    auto destruct_ef_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "DESTRUCTING entity factory: " <<  destruct_ef_finished - destruct_finished << "MS";
 }
 
 /**
@@ -795,11 +790,9 @@ void ModelController::remove(QList<int> ids)
 {
     QWriteLocker lock(&lock_);
     auto selection = getOrderedEntities(ids);
-    bool success = false;
     if(canRemove(selection)){
-
         triggerAction("Removing Selection");
-        success = destructEntities(selection);
+        destructEntities(selection);
     }
     emit ActionFinished();
 }
@@ -1261,43 +1254,36 @@ void ModelController::destructEdge_(Edge *edge){
     }
 }
 
-bool ModelController::destructEntity(int ID){
-    return destructEntity(entity_factory->GetEntity(ID));
-}
-bool ModelController::destructEntity(Entity* item){
-    return destructEntities({item});
+void ModelController::destructEntity(int ID){
+    destructEntity(entity_factory->GetEntity(ID));
 }
 
-bool ModelController::destructEntities(QList<Entity*> entities)
+void ModelController::destructEntity(Entity* item){
+    destructEntities({item});
+}
+
+void ModelController::destructEntities(QList<Entity*> entities)
 {
     QSet<Entity*> nodes;
     QSet<Entity*> edges;
-
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
     
     for(auto entity : entities){
         if(entity){
             if(entity->isNode()){
                 auto node = (Node*) entity;
-                nodes.insert(node);
-                for(auto dependant : node->getNestedDependants()){
-                    nodes.insert(dependant);
-                }
+                nodes += node;
+
+                const auto& nested_nodes = node->getNestedDependants();
+                std::for_each(nested_nodes.begin(), nested_nodes.end(), [&nodes](Node* node){nodes += node;});
             }else if(entity->isEdge()){
                 auto edge = (Edge*) entity;
-                edges.insert(edge);
+                edges += edge;
             }
         }
     }
 
-    auto delete_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "CONSTRUCT DESTRUCT LIST: " <<  delete_list - start << "MS: " << nodes.count();
-    
     //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
-
-    auto sort_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "SORTED DESTRUCT LIST: " <<  sort_list - delete_list << "MS";
 
     //Get all the edges
     for(auto n : sorted_nodes){
@@ -1305,42 +1291,29 @@ bool ModelController::destructEntities(QList<Entity*> entities)
             edges += edge;
         }
     }
-
-    auto edge_list = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "CONSTRUCT EDGE DESTRUCT LIST: " <<  edge_list - sort_list << "MS";
-
-    if(!edges.empty()){
+    
+    if(edges.size()){
         //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(edges.toList(), true);
         addActionToStack(action);
 
-        //Destruct all the edges
-        for(auto e : edges){
-            destructEdge_((Edge*)e);
-        }
+        std::for_each(edges.begin(), edges.end(), [this](Entity* edge){destructEdge_((Edge*)edge);});
     }
-
-    auto edge_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "DESTRUCTED EDGES: " <<  edge_deleted - edge_list << "MS";
 
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
         
         auto action = getNewAction(GRAPHML_KIND::NODE);
-        action.entity_id = entity->getID();
+        action.entity_id = node->getID();
         action.parent_id = node->getParentNodeID();
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(entity);
-        
         addActionToStack(action);
+
         destructNode_(node);
     }
-
-    auto nodes_deleted = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "DESTRUCTED NOIDES: " <<  nodes_deleted - edge_deleted << "MS";
-    return true;
 }
 
 
@@ -1348,12 +1321,7 @@ void ModelController::destructNode_(Node* node){
     if(node){
         //Remove children
         auto children = node->getChildren();
-        while(!children.isEmpty()){
-            //delete from the end.
-            auto child = children.takeLast();
-            removeEntity(child);
-
-        }
+        std::for_each(children.rbegin(), children.rend(), std::bind(&ModelController::removeEntity, this, std::placeholders::_1));
         removeEntity(node);
     }
 }
@@ -1371,11 +1339,10 @@ bool ModelController::reverseAction(HistoryAction action)
             if(!entity){
                 qCritical() << " NO ENTITY WITH ID: " << action.entity_id  << "INSIDE: " << action.parent_id;
                 qCritical() << action.xml;
-            }else{
-                //qCritical() << "Destructing Entity: " << entity->toString();
+                return false;
             }
-
-            return destructEntities({entity});
+            destructEntities({entity});
+            return true;
         }
         case GRAPHML_KIND::DATA:{
             return destructData_(entity, action.Data.key_name);
@@ -1519,9 +1486,6 @@ bool ModelController::canDeleteNode(Node *node)
                     return false;
                 }
                 break;
-            case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::RETURN_PARAMETER:
-                //return false;
             default:
                 break;
         }

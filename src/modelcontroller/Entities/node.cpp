@@ -736,7 +736,10 @@ QSet<Node *> Node::getNestedDependants()
     QSet<Node*> dependants;
 
     //All our children are dependants
-    dependants += getAllChildren();
+    for(auto child : getAllChildren()){
+        dependants += child;
+        dependants += child->getNestedDependants();
+    }
 
     for(auto dependant : getDependants()){
         dependants += dependant;
