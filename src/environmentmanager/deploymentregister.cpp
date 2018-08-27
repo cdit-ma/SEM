@@ -220,7 +220,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
     }
     else{
-        std::cerr << "NO DEPLOYMENT YET?" << std::endl;
         //At this point, we have an experiment of the same id as ours and we aren't deployed to it.
         //Therefore terminate
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
