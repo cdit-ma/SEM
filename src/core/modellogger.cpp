@@ -26,7 +26,7 @@ void Print_WorkerEvent(const re_common::WorkloadEvent& event){
 
     std::cout << "[" << event.info().hostname() << "/";
     std::cout << event.component().name() << "<" << event.component().type() << ">/";
-    std::cerr << event.name() << "/" << event.function() << "";
+    std::cout << event.name() << "/" << event.function() << "";
     std::cout << "] " << event.args();
     std::cout << std::endl;
 }

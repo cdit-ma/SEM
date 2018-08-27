@@ -98,7 +98,7 @@ class Component : public BehaviourContainer{
         bool RemoveCallback(const std::string& port_name);
 
         const std::vector<std::string>& GetLocation() const;
-        const std::vector<uint32_t>& GetReplicationIndices() const;
+        const std::vector<int>& GetReplicationIndices() const;
         std::string GetLocalisedName();
     protected:
         virtual void HandleActivate();
@@ -107,7 +107,7 @@ class Component : public BehaviourContainer{
         virtual void HandleTerminate();
 
         void SetLocation(const std::vector<std::string>& location);
-        void SetReplicationIndices(const std::vector<uint32_t>& indices);
+        void SetReplicationIndices(const std::vector<int>& indices);
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
@@ -121,7 +121,7 @@ class Component : public BehaviourContainer{
         std::unordered_map<std::string, std::pair<std::reference_wrapper<const std::type_info>, std::reference_wrapper<const std::type_info> > > callback_type_hash_;
 
         std::vector<std::string> component_location_;
-        std::vector<uint32_t> replication_indices_;
+        std::vector<int> replication_indices_;
 };
 
 template<class PortType>

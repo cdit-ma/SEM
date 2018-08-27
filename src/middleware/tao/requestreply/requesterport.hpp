@@ -179,8 +179,9 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
         if(timeout_client){
             try{
                 auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
-                auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
+                auto tao_reply = timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(tao::GetReference(tao_reply));
+                tao::DeleteTaoObject(tao_reply);
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
@@ -188,7 +189,6 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
                 //Clean up the memory from the base_reply_ptr
                 delete request_ptr;
                 delete base_reply_ptr;
-                delete tao_reply_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
                 return base_reply;
@@ -328,8 +328,9 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
         //it is more efficient to use the unchecked version.
         if(timeout_client){
             try{
-                auto tao_reply_ptr = timeout_client->TAO_SERVER_FUNC_NAME();
-                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(*tao_reply_ptr);
+                auto tao_reply = timeout_client->TAO_SERVER_FUNC_NAME();
+                auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(tao::GetReference(tao_reply));
+                tao::DeleteTaoObject(tao_reply);
 
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
