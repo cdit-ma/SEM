@@ -12,6 +12,7 @@ bool OpenCL_Worker::InitFFT() {
         return false;
     }
     err = clfftSetup(fftSetupData);
+    delete fftSetupData;
     if (err != clfftStatus::CLFFT_SUCCESS) {
         Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to successfully set up the clFFT library");

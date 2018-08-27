@@ -9,6 +9,9 @@
 class ProtobufModelParser{
     public:
         ProtobufModelParser(const std::string& filename, const std::string& experiment_id);
+        ~ProtobufModelParser(){
+            delete top_level_assembly_;
+        }
         bool IsValid();
 
         std::string GetDeploymentJSON();
@@ -26,11 +29,19 @@ class ProtobufModelParser{
                     parent->children.push_back(this);
                 }
             };
+
             Assembly(Assembly* assembly):
             Assembly(assembly->name, assembly->assembly_id, assembly->parent){
                 this->replication_count = assembly->replication_count;
             };
-            
+            ~Assembly(){
+                for(auto child : children){
+                    delete child;
+                }
+                for(auto replication : replications){
+                    delete replication;
+                }
+            };
 
             std::string name;
             std::string assembly_id;
@@ -60,14 +71,14 @@ class ProtobufModelParser{
             std::string GetUniqueIdSuffix() const;
         };
 
-
-
         std::list<std::string> GetNamespace(const std::string& id);
         std::unique_ptr<GraphmlParserInt> graphml_parser_;
         bool is_valid_;
         bool pre_process_success_;
         bool process_success_;
         bool PreProcess();
+
+        Assembly* top_level_assembly_ = 0;
 
         void GenerateReplications(Assembly* parent);
 
