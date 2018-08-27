@@ -86,3 +86,20 @@ void MEDEA::Function::parentSet(Node* parent){
 
     Node::parentSet(parent);
 }
+
+
+QSet<Node*> MEDEA::Function::getDependants() const{
+    static std::function<QSet<Node*> (const Node*)> getRecursiveInstances = [](const Node* node){
+        QSet<Node*> instances;
+
+        for(auto child : node->getInstances()){
+            if(!instances.contains(child)){
+                instances += child;
+                instances += getRecursiveInstances(child);
+            }
+        }
+        return instances;
+    };
+
+    return getRecursiveInstances(this);
+}

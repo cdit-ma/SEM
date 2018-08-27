@@ -124,6 +124,8 @@ class Node : public Entity
         QSet<Node*> getImplementations() const;
         virtual QSet<Node*> getDependants() const;
         QSet<Node*> getNestedDependants();
+
+        
         
 
         void ToGraphmlStream(QTextStream& stream, int indend_depth);

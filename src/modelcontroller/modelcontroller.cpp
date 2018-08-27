@@ -480,9 +480,6 @@ void ModelController::addDependantsToDependants(Node* parent_node, Node* source)
                     dependant_kind_list.append(source->getInstanceKinds());
                 }
 
-
-                
-
                 for(auto &dependant_kinds : dependant_kind_list){
                     bool constructed_dependant = false;
                     //Try Either
@@ -511,23 +508,26 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
             attachChildNode(parent_node, source, false);
         }
 
+        auto source_parent_node = source->getParentNode();
+
         
-        if(source->getParentNode() == parent_node){
+        if(source_parent_node == parent_node && source_parent_node){
             auto edge = construct_edge(edge_kind, source, destination, false);
             if(edge){
                 storeNode(source);
                 storeEdge(edge);
                 success = true;
             }else{
-                qCritical() << "COULDN'T MAKE EDGE BETWEEN: " << source->toString() << " < - > " << destination->toString();
+                qCritical() << "COULDN'T MAKE EDGE BETWEEN: " << source->toString() << " IN: " << parent_node->toString() << " < - > " << destination->toString() << " IN: " << (destination->getParentNode() ? destination->getParentNode()->toString() : " NO PARENT? ");
             }
         }
     }
 
-    //Make sure we add Dependants
-    addDependantsToDependants(parent_node, source);
-
-    if(!success && source){
+    if(success){
+        //Make sure we add Dependants
+        addDependantsToDependants(parent_node, source);
+    }else if(source){
+        //If we haven't construct an edge, we should delete the source element we created.
         entity_factory->DestructEntity(source);
         source = 0;
     }
@@ -1690,6 +1690,8 @@ bool ModelController::setupDefinitionRelationship(Node* instance, Node* definiti
                         if(dependant_child){
                             got_node = true;
                             break;
+                        }else{
+                            qCritical() << " NO DEPENDANT";
                         }
                     }
                     if(got_node){
