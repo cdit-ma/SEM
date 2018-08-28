@@ -26,7 +26,6 @@ AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
-
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
     broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 0);
 
@@ -35,8 +34,11 @@ AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) 
 
 void AttributeInstance::parentSet(Node* parent){
     if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
+        
         setDataReceiver(true);
     }else if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
+        //Remove the value data
+        getFactoryBroker().RemoveData(this, "value");
         setDataProducer(true);
     }
     DataNode::parentSet(parent);

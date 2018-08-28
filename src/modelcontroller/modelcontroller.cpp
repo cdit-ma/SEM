@@ -151,9 +151,6 @@ void ModelController::loadWorkerDefinitions()
     if(workerDefinitions){
         QList<QDir> worker_directories{QDir(":/WorkerDefinitions")};
         QStringList extensions{"*.worker"};
-        //QStringList extensions{"*memory*.worker"};
-
-        
         
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){

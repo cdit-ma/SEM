@@ -34,7 +34,17 @@ Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : DataNode(broke
 
 void Attribute::parentSet(Node* parent){
     if(getViewAspect() != VIEW_ASPECT::INTERFACES){
-        setDataProducer(true);
+        auto parent_kind = parent->getNodeKind();
+
+        switch(parent_kind){
+            case NODE_KIND::PORT_PERIODIC:{
+                break;
+            }
+            default:{
+                setDataProducer(true);
+                break;
+            }
+        }
     }
     DataNode::parentSet(parent);
 }

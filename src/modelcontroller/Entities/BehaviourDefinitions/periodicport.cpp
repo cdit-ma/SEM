@@ -32,7 +32,6 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
     broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsed");
     broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Frequency");
     broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
-    broker.SetAcceptsEdgeKind(frequency, EDGE_KIND::DATA, EDGE_DIRECTION::TARGET, false);
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 

@@ -864,8 +864,20 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::ATTRIBUTE_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("value");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+
+                switch(item->getViewAspect()){
+                    case VIEW_ASPECT::BEHAVIOUR:{
+                        node_item->setSecondaryTextKey("type");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                        break;
+                    }
+                    default:{
+                        node_item->setSecondaryTextKey("value");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                        break;
+                    }
+                }
+
                 break;
             case NODE_KIND::SERVER_INTERFACE:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
@@ -903,6 +915,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::ATTRIBUTE_IMPL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
                 node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:
