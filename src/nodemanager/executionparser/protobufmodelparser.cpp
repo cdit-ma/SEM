@@ -199,9 +199,9 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
-    auto assembly = new Assembly(graphml_parser_->GetDataValue(assembly_definition_id, "label"), assembly_definition_id);
+    top_level_assembly_ = new Assembly(graphml_parser_->GetDataValue(assembly_definition_id, "label"), assembly_definition_id);
 
-    GenerateReplications(assembly);
+    GenerateReplications(top_level_assembly_);
 
     //Construct a Deployment Map which points EventPort - > QOSProfile
     for(const auto& e_id: qos_edge_ids_){
