@@ -14,7 +14,10 @@ def kill_map = [:]
 //Construct a builder map
 for(n in nodes){
     def node_name = n
-
+    if(node_name == ""){
+        node_name = "master"
+    }
+    
     kill_map[node_name] = {
         node(node_name){
             if(CLEANUP_WORKSPACE){
@@ -31,7 +34,7 @@ for(n in nodes){
             }
 
             if(KILL_ENV_MANAGER){
-                utils.runScript("pkill -f re_execution_manager")
+                utils.runScript("pkill -f re_environment_manager")
             }
         }
     }
