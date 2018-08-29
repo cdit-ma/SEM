@@ -109,7 +109,7 @@
                                 <node id="ComponentInfo::GetLocalisedName::out::name">
                                     <data key="kind">Member</data>
                                     <data key="type">String</data>
-                                    <data key="label">Localised Name</data>
+                                    <data key="label">Localised_Name</data>
                                 </node>
                             </graph>
                         </node>
@@ -131,7 +131,7 @@
                                     <data key="kind">Vector</data>
                                     <data key="outer_type">Vector</data>
                                     <data key="inner_type"/>
-                                    <data key="label">Location Vector</data>
+                                    <data key="label">Location_Vector</data>
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
@@ -163,7 +163,7 @@
                                     <data key="kind">Vector</data>
                                     <data key="outer_type">Vector</data>
                                     <data key="inner_type"/>
-                                    <data key="label">Replication Indices Vector</data>
+                                    <data key="label">Replication_Indices_Vector</data>
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
