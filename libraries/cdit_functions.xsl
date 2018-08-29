@@ -528,10 +528,13 @@
     </xsl:function>
 
     <xsl:function name="cdit:get_variable_label" as="xs:string">
-        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="label_" as="xs:string" />
         <xsl:param name="node" as="element()?" />
 
+        <xsl:variable name="label" select="replace($label_, ' ', '_')" />" />
+
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
+
         <xsl:variable name="parent_node" select="graphml:get_parent_node($node)" />
         <xsl:variable name="parent_kind" select="graphml:get_kind($parent_node)" />
 
