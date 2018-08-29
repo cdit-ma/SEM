@@ -531,7 +531,7 @@
         <xsl:param name="label_" as="xs:string" />
         <xsl:param name="node" as="element()?" />
 
-        <xsl:variable name="label" select="replace($label_, ' ', '_')" />" />
+        <xsl:variable name="label" select="replace($label_, ' ', '_')" />
 
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
 
