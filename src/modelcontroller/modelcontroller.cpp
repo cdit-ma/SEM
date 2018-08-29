@@ -1687,8 +1687,6 @@ bool ModelController::setupDefinitionRelationship(Node* instance, Node* definiti
                         if(dependant_child){
                             got_node = true;
                             break;
-                        }else{
-                            qCritical() << " NO DEPENDANT";
                         }
                     }
                     if(got_node){
