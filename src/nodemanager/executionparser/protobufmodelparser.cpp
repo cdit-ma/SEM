@@ -1180,7 +1180,7 @@ NodeManager::Worker* ProtobufModelParser::ConstructWorkerPb(const std::string& w
     const auto& class_type = graphml_parser_->GetDataValue(worker_id, "type");
     
     //Ignore vector operations
-    if(class_type == "Vector_Operations"){
+    if(class_type == "Vector_Operations" || class_type == "Component_Info"){
         return 0;
     }
     
