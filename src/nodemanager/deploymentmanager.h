@@ -52,7 +52,7 @@ class DeploymentManager{
 
         const int RETRY_COUNT = 10;
 
-        zmq::ProtoReceiver* subscriber_ = 0;
+        std::unique_ptr<zmq::ProtoReceiver> subscriber_;
 
         std::string library_path_;
         std::string experiment_id_;

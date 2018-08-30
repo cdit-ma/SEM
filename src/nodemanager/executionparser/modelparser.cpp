@@ -174,7 +174,6 @@ void Graphml::ModelParser::Process(){
         if(!GetComponentAssembly(c_id)){
             auto assembly = new ComponentAssembly();
             assembly->id = c_id;
-            
             assembly->replicate_count = std::stoi(GetDataValue(c_id, "replicate_count"));
             
             auto parent_id = graphml_parser_->GetParentNode(c_id);

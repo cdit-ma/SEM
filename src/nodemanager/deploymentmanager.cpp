@@ -8,6 +8,7 @@
 #include <re_common/zmq/environmentrequester/environmentrequester.h>
 #include <re_common/proto/controlmessage/helper.h>
 
+const static int MAX_RETRY_COUNT = 5;
 DeploymentManager::DeploymentManager(bool on_master_node,
                                     const std::string& library_path,
                                     Execution* execution,
@@ -27,7 +28,7 @@ DeploymentManager::DeploymentManager(bool on_master_node,
     environment_manager_endpoint_ = environment_manager_endpoint;
 
     //Construct a live receiever
-    subscriber_ = new zmq::ProtoReceiver();
+    subscriber_ = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
 
     execution_->AddTerminateCallback(std::bind(&DeploymentManager::InteruptQueueThread, this));
 
@@ -53,7 +54,8 @@ bool DeploymentManager::QueryEnvironmentManager(){
     EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_, EnvironmentRequester::DeploymentType::RE_SLAVE);
     requester.Init(environment_manager_endpoint_);
 
-    while(true){
+    auto retry_count = 0;
+    while(retry_count < MAX_RETRY_COUNT){
         NodeManager::ControlMessage response;
         
         try{
@@ -77,11 +79,20 @@ bool DeploymentManager::QueryEnvironmentManager(){
                 
                 return master_registration_endpoint_.size() && master_registration_endpoint_.size();
             }
-            default:{
+            case NodeManager::ControlMessage::NO_TYPE:{
+                retry_count ++;
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-                //Please Continue
                 break;
             }
+            default:{
+                std::cerr << "Got Unhandled ControlMessage Type: " << NodeManager::ControlMessage_Type_Name(response.type()) << std::endl;
+                return false;
+            }
+        }
+
+        std::unique_lock<std::mutex> lock(notify_mutex_);
+        if(terminate_){
+            break;
         }
     }
 
@@ -129,16 +140,8 @@ void DeploymentManager::InteruptQueueThread(){
 }
 
 DeploymentManager::~DeploymentManager(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    
-    if(subscriber_){
-        subscriber_->Terminate();
-        delete subscriber_;
-        subscriber_ =  0;
-    }
-
-
-    control_queue_future_.get();
+    //The registrant requires that the Deployment Manager is still alive to shutdown
+    registrant_.reset();
 }
 
 void DeploymentManager::Teardown(){

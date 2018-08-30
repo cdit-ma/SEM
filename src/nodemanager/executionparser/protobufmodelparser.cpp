@@ -430,7 +430,7 @@ std::string ProtobufModelParser::GetDeployedHardwareID(const std::string& compon
     }
 };
 
-bool ProtobufModelParser::ParseLoggingClients(){
+void ProtobufModelParser::ParseLoggingClients(){
     for(const auto& client_id : logging_client_ids_){
         //Get hardware node pb message that this logger is deployed to
         auto hardware_id = deployed_entities_map_[client_id];
@@ -469,7 +469,7 @@ bool ProtobufModelParser::ParseLoggingClients(){
     }
 }
 
-bool ProtobufModelParser::ParseLoggingServers(){
+void ProtobufModelParser::ParseLoggingServers(){
     for(const auto& server_id : logging_server_ids_){
         //Get hardware node pb message that this logger is deployed to
         auto hardware_id = deployed_entities_map_[server_id];
@@ -495,7 +495,7 @@ bool ProtobufModelParser::ParseLoggingServers(){
     }
 }
 
-bool ProtobufModelParser::ParseComponents(){
+void ProtobufModelParser::ParseComponents(){
     for(auto component_instance : component_instances_){
         const auto& component_id = component_instance->component_instance_id;
         const auto& component_def_id = GetDefinitionId(component_id);

@@ -26,7 +26,7 @@ zmq::Registrant::~Registrant(){
     registration_loop_.get();
 }
 
-void  zmq::Registrant::SendTerminated(){
+void zmq::Registrant::SendTerminated(){
     std::unique_lock<std::mutex> lock(terminated_mutex_);
     terminated_ = true;
     terminated_cv_.notify_all();

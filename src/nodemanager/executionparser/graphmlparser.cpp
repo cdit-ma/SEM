@@ -117,8 +117,6 @@ std::string GraphmlParser::GetDataValue(const std::string& id, const std::string
                 if(node){
                     out = node.child_value();
                     data_lookup_[id] = out;
-                }else{
-                    std::cerr << "GraphmlParser: Entity with ID: '" << id << "' doesn't have an data value with key: '" << key_name << "'" << std::endl;
                 }
             }
         }else{
@@ -127,6 +125,7 @@ std::string GraphmlParser::GetDataValue(const std::string& id, const std::string
         return out;
     }
 }
+
 
 std::string GraphmlParser::GetParentNode(const std::string& id, int depth){
     std::string parent_id = id;

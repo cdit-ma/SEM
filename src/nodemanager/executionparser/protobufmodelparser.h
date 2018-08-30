@@ -85,9 +85,9 @@ class ProtobufModelParser{
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
         bool ParseExternalDelegates(NodeManager::ControlMessage* control_message);
 
-        bool ParseLoggingClients();
-        bool ParseLoggingServers();
-        bool ParseComponents();
+        void ParseLoggingClients();
+        void ParseLoggingServers();
+        void ParseComponents();
 
         bool Process();
 

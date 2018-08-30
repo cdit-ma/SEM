@@ -95,23 +95,25 @@ bool ExecutionManager::PopulateDeployment(){
             //std::cout << deployment_message_->DebugString() << std::endl;
             response = requester_->AddDeployment(*deployment_message_);
         }catch(const std::runtime_error& ex){
-            //If anything goes wrong, we've failed to populate our deployment. Return false
-            std::cerr << "Failed to populate deployment." << std::endl;
+            std::cerr << "* Error Populating Deployment: " << ex.what() << std::endl;
             return false;
         }
 
         *deployment_message_ = response;
 
-        //std::cout << deployment_message_->DebugString() << std::endl;
-        const auto& attrs = deployment_message_->attributes();
-        master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
-        master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
+        if(deployment_message_){
+            const auto& attrs = deployment_message_->attributes();
+            master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
+            master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
 
-        if(master_publisher_endpoint_.empty()){
-            throw std::runtime_error("Got empty Master Publisher Endpoint");
-        }
-        if(master_registration_endpoint_.empty()){
-            throw std::runtime_error("Got empty Master Registration Endpoint");
+            if(master_publisher_endpoint_.empty()){
+                throw std::runtime_error("Got empty Master Publisher Endpoint");
+            }
+            if(master_registration_endpoint_.empty()){
+                throw std::runtime_error("Got empty Master Registration Endpoint");
+            }
+        }else{
+            return false;
         }
     }
     return true;
