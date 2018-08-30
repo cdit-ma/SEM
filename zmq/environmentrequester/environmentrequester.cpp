@@ -1,6 +1,8 @@
 #include "environmentrequester.h"
 #include <zmq.hpp>
 #include <controlmessage.pb.h>
+#include "../zmqutils.hpp"
+
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id,
                                             EnvironmentRequester::DeploymentType deployment_type){
@@ -138,6 +140,7 @@ uint64_t EnvironmentRequester::GetClock(){
     return clock_;
 }
 
+
 void EnvironmentRequester::HeartbeatLoop(){
     if(!context_){
         std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
@@ -184,30 +187,34 @@ void EnvironmentRequester::HeartbeatLoop(){
         NodeManager::EnvironmentMessage initial_reply;
         initial_reply.ParseFromString(reply);
         if(initial_reply.type() == NodeManager::EnvironmentMessage::ERROR_RESPONSE){
-            for(auto error_message : initial_reply.error_messages()){
-                std::cout << error_message << std::endl;
-            }
-            if(!request_queue_.empty()){
+            std::stringstream str_stream;
+            const auto& error_list = initial_reply.error_messages();
+            std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
+
+            {
+                std::lock_guard<std::mutex> lock(request_queue_lock_);
+                //Clearing the requests
                 while(!request_queue_.empty()){
-                    auto request = request_queue_.front();
+                    auto request = std::move(request_queue_.front());
+                    const auto& exception = std::runtime_error("Environment Manager Error: \n" + str_stream.str());
+                    request->response_.set_exception(std::make_exception_ptr(exception));
                     request_queue_.pop();
-                    request.response_->set_value("");
                 }
             }
+
             environment_manager_not_found_ = true;
             return;
         }
         manager_update_endpoint_ = initial_reply.update_endpoint();
     }
     else{
-        std::cerr << "Environment manager not found at: " << manager_endpoint_ << std::endl;
-        std::cerr << "Terminating." << std::endl;
-        std::unique_lock<std::mutex> lock(request_queue_lock_);
-        if(!request_queue_.empty()){
+        {
+            std::lock_guard<std::mutex> lock(request_queue_lock_);
+            //Clearing the requests
             while(!request_queue_.empty()){
-                auto request = request_queue_.front();
+                auto request = std::move(request_queue_.front());
+                request->response_.set_exception(std::make_exception_ptr(std::runtime_error("Environment Manager Not Found")));
                 request_queue_.pop();
-                request.response_->set_value("");
             }
         }
         environment_manager_not_found_ = true;
@@ -226,84 +233,88 @@ void EnvironmentRequester::HeartbeatLoop(){
     int retry_count = 0;
     //Start heartbeat loop
     while(retry_count < 5){
-        //If our request queue is empty, wait till time for next heartbeat and send unless we get a wake up in that time
-        if(request_queue_.empty()){
-            std::unique_lock<std::mutex> lock(request_queue_lock_);
-            auto trigger = request_queue_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD));
 
+        bool timeout = true;
+        std::unique_ptr<EnvironmentRequester::Request> request_message;
+        {
+            std::unique_lock<std::mutex> lock(request_queue_lock_);
+            
+            
+            auto got_message = request_queue_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD), [=](){
+                return !request_queue_.empty();
+            });
+
+            
             if(end_flag_ || !context_){
                 break;
             }
 
+            //We have a message, so take it off the queue and release mutex
+            if(got_message){
+                timeout = false;
+                request_message = std::move(request_queue_.front());
+                request_queue_.pop();
+            }
+        }
+
+        if(request_message){
+            SendRequest(*update_socket, *request_message);
+            //Reset our retry
+            retry_count = 0;
+        }else{
             NodeManager::EnvironmentMessage message;
             message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
-            //CV timed out, send heartbeat
-            if(trigger == std::cv_status::timeout){
-                std::string output;
-                message.SerializeToString(&output);
-                ZMQSendRequest(*update_socket, output);
-                auto reply = ZMQReceiveReply(*update_socket);
-                if(reply.empty()){
-                    retry_count ++;
-                    //TODO: Run shutdown callback from here!
-                    std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
-                }else{
-                    retry_count = 0;
-                }
+            const auto& str_message = message.SerializeAsString();
+            
+            ZMQSendRequest(*update_socket, str_message);
+
+            const auto& reply = ZMQReceiveReply(*update_socket);
+            if(reply.empty()){
+                retry_count ++;
+                std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
+            }else{
+                retry_count = 0;
 
                 NodeManager::EnvironmentMessage reply_message;
                 reply_message.ParseFromString(reply);
 
                 try{
                     HandleReply(reply_message);
-
                 }
                 catch(const std::exception& ex){
                     //todo: call registered exception handling callback??
                     std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
                 }
             }
-            //CV got wakeup, take from request queue
-            else if(trigger == std::cv_status::no_timeout){
-                auto request = request_queue_.front();
-                request_queue_.pop();
-                SendRequest(*update_socket, request);
-                //Reset our retry
-                retry_count = 0;
-            }
-        }
-
-        //If we have something in our request queue, send it immediately
-        else{
-            std::unique_lock<std::mutex> lock(request_queue_lock_);
-            auto request = request_queue_.front();
-            request_queue_.pop();
-            SendRequest(*update_socket, request);
         }
     }
+
     if(retry_count >= 5){
         std::cerr << "EnvironmentRequester::HeartbeatLoop Timed out" << std::endl;
     }
 }
 
 void EnvironmentRequester::End(){
-    end_flag_ = true;
-    request_queue_cv_.notify_one();
+    {
+        std::lock_guard<std::mutex> lock(request_queue_lock_);
+        end_flag_ = true;
+        request_queue_cv_.notify_one();
+    }
     if(heartbeat_future_.valid()){
         heartbeat_future_.get();
     }
 }
 
-NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::ControlMessage& control_message){
+NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManager::ControlMessage& control_message){
     if(environment_manager_not_found_){
         throw std::runtime_error("Could not add deployment as environment manager was not found.");
     }
+
     NodeManager::EnvironmentMessage env_message;
-    auto current_control_message = env_message.mutable_control_message();
-
-    *current_control_message = control_message;
-
     env_message.set_type(NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
+    
+    auto current_control_message = env_message.mutable_control_message();
+    *current_control_message = control_message;
 
     NodeManager::EnvironmentMessage message;
     try{
@@ -317,6 +328,13 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::Con
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
         throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
+    }
+
+    if(message.type() != NodeManager::EnvironmentMessage::SUCCESS){
+        std::stringstream str_stream;
+        const auto& error_list = message.error_messages();
+        std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
+        throw std::runtime_error("Got non success in EnvironmentRequester::AddDeployment: \n" + str_stream.str());
     }
 
     return message.control_message();
@@ -370,24 +388,21 @@ NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::st
     return reply_message;
 }
 std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){
-
-    std::promise<std::string>* request_promise = new std::promise<std::string>();
-    std::future<std::string> request_future = request_promise->get_future();
-    Request request_struct = {request, request_promise};
-
-    std::unique_lock<std::mutex> lock(request_queue_lock_);
-    request_queue_.push(request_struct);
-    lock.unlock();
+    auto request_struct = std::unique_ptr<Request>(new Request({request}));
+    auto request_future = request_struct->response_.get_future();
+    
+    std::lock_guard<std::mutex> lock(request_queue_lock_);
+    request_queue_.emplace(std::move(request_struct));
     request_queue_cv_.notify_one();
     return request_future;
 }
 
-void EnvironmentRequester::SendRequest(zmq::socket_t& update_socket, EnvironmentRequester::Request request){
+void EnvironmentRequester::SendRequest(zmq::socket_t& update_socket, EnvironmentRequester::Request& request){
     ZMQSendRequest(update_socket, request.request_data_);
     auto reply = ZMQReceiveReply(update_socket);
 
     //Handle response
-    request.response_->set_value(reply);
+    request.response_.set_value(reply);
 }
 
 void EnvironmentRequester::ZMQSendRequest(zmq::socket_t& socket, const std::string& request){

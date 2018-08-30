@@ -33,7 +33,7 @@ class EnvironmentRequester{
         void Init(const std::string& manager_endpoint);
         void Start();
         void End();
-        NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
+        NodeManager::ControlMessage AddDeployment(const NodeManager::ControlMessage& control_message);
 
         void RemoveDeployment();
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
@@ -46,7 +46,7 @@ class EnvironmentRequester{
     private:
         struct Request{
             std::string request_data_;
-            std::promise<std::string>* response_;
+            std::promise<std::string> response_;
         };
 
         std::unique_ptr<zmq::socket_t> ConstructRequestPort();
@@ -75,7 +75,7 @@ class EnvironmentRequester{
 
         //Request helpers
         std::future<std::string> QueueRequest(const std::string& request);
-        void SendRequest(zmq::socket_t&, Request request);
+        void SendRequest(zmq::socket_t&, Request& request);
         void HandleReply(NodeManager::EnvironmentMessage& message);
 
         std::string experiment_id_;
@@ -93,7 +93,7 @@ class EnvironmentRequester{
         //Request queue
         std::mutex request_queue_lock_;
         std::condition_variable request_queue_cv_;
-        std::queue<Request> request_queue_;
+        std::queue< std::unique_ptr<Request> > request_queue_;
 
         //ZMQ sockets and helpers
         std::unique_ptr<zmq::context_t> context_;
