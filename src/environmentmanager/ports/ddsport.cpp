@@ -81,28 +81,26 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             topic_names.insert(dds_port.GetTopic());
         }
 
+        //If we have any size other than ONE for either list, warn user.
         if(topic_names.size() > 1){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple topics connected to Port: '" << GetId() << "'" << std::endl;
         }
+        if(topic_names.size() == 0){
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, defaulting to user set topic_name." << std::endl;
+        }
+
         if(domain_ids.size() > 1){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple domains connected to Port: '" << GetId() << "'" << std::endl;
         }
+        if(domain_ids.size() == 0){
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, defaulting to user set domain_id." << std::endl;
+        }
 
         //Set topic name and domain id. If none found based on connected ports, use value set on port.
-        if(domain_ids.size() > 0){
-            NodeManager::SetIntegerAttribute(attrs, "domain_id", *domain_ids.begin());
-        }
-        else{
-            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, falling back to user set domain id." << std::endl;
-            NodeManager::SetIntegerAttribute(attrs, "domain_id", GetDomainId());
-        }
+        int domain_id = domain_ids.size() > 0 ? *domain_ids.begin() : GetDomainId();
+        NodeManager::SetIntegerAttribute(attrs, "domain_id", domain_id);
 
-        if(topic_names.size() > 0){
-            NodeManager::SetStringAttribute(attrs, "topic_name", *topic_names.begin());
-        }
-        else{
-            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, falling back to user set topic name." << std::endl;
-            NodeManager::SetIntegerAttribute(attrs, "domain_id", GetDomainId());
-        }
+        std::string topic_name = topic_names.size() > 0 ? *topic_names.begin() : GetTopic();
+        NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
     }
 }

@@ -96,15 +96,26 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             topic_names.insert(qpid_port.GetTopic());
         }
 
+
+        //If we have any size other than ONE for either list, warn user.
         if(topic_names.size() > 1){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple topics connected to Port: '" << GetId() << "'" << std::endl;
+        }
+        if(topic_names.size() == 0){
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, defaulting to user set topic_name." << std::endl;
         }
 
         if(brokers.size() > 1){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple QPID Brokers connected to Port: '" << GetId() << "'" << std::endl;
         }
+        if(brokers.size() == 0){
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, defaulting to user set broker_address." << std::endl;
+        }
 
-        NodeManager::SetStringAttribute(attrs, "broker", *brokers.begin());
-        NodeManager::SetStringAttribute(attrs, "topic_name", *topic_names.begin());
+        std::string broker = brokers.size() > 0 ? *brokers.begin() : GetBrokerAddress();
+        NodeManager::SetStringAttribute(attrs, "broker", broker);
+
+        std::string topic_name = topic_names.size() > 0 ? *topic_names.begin() : GetTopic();
+        NodeManager::SetStringAttribute(attrs, "topic_name", broker);
     }
 }
