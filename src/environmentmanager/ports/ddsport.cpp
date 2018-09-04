@@ -31,7 +31,6 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
     
     const auto& kind = GetKind();
 
-    //If we're a replier, we can set our server name(topic) and naming service endpoint based on internal information.
     if(kind == Kind::Publisher){
         std::set<int> blackbox_domain_ids;
         std::set<std::string> blackbox_topic_names;
@@ -89,8 +88,21 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
             std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Has multiple domains connected to Port: '" << GetId() << "'" << std::endl;
         }
 
-        //Set topic name of receiver port based on connected port.
-        NodeManager::SetStringAttribute(attrs, "topic_name", *topic_names.begin());
-        NodeManager::SetIntegerAttribute(attrs, "domain_id", *domain_ids.begin());
+        //Set topic name and domain id. If none found based on connected ports, use value set on port.
+        if(domain_ids.size() > 0){
+            NodeManager::SetIntegerAttribute(attrs, "domain_id", *domain_ids.begin());
+        }
+        else{
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, falling back to user set domain id." << std::endl;
+            NodeManager::SetIntegerAttribute(attrs, "domain_id", GetDomainId());
+        }
+
+        if(topic_names.size() > 0){
+            NodeManager::SetStringAttribute(attrs, "topic_name", *topic_names.begin());
+        }
+        else{
+            std::cerr << "* Experiment[" << GetExperiment().GetName() << "]: Port: '" << GetId() << "' Has no connected ports, falling back to user set topic name." << std::endl;
+            NodeManager::SetIntegerAttribute(attrs, "domain_id", GetDomainId());
+        }
     }
 }
