@@ -9,6 +9,9 @@ const QString KeyName::IconPrefix = "icon_prefix";
 const QString KeyName::Index = "index";
 const QString KeyName::InnerType = "inner_type";
 const QString KeyName::IsGenericParam = "is_generic_param";
+const QString KeyName::IsGenericParamSrc = "is_generic_param_src";
+
+
 const QString KeyName::IsOptionalParam = "is_optional_param";
 const QString KeyName::IsVariadic = "is_variadic";
 const QString KeyName::Key = "key";

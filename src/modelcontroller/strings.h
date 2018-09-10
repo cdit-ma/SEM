@@ -14,6 +14,7 @@ namespace KeyName{
     extern const QString Index;
     extern const QString InnerType;
     extern const QString IsGenericParam;
+    extern const QString IsGenericParamSrc;
     extern const QString IsOptionalParam;
     extern const QString IsVariadic;
     extern const QString Key;

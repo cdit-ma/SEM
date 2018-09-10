@@ -2,15 +2,13 @@
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
     <key attr.name="kind" attr.type="string" for="all" id="kind"/>
     <key attr.name="label" attr.type="string" for="all" id="label"/>
-
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
     <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
-
+    <key attr.name="is_generic_param_src" attr.type="boolean" for="all" id="is_generic_param_src"/>
     <key attr.name="description" attr.type="string" for="all" id="description"/>
-
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
     <key attr.name="folder" attr.type="string" for="all" id="folder"/>
     <key attr.name="file" attr.type="string" for="all" id="file"/>
@@ -23,7 +21,7 @@
     <graph id="G">
         <node id="opencl">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">OpenCL_Worker</data>
             <data key="label">OpenCL Worker</data>
             <data key="description">Provides heterogeneous compute workload functionality.</data>
@@ -56,7 +54,7 @@
                                     <data key="outer_type">Vector</data>
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                     <data key="description">The data to be buffered.</data>
                                 </node>
                                 <node id="opencl::createbuffer::in::blocking">
@@ -131,7 +129,7 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">memoryCard</data>
                                     <data key="description">The buffer to be written to</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="opencl::writebuffer::in::data">
                                     <data key="kind">Vector</data>
@@ -175,7 +173,7 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">memoryCard</data>
                                     <data key="description">The buffer to be read from</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="opencl::readbuffer::in::blocking">
                                     <data key="kind">Member</data>

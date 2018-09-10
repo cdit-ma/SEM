@@ -264,7 +264,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
-        auto is_generic_provider = destination->getDataValue(KeyName::IsGenericParam).toBool();
+        auto is_generic_provider = destination->getDataValue(KeyName::IsGenericParamSrc).toBool();
 
         //Try and do special data linking
         if(is_generic_provider && destination_parent){

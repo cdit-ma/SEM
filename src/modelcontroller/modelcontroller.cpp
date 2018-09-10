@@ -1998,28 +1998,8 @@ bool ModelController::isKeyNameVisual(const QString& key_name){
     return visual_key_names.contains(key_name);
 }
 
-double ModelController::compare_version(const QString& current_version, const QString& compare_version){
-    auto compare_first =  compare_version.indexOf(".") + 1;
-    auto compare_second =  compare_version.indexOf(".", compare_first);
-
-    auto current_first =  current_version.indexOf(".") + 1;;
-    auto current_second =  current_version.indexOf(".", current_first);
-
-    bool current_okay = false;
-    bool compare_okay = false;
-    //Only compare Major.Minor
-    auto current_v = current_version.left(current_second).toDouble(&current_okay);
-    auto compare_v = compare_version.left(compare_second).toDouble(&compare_okay);
-
-    if(!current_v){
-        //Should never happen
-        qCritical() << "compare_version(): Can't tokenize version number: " << current_version;
-    }
-    if(!compare_okay){
-        compare_v = 0;
-    }
-
-    return compare_v - current_v;
+int ModelController::compare_version(const QString& current_version, const QString& compare_version){
+    return current_version.compare(compare_version, Qt::CaseInsensitive);
 }
 
 bool ModelController::importGraphML(const QString& document, Node *parent)
@@ -2110,7 +2090,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
-                            auto model_version = compare_version(APP_VERSION(), value);
+                            auto model_version = compare_version(value, APP_VERSION());
 
                             if(model_version > 0){
                                 QString title = "Loading model from future MEDEA";
@@ -2212,7 +2192,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
         //Handle UUIDS
         if(handle_uuid){
-            
             const auto& uuid = entity->getDataValue("uuid").toString();
             //If we have a uuid, we should set the entity as read-only
             entity->addData("readOnly", true);
@@ -2221,6 +2200,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
             if(matched_entity && matched_entity->isNode()){
+                bool ignore_loaded_data = false;
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
                 
@@ -2231,44 +2211,51 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     auto node_kind = matched_node->getDataValue("kind").toString();
 
                     if(!version.isEmpty() && !old_version.isEmpty()){
-                        auto version_compare = compare_version(old_version, version);
+                        auto version_compare = compare_version(version, old_version);
 
                         if(version_compare > 0){
-                            QString title = "Model contains a newer " + node_kind + " named '" + old_label + "'";
+                            QString title = "Loaded Model contains a newer " + node_kind + " named '" + old_label + "'";
                             QString description = "Updated from '" % old_version % "' to '" % version % "'. Please check usage.";
                             emit Notification(MODEL_SEVERITY::WARNING, title, description);
                         }else if(version_compare < 0){
-                            QString title = "Model contains an older " + node_kind + " named '" + old_label + "'";
-                            QString description = "Reverted from '" % old_version % "' to '" % version % "'. Please check usage.";
+                            QString title = "Loaded Model contains an older " + node_kind + " named '" + old_label + "'";
+                            QString description = "Leaving current version '" % old_version % "'. Please check usage.";
                             emit Notification(MODEL_SEVERITY::WARNING, title, description);
-                        }else{
+                            ignore_loaded_data = true;
                         }
                     }
                 }
                 //Set the entity to use this.
                 entity->setID(matched_entity->getID());
 
+               
+
                 if(matched_entity->isNode()){
                     auto matched_node = (Node*) matched_entity;
-                    
-                    //Create a list of all required uuids this entity we are loading requires
-                    QStringList required_uuids;
-                    for(auto child : entity->getChildren()){
-                        required_uuids << child->getDataValue("uuid").toString();
-                    }
-                    
-                    //Remove all visual data.
-                    for(const auto& key_name : entity->getKeys()){
-                        if(isKeyNameVisual(key_name)){
-                            entity->removeData(key_name);
-                        }
-                    }
 
-                    //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
-                    for(auto child : matched_node->getChildren(0)){
-                        auto child_uuid = child->getDataValue("uuid").toString();
-                        if(!required_uuids.contains(child_uuid)){
-                            to_remove.push_back(child);
+                    if(ignore_loaded_data){
+                        //Reset the data, and ignore the 
+                        entity->clearData();
+                    }else{
+                        //Create a list of all required uuids this entity we are loading requires
+                        QStringList required_uuids;
+                        for(auto child : entity->getChildren()){
+                            required_uuids << child->getDataValue("uuid").toString();
+                        }
+                        
+                        //Remove all visual data.
+                        for(const auto& key_name : entity->getKeys()){
+                            if(isKeyNameVisual(key_name)){
+                                entity->removeData(key_name);
+                            }
+                        }
+
+                        //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
+                        for(auto child : matched_node->getChildren(0)){
+                            auto child_uuid = child->getDataValue("uuid").toString();
+                            if(!required_uuids.contains(child_uuid)){
+                                to_remove.push_back(child);
+                            }
                         }
                     }
                 }

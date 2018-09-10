@@ -2,22 +2,19 @@
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
     <key attr.name="kind" attr.type="string" for="all" id="kind"/>
     <key attr.name="label" attr.type="string" for="all" id="label"/>
-
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
     <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
     <key attr.name="is_optional_param" attr.type="boolean" for="all" id="is_optional_param"/>
-
+    <key attr.name="is_generic_param_src" attr.type="boolean" for="all" id="is_generic_param_src"/>
     <key attr.name="description" attr.type="string" for="all" id="description"/>
-
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
     <key attr.name="folder" attr.type="string" for="all" id="folder"/>
     <key attr.name="file" attr.type="string" for="all" id="file"/>
     <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
     <key attr.name="icon" attr.type="string" for="all" id="icon"/>
-
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
@@ -25,7 +22,7 @@
     <graph id="G">
         <node id="vectorworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
             <data key="icon_prefix">EntityIcons</data>
@@ -184,7 +181,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::set::in::index">
                                     <data key="kind">Member</data>
@@ -225,7 +222,7 @@
                                     <data key="description">The vector.</data>
                                     <data key="outer_type">Vector</data>
                                     <data key="inner_type"/>
-                                    <data key="is_generic_param">true</data>
+                                    <!--<data key="is_generic_param">true</data>-->
                                 </node>
                             </graph>
                         </node>
@@ -263,7 +260,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <!--<data key="is_generic_param">true</data>-->
                                 </node>
                             </graph>
                         </node>
@@ -285,11 +282,10 @@
                                     <data key="label">Vector</data>
                                     <data key="outer_type">Vector</data>
                                     <data key="inner_type"/>
-                                    
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::resize::in::size">
                                     <data key="kind">Member</data>
@@ -331,7 +327,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::swap::in::vectorb">
                                     <data key="kind">Vector</data>

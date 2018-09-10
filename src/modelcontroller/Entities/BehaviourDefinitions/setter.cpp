@@ -8,6 +8,12 @@
 const NODE_KIND node_kind = NODE_KIND::SETTER;
 const QString kind_string = "Setter";
 
+const QSet<QString> operators = {
+    "=",
+    "+=", "-=", "*=", "/=", //Modifying Operators
+    "+", "-", "*", "/" //Inline Operators
+};
+
 void Setter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
         return new Setter(broker, is_temp_node);
@@ -48,14 +54,16 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
     broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
     broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(lhs_, "is_generic_param_src", QVariant::Bool, ProtectedState::PROTECTED, true);
 
 
     //Setup Comparator
     auto data_operator = broker.AttachData(operator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
-    data_operator->addValidValues({"=", 
-                                    "+=", "-=", "*=", "/=",
-                                    "+", "-", "*", "/"
-    });
+    QList<QVariant> operator_list;
+    for(const auto& o : operators){
+        operator_list.push_back(o);
+    }
+    data_operator->addValidValues(operator_list);
 
     broker.AttachData(operator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
     broker.AttachData(operator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
@@ -118,12 +126,28 @@ void Setter::operatorChanged(){
     }
 }
 
+QString GetWrappedString(const QString& str){
+    const QSet<QString> spaced_operators = {" + ", " - ", " * ", " / " /*Inline Operators*/};
+
+    bool wrap = false;
+    for(const auto& op : spaced_operators){
+        if(str.contains(op)){
+            wrap = true;
+            break;
+        }
+    }
+    if(wrap){
+        return "(" + str + ")";
+    }
+    return str;
+}
+
 void Setter::updateLabel(){
     QString new_label = "???";
     if(lhs_ && operator_ && rhs_){
-        auto lhs_value = lhs_->getDataValue("value").toString();
+        auto lhs_value = GetWrappedString(lhs_->getDataValue("value").toString());
         auto operator_value = operator_->getDataValue("label").toString();
-        auto rhs_value = rhs_->getDataValue("value").toString();
+        auto rhs_value = GetWrappedString(rhs_->getDataValue("value").toString());
 
         if(lhs_value.length() && rhs_value.length()){
             new_label = lhs_value + " " + operator_value + " " + rhs_value;

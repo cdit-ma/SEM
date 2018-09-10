@@ -56,7 +56,7 @@ void DataTableModel::addData(const QString& keyName)
         return;
     }
 
-    bool locked = entity->isDataProtected(keyName);
+    bool locked = false;//entity->isDataProtected(keyName);
 
     int insertIndex = 0;
     if(locked){
@@ -178,11 +178,11 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
         }
     }
     if (role == Qt::DecorationRole) {
-        if(hasCodeEditor(index) || hasIconEditor(index)){
-            return  Theme::theme()->getImage("Icons", "popOut", QSize(16,16), Theme::theme()->getMenuIconColor());
-        }
         if(isIndexProtected(index)){
-            return  Theme::theme()->getImage("Icons", "lockClosed", QSize(8,8), Theme::theme()->getMenuIconColor());
+            return Theme::theme()->getIcon("Icons", "lockClosed");
+        }
+        if(hasCodeEditor(index) || hasIconEditor(index)){
+            return Theme::theme()->getIcon("Icons", "popOut");
         }
     }
 
@@ -219,7 +219,7 @@ QVariant DataTableModel::headerData(int section, Qt::Orientation orientation, in
         auto key = getKey(section);
         if(role == Qt::DisplayRole){
             return key;
-        }/* //UNCOMMENT FOR ICONS IN TABLE
+        }/*//UNCOMMENT FOR ICONS IN TABLE
         else if(role == Qt::DecorationRole){
             return  Theme::theme()->getImage("Data", key, QSize(16,16), Theme::theme()->getTextColor());
         }*/

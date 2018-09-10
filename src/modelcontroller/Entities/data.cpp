@@ -8,6 +8,7 @@ Data::Data(EntityFactoryBroker& broker, Key *key, QVariant value, bool protect) 
     this->key_name = key->getName();
     setProtected(key->isProtected());
 
+
     if(value.isValid()){
         setValue(value);
     }
@@ -190,7 +191,6 @@ void Data::addParentData(Data* data){
     if(data && !parent_datas.contains(data)){
         bool was_protected = isProtected();
         parent_datas += data;
-        store_value();
 
         connect(data, &Data::dataChanged, this, &Data::setValue);
         
@@ -211,11 +211,9 @@ void Data::removeParentData(Data* data){
         parent_datas.remove(data);
         disconnect(data, &Data::dataChanged, this, &Data::setValue);
         
-        if(parent_datas.empty()){
-            restore_value();
-            if(parent){
-                parent->_dataChanged(this);
-            }
+        setValue("");
+        if(parent){
+            parent->_dataChanged(this);
         }
     }
 }
@@ -253,17 +251,6 @@ void Data::updateChildren(bool changed)
         emit dataChanged(value);
     }
 }
-
-void Data::store_value(){
-    old_values_.push(value);
-}
-
-void Data::restore_value(){
-    if(old_values_.size()){
-        setValue(old_values_.pop());
-    }
-}
-
 
 
 void Data::addValidValue(QVariant value){

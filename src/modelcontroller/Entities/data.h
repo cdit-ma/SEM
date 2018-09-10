@@ -54,10 +54,6 @@ public:
 
     QList<QVariant> getValidValues();
 protected:
-
-    void store_value();
-    void restore_value();
-
     bool forceValue(QVariant value);
 
     void setParent(Entity* parent);

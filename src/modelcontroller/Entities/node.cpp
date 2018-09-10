@@ -16,6 +16,7 @@
 #include "../edgekinds.h"
 #include "Keys/indexkey.h"
 #include "Keys/typekey.h"
+#include "strings.h"
 
 Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) : Entity(broker, GRAPHML_KIND::NODE){
     //Setup State
@@ -933,25 +934,6 @@ void Node::LinkData(Node* source, const QString &source_key, Node* destination, 
 }
 
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
-    static const QString key_key("key");
-    static const QString key_icon("icon");
-    static const QString key_icon_prefix("icon_prefix");
-    static const QString key_value("value");
-    static const QString key_is_generic_param("is_generic_param");
-    static const QString key_is_optional_param("is_optional_param");
-    static const QString key_worker("worker");
-    static const QString key_workerID("workerID");
-    static const QString key_type("type");
-    static const QString key_inner_type("inner_type");
-    static const QString key_outer_type("outer_type");
-    static const QString key_description("description");
-    static const QString key_class("class");
-    static const QString key_is_variadic("is_variadic");
-    static const QString key_label("label");
-    static const QString key_operation("operation");
-    static const QString key_index("index");
-    
-
     if(!definition || !instance){
         return;
     }
@@ -963,26 +945,29 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     
     auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
 
+    auto definition_aspect = definition->getViewAspect();
     
     QHash<QString, QSet<QString> > bind_values;
     QHash<QString, QSet<QString> > copy_values;
     QSet<QString> required_instance_keys;
 
-    bind_values[key_key] += key_key;
-    bind_values[key_icon] += key_icon;
-    bind_values[key_icon_prefix] += key_icon_prefix;
+    bind_values[KeyName::Key] += KeyName::Key;
+    bind_values[KeyName::Icon] += KeyName::Icon;
+    bind_values[KeyName::IconPrefix] += KeyName::IconPrefix;
 
-    copy_values[key_value] += key_value;
+    copy_values[KeyName::Value] += KeyName::Value;
 
-    required_instance_keys += key_icon;
-    required_instance_keys += key_icon_prefix;
+    required_instance_keys += KeyName::Icon;
+    required_instance_keys += KeyName::IconPrefix;
 
 
-    bind_values[key_is_generic_param] += key_is_generic_param;
-    bind_values[key_is_optional_param] += key_is_optional_param;
+    bind_values[KeyName::IsGenericParam] += KeyName::IsGenericParam;
+    bind_values[KeyName::IsGenericParamSrc] += KeyName::IsGenericParamSrc;
+    bind_values[KeyName::IsOptionalParam] += KeyName::IsOptionalParam;
 
-    required_instance_keys += key_is_generic_param;
-    required_instance_keys += key_is_optional_param;
+    required_instance_keys += KeyName::IsGenericParam;
+    required_instance_keys += KeyName::IsGenericParamSrc;
+    required_instance_keys += KeyName::IsOptionalParam;
 
     bool bind_index = false;
     bool bind_labels = true;
@@ -1020,9 +1005,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
-                    copy_values[key_value] += key_value;
-                    if(definition->gotData(key_worker)){
-                        bind_values[key_worker] += key_type;
+                    copy_values[KeyName::Value] += KeyName::Value;
+                    if(definition->gotData(KeyName::Worker)){
+                        bind_values[KeyName::Worker] += KeyName::Type;
                         bind_types = false;
                     }
                 }
@@ -1030,24 +1015,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             }
             case NODE_KIND::FUNCTION_CALL:
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
-                    bind_values[key_workerID] += key_workerID;
-                    bind_values[key_operation] += key_operation;
+                    bind_values[KeyName::WorkerID] += KeyName::WorkerID;
+                    bind_values[KeyName::Operation] += KeyName::Operation;
                 }
-                bind_values[key_description] += key_description;
-                bind_values[key_class] += key_class;
-                bind_values[key_is_variadic] += key_is_variadic;
-                bind_values[key_label] += key_label;
-                required_instance_keys.insert(key_is_variadic);
+                bind_values[KeyName::Description] += KeyName::Description;
+                bind_values[KeyName::Class] += KeyName::Class;
+                bind_values[KeyName::IsVariadic] += KeyName::IsVariadic;
+                bind_values[KeyName::Label] += KeyName::Label;
+                required_instance_keys.insert(KeyName::IsVariadic);
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
-                bind_values[key_operation] += key_operation;
-                bind_values[key_description] += key_description;
-                bind_values[key_class] += key_class;
-                bind_values[key_is_variadic] += key_is_variadic;
+                bind_values[KeyName::Operation] += KeyName::Operation;
+                bind_values[KeyName::Description] += KeyName::Description;
+                bind_values[KeyName::Class] += KeyName::Class;
+                bind_values[KeyName::IsVariadic] += KeyName::IsVariadic;
                 
                 
-                required_instance_keys.insert(key_is_variadic);
+                required_instance_keys.insert(KeyName::IsVariadic);
                 break;
             }
             default:
@@ -1057,36 +1042,36 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         bind_labels = false;
     }
     
-    auto def_got_inner_type = definition->gotData(key_inner_type);
+    auto def_got_inner_type = definition->gotData(KeyName::InnerType);
 
-    auto inst_got_inner_type = instance->gotData(key_inner_type);
+    auto inst_got_inner_type = instance->gotData(KeyName::InnerType);
 
 
-    bind_values[key_inner_type] += key_inner_type;
-    bind_values[key_outer_type] += key_outer_type;
+    bind_values[KeyName::InnerType] += KeyName::InnerType;
+    bind_values[KeyName::OuterType] += KeyName::OuterType;
 
 
 
     if(bind_types){
         if(!def_got_inner_type && inst_got_inner_type){
-            bind_values[key_type] += key_inner_type;
-        }else if(definition->gotData(key_type)){
-            bind_values[key_type] += key_type;
-        }else if(definition->gotData(key_label)){
-            bind_values[key_label] += key_type;
+            bind_values[KeyName::Type] += KeyName::InnerType;
+        }else if(definition->gotData(KeyName::Type)){
+            bind_values[KeyName::Type] += KeyName::Type;
+        }else if(definition->gotData(KeyName::Label)){
+            bind_values[KeyName::Label] += KeyName::Type;
         }
     }
 
     if(bind_labels){
-        bind_values[key_label] += key_label;
+        bind_values[KeyName::Label] += KeyName::Label;
     }
 
     //Bind Index
     if(bind_index){
-        bind_values[key_index] += key_index;
-}
+        bind_values[KeyName::Index] += KeyName::Index;
+    }
 
-    for(auto key_name : required_instance_keys){
+    for(const auto& key_name : required_instance_keys){
         if(bind_values.contains(key_name)){
             auto def_data = definition->getData(key_name);
             if(def_data){
