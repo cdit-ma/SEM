@@ -353,7 +353,6 @@
                     <xsl:variable name="is_input_port_parameter" select="$kind = 'AggregateInstance' and ($parent_kind = 'SubscriberPortImpl' or $parent_parent_kind = 'ReplierPortImpl')"/>
 
                     <xsl:variable name="is_valid_kind" select="not($kind = ('VectorInstance', 'Vector'))"/>
-
                     <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'InputParameterGroup', 'VectorInstance', 'Vector', 'Variable'))) = 0"/>
                     <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance' ,'RequesterPortImpl', 'PublisherPortImpl'))) > 0 or $is_input_port_parameter"/>
                     <xsl:variable name="is_optional" select="graphml:evaluate_data_value_as_boolean(., 'is_optional_param')" />
@@ -361,7 +360,7 @@
                     <!-- Don't want to check inside vectors, as they do not need data -->
                     <xsl:if test="$is_valid_kind and $in_valid_kind">
                         <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
-                        <xsl:value-of select="cdit:output_result($id, $value != '' or $allowed_empty, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), $is_optional, 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, $value != '' or $allowed_empty or $is_optional, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), false(), 2)" />        
                         
                         <xsl:if test="$type = 'String' and $value != ''">
                             <!-- Check if string that is set is double-quote wrapped -->
@@ -646,12 +645,16 @@
                 <xsl:variable name="id" select="graphml:get_id(.)" />
                 <xsl:variable name="source" select="graphml:get_edges_source(.)" />
                 <xsl:variable name="target" select="graphml:get_edges_target(.)" />
+                <xsl:variable name="target_id" select="graphml:get_id($target)" />
+
+                <xsl:variable name="target_kind" select="graphml:get_kind($target)" />
+                <xsl:variable name="target_label" select="graphml:get_label($target)" />
 
                 <xsl:variable name="source_type" select="graphml:get_type($source)" />
                 <xsl:variable name="target_type" select="graphml:get_type($target)" />
                 <xsl:variable name="comparable_types" select="cdit:compare_nodes_types($source, $target)" />
 
-                <xsl:value-of select="cdit:output_result($id, $comparable_types, o:join_list(('Data_Edge has differing types on endpoints', o:wrap_quote($source_type), 'vs', o:wrap_quote($target_type)), ' '), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($target_id, $comparable_types, o:join_list(($target_kind, o:wrap_quote($target_label), 'with type', o:wrap_quote($target_type), 'has an invalid type', o:wrap_quote($source_type), 'connected to it (DataEdge)'), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
         <xsl:value-of select="cdit:output_test('Data Edges established correctly', $results, 1)" />

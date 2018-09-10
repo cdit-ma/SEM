@@ -674,6 +674,12 @@
         <xsl:variable name="type_1" select="graphml:get_type($source)" />
         <xsl:variable name="type_2" select="graphml:get_type($target)" />
 
+        <xsl:variable name="inner_type_1" select="graphml:get_data_value($source, 'inner_type')" />
+        <xsl:variable name="inner_type_2" select="graphml:get_data_value($target, 'inner_type')" />
+
+        <xsl:variable name="outer_type_1" select="graphml:get_data_value($source, 'outer_type')" />
+        <xsl:variable name="outer_type_2" select="graphml:get_data_value($target, 'outer_type')" />
+
         <xsl:choose>
             <xsl:when test="$type_1 = $type_2">
                 <xsl:value-of select="true()" />
@@ -682,6 +688,9 @@
                 <xsl:value-of select="true()" />
             </xsl:when>
             <xsl:when test="graphml:get_kind($target) = 'VariadicParameter'">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="($outer_type_1 = 'Vector' and $outer_type_2 != 'Vector') and cdit:is_number_type($inner_type_1) and cdit:is_number_type($inner_type_2)">
                 <xsl:value-of select="true()" />
             </xsl:when>
             <xsl:otherwise>
