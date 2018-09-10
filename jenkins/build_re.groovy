@@ -60,51 +60,38 @@ for(n in builder_nodes){
     test_map[node_name] = {
         node(node_name){
             def RE_PATH = pwd() + "/" + PROJECT_NAME
-            def RE_LIB_PATH = RE_PATH + "/lib"
-            def env_vars = []
-            
-            if(isUnix()){
-                //SET LD_LIBRARY_PATH to force the linker to find this projects libraries
-                env_vars += "LD_LIBRARY_PATH=" + RE_LIB_PATH + ":$LD_LIBRARY_PATH"
-            }else{
-                //SET PATH to force the linker to find this projects libraries
-                env_vars += "PATH=" + RE_LIB_PATH + ":$PATH"
-            }
+            dir(RE_PATH + "/bin/test"){
+                def globstr = "test_*"
+                if(!isUnix()){
+                    //If windows search for exe only
+                    globstr += ".exe"
+                }
 
-            withEnv(env_vars){
-                dir(RE_PATH + "/bin/test"){
-                    def globstr = "test_*"
-                    if(!isUnix()){
-                        //If windows search for exe only
-                        globstr += ".exe"
-                    }
-
-                    //Find all executables
-                    def test_list = findFiles glob: globstr
-                    
-                    dir("results"){
-                        for(def file : test_list){
-                            def file_path = file.name
-                            def file_name = utils.trimExtension(file_path)
-                            def test_output = file_name + "_" + node_name + ".xml"
-                            print("Running Test: " + file_path)
-                            def test_filter = ""
-                            if (!RUN_ALL_TESTS) {
-                                test_filter = " --gtest_filter=-*LONG_*"
-                            }
-                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output + test_filter)
-
-                            if(test_error_code != 0){
-                                FAILED = true
-                                print("Test: " + file_path + " Failed!")
-                                FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)
-                            }
+                //Find all executables
+                def test_list = findFiles glob: globstr
+                
+                dir("results"){
+                    for(def file : test_list){
+                        def file_path = file.name
+                        def file_name = utils.trimExtension(file_path)
+                        def test_output = file_name + "_" + node_name + ".xml"
+                        print("Running Test: " + file_path)
+                        def test_filter = ""
+                        if (!RUN_ALL_TESTS) {
+                            test_filter = " --gtest_filter=-*LONG_*"
                         }
-                        def stash_name = node_name + "_test_cases"
-                        stash includes: "*.xml", name: stash_name, allowEmpty: true
-                        //Clean up the directory after
-                        deleteDir()
+                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output + test_filter)
+
+                        if(test_error_code != 0){
+                            FAILED = true
+                            print("Test: " + file_path + " Failed!")
+                            FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)
+                        }
                     }
+                    def stash_name = node_name + "_test_cases"
+                    stash includes: "*.xml", name: stash_name, allowEmpty: true
+                    //Clean up the directory after
+                    deleteDir()
                 }
             }
         }
