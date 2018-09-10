@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <cctype>
 
+#include <google/protobuf/util/json_util.h>
+
 ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
                                     const std::string& graphml_path,
                                     double execution_duration,
@@ -100,6 +102,13 @@ bool ExecutionManager::PopulateDeployment(){
         }
 
         *deployment_message_ = response;
+
+        // std::string temp;
+        // google::protobuf::util::JsonOptions options;
+        // options.add_whitespace = true;
+        // google::protobuf::util::MessageToJsonString(*deployment_message_, &temp, options);
+
+        // std::cout << temp << std::endl;
 
         if(deployment_message_){
             const auto& attrs = deployment_message_->attributes();
