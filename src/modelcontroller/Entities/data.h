@@ -83,9 +83,7 @@ private:
 
     QList<QVariant> valid_values_;
     
-    
     QVariant value;
-    QStack<QVariant> old_values_;
 };
 
 #endif // DATA_H
