@@ -3,6 +3,8 @@
 #include <controlmessage.pb.h>
 #include "../zmqutils.hpp"
 
+#include <sstream>
+
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id,
                                             EnvironmentRequester::DeploymentType deployment_type){
