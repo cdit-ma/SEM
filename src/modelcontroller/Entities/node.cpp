@@ -975,8 +975,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     switch(instance_kind){
         case NODE_KIND::MEMBER_INSTANCE:
+        case NODE_KIND::VECTOR_INSTANCE:
         case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE){
+            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE || instance_parent_kind == NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE){
                 bind_index = true;
             }
             break;

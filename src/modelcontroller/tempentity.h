@@ -31,6 +31,8 @@ public:
     QString getIDStr();
     int getPreviousID();
 
+    void setPreviousID(int id);
+
     void setID(int ID);
     int getID();
     bool gotID();

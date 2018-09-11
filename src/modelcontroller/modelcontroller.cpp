@@ -84,6 +84,8 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
         connect(view_controller, &ViewControllerInterface::SetupModelController, this, &ModelController::SetupController, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ImportProjects, this, &ModelController::importProjects, Qt::QueuedConnection);
 
+        connect(view_controller, &ViewControllerInterface::ReloadWorkerDefinitions, this, &ModelController::loadWorkerDefinitions, Qt::QueuedConnection);
+
         connect(view_controller, &ViewControllerInterface::TriggerAction, this, &ModelController::triggerAction, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::SetData, this, &ModelController::setData, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::RemoveData, this, &ModelController::removeData, Qt::QueuedConnection);
@@ -1334,8 +1336,8 @@ bool ModelController::reverseAction(HistoryAction action)
         case GRAPHML_KIND::NODE:
         case GRAPHML_KIND::EDGE:{
             if(!entity){
-                qCritical() << " NO ENTITY WITH ID: " << action.entity_id  << "INSIDE: " << action.parent_id;
-                qCritical() << action.xml;
+                //qCritical() << " NO ENTITY WITH ID: " << action.entity_id  << "INSIDE: " << action.parent_id;
+                //qCritical() << action.xml;
                 return false;
             }
             destructEntities({entity});
@@ -1436,7 +1438,8 @@ bool ModelController::undoRedo()
             ProgressChanged_(++actions_reversed / action_count);
         }else{
             success = false;
-            qCritical() << "FAILED TO UNDO";
+
+            /*qCritical() << "FAILED TO UNDO";
 
             qCritical() << entity_factory->GetEntity(action.entity_id);
             qCritical() << "Entity ID: " << action.entity_id;
@@ -1447,7 +1450,7 @@ bool ModelController::undoRedo()
                 qCritical() << "action.Data.key_name:" << action.Data.key_name;
                 qCritical() << "action.Data.old_value:" << action.Data.old_value;
                 qCritical() << "action.Data.new_value:" << action.Data.new_value;   
-            }
+            }*/
         }
     }
 
@@ -2174,6 +2177,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     QList<Entity*> to_remove;
 
     QSet<Node*> uuid_changed_entities;
+    QSet<QString> uuids_changed;
     
     //Handle unique ids
     for(auto id : unique_entity_ids){
@@ -2192,6 +2196,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             handle_uuid = parent_node_kinds_set.intersects(always_handle_kinds);
         }
 
+
         //Handle UUIDS
         if(handle_uuid){
             const auto& uuid = entity->getDataValue("uuid").toString();
@@ -2202,7 +2207,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
             if(matched_entity && matched_entity->isNode()){
-                bool ignore_loaded_data = false;
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
                 
@@ -2220,46 +2224,45 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             QString description = "Updated from '" % old_version % "' to '" % version % "'. Please check usage.";
                             emit Notification(MODEL_SEVERITY::WARNING, title, description);
                         }else if(version_compare < 0){
+                            MODEL_SEVERITY severity = MODEL_SEVERITY::WARNING;
                             QString title = "Loaded Model contains an older " + node_kind + " named '" + old_label + "'";
-                            QString description = "Leaving current version '" % old_version % "'. Please check usage.";
-                            emit Notification(MODEL_SEVERITY::WARNING, title, description);
-                            ignore_loaded_data = true;
+                            QString description = "Reverting current version '" % old_version % "'. Please check usage.";
+
+                            if(matched_node->getNodeKind() == NODE_KIND::CLASS && matched_node->getViewAspect() == VIEW_ASPECT::WORKERS){
+                                description += "Please reimport Worker Definitions to ensure runtime compatibility.";
+                                severity = MODEL_SEVERITY::ERROR;
+                            }
+                            emit Notification(severity, title, description);
                         }
                     }
                 }
                 //Set the entity to use this.
                 entity->setID(matched_entity->getID());
 
-               
-
                 if(matched_entity->isNode()){
                     auto matched_node = (Node*) matched_entity;
 
-                    uuid_changed_entities << matched_node;
+                    uuid_changed_entities.insert(matched_node);
+                    uuids_changed.insert(uuid);
 
-                    if(ignore_loaded_data){
-                        //Reset the data, and ignore the 
-                        entity->clearData();
-                    }else{
-                        //Create a list of all required uuids this entity we are loading requires
-                        QStringList required_uuids;
-                        for(auto child : entity->getChildren()){
-                            required_uuids << child->getDataValue("uuid").toString();
+                    //Create a list of all required uuids this entity we are loading requires
+                    QStringList required_uuids;
+                    for(auto child : entity->getChildren()){
+                        required_uuids << child->getDataValue("uuid").toString();
+                    }
+                    
+                    //Remove all visual data.
+                    for(const auto& key_name : entity->getKeys()){
+                        if(isKeyNameVisual(key_name)){
+                            entity->removeData(key_name);
                         }
-                        
-                        //Remove all visual data.
-                        for(const auto& key_name : entity->getKeys()){
-                            if(isKeyNameVisual(key_name)){
-                                entity->removeData(key_name);
-                            }
-                        }
+                    }
 
-                        //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
-                        for(auto child : matched_node->getChildren(0)){
-                            auto child_uuid = child->getDataValue("uuid").toString();
-                            if(!required_uuids.contains(child_uuid)){
-                                to_remove.push_back(child);
-                            }
+                    //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
+                    for(auto child : matched_node->getChildren(0)){
+                        auto child_uuid = child->getDataValue("uuid").toString();
+                        if(!required_uuids.contains(child_uuid)){
+                            to_remove.push_back(child);
                         }
                     }
                 }
@@ -2269,7 +2272,10 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
+    //unset any entities which 
     destructEntities(to_remove);
+
+
 
     lock.unlock();
 
@@ -2284,6 +2290,19 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         ProgressUpdated_("Constructing Nodes");
     }
     QQueue<Node*> implicitly_constructed_nodes;
+
+    //Reset any delete nodes
+    for(auto id : node_ids){
+        auto entity = entity_hash.value(id, 0);
+        //Check for removed nodes.
+        if(entity->isUUIDMatched() && entity->gotID()){
+            //Get the already existant node.
+            if(!entity_factory->GetNode(entity->getID())){
+                entity->setID(-1);
+                entity->setPreviousID(-1);
+            }
+        }
+    }
 
     //Construct all nodes
     for(auto id : node_ids){
@@ -2329,7 +2348,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         if(entity->gotID()){
             //Get the already existant node.
             node = entity_factory->GetNode(entity->getID());
-        }else{
+        }
+        
+        if(!node){
             if(parent_entity->GotImplicitlyConstructedNodeID(kind)){
                 //Get the ID of the next auto constructed ID
                 auto id = parent_entity->TakeNextImplicitlyConstructedNodeID(kind);
@@ -2411,6 +2432,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
             
         }
+
         if(!node){
             QString title = "Cannot create Node '" + entity->getKind() + "'";
             QString description = "importGraphML(): Document line #" % QString::number(entity->getLineNumber());
@@ -2429,7 +2451,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     }
 
     auto constructing_node_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "Constructing Nodes took: " <<  constructing_node_finished -removing_finished << "MS";
 
     QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
@@ -2529,7 +2550,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     }
 
     auto constructing_edge_type_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    //qCritical() << "Testing edge types: " <<  constructing_edge_type_finished - constructing_node_finished << "MS";
 
 
     if(UPDATE_PROGRESS){
@@ -2637,12 +2657,25 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     if(UPDATE_PROGRESS){
         ProgressChanged_(100);
     }
+    
+    QSet<Node*> nodes_to_remove;
+    for(const auto& uuid : uuids_changed){
+        auto matched_entity = entity_factory->GetEntityByUUID(uuid);
 
-    for(auto node : uuid_changed_entities){
-        for(auto instance : node->getDependants()){
-            UpdateDefinitions(node, instance);
+        if(matched_entity && matched_entity->isNode()){
+            auto node = (Node*) matched_entity;
+            for(auto instance : node->getDependants()){
+                nodes_to_remove += UpdateDefinitions(node, instance);
+            }
         }
     }
+
+    QList<Entity*> nodes_to_remove_list;
+    std::for_each(nodes_to_remove.begin(), nodes_to_remove.end(), [&nodes_to_remove_list](Node* node){
+        nodes_to_remove_list.push_back(node);
+    });
+    destructEntities(nodes_to_remove_list);
+
 
     for(auto entity : entity_hash){
         delete entity;
@@ -2653,36 +2686,43 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 }
 
 
-void ModelController::UpdateDefinitions(Node* definition, Node* instance){
-    QList<Entity*> nodes_to_remove;
+QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance){
+    QSet<Node*> nodes_to_remove;
+    QList<Node*> definition_nodes;
+
+    //Check if the definition has a definition
+    auto def_def = definition->getDefinition(true);
+    auto def = def_def ? def_def : definition;
     
-    QQueue<Node*> definition_nodes;
-    for(auto child : definition->getChildren(0)){
+    //Get the children of the definition
+    for(auto child : def->getChildren(0)){
         if(child->isDefinition()){
-            definition_nodes += child;
+            //Check if the child itself has a definition
+            auto c_def = child->getDefinition(true);
+            auto def = c_def ? c_def : child;
+            //Add this to the list of nodes 
+            definition_nodes += def;
         }
     }
 
     for(auto child : instance->getChildren(0)){
-        if(definition_nodes.size()){
-            auto definition = definition_nodes.front();
-            if(child->getDefinition() == definition){
-                definition_nodes.pop_front();
+        auto c_def = child->getDefinition(true);
+
+        if(c_def){
+            if(definition_nodes.contains(c_def)){
+                definition_nodes.removeOne(c_def);
                 continue;
+            }else{
+                nodes_to_remove += child;
             }
         }
-        //Remove any child 
-        if(child->isInstance()){
-            nodes_to_remove += child;
-        }
     }
 
-    //Remove entities
-    destructEntities(nodes_to_remove);
-
-    for(auto inst : instance->getDependants()){
-        UpdateDefinitions(instance, inst);
+    for(auto dep : instance->getDependants()){
+        nodes_to_remove += UpdateDefinitions(definition, dep);
     }
+
+    return nodes_to_remove;
 }
 
 

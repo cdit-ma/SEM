@@ -438,8 +438,7 @@ void MainWindow::setupInnerWindow()
     setDockWidgetIcon(dockwidget_Workers, "EntityIcons", "WorkerDefinitions", theme);
     dockwidget_Workers->setIconVisible(false);
     dockwidget_Workers->setProtected(true);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);
-    */
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);*/
 
     //Set Icon Visibility
     dockwidget_Interfaces->setIconVisible(false);

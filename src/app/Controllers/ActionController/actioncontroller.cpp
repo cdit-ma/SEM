@@ -67,6 +67,10 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::importProjects);
         connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
 
+        connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
+
+        
+
         
 
         connect(edit_undo, &QAction::triggered, viewController, &ViewController::Undo);
@@ -798,6 +802,11 @@ void ActionController::setupActions()
     model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
     model_executeLocalJob->setShortcutContext(Qt::ApplicationShortcut);
     model_executeLocalJob->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
+
+    model_reloadWorkerDefinitions = createRootAction("Model", "Reload Worker Definitions", "", "Icons", "reload");
+    model_reloadWorkerDefinitions->setToolTip("Reloads the Worker Definitions for this version of MEDEA.");
+
+    
     
 
 
@@ -984,7 +993,9 @@ void ActionController::setupMainMenu()
 
     // Model Menu
     menu_model->addAction(model_selectModel);
-
+    menu_model->addAction(model_reloadWorkerDefinitions);
+    
+    menu_model->addSeparator();
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
     menu_model->addAction(model_generateModelWorkspace);

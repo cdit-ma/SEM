@@ -157,6 +157,7 @@ public:
     RootAction* model_getCodeForComponent;
     RootAction* model_generateModelWorkspace;
     RootAction* model_executeLocalJob;
+    RootAction* model_reloadWorkerDefinitions;
 
     RootAction* options_settings;
 

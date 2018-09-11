@@ -18,6 +18,8 @@
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
+    <key attr.name="index" attr.type="int" for="all" id="index"/>
+    
 
     <graph id="G">
         <node id="vectorworker">
@@ -182,6 +184,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="index">0</data>
                                 </node>
                                 <node id="vectorworker::set::in::index">
                                     <data key="kind">Member</data>
@@ -190,6 +193,7 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">listNumbered</data>
                                     <data key="description">The Index.</data>
+                                    <data key="index">1</data>
                                 </node>
                                 <node id="vectorworker::set::in::value">
                                     <data key="kind">Member</data>
@@ -198,6 +202,7 @@
                                     <data key="icon">pencil</data>
                                     <data key="description">The Value to set</data>
                                     <data key="is_generic_param">true</data>
+                                    <data key="index">2</data>
                                 </node>
                             </graph>
                         </node>

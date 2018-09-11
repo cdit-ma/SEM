@@ -35,6 +35,7 @@ signals:
     void SetupModelController(QString file_path = "");
     void ImportProjects(QList<QString> graphml_datalist);
     void UndoRedoUpdated();
+    void ReloadWorkerDefinitions();
 
     //Model Notifier Signals
     void ProjectFileChanged(QString);

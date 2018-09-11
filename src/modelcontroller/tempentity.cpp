@@ -74,6 +74,10 @@ void TempEntity::setIDStr(const QString& id_str){
     this->previous_id = str_to_int(id_str);
 }
 
+void TempEntity::setPreviousID(int id){
+    this->previous_id = id;
+}
+
 int TempEntity::getSourceIDInt(){
     return str_to_int(source_id_str);
 }
