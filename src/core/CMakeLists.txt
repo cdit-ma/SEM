@@ -11,6 +11,7 @@ project(${PROJ_NAME})
 #Find protobuf
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS thread REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.cpp
@@ -52,6 +53,7 @@ elseif(UNIX)
 endif(MSVC)
 
 #Include the directories
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
@@ -63,3 +65,4 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
+target_link_libraries(${PROJ_NAME} ${Boost_THREAD_LIBRARY})

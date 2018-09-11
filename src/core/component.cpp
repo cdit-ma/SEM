@@ -16,14 +16,13 @@ Component::Component(const std::string& component_name){
 
 Component::~Component(){
     Activatable::Terminate();
-    std::lock_guard<std::mutex> lock(port_mutex_);
+    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
     //Destory Ports
     ports_.clear();
 }
 
 void Component::HandleActivate(){
-    std::lock_guard<std::mutex> state_lock(state_mutex_);
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
     for(const auto& p : ports_){
         auto& a = p.second;
@@ -36,7 +35,7 @@ void Component::HandleActivate(){
 }
 
 void Component::HandleConfigure(){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
     for(const auto& p : ports_){
         auto& a = p.second;
@@ -48,7 +47,7 @@ void Component::HandleConfigure(){
 }
 
 void Component::HandlePassivate(){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
     for(const auto& p : ports_){
         auto& a = p.second;
@@ -62,19 +61,13 @@ void Component::HandlePassivate(){
 }
 
 void Component::HandleTerminate(){
-    std::list<std::future<bool> > results;
-
-    {
-        std::lock_guard<std::mutex> ports_lock(port_mutex_);
-        for(const auto& p : ports_){
-            auto& port = p.second;
-            if(port){
-                results.push_back(std::async(std::launch::async, &Activatable::Terminate, port));
-            }
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
+    for(const auto& p : ports_){
+        auto& port = p.second;
+        if(port){
+            port->Terminate();
         }
     }
-    results.clear();
-
     BehaviourContainer::HandleTerminate();
     logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }
@@ -113,7 +106,8 @@ const std::vector<int>& Component::GetReplicationIndices() const{
 
 
 std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
+
     if(event_port){
         const auto& port_name = event_port->get_name();
         if(ports_.count(port_name) == 0){
@@ -127,7 +121,7 @@ std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
 }
 
 std::weak_ptr<Port> Component::GetPort(const std::string& port_name){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     if(ports_.count(port_name)){
         return ports_[port_name];
     }
@@ -136,7 +130,7 @@ std::weak_ptr<Port> Component::GetPort(const std::string& port_name){
 }
 
 std::shared_ptr<Port> Component::RemovePort(const std::string& port_name){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
 
     if(ports_.count(port_name)){
         auto worker = ports_[port_name];
@@ -147,7 +141,7 @@ std::shared_ptr<Port> Component::RemovePort(const std::string& port_name){
     return std::shared_ptr<Port>();
 }
 bool Component::GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
 
     //Check for this port_name
     if(callback_type_hash_.count(port_name)){
@@ -172,7 +166,7 @@ bool Component::GotCallback(const std::string& port_name, const std::type_info& 
 
 
 void Component::AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> callback){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
     
     //Check for this port_name
     if(callback_type_hash_.count(port_name) || callback_functions_.count(port_name)){
@@ -190,7 +184,7 @@ void Component::AddCallback(const std::string& port_name, const std::type_info& 
 
 
 bool Component::RemoveCallback(const std::string& port_name){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
     
     if(callback_functions_.count(port_name) == 0){
         callback_functions_.erase(port_name);

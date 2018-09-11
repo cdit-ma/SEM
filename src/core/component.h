@@ -12,6 +12,8 @@
 #include <typeinfo>
 #include <typeindex>
 
+#include <boost/thread.hpp>
+
 #include "ports/port.h"
 class Worker;
 
@@ -113,9 +115,7 @@ class Component : public BehaviourContainer{
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
         void AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> wrapper);
 
-        std::mutex state_mutex_;
-        
-        std::mutex port_mutex_;
+        boost::shared_mutex port_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Port> > ports_;
         std::unordered_map<std::string, std::unique_ptr<GenericCallbackWrapper> > callback_functions_;
         std::unordered_map<std::string, std::pair<std::reference_wrapper<const std::type_info>, std::reference_wrapper<const std::type_info> > > callback_type_hash_;
