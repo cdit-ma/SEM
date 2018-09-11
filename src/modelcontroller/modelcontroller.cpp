@@ -2172,6 +2172,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     QWriteLocker lock(&lock_);
 
     QList<Entity*> to_remove;
+
+    QSet<Node*> uuid_changed_entities;
     
     //Handle unique ids
     for(auto id : unique_entity_ids){
@@ -2232,6 +2234,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
                 if(matched_entity->isNode()){
                     auto matched_node = (Node*) matched_entity;
+
+                    uuid_changed_entities << matched_node;
 
                     if(ignore_loaded_data){
                         //Reset the data, and ignore the 
@@ -2356,7 +2360,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             //This will stop any data stored in the aspects getting overwritten
             if(node->getID() > 0 && !IS_OPEN){
                 if(!entity->isUUIDMatched()){
-                    //qCritical() << node->toString() << " IGNORING IMPORTED DATA";
                     entity->clearData();
                 }
             }
@@ -2384,6 +2387,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                 //If it's not got a parent, set it.
                 got_parent = attachChildNode(parent_node, node, false);
                 need_to_store = true;
+
+                addDependantsToDependants(parent_node, node);
             }
 
             if(need_to_store || implicitly_created){
@@ -2633,12 +2638,51 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         ProgressChanged_(100);
     }
 
+    for(auto node : uuid_changed_entities){
+        for(auto instance : node->getDependants()){
+            UpdateDefinitions(node, instance);
+        }
+    }
+
     for(auto entity : entity_hash){
         delete entity;
     }
     delete current_entity;
-    
+
     return error_count == 0;
+}
+
+
+void ModelController::UpdateDefinitions(Node* definition, Node* instance){
+    QList<Entity*> nodes_to_remove;
+    
+    QQueue<Node*> definition_nodes;
+    for(auto child : definition->getChildren(0)){
+        if(child->isDefinition()){
+            definition_nodes += child;
+        }
+    }
+
+    for(auto child : instance->getChildren(0)){
+        if(definition_nodes.size()){
+            auto definition = definition_nodes.front();
+            if(child->getDefinition() == definition){
+                definition_nodes.pop_front();
+                continue;
+            }
+        }
+        //Remove any child 
+        if(child->isInstance()){
+            nodes_to_remove += child;
+        }
+    }
+
+    //Remove entities
+    destructEntities(nodes_to_remove);
+
+    for(auto inst : instance->getDependants()){
+        UpdateDefinitions(instance, inst);
+    }
 }
 
 
