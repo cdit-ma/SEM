@@ -62,15 +62,19 @@ void Component::HandlePassivate(){
 }
 
 void Component::HandleTerminate(){
-    std::lock_guard<std::mutex> ports_lock(port_mutex_);
+    std::list<std::future<bool> > results;
 
-    for(const auto& p : ports_){
-        auto& port = p.second;
-        if(port){
-            port->Terminate();
+    {
+        std::lock_guard<std::mutex> ports_lock(port_mutex_);
+        for(const auto& p : ports_){
+            auto& port = p.second;
+            if(port){
+                results.push_back(std::async(std::launch::async, &Activatable::Terminate, port));
+            }
         }
     }
-    
+    results.clear();
+
     BehaviourContainer::HandleTerminate();
     logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
 }
