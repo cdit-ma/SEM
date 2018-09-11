@@ -553,7 +553,7 @@
             <xsl:when test="starts-with($kind, 'Class')">
                 <xsl:sequence select="'Class'" />
             </xsl:when>
-            <xsl:when test="$kind = 'AttributeInstance'">
+            <xsl:when test="starts-with($kind, 'Attribute')">
                 <xsl:sequence select="'Attribute'" />
             </xsl:when>
             <xsl:when test="$kind = 'PeriodicPortInstance'">
