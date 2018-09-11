@@ -2705,15 +2705,21 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
         }
     }
 
-    for(auto child : instance->getChildren(0)){
-        auto c_def = child->getDefinition(true);
+    static const QSet<NODE_KIND> instance_kinds={NODE_KIND::MEMBER_INSTANCE, NODE_KIND::VECTOR_INSTANCE, NODE_KIND::AGGREGATE_INSTANCE, NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE, NODE_KIND::FUNCTION, NODE_KIND::FUNCTION_CALL};
 
-        if(c_def){
-            if(definition_nodes.contains(c_def)){
-                definition_nodes.removeOne(c_def);
-                continue;
-            }else{
-                nodes_to_remove += child;
+    for(auto child : instance->getChildren(0)){
+        auto node_kind = child->getNodeKind();
+
+        if(instance_kinds.contains(node_kind)){
+            auto c_def = child->getDefinition(true);
+
+            if(c_def){
+                if(definition_nodes.contains(c_def)){
+                    definition_nodes.removeOne(c_def);
+                    continue;
+                }else{
+                    nodes_to_remove += child;
+                }
             }
         }
     }
