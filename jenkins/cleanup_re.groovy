@@ -29,12 +29,12 @@ for(n in nodes){
             }
 
             if(KILL_NODE_MANAGER){
-                utils.runScript("pkill -f re_node_manager")
-                utils.runScript("pkill -f logan_managedserver")
+                utils.runScript("pkill -9 re_node_manager")
+                utils.runScript("pkill -9 logan_managedserver")
             }
 
             if(KILL_ENV_MANAGER){
-                utils.runScript("pkill -f re_environment_manager")
+                utils.runScript("pkill -9 re_environment_manager")
             }
         }
     }
