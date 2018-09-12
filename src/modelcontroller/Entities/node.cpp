@@ -16,7 +16,7 @@
 #include "../edgekinds.h"
 #include "Keys/indexkey.h"
 #include "Keys/typekey.h"
-#include "strings.h"
+#include "../strings.h"
 
 Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) : Entity(broker, GRAPHML_KIND::NODE){
     //Setup State
