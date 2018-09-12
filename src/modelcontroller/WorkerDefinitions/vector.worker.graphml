@@ -49,7 +49,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::get::in::index">
                                     <data key="kind">Member</data>
@@ -96,7 +96,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::remove::in::index">
                                     <data key="kind">Member</data>
@@ -142,7 +142,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <data key="is_generic_param">true</data>
+                                    <data key="is_generic_param_src">true</data>
                                 </node>
                                 <node id="vectorworker::insert::in::index">
                                     <data key="kind">Member</data>
