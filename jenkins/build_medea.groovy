@@ -37,7 +37,11 @@ for(n in medea_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                utils.buildProject("Ninja", "-DBUILD_APP=ON -DBUILD_CLI=ON")
+                def success = utils.buildProject("Ninja", "-DBUILD_APP=ON -DBUILD_CLI=ON")
+
+                if(!success)){
+                    error("CMake failed on Builder Node: " + node_name)
+                }
             }
         }
     }
