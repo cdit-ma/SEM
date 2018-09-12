@@ -55,6 +55,7 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                     <data key="description">The data to be buffered.</data>
                                 </node>
                                 <node id="opencl::createbuffer::in::blocking">
@@ -130,6 +131,7 @@
                                     <data key="icon">memoryCard</data>
                                     <data key="description">The buffer to be written to</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="opencl::writebuffer::in::data">
                                     <data key="kind">Vector</data>
@@ -174,6 +176,7 @@
                                     <data key="icon">memoryCard</data>
                                     <data key="description">The buffer to be read from</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="opencl::readbuffer::in::blocking">
                                     <data key="kind">Member</data>

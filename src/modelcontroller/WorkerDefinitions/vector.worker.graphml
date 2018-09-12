@@ -50,6 +50,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="vectorworker::get::in::index">
                                     <data key="kind">Member</data>
@@ -97,6 +98,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="vectorworker::remove::in::index">
                                     <data key="kind">Member</data>
@@ -116,6 +118,8 @@
                                     <data key="label">Value</data>
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">squareEquals</data>
+                                    <data key="inner_type"></data>
+                                    <data key="type"></data>
                                     <data key="is_generic_param">true</data>
                                     <data key="description">The Value @ Index</data>
                                 </node>
@@ -143,6 +147,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="vectorworker::insert::in::index">
                                     <data key="kind">Member</data>
@@ -184,6 +189,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                     <data key="index">0</data>
                                 </node>
                                 <node id="vectorworker::set::in::index">
@@ -227,7 +233,8 @@
                                     <data key="description">The vector.</data>
                                     <data key="outer_type">Vector</data>
                                     <data key="inner_type"/>
-                                    <!--<data key="is_generic_param">true</data>-->
+                                    <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                             </graph>
                         </node>
@@ -265,7 +272,8 @@
                                     <data key="icon_prefix">EntityIcons</data>
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
-                                    <!--<data key="is_generic_param">true</data>-->
+                                    <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                             </graph>
                         </node>
@@ -291,6 +299,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="vectorworker::resize::in::size">
                                     <data key="kind">Member</data>
@@ -333,6 +342,7 @@
                                     <data key="icon">Vector</data>
                                     <data key="description">The vector.</data>
                                     <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="vectorworker::swap::in::vectorb">
                                     <data key="kind">Vector</data>
