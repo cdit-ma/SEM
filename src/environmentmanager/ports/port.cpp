@@ -340,13 +340,21 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
     std::vector<std::reference_wrapper<Port> > ports;
 
     for(auto port_id : GetInternalConnectedPortIds()){
-        auto& port = GetExperiment().GetPort(port_id);
-        ports.emplace_back(port);
+        try{
+            auto& port = GetExperiment().GetPort(port_id);
+            ports.emplace_back(port);
+        }catch(const std::exception& ex){
+
+        }
     }
 
     for(auto port_id : GetExternalConnectedPortIds()){
-        auto& port = GetExperiment().GetPort(port_id);
-        ports.emplace_back(port);
+        try{
+            auto& port = GetExperiment().GetPort(port_id);
+            ports.emplace_back(port);
+        }catch(const std::exception& ex){
+
+        }
     }
 
     return ports;
