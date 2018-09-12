@@ -39,7 +39,7 @@ for(n in medea_nodes){
                 //Build the entire project 
                 def success = utils.buildProject("Ninja", "-DBUILD_APP=ON -DBUILD_CLI=ON")
 
-                if(!success)){
+                if(!success){
                     error("CMake failed on Builder Node: " + node_name)
                 }
             }
