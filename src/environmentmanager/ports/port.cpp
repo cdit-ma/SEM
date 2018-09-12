@@ -350,13 +350,23 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
 
     for(auto port_id : GetExternalConnectedPortIds()){
         try{
+            //Get the Port,
             auto& port = GetExperiment().GetPort(port_id);
             ports.emplace_back(port);
+            break;
+        }catch(const std::exception& ex){
+        
+        }
+        
+        //Port is an ExternalModelDelegate
+        try{
+            const auto& external_port_label = GetExperiment().GetExternalPortLabel(port_id);
+            auto external_ports = GetEnvironment().GetExternalProducerPorts(external_port_label);
+            ports.insert(ports.end(), external_ports.begin(), external_ports.end());
         }catch(const std::exception& ex){
 
         }
     }
-
     return ports;
 }
 
