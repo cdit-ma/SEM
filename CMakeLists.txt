@@ -1,3 +1,7 @@
+set(CMAKE_MODULE_PATH "$ENV{RE_PATH}/cmake_modules")
+
+set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../")
+
 
 if(NOT RE_COMMON_FOUND)
     if(MSVC)
@@ -12,4 +16,5 @@ if(NOT RE_COMMON_FOUND)
     
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif()

@@ -2,7 +2,7 @@
 #ifndef RE_COMMON_CONTROL_MESSAGE_HELPER_H
 #define RE_COMMON_CONTROL_MESSAGE_HELPER_H
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 #include <string>
 #include <vector>
 

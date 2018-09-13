@@ -20,6 +20,10 @@ namespace zmq{
         return zmq::message_t(str.c_str(), str.size());
     };
 
+    inline std::string GetRequestReplyFunction(const std::string& function_name, const google::protobuf::MessageLite& request, const google::protobuf::MessageLite& reply){
+        return function_name + "(" + request.GetTypeName() + ") -> " + reply.GetTypeName();
+    };
+
     template <class ProtoType>
     ProtoType Zmq2Proto(const zmq::message_t& message){
         ProtoType type;

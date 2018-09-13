@@ -44,9 +44,13 @@ namespace zmq{
             void Terminate();
 
             template<class RequestType, class ReplyType>
-            void RegisterProtoCallback(std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
+            void RegisterProtoCallback(const std::string& function_name, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
+
+            std::unique_ptr<google::protobuf::MessageLite> ConstructPB(const std::string& type);
         private:
-            void RegisterNewProto(const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
+            void RegisterProtoConstructor(const google::protobuf::MessageLite& default_instance);
+
+            void RegisterNewProto(const std::string& function_name, const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
             
             void ZmqReplier();
 
@@ -62,11 +66,11 @@ namespace zmq{
 };
 
 template<class RequestType, class ReplyType>
-void zmq::ProtoReplier::RegisterProtoCallback(std::function<std::unique_ptr<ReplyType>(const RequestType&)> callback_function){
+void zmq::ProtoReplier::RegisterProtoCallback(const std::string& function_name, std::function<std::unique_ptr<ReplyType>(const RequestType&)> callback_function){
     static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
     static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
     
-    RegisterNewProto(RequestType::default_instance(), ReplyType::default_instance(), [callback_function](const google::protobuf::MessageLite& request){
+    RegisterNewProto(function_name, RequestType::default_instance(), ReplyType::default_instance(), [callback_function](const google::protobuf::MessageLite& request){
             return std::move(callback_function((const RequestType&) request));
     });
 }
