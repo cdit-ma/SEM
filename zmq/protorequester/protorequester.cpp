@@ -22,135 +22,110 @@
 #include <iostream>
 #include "../zmqutils.hpp"
 
-zmq::ProtoRequester::ProtoRequester(){
-    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
+zmq::ProtoRequester::ProtoRequester(const std::string& connect_address):
+    connect_address_(connect_address),
+    context_{new zmq::context_t(1)}
+{
+    assert(context_);
+    assert(connect_address_.length() > 0);
 }
 
 zmq::ProtoRequester::~ProtoRequester(){
-    Terminate();
-}
-
-void zmq::ProtoRequester::Connect(const std::string& address){
-    connect_address_ = address;
-}
-
-void zmq::ProtoRequester::Start(){
-    if(!zmq_requester_.valid()){
-        zmq_requester_ = std::async(std::launch::async, &zmq::ProtoRequester::ZmqRequester, this);
+    {
+        //Shutting down the contexts forces all zmq_sockets to stop blocking on recv and throw and exceptions.
+        //Which should terminate all async requests
+        std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+        context_.reset();
     }
+
+    //Wait for all futures to die before allowing the requester to die
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+    for(auto& future : futures_){
+        future.wait();
+    }
+    futures_.clear();
 }
 
-void zmq::ProtoRequester::Terminate(){
 
-}
 
 std::future<std::unique_ptr<google::protobuf::MessageLite> > 
-zmq::ProtoRequester::EnqueueRequest(
-    const std::string& function_name,
-    const google::protobuf::MessageLite& request_proto,
-    const google::protobuf::MessageLite& reply_default_instance)
-{
-
-    RequestStruct request{String2Zmq(function_name),
-                            String2Zmq(request_proto.GetTypeName()),
-                            Proto2Zmq(request_proto)
-                        };
-
-    auto future = request.promise.get_future();
-    //Enqneue
-
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    request_queue_.emplace(std::move(request));
-    queue_lock_condition_.notify_all();
-    return future;
+zmq::ProtoRequester::SendRequest(const std::string& fn_signature, const google::protobuf::MessageLite& request_proto, const int timeout_ms){
+    //Construct a promise for ProcessRequest to fulfill
+    std::promise<std::unique_ptr<google::protobuf::MessageLite> > promise;
+    auto result_future = promise.get_future();
+    auto request_future = std::async(std::launch::async, &zmq::ProtoRequester::ProcessRequest, this, fn_signature, request_proto.GetTypeName(), request_proto.SerializeAsString(), std::move(promise), timeout_ms);
+    
+    //Insert the request_future into a list of futures this object is responsible for cleaning up
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+    futures_.emplace_back(std::move(request_future));
+    //Return the result future
+    return std::move(result_future);
 }
 
-void zmq::ProtoRequester::ZmqRequester(){
-    zmq::socket_t socket(*context_, ZMQ_REQ);
-
-    //Connect to all nodes on our network
-    try{
-        socket.connect(connect_address_.c_str());
-    }catch(const zmq::error_t& ex){
-        std::cerr << "zmq::ProtoRequester: Failed to connect to address: '" << connect_address_ << "' " << ex.what() << std::endl;
+zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+    if(context_){
+        zmq::socket_t socket(*context_, ZMQ_REQ);
+        //Setting the linger duration will mean that terminating the context won't wait on child sockets to be terminated
+        socket.setsockopt(ZMQ_LINGER, 0);
+        return std::move(socket);
     }
+    throw std::runtime_error("Got Invalid Context");
+}
+
+void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const std::string request_type_name, const std::string request_data, std::promise<std::unique_ptr<google::protobuf::MessageLite> > promise, const int timeout_ms){
     try{
-        bool running = true;
-        while(running){
-            //Obtain lock for the queue
-            std::unique_lock<std::mutex> lock(queue_mutex_);
+        auto socket = GetRequestSocket();
+        
+        try{
+            socket.connect(connect_address_.c_str());
+        }catch(const zmq::error_t& ex){
+            if(ex.num() != ETERM){
+                throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
+            }
+            //Rethrow this exception
+            throw;
+        }
+
+        //Send the request
+        socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
+        socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
+        socket.send(String2Zmq(request_data));
+
+        int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout_ms);
+
+        if(events > 0){
+            zmq::message_t zmq_result;
+            socket.recv(&zmq_result);
             
-            //Wait until we have messages or are told to terminate
-            queue_lock_condition_.wait(lock, [=]{return terminate_ || request_queue_.size();});
+            uint32_t result_code = *((uint32_t*)zmq_result.data());
 
-            if(request_queue_.size()){
-                auto request = std::move(request_queue_.front());
-                request_queue_.pop();
-                //Release the mutex
-                lock.unlock();
+            //Test the result
+            if(result_code == 0){
+                zmq::message_t zmq_reply_typename;
+                zmq::message_t zmq_reply_data;
 
-                //Send the request
-                socket.send(request.function_name, ZMQ_SNDMORE);
-                socket.send(request.request_typename, ZMQ_SNDMORE);
-                socket.send(request.request_data);
+                socket.recv(&zmq_reply_typename);
+                socket.recv(&zmq_reply_data);
 
-                zmq::message_t zmq_result;
-                socket.recv(&zmq_result);
+                const auto& str_reply_typename = Zmq2String(zmq_reply_typename);
 
-                uint32_t result_code = *((uint32_t*)zmq_result.data());
-                //Test the result
-                if(result_code == 0){
-                    zmq::message_t zmq_reply_typename;
-                    zmq::message_t zmq_reply_data;
+                auto proto_reply = proto_register_.ConstructProto(str_reply_typename, zmq_reply_data);
+                promise.set_value(std::move(proto_reply));
+                return;
+            }else{
+                //Recieved Error from the Replier
+                zmq::message_t zmq_error_data;
+                socket.recv(&zmq_error_data);
 
-                    socket.recv(&zmq_reply_typename);
-                    socket.recv(&zmq_reply_data);
-
-                    const auto& str_reply_typename = Zmq2String(zmq_reply_typename);
-
-                    bool got_request_constructor = proto_constructor_lookup_.count(str_reply_typename) > 0;
-
-                    if(got_request_constructor){
-                        //Construct the Reply Protobuf message
-                        auto reply_type = proto_constructor_lookup_[str_reply_typename](zmq_reply_data);
-                        request.promise.set_value(std::move(reply_type));
-                    }else{
-                        const auto& exception = std::runtime_error("zmq::ProtoRequester: Doesn't have Proto '" + str_reply_typename + "' Registered!");
-                        request.promise.set_exception(std::make_exception_ptr(exception));
-                    }
-                }else{
-                    //Error
-                    zmq::message_t zmq_error_data;
-                    socket.recv(&zmq_error_data);
-
-                    const auto& str_exception_str = Zmq2String(zmq_error_data);
-
-                    const auto& exception = std::runtime_error("zmq::ProtoRequester: Function Exception '" + str_exception_str + "'");
-                    request.promise.set_exception(std::make_exception_ptr(exception));
-                }
+                const auto& str_exception_str = Zmq2String(zmq_error_data);
+                throw RMIException(str_exception_str);
             }
+        }else{
+            throw TimeoutException("Request timed out");
         }
-    }catch(const zmq::error_t& ex){
-        if(ex.num() != ETERM){
-            std::cerr << "zmq::ProtoRequester: ZMQ Exception: " << ex.what() << std::endl;
-        }
-    }
-}
-
-void zmq::ProtoRequester::RegisterProtoConstructor(const google::protobuf::MessageLite& default_instance){
-    const auto& type_name = default_instance.GetTypeName();
-
-    if(!proto_constructor_lookup_.count(type_name)){
-        //Insert a factory function which will construct a protobuf message from the zmq_message
-        proto_constructor_lookup_[type_name] = [&default_instance](const zmq::message_t& zmq_message){
-            //Construct a Protobuf message
-            auto pb_obj = std::unique_ptr<google::protobuf::MessageLite>(default_instance.New());
-
-            if(!pb_obj->ParseFromArray(zmq_message.data(), zmq_message.size())){
-                //If message failed to parse, clean up
-                pb_obj.reset();
-            }
-            return pb_obj;
-        };
+    }catch(...){
+        //Catch all exceptions and pass them up the to the promise
+        promise.set_exception(std::current_exception());
     }
 }

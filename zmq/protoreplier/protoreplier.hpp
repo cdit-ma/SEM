@@ -29,8 +29,11 @@
 #include <set>
 #include <future>
 
+
+
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
+#include "../protoregister/protoregister.h"
 
 namespace zmq{
     class ProtoReplier{
@@ -44,24 +47,26 @@ namespace zmq{
             void Terminate();
 
             template<class RequestType, class ReplyType>
-            void RegisterProtoCallback(const std::string& function_name, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
-
-            std::unique_ptr<google::protobuf::MessageLite> ConstructPB(const std::string& type);
+            void RegisterProtoCallback(const std::string& fn_signature, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
         private:
-            void RegisterProtoConstructor(const google::protobuf::MessageLite& default_instance);
-
             void RegisterNewProto(const std::string& function_name, const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
-            
+            zmq::socket_t GetReplySocket();
             void ZmqReplier();
+        private:
+            ProtoRegister proto_register_;
 
+            std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
+
             
+            std::mutex address_mutex_;
             std::set<std::string> bind_addresses_;
 
+            std::mutex callback_mutex_;
             std::unordered_map<std::string, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> > callback_lookup_;
-            std::unordered_map<std::string, std::function<std::unique_ptr<google::protobuf::MessageLite> (const zmq::message_t&)> > proto_constructor_lookup_;
 
-            std::future<void> zmq_replier_;
+            std::mutex future_mutex_;
+            std::future<void> future_;
     };
 };
 
@@ -71,7 +76,7 @@ void zmq::ProtoReplier::RegisterProtoCallback(const std::string& function_name, 
     static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
     
     RegisterNewProto(function_name, RequestType::default_instance(), ReplyType::default_instance(), [callback_function](const google::protobuf::MessageLite& request){
-            return std::move(callback_function((const RequestType&) request));
+        return std::move(callback_function((const RequestType&) request));
     });
 }
 

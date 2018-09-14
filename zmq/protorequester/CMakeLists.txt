@@ -36,3 +36,4 @@ endif()
 #Link against protobuf
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} zmq_protoregister)

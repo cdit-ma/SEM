@@ -23,41 +23,69 @@
 #include "../zmqutils.hpp"
 
 zmq::ProtoReplier::ProtoReplier(){
-    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
 }
 
 zmq::ProtoReplier::~ProtoReplier(){
-
+    Terminate();
 }
 
 void zmq::ProtoReplier::Bind(const std::string& address){
+    std::lock_guard<std::mutex> lock(address_mutex_);
     bind_addresses_.emplace(address);
 }
 
 void zmq::ProtoReplier::Start(){
-    if(!zmq_replier_.valid()){
-        zmq_replier_ = std::async(std::launch::async, &zmq::ProtoReplier::ZmqReplier, this);
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+    std::lock_guard<std::mutex> lock(future_mutex_);
+    if(!context_ && !future_.valid()){
+        context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
+        future_ = std::async(std::launch::async, &zmq::ProtoReplier::ZmqReplier, this);
     }
 }
 
 void zmq::ProtoReplier::Terminate(){
+    //Shutting down the contexts forces all zmq_sockets to stop blocking on recv and throw and exceptions.
+    //Which should terminate all async requests
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+    if(context_){
+        context_.reset();
+    }
 
+    //Wait until the future is dead
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+    if(future_.valid()){
+        future_.wait();
+        future_ = {};
+    }
+}
+
+zmq::socket_t zmq::ProtoReplier::GetReplySocket(){
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+
+    if(context_){
+        return zmq::socket_t(*context_, ZMQ_REP);
+    }
+    throw std::runtime_error("Got Invalid Context");
 }
 
 void zmq::ProtoReplier::ZmqReplier(){
-    zmq::socket_t socket(*context_, ZMQ_REP);
+    auto socket = GetReplySocket();
 
-    //Connect to all nodes on our network
-    for (const auto& address : bind_addresses_){
-        try{
-            socket.bind(address.c_str());
-        }catch(const zmq::error_t& ex){
-            std::cerr << "zmq::ProtoReplier: Failed to connect to address: '" << address << "' " << ex.what() << std::endl;
+    {
+        std::lock_guard<std::mutex> lock(address_mutex_);
+
+        //Connect to all nodes on our network
+        for (const auto& address : bind_addresses_){
+            try{
+                socket.bind(address.c_str());
+            }catch(const zmq::error_t& ex){
+                std::cerr << "zmq::ProtoReplier: Failed to connect to address: '" << address << "' " << ex.what() << std::endl;
+            }
         }
     }
     
     while(true){
-		try{
+        try{
             zmq::message_t zmq_function_name;
             zmq::message_t zmq_request_typename;
             zmq::message_t zmq_request_data;
@@ -67,33 +95,26 @@ void zmq::ProtoReplier::ZmqReplier(){
             socket.recv(&zmq_request_typename);
             socket.recv(&zmq_request_data);
 
-
             //Get the type of the protobuf message
-            const auto& str_function_name = Zmq2String(zmq_function_name);
+            const auto& str_fn_signature = Zmq2String(zmq_function_name);
             const auto& str_request_typename = Zmq2String(zmq_request_typename);
 
-            //std::cerr << "Calling: " << str_function_name  << std::endl;
-
             std::string error_str;
-            bool got_request_constructor = proto_constructor_lookup_.count(str_request_typename) > 0;
-            bool got_function = callback_lookup_.count(str_function_name) > 0;
-
             std::unique_ptr<google::protobuf::MessageLite> reply_proto;
 
-            if(got_request_constructor && got_function){
-                try{
-                    //Construct the Request Protobuf message
-                    auto request_type = proto_constructor_lookup_[str_request_typename](zmq_request_data);
+            try{
+                //Try and construct the proto type
+                auto request_proto = proto_register_.ConstructProto(str_request_typename, zmq_request_data);
 
-                    //Run the function
-                    reply_proto = callback_lookup_[str_function_name](*request_type);
-                }catch(const std::exception& ex){
-                    error_str = ex.what();
+                std::unique_lock<std::mutex> callback_lock(callback_mutex_);
+                if(callback_lookup_.count(str_fn_signature)){
+                    //Run the Callback function
+                    reply_proto = callback_lookup_[str_fn_signature](*request_proto);
+                }else{
+                    throw std::runtime_error("No registered function: '" + str_fn_signature + "'");
                 }
-            }else if(!got_function){
-                error_str = "zmq::ProtoReplier: Doesn't have a registered function: '" + str_function_name + "'";
-            }else if(!got_request_constructor){
-                error_str = "zmq::ProtoReplier: Doesn't have a registered proto: '" + str_request_typename + "'";
+            }catch(const std::exception& ex){
+                error_str = ex.what();
             }
 
             //Construct a success flag message
@@ -122,47 +143,18 @@ void zmq::ProtoReplier::ZmqReplier(){
     }
 }
 
-void zmq::ProtoReplier::RegisterProtoConstructor(const google::protobuf::MessageLite& default_instance){
-    const auto& type_name = default_instance.GetTypeName();
-
-    if(!proto_constructor_lookup_.count(type_name)){
-        //Insert a factory function which will construct a protobuf message from the zmq_message
-        proto_constructor_lookup_[type_name] = [&default_instance](const zmq::message_t& zmq_message){
-            //Construct a Protobuf message
-            auto pb_obj = std::unique_ptr<google::protobuf::MessageLite>(default_instance.New());
-
-            if(!pb_obj->ParseFromArray(zmq_message.data(), zmq_message.size())){
-                //If message failed to parse, clean up
-                pb_obj.reset();
-            }
-            return pb_obj;
-        };
-    }
-}
-
 void zmq::ProtoReplier::RegisterNewProto(const std::string& function_name, const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function){
     //Register the callbacks
-    RegisterProtoConstructor(request_default_instance);
-    RegisterProtoConstructor(reply_default_instance);
+    proto_register_.RegisterProtoConstructor(request_default_instance);
+    proto_register_.RegisterProtoConstructor(reply_default_instance);
 
     //Get the registered function name
-    const auto& hashed_function_name = GetRequestReplyFunction(function_name, request_default_instance, reply_default_instance);
+    const auto& fn_signature = GetFunctionSignature(function_name, request_default_instance, reply_default_instance);
 
-    if(!callback_lookup_.count(hashed_function_name)){
-        std::cerr << "Registered: " << hashed_function_name << std::endl;
-        callback_lookup_[hashed_function_name] = callback_function;
+    std::unique_lock<std::mutex> callback_lock(callback_mutex_);
+    if(!callback_lookup_.count(fn_signature)){
+        callback_lookup_[fn_signature] = callback_function;
     }else{
-        throw std::invalid_argument("Request Type '" + hashed_function_name + "' Already Registered");
-    }
-}
-
-
-std::unique_ptr<google::protobuf::MessageLite> zmq::ProtoReplier::ConstructPB(const std::string& type_name){
-    
-    if(proto_constructor_lookup_.count(type_name)){
-        zmq::message_t message;
-        return proto_constructor_lookup_[type_name](message);
-    }else{
-        throw std::invalid_argument("Proto Type '" + type_name + "' Not Registered");
+        throw std::invalid_argument("Request Type '" + fn_signature + "' Already Registered");
     }
 }
