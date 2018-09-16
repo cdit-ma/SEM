@@ -50,7 +50,7 @@ namespace zmq{
         public:
             ProtoRequester(const std::string& address);
             ~ProtoRequester();
-            
+
             template<class RequestType, class ReplyType>
             std::future<std::unique_ptr<ReplyType> > SendRequest(const std::string& function_name, const RequestType& request, const int timeout_ms);
         private:
