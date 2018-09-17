@@ -25,14 +25,15 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
+#include <vector>
 #include <memory>
 #include <future>
 
 #include <zmq.hpp>
-#include <vector>
+
 #include <google/protobuf/message_lite.h>
 #include "../zmqutils.hpp"
-#include "../protoregister/protoregister.h"
+#include "../protoregister/protoregister.hpp"
 
 
 namespace zmq{
@@ -60,7 +61,7 @@ namespace zmq{
         private:
             const std::string connect_address_;
             ProtoRegister proto_register_;
-            
+
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
 
@@ -74,12 +75,13 @@ std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const 
     static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
     static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
 
-    //Register the proto constructors
-    proto_register_.RegisterProtoConstructor(RequestType::default_instance());
-    proto_register_.RegisterProtoConstructor(ReplyType::default_instance());
+    //Register the callbacks
+    proto_register_.RegisterProto<RequestType>();
+    proto_register_.RegisterProto<ReplyType>();
     
     //Get the function signature
-    auto fn_signature = zmq::GetFunctionSignature(function_name, RequestType::default_instance(), ReplyType::default_instance());
+    const auto& fn_signature = zmq::GetFunctionSignature<RequestType, ReplyType>(function_name);
+
     auto future = SendRequest(fn_signature, request, timeout_ms);
 
     //Do the up casting
@@ -87,10 +89,15 @@ std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const 
         if(future.valid()){
             auto reply = future.get();
             if(reply){
-                //Get the raw pointer from the unique_ptr
-                auto reply_ptr = reply.release();
-                //Upcast and return 
-                return std::unique_ptr<ReplyType>(dynamic_cast<ReplyType*>(reply_ptr));
+                auto reply_proto_ptr = dynamic_cast<ReplyType*>(reply.get());
+                if(reply_proto_ptr){
+                    //release the unique pointer
+                    reply.release();
+                    //Upcast and return 
+                    return std::unique_ptr<ReplyType>(reply_proto_ptr);
+                }else{
+                    throw std::runtime_error("Got Invalid ProtoType: " + reply->GetTypeName());
+                }
             }
         }
         throw std::runtime_error("Invalid Future");

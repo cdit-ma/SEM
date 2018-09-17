@@ -25,13 +25,6 @@ target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-if(MSVC)
-	#Windows requires protobuf in DLLs
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
-	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-endif()
-
 #Link against protobuf
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})

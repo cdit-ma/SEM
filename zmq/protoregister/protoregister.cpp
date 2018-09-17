@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
  
-#include "protoregister.h"
+#include "protoregister.hpp"
 
 void zmq::ProtoRegister::RegisterProtoConstructor(const google::protobuf::MessageLite& default_instance){
     const auto& type_name = default_instance.GetTypeName();
@@ -29,10 +29,9 @@ void zmq::ProtoRegister::RegisterProtoConstructor(const google::protobuf::Messag
         proto_lookup_[type_name] = [&default_instance](const void* data, int size){
             //Construct a Protobuf message
             auto proto_obj = std::unique_ptr<google::protobuf::MessageLite>(default_instance.New());
-
-            if(proto_obj && proto_obj->ParseFromArray(data, size) == false){
-                //If message failed to parse, reset the object
-                proto_obj.reset();
+            if(proto_obj->ParseFromArray(data, size) == false){
+                //Throw an exception if we cannot parse
+                throw std::runtime_error("Proto Type '" + default_instance.GetTypeName() + "' cannot parse data");
             }
             return proto_obj;
         };

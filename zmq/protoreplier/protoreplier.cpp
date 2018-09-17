@@ -20,7 +20,6 @@
  
 #include "protoreplier.hpp"
 #include <iostream>
-#include "../zmqutils.hpp"
 
 zmq::ProtoReplier::ProtoReplier(){
 }
@@ -35,27 +34,40 @@ void zmq::ProtoReplier::Bind(const std::string& address){
 }
 
 void zmq::ProtoReplier::Start(){
+    std::lock_guard<std::mutex> address_lock(address_mutex_);
     std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
-    std::lock_guard<std::mutex> lock(future_mutex_);
-    if(!context_ && !future_.valid()){
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+
+    if(bind_addresses_.empty()){
+        throw std::logic_error("No bound addresses");
+    }
+    
+    if(!context_){
         context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
+    }
+
+    if(!future_.valid()){
         future_ = std::async(std::launch::async, &zmq::ProtoReplier::ZmqReplier, this);
     }
 }
 
 void zmq::ProtoReplier::Terminate(){
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+
     //Shutting down the contexts forces all zmq_sockets to stop blocking on recv and throw and exceptions.
     //Which should terminate all async requests
-    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
     if(context_){
         context_.reset();
     }
 
     //Wait until the future is dead
-    std::lock_guard<std::mutex> future_lock(future_mutex_);
     if(future_.valid()){
-        future_.wait();
-        future_ = {};
+        try{
+            future_.get();
+        }catch(const std::exception& ex){
+            std::cerr << "zmq::ProtoReplier::ZmqReplier() " << ex.what() << std::endl;
+        }
     }
 }
 
@@ -63,7 +75,10 @@ zmq::socket_t zmq::ProtoReplier::GetReplySocket(){
     std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
 
     if(context_){
-        return zmq::socket_t(*context_, ZMQ_REP);
+        zmq::socket_t socket(*context_, ZMQ_REP);
+        //Setting the linger duration will mean that terminating the context won't wait on child sockets to be terminated
+        socket.setsockopt(ZMQ_LINGER, 0);
+        return std::move(socket);
     }
     throw std::runtime_error("Got Invalid Context");
 }
@@ -115,12 +130,14 @@ void zmq::ProtoReplier::ZmqReplier(){
                 }
             }catch(const std::exception& ex){
                 error_str = ex.what();
+                std::cerr << "zmq::ProtoReplier::ZmqReplier(): " << ex.what() << std::endl;
             }
 
             //Construct a success flag message
-            uint32_t success = (reply_proto != nullptr) ? 0 : 1;
+            uint32_t success = (reply_proto == nullptr) ? 1 : 0;
+            //Construct a success message
             zmq::message_t zmq_result(&success, sizeof(success));
-            
+
             //Success
             if(reply_proto){
                 auto zmq_reply_typename = String2Zmq(reply_proto->GetTypeName());
@@ -143,14 +160,7 @@ void zmq::ProtoReplier::ZmqReplier(){
     }
 }
 
-void zmq::ProtoReplier::RegisterNewProto(const std::string& function_name, const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function){
-    //Register the callbacks
-    proto_register_.RegisterProtoConstructor(request_default_instance);
-    proto_register_.RegisterProtoConstructor(reply_default_instance);
-
-    //Get the registered function name
-    const auto& fn_signature = GetFunctionSignature(function_name, request_default_instance, reply_default_instance);
-
+void zmq::ProtoReplier::RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function){
     std::unique_lock<std::mutex> callback_lock(callback_mutex_);
     if(!callback_lookup_.count(fn_signature)){
         callback_lookup_[fn_signature] = callback_function;

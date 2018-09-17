@@ -20,8 +20,12 @@ namespace zmq{
         return zmq::message_t(str.c_str(), str.size());
     };
 
-    inline std::string GetFunctionSignature(const std::string& function_name, const google::protobuf::MessageLite& request, const google::protobuf::MessageLite& reply){
-        return function_name + "(" + request.GetTypeName() + ") -> " + reply.GetTypeName();
+    template <class RequestType, class ReplyType>
+    inline std::string GetFunctionSignature(const std::string& function_name){
+        static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
+        static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
+        
+        return function_name + "(" + RequestType::default_instance().GetTypeName() + ") -> " + ReplyType::default_instance().GetTypeName();
     };
 
     template <class ProtoType>

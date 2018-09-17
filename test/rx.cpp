@@ -17,17 +17,17 @@ std::unique_ptr<NodeManager::ControlMessage> Func(const NodeManager::Node& messa
     auto r_mess = std::unique_ptr<NodeManager::ControlMessage>(new NodeManager::ControlMessage());
     r_mess->set_host_name("HOSTNAME");
 
-    std::cerr << "GOT MESSAGE: "<< std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    std::cerr << "At 2 sec: "<< std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    //std::cerr << "GOT MESSAGE: "<< std::endl;
+    //std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    //std::cerr << "At 2 sec: "<< std::endl;
+    //std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 
 
     if(recv == 95){
         //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }else if(recv % 56 == 0){
-        throw std::runtime_error("LOL GOT 56");
+    }else if(recv % 50 == 0){
+        throw std::runtime_error("LOL GOT 50");
     }else{
     }
     //std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -57,10 +57,7 @@ int main(int argc, char** argv){
     proto_replier->Bind(address);
     proto_replier->Start();
 
-
-
-
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(1000));
     std::cerr << "SHUTTING DOWN" << std::endl;
     proto_replier->Terminate();
     std::cerr << "SHUT DOWN" << std::endl;

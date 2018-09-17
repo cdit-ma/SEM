@@ -33,7 +33,7 @@
 
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
-#include "../protoregister/protoregister.h"
+#include "../protoregister/protoregister.hpp"
 
 namespace zmq{
     class ProtoReceiver{
@@ -88,6 +88,9 @@ template<class ProtoType>
 void zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const ProtoType&)> callback_function){
     static_assert(std::is_base_of<google::protobuf::MessageLite, ProtoType>::value, "ProtoType must inherit from google::protobuf::MessageLite");
     
+    //Register the callbacks
+    proto_register_.RegisterProto<ProtoType>();
+
     RegisterNewProto(ProtoType::default_instance(), [callback_function](const google::protobuf::MessageLite& ml){
         //Call into the function provided with an up-casted message
         callback_function((const ProtoType&) ml);

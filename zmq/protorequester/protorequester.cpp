@@ -43,10 +43,7 @@ zmq::ProtoRequester::~ProtoRequester(){
     for(auto& future : futures_){
         future.wait();
     }
-    futures_.clear();
 }
-
-
 
 std::future<std::unique_ptr<google::protobuf::MessageLite> > 
 zmq::ProtoRequester::SendRequest(const std::string& fn_signature, const google::protobuf::MessageLite& request_proto, const int timeout_ms){
@@ -76,7 +73,7 @@ zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
 void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const std::string request_type_name, const std::string request_data, std::promise<std::unique_ptr<google::protobuf::MessageLite> > promise, const int timeout_ms){
     try{
         auto socket = GetRequestSocket();
-        
+
         try{
             socket.connect(connect_address_.c_str());
         }catch(const zmq::error_t& ex){
@@ -97,11 +94,12 @@ void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const s
         if(events > 0){
             zmq::message_t zmq_result;
             socket.recv(&zmq_result);
-            
+
+            //We are expecting an int32 as the result flag, so convert from void* to int*, then dereference
             uint32_t result_code = *((uint32_t*)zmq_result.data());
 
-            //Test the result
             if(result_code == 0){
+                //Success
                 zmq::message_t zmq_reply_typename;
                 zmq::message_t zmq_reply_data;
 
@@ -114,14 +112,16 @@ void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const s
                 promise.set_value(std::move(proto_reply));
                 return;
             }else{
-                //Recieved Error from the Replier
+                //Received Error from the Replier
                 zmq::message_t zmq_error_data;
                 socket.recv(&zmq_error_data);
 
+                //Receiving a string'd exception
                 const auto& str_exception_str = Zmq2String(zmq_error_data);
                 throw RMIException(str_exception_str);
             }
         }else{
+            //If we didn't receive any events, throw a timeout exception
             throw TimeoutException("Request timed out");
         }
     }catch(...){

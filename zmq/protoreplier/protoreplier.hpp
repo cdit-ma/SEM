@@ -33,7 +33,8 @@
 
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
-#include "../protoregister/protoregister.h"
+#include "../protoregister/protoregister.hpp"
+#include "../zmqutils.hpp"
 
 namespace zmq{
     class ProtoReplier{
@@ -49,7 +50,7 @@ namespace zmq{
             template<class RequestType, class ReplyType>
             void RegisterProtoCallback(const std::string& fn_signature, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
         private:
-            void RegisterNewProto(const std::string& function_name, const google::protobuf::MessageLite& request_default_instance, const google::protobuf::MessageLite& reply_default_instance, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
+            void RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
             zmq::socket_t GetReplySocket();
             void ZmqReplier();
         private:
@@ -58,7 +59,6 @@ namespace zmq{
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
 
-            
             std::mutex address_mutex_;
             std::set<std::string> bind_addresses_;
 
@@ -74,8 +74,14 @@ template<class RequestType, class ReplyType>
 void zmq::ProtoReplier::RegisterProtoCallback(const std::string& function_name, std::function<std::unique_ptr<ReplyType>(const RequestType&)> callback_function){
     static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
     static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
+
+    //Register the callbacks
+    proto_register_.RegisterProto<RequestType>();
+    proto_register_.RegisterProto<ReplyType>();
+
+    const auto& fn_signature = zmq::GetFunctionSignature<RequestType, ReplyType>(function_name);
     
-    RegisterNewProto(function_name, RequestType::default_instance(), ReplyType::default_instance(), [callback_function](const google::protobuf::MessageLite& request){
+    RegisterNewProto(fn_signature, [callback_function](const google::protobuf::MessageLite& request){
         return std::move(callback_function((const RequestType&) request));
     });
 }

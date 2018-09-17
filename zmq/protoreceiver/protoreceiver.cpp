@@ -151,8 +151,6 @@ void zmq::ProtoReceiver::ZmqReceiver(){
 }
 
 void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite& message_default_instance, std::function<void(const google::protobuf::MessageLite&)> callback_function){
-    proto_register_.RegisterProtoConstructor(message_default_instance);
-    
     std::unique_lock<std::mutex> lock(callback_mutex_);
     const auto& proto_type_name = message_default_instance.GetTypeName();
     //Insert a callback function for this proto type

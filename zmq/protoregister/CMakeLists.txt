@@ -16,7 +16,7 @@ set(SOURCE
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.hpp
 )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})

@@ -21,14 +21,14 @@ int main(int argc, char** argv){
     int i = 0;
     int sent = 0;
     auto start = std::chrono::steady_clock::now();
-    while(++i <= 200){
+    while(++i <= 1023){
         //std::this_thread::sleep_for(std::chrono::milliseconds(2));
 
         NodeManager::Node nm;
         NodeManager::ControlMessage cm;
         cm.set_host_name("Testi Bois");
 
-        auto f = proto_requester->SendRequest<NodeManager::Node, NodeManager::ControlMessage>(function_name, nm, 20000);
+        auto f = proto_requester->SendRequest<NodeManager::Node, NodeManager::ControlMessage>(function_name, nm, 2000);
         requests.push_back(std::move(f));
         sent ++;
     }
@@ -52,6 +52,7 @@ int main(int argc, char** argv){
             failed ++;
         }
         catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
             ded ++;
         }
     }
