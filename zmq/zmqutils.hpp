@@ -4,7 +4,18 @@
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
 
-namespace zmq{  
+namespace zmq{
+    class TimeoutException : public std::runtime_error{
+        public:
+            TimeoutException(const std::string& what_arg) : std::runtime_error(what_arg){};
+    };
+
+    class RMIException : public std::runtime_error{
+        public:
+            RMIException(const std::string& what_arg) : std::runtime_error(what_arg){};
+    };
+
+
     inline zmq::message_t Proto2Zmq(const google::protobuf::MessageLite &ml){
         const auto& size = ml.ByteSize();
         zmq::message_t message(size);

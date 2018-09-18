@@ -28,7 +28,7 @@
 #include <memory>
 #include <set>
 #include <future>
-
+#include <vector>
 
 
 #include <zmq.hpp>
@@ -44,7 +44,8 @@ namespace zmq{
 
             void Bind(const std::string& address);
             
-            void Start();
+            void Start(const std::vector<std::chrono::milliseconds>& retry_timeouts = {});
+
             void Terminate();
 
             template<class RequestType, class ReplyType>
@@ -52,7 +53,7 @@ namespace zmq{
         private:
             void RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
             zmq::socket_t GetReplySocket();
-            void ZmqReplier();
+            void ZmqReplier(zmq::socket_t reply_socket, const std::vector<std::chrono::milliseconds> retry_timeouts, std::promise<void> blocked_promise);
         private:
             ProtoRegister proto_register_;
 

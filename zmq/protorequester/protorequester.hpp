@@ -37,16 +37,6 @@
 
 
 namespace zmq{
-    class TimeoutException : public std::runtime_error{
-        public:
-            TimeoutException(const std::string& what_arg) : std::runtime_error(what_arg){};
-    };
-
-    class RMIException : public std::runtime_error{
-        public:
-            RMIException(const std::string& what_arg) : std::runtime_error(what_arg){};
-    };
-
     class ProtoRequester{
         public:
             ProtoRequester(const std::string& address);

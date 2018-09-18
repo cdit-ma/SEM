@@ -25,7 +25,7 @@ add_library(${PROJ_NAME} SHARED ${PROTO_SRCS} ${SOURCE} ${PROTO_HDRS} ${HEADERS}
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../)
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
