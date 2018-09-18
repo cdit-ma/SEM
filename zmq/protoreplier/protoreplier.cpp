@@ -33,24 +33,20 @@ void zmq::ProtoReplier::Bind(const std::string& address){
     bind_addresses_.emplace(address);
 }
 
-void zmq::ProtoReplier::Start(const std::vector<std::chrono::milliseconds>& retry_timeouts){
+std::future<void> zmq::ProtoReplier::Start(const std::vector<std::chrono::milliseconds>& retry_timeouts){
     std::future<void> blocking_future;
-    {
-        std::lock_guard<std::mutex> future_lock(future_mutex_);
-        if(future_.valid()){
-            throw std::logic_error("Replier already Started");
-        }
 
-        auto socket = GetReplySocket();
-        std::promise<void> blocking_promise;
-        blocking_future = blocking_promise.get_future();
-        future_ = std::async(std::launch::async, &zmq::ProtoReplier::ZmqReplier, this, std::move(socket), retry_timeouts, std::move(blocking_promise));
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
+    if(future_.valid()){
+        throw std::logic_error("Replier already Started");
     }
 
-    if(blocking_future.valid() && retry_timeouts.size()){
-        //If we have a blocking future, and we have blocking timeouts, wait for the blocking future
-        blocking_future.get();
-    }
+    auto socket = GetReplySocket();
+    std::promise<void> blocking_promise;
+    blocking_future = blocking_promise.get_future();
+    future_ = std::async(std::launch::async, &zmq::ProtoReplier::ZmqReplier, this, std::move(socket), retry_timeouts, std::move(blocking_promise));
+
+    return std::move(blocking_future);
 }
 
 void zmq::ProtoReplier::Terminate(){

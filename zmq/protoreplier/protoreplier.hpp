@@ -44,7 +44,7 @@ namespace zmq{
 
             void Bind(const std::string& address);
             
-            void Start(const std::vector<std::chrono::milliseconds>& retry_timeouts = {});
+            std::future<void> Start(const std::vector<std::chrono::milliseconds>& retry_timeouts = {});
 
             void Terminate();
 
