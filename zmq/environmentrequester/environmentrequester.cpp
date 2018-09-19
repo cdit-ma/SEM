@@ -2,52 +2,20 @@
 #include <zmq.hpp>
 #include <controlmessage.pb.h>
 #include "../zmqutils.hpp"
+#include "../protorequester/protorequester.hpp"
 
 #include <sstream>
 
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id,
-                                            EnvironmentRequester::DeploymentType deployment_type){
-    //TODO: Check valid manager_address
-    manager_address_ = manager_address;
-
-    if(experiment_id.empty()){
-        throw std::invalid_argument("Empty experiment id.");
-    }
-    experiment_id_ = experiment_id;
-
-    deployment_type_ = deployment_type;
-}
+                                            EnvironmentRequester::DeploymentType deployment_type) : 
+                                            manager_address_(manager_address),
+                                            experiment_id_(experiment_id),
+                                            deployment_type_(deployment_type)
+{}
 
 EnvironmentRequester::~EnvironmentRequester(){
-    End();
-}
-
-void EnvironmentRequester::Init(){
-    try{
-        context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-        zmq::socket_t sub(*context_, ZMQ_SUB);
-        sub.connect(manager_address_);
-        sub.setsockopt(ZMQ_SUBSCRIBE, "", 0);
-        zmq::message_t message;
-
-        std::vector<zmq::pollitem_t> poll_items = {{sub, 0, ZMQ_POLLIN, 0}};
-        int events = zmq::poll(poll_items, REQUEST_TIMEOUT);
-
-        if(events >= 1){
-            sub.recv(&message);
-            manager_endpoint_ = std::string(static_cast<const char*>(message.data()), message.size());
-            sub.close();
-        }
-        else{
-            std::cerr << "Wait for environment broadcast message timed out in EnvironmentRequester: " << experiment_id_ << std::endl;
-            assert(false);
-        }
-
-    }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::Init" << std::endl;
-    }
+    Terminate();
 }
 
 void EnvironmentRequester::Init(const std::string& manager_endpoint){
@@ -63,19 +31,8 @@ void EnvironmentRequester::SetIPAddress(const std::string& ip_addr){
     ip_address_ = ip_addr;
 }
 
-
-std::unique_ptr<zmq::socket_t> EnvironmentRequester::ConstructRequestPort(){
-    auto socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
-    if(socket){
-        //Linger to handle shutdown of sockets which have already sent
-        socket->setsockopt(ZMQ_LINGER, 0);
-    }
-    return std::move(socket);
-}
-
 NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& node_endpoint){
     //Construct query message
-
     NodeManager::EnvironmentMessage message;
     message.set_experiment_id(experiment_id_);
     message.set_type(NodeManager::EnvironmentMessage::NODE_QUERY);
@@ -95,23 +52,19 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //Get update endpoint
     //note: This falls out of scope and self destructs at the end of this function,
     //      this is important as we cant destruct our context otherwise
-    
-    std::string reply;
-    {
-        auto initial_request_socket = ConstructRequestPort();
-        initial_request_socket->connect(manager_address_);
-        ZMQSendRequest(*initial_request_socket, message.SerializeAsString());
-        reply = ZMQReceiveReply(*initial_request_socket);
-    }
 
-    if(reply.empty()){
+    try{
+        auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
+        auto reply_future = requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                                    ("EnvironmentManagerNodeQuery", message, 3000);
+        auto reply = reply_future.get();
+        return reply->control_message();
+
+    }catch(const zmq::TimeoutException& ex){
         throw std::runtime_error("Environment manager request timed out.");
+    }catch(const std::exception& ex){
+        std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
     }
-
-    NodeManager::EnvironmentMessage reply_message;
-    reply_message.ParseFromString(reply);
-    
-    return reply_message.control_message();
 }
 
 
@@ -126,38 +79,9 @@ void EnvironmentRequester::Start(){
     }
 }
 
-uint64_t EnvironmentRequester::Tick(){
-    std::unique_lock<std::mutex>(clock_mutex_);
-    clock_++;
-    return clock_;
-}
-
-uint64_t EnvironmentRequester::SetClock(uint64_t incoming_clock){
-    std::unique_lock<std::mutex>(clock_mutex_);
-    clock_ = std::max(incoming_clock, clock_) + 1;
-    return clock_;
-}
-
-uint64_t EnvironmentRequester::GetClock(){
-    return clock_;
-}
-
-
 void EnvironmentRequester::HeartbeatLoop(){
-    if(!context_){
-        std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
-        assert(false);
-    }
 
-    auto initial_request_socket = ConstructRequestPort();
-
-    try{
-        initial_request_socket->connect(manager_endpoint_);
-    }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop manager endpoint" << std::endl;
-        return;
-    }
+    auto initial_requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_endpoint_));
 
     //Register this deployment with the environment manager
     NodeManager::EnvironmentMessage initial_message;
@@ -181,113 +105,93 @@ void EnvironmentRequester::HeartbeatLoop(){
 
     initial_message.set_experiment_id(experiment_id_);
 
-    ZMQSendRequest(*initial_request_socket, initial_message.SerializeAsString());
-    auto reply = ZMQReceiveReply(*initial_request_socket);
+    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("DeploymentRegistration", initial_message, 3000);
 
-    //Get update socket address as reply
-    if(!reply.empty()){
-        NodeManager::EnvironmentMessage initial_reply;
-        initial_reply.ParseFromString(reply);
-        if(initial_reply.type() == NodeManager::EnvironmentMessage::ERROR_RESPONSE){
+    try{
+        auto initial_reply_messsage = initial_reply_future.get();
+        if(initial_reply_messsage->type() == NodeManager::EnvironmentMessage::ERROR_RESPONSE){
             std::stringstream str_stream;
-            const auto& error_list = initial_reply.error_messages();
+            const auto& error_list = initial_reply_messsage->error_messages();
             std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
-
             {
                 std::lock_guard<std::mutex> lock(request_queue_lock_);
                 //Clearing the requests
                 while(!request_queue_.empty()){
                     auto request = std::move(request_queue_.front());
                     const auto& exception = std::runtime_error("Environment Manager Error: \n" + str_stream.str());
-                    request->response_.set_exception(std::make_exception_ptr(exception));
+                    request->reply_promise.set_exception(std::make_exception_ptr(exception));
                     request_queue_.pop();
                 }
             }
-
             environment_manager_not_found_ = true;
             return;
         }
-        manager_update_endpoint_ = initial_reply.update_endpoint();
-    }
-    else{
-        {
-            std::lock_guard<std::mutex> lock(request_queue_lock_);
-            //Clearing the requests
-            while(!request_queue_.empty()){
-                auto request = std::move(request_queue_.front());
-                request->response_.set_exception(std::make_exception_ptr(std::runtime_error("Environment Manager Not Found")));
-                request_queue_.pop();
-            }
+
+
+        manager_update_endpoint_ = initial_reply_messsage->update_endpoint();
+    }catch(const zmq::TimeoutException& ex){
+        std::lock_guard<std::mutex> lock(request_queue_lock_);
+        //Clear all requests
+        while(!request_queue_.empty()){
+            auto request = std::move(request_queue_.front());
+            request->reply_promise.set_exception(std::make_exception_ptr(std::runtime_error("Environment Manager Not Found")));
+            request_queue_.pop();
         }
         environment_manager_not_found_ = true;
         return;
+    }catch(const std::exception& ex){
+
     }
 
-    //Connect to our update socket
-    auto update_socket = ConstructRequestPort();
-    try{
-        update_socket->connect(manager_update_endpoint_);
-    }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop update socket" << std::endl;
-    }
+
+    auto update_requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_update_endpoint_));
 
     int retry_count = 0;
     //Start heartbeat loop
     while(retry_count < 5){
 
         bool timeout = true;
-        std::unique_ptr<EnvironmentRequester::Request> request_message;
+        std::unique_ptr<EnvironmentRequester::Request> request;
         {
             std::unique_lock<std::mutex> lock(request_queue_lock_);
-            
-            
+
+            //Wait for a message on the queue OR our heartbeat period to time out.
             auto got_message = request_queue_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD), [=](){
                 return !request_queue_.empty();
             });
 
-            
             if(end_flag_ || !context_){
                 break;
             }
 
             //We have a message, so take it off the queue and release mutex
             if(got_message){
-                timeout = false;
-                request_message = std::move(request_queue_.front());
+                request = std::move(request_queue_.front());
                 request_queue_.pop();
             }
         }
 
-        if(request_message){
-            SendRequest(*update_socket, *request_message);
+        NodeManager::EnvironmentMessage message;
+        if(request){
+            message = *(request->request);
             //Reset our retry
             retry_count = 0;
         }else{
-            NodeManager::EnvironmentMessage message;
             message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
-            const auto& str_message = message.SerializeAsString();
-            
-            ZMQSendRequest(*update_socket, str_message);
+        }
 
-            const auto& reply = ZMQReceiveReply(*update_socket);
-            if(reply.empty()){
-                retry_count ++;
-                std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
-            }else{
-                retry_count = 0;
-
-                NodeManager::EnvironmentMessage reply_message;
-                reply_message.ParseFromString(reply);
-
-                try{
-                    HandleReply(reply_message);
-                }
-                catch(const std::exception& ex){
-                    //todo: call registered exception handling callback??
-                    std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
-                }
-            }
+        try{
+            auto reply_future = update_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                                            ("EnvironmentManagerHeartbeat", message, 1000);
+            auto reply_message = reply_future.get();
+            retry_count = 0;
+            HandleReply(*reply_message);
+        }catch(const zmq::TimeoutException& ex){
+            retry_count ++;
+            std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
+        }catch(const std::exception& ex){
+            //todo: call registered exception handling callback??
+            std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
         }
     }
 
@@ -296,7 +200,7 @@ void EnvironmentRequester::HeartbeatLoop(){
     }
 }
 
-void EnvironmentRequester::End(){
+void EnvironmentRequester::Terminate(){
     {
         std::lock_guard<std::mutex> lock(request_queue_lock_);
         end_flag_ = true;
@@ -318,28 +222,22 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManage
     auto current_control_message = env_message.mutable_control_message();
     *current_control_message = control_message;
 
-    NodeManager::EnvironmentMessage message;
     try{
-        auto response = QueueRequest(env_message.SerializeAsString());
-        auto response_msg = response.get();
-        if(response_msg.empty()){
-            throw std::runtime_error("Got empty response message in EnvironmentRequester::AddDeployment");
+        auto reply_future = QueueRequest(env_message);
+        auto reply_msg = reply_future.get();
+        if(reply_msg.type() != NodeManager::EnvironmentMessage::SUCCESS){
+            std::stringstream str_stream;
+            const auto& error_list = reply_msg.error_messages();
+            std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
+            throw std::runtime_error("Got non success in EnvironmentRequester::AddDeployment: \n" + str_stream.str());
         }
-        message.ParseFromString(response_msg);
+        return reply_msg.control_message();
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
         throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
     }
 
-    if(message.type() != NodeManager::EnvironmentMessage::SUCCESS){
-        std::stringstream str_stream;
-        const auto& error_list = message.error_messages();
-        std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
-        throw std::runtime_error("Got non success in EnvironmentRequester::AddDeployment: \n" + str_stream.str());
-    }
-
-    return message.control_message();
 }
 
 void EnvironmentRequester::RemoveDeployment(){
@@ -352,14 +250,12 @@ void EnvironmentRequester::RemoveDeployment(){
         message.set_type(NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT);
     }
 
-    auto response = QueueRequest(message.SerializeAsString());
-
     try{
-        NodeManager::EnvironmentMessage response_msg;
-        response_msg.ParseFromString(response.get());
-        if(response_msg.type() == NodeManager::EnvironmentMessage::SUCCESS){
+        auto reply_future = QueueRequest(message);
+        auto reply_msg = reply_future.get();
+        if(reply_msg.type() == NodeManager::EnvironmentMessage::SUCCESS){
             std::cout << "* Removed from environment manager." << std::endl;
-            End();
+            Terminate();
         }
     }
     catch(std::exception& ex){
@@ -380,83 +276,25 @@ NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::st
 
     NodeManager::EnvironmentMessage reply_message;
 
-    auto response = QueueRequest(request_message.SerializeAsString());
-    const auto& response_msg = response.get();
-    if(response_msg.empty()){
-        throw std::runtime_error("GetLoganInfo: Got no response");
-    }
-    reply_message.ParseFromString(response_msg);
+    auto response = QueueRequest(request_message);
+    try{
+        auto response_msg = response.get();
+        return response_msg;
+    }catch(const zmq::TimeoutException& ex){
+        throw std::runtime_error("Get Logan Info request timed out.");
+    }catch(const std::exception& ex){
 
-    return reply_message;
+    }
 }
-std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){
-    auto request_struct = std::unique_ptr<Request>(new Request({request}));
-    auto request_future = request_struct->response_.get_future();
+std::future<NodeManager::EnvironmentMessage> EnvironmentRequester::QueueRequest(const NodeManager::EnvironmentMessage& request){
+    // XXX: D:
+    auto request_struct = std::unique_ptr<Request>(new Request({std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(request))}));
+    auto request_future = request_struct->reply_promise.get_future();
     
     std::lock_guard<std::mutex> lock(request_queue_lock_);
     request_queue_.emplace(std::move(request_struct));
     request_queue_cv_.notify_one();
     return request_future;
-}
-
-void EnvironmentRequester::SendRequest(zmq::socket_t& update_socket, EnvironmentRequester::Request& request){
-    ZMQSendRequest(update_socket, request.request_data_);
-    auto reply = ZMQReceiveReply(update_socket);
-
-    //Handle response
-    request.response_.set_value(reply);
-}
-
-void EnvironmentRequester::ZMQSendRequest(zmq::socket_t& socket, const std::string& request){
-    std::string lamport_string = std::to_string(Tick());
-    zmq::message_t lamport_time_msg(lamport_string.begin(), lamport_string.end());
-    zmq::message_t request_msg(request.begin(), request.end());
-
-    try{
-        socket.send(lamport_time_msg, ZMQ_SNDMORE);
-        socket.send(request_msg);
-    }catch(const zmq::error_t& error){
-        std::cerr << error.what() << " in EnvironmentRequester::ZMQSendTwoPartRequest" << std::endl;
-    }
-}
-
-std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t& socket){
-    zmq::message_t lamport_time_msg;
-    zmq::message_t request_contents_msg;
-
-    std::vector<zmq::pollitem_t> poll_items = {{socket, 0, ZMQ_POLLIN, 0}};
-
-    int events = 0;
-    try{
-        events = zmq::poll(poll_items, REQUEST_TIMEOUT);
-    }catch(zmq::error_t error){
-        events = 0;
-    }
-
-    if(end_flag_){
-        return "";
-    }
-
-    if(events >= 1){
-        try{
-            socket.recv(&lamport_time_msg);
-            socket.recv(&request_contents_msg);
-        }
-        catch(zmq::error_t error){
-            //TODO: Handle this
-            //std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
-        }
-        std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
-
-        //Update and get current lamport time
-        std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
-        long lamport_time = SetClock(std::stoull(incoming_time));
-        return contents;
-    }
-    else{
-        std::cerr << "Communication with environment manager timed out" << std::endl;
-        return "";
-    }
 }
 
 void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){

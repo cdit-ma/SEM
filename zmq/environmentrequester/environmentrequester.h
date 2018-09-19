@@ -29,13 +29,13 @@ class EnvironmentRequester{
                                 DeploymentType deployment_type
                                 );
         ~EnvironmentRequester();
-        void Init();
         void Init(const std::string& manager_endpoint);
         void Start();
-        void End();
-        NodeManager::ControlMessage AddDeployment(const NodeManager::ControlMessage& control_message);
+        void Terminate();
 
+        NodeManager::ControlMessage AddDeployment(const NodeManager::ControlMessage& control_message);
         void RemoveDeployment();
+
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
         
         NodeManager::EnvironmentMessage GetLoganInfo(const std::string& node_ip_address);
@@ -45,11 +45,9 @@ class EnvironmentRequester{
 
     private:
         struct Request{
-            std::string request_data_;
-            std::promise<std::string> response_;
+            std::unique_ptr<NodeManager::EnvironmentMessage> request;
+            std::promise<NodeManager::EnvironmentMessage> reply_promise;
         };
-
-        std::unique_ptr<zmq::socket_t> ConstructRequestPort();
 
         DeploymentType deployment_type_;
 
@@ -74,8 +72,8 @@ class EnvironmentRequester{
         bool end_flag_ = false;
 
         //Request helpers
-        std::future<std::string> QueueRequest(const std::string& request);
-        void SendRequest(zmq::socket_t&, Request& request);
+        std::future<NodeManager::EnvironmentMessage> QueueRequest(const NodeManager::EnvironmentMessage& request);
+
         void HandleReply(NodeManager::EnvironmentMessage& message);
 
         std::string experiment_id_;
@@ -97,8 +95,6 @@ class EnvironmentRequester{
 
         //ZMQ sockets and helpers
         std::unique_ptr<zmq::context_t> context_;
-        void ZMQSendRequest(zmq::socket_t& socket, const std::string& request);
-        std::string ZMQReceiveReply(zmq::socket_t& socket);
 };
 
 #endif //NODEMANAGER_ENVIRONMENTREQUESTER_H
