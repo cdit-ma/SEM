@@ -36,7 +36,7 @@ class Environment{
 
         std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
-        void RemoveExperiment(const std::string& experiment_name, uint64_t time);
+        void RemoveExperiment(const std::string& experiment_name);
         void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
         NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);

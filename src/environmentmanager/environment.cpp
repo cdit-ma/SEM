@@ -127,7 +127,7 @@ NodeManager::EnvironmentMessage* Environment::GetLoganDeploymentMessage(const st
 }
 
 
-void Environment::RemoveExperiment(const std::string& experiment_name, uint64_t time_called){
+void Environment::RemoveExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     if(experiment_map_.count(experiment_name)){

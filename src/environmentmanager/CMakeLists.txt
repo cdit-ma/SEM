@@ -92,6 +92,7 @@ target_link_libraries(${ENVIRONMENT_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${ZMQ_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} re_common_proto_control)
+target_link_libraries(${ENVIRONMENT_MANAGER_LIB} zmq_protoreplier)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ENVIRONMENT_MANAGER_LIB})
 
 #target_link_libraries(rule_tester ${ENVIRONMENT_MANAGER_LIB})
