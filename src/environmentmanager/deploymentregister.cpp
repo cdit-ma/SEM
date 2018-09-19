@@ -61,12 +61,12 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddDe
         throw std::runtime_error("Tried to add preexisting experiment id.");
     }
     
-    // deployments_.emplace_back(new DeploymentHandler(*environment_,
-    //                                                 ip_addr_,
-    //                                                 EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
-    //                                                 message.update_endpoint(),
-    //                                                 port_promise.get(),
-    //                                                 message.experiment_id()));
+    deployments_.emplace_back(new DeploymentHandler(*environment_,
+                                                    ip_addr_,
+                                                    EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
+                                                    message.update_endpoint(),
+                                                    port_promise.get(),
+                                                    message.experiment_id()));
 
     try{
         //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
@@ -91,12 +91,12 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddLo
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
-    // logan_clients_.emplace_back(new DeploymentHandler(*environment_,
-    //                                                 ip_addr_,
-    //                                                 EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
-    //                                                 "",
-    //                                                 port_promise.get(),
-    //                                                 experiment_id));
+    logan_clients_.emplace_back(new DeploymentHandler(*environment_,
+                                                    ip_addr_,
+                                                    EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
+                                                    "",
+                                                    port_promise.get(),
+                                                    experiment_id));
 
     try{
         port = port_future.get();
