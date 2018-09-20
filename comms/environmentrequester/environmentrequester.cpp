@@ -1,8 +1,9 @@
 #include "environmentrequester.h"
 #include <zmq.hpp>
-#include <controlmessage.pb.h>
-#include "../zmqutils.hpp"
 
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <zmq/protorequester/protorequester.hpp>
+#include <zmq/zmqutils.hpp>
 #include <sstream>
 
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 

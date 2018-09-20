@@ -6,7 +6,7 @@
 #include <thread>
 #include <queue>
 #include <future>
-#include "../protorequester/protorequester.hpp"
+#include <zmq/protorequester/protorequester.hpp>
 
 
 namespace NodeManager{
