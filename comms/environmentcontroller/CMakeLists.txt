@@ -30,8 +30,8 @@ target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
 
 target_include_directories(${LIB_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR}/re_common)
-target_include_directories(${LIB_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR}/re_common)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
+target_include_directories(${LIB_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
 target_link_libraries(${LIB_NAME} re_common_proto_environmentcontrol)

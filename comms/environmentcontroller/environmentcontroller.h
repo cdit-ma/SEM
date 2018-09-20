@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "../../zmq/protorequester/protorequester.hpp"
+#include <zmq/protorequester/protorequester.hpp>
 
 namespace EnvironmentManager{
     class EnvironmentController{
