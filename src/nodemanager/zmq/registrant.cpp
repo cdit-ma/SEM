@@ -4,7 +4,7 @@
 #include <zmq.hpp>
 #include <iostream>
 #include <chrono>
-#include <re_common/zmq/zmqutils.hpp>
+#include <zmq/zmqutils.hpp>
 #include "../deploymentmanager.h"
 
 //SLAVE

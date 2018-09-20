@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
-#include <re_common/zmq/protowriter/protowriter.h>
-#include <re_common/util/execution.hpp>
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <zmq/protowriter/protowriter.h>
+#include <util/execution.hpp>
+#include <proto/controlmessage/helper.h>
 
 #include <sstream>
 #include <string>

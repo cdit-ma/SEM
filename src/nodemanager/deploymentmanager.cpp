@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-#include <re_common/util/execution.hpp>
+#include <util/execution.hpp>
 
-#include <re_common/zmq/protoreceiver/protoreceiver.h>
-#include <re_common/zmq/environmentrequester/environmentrequester.h>
-#include <re_common/proto/controlmessage/helper.h>
+#include <zmq/protoreceiver/protoreceiver.h>
+#include <comms/environmentrequester/environmentrequester.h>
+#include <proto/controlmessage/helper.h>
 
 const static int MAX_RETRY_COUNT = 5;
 DeploymentManager::DeploymentManager(bool on_master_node,

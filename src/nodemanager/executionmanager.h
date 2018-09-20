@@ -11,7 +11,7 @@
 #include <google/protobuf/message_lite.h>
 #include "executionparser/protobufmodelparser.h"
 #include "environmentmanager/environment.h"
-#include <re_common/zmq/environmentrequester/environmentrequester.h>
+#include <comms/environmentrequester/environmentrequester.h>
 #include "zmq/registrar.h"
 
 namespace zmq{class ProtoWriter;};

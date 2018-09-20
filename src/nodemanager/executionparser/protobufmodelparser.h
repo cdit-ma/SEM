@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <list>
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 class ProtobufModelParser{
     public:

@@ -4,7 +4,7 @@
 #include <core/ports/pubsub/publisherport.hpp>
 #include <middleware/proto/prototranslator.h>
 #include <middleware/zmq/zmqhelper.h>
-#include <re_common/zmq/zmqutils.hpp>
+#include <zmq/zmqutils.hpp>
 #include <core/modellogger.h>
 
 

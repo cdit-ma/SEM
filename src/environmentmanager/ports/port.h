@@ -4,7 +4,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <memory>
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Environment;

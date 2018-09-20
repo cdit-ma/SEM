@@ -1,7 +1,7 @@
 #include "zmqport.h"
 #include "../environment.h"
 #include "../node.h"
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager::zmq;
 

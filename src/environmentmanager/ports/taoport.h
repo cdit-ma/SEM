@@ -2,7 +2,7 @@
 #define ENVIRONMENT_MANAGER_TAO_PORT_H
 
 #include "port.h"
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
     namespace tao{
