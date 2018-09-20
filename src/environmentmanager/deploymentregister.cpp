@@ -3,7 +3,7 @@
 #include <chrono>
 #include <exception>
 #include <zmq.hpp>
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_addr, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,

@@ -4,7 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){

@@ -61,10 +61,12 @@ endif()
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
+#Build Logan
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
+
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 
 if(BUILD_TEST)
 	message(STATUS "Building re tests")

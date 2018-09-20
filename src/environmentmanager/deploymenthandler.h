@@ -7,8 +7,8 @@
 #include <tuple>
 
 #include "environment.h"
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
-#include <re_common/zmq/protoreplier/protoreplier.hpp>
+#include <zmq/protoreplier/protoreplier.hpp>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace NodeManager{
     class EnvironmentMessage;

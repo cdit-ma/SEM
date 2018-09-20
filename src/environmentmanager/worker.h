@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_MANAGER_WORKER_H
 #define ENVIRONMENT_MANAGER_WORKER_H
 #include <unordered_map>
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Component;

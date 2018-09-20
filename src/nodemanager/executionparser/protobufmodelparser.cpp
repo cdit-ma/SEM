@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 
 #include "graphmlparser.h"
