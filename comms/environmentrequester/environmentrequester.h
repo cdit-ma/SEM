@@ -6,6 +6,8 @@
 #include <thread>
 #include <queue>
 #include <future>
+#include <zmq/protorequester/protorequester.hpp>
+
 
 namespace NodeManager{
     class ControlMessage;
@@ -44,16 +46,8 @@ class EnvironmentRequester{
         void AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
 
     private:
-        struct Request{
-            std::unique_ptr<NodeManager::EnvironmentMessage> request;
-            std::promise<NodeManager::EnvironmentMessage> reply_promise;
-        };
 
         DeploymentType deployment_type_;
-
-        //Constants
-        const int HEARTBEAT_PERIOD = 2000;
-        const int REQUEST_TIMEOUT = 3000;
 
         //ZMQ endpoints
         std::string manager_address_;
@@ -64,15 +58,11 @@ class EnvironmentRequester{
 
         bool environment_manager_not_found_ = false;
         
-        //Threads
-        void HeartbeatLoop();
-
         std::future<void> heartbeat_future_;
 
         bool end_flag_ = false;
 
-        //Request helpers
-        std::future<NodeManager::EnvironmentMessage> QueueRequest(const NodeManager::EnvironmentMessage& request);
+        std::unique_ptr<zmq::ProtoRequester> update_requester_;
 
         void HandleReply(NodeManager::EnvironmentMessage& message);
 
@@ -80,21 +70,6 @@ class EnvironmentRequester{
 
         //Callback
         std::function<void (NodeManager::EnvironmentMessage&)> update_callback_;
-
-        //Local clock
-        std::mutex clock_mutex_;
-        uint64_t clock_ = 0;
-        uint64_t Tick();
-        uint64_t SetClock(uint64_t incoming_time);
-        uint64_t GetClock();
-
-        //Request queue
-        std::mutex request_queue_lock_;
-        std::condition_variable request_queue_cv_;
-        std::queue< std::unique_ptr<Request> > request_queue_;
-
-        //ZMQ sockets and helpers
-        std::unique_ptr<zmq::context_t> context_;
 };
 
 #endif //NODEMANAGER_ENVIRONMENTREQUESTER_H
