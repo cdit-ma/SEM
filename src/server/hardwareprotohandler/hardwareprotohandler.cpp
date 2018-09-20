@@ -27,8 +27,8 @@
 #include "../table.h"
 #include "../tableinsert.h"
 
-#include <re_common/zmq/protoreceiver/protoreceiver.h>
-#include <re_common/proto/systemstatus/systemstatus.pb.h>
+#include <zmq/protoreceiver/protoreceiver.h>
+#include <proto/systemstatus/systemstatus.pb.h>
 
 //Type names
 const std::string LOGAN_DECIMAL = "DECIMAL";

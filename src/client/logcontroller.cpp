@@ -30,9 +30,9 @@
 
 #include "sigarsysteminfo.h"
 
-#include <re_common/proto/systemstatus/systemstatus.pb.h>
-#include <re_common/zmq/protowriter/cachedprotowriter.h>
-#include <re_common/zmq/protowriter/monitor.h>
+#include <proto/systemstatus/systemstatus.pb.h>
+#include <zmq/protowriter/cachedprotowriter.h>
+#include <zmq/protowriter/monitor.h>
 #include <google/protobuf/util/json_util.h>
 
 //Constructor used for print only call

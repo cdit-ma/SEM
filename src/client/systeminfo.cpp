@@ -19,7 +19,7 @@
  */
 
 #include "systeminfo.h"
-#include <re_common/proto/systemstatus/systemstatus.pb.h>
+#include <proto/systemstatus/systemstatus.pb.h>
 
 
 double SystemInfo::convert_timestamp(const std::chrono::milliseconds& timestamp){

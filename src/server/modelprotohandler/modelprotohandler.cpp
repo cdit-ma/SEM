@@ -27,8 +27,8 @@
 #include "../table.h"
 #include "../tableinsert.h"
 
-#include <re_common/proto/modelevent/modelevent.pb.h>
-#include <re_common/zmq/protoreceiver/protoreceiver.h>
+#include <proto/modelevent/modelevent.pb.h>
+#include <zmq/protoreceiver/protoreceiver.h>
 
 //Types
 const std::string LOGAN_DECIMAL = "DECIMAL";

@@ -45,7 +45,7 @@ endif()
 
 #include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})

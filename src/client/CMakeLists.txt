@@ -58,7 +58,7 @@ target_include_directories(${LOGAN_CLIENT} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${SIGAR_INCLUDE_DIRS})
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${LOGAN_SRC_PATH})
+target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE ${LOGAN_SOURCE_DIR})
 
 target_include_directories(${LOGAN_CLIENT} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 

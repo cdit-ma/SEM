@@ -43,7 +43,7 @@ endif()
 
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${LOGAN_SRC_PATH})
+target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${LOGAN_SOURCE_DIR})
 
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${LOGAN_SERVER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
