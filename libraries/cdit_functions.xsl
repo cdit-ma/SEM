@@ -418,6 +418,9 @@
             <xsl:when test="$kind = 'Vector'">
                 <xsl:value-of select="cpp:get_vector_qualified_type($node)" />
             </xsl:when>
+            <xsl:when test="$kind = 'ExternalType'">
+                <xsl:value-of select="cpp:get_externaltype_qualified_type($node)" />
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="o:warning(('cpp:get_qualified_type()', 'Node Kind:', o:wrap_quote($kind), 'Not Implemented'))" />
             </xsl:otherwise>
@@ -510,7 +513,15 @@
 
 
 
-    
+    <xsl:function name="cpp:get_externaltype_qualified_type" as="xs:string">
+        <xsl:param name="external_type" as="element()" />
+        <xsl:variable name="inner_type" select="graphml:get_data_value($external_type, 'inner_type')" />
+        <xsl:variable name="outer_type" select="graphml:get_data_value($external_type, 'outer_type')" />
+        <xsl:variable name="qualified_inner_type" select="cpp:get_primitive_type($inner_type)" />
+        
+
+        <xsl:value-of select="concat($outer_type, o:wrap_angle($qualified_inner_type))" />
+    </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
         <xsl:param name="vector" as="element()" />
