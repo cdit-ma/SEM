@@ -27,7 +27,8 @@ class DeploymentRegister{
 
     private:
         //Request handlers
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddDeployment(const NodeManager::EnvironmentMessage& message);
+        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddExperiment(const NodeManager::EnvironmentMessage& message);
+        //std::unique_ptr<NodeManager::????> HandleRemoveExperiment(const NodeManager::EnvironmentMessage& message);
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddLoganClient(const NodeManager::EnvironmentMessage& message);
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleNodeQuery(const NodeManager::EnvironmentMessage& message);
 

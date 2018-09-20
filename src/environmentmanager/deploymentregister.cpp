@@ -19,8 +19,8 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     replier_->Bind(TCPify(ip_addr_, registration_port_));
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                  ("DeploymentRegistration", 
-                                  std::bind(&DeploymentRegister::HandleAddDeployment, this, std::placeholders::_1));
+                                  ("ExperimentRegistration", 
+                                  std::bind(&DeploymentRegister::HandleAddExperiment, this, std::placeholders::_1));
 
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                   ("NodeQuery", 
@@ -47,7 +47,7 @@ void DeploymentRegister::Terminate(){
     }
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddDeployment(const NodeManager::EnvironmentMessage& message){
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddExperiment(const NodeManager::EnvironmentMessage& message){
 
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(message));
 

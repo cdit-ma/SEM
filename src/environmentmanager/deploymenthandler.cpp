@@ -30,7 +30,6 @@ void DeploymentHandler::PrintError(const std::string& message){
 }   
 
 void DeploymentHandler::Terminate(){
-    //TODO: (RE-253) send TERMINATE messages to node manager attached to this thread
     replier_->Terminate();
 }
 
@@ -58,9 +57,12 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                 ("EnvironmentManagerHeartbeat", std::bind(&DeploymentHandler::HandleRequest, this, std::placeholders::_1));
 
-    replier_->Start(timeouts);
-    
-    RemoveDeployment();
+    auto replier_future = replier_->Start(timeouts);
+    try{
+        replier_future.get();
+    }catch(const zmq::TimeoutException& ex){
+        RemoveDeployment();
+    }
 }
 
 void DeploymentHandler::RemoveDeployment() noexcept{
