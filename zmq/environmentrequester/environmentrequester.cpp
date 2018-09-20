@@ -19,7 +19,6 @@ EnvironmentRequester::~EnvironmentRequester(){
 }
 
 void EnvironmentRequester::Init(const std::string& manager_endpoint){
-    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     manager_endpoint_ = manager_endpoint;
 }
 
@@ -56,7 +55,7 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     try{
         auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
         auto reply_future = requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                    ("EnvironmentManagerNodeQuery", message, 3000);
+                                                    ("NodeQuery", message, 3000);
         auto reply = reply_future.get();
         return reply->control_message();
 
@@ -105,7 +104,7 @@ void EnvironmentRequester::HeartbeatLoop(){
 
     initial_message.set_experiment_id(experiment_id_);
 
-    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("DeploymentRegistration", initial_message, 3000);
+    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("ExperimentRegistration", initial_message, 3000);
 
     try{
         auto initial_reply_messsage = initial_reply_future.get();
@@ -160,7 +159,7 @@ void EnvironmentRequester::HeartbeatLoop(){
                 return !request_queue_.empty();
             });
 
-            if(end_flag_ || !context_){
+            if(end_flag_){
                 break;
             }
 
@@ -185,6 +184,9 @@ void EnvironmentRequester::HeartbeatLoop(){
                                                             ("EnvironmentManagerHeartbeat", message, 1000);
             auto reply_message = reply_future.get();
             retry_count = 0;
+            if(request){
+                request->reply_promise.set_value(*reply_message);
+            }
             HandleReply(*reply_message);
         }catch(const zmq::TimeoutException& ex){
             retry_count ++;
@@ -298,15 +300,18 @@ std::future<NodeManager::EnvironmentMessage> EnvironmentRequester::QueueRequest(
 }
 
 void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
-
-    if(message.type() == NodeManager::EnvironmentMessage::HEARTBEAT_ACK){
-        //no-op
-        return;
-    }else{
-        if(update_callback_){
-            update_callback_(message);
-        }else{
-            throw std::runtime_error("Update callback not set");
+    switch(message.type()){
+        case NodeManager::EnvironmentMessage::SUCCESS:
+        case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
+            // no-op
+            return;
+        }
+        default:{
+            if(update_callback_){
+                update_callback_(message);
+            }else{
+                throw std::runtime_error("Update callback not set");
+            }
         }
     }
 }
