@@ -15,7 +15,6 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
 {}
 
 EnvironmentRequester::~EnvironmentRequester(){
-    std::cout << "destructor" << std::endl;
     Terminate();
 }
 
@@ -124,8 +123,10 @@ void EnvironmentRequester::Start(){
 }
 
 void EnvironmentRequester::Terminate(){
-    std::cout << "requester terminate" << std::endl;
-    heartbeater_->Terminate();
+    std::lock_guard<std::mutex> lock(heartbeater_mutex_);
+    if(heartbeater_){
+        heartbeater_->Terminate();
+    }
 }
 
 NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManager::ControlMessage& control_message){
