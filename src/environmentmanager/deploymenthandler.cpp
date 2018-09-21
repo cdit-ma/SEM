@@ -56,6 +56,8 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                 ("EnvironmentManagerHeartbeat", std::bind(&DeploymentHandler::HandleRequest, this, std::placeholders::_1));
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                ("EnvironmentManagerAddExperiment", std::bind(&DeploymentHandler::HandleRequest, this, std::placeholders::_1));
 
     auto replier_future = replier_->Start(timeouts);
     try{

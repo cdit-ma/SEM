@@ -49,7 +49,7 @@ class Environment{
         NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
 
 
-        
+        std::vector<std::string> GetExperimentNames();
         
 
         bool IsExperimentConfigured(const std::string& experiment_name);

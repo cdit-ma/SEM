@@ -11,6 +11,7 @@
 
 #include <zmq/protoreplier/protoreplier.hpp>
 #include <proto/controlmessage/controlmessage.pb.h>
+#include <proto/environmentcontrol/environmentcontrol.pb.h>
 #include <util/execution.hpp>
 
 class DeploymentRegister{
@@ -30,6 +31,9 @@ class DeploymentRegister{
         //std::unique_ptr<NodeManager::????> HandleRemoveExperiment(const NodeManager::EnvironmentMessage& message);
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddLoganClient(const NodeManager::EnvironmentMessage& message);
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleNodeQuery(const NodeManager::EnvironmentMessage& message);
+
+        std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message);
+        std::unique_ptr<EnvironmentControl::ListExperimentsReply> HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message);
 
         //Helpers
         std::string TCPify(const std::string& ip_address, const std::string& port) const;

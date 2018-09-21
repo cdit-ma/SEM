@@ -463,3 +463,12 @@ const NodeManager::Attribute& Environment::GetAttributeByName(const google::prot
     }
     throw std::invalid_argument("No attribute found with name " + attribute_name);
 }
+
+std::vector<std::string> Environment::GetExperimentNames(){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::vector<std::string> experiment_names;
+    for(const auto& key_pair : experiment_map_){
+        experiment_names.emplace_back(key_pair.first);
+    }
+    return experiment_names;
+}

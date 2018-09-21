@@ -30,6 +30,13 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
                                   ("LoganRegistration", 
                                   std::bind(&DeploymentRegister::HandleAddLoganClient, this, std::placeholders::_1));
 
+    replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
+                                  ("ListExperiments", 
+                                  std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+    
+    replier_->RegisterProtoCallback<EnvironmentControl::ShutdownExperimentRequest, EnvironmentControl::ShutdownExperimentReply>
+                                  ("ShutdownExperiment", 
+                                  std::bind(&DeploymentRegister::HandleShutdownExperiment, this, std::placeholders::_1));
 }
 
 void DeploymentRegister::Start(){
@@ -160,6 +167,20 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleNodeQ
         reply_control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
     return std::move(reply_message);
+}
+
+std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> DeploymentRegister::HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message){
+    throw std::runtime_error("NOT IMPLEMENTED");
+}
+
+std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message){
+    auto reply_message = std::unique_ptr<EnvironmentControl::ListExperimentsReply>(new EnvironmentControl::ListExperimentsReply());
+    auto experiment_names = environment_->GetExperimentNames();
+    experiment_names.push_back("this  is a test experiment");
+    experiment_names.push_back("this  is another test experiment");
+    *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
+
+    return reply_message;
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{
