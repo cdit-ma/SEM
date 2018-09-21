@@ -61,6 +61,7 @@ class EnvironmentRequester{
         
         bool end_flag_ = false;
 
+        std::mutex heartbeater_lock_;
         std::unique_ptr<zmq::ProtoRequester> update_requester_;
         std::unique_ptr<Heartbeater> heartbeater_;
 

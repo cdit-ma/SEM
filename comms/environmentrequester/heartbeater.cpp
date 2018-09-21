@@ -5,6 +5,10 @@ heartbeat_period_(heartbeat_period),
 requester_(requester)
 {}
 
+Heartbeater::~Heartbeater(){
+    std::cout << "~Heartbeater" << std::endl;
+    Terminate();
+}
 
 void Heartbeater::HeartbeatLoop(){
     int retry_count = 0;
@@ -18,6 +22,8 @@ void Heartbeater::HeartbeatLoop(){
             heartbeat_cv_.wait_for(lock, std::chrono::milliseconds(heartbeat_period_));
 
             if(end_flag_){
+    //std::cout << "TERMINATEasdf" << std::endl;
+
                 break;
             }
         }
@@ -48,25 +54,14 @@ void Heartbeater::HeartbeatLoop(){
 
 void Heartbeater::Start(){
     heartbeat_future_ = std::async(std::launch::async, &Heartbeater::HeartbeatLoop, this);
+    std::cout << "started" << std::endl;
 }
 
 void Heartbeater::Terminate(){
-    std::cout << "TERMINATE" << std::endl;
-
     std::lock_guard<std::mutex> lock(heartbeat_lock_);
-    std::cout << "TERMINATE" << std::endl;
-
     end_flag_ = true;
-    std::cout << "TERMINATE" << std::endl;
-
-
     heartbeat_cv_.notify_one();
-    std::cout << "TERMINATE" << std::endl;
-
-
     heartbeat_future_.get();
-    std::cout << "Got future" << std::endl;
-
 }
 
 void Heartbeater::AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){

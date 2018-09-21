@@ -7,6 +7,7 @@
 class Heartbeater{
     public:
         Heartbeater(const int heartbeat_period, zmq::ProtoRequester& requester);
+        ~Heartbeater();
         void Start();
         void Terminate();
         void AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
