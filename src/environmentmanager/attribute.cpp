@@ -45,11 +45,11 @@ std::string Attribute::GetName() const{
     return name_;
 }
 
-NodeManager::Attribute* Attribute::GetUpdate(){
-    NodeManager::Attribute* attribute = 0;
-    if(dirty_){
-        attribute = new NodeManager::Attribute();
-
+std::unique_ptr<NodeManager::Attribute> Attribute::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::Attribute> attribute;
+    
+    if(full_update || dirty_){ 
+        attribute = std::unique_ptr<NodeManager::Attribute>(new NodeManager::Attribute());
         attribute->mutable_info()->set_name(name_);
         attribute->mutable_info()->set_id(id_);
 
@@ -77,40 +77,14 @@ NodeManager::Attribute* Attribute::GetUpdate(){
                 attribute->set_i(boolean_value_ ? 1 : 0);
                 break;
             }
-        }
-    }
-    return attribute;
-}
-
-NodeManager::Attribute* Attribute::GetProto(){
-    auto attribute = new NodeManager::Attribute();
-    
-    attribute->mutable_info()->set_name(name_);
-    attribute->mutable_info()->set_id(id_);
-
-    attribute->set_kind(InternalAttributeKindToProto(kind_));
-
-    switch(kind_){
-        case Kind::String:
-        case Kind::Stringlist:{
-            for(const auto& string : string_list_){
-                attribute->add_s(string);
+            default:{
+                throw std::runtime_error("Unhandled Attribute Kind");
             }
-            break;
         }
-        case Kind::Float:
-        case Kind::Double:{
-            attribute->set_d(double_value_);
-            break;
-        }
-        case Kind::Integer:
-        case Kind::Character:{
-            attribute->set_i(integer_value_);
-            break;
-        }
-        case Kind::Boolean:{
-            attribute->set_i(boolean_value_ ? 1 : 0);
-            break;
+
+        if(dirty_){
+            //clear dirty
+            dirty_ = false;
         }
     }
     return attribute;

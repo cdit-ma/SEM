@@ -32,21 +32,22 @@ class Environment{
 
         Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
 
-        void PopulateExperiment(NodeManager::ControlMessage& message);
+        
+        std::unique_ptr<NodeManager::EnvironmentMessage> PopulateExperiment(const NodeManager::ControlMessage& message);
 
         std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
+
+
+        void ShutdownExperiment(const std::string& experiment_name);
 
         void RemoveExperiment(const std::string& experiment_name, uint64_t time);
         void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
-
-        NodeManager::ControlMessage* GetProto(const std::string& experiment_name);
+        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
+        std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const std::string& experiment_name, const bool full_update);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
         bool GotExperiment(const std::string& experiment_name);
-        NodeManager::ControlMessage* GetExperimentUpdate(const std::string& experiment_name);
-        NodeManager::ControlMessage* GetLoganUpdate(const std::string& experiment_name);
 
 
         

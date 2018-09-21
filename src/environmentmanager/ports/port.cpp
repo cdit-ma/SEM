@@ -232,49 +232,42 @@ const std::set<std::string>& Port::GetExternalConnectedPortIds() const{
 }
 
 void Port::SetDirty(){
-    try{
-        GetComponent().SetDirty();
-        dirty_ = true;
-    }catch(const std::exception& ex){
-
-    }
+    dirty_ = true;
+    GetComponent().SetDirty();
 }
 
 bool Port::IsDirty() const{
     return dirty_;
 }
 
-NodeManager::Port* Port::GetUpdate(){
-    if(dirty_){
-        auto port = GetProto();
-        dirty_ = false;
-        return port;
+std::unique_ptr<NodeManager::Port> Port::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::Port> port;
+
+    if(dirty_ || full_update){
+        port = std::unique_ptr<NodeManager::Port>(new NodeManager::Port());
+        
+        auto port_info = port->mutable_info();
+        port_info->set_name(name_);
+        port_info->set_id(id_);
+        port_info->set_type(type_);
+
+        port->set_kind(TranslateInternalKind(kind_));
+        port->set_middleware(TranslateInternalMiddleware(middleware_));
+
+        for(const auto& ns : namespaces_){
+            port_info->add_namespaces(ns);
+        }
+
+        for(const auto& connected_port : connected_internal_port_ids_){
+            port->add_connected_ports(connected_port);
+        }
+
+        for(const auto& external_port : connected_external_port_ids_){
+            port->add_connected_external_ports(external_port);
+        }
+
+        FillPortPb(*port);
     }
-    return nullptr;
-}
-
-NodeManager::Port* Port::GetProto(){
-    auto port = new NodeManager::Port();
-    auto port_info = port->mutable_info();
-    port_info->set_name(name_);
-    port_info->set_id(id_);
-    port_info->set_type(type_);
-    for(const auto& ns : namespaces_){
-        port_info->add_namespaces(ns);
-    }
-    port->set_kind(TranslateInternalKind(kind_));
-    port->set_middleware(TranslateInternalMiddleware(middleware_));
-
-    for(const auto& connected_port : connected_internal_port_ids_){
-        port->add_connected_ports(connected_port);
-    }
-
-    for(const auto& external_port : connected_external_port_ids_){
-        port->add_connected_external_ports(external_port);
-    }
-
-    FillPortPb(*port);
-
     return port;
 }
 

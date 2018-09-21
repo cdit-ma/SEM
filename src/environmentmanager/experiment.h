@@ -43,13 +43,15 @@ class Experiment{
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
 
-        NodeManager::ControlMessage* GetProto();
+        void Shutdown();
+
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
         Environment& GetEnvironment() const;
 
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage(const std::string& ip_address);
+        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage(const std::string& ip_address);
+        std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const bool full_update);
 
         std::string GetMasterPublisherAddress();
         std::string GetMasterRegistrationAddress();
@@ -70,7 +72,6 @@ class Experiment{
         void UpdatePort(const std::string& external_port_label);
 
         void SetDeploymentMessage(const NodeManager::ControlMessage& control_message);
-        NodeManager::ControlMessage* GetUpdate();
 
         std::vector< std::reference_wrapper<Port> > GetExternalProducerPorts(const std::string& external_port_label);
         std::vector< std::reference_wrapper<Logger> > GetLoggerClients(const std::string& logger_id);
@@ -101,6 +102,8 @@ class Experiment{
         std::string master_ip_address_;
         std::string manager_port_;
 
+        bool shutdown_ = false;
+
         //node_ip -> internal node map
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Node> > node_map_;
 
@@ -118,7 +121,7 @@ class Experiment{
 
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to
-        bool dirty_flag_ = false;
+        bool dirty_ = false;
 };
 }; //namespace EnvironmentManager
 

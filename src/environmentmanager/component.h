@@ -31,9 +31,7 @@ class Component{
         void SetDirty();
         bool IsDirty();
 
-        NodeManager::Component* GetUpdate();
-        NodeManager::Component* GetProto();
-
+        std::unique_ptr<NodeManager::Component> GetProto(const bool full_update);
     private:
         Environment& environment_;
         Node& node_;

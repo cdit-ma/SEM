@@ -9,13 +9,10 @@ class Attribute;
 class Worker{
     public:
         Worker(Component& parent, const NodeManager::Worker& worker);
-
-        NodeManager::Worker* GetUpdate();
-        NodeManager::Worker* GetProto();
+        std::unique_ptr<NodeManager::Worker> GetProto(const bool full_update);
 
         void SetDirty();
         bool IsDirty();
-
     private:
         Component& parent_;
         std::string id_;

@@ -72,10 +72,9 @@ class Node{
         bool DeployedTo() const;
 
         //protobuf getters
-        NodeManager::Node* GetUpdate();
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage() const;
+        std::unique_ptr<NodeManager::Node> GetProto(const bool full_update);
+        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage() const;
 
-        NodeManager::Node* GetProto();
 
     private:
         Environment& environment_;

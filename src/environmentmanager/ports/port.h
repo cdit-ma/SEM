@@ -48,9 +48,8 @@ class Port{
         Port::BlackboxType GetBlackboxType() const;
 
         const std::vector<std::reference_wrapper<Port> > GetConnectedPorts() const;
-        
-        NodeManager::Port* GetUpdate();
-        NodeManager::Port* GetProto();
+
+        std::unique_ptr<NodeManager::Port> GetProto(const bool full_update);
         void SetDirty();
         bool IsDirty() const;
         bool IsBlackbox() const;

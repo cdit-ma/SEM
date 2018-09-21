@@ -11,7 +11,7 @@ namespace EnvironmentManager{
 class Environment;
 class Experiment;
 class Node;
-class Component;
+class Component;    
 class Attribute;
 namespace dds {
 

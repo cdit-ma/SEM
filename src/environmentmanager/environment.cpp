@@ -36,7 +36,10 @@ Environment::Environment(const std::string& address, const std::string& qpid_bro
 }
 
 
-void Environment::PopulateExperiment(NodeManager::ControlMessage& control_message){
+std::unique_ptr<NodeManager::EnvironmentMessage> Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
+    //Take a copy
+    auto control_message = const_control_message;
+
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     //Get the experiment_name
@@ -65,9 +68,7 @@ void Environment::PopulateExperiment(NodeManager::ControlMessage& control_messag
 
     //Complete the Configuration
     experiment.SetConfigured();
-    auto configured_message = experiment.GetProto();
-    control_message.Swap(configured_message);
-    delete configured_message;
+    return experiment.GetProto(true);
 }
 
 void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node_pb){
@@ -120,12 +121,25 @@ Experiment& Environment::GetExperiment(const std::string experiment_name){
     throw std::invalid_argument("No registered experiments: '" + experiment_name + "'");
 }
 
-NodeManager::EnvironmentMessage* Environment::GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address){
+std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperiment(experiment_name);
     return experiment.GetLoganDeploymentMessage(ip_address);
 }
 
+std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std::string& experiment_name, const bool full_update){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    auto& experiment = GetExperiment(experiment_name);
+    return experiment.GetProto(full_update);
+}
+
+void Environment::ShutdownExperiment(const std::string& experiment_name){
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+
+    auto& experiment = GetExperiment(experiment_name);
+    experiment.Shutdown();
+}
 
 void Environment::RemoveExperiment(const std::string& experiment_name, uint64_t time_called){
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
@@ -230,11 +244,7 @@ void Environment::AddNodeToExperiment(const std::string& experiment_name, const 
 }
 
 
-NodeManager::ControlMessage* Environment::GetProto(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    auto& experiment = GetExperiment(experiment_name);
-    return experiment.GetProto();
-}
+
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     try{
@@ -351,15 +361,8 @@ bool Environment::ExperimentIsDirty(const std::string& experiment_name){
     return false;
 }
 
-NodeManager::ControlMessage* Environment::GetExperimentUpdate(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    return GetExperiment(experiment_name).GetUpdate();
-}
 
-NodeManager::ControlMessage* Environment::GetLoganUpdate(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    return GetExperiment(experiment_name).GetUpdate();
-}
+
 
 std::string Environment::GetAmqpBrokerAddress(){
     return qpid_broker_address_;

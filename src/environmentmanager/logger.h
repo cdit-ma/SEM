@@ -60,9 +60,7 @@ class Logger{
         void SetDirty();
         bool IsDirty();
 
-        NodeManager::Logger* GetUpdate();
-        NodeManager::Logger* GetProto();
-
+        std::unique_ptr<NodeManager::Logger> GetProto(const bool full_update);
     private:
         Node& node_;
         Environment& environment_;

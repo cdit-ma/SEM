@@ -121,14 +121,7 @@ bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
     }
 }
 
-NodeManager::EnvironmentMessage* Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
-    if(node_map_.count(ip_address)){
-        return node_map_.at(ip_address)->GetLoganDeploymentMessage();
-    }
-    else{
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' Doesn't have a Node with IP address: '" + ip_address + "'");
-    }
-}
+
 
 std::string Experiment::GetMasterPublisherAddress(){
     if(master_publisher_port_.empty()){
@@ -149,11 +142,18 @@ std::string Experiment::GetMasterRegistrationAddress(){
 }
 
 bool Experiment::IsDirty() const{
-    return dirty_flag_;
+    return dirty_;
 }
 
 void Experiment::SetDirty(){
-    dirty_flag_ = true;
+    dirty_ = true;
+}
+
+void Experiment::Shutdown(){
+    if(!shutdown_){
+        shutdown_ = true;
+        SetDirty();
+    }
 }
 
 void Experiment::UpdatePort(const std::string& external_port_label){
@@ -184,45 +184,49 @@ Port& Experiment::GetPort(const std::string& id){
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
-NodeManager::ControlMessage* Experiment::GetUpdate(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    if(dirty_flag_){
-        auto control_message = new NodeManager::ControlMessage();
-        control_message->set_experiment_id(model_name_);
+std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::EnvironmentMessage> environment_message;
 
-        for(auto& node_pair : node_map_){
-            if(node_pair.second->DeployedTo()){
-                auto node_update = node_pair.second->GetUpdate();
-                if(node_update){
-                    control_message->mutable_nodes()->AddAllocated(node_update);
+    if(dirty_ || full_update){
+        environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+
+        if(!shutdown_){
+            environment_message->set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
+
+            auto control_message = environment_message->mutable_control_message();
+            control_message->set_experiment_id(model_name_);
+            for(auto& node_pair : node_map_){
+                if(node_pair.second->DeployedTo()){
+                    auto node_pb = node_pair.second->GetProto(full_update);
+                    if(node_pb){
+                        control_message->mutable_nodes()->AddAllocated(node_pb.release());
+                    }
                 }
             }
+
+            auto attrs = control_message->mutable_attributes();
+            NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
+            NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
+            NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
+        }else{
+            //Terminate the experiment
+            environment_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_EXPERIMENT);
         }
-        dirty_flag_ = false;
-        return control_message;
+
+        if(dirty_){
+            dirty_ = false;
+        }
     }
-    return nullptr;
+    return environment_message;
 }
 
-NodeManager::ControlMessage* Experiment::GetProto(){
-    NodeManager::ControlMessage* control_message = new NodeManager::ControlMessage();
-
-    control_message->set_experiment_id(model_name_);
-
-    for(auto& node_pair : node_map_){
-        if(node_pair.second->DeployedTo()){
-            control_message->mutable_nodes()->AddAllocated(node_pair.second->GetProto());
-        }
+std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
+    if(node_map_.count(ip_address)){
+        return node_map_.at(ip_address)->GetLoganDeploymentMessage();
     }
-
-    auto attrs = control_message->mutable_attributes();
-
-    NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
-    NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
-    NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
-
-
-    return control_message;
+    else{
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' Doesn't have a Node with IP address: '" + ip_address + "'");
+    }
 }
 
 EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){

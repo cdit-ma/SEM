@@ -164,86 +164,62 @@ Port& Node::GetPort(const std::string& port_id) const{
     throw std::out_of_range("Node::GetPort: " + id_ + " GET: " + port_id);
 }
 
-NodeManager::Node* Node::GetUpdate(){
-    NodeManager::Node* node = 0;
-    if(dirty_){
-        node = new NodeManager::Node();
+std::unique_ptr<NodeManager::Node> Node::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::Node> node;
+
+    if(dirty_ || full_update){
+        node = std::unique_ptr<NodeManager::Node>(new NodeManager::Node());
+        
         node->mutable_info()->set_name(name_);
         node->mutable_info()->set_id(id_);
         node->set_type(NodeManager::Node::HARDWARE_NODE);
 
-        auto attrs = node->mutable_attributes();
-
-        NodeManager::SetStringAttribute(attrs, "ip_address", GetIp());
-        NodeManager::SetStringAttribute(attrs, "management_port", GetManagementPort());
-
-
         for(const auto& logger : loggers_){
-            auto log_update = logger.second->GetUpdate();
-            if(log_update){
-                node->mutable_loggers()->AddAllocated(log_update);
+            auto logger_pb = logger.second->GetProto(full_update);
+            if(logger_pb){
+                node->mutable_loggers()->AddAllocated(logger_pb.release());
             }
         }
 
         for(const auto& component : components_){
-            auto component_update = component.second->GetUpdate();
-            if(component_update){
-                node->mutable_components()->AddAllocated(component_update);
+            auto component_pb = component.second->GetProto(full_update);
+            if(component_pb){
+                node->mutable_components()->AddAllocated(component_pb.release());
             }
         }
+
+        //Set the Node Attributes
+        auto attrs = node->mutable_attributes();
+        NodeManager::SetStringAttribute(attrs, "ip_address", GetIp());
+        NodeManager::SetStringAttribute(attrs, "management_port", GetManagementPort());
 
         for(const auto& attribute : attributes_){
-            auto attribute_update = attribute.second->GetUpdate();
-            if(attribute_update){
-                NodeManager::AddAllocatedAttribute(attrs, attribute_update);
+            auto attribute_pb = attribute.second->GetProto(full_update);
+            if(attribute_pb){
+                NodeManager::AddAllocatedAttribute(attrs, std::move(attribute_pb));
             }
         }
-        dirty_ = false;
+
+        if(dirty_){
+            dirty_ = false;
+        }
     }
     return node;
 }
 
-NodeManager::Node* Node::GetProto(){
-    auto node = new NodeManager::Node();
-    
-    node->mutable_info()->set_name(name_);
-    node->mutable_info()->set_id(id_);
-    node->set_type(NodeManager::Node::HARDWARE_NODE);
-
-    auto attrs = node->mutable_attributes();
-
-    NodeManager::SetStringAttribute(attrs, "ip_address", GetIp());
-    NodeManager::SetStringAttribute(attrs, "management_port", GetManagementPort());
-
-    for(const auto& logger : loggers_){
-        node->mutable_loggers()->AddAllocated(logger.second->GetProto());
-    }
-
-    for(const auto& component : components_){
-        node->mutable_components()->AddAllocated(component.second->GetProto());
-    }
-
-    for(const auto& attribute : attributes_){
-        NodeManager::AddAllocatedAttribute(attrs, attribute.second->GetProto());
-    }
-
-    return node;
-}
-
-NodeManager::EnvironmentMessage* Node::GetLoganDeploymentMessage() const{
-    auto message = new NodeManager::EnvironmentMessage();
+std::unique_ptr<NodeManager::EnvironmentMessage> Node::GetLoganDeploymentMessage() const{
+    auto environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
         if(logger->GetType() == Logger::Type::Server){
-            auto logger_pb = logger->GetProto();
+            auto logger_pb = logger->GetProto(true);
             if(logger_pb){
-                message->mutable_logger()->AddAllocated(logger_pb);
+                environment_message->mutable_logger()->AddAllocated(logger_pb.release());
             }
         }
     }
-    return message;
-
+    return environment_message;
 }
 
 Experiment& Node::GetExperiment(){
