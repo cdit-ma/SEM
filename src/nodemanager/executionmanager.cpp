@@ -285,19 +285,28 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
 }
 
 void ExecutionManager::UpdateCallback(NodeManager::EnvironmentMessage& environment_update){
+    using namespace NodeManager;
     //TODO: filter only nodes we want to update???
     //can we even do that??
+    const auto& type = environment_update.type();
 
-    if(environment_update.type() == NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
-        //Take a copy.
-        auto control_message = new NodeManager::ControlMessage(*environment_update.mutable_control_message());
-        control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
-        PushMessage("*", control_message);
+    switch(type){
+        case EnvironmentMessage::UPDATE_DEPLOYMENT:{
+            auto control_message = new ControlMessage(*environment_update.mutable_control_message());
+            control_message->set_type(ControlMessage::CONFIGURE);
+            PushMessage("*", control_message);
+            break;
+        }
+        case EnvironmentMessage::SHUTDOWN_EXPERIMENT:{
+            if(execution_){
+                execution_->Interrupt();  
+            }
+            break;
+        }
+        default:{
+            throw std::runtime_error("Unhandle EnvironmentMessage Type: " + EnvironmentMessage_Type_Name(type));
+        }
     }
-    else{
-        throw std::runtime_error("Unknown message type");
-    }
-
 }
 
 void ExecutionManager::TriggerExecution(bool execute){
