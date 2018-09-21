@@ -30,6 +30,15 @@ namespace zmq{
         return zmq::message_t(str.c_str(), str.size());
     };
 
+    inline std::string TCPify(const std::string& ip_address, const std::string& port){
+        return std::string("tcp://" + ip_address + ":" + port);
+    };
+
+    inline std::string TCPify(const std::string& ip_address, int port){
+        return TCPify(ip_address, std::to_string(port));
+    };
+
+
     template <class RequestType, class ReplyType>
     inline std::string GetFunctionSignature(const std::string& function_name){
         static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
