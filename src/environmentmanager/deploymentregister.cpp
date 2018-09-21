@@ -12,20 +12,39 @@ DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& ip_add
     assert(portrange_min < portrange_max);
     ip_addr_ = ip_addr;
     registration_port_ = registration_port;
-
-    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(ip_addr, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
 
     execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 
+    replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
+    replier_->Bind(TCPify(ip_addr_, registration_port_));
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                  ("ExperimentRegistration", 
+                                  std::bind(&DeploymentRegister::HandleAddExperiment, this, std::placeholders::_1));
+
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                  ("NodeQuery", 
+                                  std::bind(&DeploymentRegister::HandleNodeQuery, this, std::placeholders::_1));
+
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                  ("LoganRegistration", 
+                                  std::bind(&DeploymentRegister::HandleAddLoganClient, this, std::placeholders::_1));
+
+    replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
+                                  ("ListExperiments", 
+                                  std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+    
+    replier_->RegisterProtoCallback<EnvironmentControl::ShutdownExperimentRequest, EnvironmentControl::ShutdownExperimentReply>
+                                  ("ShutdownExperiment", 
+                                  std::bind(&DeploymentRegister::HandleShutdownExperiment, this, std::placeholders::_1));
 }
 
 void DeploymentRegister::Start(){
-    registration_loop_ = std::thread(&DeploymentRegister::RegistrationLoop, this);
+    replier_->Start();
 }
 
 void DeploymentRegister::Terminate(){
-    context_.reset();
+    replier_->Terminate();
     for(const auto& deployment : deployments_){
         deployment->Terminate();
     }
@@ -33,99 +52,12 @@ void DeploymentRegister::Terminate(){
     for(const auto& client : logan_clients_){
         client->Terminate();
     }
-    registration_loop_.join();
 }
 
-//Main registration loop, passes request workload off to other threads
-void DeploymentRegister::RegistrationLoop() noexcept{
-    std::unique_ptr<zmq::socket_t> rep;
-    try{
-        rep = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_.get(), ZMQ_REP));
-        rep->bind(TCPify(ip_addr_, registration_port_));
-    }
-    catch(zmq::error_t& e){
-        std::cerr << "Could not bind reply socket in registration loop. IP_ADDR: " << ip_addr_ <<
-                                        " Port: " << registration_port_ << std::endl;
-        execution_.Interrupt();
-        return;
-    }
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddExperiment(const NodeManager::EnvironmentMessage& message){
 
-    while(!terminate_){
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(message));
 
-        std::pair<uint64_t, std::string> reply;
-        //Receive deployment information
-        try{
-            reply = ZMQReceiveRequest(*rep);
-        }catch(const zmq::error_t& exception){
-            if(exception.num() != ETERM){
-                std::cerr << "Exception in deploymentregister::RegistrationLoop " << exception.what() << std::endl;
-            }
-            break;
-        }
-
-        NodeManager::EnvironmentMessage message;
-        bool parse_success = message.ParseFromString(reply.second);
-
-        if(parse_success){
-            try{
-                //Handle message. Reply message is created by mutating this message.
-                RequestHandler(message);
-            }
-            catch(const zmq::error_t& exception){
-                if(exception.num() != ETERM){
-                    std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
-                }
-                break;
-            }
-            catch(const std::exception& exception){
-                //Print error message to cerr and add to error message field of response.
-                //Set response type to ERROR
-                std::string error_string = "Exception when handling request in DeploymentRegister::RegistrationLoop: ";
-                error_string += exception.what();
-                std::cerr << error_string << std::endl;
-                message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                message.add_error_messages(error_string);
-            }
-        }
-
-        try{
-            ZMQSendReply(*rep, message.SerializeAsString());
-        }
-        catch(const zmq::error_t& exception){
-            if(exception.num() != ETERM){
-                std::cerr << "Exception in deploymentRegister loop: " << exception.what() << std::endl;
-            }
-            break;
-        }
-    }
-}
-
-void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message){
-    switch(message.type()){
-        case NodeManager::EnvironmentMessage::ADD_DEPLOYMENT:{
-            HandleAddDeployment(message);
-            break;
-        }
-
-        case NodeManager::EnvironmentMessage::NODE_QUERY:{
-            HandleNodeQuery(message);
-            break;
-        }
-
-        case NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT:{
-            HandleAddLoganClient(message);
-            break;
-        }
-
-        default:{
-            throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
-            break;
-        }
-    }
-}
-
-
-void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& message){
     //Push work onto new thread with port number promise
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
@@ -137,7 +69,6 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     }
     
     deployments_.emplace_back(new DeploymentHandler(*environment_,
-                                                    *context_,
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
                                                     message.update_endpoint(),
@@ -147,7 +78,8 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     try{
         //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
         port = port_future.get();
-        message.set_update_endpoint(TCPify(ip_addr_, port));
+        reply_message->set_update_endpoint(TCPify(ip_addr_, port));
+        return std::move(reply_message);
     }
     catch(const std::exception& e){
         std::cerr << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
@@ -158,14 +90,15 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     }
 }
 
-void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& message){
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddLoganClient(const NodeManager::EnvironmentMessage& message){
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(message));
+
     std::string experiment_id = message.experiment_id();
 
     auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
     logan_clients_.emplace_back(new DeploymentHandler(*environment_,
-                                                    *context_,
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
                                                     "",
@@ -174,8 +107,9 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
 
     try{
         port = port_future.get();
-        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-        message.set_update_endpoint(TCPify(ip_addr_, port));
+        reply_message->set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        reply_message->set_update_endpoint(TCPify(ip_addr_, port));
+        return std::move(reply_message);
     }
     catch(const std::exception& ex){
         std::cerr << "Exception: " << ex.what() << " (Probably out of ports)" << std::endl;
@@ -186,18 +120,25 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
     }
 }
 
-void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& message){
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleNodeQuery(const NodeManager::EnvironmentMessage& message){
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(message));
+
     std::string experiment_id = message.experiment_id();
 
     if(message.control_message().nodes_size() < 1){
         throw std::runtime_error("No nodes supplied in node query.");
     }
 
-    auto control_message = message.mutable_control_message();
-    auto node = message.mutable_control_message()->mutable_nodes(0);
-    auto attrs = node->mutable_attributes();
+    auto control_message = message.control_message();
+    auto node = message.control_message().nodes(0);
+    auto attrs = node.attributes();
 
-    const auto& ip_address = NodeManager::GetAttribute(*attrs, "ip_address").s(0);
+    const auto& ip_address = NodeManager::GetAttribute(attrs, "ip_address").s(0);
+
+
+    auto reply_control_message = reply_message->mutable_control_message();
+    auto reply_node = reply_message->mutable_control_message()->mutable_nodes(0);
+    auto reply_attrs = reply_node->mutable_attributes();
 
     if(ip_address.empty()){
         throw std::runtime_error("No ip_address set in message passed to HandleNodeQuery.");
@@ -208,23 +149,38 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         const auto& master_publisher_endpoint = environment_->GetMasterPublisherAddress(experiment_id);
         const auto& master_registration_endpoint = environment_->GetMasterRegistrationAddress(experiment_id);
 
-        NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", master_publisher_endpoint);
-        NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", master_registration_endpoint);
+        NodeManager::SetStringAttribute(reply_attrs, "master_publisher_endpoint", master_publisher_endpoint);
+        NodeManager::SetStringAttribute(reply_attrs, "master_registration_endpoint", master_registration_endpoint);
 
-        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-        control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
+        reply_message->set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        reply_control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
     }
     else if(environment_->IsExperimentConfigured(experiment_id) == false){
         //Dont have a configured experiment with this id, send back a no_type s.t. client re-trys in a bit
-        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-        control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
+        reply_message->set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        reply_control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
     }
     else{
         //At this point, we have an experiment of the same id as ours and we aren't deployed to it.
         //Therefore terminate
-        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-        control_message->set_type(NodeManager::ControlMessage::TERMINATE);
+        reply_message->set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        reply_control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
+    return std::move(reply_message);
+}
+
+std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> DeploymentRegister::HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message){
+    throw std::runtime_error("NOT IMPLEMENTED");
+}
+
+std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message){
+    auto reply_message = std::unique_ptr<EnvironmentControl::ListExperimentsReply>(new EnvironmentControl::ListExperimentsReply());
+    auto experiment_names = environment_->GetExperimentNames();
+    experiment_names.push_back("this  is a test experiment");
+    experiment_names.push_back("this  is another test experiment");
+    *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
+
+    return reply_message;
 }
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{
@@ -234,32 +190,4 @@ std::string DeploymentRegister::TCPify(const std::string& ip_address, const std:
 
 std::string DeploymentRegister::TCPify(const std::string& ip_address, int port) const{
     return std::string("tcp://" + ip_address + ":" + std::to_string(port));
-}
-
-void DeploymentRegister::ZMQSendReply(zmq::socket_t& socket, const std::string& message){
-    std::string lamport_string = std::to_string(environment_->Tick());
-    zmq::message_t lamport_time_msg(lamport_string.begin(), lamport_string.end());
-    zmq::message_t zmq_msg(message.begin(), message.end());
-
-    try{
-        socket.send(lamport_time_msg, ZMQ_SNDMORE);
-        socket.send(zmq_msg);
-    }
-    catch(const zmq::error_t& error){
-        std::cerr << error.what() << " in DeploymentRegister::SendTwoPartReply" << std::endl;
-    }
-}
-
-std::pair<uint64_t, std::string> DeploymentRegister::ZMQReceiveRequest(zmq::socket_t& socket){
-    zmq::message_t lamport_time_msg;
-    zmq::message_t request_contents_msg;
-    socket.recv(&lamport_time_msg);
-    socket.recv(&request_contents_msg);
-    std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
-
-    //Update and get current lamport time
-    std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
-    uint64_t lamport_time = environment_->SetClock(std::stoull(incoming_time));
-
-    return std::make_pair(lamport_time, contents);
 }

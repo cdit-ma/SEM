@@ -141,7 +141,7 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
     experiment.Shutdown();
 }
 
-void Environment::RemoveExperiment(const std::string& experiment_name, uint64_t time_called){
+void Environment::RemoveExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     if(experiment_map_.count(experiment_name)){
@@ -465,4 +465,13 @@ const NodeManager::Attribute& Environment::GetAttributeByName(const google::prot
         }
     }
     throw std::invalid_argument("No attribute found with name " + attribute_name);
+}
+
+std::vector<std::string> Environment::GetExperimentNames(){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::vector<std::string> experiment_names;
+    for(const auto& key_pair : experiment_map_){
+        experiment_names.emplace_back(key_pair.first);
+    }
+    return experiment_names;
 }

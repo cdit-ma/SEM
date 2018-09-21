@@ -346,7 +346,7 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
             //Get the Port,
             auto& port = GetExperiment().GetPort(port_id);
             ports.emplace_back(port);
-            break;
+            continue;
         }catch(const std::exception& ex){
         
         }

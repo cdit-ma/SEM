@@ -39,8 +39,7 @@ class Environment{
 
 
         void ShutdownExperiment(const std::string& experiment_name);
-
-        void RemoveExperiment(const std::string& experiment_name, uint64_t time);
+        void RemoveExperiment(const std::string& experiment_name);
         void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
         std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
@@ -50,7 +49,7 @@ class Environment{
         bool GotExperiment(const std::string& experiment_name);
 
 
-        
+        std::vector<std::string> GetExperimentNames();
         
 
         bool IsExperimentConfigured(const std::string& experiment_name);
