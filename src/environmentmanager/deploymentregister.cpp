@@ -175,8 +175,6 @@ std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> DeploymentRegister:
 std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message){
     auto reply_message = std::unique_ptr<EnvironmentControl::ListExperimentsReply>(new EnvironmentControl::ListExperimentsReply());
     auto experiment_names = environment_->GetExperimentNames();
-    experiment_names.push_back("this  is a test experiment");
-    experiment_names.push_back("this  is another test experiment");
     *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
 
     return reply_message;
