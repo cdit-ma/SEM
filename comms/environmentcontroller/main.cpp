@@ -31,21 +31,30 @@ int main(int argc, char** argv){
     }
 
     EnvironmentManager::EnvironmentController controller(environment_manager_endpoint);
+    
     try{
         if(vm.count("shutdown-experiment")){
             controller.ShutdownExperiment(shutdown_experiment);
         }else if(vm.count("list-experiments")){
-            for(const auto& experiment_name : controller.ListExperiments()){
-                std::cout << "Experiment: " << experiment_name << std::endl;
+            const auto& experiment_names = controller.ListExperiments();
+            std::cout << "{\"experiment_names\":[" << std::endl;
+            for(int i = 0; i < experiment_names.size(); i++){
+                std::cout << "\t" << "\"";
+                std::cout << experiment_names.at(i);
+                std::cout << "\"";
+                if(i != experiment_names.size() - 1){
+                    std::cout << ",";
+                }
+                std::cout << std::endl;
             }
+            std::cout << "]}" << std::endl;
         }else{
             std::cout << desc << std::endl;
             return 1;
         }
     }catch(const std::exception& ex){
-        std::cerr << ex.what() << std::endl;
+        std::cerr << "Error: " << ex.what() << std::endl;
         return 1;
     }
-
     return 0;
 }

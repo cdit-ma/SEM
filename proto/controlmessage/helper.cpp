@@ -12,9 +12,16 @@ const NodeManager::Attribute& NodeManager::GetAttribute(const PbAttrMap& map, co
 };
 
 NodeManager::Attribute& NodeManager::AddAllocatedAttribute(PbAttrMap* map, Attribute* attribute){
-    auto& attr = (*map)[attribute->info().name()] = * attribute;
-    delete attribute;
-    return attr;
+    return AddAllocatedAttribute(map, std::unique_ptr<Attribute>(attribute));
+}
+
+NodeManager::Attribute& NodeManager::AddAllocatedAttribute(PbAttrMap* map, std::unique_ptr<Attribute> attribute){
+    if(attribute){
+        auto& attr = (*map)[attribute->info().name()] = *(attribute);
+        return attr;
+    }else{
+        throw std::runtime_error("Invalid Attribute");
+    }
 }
 
 NodeManager::Attribute& NodeManager::InsertAttribute(PbAttrMap* map, const std::string& attribute_key, const NodeManager::Attribute::Kind kind){
