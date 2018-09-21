@@ -1,6 +1,9 @@
 #include "heartbeater.h"
 
-Heartbeater::Heartbeater(const int heartbeat_period, zmq::ProtoRequester& requester) : requester_(requester){}
+Heartbeater::Heartbeater(const int heartbeat_period, zmq::ProtoRequester& requester) : 
+heartbeat_period_(heartbeat_period),
+requester_(requester)
+{}
 
 
 void Heartbeater::HeartbeatLoop(){
@@ -12,7 +15,7 @@ void Heartbeater::HeartbeatLoop(){
             std::unique_lock<std::mutex> lock(heartbeat_lock_);
 
             // Wait for a message on the queue OR our heartbeat period to time out.
-            heartbeat_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD));
+            heartbeat_cv_.wait_for(lock, std::chrono::milliseconds(heartbeat_period_));
 
             if(end_flag_){
                 break;
@@ -24,7 +27,7 @@ void Heartbeater::HeartbeatLoop(){
 
         try{
             auto reply_future = requester_.SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                            ("EnvironmentManagerHeartbeat", message, HEARTBEAT_TIMEOUT);
+                                                            ("EnvironmentManagerHeartbeat", message, heartbeat_period_);
             auto reply_message = reply_future.get();
             // Reset our retry count
             retry_count = 0;
@@ -34,20 +37,54 @@ void Heartbeater::HeartbeatLoop(){
             std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
         }catch(const std::exception& ex){
             retry_count ++;
-            // TODO: call registered exception handling callback??
             std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
         }
     }
 
     if(retry_count >= 5){
-        std::cerr << "EnvironmentRequester::HeartbeatLoop Timed out" << std::endl;
+        std::cerr << "Heartbeater::HeartbeatLoop Timed out" << std::endl;
     }
 }
 
 void Heartbeater::Start(){
-    heartbeat_future_ = std::async(std::launch::async, &EnvironmentRequester::HeartbeatLoop, this);
+    heartbeat_future_ = std::async(std::launch::async, &Heartbeater::HeartbeatLoop, this);
 }
 
 void Heartbeater::Terminate(){
+    std::cout << "TERMINATE" << std::endl;
 
+    std::lock_guard<std::mutex> lock(heartbeat_lock_);
+    std::cout << "TERMINATE" << std::endl;
+
+    end_flag_ = true;
+    std::cout << "TERMINATE" << std::endl;
+
+
+    heartbeat_cv_.notify_one();
+    std::cout << "TERMINATE" << std::endl;
+
+
+    heartbeat_future_.get();
+    std::cout << "Got future" << std::endl;
+
+}
+
+void Heartbeater::AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){
+    callback_func_ = callback_func;
+}
+
+void Heartbeater::HandleReply(NodeManager::EnvironmentMessage& environment_message){
+    switch(environment_message.type()){
+        case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
+            // no-op
+            return;
+        }
+        default:{
+            if(callback_func_){
+                callback_func_(environment_message);
+            }else{
+                throw std::runtime_error("Update callback not set");
+            }
+        }
+    }
 }

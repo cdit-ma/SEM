@@ -7,6 +7,7 @@
 #include <queue>
 #include <future>
 #include <zmq/protorequester/protorequester.hpp>
+#include "heartbeater.h"
 
 
 namespace NodeManager{
@@ -58,11 +59,10 @@ class EnvironmentRequester{
 
         bool environment_manager_not_found_ = false;
         
-        std::future<void> heartbeat_future_;
-
         bool end_flag_ = false;
 
         std::unique_ptr<zmq::ProtoRequester> update_requester_;
+        std::unique_ptr<Heartbeater> heartbeater_;
 
         void HandleReply(NodeManager::EnvironmentMessage& message);
 

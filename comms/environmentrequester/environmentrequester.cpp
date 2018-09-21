@@ -15,6 +15,7 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
 {}
 
 EnvironmentRequester::~EnvironmentRequester(){
+    std::cout << "destructor" << std::endl;
     Terminate();
 }
 
@@ -116,13 +117,15 @@ void EnvironmentRequester::Start(){
     update_requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_update_endpoint_));
 
     // Start heartbeater
-    // heartbeater_ = std::unique_ptr<Heartbeater>(1000, *update_requester_);
-    // heartbeater_->Start();
+    heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *update_requester_));
+    heartbeater_->AddCallback(std::bind(&EnvironmentRequester::HandleReply, this, std::placeholders::_1));
+    heartbeater_->Start();
 
 }
 
 void EnvironmentRequester::Terminate(){
-    //heartbeater_->Terminate();
+    std::cout << "requester terminate" << std::endl;
+    heartbeater_->Terminate();
 }
 
 NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManager::ControlMessage& control_message){
@@ -205,19 +208,6 @@ NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::st
 }
 
 void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
-    switch(message.type()){
-        case NodeManager::EnvironmentMessage::SUCCESS:
-        case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
-            // no-op
-            return;
-        }
-        default:{
-            if(update_callback_){
-                update_callback_(message);
-            }else{
-                throw std::runtime_error("Update callback not set");
-            }
-        }
-    }
+    update_callback_(message);
 }
 

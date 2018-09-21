@@ -13,6 +13,7 @@ find_package(Protobuf REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/heartbeater.cpp
 	)
 
 set(HEADERS
