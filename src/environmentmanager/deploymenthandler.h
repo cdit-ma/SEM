@@ -20,48 +20,35 @@ class DeploymentHandler{
                         const std::string& ip_addr,
                         EnvironmentManager::Environment::DeploymentType deployment_type,
                         const std::string& deployment_ip_address,
-                        std::promise<std::string>* port_promise,
+                        std::promise<std::string> port_promise,
                         const std::string& experiment_id);
-
-        void Terminate();
-        void PrintError(const std::string& message);
-
+        
+        ~DeploymentHandler();
     private:
         //Req/rep loops
         void HeartbeatLoop() noexcept;
-
-        //Reply Helpers
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleRequest(const NodeManager::EnvironmentMessage& request_message);
-        void HandleDirtyExperiment(NodeManager::EnvironmentMessage& message);
-        void HandleLoganQuery(NodeManager::EnvironmentMessage& message);
-
-        //Environment Helpers
-        void RemoveDeployment() noexcept;
-
-        std::string TCPify(const std::string& ip, const std::string& port) const;
-        std::string TCPify(const std::string& ip, int port) const;
-
-        //Members
-        std::string ip_addr_;
-        std::unique_ptr<zmq::ProtoReplier> replier_;
-
+        void RemoveDeployment();
+        
+        std::unique_ptr<NodeManager::EnvironmentMessage> HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message);
+        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddExperiment(const NodeManager::EnvironmentMessage& request_message);
+        std::unique_ptr<NodeManager::EnvironmentMessage> HandleRemoveExperiment(const NodeManager::EnvironmentMessage& request_message);
+        std::unique_ptr<NodeManager::EnvironmentMessage> HandleGetLoganInfo(const NodeManager::EnvironmentMessage& request_message);
+        
+        std::future<void> heartbeat_future_;
+        const EnvironmentManager::Environment::DeploymentType deployment_type_;
         EnvironmentManager::Environment& environment_;
+        
+        const std::string& ip_addr_;
+        const std::string& deployment_ip_address_;
+        const std::string& experiment_id_;
 
-        EnvironmentManager::Environment::DeploymentType deployment_type_;
-        std::string deployment_ip_address_;
-        std::string experiment_id_;
-        std::map<std::string, std::string> port_map_;
-        long time_added_;
+        std::mutex replier_mutex_;
+        std::unique_ptr<zmq::ProtoReplier> replier_;
 
         std::mutex logan_ip_mutex_;
         std::set<std::string> registered_logan_ip_addresses;
 
-        std::unique_ptr<std::thread> handler_thread_;
-
-        std::promise<std::string>* port_promise_;
-
         bool removed_flag_ = false;
-        bool terminate_ = false;
 };
 
 

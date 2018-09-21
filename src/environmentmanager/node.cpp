@@ -209,6 +209,7 @@ std::unique_ptr<NodeManager::Node> Node::GetProto(const bool full_update){
 
 std::unique_ptr<NodeManager::EnvironmentMessage> Node::GetLoganDeploymentMessage() const{
     auto environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+    environment_message->set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
 
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;

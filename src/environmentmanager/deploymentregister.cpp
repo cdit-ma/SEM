@@ -45,13 +45,9 @@ void DeploymentRegister::Start(){
 
 void DeploymentRegister::Terminate(){
     replier_->Terminate();
-    for(const auto& deployment : deployments_){
-        deployment->Terminate();
-    }
 
-    for(const auto& client : logan_clients_){
-        client->Terminate();
-    }
+    deployments_.clear();
+    logan_clients_.clear();
 }
 
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddExperiment(const NodeManager::EnvironmentMessage& message){
@@ -59,8 +55,8 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddEx
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage(message));
 
     //Push work onto new thread with port number promise
-    auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
-    std::future<std::string> port_future = port_promise->get_future();
+    std::promise<std::string> port_promise;
+    auto port_future = port_promise.get_future();
     std::string port;
 
     if(environment_->GotExperiment(message.experiment_id())){
@@ -72,7 +68,7 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddEx
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
                                                     message.update_endpoint(),
-                                                    port_promise.get(),
+                                                    std::move(port_promise),
                                                     message.experiment_id()));
 
     try{
@@ -95,14 +91,15 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddLo
 
     std::string experiment_id = message.experiment_id();
 
-    auto port_promise = std::unique_ptr<std::promise<std::string>> (new std::promise<std::string>());
-    std::future<std::string> port_future = port_promise->get_future();
+    std::promise<std::string> port_promise;
+    auto port_future = port_promise.get_future();
     std::string port;
+    
     logan_clients_.emplace_back(new DeploymentHandler(*environment_,
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
                                                     "",
-                                                    port_promise.get(),
+                                                    std::move(port_promise),
                                                     experiment_id));
 
     try{
