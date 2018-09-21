@@ -167,7 +167,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleNodeQ
 }
 
 std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> DeploymentRegister::HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message){
-    throw std::runtime_error("NOT IMPLEMENTED");
+    auto reply_message = std::unique_ptr<EnvironmentControl::ShutdownExperimentReply>(new EnvironmentControl::ShutdownExperimentReply());
+    environment_->ShutdownExperiment(message.experiment_name());
+    return reply_message;
 }
 
 std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message){

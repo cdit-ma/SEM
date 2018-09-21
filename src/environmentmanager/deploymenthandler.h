@@ -38,9 +38,9 @@ class DeploymentHandler{
         const EnvironmentManager::Environment::DeploymentType deployment_type_;
         EnvironmentManager::Environment& environment_;
         
-        const std::string& ip_addr_;
-        const std::string& deployment_ip_address_;
-        const std::string& experiment_id_;
+        const std::string ip_addr_;
+        const std::string deployment_ip_address_;
+        const std::string experiment_id_;
 
         std::mutex replier_mutex_;
         std::unique_ptr<zmq::ProtoReplier> replier_;
