@@ -144,7 +144,7 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManage
         auto reply_future = update_requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                                             ("EnvironmentManagerAddExperiment", env_message, 1000);
         auto reply_msg = reply_future.get();
-        if(reply_msg->type() != NodeManager::EnvironmentMessage::SUCCESS){
+        if(reply_msg->type() != NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
             std::stringstream str_stream;
             const auto& error_list = reply_msg->error_messages();
             std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
@@ -173,10 +173,8 @@ void EnvironmentRequester::RemoveDeployment(){
         auto reply_future = update_requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                                             ("EnvironmentManagerRemoveExperiment", message, 1000);
         auto reply_msg = reply_future.get();
-        if(reply_msg->type() == NodeManager::EnvironmentMessage::SUCCESS){
-            std::cout << "* Removed from environment manager." << std::endl;
-            Terminate();
-        }
+        std::cout << "* Removed from environment manager." << std::endl;
+        Terminate();
     }
     catch(std::exception& ex){
         std::cout << ex.what() << " in EnvironmentRequester::RemoveDeployment" << std::endl;
