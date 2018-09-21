@@ -52,6 +52,7 @@ message EnvironmentMessage{
         ADD_LOGAN_CLIENT = 16;
         REMOVE_LOGAN_CLIENT = 17;
         LOGAN_CLIENT_LIST_QUERY = 18;
+        SHUTDOWN_EXPERIMENT = 19;
     }
 
     Type type = 1;
