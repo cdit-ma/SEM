@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq/protorequester/protorequester.hpp>
 
 namespace EnvironmentManager{
@@ -11,6 +12,9 @@ namespace EnvironmentManager{
         public:
             EnvironmentController(const std::string& environment_manager_endpoint);
             void ShutdownExperiment(const std::string& experiment_name);
+
+            std::unique_ptr<NodeManager::RegisterExperimentReply> AddExperiment(const std::string& experiment_name, const std::string& graphml_path);
+            
             std::vector<std::string> ListExperiments();
         private:
             zmq::ProtoRequester requester_;

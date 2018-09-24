@@ -1,15 +1,19 @@
 #include "environmentcontroller.h"
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <google/protobuf/util/json_util.h>
 
 int main(int argc, char** argv){
     std::string environment_manager_endpoint;
-    std::string shutdown_experiment;
+    std::string experiment_name;
+    std::string graphml_path;
 
 
     boost::program_options::options_description desc("Environment Manager Controller Options");
+    desc.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name), "Name of experiment.");
     desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
-    desc.add_options()("shutdown-experiment,s", boost::program_options::value<std::string>(&shutdown_experiment), "Shutdown experiment <name>");
+    desc.add_options()("shutdown-experiment,s", "Shutdown experiment <name>");
+    desc.add_options()("add-experiment,a", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path.");
     desc.add_options()("list-experiments,l", "List running experiments.");
     desc.add_options()("help,h", "Display help");
 
@@ -33,8 +37,20 @@ int main(int argc, char** argv){
     EnvironmentManager::EnvironmentController controller(environment_manager_endpoint);
     
     try{
-        if(vm.count("shutdown-experiment")){
-            controller.ShutdownExperiment(shutdown_experiment);
+        if(vm.count("shutdown-experiment") && vm.count("experiment-name")){
+            controller.ShutdownExperiment(experiment_name);
+        }else if(vm.count("add-experiment") && vm.count("experiment-name")){
+            auto result = controller.AddExperiment(experiment_name, graphml_path);
+            std::string output;
+            google::protobuf::util::JsonOptions options;
+            options.add_whitespace = true;
+
+            if(result){
+                google::protobuf::util::MessageToJsonString(*result, &output, options);
+                std::cerr << output << std::endl;
+            }else{
+                return 1;
+            }
         }else if(vm.count("list-experiments")){
             const auto& experiment_names = controller.ListExperiments();
             std::cout << "{\"experiment_names\":[" << std::endl;
