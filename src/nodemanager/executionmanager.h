@@ -96,7 +96,6 @@ class ExecutionManager{
         std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
         std::condition_variable slave_state_cv_;
-
 };
 
 #endif //EXECUTIONMANAGER_H

@@ -63,7 +63,6 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddEx
         std::cerr << "DeploymentRegister::HandleAddDeployment Exception: Tried to add preexisting experiment id." << std::endl;
         throw std::runtime_error("Tried to add preexisting experiment id.");
     }
-    
     deployments_.emplace_back(new DeploymentHandler(*environment_,
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER,
@@ -94,11 +93,10 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentRegister::HandleAddLo
     std::promise<std::string> port_promise;
     auto port_future = port_promise.get_future();
     std::string port;
-    
     logan_clients_.emplace_back(new DeploymentHandler(*environment_,
                                                     ip_addr_,
                                                     EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT,
-                                                    "",
+                                                    message.update_endpoint(),
                                                     std::move(port_promise),
                                                     experiment_id));
 

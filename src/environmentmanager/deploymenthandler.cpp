@@ -9,7 +9,7 @@ DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     std::promise<std::string> port_promise,
                                     const std::string& experiment_id) :
 environment_(env),
-ip_addr_(ip_addr),
+environment_manager_ip_address_(ip_addr),
 deployment_type_(deployment_type),
 deployment_ip_address_(deployment_ip_address),
 experiment_id_(experiment_id)
@@ -17,8 +17,8 @@ experiment_id_(experiment_id)
     std::lock_guard<std::mutex> lock(replier_mutex_);
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
-    const auto& bind_address = zmq::TCPify(ip_addr_, assigned_port); 
-    
+    const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
+
     try{
         replier_->Bind(bind_address);
         port_promise.set_value(assigned_port);
@@ -103,7 +103,7 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartb
         }
     }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
         std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-        if(registered_logan_ip_addresses.count(ip_addr_)){
+        if(registered_logan_ip_addresses.count(deployment_ip_address_)){
             //If we were registered, now we don't have the experiment anymore, Terminate
             if(!environment_.GotExperiment(experiment_id_)){
                 return_message->set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
@@ -130,12 +130,12 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetLog
 
     if(environment_.IsExperimentConfigured(experiment_id_)){
         std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-        if(!registered_logan_ip_addresses.count(ip_addr_)){
-            auto environment_message = environment_.GetLoganDeploymentMessage(experiment_id_, ip_addr_);
+        if(!registered_logan_ip_addresses.count(deployment_ip_address_)){
+            auto environment_message = environment_.GetLoganDeploymentMessage(experiment_id_, deployment_ip_address_);
             if(environment_message){
                 return_message.swap(environment_message);
                 //Register the logan_ip
-                registered_logan_ip_addresses.insert(ip_addr_);
+                registered_logan_ip_addresses.insert(deployment_ip_address_);
             }
         }else{
             return_message->set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);

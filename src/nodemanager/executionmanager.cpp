@@ -18,6 +18,8 @@
 
 #include <google/protobuf/util/json_util.h>
 
+const bool EXECUTION_MANAGER_DEBUG_MODE  = false;
+
 ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
                                     const std::string& graphml_path,
                                     double execution_duration,
@@ -44,7 +46,9 @@ ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
     protobuf_model_parser_ = std::unique_ptr<ProtobufModelParser>(new ProtobufModelParser(graphml_path, experiment_id_));
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
-    // std::cerr << deployment_message_->DebugString() << std::endl;
+    if(EXECUTION_MANAGER_DEBUG_MODE){
+        std::cerr << deployment_message_->DebugString() << std::endl;
+    }
 
     NodeManager::SetStringAttribute(deployment_message_->mutable_attributes(), "master_ip_address", master_ip_addr_);
 
