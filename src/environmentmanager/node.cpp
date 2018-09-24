@@ -63,7 +63,29 @@ std::string Node::GetIp() const{
     return ip_;
 }
 int Node::GetDeployedComponentCount() const{
-    return components_.size() + loggers_.size();
+    return components_.size();
+}
+
+int Node::GetDeployedCount() const {
+    return GetDeployedCount() + loggers_.size();
+}
+int Node::GetLoganServerCount() const{
+    int server_count = 0;
+    for(const auto& log_pair : loggers_){
+        if(log_pair.second->GetType() == Logger::Type::Server){
+            server_count ++;
+        }
+    }
+    return server_count;
+}
+
+
+bool Node::IsNodeManagerMaster() const{
+    return is_node_manager_master_;
+}
+
+void Node::SetNodeManagerMaster(){
+    is_node_manager_master_ = true;
 }
 
 //Port getters/setters
@@ -207,20 +229,28 @@ std::unique_ptr<NodeManager::Node> Node::GetProto(const bool full_update){
     return node;
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> Node::GetLoganDeploymentMessage() const{
-    auto environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
-    environment_message->set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
 
+
+std::unique_ptr<NodeManager::HardwareId> Node::GetHardwareId() const{
+    auto hardware_id = std::unique_ptr<NodeManager::HardwareId>(new NodeManager::HardwareId());
+    hardware_id->set_host_name(GetName());
+    hardware_id->set_ip_address(GetIp());
+    return hardware_id;
+}
+
+std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServers() const{
+    std::vector<std::unique_ptr<NodeManager::Logger> > logan_servers;
+    
     for(const auto& logger_pair : loggers_){
         auto& logger = logger_pair.second;
         if(logger->GetType() == Logger::Type::Server){
             auto logger_pb = logger->GetProto(true);
             if(logger_pb){
-                environment_message->mutable_logger()->AddAllocated(logger_pb.release());
+                logan_servers.emplace_back(std::move(logger_pb));
             }
         }
     }
-    return environment_message;
+    return logan_servers;
 }
 
 Experiment& Node::GetExperiment(){
@@ -228,5 +258,5 @@ Experiment& Node::GetExperiment(){
 }
 
 bool Node::DeployedTo() const{
-    return (loggers_.size() || components_.size());
+    return GetDeployedCount() > 0;
 }

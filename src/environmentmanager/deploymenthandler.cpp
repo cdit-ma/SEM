@@ -33,13 +33,9 @@ experiment_id_(experiment_id)
 
     //Register the callbacks
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                ("EnvironmentManagerHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
-    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                ("EnvironmentManagerAddExperiment", std::bind(&DeploymentHandler::HandleAddExperiment, this, std::placeholders::_1));
-    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                ("EnvironmentManagerRemoveExperiment", std::bind(&DeploymentHandler::HandleRemoveExperiment, this, std::placeholders::_1));
-    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                ("EnvironmentManagerGetLoganInfo", std::bind(&DeploymentHandler::HandleGetLoganInfo, this, std::placeholders::_1));
+                                ("HandleHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
+    replier_->RegisterProtoCallback<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>
+                                ("HandleNodeManagerDeregisteration", std::bind(&DeploymentHandler::HandleNodeManagerDeregisteration, this, std::placeholders::_1));
 
     heartbeat_future_ = std::async(std::launch::async, &DeploymentHandler::HeartbeatLoop, this);
 }
@@ -106,40 +102,15 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartb
         if(registered_logan_ip_addresses.count(deployment_ip_address_)){
             //If we were registered, now we don't have the experiment anymore, Terminate
             if(!environment_.GotExperiment(experiment_id_)){
-                return_message->set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                return_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
             }
         }
     }
     return return_message;
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleAddExperiment(const NodeManager::EnvironmentMessage& request_message){
-    auto deployment_info = environment_.PopulateExperiment(request_message.control_message());
-    return deployment_info;
-}
-
-std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleRemoveExperiment(const NodeManager::EnvironmentMessage& request_message){
+std::unique_ptr<NodeManager::NodeManagerDeregistrationReply> DeploymentHandler::HandleNodeManagerDeregisteration(const NodeManager::NodeManagerDeregistrationRequest& request_message){
     RemoveDeployment();
-    auto success = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+    auto success = std::unique_ptr<NodeManager::NodeManagerDeregistrationReply>(new NodeManager::NodeManagerDeregistrationReply());
     return success;
-}
-
-std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetLoganInfo(const NodeManager::EnvironmentMessage& request_message){
-    auto return_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
-    return_message->set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
-
-    if(environment_.IsExperimentConfigured(experiment_id_)){
-        std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-        if(!registered_logan_ip_addresses.count(deployment_ip_address_)){
-            auto environment_message = environment_.GetLoganDeploymentMessage(experiment_id_, deployment_ip_address_);
-            if(environment_message){
-                return_message.swap(environment_message);
-                //Register the logan_ip
-                registered_logan_ip_addresses.insert(deployment_ip_address_);
-            }
-        }else{
-            return_message->set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-        }
-    }
-    return return_message;
 }

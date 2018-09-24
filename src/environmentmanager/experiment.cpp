@@ -54,6 +54,16 @@ bool Experiment::IsConfigured(){
     return is_configured_;
 }
 
+bool Experiment::IsRunning(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return is_running_;
+}
+
+void Experiment::SetRunning(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    is_running_ = true;
+}
+
 std::string Experiment::GetManagerPort() const{
     return manager_port_;
 }
@@ -89,6 +99,13 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         }
     }
 }
+Node& Experiment::GetNode(const std::string& ip_address) const{
+    try{
+        return *(node_map_.at(ip_address));
+    }catch(const std::exception& ex){
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' does not have registered node with IP: '" + ip_address + "'");
+    }
+}
 
 void Experiment::AddNode(const NodeManager::Node& node){
     if(node.type() == NodeManager::Node::HARDWARE_NODE){
@@ -101,7 +118,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
             auto& node_ref = node_map_.at(ip_address);
                 
             //Build logan connection map
-            auto deploy_count = node_ref->GetDeployedComponentCount();
+            auto deploy_count = node_ref->GetDeployedCount();
             if(deploy_count > 0){
                 std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deploys: " << deploy_count << " Components" << std::endl;
             }
@@ -113,12 +130,30 @@ void Experiment::AddNode(const NodeManager::Node& node){
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
-    if(node_map_.count(ip_address)){
-        return node_map_.at(ip_address)->GetDeployedComponentCount() > 0;
+    return GetNode(ip_address).GetDeployedCount() > 0;
+}
+
+std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentInfo(){
+    auto reply = std::unique_ptr<NodeManager::RegisterExperimentReply>(new NodeManager::RegisterExperimentReply());
+
+    for(const auto& node_pair : node_map_){
+        auto& node = (*node_pair.second);
+
+        if(node.GetLoganServerCount()){
+            auto hardware_id = node.GetHardwareId();
+            if(hardware_id){
+                reply->add_logan_servers()->Swap(hardware_id.get());
+            }
+        }
+
+        if(node.GetDeployedComponentCount()){
+            auto hardware_id = node.GetHardwareId();
+            if(hardware_id){
+                reply->add_node_managers()->Swap(hardware_id.get());
+            }
+        }
     }
-    else{
-        throw std::invalid_argument("No node found with ip " + ip_address);
-    }
+    return reply;
 }
 
 
@@ -191,7 +226,7 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
         environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
 
         if(!shutdown_){
-            environment_message->set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
+            environment_message->set_type(NodeManager::EnvironmentMessage::CONFIGURE_EXPERIMENT);
 
             auto control_message = environment_message->mutable_control_message();
             control_message->set_experiment_id(model_name_);
@@ -220,13 +255,8 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
     return environment_message;
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
-    if(node_map_.count(ip_address)){
-        return node_map_.at(ip_address)->GetLoganDeploymentMessage();
-    }
-    else{
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' Doesn't have a Node with IP address: '" + ip_address + "'");
-    }
+std::vector<std::unique_ptr<NodeManager::Logger> > Experiment::GetAllocatedLoganServers(const std::string& ip_address){
+    return std::move(GetNode(ip_address).GetAllocatedLoganServers());
 }
 
 EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){

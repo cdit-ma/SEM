@@ -33,6 +33,8 @@ class Experiment{
         
         bool IsConfigured();
         void SetConfigured();
+        bool IsRunning();
+        void SetRunning();
         const std::string& GetName() const;
 
         std::string GetManagerPort() const;
@@ -43,6 +45,10 @@ class Experiment{
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
 
+        
+
+        Node& GetNode(const std::string& ip_address) const;
+
         void Shutdown();
 
 
@@ -50,7 +56,8 @@ class Experiment{
 
         Environment& GetEnvironment() const;
 
-        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage(const std::string& ip_address);
+        std::unique_ptr<NodeManager::RegisterExperimentReply> GetDeploymentInfo();
+        std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers(const std::string& ip_address);
         std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const bool full_update);
 
         std::string GetMasterPublisherAddress();
@@ -92,6 +99,7 @@ class Experiment{
         std::mutex mutex_;
 
         bool is_configured_ = false;
+        bool is_running_ = false;
 
         Environment& environment_;
 

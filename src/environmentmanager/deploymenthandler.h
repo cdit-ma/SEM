@@ -30,9 +30,7 @@ class DeploymentHandler{
         void RemoveDeployment();
         
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message);
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddExperiment(const NodeManager::EnvironmentMessage& request_message);
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleRemoveExperiment(const NodeManager::EnvironmentMessage& request_message);
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleGetLoganInfo(const NodeManager::EnvironmentMessage& request_message);
+        std::unique_ptr<NodeManager::NodeManagerDeregistrationReply> HandleNodeManagerDeregisteration(const NodeManager::NodeManagerDeregistrationRequest& request_message);
         
         std::future<void> heartbeat_future_;
         const EnvironmentManager::Environment::DeploymentType deployment_type_;

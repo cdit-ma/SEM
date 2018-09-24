@@ -32,8 +32,11 @@ class Environment{
 
         Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
 
-        
-        std::unique_ptr<NodeManager::EnvironmentMessage> PopulateExperiment(const NodeManager::ControlMessage& message);
+
+        Experiment& GetExperiment(const std::string experiment_name);
+        void PopulateExperiment(const NodeManager::ControlMessage& message);
+
+        std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
 
         std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
@@ -42,17 +45,18 @@ class Environment{
         void RemoveExperiment(const std::string& experiment_name);
         void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
 
-        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage(const std::string& experiment_name, const std::string& ip_address);
         std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const std::string& experiment_name, const bool full_update);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
         bool GotExperiment(const std::string& experiment_name);
+        
+        bool IsExperimentRunning(const std::string& experiment_name);
+        bool IsExperimentConfigured(const std::string& experiment_name);
 
 
         std::vector<std::string> GetExperimentNames();
         
 
-        bool IsExperimentConfigured(const std::string& experiment_name);
         bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
         
         void SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address);
@@ -96,7 +100,7 @@ class Environment{
         void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
         ExternalPort& GetExternalPort(const std::string& external_port_label);
-        Experiment& GetExperiment(const std::string experiment_name);
+        Experiment& GetExperimentInternal(const std::string experiment_name);
         void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);
 
         std::mutex clock_mutex_;

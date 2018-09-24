@@ -26,31 +26,27 @@ class DeploymentRegister{
         void Terminate();
 
     private:
-        //Request handlers
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddExperiment(const NodeManager::EnvironmentMessage& message);
-        //std::unique_ptr<NodeManager::????> HandleRemoveExperiment(const NodeManager::EnvironmentMessage& message);
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleAddLoganClient(const NodeManager::EnvironmentMessage& message);
-        std::unique_ptr<NodeManager::EnvironmentMessage> HandleNodeQuery(const NodeManager::EnvironmentMessage& message);
+        //Re Node Manager Functions
+        std::unique_ptr<NodeManager::NodeManagerRegistrationReply> HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request);
+        
+        //Logan Managed Server Functions
+        std::unique_ptr<NodeManager::LoganRegistrationReply> HandleLoganRegistration(const NodeManager::LoganRegistrationRequest& request);
 
+        //Controller Functions
+        std::unique_ptr<NodeManager::RegisterExperimentReply> HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request);
         std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message);
         std::unique_ptr<EnvironmentControl::ListExperimentsReply> HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message);
 
-        //Helpers
-        std::string TCPify(const std::string& ip_address, const std::string& port) const;
-        std::string TCPify(const std::string& ip_address, int port) const;
-
         //Members
         Execution& execution_;
-
+        
         std::unique_ptr<zmq::ProtoReplier> replier_;
-
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
-        std::string ip_addr_;
-        std::string registration_port_;
+        std::string environment_manager_ip_address_;
 
-        std::vector<std::unique_ptr<DeploymentHandler> > deployments_;
-        std::vector<std::unique_ptr<DeploymentHandler> > logan_clients_;
+        std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
+        std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER

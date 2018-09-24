@@ -28,6 +28,13 @@ class Node{
         std::string GetName() const;
         std::string GetIp() const;
         int GetDeployedComponentCount() const;
+        int GetDeployedCount() const;
+        
+        bool IsNodeManagerMaster() const;
+        void SetNodeManagerMaster();
+
+        std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
+
 
         //Fully qualified endpoint getters
         std::string GetManagementEndpoint() const;
@@ -52,6 +59,8 @@ class Node{
         void AddLogger(const NodeManager::Logger& logger);
         void AddModelLogger();
 
+        int GetLoganServerCount() const;
+
         bool HasLogger(const std::string& logger_id);
         Logger& GetLogger(const std::string& logger_id);
 
@@ -73,7 +82,8 @@ class Node{
 
         //protobuf getters
         std::unique_ptr<NodeManager::Node> GetProto(const bool full_update);
-        std::unique_ptr<NodeManager::EnvironmentMessage> GetLoganDeploymentMessage() const;
+        
+        std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers() const;
 
 
     private:
@@ -102,7 +112,7 @@ class Node{
 
 
         bool dirty_;
-
+        bool is_node_manager_master_ = false;
 };
 };
 
