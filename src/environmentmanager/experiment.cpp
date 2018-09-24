@@ -99,6 +99,11 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         }
     }
 }
+
+Node& Experiment::GetNodeManagerMaster() const{
+
+}
+
 Node& Experiment::GetNode(const std::string& ip_address) const{
     try{
         return *(node_map_.at(ip_address));
@@ -116,7 +121,10 @@ void Experiment::AddNode(const NodeManager::Node& node){
             const auto& ip_address = internal_node->GetIp();
             node_map_.emplace(ip_address, std::move(internal_node));
             auto& node_ref = node_map_.at(ip_address);
-                
+            
+            if(node_map_.size() == 1){
+                SetMasterIp(ip_address);
+            }
             //Build logan connection map
             auto deploy_count = node_ref->GetDeployedCount();
             if(deploy_count > 0){

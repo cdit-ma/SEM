@@ -40,12 +40,12 @@ class Experiment{
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_Gport);
 
-        void SetMasterIp(const std::string& ip);
+        
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
 
-        
+        Node& GetNodeManagerMaster() const;
 
         Node& GetNode(const std::string& ip_address) const;
 
@@ -92,6 +92,7 @@ class Experiment{
         void RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
         void RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
     private:
+        void SetMasterIp(const std::string& ip);
         ExternalPort& GetExternalPort(const std::string& external_port_internal_id);
     
         std::string GetNodeIpByName(const std::string& node_name);
@@ -109,6 +110,7 @@ class Experiment{
         std::string master_registration_port_;
         std::string master_ip_address_;
         std::string manager_port_;
+
 
         bool shutdown_ = false;
 

@@ -36,15 +36,15 @@ environment_manager_ip_address_(environment_manager_ip_address)
 
     //Controller Functions
     replier_->RegisterProtoCallback<NodeManager::RegisterExperimentRequest, NodeManager::RegisterExperimentReply>
-                                  ("HandleRegisterExperiment", 
+                                  ("RegisterExperiment", 
                                   std::bind(&DeploymentRegister::HandleRegisterExperiment, this, std::placeholders::_1));
 
     replier_->RegisterProtoCallback<EnvironmentControl::ShutdownExperimentRequest, EnvironmentControl::ShutdownExperimentReply>
-                                  ("HandleShutdownExperiment", 
+                                  ("ShutdownExperiment", 
                                   std::bind(&DeploymentRegister::HandleShutdownExperiment, this, std::placeholders::_1));
 
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
-                                  ("HandleListExperiments", 
+                                  ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
 }
 

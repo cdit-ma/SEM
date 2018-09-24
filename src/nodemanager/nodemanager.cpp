@@ -32,10 +32,9 @@ int main(int argc, char **argv){
     std::string environment_manager_endpoint;
     std::string experiment_id;
     bool live_logging = false;
+    bool is_master = false;
     std::string address;
 
-    //Master arguments
-    std::string graphml_path;
     double execution_duration = 60.0;
 
     //Slave arguments
@@ -44,12 +43,12 @@ int main(int argc, char **argv){
     boost::program_options::options_description options("Node manager options");
     //Add shared arguments
     options.add_options()("address,a", boost::program_options::value<std::string>(&address), "Node manager ip address.");
-    options.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "ID of experiment to start.");
+    options.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "ID of experiment.");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
     options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Live model logging toggle.");
     
     //Add master arguments
-    options.add_options()("deployment,d", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path.");
+    options.add_options()("m,master", boost::program_options::value<bool>(&is_master), "Set as Master Node.");
     options.add_options()("time,t", boost::program_options::value<double>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
 
     //Add slave arguments
@@ -93,14 +92,6 @@ int main(int argc, char **argv){
         valid_args = false;
     }
 
-    bool is_master = !graphml_path.empty();
-    if(is_master){
-        if(graphml_path.empty()){
-            std::cerr << "Arg Error: re_node_manager[Master] requires a graphml deployment to execute." << std::endl;
-            valid_args = false;
-        }
-    }
-
     bool is_slave = !dll_path.empty();
     if(is_slave){
         if(dll_path.empty()){
@@ -123,7 +114,6 @@ int main(int argc, char **argv){
     if(is_master){
         std::cout << "* Master:" << std::endl;
         std::cout << "** Endpoint: " << address << std::endl;
-        std::cout << "** Deployment Graphml: " << graphml_path << std::endl;
         if(execution_duration == -1){
             std::cout << "** Duration: " << "Indefinite" << std::endl;
         }else{
@@ -144,7 +134,7 @@ int main(int argc, char **argv){
 
     if(success && is_master){
         try{
-            auto em = new ExecutionManager(address, graphml_path, execution_duration, &execution, experiment_id, environment_manager_endpoint);
+            auto em = new ExecutionManager(address, execution_duration, execution, experiment_id, environment_manager_endpoint);
             execution_manager = std::unique_ptr<ExecutionManager>(em);
             success = execution_manager->IsValid();
         }catch(const std::exception& ex){
@@ -155,7 +145,7 @@ int main(int argc, char **argv){
 
     if(success && is_slave){
         try{
-            auto dm = new DeploymentManager(is_master, dll_path, &execution, experiment_id, address, environment_manager_endpoint);
+            auto dm = new DeploymentManager(is_master, dll_path, execution, experiment_id, address, environment_manager_endpoint);
             deployment_manager = std::unique_ptr<DeploymentManager>(dm);
         }catch(const std::exception& ex){
             std::cerr << "* Error: " << ex.what() << std::endl;

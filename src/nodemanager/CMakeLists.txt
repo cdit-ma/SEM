@@ -10,9 +10,6 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
-#Build Supporting libraries
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
-
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
@@ -89,6 +86,7 @@ target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_execution_parser_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
+target_link_libraries(${RE_NODE_MANAGER_LIB} graphml_parser_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_environment_manager_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} logan_client_lib)
 

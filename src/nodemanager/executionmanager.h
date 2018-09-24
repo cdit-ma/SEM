@@ -9,13 +9,12 @@
 #include <unordered_map>
 #include <vector>
 #include <google/protobuf/message_lite.h>
-#include "executionparser/protobufmodelparser.h"
 #include "environmentmanager/environment.h"
+#include <util/graphmlparser/protobufmodelparser.h>
 #include <comms/environmentrequester/environmentrequester.h>
 #include "zmq/registrar.h"
 
 namespace zmq{class ProtoWriter;};
-namespace Graphml{class ModelParser;};
 
 class Execution;
 
@@ -71,9 +70,9 @@ class ExecutionManager{
 
         std::future<void> execution_future_;
 
-        NodeManager::ControlMessage* deployment_message_;
 
         std::unique_ptr<zmq::Registrar> registrar_;
+        std::unique_ptr<NodeManager::ControlMessage> deployment_message_;
 
         std::unordered_map<std::string, NodeManager::Node> deployment_map_;
 
@@ -82,16 +81,13 @@ class ExecutionManager{
         bool terminate_flag_ = false;
         bool execute_flag_ = false;
 
-        bool local_mode_ = false;
-
         bool finished_ = false;
         bool parse_succeed_ = false;
 
-        Execution* execution_;
+        Execution& execution_;
         std::unique_ptr<EnvironmentRequester> requester_;
         
-        zmq::ProtoWriter* proto_writer_ = 0;
-        std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
+        zmq::ProtoWriter proto_writer_;
 
         std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;

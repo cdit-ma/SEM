@@ -39,12 +39,14 @@ Environment::Environment(const std::string& address, const std::string& qpid_bro
 void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
     //Take a copy
     auto control_message = const_control_message;
+    const auto& experiment_name = control_message.experiment_id();
+    
+    //Register the experiment
+    RegisterExperiment(experiment_name);
 
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     //Get the experiment_name
-    const auto& experiment_name = control_message.experiment_id();
-    
     auto& experiment = GetExperimentInternal(experiment_name);
     
     if(experiment.IsConfigured()){
@@ -61,11 +63,7 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
     for(const auto& node : control_message.nodes()){
         RecursiveAddNode(experiment_name, node);
     }
-
-    //Set the Master IP
-    const auto& master_ip_address = NodeManager::GetAttribute(control_message.attributes(), "master_ip_address").s(0);
-    experiment.SetMasterIp(master_ip_address);
-
+    
     //Complete the Configuration
     experiment.SetConfigured();
 }

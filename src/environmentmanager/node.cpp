@@ -67,8 +67,9 @@ int Node::GetDeployedComponentCount() const{
 }
 
 int Node::GetDeployedCount() const {
-    return GetDeployedCount() + loggers_.size();
+    return GetDeployedComponentCount() + loggers_.size();
 }
+
 int Node::GetLoganServerCount() const{
     int server_count = 0;
     for(const auto& log_pair : loggers_){

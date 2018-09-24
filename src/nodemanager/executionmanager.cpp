@@ -1,5 +1,4 @@
 #include "executionmanager.h"
-#include "executionparser/modelparser.h"
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -21,62 +20,35 @@
 const bool EXECUTION_MANAGER_DEBUG_MODE  = false;
 
 ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
-                                    const std::string& graphml_path,
                                     double execution_duration,
-                                    Execution* execution,
+                                    Execution& execution,
                                     const std::string& experiment_id,
-                                    const std::string& environment_manager_endpoint){
-    if(execution){
-        //Setup writer
-        proto_writer_ = new zmq::ProtoWriter();
-
-        execution_ = execution;
-        execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
-    }
+                                    const std::string& environment_manager_endpoint):
+    execution_(execution),
+    master_ip_addr_(master_ip_addr),
+    experiment_id_(experiment_id),
+    environment_manager_endpoint_(environment_manager_endpoint){
     
-
+    //Bind the termination callback
+    execution_.AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     
-
-    master_ip_addr_ = master_ip_addr;
-    experiment_id_ = experiment_id;
-    environment_manager_endpoint_ = environment_manager_endpoint;
-
-    auto start = std::chrono::steady_clock::now();
-    //Setup the parser
-    protobuf_model_parser_ = std::unique_ptr<ProtobufModelParser>(new ProtobufModelParser(graphml_path, experiment_id_));
-    deployment_message_ = protobuf_model_parser_->ControlMessage();
-
-    if(EXECUTION_MANAGER_DEBUG_MODE){
-        std::cerr << deployment_message_->DebugString() << std::endl;
-    }
-
-    NodeManager::SetStringAttribute(deployment_message_->mutable_attributes(), "master_ip_address", master_ip_addr_);
-
-    if(!environment_manager_endpoint.empty()){
-        requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id_,
+    if(environment_manager_endpoint.size()){
+        requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id,
                                                             EnvironmentRequester::DeploymentType::RE_MASTER));
         requester_->AddUpdateCallback(std::bind(&ExecutionManager::UpdateCallback, this, std::placeholders::_1));
     }
 
-    parse_succeed_ = PopulateDeployment();
-    if(parse_succeed_){
-        ConstructControlMessages();
-        registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
-    }
+    //Populate Deployment
+    PopulateDeployment();
+    //Construct the control messages
+    ConstructControlMessages();
+    
+    registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
 
-    auto end = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    if(parse_succeed_){
-        std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
-        proto_writer_->BindPublisherSocket(master_publisher_endpoint_);
+    proto_writer_.BindPublisherSocket(master_publisher_endpoint_);
 
-        if(parse_succeed_ && execution){
-            std::cout << "--------[Slave Registration]--------" << std::endl;
-            execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, execution_duration);
-        }
-    }else{
-        std::cout << "* Deployment Parsing Failed!" << std::endl;
-    }
+    std::cout << "--------[Slave Registration]--------" << std::endl;
+    execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, execution_duration);
 }
 
 std::string ExecutionManager::GetMasterRegistrationEndpoint(){
@@ -84,50 +56,32 @@ std::string ExecutionManager::GetMasterRegistrationEndpoint(){
 }
 
 bool ExecutionManager::PopulateDeployment(){
-    if(local_mode_){
-        EnvironmentManager::Environment* environment = new EnvironmentManager::Environment("", "", "");
+    requester_->Init(environment_manager_endpoint_);
+    requester_->Start();
 
-        environment->AddDeployment(deployment_message_->experiment_id(), "", EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER);
-
-        environment->PopulateExperiment(*deployment_message_);
+    //std::this_thread::sleep_for(std::chrono::seconds(1));
+    
+    try{
+        //Register with the EnvironmentManager
+        //deployment_message_ = requester_->AddDeployment(*deployment_message_);
+    }catch(const std::runtime_error& ex){
+        std::cerr << "* Error Populating Deployment: " << ex.what() << std::endl;
+        return false;
     }
-    else{
-        requester_->Init(environment_manager_endpoint_);
-        requester_->Start();
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        NodeManager::ControlMessage response;
-        try{
-            //std::cout << deployment_message_->DebugString() << std::endl;
-            response = requester_->AddDeployment(*deployment_message_);
-        }catch(const std::runtime_error& ex){
-            std::cerr << "* Error Populating Deployment: " << ex.what() << std::endl;
-            return false;
+    if(deployment_message_){
+        const auto& attrs = deployment_message_->attributes();
+        master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
+        master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
+
+        if(master_publisher_endpoint_.empty()){
+            throw std::runtime_error("Got empty Master Publisher Endpoint");
         }
-
-        *deployment_message_ = response;
-
-        // std::string temp;
-        // google::protobuf::util::JsonOptions options;
-        // options.add_whitespace = true;
-        // google::protobuf::util::MessageToJsonString(*deployment_message_, &temp, options);
-
-        // std::cout << temp << std::endl;
-
-        if(deployment_message_){
-            const auto& attrs = deployment_message_->attributes();
-            master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
-            master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
-
-            if(master_publisher_endpoint_.empty()){
-                throw std::runtime_error("Got empty Master Publisher Endpoint");
-            }
-            if(master_registration_endpoint_.empty()){
-                throw std::runtime_error("Got empty Master Registration Endpoint");
-            }
-        }else{
-            return false;
+        if(master_registration_endpoint_.empty()){
+            throw std::runtime_error("Got empty Master Registration Endpoint");
         }
+    }else{
+        return false;
     }
     return true;
 }
@@ -358,8 +312,6 @@ void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
         auto activate = new NodeManager::ControlMessage();
         activate->set_type(NodeManager::ControlMessage::ACTIVATE);
         PushMessage("*", activate);
-
-        
 
         {
             std::unique_lock<std::mutex> lock(execution_mutex_);
