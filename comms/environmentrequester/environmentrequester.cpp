@@ -73,15 +73,19 @@ void EnvironmentRequester::Start(){
     //Register this deployment with the environment manager
     NodeManager::EnvironmentMessage initial_message;
 
+    std::string function_name;
     //map our two enums
     switch(deployment_type_){
         case DeploymentType::RE_MASTER:{
             initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
+            initial_message.set_update_endpoint(ip_address_);
+            function_name = "ExperimentRegistration";
             break;
         }
         case DeploymentType::LOGAN:{
             initial_message.set_type(NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT);
             initial_message.set_update_endpoint(ip_address_);
+            function_name = "LoganRegistration";
             break;
         }
         default:{
@@ -92,19 +96,11 @@ void EnvironmentRequester::Start(){
 
     initial_message.set_experiment_id(experiment_id_);
 
-    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("ExperimentRegistration", initial_message, 3000);
+    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>(function_name, initial_message, 3000);
 
     try{
         auto initial_reply_messsage = initial_reply_future.get();
-        if(initial_reply_messsage->type() == NodeManager::EnvironmentMessage::ERROR_RESPONSE){
-            std::stringstream str_stream;
-            const auto& error_list = initial_reply_messsage->error_messages();
-            std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
-            environment_manager_not_found_ = true;
-            return;
-        }
-
-
+        std::cerr << initial_reply_messsage->DebugString() << std::endl;
         manager_update_endpoint_ = initial_reply_messsage->update_endpoint();
     }catch(const zmq::TimeoutException& ex){
         environment_manager_not_found_ = true;
@@ -119,7 +115,6 @@ void EnvironmentRequester::Start(){
     heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *update_requester_));
     heartbeater_->AddCallback(std::bind(&EnvironmentRequester::HandleReply, this, std::placeholders::_1));
     heartbeater_->Start();
-
 }
 
 void EnvironmentRequester::Terminate(){
@@ -207,6 +202,7 @@ NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::st
 }
 
 void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
+    std::cerr << message.DebugString() << std::endl;
     update_callback_(message);
 }
 

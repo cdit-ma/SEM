@@ -49,7 +49,7 @@ namespace zmq{
             void Terminate();
 
             template<class RequestType, class ReplyType>
-            void RegisterProtoCallback(const std::string& fn_signature, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
+            void RegisterProtoCallback(const std::string& fn_name, std::function<std::unique_ptr<ReplyType>(const RequestType&)> fn);
         private:
             void RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function);
             zmq::socket_t GetReplySocket();
