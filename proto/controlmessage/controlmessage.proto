@@ -52,9 +52,8 @@ message NodeManagerRegistrationRequest{
 
 message NodeManagerRegistrationReply{
     enum Type{
-        UNUSED = 0;
-        SLAVE = 1;
-        MASTER = 2;
+        SLAVE = 0;
+        MASTER = 1;
     }
     repeated Type types = 1;
     string heartbeat_endpoint = 2;
@@ -227,16 +226,40 @@ message Logger{
     repeated string processes = 10;
 }
 
+
 message SlaveStartupRequest{
     string slave_ip = 1;
 }
 
+message SlaveStartupReply{
+    Node configuration = 1;
+}
+
+message SlaveConfiguredRequest{
+    string slave_ip = 1;
+    bool success = 2;
+    repeated string error_messages = 3;
+}
+
+message SlaveConfiguredReply{
+
+}
+
+
+message SlaveTerminatedRequest{
+    string slave_ip = 1;
+}
+
+message SlaveTerminatedReply{
+
+}
+
+
+
+
 message SlaveStartup{
     string slave_host_name = 1;
-    Logger logger = 2;
-    ControlMessage configure = 3;
-
-    string master_publisher_endpoint = 4;
+    Node configuration = 2;
 }
 
 message SlaveStartupResponse{

@@ -79,7 +79,7 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, std::unique_p
             //Gain the lock
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Push the message onto the queue
-            write_queue_.emplace({topic, std::move(message)});
+            write_queue_.emplace(std::make_pair(topic, std::move(message)));
             log_count_ ++;
             if(write_queue_.size() >= cache_count_){
                 //Notify the writer_thread to flush the queue if we have hit our write limit
@@ -131,8 +131,8 @@ void zmq::CachedProtoWriter::Terminate(){
         //Send the Messages still in the write queue
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
-            auto message = write_queue_.front().second;
-            zmq::ProtoWriter::PushMessage(topic, message);
+            auto& message = write_queue_.front().second;
+            zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop();
         }
 
@@ -147,7 +147,7 @@ void zmq::CachedProtoWriter::Terminate(){
 
 void zmq::CachedProtoWriter::WriteQueue(){
     while(true){
-        std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> >replace_queue;
+        std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> > > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -198,8 +198,8 @@ void zmq::CachedProtoWriter::WriteQueue(){
     }
 }
 
-std::queue< std::unique_ptr<MessageStruct> > zmq::CachedProtoWriter::ReadMessagesFromFile(const std::string& file_path){
-    std::queue< std::unique_ptr<MessageStruct> > queue;
+std::queue< std::unique_ptr<Message_Struct> > zmq::CachedProtoWriter::ReadMessagesFromFile(const std::string& file_path){
+    std::queue< std::unique_ptr<Message_Struct> > queue;
 
     int filedesc = getReadFileDesc(file_path.c_str());
 

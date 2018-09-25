@@ -12,20 +12,23 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
     request.mutable_id()->set_ip_address(node_ip_address);
 
 
+    auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));
+    
     // Retry three times
     int retry_count = 0;
-    while(retry_count > 3){
+    while(retry_count < 3){
         try{
-            auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
             auto reply_future = requester->SendRequest<NodeManager::NodeManagerRegistrationRequest, NodeManager::NodeManagerRegistrationReply>
                     ("NodeManagerRegistration", request, 1000);
             return reply_future.get();
         }catch(const zmq::TimeoutException& ex){
             retry_count++;
+        }catch(const zmq::RMIException& ex){
+            retry_count++;
         }catch(const std::exception& ex){
-            std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
+            std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
+            throw;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     throw zmq::TimeoutException("TryRegisterNodeManager failed after three attempts.");
 }
@@ -37,31 +40,30 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
     request.mutable_id()->set_experiment_name(experiment_name);
     request.mutable_id()->set_ip_address(node_ip_address);
 
-    int retry_count = 0;
+    
+    auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));
 
-    while(retry_count > 3){
+    int retry_count = 0;
+    while(retry_count < 3){
         try{
-            auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
             auto reply_future = requester->SendRequest<NodeManager::LoganRegistrationRequest, NodeManager::LoganRegistrationReply>
                     ("LoganRegistration", request, 1000);
             return reply_future.get();
         }catch(const zmq::TimeoutException& ex){
             retry_count++;
+        }catch(const zmq::RMIException& ex){
+            retry_count++;
         }catch(const std::exception& ex){
-            std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
+            std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
+            throw;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");
 }
 
 EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester(
-        const std::string& experiment_name,
-        const std::string& node_ip_address,
         const std::string& heartbeat_endpoint,
-        std::function<void (NodeManager::EnvironmentMessage &)> configure_function) :
-        experiment_name_(experiment_name),
-        node_ip_address_(node_ip_address){
+        std::function<void (NodeManager::EnvironmentMessage &)> configure_function){
 
     requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(heartbeat_endpoint));
     heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *requester_));
@@ -82,10 +84,7 @@ void EnvironmentRequest::NodeManagerHeartbeatRequester::Terminate() {
 }
 
 void EnvironmentRequest::NodeManagerHeartbeatRequester::RemoveDeployment() {
-    NodeManagerDeregisterationRequest request;
-    request.mutable_id()->set_experiment_name(experiment_name_);
-    request.mutable_id()->set_ip_address(node_ip_address_);
-
+    NodeManager::NodeManagerDeregistrationRequest request;
     auto reply_future = requester_->SendRequest<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>("NodeManagerDeregisteration", request, 1000);
     reply_future.get();
 }
