@@ -29,6 +29,7 @@ class ExecutionManager{
                             const std::string& master_publisher_endpoint,
                             const std::string& master_registration_endpoint,
                             const std::string& master_heartbeat_endpoint);
+        ~ExecutionManager();
     private:
         void RequestDeployment();
         void Terminate();
@@ -64,6 +65,7 @@ class ExecutionManager{
 
         std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
+        bool execution_valid_ = false;
 
         std::mutex control_message_mutex_;
         std::unique_ptr<NodeManager::ControlMessage> control_message_;

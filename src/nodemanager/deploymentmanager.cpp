@@ -157,7 +157,7 @@ void DeploymentManager::ProcessControlQueue(){
             control_message_queue_.swap(queue);
             
             if(terminate_ && queue.empty()){
-                return;
+                break;
             }
         }
 
@@ -223,6 +223,7 @@ void DeploymentManager::ProcessControlQueue(){
         auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
             ("SlaveTerminated", request, 1000);
 
+        
         reply_future.get();
     }
 
