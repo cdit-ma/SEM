@@ -61,7 +61,7 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
     throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");
 }
 
-EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester(
+EnvironmentRequest::HeartbeatRequester::HeartbeatRequester(
         const std::string& heartbeat_endpoint,
         std::function<void (NodeManager::EnvironmentMessage &)> configure_function){
 
@@ -71,11 +71,11 @@ EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester
     heartbeater_->Start();
 }
 
-EnvironmentRequest::NodeManagerHeartbeatRequester::~NodeManagerHeartbeatRequester() {
+EnvironmentRequest::HeartbeatRequester::~HeartbeatRequester() {
     Terminate();
 }
 
-void EnvironmentRequest::NodeManagerHeartbeatRequester::Terminate() {
+void EnvironmentRequest::HeartbeatRequester::Terminate() {
     std::lock_guard<std::mutex> lock(heartbeater_mutex_);
     if(heartbeater_){
         heartbeater_->Terminate();
@@ -83,35 +83,15 @@ void EnvironmentRequest::NodeManagerHeartbeatRequester::Terminate() {
     }
 }
 
-void EnvironmentRequest::NodeManagerHeartbeatRequester::RemoveDeployment() {
+void EnvironmentRequest::HeartbeatRequester::RemoveDeployment() {
     NodeManager::NodeManagerDeregistrationRequest request;
     auto reply_future = requester_->SendRequest<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>("NodeManagerDeregisteration", request, 1000);
     reply_future.get();
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> EnvironmentRequest::NodeManagerHeartbeatRequester::GetExperimentInfo() {
+std::unique_ptr<NodeManager::EnvironmentMessage> EnvironmentRequest::HeartbeatRequester::GetExperimentInfo() {
     NodeManager::EnvironmentMessage request;
     request.set_type(NodeManager::EnvironmentMessage::GET_EXPERIMENT_INFO);
     auto reply_future = requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("GetExperimentInfo", request, 1000);
     return reply_future.get();
-}
-
-EnvironmentRequest::LoganServerHeartbeatRequester::LoganServerHeartbeatRequester(
-        const std::string& heartbeat_endpoint){
-
-    requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(heartbeat_endpoint));
-    heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *requester_));
-    heartbeater_->Start();
-}
-
-EnvironmentRequest::LoganServerHeartbeatRequester::~LoganServerHeartbeatRequester() {
-    Terminate();
-}
-
-void EnvironmentRequest::LoganServerHeartbeatRequester::Terminate() {
-    std::lock_guard<std::mutex> lock(heartbeater_mutex_);
-    if(heartbeater_){
-        heartbeater_->Terminate();
-        heartbeater_.reset();
-    }
 }
