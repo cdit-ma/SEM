@@ -38,7 +38,12 @@ DeploymentManager::DeploymentManager(
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
 
-    RequestDeployment();
+    try{
+        RequestDeployment();
+    }catch(const std::exception& ex){
+        Terminate();
+        throw;
+    }
 }
 
 void DeploymentManager::RequestDeployment(){
@@ -157,7 +162,7 @@ void DeploymentManager::ProcessControlQueue(){
             control_message_queue_.swap(queue);
             
             if(terminate_ && queue.empty()){
-                return;
+                break;
             }
         }
 
@@ -219,7 +224,7 @@ void DeploymentManager::ProcessControlQueue(){
         using namespace NodeManager;
         SlaveTerminatedRequest request;
         request.set_slave_ip(ip_address_);
-        
+
         auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
             ("SlaveTerminated", request, 1000);
 
