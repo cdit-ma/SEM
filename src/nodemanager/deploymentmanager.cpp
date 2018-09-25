@@ -228,6 +228,7 @@ void DeploymentManager::ProcessControlQueue(){
         auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
             ("SlaveTerminated", request, 1000);
 
+        
         reply_future.get();
     }
 
