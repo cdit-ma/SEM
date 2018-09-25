@@ -36,7 +36,10 @@ void Heartbeater::HeartbeatLoop(){
             HandleReply(*reply_message);
         }catch(const zmq::TimeoutException& ex){
             retry_count ++;
-            std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
+            if(!shutdown){
+                //Not Expecting a response from the END_HEARTBEAT
+                std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
+            }
         }catch(const std::exception& ex){
             retry_count ++;
             std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
