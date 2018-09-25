@@ -25,8 +25,6 @@ class Environment{
     public: 
         enum class DeploymentType{
             EXECUTION_MASTER,
-            EXECTUION_SLAVE,
-            LOGAN_CLIENT,
             LOGAN_SERVER
         };
 

@@ -34,7 +34,7 @@ class DeploymentHandler{
         std::unique_ptr<NodeManager::EnvironmentMessage> HandleGetExperimentInfo(const NodeManager::EnvironmentMessage& request_message);
 
 
-            std::future<void> heartbeat_future_;
+        std::future<void> heartbeat_future_;
         const EnvironmentManager::Environment::DeploymentType deployment_type_;
         EnvironmentManager::Environment& environment_;
         
@@ -44,9 +44,6 @@ class DeploymentHandler{
 
         std::mutex replier_mutex_;
         std::unique_ptr<zmq::ProtoReplier> replier_;
-
-        std::mutex logan_ip_mutex_;
-        std::set<std::string> registered_logan_ip_addresses;
 
         bool removed_flag_ = false;
 };

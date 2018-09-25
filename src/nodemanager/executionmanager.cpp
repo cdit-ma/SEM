@@ -272,10 +272,8 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
 
             if(status == std::future_status::ready){
                 try{
-                    //If getting the future throws exception, let it propagate
                     terminate_future.get();
                 }catch(const std::exception& ex){
-                    std::cerr << ex.what() << std::endl;
                 }
             }
         }
@@ -288,7 +286,6 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     if(slave_deregistration_future.valid()){
-        //If getting the future throws exception, let it propagate
         try{
             slave_deregistration_future.get();
         }catch(const std::exception& ex){

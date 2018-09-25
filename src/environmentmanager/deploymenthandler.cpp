@@ -80,7 +80,7 @@ void DeploymentHandler::RemoveDeployment(){
     if(!removed_flag_){
         if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
             environment_.RemoveExperiment(experiment_id_);
-        }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
+        }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER){
             environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
         }
         removed_flag_ = true;
@@ -105,13 +105,10 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartb
                 reply_message.swap(experiment_update);
             }
         }
-    }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-        std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-        if(registered_logan_ip_addresses.count(deployment_ip_address_)){
-            //If we were registered, now we don't have the experiment anymore, Terminate
-            if(!environment_.GotExperiment(experiment_id_)){
-                reply_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
-            }
+    }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER){
+        //If we were registered, now we don't have the experiment anymore, Terminate
+        if(!environment_.GotExperiment(experiment_id_)){
+            reply_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
         }
     }
     return reply_message;

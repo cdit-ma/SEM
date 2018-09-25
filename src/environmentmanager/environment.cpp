@@ -84,7 +84,7 @@ std::string Environment::AddDeployment(const std::string& experiment_name,
         case DeploymentType::EXECUTION_MASTER:{
             return RegisterExperiment(experiment_name);
         }
-        case DeploymentType::LOGAN_CLIENT:{
+        case DeploymentType::LOGAN_SERVER:{
             return AddLoganClientServer();
         }
         default:
