@@ -66,20 +66,19 @@ int zmq::ProtoWriter::GetTxCount(){
     return tx_count_;
 }
 
-bool zmq::ProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
+bool zmq::ProtoWriter::PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message){
     bool success = false;
     if(message){
         std::string message_str;
         if(message->SerializeToString(&message_str)){
            success = PushString(topic, message->GetTypeName(), message_str);
         }
-        delete message;
     }
     return success;
 }
 
-bool zmq::ProtoWriter::PushMessage(google::protobuf::MessageLite* message){
-    return PushMessage("", message);
+bool zmq::ProtoWriter::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
+    return PushMessage("", std::move(message));
 }
 
 bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& type, const std::string& message){
