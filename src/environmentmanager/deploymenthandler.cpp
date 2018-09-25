@@ -33,9 +33,9 @@ experiment_id_(experiment_id)
 
     //Register the callbacks
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                ("HandleHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
+                                ("NodeManagerHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
     replier_->RegisterProtoCallback<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>
-                                ("HandleNodeManagerDeregisteration", std::bind(&DeploymentHandler::HandleNodeManagerDeregisteration, this, std::placeholders::_1));
+                                ("NodeManagerDeregisteration", std::bind(&DeploymentHandler::HandleNodeManagerDeregisteration, this, std::placeholders::_1));
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                  ("GetExperimentInfo", std::bind(&DeploymentHandler::HandleGetExperimentInfo, this, std::placeholders::_1));
 

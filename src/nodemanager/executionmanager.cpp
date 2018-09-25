@@ -225,40 +225,46 @@ std::unique_ptr<NodeManager::ControlMessage> ExecutionManager::ConstructStateCon
 void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future, std::future<void> slave_deregistration_future){
     using namespace NodeManager;
 
-    if(execute_future.valid()){
-        //If getting the future throws exception, let it propagate
-        execute_future.get();
-    }
-    
-    std::cout << "-------------[Execution]------------" << std::endl;
-
-    std::cout << "* Activating Deployment" << std::endl;
-    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::ACTIVATE));
-
-    if(terminate_future.valid()){
-        std::future_status status = std::future_status::ready;
-        if(duration_sec != -1){
-            //Sleep for the predetermined time
-            status = terminate_future.wait_for(std::chrono::seconds(duration_sec));
-        }
-
-        if(status == std::future_status::ready){
+    try{
+        if(execute_future.valid()){
             //If getting the future throws exception, let it propagate
-            terminate_future.get();
+            execute_future.get();
         }
+        
+        
+        std::cout << "-------------[Execution]------------" << std::endl;
+
+        std::cout << "* Activating Deployment" << std::endl;
+        PushControlMessage("*", ConstructStateControlMessage(ControlMessage::ACTIVATE));
+
+        if(terminate_future.valid()){
+            std::future_status status = std::future_status::ready;
+            if(duration_sec != -1){
+                //Sleep for the predetermined time
+                status = terminate_future.wait_for(std::chrono::seconds(duration_sec));
+            }
+
+            if(status == std::future_status::ready){
+                //If getting the future throws exception, let it propagate
+                terminate_future.get();
+            }
+        }
+
+        std::cout << "* Passivating Deployment" << std::endl;
+        PushControlMessage("*", ConstructStateControlMessage(ControlMessage::PASSIVATE));
+
+        std::cout << "* Terminating Deployment" << std::endl;
+        PushControlMessage("*", ConstructStateControlMessage(ControlMessage::TERMINATE));
+
+        std::cout << "--------[Slave De-registration]--------" << std::endl;
+        if(slave_deregistration_future.valid()){
+            //If getting the future throws exception, let it propagate
+            slave_deregistration_future.get();
+        }
+    }catch(const std::exception& ex){
+        //
     }
 
-    std::cout << "* Passivating Deployment" << std::endl;
-    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::PASSIVATE));
-
-    std::cout << "* Terminating Deployment" << std::endl;
-    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::TERMINATE));
-
-    std::cout << "--------[Slave De-registration]--------" << std::endl;
-    if(slave_deregistration_future.valid()){
-        //If getting the future throws exception, let it propagate
-        slave_deregistration_future.get();
-    }
 
     //Terminate the Execution
     std::lock_guard<std::mutex> lock(execution_mutex_);

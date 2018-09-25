@@ -77,7 +77,6 @@ void DeploymentManager::RequestDeployment(){
     {
         SlaveConfiguredRequest request;
         request.set_slave_ip(ip_address_);
-        std::unique_ptr<SlaveStartupReply> startup_reply;
 
         try{
             HandleNodeUpdate(startup_reply->configuration());

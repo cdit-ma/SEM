@@ -122,13 +122,18 @@ void Experiment::AddNode(const NodeManager::Node& node){
             node_map_.emplace(ip_address, std::move(internal_node));
             auto& node_ref = node_map_.at(ip_address);
             
-            if(node_map_.size() == 1){
-                SetMasterIp(ip_address);
-            }
+            
             //Build logan connection map
             auto deploy_count = node_ref->GetDeployedCount();
+
             if(deploy_count > 0){
-                std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deploys: " << deploy_count << " Components" << std::endl;
+                std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();
+                if(GetMasterIp().empty()){
+                    node_ref->SetNodeManagerMaster();
+                    SetMasterIp(ip_address);
+                    std::cout << " [RE_MASTER]";
+                }
+                std::cout << " Deploys: " << deploy_count << " Components" << std::endl;
             }
         }
         else{
