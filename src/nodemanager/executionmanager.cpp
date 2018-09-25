@@ -39,6 +39,23 @@ ExecutionManager::ExecutionManager(
     slave_registration_handler_->Start();
 };
 
+void ExecutionManager::Terminate(){
+    auto error = std::runtime_error("Shutdown");
+    try{
+        execute_promise_.set_exception(std::make_exception_ptr(error));
+    }catch(const std::exception& ex){
+    }
+
+    try{
+        terminate_promise_.set_exception(std::make_exception_ptr(error));
+    }catch(const std::exception& ex){
+    }
+
+    if(execution_future_.valid()){
+        execution_future_.get();
+    }
+}
+
 void ExecutionManager::RequestDeployment(){
     using namespace NodeManager;
     try{

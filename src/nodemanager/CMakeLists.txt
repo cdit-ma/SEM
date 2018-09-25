@@ -16,7 +16,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     )
 
 set(HEADERS
@@ -25,7 +24,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     )
 
 #Pass Version info into cmakevars.h
@@ -35,10 +33,9 @@ add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 
 add_executable(${RE_NODE_MANAGER} "${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp")
 add_executable(${RE_EXECUTION_TESTER} "${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp")
-#add_executable(requester_tester "${CMAKE_CURRENT_SOURCE_DIR}/requester_tester.cpp")
 
 # Remove the need for _lib extensions
-set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MANAGER})
+#set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MANAGER})
 
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
@@ -82,11 +79,11 @@ target_link_libraries(${RE_NODE_MANAGER_LIB} re_core)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protoreceiver)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_execution_parser_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
-target_link_libraries(${RE_NODE_MANAGER_LIB} graphml_parser_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_environment_manager_lib)
 target_link_libraries(${RE_NODE_MANAGER_LIB} logan_client_lib)
+
+target_link_libraries(${RE_NODE_MANAGER} zmq_environmentrequester)
 
 target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${RE_EXECUTION_TESTER} ${Boost_PROGRAM_OPTIONS_LIBRARY})

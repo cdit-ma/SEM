@@ -9,9 +9,7 @@
 
 #include "cmakevars.h"
 #include <util/execution.hpp>
-
-#include "zmq/registrant.h"
-#include "zmq/registrar.h"
+#include <comms/environmentrequester/environmentrequester.h>
 
 std::string VERSION_NAME = "re_node_manager";
 
@@ -31,7 +29,6 @@ int main(int argc, char **argv){
     std::string environment_manager_endpoint;
     std::string experiment_name;
     bool live_logging = false;
-    bool is_master = false;
     std::string ip_address;
     double execution_duration = 60.0;
 
@@ -46,7 +43,6 @@ int main(int argc, char **argv){
     options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Live model logging toggle.");
     
     //Add master arguments
-    options.add_options()("m,master", boost::program_options::value<bool>(&is_master), "Set as Master Node.");
     options.add_options()("time,t", boost::program_options::value<double>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
 
     //Add slave arguments
@@ -72,8 +68,7 @@ int main(int argc, char **argv){
         std::cout << options << std::endl;
         return 0;
     }
-
-    bool valid_args = true;
+    /*
 
     //Check shared arguments
     if(environment_manager_endpoint.empty()){
@@ -105,23 +100,8 @@ int main(int argc, char **argv){
     if(!valid_args){
         std::cout << options << std::endl;
         return 1;
-    }
+    }*/
 
-    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
-    if(is_master){
-        std::cout << "* Master:" << std::endl;
-        std::cout << "** Endpoint: " << ip_address << std::endl;
-        if(execution_duration == -1){
-            std::cout << "** Duration: " << "Indefinite" << std::endl;
-        }else{
-            std::cout << "** Duration: " << execution_duration << std::endl;
-        }
-    }
-    if(is_slave){
-        std::cout << "* Slave:" << std::endl;
-        std::cout << "** Endpoint: " << address << std::endl;
-        std::cout << "** Library Path: " << dll_path << std::endl;
-    }
 
     std::string master_publisher_endpoint;
     std::string master_registration_endpoint;
@@ -130,7 +110,7 @@ int main(int argc, char **argv){
     bool is_slave = false;
 
     try{
-        auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint_, experiment_name, ip_address);
+        auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address);
         
         for(const auto& type : reply->types()){
             switch(type){
@@ -149,10 +129,10 @@ int main(int argc, char **argv){
         
         if(is_master || is_slave){
             if(is_master){
-                master_heartbeat_endpoint = result->heartbeat_endpoint();
+                master_heartbeat_endpoint = reply->heartbeat_endpoint();
             }
-            master_registration_endpoint = result->master_registration_endpoint();
-            master_publisher_endpoint = result->master_publisher_endpoint();
+            master_registration_endpoint = reply->master_registration_endpoint();
+            master_publisher_endpoint = reply->master_publisher_endpoint();
         }else{
             //Not needed
             return 0;
@@ -160,6 +140,22 @@ int main(int argc, char **argv){
     }catch(const std::exception& ex){
         std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
         return 1;
+    }
+
+    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
+    if(is_master){
+        std::cout << "* Master:" << std::endl;
+        std::cout << "** Endpoint: " << ip_address << std::endl;
+        if(execution_duration == -1){
+            std::cout << "** Duration: " << "Indefinite" << std::endl;
+        }else{
+            std::cout << "** Duration: " << execution_duration << std::endl;
+        }
+    }
+    if(is_slave){
+        std::cout << "* Slave:" << std::endl;
+        std::cout << "** Endpoint: " << ip_address << std::endl;
+        std::cout << "** Library Path: " << dll_path << std::endl;
     }
         
 
@@ -177,12 +173,13 @@ int main(int argc, char **argv){
 
     if(is_slave){
         try{
-            deployment_manager = std::unique_ptr<DeploymentManager>(new DeploymentManager(execution, experiment_name, master_publisher_endpoint, master_registration_endpoint, dll_path, is_master));
+            deployment_manager = std::unique_ptr<DeploymentManager>(new DeploymentManager(execution, experiment_name, ip_address, master_publisher_endpoint, master_registration_endpoint, dll_path, is_master));
         }catch(const std::exception& ex){
             std::cerr << "* Failed to construct DeploymentManager: " << ex.what() << std::endl;
             return 1;
         }
     }
+    
 
     execution.Start();
     return 0;

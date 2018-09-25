@@ -9,248 +9,225 @@
 #include <proto/controlmessage/helper.h>
 
 const static int MAX_RETRY_COUNT = 5;
-DeploymentManager::DeploymentManager(bool on_master_node,
-                                    const std::string& library_path,
-                                    Execution* execution,
-                                    const std::string& experiment_id,
-                                    const std::string& ip_address,
-                                    const std::string& environment_manager_endpoint){
-    std::unique_lock<std::mutex> lock(mutex_);
-
-
-    
-
-    on_master_node_ = on_master_node;
-    library_path_ = library_path;
-    execution_ = execution;
-    experiment_id_ = experiment_id;
-    ip_address_ = ip_address;
-    environment_manager_endpoint_ = environment_manager_endpoint;
+DeploymentManager::DeploymentManager(
+        Execution& execution,
+        const std::string& experiment_name,
+        const std::string& ip_address,
+        const std::string& master_publisher_endpoint,
+        const std::string& master_registration_endpoint,
+        const std::string& library_path,
+        bool is_master_node) :
+        execution_(execution),
+        experiment_name_(experiment_name),
+        ip_address_(ip_address),
+        library_path_(library_path),
+        is_master_node_(is_master_node)
+{
+    execution_.AddTerminateCallback(std::bind(&DeploymentManager::Terminate, this));
 
     //Construct a live receiever
-    subscriber_ = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
-
-    execution_->AddTerminateCallback(std::bind(&DeploymentManager::InteruptQueueThread, this));
+    proto_receiever_ = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
+    proto_requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(master_registration_endpoint));
 
     //Subscribe to NodeManager::ControlMessage Types
-    subscriber_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
+    proto_receiever_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotExperimentUpdate, this, std::placeholders::_1));
+    proto_receiever_->Connect(master_publisher_endpoint);
+    proto_receiever_->Filter("*");
+    proto_receiever_->Start();
 
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
 
-    registrant_ = std::unique_ptr<zmq::Registrant>(new zmq::Registrant(*this));
+    RequestDeployment();
 }
 
-std::string DeploymentManager::GetSlaveIPAddress(){
-    return ip_address_;
-}
+void DeploymentManager::RequestDeployment(){
+    using namespace NodeManager;
 
-std::string DeploymentManager::GetMasterRegistrationEndpoint(){
-    return master_registration_endpoint_;
-}
-
-bool DeploymentManager::QueryEnvironmentManager(){
-
-    EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_, EnvironmentRequester::DeploymentType::RE_SLAVE);
-    requester.Init(environment_manager_endpoint_);
-
-    auto retry_count = 0;
-    while(retry_count < MAX_RETRY_COUNT){
-        NodeManager::ControlMessage response;
-        
-        try{
-            response = requester.NodeQuery(ip_address_);
-        }catch(const std::runtime_error& ex){
-            //Commlunication with environment manager has likely timed out. Return blank string.
-            std::cerr << "Response from env manager timed out, terminating" << std::endl;
-            return false;
-        }
-
-        switch(response.type()){
-            case NodeManager::ControlMessage::TERMINATE:{
-                //Node isn't part of execution
-                return false;
-            }
-            case NodeManager::ControlMessage::CONFIGURE:{
-                auto& node = response.nodes(0);
-                const auto& attrs = node.attributes();
-                master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
-                master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
-                
-                return master_registration_endpoint_.size() && master_registration_endpoint_.size();
-            }
-            case NodeManager::ControlMessage::NO_TYPE:{
-                retry_count ++;
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-                break;
-            }
-            default:{
-                std::cerr << "Got Unhandled ControlMessage Type: " << NodeManager::ControlMessage_Type_Name(response.type()) << std::endl;
-                return false;
-            }
-        }
-
-        std::unique_lock<std::mutex> lock(notify_mutex_);
-        if(terminate_){
-            break;
-        }
-    }
-
-    return false;
-}
-
-NodeManager::SlaveStartupResponse DeploymentManager::HandleSlaveStartup(const NodeManager::SlaveStartup startup){
-    NodeManager::SlaveStartupResponse slave_response;
-    bool success = true;
-
-    const auto& host_name = startup.slave_host_name();
+    std::unique_ptr<SlaveStartupReply> startup_reply;
     
-   
+    {
+        //Get Experiment From Node Manager Master
+        SlaveStartupRequest request;
+        request.set_slave_ip(ip_address_);
 
-    //Setup our subscriber
-    if(subscriber_){
-        subscriber_->Connect(master_publisher_endpoint_);
-        subscriber_->Filter("*");
-        subscriber_->Filter(host_name + "*");
-        subscriber_->Start();
-    }else{
-        success = false;
-    }
-
-    try{
-        if(success){
-            ConfigureDeploymentContainers(startup.configure());
+        // Retry three times
+        int retry_count = 0;
+        while(true){
+            try{
+                auto reply_future = proto_requester_->SendRequest<SlaveStartupRequest, SlaveStartupReply>
+                        ("SlaveStartup", request, 1000);
+                startup_reply = reply_future.get();
+                break;
+            }catch(const zmq::TimeoutException& ex){
+                retry_count++;
+            }catch(const zmq::RMIException& ex){
+                throw;
+            }catch(const std::exception& ex){
+                std::cerr << "Unhandled exception in DeploymentManager::RequestDeployment" << ex.what() << std::endl;
+                throw;
+            }
+            if(retry_count > 3){
+                throw std::runtime_error("DeploymentManager::RequestDeployment failed after three attempts.");
+            }
         }
-    }catch(const std::exception& ex){
-        slave_response.add_error_codes(ex.what());
-        success = false;
     }
 
-    slave_response.set_slave_ip(ip_address_);
-    slave_response.set_success(success);
-    return slave_response;
+    //Tell Node Manager Master that We are Configured
+    {
+        SlaveConfiguredRequest request;
+        request.set_slave_ip(ip_address_);
+        std::unique_ptr<SlaveStartupReply> startup_reply;
+
+        try{
+            HandleNodeUpdate(startup_reply->configuration());
+            request.set_success(true);
+        }catch(const std::exception& ex){
+            request.set_success(false);
+            request.add_error_messages(ex.what());
+        }
+
+        auto reply_future = proto_requester_->SendRequest<SlaveConfiguredRequest, SlaveConfiguredReply>
+            ("SlaveConfigured", request, 1000);
+
+        reply_future.get();
+    }
 }
 
-void DeploymentManager::InteruptQueueThread(){
-    std::unique_lock<std::mutex> lock(notify_mutex_);
+void DeploymentManager::HandleExperimentUpdate(const NodeManager::ControlMessage& control_message){
+    for(const auto& node : control_message.nodes()){
+        HandleNodeUpdate(node);
+    }
+}
+
+void DeploymentManager::HandleNodeUpdate(const NodeManager::Node& node){
+    std::lock_guard<std::mutex> lock(container_mutex_);
+    const auto& node_name = node.info().name();
+    
+    if(!deployment_containers_.count(node_name)){
+        auto deployment_container = std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_));
+        deployment_container->SetLibraryPath(library_path_);
+        deployment_containers_.emplace(node_name, std::move(deployment_container));
+    }
+
+    auto& deployment_container = *deployment_containers_.at(node_name);
+    deployment_container.Configure(node);
+}
+
+void DeploymentManager::InteruptControlQueue(){
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     if(!terminate_){
         terminate_ = true;
     }
-    notify_lock_condition_.notify_all();
+    queue_condition_.notify_all();
+}
+
+void DeploymentManager::Terminate(){
+    InteruptControlQueue();
+
+    if(control_queue_future_.valid()){
+        try{
+            control_queue_future_.get();
+        }catch(const std::exception& ex){
+            std::cerr << "* " << ex.what() << std::endl;
+        }
+    }
 }
 
 DeploymentManager::~DeploymentManager(){
-    //The registrant requires that the Deployment Manager is still alive to shutdown
-    registrant_.reset();
+    Terminate();
 }
 
-void DeploymentManager::Teardown(){
-    ModelLogger::shutdown_logger();
-    if(!on_master_node_){
-        execution_->Interrupt();
-    }
-}
-
-void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& control_message){
+void DeploymentManager::GotExperimentUpdate(const NodeManager::ControlMessage& control_message){
     //Gain mutex lock and append message to queue
-    std::unique_lock<std::mutex> lock(notify_mutex_);
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     //Have to copy the message onto our queue
-    control_message_queue_.emplace(control_message);
-    notify_lock_condition_.notify_all();
-}
-
-void DeploymentManager::ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message){
-    for(const auto& node : control_message.nodes()){
-        const auto& node_name = node.info().name();
-        
-        std::shared_ptr<DeploymentContainer> node_container;
-        if(deployment_containers_.count(node_name)){
-            node_container = deployment_containers_[node_name];
-        }else{
-            //Construct one
-            node_container = std::make_shared<DeploymentContainer>(experiment_id_);
-            deployment_containers_[node_name] = node_container;
-            node_container->SetLibraryPath(library_path_);
-        }
-        
-        if(node_container){
-            node_container->Configure(node);
-        }else{
-            throw std::runtime_error("DeploymentManager: Cannot find node: " + node_name);
-        }
-    }
-}
-
-std::shared_ptr<DeploymentContainer> DeploymentManager::GetDeploymentContainer(const std::string& node_name){
-    if(deployment_containers_.count(node_name)){
-        return deployment_containers_[node_name];
-    }
-    return nullptr;
+    control_message_queue_.emplace(std::unique_ptr<NodeManager::ControlMessage>(new NodeManager::ControlMessage(control_message)));
+    queue_condition_.notify_all();
 }
 
 void DeploymentManager::ProcessControlQueue(){
-    std::queue<NodeManager::ControlMessage> queue_;
+    std::queue<std::unique_ptr<NodeManager::ControlMessage> > queue;
     
     while(true){
         {
             //Gain Mutex
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock, [this]{return terminate_ || !control_message_queue_.empty();});
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            queue_condition_.wait(lock, [this]{return terminate_ || control_message_queue_.size();});
             //Swap out the queue's and release the mutex
-            control_message_queue_.swap(queue_);
+            control_message_queue_.swap(queue);
             
-            if(terminate_ && queue_.empty()){
+            if(terminate_ && queue.empty()){
                 return;
             }
         }
 
         //Process the queue
-        while(!queue_.empty()){
-            auto control_message = std::move(queue_.front());
-            queue_.pop();
+        while(queue.size()){
+            auto control_message = std::move(queue.front());
+            queue.pop();
             auto start = std::chrono::steady_clock::now();
-            switch(control_message.type()){
+
+            auto type = control_message->type();
+            
+            switch(type){
                 case NodeManager::ControlMessage::CONFIGURE:
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
-                    ConfigureDeploymentContainers(control_message);
+                    HandleExperimentUpdate(*control_message);
                     break;
                 }
                 case NodeManager::ControlMessage::ACTIVATE:{
+                    std::lock_guard<std::mutex> lock(container_mutex_);
+
                     for(const auto& c : deployment_containers_){
                         c.second->Activate();
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::PASSIVATE:{
+                    std::lock_guard<std::mutex> lock(container_mutex_);
                     for(const auto& c : deployment_containers_){
                         c.second->Passivate();
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::TERMINATE:{
-                    for(const auto& c : deployment_containers_){
-                        c.second->Terminate();
+                    {
+                        std::lock_guard<std::mutex> lock(container_mutex_);
+                        for(const auto& c : deployment_containers_){
+                            c.second->Terminate();
+                        }
                     }
 
                     ModelLogger::shutdown_logger();
                     
-                    //Send the NodeManagerMaster that we are dead
-                    registrant_->SendTerminated();
-                    
                     //Interupt and die
-                    InteruptQueueThread();
-                    if(!on_master_node_){
-                        execution_->Interrupt();
-                    }
+                    InteruptControlQueue();
                     break;
                 }
                 default:
                     break;
             }
-
             auto ms = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
-            std::cout << "* " << NodeManager::ControlMessage_Type_Name(control_message.type()) << " Deployment took: " << ms.count() << " us" << std::endl;
+            std::cout << "* " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " us" << std::endl;
         }
+    }
+
+
+    //Tell Node Manager Master that We are Configured
+    {
+        using namespace NodeManager;
+        SlaveTerminatedRequest request;
+        request.set_slave_ip(ip_address_);
+        
+        auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
+            ("SlaveTerminated", request, 1000);
+
+        reply_future.get();
+    }
+
+    if(!is_master_node_){
+        execution_.Interrupt();
     }
 }
