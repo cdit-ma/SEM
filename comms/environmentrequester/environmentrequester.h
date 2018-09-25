@@ -28,6 +28,18 @@ namespace EnvironmentRequest{
             std::unique_ptr<Heartbeater> heartbeater_;
     };
 
+    class LoganServerHeartbeatRequester{
+    public:
+        LoganServerHeartbeatRequester(const std::string& heartbeat_endpoint);
+        ~LoganServerHeartbeatRequester();
+        void Terminate();
+
+    private:
+        std::mutex heartbeater_mutex_;
+        std::unique_ptr<zmq::ProtoRequester> requester_;
+        std::unique_ptr<Heartbeater> heartbeater_;
+    };
+
     std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
     std::unique_ptr<NodeManager::LoganRegistrationReply> TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
 };

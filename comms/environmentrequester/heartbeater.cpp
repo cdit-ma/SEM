@@ -12,18 +12,19 @@ Heartbeater::~Heartbeater(){
 void Heartbeater::HeartbeatLoop(){
     int retry_count = 0;
     // Start heartbeat loop
-    while(retry_count < 5){
+    bool shutdown = false;
+    while(retry_count < 5 && !shutdown){
         {
             std::unique_lock<std::mutex> lock(heartbeat_lock_);
             // Wait for a message on the queue OR our heartbeat period to time out.
             heartbeat_cv_.wait_for(lock, std::chrono::milliseconds(heartbeat_period_), [this]{return end_flag_;});
             if(end_flag_){
-                break;
+                shutdown = true;
             }
         }
 
         NodeManager::EnvironmentMessage message;
-        message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
+        message.set_type(shutdown ? NodeManager::EnvironmentMessage::END_HEARTBEAT : NodeManager::EnvironmentMessage::HEARTBEAT);
 
         try{
             auto reply_future = requester_.SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
@@ -45,7 +46,6 @@ void Heartbeater::HeartbeatLoop(){
     if(retry_count >= 5){
         std::cerr << "Heartbeater::HeartbeatLoop Timed out" << std::endl;
     }
-    return;
 }
 
 void Heartbeater::Start(){

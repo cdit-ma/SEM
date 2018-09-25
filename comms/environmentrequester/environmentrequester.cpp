@@ -95,3 +95,23 @@ std::unique_ptr<NodeManager::EnvironmentMessage> EnvironmentRequest::NodeManager
     auto reply_future = requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("GetExperimentInfo", request, 1000);
     return reply_future.get();
 }
+
+EnvironmentRequest::LoganServerHeartbeatRequester::LoganServerHeartbeatRequester(
+        const std::string& heartbeat_endpoint){
+
+    requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(heartbeat_endpoint));
+    heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *requester_));
+    heartbeater_->Start();
+}
+
+EnvironmentRequest::LoganServerHeartbeatRequester::~LoganServerHeartbeatRequester() {
+    Terminate();
+}
+
+void EnvironmentRequest::LoganServerHeartbeatRequester::Terminate() {
+    std::lock_guard<std::mutex> lock(heartbeater_mutex_);
+    if(heartbeater_){
+        heartbeater_->Terminate();
+        heartbeater_.reset();
+    }
+}

@@ -90,12 +90,13 @@ message EnvironmentMessage{
         //Sent from NodeManager -> Environment Manager
         GET_EXPERIMENT_INFO = 1;
         HEARTBEAT = 2;
+        END_HEARTBEAT = 3;
 
         //Sent from Environment Manager -> NodeManager
-        HEARTBEAT_ACK = 3;
-        CONFIGURE_EXPERIMENT = 4;
-        SHUTDOWN_EXPERIMENT = 5;
-        SHUTDOWN_LOGAN_SERVER = 6;
+        HEARTBEAT_ACK = 4;
+        CONFIGURE_EXPERIMENT = 5;
+        SHUTDOWN_EXPERIMENT = 6;
+        SHUTDOWN_LOGAN_SERVER = 7;
     }
     Type type = 1;
     ControlMessage control_message = 2;
