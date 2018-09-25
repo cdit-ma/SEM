@@ -133,7 +133,7 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
 
     try{
         auto& experiment = environment_->GetExperiment(experiment_name);
-        auto& logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
+        auto logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
 
         auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
         if(logging_servers.size() > 0){

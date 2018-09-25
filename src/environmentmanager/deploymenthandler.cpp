@@ -89,6 +89,12 @@ void DeploymentHandler::RemoveDeployment(){
 
 
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message){
+
+    if(request_message.type() == NodeManager::EnvironmentMessage::END_HEARTBEAT){
+        // Kill replier
+        replier_->Terminate();
+    }
+
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
     reply_message->set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
     
