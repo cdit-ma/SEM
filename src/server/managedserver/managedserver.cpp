@@ -2,48 +2,26 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq.hpp>
 
-ManagedServer::ManagedServer(Execution& execution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address) : execution_(execution)
+ManagedServer::ManagedServer(Execution& execution, const std::string& experiment_name, const std::string& ip_address, const std::string& environment_manager_endpoint)
+:
+execution_(execution),
+experiment_name_(experiment_name),
+ip_address_(ip_address)
 {
-    std::string default_database_file_name = experiment_id + ".sql";
+    execution_.AddTerminateCallback(std::bind(&ManagedServer::Terminate, this));
 
-    address_ = address;
-    experiment_id_ = experiment_id;
-    environment_manager_address_ = environment_manager_address;
-
-    requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_address_, experiment_id_, EnvironmentRequester::DeploymentType::LOGAN));
-
-    requester_->AddUpdateCallback(std::bind(&ManagedServer::HandleUpdate, this, std::placeholders::_1));
-    requester_->Init(environment_manager_address_);
-    requester_->SetIPAddress(address);
-    requester_->Start();
-
-
-    auto retry_count = 0;
-
-    NodeManager::EnvironmentMessage message; 
-    bool got_response = false;
-    while(true){
-        try{
-            message = requester_->GetLoganInfo(address);
-
-            if(message.type() == NodeManager::EnvironmentMessage::LOGAN_RESPONSE){
-                break;
-            }else if(message.type() == NodeManager::EnvironmentMessage::LOGAN_QUERY){
-                got_response = true;
-            }
-        }catch(const std::exception& ex){}
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-        
-        if(retry_count++ >= MAX_RETRY_COUNT){
-            if(got_response){
-                throw std::runtime_error("No experiment alive requires Logan Server.");
-            }else{
-                throw std::runtime_error("Couldn't communicate with Environment Manager.");
-            }
-        }
+    std::unique_ptr<NodeManager::LoganRegistrationReply> logan_info;
+    try{
+        logan_info = EnvironmentRequest::TryRegisterLoganServer(environment_manager_endpoint, experiment_name_, ip_address_);
+    }catch(const std::exception& ex){
+        std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
+        throw;
     }
 
-    for(const auto logger : message.logger()){
+    //Construct a heartbeater
+    requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(logan_info->heartbeat_endpoint(), std::bind(&ManagedServer::HandleExperimentUpdate, this, std::placeholders::_1)));
+
+    for(const auto& logger : logan_info->logger()){
         if(logger.type() == NodeManager::Logger::SERVER){
             std::vector<std::string> client_list;
             for(const auto& address : logger.client_addresses()){
@@ -55,28 +33,27 @@ ManagedServer::ManagedServer(Execution& execution, const std::string& address, c
     }
 
     if(!servers_.size()){
-        //Interupt the execution
-        execution_.Interrupt();
+        throw NotNeededException("Not Needed");
     }
 }
 
 void ManagedServer::Terminate(){
-    
     servers_.clear();
     execution_.Interrupt();
+    if(requester_){
+        requester_.reset();
+    }
 }
 
-void ManagedServer::HandleUpdate(NodeManager::EnvironmentMessage& message){
+void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
+    std::cerr << "AGHLLALHOAGO" << std::endl;
     switch(message.type()){
-        case NodeManager::EnvironmentMessage::ERROR_RESPONSE:{
+        case NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER:{
             Terminate();
-            break;
-        }
-        case NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT:{
             break;
         }
         default:{
-            Terminate();
+            break;
         }
     }
 }

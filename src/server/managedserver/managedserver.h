@@ -12,24 +12,26 @@ namespace NodeManager{
 
 class ManagedServer{
     public:
-        ManagedServer(Execution& exectution, const std::string& address, const std::string& experiment_id, const std::string& environment_manager_address);
-        void Terminate();
+        class NotNeededException : public std::runtime_error{
+            public:
+                NotNeededException(const std::string& what_arg) : std::runtime_error(what_arg){};
+        };
 
+        ManagedServer(Execution& exectution, const std::string& experiment_name, const std::string& ip_address, const std::string& environment_manager_endpoint);
+        void Terminate();
     private:
-        void HandleUpdate(NodeManager::EnvironmentMessage& message);
+        void HandleExperimentUpdate(NodeManager::EnvironmentMessage& message);
+        std::unique_ptr<EnvironmentRequest::HeartbeatRequester> requester_;
 
         //Environment vars.
-        std::string address_;
-        std::string experiment_id_;
-        std::string environment_manager_address_;
+        const std::string ip_address_;
+        const std::string experiment_name_;
+        const std::string environment_manager_address_;
 
         std::vector<std::unique_ptr<Server> > servers_;
 
-        const static int MAX_RETRY_COUNT = 5;
-
         //Ref to our execution
         Execution& execution_;
-        std::unique_ptr<EnvironmentRequester> requester_;
 };
 
 #endif //LOGAN_MANAGEDSERVER_H
