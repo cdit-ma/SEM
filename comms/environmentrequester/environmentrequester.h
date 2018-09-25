@@ -1,76 +1,36 @@
-#ifndef NODEMANAGER_ENVIRONMENTREQUESTER_H
-#define NODEMANAGER_ENVIRONMENTREQUESTER_H
+#ifndef NODEMANAGER_ENVIRONMENTREQUEST_H
+#define NODEMANAGER_ENVIRONMENTREQUEST_H
 
-#include <iostream>
 #include <mutex>
-#include <thread>
-#include <queue>
-#include <future>
+#include <functional>
 #include <zmq/protorequester/protorequester.hpp>
 #include "heartbeater.h"
 
-
 namespace NodeManager{
-    class ControlMessage;
     class EnvironmentMessage;
 };
 
-namespace zmq{
-    class context_t;
-    class socket_t;
-}
+namespace EnvironmentRequest{
+    class NodeManagerHeartbeatRequester{
+        public:
+            NodeManagerHeartbeatRequester(const std::string& heartbeat_endpoint, std::function<void (NodeManager::EnvironmentMessage& environment_message)> configure_function);
+            ~NodeManagerHeartbeatRequester();
+            void Terminate();
+            void RemoveDeployment();
+            void AddUpdateCallback();
 
-class EnvironmentRequester{
-    public:
-        enum class DeploymentType{
-            RE_MASTER,
-            RE_SLAVE,
-            LOGAN
-        };
-        EnvironmentRequester(const std::string& manager_address,
-                                const std::string& deployment_id,
-                                DeploymentType deployment_type
-                                );
-        ~EnvironmentRequester();
-        void Init(const std::string& manager_endpoint);
-        void Start();
-        void Terminate();
+        private:
+            std::mutex heartbeater_mutex_;
+            std::function<void (NodeManager::EnvironmentMessage&)> update_callback_;
+            std::unique_ptr<zmq::ProtoRequester> requester_;
+            std::unique_ptr<Heartbeater> heartbeater_;
+            const std::string experiment_name_;
+            const std::string node_ip_address_;
 
-        NodeManager::ControlMessage AddDeployment(const NodeManager::ControlMessage& control_message);
-        void RemoveDeployment();
+    };
 
-        NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
-        
-        NodeManager::EnvironmentMessage GetLoganInfo(const std::string& node_ip_address);
-        void SetIPAddress(const std::string& ip_address);
-
-        void AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
-
-    private:
-
-        DeploymentType deployment_type_;
-
-        //ZMQ endpoints
-        std::string manager_address_;
-        std::string manager_endpoint_;
-        std::string manager_update_endpoint_;
-
-        std::string ip_address_;
-
-        bool environment_manager_not_found_ = false;
-        
-        bool end_flag_ = false;
-
-        std::mutex heartbeater_mutex_;
-        std::unique_ptr<zmq::ProtoRequester> update_requester_;
-        std::unique_ptr<Heartbeater> heartbeater_;
-
-        void HandleReply(NodeManager::EnvironmentMessage& message);
-
-        std::string experiment_id_;
-
-        //Callback
-        std::function<void (NodeManager::EnvironmentMessage&)> update_callback_;
+    static std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
+    static std::unique_ptr<NodeManager::LoganRegistrationReply> TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
 };
 
-#endif //NODEMANAGER_ENVIRONMENTREQUESTER_H
+#endif //NODEMANAGER_ENVIRONMENTREQUEST_H

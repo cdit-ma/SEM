@@ -1,208 +1,90 @@
 #include "environmentrequester.h"
-#include <zmq.hpp>
 
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq/protorequester/protorequester.hpp>
-#include <zmq/zmqutils.hpp>
 #include <sstream>
 
-EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
-                                            const std::string& experiment_id,
-                                            EnvironmentRequester::DeploymentType deployment_type) : 
-                                            manager_address_(manager_address),
-                                            experiment_id_(experiment_id),
-                                            deployment_type_(deployment_type)
-{}
+std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
+EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address) {
+    NodeManager::NodeManagerRegistrationRequest request;
 
-EnvironmentRequester::~EnvironmentRequester(){
-    Terminate();
-}
-
-void EnvironmentRequester::Init(const std::string& manager_endpoint){
-    manager_endpoint_ = manager_endpoint;
-}
-
-void EnvironmentRequester::AddUpdateCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){
-    update_callback_ = callback_func;
-}
-
-void EnvironmentRequester::SetIPAddress(const std::string& ip_addr){
-    ip_address_ = ip_addr;
-}
-
-NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& node_endpoint){
-    //Construct query message
-    NodeManager::EnvironmentMessage message;
-    message.set_experiment_id(experiment_id_);
-    message.set_type(NodeManager::EnvironmentMessage::NODE_QUERY);
-
-    auto control_message = message.mutable_control_message();
-
-    auto node = control_message->add_nodes();
-    auto info = node->mutable_info();
-
-    auto& attribute = (*node->mutable_attributes())["ip_address"];
-    auto attribute_info = attribute.mutable_info();
-    attribute.mutable_info()->set_name("ip_address");
-    attribute.set_kind(NodeManager::Attribute::STRING);
-    attribute.add_s(node_endpoint);
+    request.mutable_id()->set_experiment_name(experiment_name);
+    request.mutable_id()->set_ip_address(node_ip_address);
 
 
-    //Get update endpoint
-    //note: This falls out of scope and self destructs at the end of this function,
-    //      this is important as we cant destruct our context otherwise
-
-    try{
-        auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
-        auto reply_future = requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                    ("NodeQuery", message, 3000);
-        auto reply = reply_future.get();
-        return reply->control_message();
-
-    }catch(const zmq::TimeoutException& ex){
-        throw std::runtime_error("Environment manager request timed out.");
-    }catch(const std::exception& ex){
-        std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
-    }
-}
-
-
-void EnvironmentRequester::Start(){
-    auto initial_requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_endpoint_));
-
-    //Register this deployment with the environment manager
-    NodeManager::EnvironmentMessage initial_message;
-
-    std::string function_name;
-    //map our two enums
-    switch(deployment_type_){
-        case DeploymentType::RE_MASTER:{
-            initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
-            initial_message.set_update_endpoint(ip_address_);
-            function_name = "ExperimentRegistration";
-            break;
+    // Retry three times
+    int retry_count = 0;
+    while(retry_count > 3){
+        try{
+            auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
+            auto reply_future = requester->SendRequest<NodeManager::NodeManagerRegistrationRequest, NodeManager::NodeManagerRegistrationReply>
+                    ("NodeManagerRegistration", request, 1000);
+            return reply_future.get();
+        }catch(const zmq::TimeoutException& ex){
+            retry_count++;
+        }catch(const std::exception& ex){
+            std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
         }
-        case DeploymentType::LOGAN:{
-            initial_message.set_type(NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT);
-            initial_message.set_update_endpoint(ip_address_);
-            function_name = "LoganRegistration";
-            break;
-        }
-        default:{
-            std::cerr << "Deployment type invalid in EnvironmentRequester::HeartbeatLoop" << std::endl;
-            assert(true);
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+    throw zmq::TimeoutException("TryRegisterNodeManager failed after three attempts.");
+}
 
-    initial_message.set_experiment_id(experiment_id_);
+std::unique_ptr<NodeManager::LoganRegistrationReply>
+EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address) {
+    NodeManager::LoganRegistrationRequest request;
 
-    auto initial_reply_future = initial_requester->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>(function_name, initial_message, 3000);
+    request.mutable_id()->set_experiment_name(experiment_name);
+    request.mutable_id()->set_ip_address(node_ip_address);
 
-    try{
-        auto initial_reply_messsage = initial_reply_future.get();
-        std::cerr << initial_reply_messsage->DebugString() << std::endl;
-        manager_update_endpoint_ = initial_reply_messsage->update_endpoint();
-    }catch(const zmq::TimeoutException& ex){
-        environment_manager_not_found_ = true;
-        return;
-    }catch(const std::exception& ex){
+    int retry_count = 0;
 
+    while(retry_count > 3){
+        try{
+            auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_address_));
+            auto reply_future = requester->SendRequest<NodeManager::LoganRegistrationRequest, NodeManager::LoganRegistrationReply>
+                    ("LoganRegistration", request, 1000);
+            return reply_future.get();
+        }catch(const zmq::TimeoutException& ex){
+            retry_count++;
+        }catch(const std::exception& ex){
+            std::cerr << "Exception in EnvironmentRequester::NodeQuery" << ex.what() << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+    throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");
+}
 
-    update_requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(manager_update_endpoint_));
+EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester(const std::string& experiment_name,
+        const std::string& node_ip_address,
+        const std::string& heartbeat_endpoint,
+        std::function<void (NodeManager::EnvironmentMessage &)> configure_function) :
+        experiment_name_(experiment_name),
+        node_ip_address_(node_ip_address){
 
-    // Start heartbeater
-    heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *update_requester_));
-    heartbeater_->AddCallback(std::bind(&EnvironmentRequester::HandleReply, this, std::placeholders::_1));
+    requester_ = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(heartbeat_endpoint));
+    heartbeater_ = std::unique_ptr<Heartbeater>(new Heartbeater(1000, *requester_));
+    heartbeater_->AddCallback(configure_function);
     heartbeater_->Start();
 }
 
-void EnvironmentRequester::Terminate(){
+EnvironmentRequest::NodeManagerHeartbeatRequester::~NodeManagerHeartbeatRequester() {
+    Terminate();
+}
+
+void EnvironmentRequest::NodeManagerHeartbeatRequester::Terminate() {
     std::lock_guard<std::mutex> lock(heartbeater_mutex_);
     if(heartbeater_){
         heartbeater_->Terminate();
+        heartbeater_.reset();
     }
 }
 
-NodeManager::ControlMessage EnvironmentRequester::AddDeployment(const NodeManager::ControlMessage& control_message){
-    if(environment_manager_not_found_){
-        throw std::runtime_error("Could not add deployment as environment manager was not found.");
-    }
+void EnvironmentRequest::NodeManagerHeartbeatRequester::RemoveDeployment() {
+    NodeManagerDeregisterationRequest request;
+    request.mutable_id()->set_experiment_name(experiment_name_);
+    request.mutable_id()->set_ip_address(node_ip_address_);
 
-    NodeManager::EnvironmentMessage env_message;
-    env_message.set_type(NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
-    
-    auto current_control_message = env_message.mutable_control_message();
-    *current_control_message = control_message;
-
-    try{
-        auto reply_future = update_requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                            ("EnvironmentManagerAddExperiment", env_message, 1000);
-        auto reply_msg = reply_future.get();
-        if(reply_msg->type() != NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT){
-            std::stringstream str_stream;
-            const auto& error_list = reply_msg->error_messages();
-            std::for_each(error_list.begin(), error_list.end(), [&str_stream](const std::string& str){str_stream << "* " << str << "\n";});
-            throw std::runtime_error("Got non success in EnvironmentRequester::AddDeployment: \n" + str_stream.str());
-        }
-        return reply_msg->control_message();
-    }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
-        throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
-    }
-
+    auto reply_future = requester_->SendRequest<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>("NodeManagerDeregisteration", request, 1000);
+    reply_future.get();
 }
-
-void EnvironmentRequester::RemoveDeployment(){
-    NodeManager::EnvironmentMessage message;
-    if(deployment_type_ == EnvironmentRequester::DeploymentType::RE_MASTER){
-        message.set_type(NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
-    }
-
-    if(deployment_type_ == EnvironmentRequester::DeploymentType::LOGAN){
-        message.set_type(NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT);
-    }
-
-    try{
-        auto reply_future = update_requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                            ("EnvironmentManagerRemoveExperiment", message, 1000);
-        auto reply_msg = reply_future.get();
-        std::cout << "* Removed from environment manager." << std::endl;
-        Terminate();
-    }
-    catch(std::exception& ex){
-        std::cout << ex.what() << " in EnvironmentRequester::RemoveDeployment" << std::endl;
-    }
-}
-
-NodeManager::EnvironmentMessage EnvironmentRequester::GetLoganInfo(const std::string& node_ip_address){
-    if(environment_manager_not_found_){
-        throw std::runtime_error("Could not add deployment as environment manager was not found.");
-    }
-
-    NodeManager::EnvironmentMessage request_message;
-
-    request_message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
-    request_message.set_experiment_id(experiment_id_);
-    request_message.set_update_endpoint(ip_address_);
-
-    NodeManager::EnvironmentMessage reply_message;
-
-    auto response = update_requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                            ("EnvironmentManagerGetLoganInfo", request_message, 1000);
-    try{
-        auto response_msg = response.get();
-        return NodeManager::EnvironmentMessage(*response_msg);
-    }catch(const zmq::TimeoutException& ex){
-        throw std::runtime_error("Get Logan Info request timed out.");
-    }catch(const std::exception& ex){
-
-    }
-}
-
-void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage& message){
-    std::cerr << message.DebugString() << std::endl;
-    update_callback_(message);
-}
-
