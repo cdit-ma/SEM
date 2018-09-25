@@ -27,7 +27,7 @@ void Heartbeater::HeartbeatLoop(){
 
         try{
             auto reply_future = requester_.SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
-                                                            ("EnvironmentManagerHeartbeat", message, heartbeat_period_);
+                                                            ("NodeManagerHeartbeat", message, heartbeat_period_);
             auto reply_message = reply_future.get();
             // Reset our retry count
             retry_count = 0;
