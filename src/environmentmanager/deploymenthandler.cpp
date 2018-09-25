@@ -36,6 +36,8 @@ experiment_id_(experiment_id)
                                 ("HandleHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
     replier_->RegisterProtoCallback<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>
                                 ("HandleNodeManagerDeregisteration", std::bind(&DeploymentHandler::HandleNodeManagerDeregisteration, this, std::placeholders::_1));
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                 ("GetExperimentInfo", std::bind(&DeploymentHandler::HandleGetExperimentInfo, this, std::placeholders::_1));
 
     heartbeat_future_ = std::async(std::launch::async, &DeploymentHandler::HeartbeatLoop, this);
 }
@@ -87,14 +89,14 @@ void DeploymentHandler::RemoveDeployment(){
 
 
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message){
-    auto return_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
-    return_message->set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+    reply_message->set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
     
     if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
         if(environment_.ExperimentIsDirty(experiment_id_)){
             auto experiment_update = environment_.GetProto(experiment_id_, false);
             if(experiment_update){
-                return_message.swap(experiment_update);
+                reply_message.swap(experiment_update);
             }
         }
     }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
@@ -102,15 +104,26 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartb
         if(registered_logan_ip_addresses.count(deployment_ip_address_)){
             //If we were registered, now we don't have the experiment anymore, Terminate
             if(!environment_.GotExperiment(experiment_id_)){
-                return_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
+                reply_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
             }
         }
     }
-    return return_message;
+    return reply_message;
 }
 
 std::unique_ptr<NodeManager::NodeManagerDeregistrationReply> DeploymentHandler::HandleNodeManagerDeregisteration(const NodeManager::NodeManagerDeregistrationRequest& request_message){
     RemoveDeployment();
     auto success = std::unique_ptr<NodeManager::NodeManagerDeregistrationReply>(new NodeManager::NodeManagerDeregistrationReply());
     return success;
+}
+
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExperimentInfo(const NodeManager::EnvironmentMessage& request_message){
+
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+
+    auto experiment_update = environment_.GetProto(experiment_id_, true);
+    if(experiment_update){
+        reply_message.swap(experiment_update);
+    }
+    return reply_message;
 }
