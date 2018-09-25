@@ -26,8 +26,12 @@ class ExecutionManager{
             ERROR_ = 2,
         };
 
-        ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration,
-                            Execution* execution, const std::string& experiment_id, const std::string& environment_manager_endpoint = "");
+        ExecutionManager(Execution& execution,
+                            double execution_duration,
+                            const std::string& experiment_name,
+                            const std::string& master_publisher_endpoint,
+                            const std::string& master_registration_endpoint,
+                            const std::string& master_heartbeat_endpoint);
 
         std::vector<std::string> GetSlaveAddresses();
         const NodeManager::SlaveStartup GetSlaveStartupMessage(const std::string& slave_ip);
@@ -47,10 +51,10 @@ class ExecutionManager{
 
         int GetSlaveStateCount(const SlaveState& state);
         
-        void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
+        void PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message);
         bool Finished();
     private:
-        void UpdateCallback(NodeManager::EnvironmentMessage& environment_update);
+        void ExperimentUpdate(const NodeManager::EnvironmentMessage& environment_update);
         int GetSlaveStateCountTS(const SlaveState& state);
         void TriggerExecution(bool execute);
 
@@ -74,6 +78,8 @@ class ExecutionManager{
         std::unique_ptr<zmq::Registrar> registrar_;
         std::unique_ptr<NodeManager::ControlMessage> deployment_message_;
 
+        std::unique_ptr<NodeManager::ControlMessage> control_message_;
+
         std::unordered_map<std::string, NodeManager::Node> deployment_map_;
 
         std::mutex execution_mutex_;
@@ -85,7 +91,7 @@ class ExecutionManager{
         bool parse_succeed_ = false;
 
         Execution& execution_;
-        std::unique_ptr<EnvironmentRequester> requester_;
+        std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester> requester_;
         
         zmq::ProtoWriter proto_writer_;
 

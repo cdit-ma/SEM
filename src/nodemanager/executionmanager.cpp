@@ -19,48 +19,42 @@
 
 const bool EXECUTION_MANAGER_DEBUG_MODE  = false;
 
-ExecutionManager::ExecutionManager(const std::string& master_ip_addr,
-                                    double execution_duration,
-                                    Execution& execution,
-                                    const std::string& experiment_id,
-                                    const std::string& environment_manager_endpoint):
+ExecutionManager::ExecutionManager(
+                            Execution& execution,
+                            double execution_duration,
+                            const std::string& experiment_name,
+                            const std::string& master_publisher_endpoint,
+                            const std::string& master_registration_endpoint,
+                            const std::string& master_heartbeat_endpoint):
     execution_(execution),
-    master_ip_addr_(master_ip_addr),
-    experiment_id_(experiment_id),
-    environment_manager_endpoint_(environment_manager_endpoint){
-    
-    //Bind the termination callback
+    experiment_name_(experiment_name),
+    master_publisher_endpoint_(master_publisher_endpoint),
+    master_registration_endpoint_(master_registration_endpoint),
+    master_heartbeat_endpoint_(master_heartbeat_endpoint),
+    execution_duration_(execution_duration),
+{
+    //Register a Termination Function
     execution_.AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
-    
-    if(environment_manager_endpoint.size()){
-        requester_ = std::unique_ptr<EnvironmentRequester>(new EnvironmentRequester(environment_manager_endpoint, experiment_id,
-                                                            EnvironmentRequester::DeploymentType::RE_MASTER));
-        requester_->AddUpdateCallback(std::bind(&ExecutionManager::UpdateCallback, this, std::placeholders::_1));
-    }
 
+    requester_ = std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester>(new EnvironmentRequest::NodeManagerHeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::ExperimentUpdate, this, std::placeholders::_1)))
+    
     //Populate Deployment
     PopulateDeployment();
     //Construct the control messages
     ConstructControlMessages();
     
     registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
-
     proto_writer_.BindPublisherSocket(master_publisher_endpoint_);
-
+    
     std::cout << "--------[Slave Registration]--------" << std::endl;
     execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, execution_duration);
-}
+};
 
 std::string ExecutionManager::GetMasterRegistrationEndpoint(){
     return master_registration_endpoint_;
 }
 
-bool ExecutionManager::PopulateDeployment(){
-    requester_->Init(environment_manager_endpoint_);
-    requester_->Start();
-
-    //std::this_thread::sleep_for(std::chrono::seconds(1));
-    
+bool ExecutionManager::RequestDeployment(){
     try{
         //Register with the EnvironmentManager
         //deployment_message_ = requester_->AddDeployment(*deployment_message_);
@@ -86,8 +80,10 @@ bool ExecutionManager::PopulateDeployment(){
     return true;
 }
 
-void ExecutionManager::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
-    proto_writer_->PushMessage(topic, message);
+void ExecutionManager::PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message){
+    if(proto_writer_){
+        proto_writer_->PushMessage(topic, std::move(message));
+    }
 }
 
 std::vector<std::string> ExecutionManager::GetSlaveAddresses(){
@@ -242,17 +238,22 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
     deployment_map_[ip_address] = node;
 }
 
-void ExecutionManager::UpdateCallback(NodeManager::EnvironmentMessage& environment_update){
+void ExecutionManager::ConfigureExperiment(const NodeManager::EnvironmentMessage& environment_update){
     using namespace NodeManager;
     //TODO: filter only nodes we want to update???
     //can we even do that??
     const auto& type = environment_update.type();
 
     switch(type){
-        case EnvironmentMessage::UPDATE_DEPLOYMENT:{
-            auto control_message = new ControlMessage(*environment_update.mutable_control_message());
-            control_message->set_type(ControlMessage::CONFIGURE);
-            PushMessage("*", control_message);
+        case EnvironmentMessage::CONFIGURE_EXPERIMENT:{
+            if(!control_message_){
+                //Take a copy
+                control_message_ = std::unique_ptr<ControlMessage>(new ControlMessage(environment_update.control_message()));
+            }else{
+                PushMessage("*", control_message);
+
+            }
+
             break;
         }
         case EnvironmentMessage::SHUTDOWN_EXPERIMENT:{
