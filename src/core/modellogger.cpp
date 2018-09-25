@@ -148,7 +148,7 @@ void ModelLogger::LogLifecycleEvent(const Component& component, ModelLogger::Lif
 
 void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
     if(active_ && writer_ && message){
-        writer_->PushMessage("ModelEvent*", message);
+        writer_->PushMessage("ModelEvent*", std::unique_ptr<google::protobuf::MessageLite>(message));
     }else{
         delete message;
     }

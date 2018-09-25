@@ -1,27 +1,11 @@
 #include "executionmanager.h"
-#include <iostream>
+
 #include <chrono>
-#include <algorithm>
-#include <unordered_map>
-
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <zmq/protowriter/protowriter.h>
-#include <util/execution.hpp>
 #include <proto/controlmessage/helper.h>
-
-#include <sstream>
-#include <string>
-#include <iomanip>
-#include <algorithm>
-#include <cctype>
-
-#include <google/protobuf/util/json_util.h>
-
-const bool EXECUTION_MANAGER_DEBUG_MODE  = false;
 
 ExecutionManager::ExecutionManager(
                             Execution& execution,
-                            double execution_duration,
+                            int duration_sec,
                             const std::string& experiment_name,
                             const std::string& master_publisher_endpoint,
                             const std::string& master_registration_endpoint,
@@ -29,152 +13,67 @@ ExecutionManager::ExecutionManager(
     execution_(execution),
     experiment_name_(experiment_name),
     master_publisher_endpoint_(master_publisher_endpoint),
-    master_registration_endpoint_(master_registration_endpoint),
-    master_heartbeat_endpoint_(master_heartbeat_endpoint),
-    execution_duration_(execution_duration),
+    master_registration_endpoint_(master_registration_endpoint)
 {
-    //Register a Termination Function
-    execution_.AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
+    //Register our Termination Function
+    execution_.AddTerminateCallback(std::bind(&ExecutionManager::Terminate, this));
 
-    requester_ = std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester>(new EnvironmentRequest::NodeManagerHeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::ExperimentUpdate, this, std::placeholders::_1)))
+    //Setup our writer
+    proto_writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
+    proto_writer_->BindPublisherSocket(master_publisher_endpoint_);
+
+    //Starting our HeartBeat Requester with the EnvironmentManager
+    requester_ = std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester>(new EnvironmentRequest::NodeManagerHeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::HandleExperimentUpdate, this, std::placeholders::_1)));
     
-    //Populate Deployment
-    PopulateDeployment();
-    //Construct the control messages
-    ConstructControlMessages();
-    
-    registrar_ = std::unique_ptr<zmq::Registrar>(new zmq::Registrar(*this));
-    proto_writer_.BindPublisherSocket(master_publisher_endpoint_);
-    
-    std::cout << "--------[Slave Registration]--------" << std::endl;
-    execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, execution_duration);
+    RequestDeployment();
+
+    //Construct the execution future
+    execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, duration_sec, execute_promise_.get_future(), terminate_promise_.get_future(), slave_deregistration_promise_.get_future());
+
+    //Bind Registration functions
+    slave_registration_handler_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
+    slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveStartupRequest, NodeManager::SlaveStartupReply>("SlaveStartup", std::bind(&ExecutionManager::HandleSlaveStartup, this, std::placeholders::_1));
+    slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveConfiguredRequest, NodeManager::SlaveConfiguredReply>("SlaveConfigured", std::bind(&ExecutionManager::HandleSlaveConfigured, this, std::placeholders::_1));
+    slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveTerminatedRequest, NodeManager::SlaveTerminatedReply>("SlaveTerminated", std::bind(&ExecutionManager::HandleSlaveTerminated, this, std::placeholders::_1));
+    slave_registration_handler_->Bind(master_registration_endpoint_);
+    slave_registration_handler_->Start();
 };
 
-std::string ExecutionManager::GetMasterRegistrationEndpoint(){
-    return master_registration_endpoint_;
-}
-
-bool ExecutionManager::RequestDeployment(){
+void ExecutionManager::RequestDeployment(){
+    using namespace NodeManager;
     try{
-        //Register with the EnvironmentManager
-        //deployment_message_ = requester_->AddDeployment(*deployment_message_);
-    }catch(const std::runtime_error& ex){
-        std::cerr << "* Error Populating Deployment: " << ex.what() << std::endl;
-        return false;
-    }
+        //Request the Experiment Info
+        auto environment_message = requester_->GetExperimentInfo();
 
-    if(deployment_message_){
-        const auto& attrs = deployment_message_->attributes();
-        master_publisher_endpoint_ = NodeManager::GetAttribute(attrs, "master_publisher_endpoint").s(0);
-        master_registration_endpoint_ = NodeManager::GetAttribute(attrs, "master_registration_endpoint").s(0);
+        //Take a copy of the control message
+        std::lock_guard<std::mutex> lock(control_message_mutex_);
+        control_message_ = std::unique_ptr<ControlMessage>(new ControlMessage(environment_message->control_message()));
 
-        if(master_publisher_endpoint_.empty()){
-            throw std::runtime_error("Got empty Master Publisher Endpoint");
+        std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+        //Construct a set of slaves to wait
+        //XXX: Probably need to handle multiple NodeManager Slaves on each IP, will need more checks for uniquity
+        for(auto& node : control_message_->nodes()){
+            const auto& node_ip_address = GetAttribute(node.attributes(), "ip_address").s(0);
+            auto insert = slave_states_.emplace(node_ip_address, SlaveState::OFFLINE);
+            if(insert.second == false){
+                throw std::runtime_error("Got duplicate Node in ControlMessage with IP: '" + node_ip_address + "'");
+            }
         }
-        if(master_registration_endpoint_.empty()){
-            throw std::runtime_error("Got empty Master Registration Endpoint");
-        }
-    }else{
-        return false;
-    }
-    return true;
-}
-
-void ExecutionManager::PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message){
-    if(proto_writer_){
-        proto_writer_->PushMessage(topic, std::move(message));
+    }catch(const std::exception& ex){
+        throw;
     }
 }
 
-std::vector<std::string> ExecutionManager::GetSlaveAddresses(){
-    std::vector<std::string> slave_addresses;
-
-    for(const auto& ss : slave_states_){
-        slave_addresses.push_back(ss.first);
-    }
-    return slave_addresses;
+ExecutionManager::SlaveState ExecutionManager::GetSlaveState(const std::string& ip_address){
+    return slave_states_.at(ip_address);
 }
 
-bool ExecutionManager::IsValid(){
-    return parse_succeed_;
-}
-
-void ExecutionManager::GotSlaveTerminated(const std::string& slave_ip){
-    std::lock_guard<std::mutex> lock(slave_state_mutex_);
-
-    if(slave_states_.count(slave_ip)){
-        auto slave_hostname = GetSlaveHostName(slave_ip);
-        slave_states_[slave_ip] = SlaveState::OFFLINE;
-        std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Offline" << std::endl;
-        slave_state_cv_.notify_all();
-    }
-}
-
-bool ExecutionManager::HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response){
-    auto slave_state = SlaveState::ERROR_;
-
-    const auto& slave_ip = response.slave_ip();
-    auto slave_hostname = GetSlaveHostName(slave_ip);
-
-    if(response.IsInitialized()){
-        slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR_;
-    }
-
-    if(slave_state == SlaveState::ERROR_){
-        std::cerr << "* Slave: " << slave_hostname << " @ " << slave_ip << " Error!" << std::endl;
-        for(const auto& error_str : response.error_codes()){
-            std::cerr << "* [" << slave_hostname << "]: " << error_str << std::endl;
-        }
-    }else{
-        std::cout << "* Slave: " << slave_hostname << " @ " << slave_ip << " Online" << std::endl;
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(slave_state_mutex_);
-        if(slave_states_.count(slave_ip)){
-            slave_states_[slave_ip] = slave_state;
-        }
-    }
-
-    if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
-        bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
-        
-        TriggerExecution(should_execute);
-    }
-    return true;
-}
-
-std::string ExecutionManager::GetSlaveHostName(const std::string& slave_ip){
-    if(deployment_map_.count(slave_ip)){
-        return deployment_map_[slave_ip].info().name();
-    }
-    return "Unknown Hostname";
-}
-
-const NodeManager::SlaveStartup ExecutionManager::GetSlaveStartupMessage(const std::string& slave_ip){
-    NodeManager::SlaveStartup startup;
-    startup.set_allocated_configure(new NodeManager::ControlMessage(*deployment_message_));
-
-    auto configure = startup.mutable_configure();
-    configure->clear_nodes();
-    auto node = configure->add_nodes();
-
-    if(deployment_map_.count(slave_ip)){
-        *node = deployment_map_[slave_ip];
-    }
-
-    auto slave_name = GetSlaveHostName(slave_ip);
-    startup.set_master_publisher_endpoint(master_publisher_endpoint_);
-    startup.set_slave_host_name(slave_name);
-    return startup;
+void ExecutionManager::SetSlaveState(const std::string& ip_address, SlaveState state){
+    slave_states_.at(ip_address) = state;
+    HandleSlaveStateChange();
 }
 
 int ExecutionManager::GetSlaveStateCount(const SlaveState& state){
-    std::lock_guard<std::mutex> lock(slave_state_mutex_);
-    return GetSlaveStateCountTS(state);
-}
-
-int ExecutionManager::GetSlaveStateCountTS(const SlaveState& state){
     int count = 0;
     for(const auto& ss : slave_states_){
         if(ss.second == state){
@@ -184,61 +83,100 @@ int ExecutionManager::GetSlaveStateCountTS(const SlaveState& state){
     return count;
 }
 
-NodeManager::Attribute_Kind GetAttributeType(const std::string& type){
-    if(type == "Integer"){
-        return NodeManager::Attribute::INTEGER;
-    }else if(type == "Boolean"){
-        return NodeManager::Attribute::BOOLEAN;
-    }else if(type == "Character"){
-        return NodeManager::Attribute::CHARACTER;
-    }else if(type == "String"){
-        return NodeManager::Attribute::STRING;
-    }else if(type == "Double"){
-        return NodeManager::Attribute::DOUBLE;
-    }else if(type == "Float"){
-        return NodeManager::Attribute::FLOAT;
+void ExecutionManager::HandleSlaveStateChange(){
+    //Whats our executions state
+    auto slave_count = slave_states_.size();
+    auto configured_count = GetSlaveStateCount(SlaveState::CONFIGURED);
+    auto terminated_count = GetSlaveStateCount(SlaveState::TERMINATED);
+    auto error_count = GetSlaveStateCount(SlaveState::ERROR_);
+
+    if(configured_count == slave_count){
+        //All Slaves are configured, so Start
+        execute_promise_.set_value();
     }
-    std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
-    return NodeManager::Attribute::STRING;
+    else if((configured_count + error_count) == slave_count){
+        //All Slaves are either configured or have errored, so fail
+        std::runtime_error error(std::to_string(error_count) + " slaves has errors.");
+        execute_promise_.set_exception(std::make_exception_ptr(error));
+    }
+    else if(terminated_count == slave_count){
+        //All Slaves are terminated
+        slave_deregistration_promise_.set_value();
+    }
 }
 
-bool ExecutionManager::ConstructControlMessages(){
-    std::unique_lock<std::mutex>(mutex_);
-    std::cout << "------------[Deployment]------------" << std::endl; 
+std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveStartup(const NodeManager::SlaveStartupRequest& request){
+    using namespace NodeManager;
+    std::unique_ptr<SlaveStartupReply> reply;
+    const auto& slave_ip_address = request.slave_ip();
+    
+    std::lock_guard<std::mutex> lock(control_message_mutex_);
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+    for(auto& node : control_message_->nodes()){
+        const auto& node_ip_address = GetAttribute(node.attributes(), "ip_address").s(0);
 
-    for(int i = 0; i<deployment_message_->nodes_size(); i++){
-        ConfigureNode(deployment_message_->nodes(i));
-    }
-
-    return true;
-}
-
-void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
-    for(const auto& n : node.nodes()){
-        ConfigureNode(n);
-    }
-
-    const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
-
-    if(ip_address.empty()){
-        throw std::runtime_error("Got no IP Address for Slave Node");
-    }
-
-    std::lock_guard<std::mutex> lock(slave_state_mutex_);
-    if(node.components_size() > 0){
-        std::cout << "* Slave: '" << node.info().name() << "' Deploys:" << std::endl;
-
-        slave_states_[ip_address] = SlaveState::OFFLINE;
-        
-        for(int i = 0; i < node.components_size(); i++){
-            std::cout << "** " << node.components(i).info().name() << " [" << node.components(i).info().type() << "]" << std::endl;
+        //XXX: Probably need to handle multiple NodeManager Slaves on each IP, will need more checks for uniquity
+        if(slave_ip_address == node_ip_address){
+            if(GetSlaveState(slave_ip_address) == SlaveState::OFFLINE){
+                reply = std::unique_ptr<SlaveStartupReply>(new SlaveStartupReply());
+                auto node_copy = Node(node);
+                reply->mutable_configuration()->Swap(&node_copy);
+                break;
+            }else{
+                throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in correct state");
+            }
         }
     }
-    //TODO: Add fail cases
-    deployment_map_[ip_address] = node;
+
+    if(!reply){
+        throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in experiment");
+    }
+
+    return reply;
 }
 
-void ExecutionManager::ConfigureExperiment(const NodeManager::EnvironmentMessage& environment_update){
+std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlaveConfigured(const NodeManager::SlaveConfiguredRequest& request){
+    using namespace NodeManager;
+    const auto& slave_ip_address = request.slave_ip();
+
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+    if(GetSlaveState(slave_ip_address) == SlaveState::OFFLINE){
+        auto reply = std::unique_ptr<SlaveConfiguredReply>(new SlaveConfiguredReply());
+        auto slave_state = SlaveState::CONFIGURED;
+        if(request.success()){
+            std::cout << "* Slave: " << slave_ip_address << " Online" << std::endl;
+        }else{
+            std::cerr << "* Slave: " << slave_ip_address << " Error!" << std::endl;
+            for(const auto& error_str : request.error_messages()){
+                std::cerr << "* [" << slave_ip_address << "]: " << error_str << std::endl;
+            }
+            slave_state = SlaveState::ERROR_;
+        }
+        //Change state
+        SetSlaveState(slave_ip_address, slave_state);
+        return reply;
+    }else{
+        throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in correct state");
+    }
+}
+
+std::unique_ptr<NodeManager::SlaveTerminatedReply> ExecutionManager::HandleSlaveTerminated(const NodeManager::SlaveTerminatedRequest& request){
+    using namespace NodeManager;
+    const auto& slave_ip_address = request.slave_ip();
+
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+    auto reply = std::unique_ptr<SlaveTerminatedReply>(new SlaveTerminatedReply());
+    SetSlaveState(slave_ip_address, SlaveState::TERMINATED);
+    return reply;
+}
+
+void ExecutionManager::PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message){
+    if(proto_writer_){
+        proto_writer_->PushMessage(topic, std::move(message));
+    }
+}
+
+void ExecutionManager::HandleExperimentUpdate(const NodeManager::EnvironmentMessage& environment_update){
     using namespace NodeManager;
     //TODO: filter only nodes we want to update???
     //can we even do that??
@@ -246,20 +184,12 @@ void ExecutionManager::ConfigureExperiment(const NodeManager::EnvironmentMessage
 
     switch(type){
         case EnvironmentMessage::CONFIGURE_EXPERIMENT:{
-            if(!control_message_){
-                //Take a copy
-                control_message_ = std::unique_ptr<ControlMessage>(new ControlMessage(environment_update.control_message()));
-            }else{
-                PushMessage("*", control_message);
-
-            }
-
+            auto control_message = std::unique_ptr<ControlMessage>(new ControlMessage(environment_update.control_message()));
+            PushControlMessage("*", std::move(control_message));
             break;
         }
         case EnvironmentMessage::SHUTDOWN_EXPERIMENT:{
-            if(execution_){
-                execution_->Interrupt();  
-            }
+            execution_.Interrupt();  
             break;
         }
         default:{
@@ -268,92 +198,52 @@ void ExecutionManager::ConfigureExperiment(const NodeManager::EnvironmentMessage
     }
 }
 
-void ExecutionManager::TriggerExecution(bool execute){
-    //Obtain lock
-    std::unique_lock<std::mutex> lock(execution_mutex_);
-    if(execute){
-        execute_flag_ = true;
-    }else{
-        terminate_flag_ = true;
-    }
 
-    //Notify
-    execution_lock_condition_.notify_all();
+std::unique_ptr<NodeManager::ControlMessage> ExecutionManager::ConstructStateControlMessage(NodeManager::ControlMessage::Type type){
+    auto message = std::unique_ptr<NodeManager::ControlMessage>(new NodeManager::ControlMessage());
+    message->set_type(type);
+    return message;
 }
 
-void ExecutionManager::TerminateExecution(){
-    //Interupt
-    TriggerExecution(false);
-    if(execution_future_.valid()){
-        execution_future_.get();
-    }
-}
+void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future, std::future<void> slave_deregistration_future){
+    using namespace NodeManager;
 
-void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
-    auto execution_duration = std::chrono::duration<double>(duration_sec);
+    if(execute_future.valid()){
+        //If getting the future throws exception, let it propagate
+        execute_future.get();
+    }
     
-    bool execute = false;
-    {
-        //Wait to be executed or terminated
-        std::unique_lock<std::mutex> lock(execution_mutex_);
-        execution_lock_condition_.wait(lock, [this]{return terminate_flag_ || execute_flag_;});
-
-        if(execute_flag_){
-            execute = true;
-        }
-    }
-
     std::cout << "-------------[Execution]------------" << std::endl;
 
-    if(execute){
-        //std::this_thread::sleep_for(std::chrono::seconds(0));
-        std::cout << "* Activating Deployment" << std::endl;
-        
-        //Send Activate function
-        auto activate = new NodeManager::ControlMessage();
-        activate->set_type(NodeManager::ControlMessage::ACTIVATE);
-        PushMessage("*", activate);
+    std::cout << "* Activating Deployment" << std::endl;
+    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::ACTIVATE));
 
-        {
-            std::unique_lock<std::mutex> lock(execution_mutex_);
-            if(duration_sec == -1){
-                //Wait indefinately
-                execution_lock_condition_.wait(lock, [this]{return terminate_flag_;});
-            }else{
-                execution_lock_condition_.wait_for(lock, execution_duration, [this]{return terminate_flag_;});
-            }
+    if(terminate_future.valid()){
+        std::future_status status = std::future_status::ready;
+        if(duration_sec != -1){
+            //Sleep for the predetermined time
+            status = terminate_future.wait_for(std::chrono::seconds(duration_sec));
         }
 
-        std::cout << "* Passivating Deployment" << std::endl;
-        //Send Terminate Function
-        auto passivate = new NodeManager::ControlMessage();
-        passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
-        PushMessage("*", passivate);
+        if(status == std::future_status::ready){
+            //If getting the future throws exception, let it propagate
+            terminate_future.get();
+        }
     }
-    
-    std::cout << "* Terminating Deployment" << std::endl;
-    //Send Terminate Function
-    auto terminate = new NodeManager::ControlMessage();
-    terminate->set_type(NodeManager::ControlMessage::TERMINATE);
-    PushMessage("*", terminate);
 
+    std::cout << "* Passivating Deployment" << std::endl;
+    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::PASSIVATE));
+
+    std::cout << "* Terminating Deployment" << std::endl;
+    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::TERMINATE));
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
-    //Actively polling for our nodes to be dead
-    while(true){
-        std::unique_lock<std::mutex> lock(slave_state_mutex_);
-        
-        auto all_offline = slave_state_cv_.wait_for(lock, std::chrono::seconds(1), [this]{
-            return GetSlaveStateCountTS(SlaveState::ONLINE) == 0;
-        });
+    if(slave_deregistration_future.valid()){
+        //If getting the future throws exception, let it propagate
+        slave_deregistration_future.get();
+    }
 
-        if(all_offline){
-            break;
-        }
-    }
-    
-    if(!local_mode_){
-        requester_->RemoveDeployment();
-    }
-    execution_->Interrupt();
+    //Terminate the Execution
+    std::lock_guard<std::mutex> lock(execution_mutex_);
+    execution_.Interrupt();
 }

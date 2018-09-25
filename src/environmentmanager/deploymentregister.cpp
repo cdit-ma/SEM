@@ -103,21 +103,18 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
                 reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
-                reply->set_type(NodeManager::NodeManagerRegistrationReply::MASTER);
+                reply->add_types(NodeManager::NodeManagerRegistrationReply::MASTER);
             }
             catch(const std::exception& ex){
                 throw;
             }
-        }else{
-            reply->set_type(NodeManager::NodeManagerRegistrationReply::SLAVE);
         }
+
+        reply->add_types(NodeManager::NodeManagerRegistrationReply::SLAVE);
 
         //Set the endpoint information for both the SLAVE/MASTER
         reply->set_master_publisher_endpoint(experiment.GetMasterPublisherAddress());
         reply->set_master_registration_endpoint(experiment.GetMasterRegistrationAddress());
-    }else{
-        //Send that we are unused
-        reply->set_type(NodeManager::NodeManagerRegistrationReply::UNUSED);
     }
 
     return std::move(reply);

@@ -17,7 +17,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
     )
 
 set(HEADERS
@@ -27,7 +26,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
     )
 
 #Pass Version info into cmakevars.h
