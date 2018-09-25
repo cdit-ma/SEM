@@ -23,7 +23,7 @@ ExecutionManager::ExecutionManager(
     proto_writer_->BindPublisherSocket(master_publisher_endpoint_);
 
     //Starting our HeartBeat Requester with the EnvironmentManager
-    requester_ = std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester>(new EnvironmentRequest::NodeManagerHeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::HandleExperimentUpdate, this, std::placeholders::_1)));
+    requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::HandleExperimentUpdate, this, std::placeholders::_1)));
     
     RequestDeployment();
 

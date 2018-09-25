@@ -73,7 +73,7 @@ class ExecutionManager{
 
         Execution& execution_;
         std::unique_ptr<zmq::ProtoReplier> slave_registration_handler_;
-        std::unique_ptr<EnvironmentRequest::NodeManagerHeartbeatRequester> requester_;
+        std::unique_ptr<EnvironmentRequest::HeartbeatRequester> requester_;
 };
 
 #endif //EXECUTIONMANAGER_H
