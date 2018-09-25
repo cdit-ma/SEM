@@ -24,8 +24,8 @@ class DeploymentManager{
     public:
         DeploymentManager(
             Execution& execution,
-            const std::string& ip_address,
             const std::string& experiment_name,
+            const std::string& ip_address,
             const std::string& master_publisher_endpoint,
             const std::string& master_registration_endpoint,
             const std::string& library_path,

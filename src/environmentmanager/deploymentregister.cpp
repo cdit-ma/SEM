@@ -127,26 +127,28 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
     std::promise<std::string> port_promise;
     auto port_future = port_promise.get_future();
 
-    if(environment_->GotExperiment(experiment_name)){
-        std::cerr << "DeploymentRegister::HandleAddDeployment Exception: Tried to add preexisting experiment id." << std::endl;
-        throw std::runtime_error("Tried to add preexisting experiment id.");
+    if(!environment_->GotExperiment(experiment_name)){
+        throw std::runtime_error("No experiment with name: '" + experiment_name + "'");
     }
 
-    auto handler = std::unique_ptr<DeploymentHandler>(new DeploymentHandler(*environment_,
-                                environment_manager_ip_address_,
-                                EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER,
-                                logan_server_ip_address,
-                                std::move(port_promise),
-                                experiment_name));
-    logan_handlers_.emplace_back(std::move(handler));
-
     try{
-        auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
-        //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
-        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
         auto& experiment = environment_->GetExperiment(experiment_name);
-        
-        for(auto& logger : experiment.GetAllocatedLoganServers(logan_server_ip_address)){
+        auto& logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
+
+        auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
+        if(logging_servers.size() > 0){
+            auto handler = std::unique_ptr<DeploymentHandler>(new DeploymentHandler(*environment_,
+                                        environment_manager_ip_address_,
+                                        EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER,
+                                        logan_server_ip_address,
+                                        std::move(port_promise),
+                                        experiment_name));
+            logan_handlers_.emplace_back(std::move(handler));
+            //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
+            reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
+        }
+
+        for(auto& logger : logging_servers){
             reply->add_logger()->Swap(logger.get());
         }
 

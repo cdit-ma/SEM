@@ -30,22 +30,20 @@ int main(int argc, char **argv){
     std::string experiment_name;
     bool live_logging = false;
     std::string ip_address;
-    double execution_duration = 60.0;
+    int execution_duration = 60;
 
     //Slave arguments
     std::string dll_path;
 
     boost::program_options::options_description options("Node manager options");
     //Add shared arguments
-    options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address), "Node manager ip address.");
-    options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name), "Name of experiment.");
-    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
+    options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "Node manager ip address.");
+    options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name)->required(), "Name of experiment.");
+    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
     options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Live model logging toggle.");
     
-    //Add master arguments
-    options.add_options()("time,t", boost::program_options::value<double>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
-
-    //Add slave arguments
+    //Add optional arguments
+    options.add_options()("time,t", boost::program_options::value<int>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Model generated library path.");
     
     options.add_options()("help,h", "Display help");
@@ -68,39 +66,6 @@ int main(int argc, char **argv){
         std::cout << options << std::endl;
         return 0;
     }
-    /*
-
-    //Check shared arguments
-    if(environment_manager_endpoint.empty()){
-        std::cerr << "Arg Error: re_node_manager requires a valid environment manager." << std::endl;
-        valid_args = false;
-    }
-    if(experiment_name.empty()){
-        std::cerr << "Arg Error: re_node_manager requires a valid experiment name." << std::endl;
-        valid_args = false;
-    }
-    if(ip_address.empty()){
-        std::cerr << "Arg Error: re_node_manager requires a valid ip address." << std::endl;
-        valid_args = false;
-    }
-
-    bool is_slave = !dll_path.empty();
-    if(is_slave){
-        if(dll_path.empty()){
-            std::cerr << "Arg Error: re_node_manager[Slave] requires a library path to execute." << std::endl;
-            valid_args = false;
-        }
-    }
-
-    if(!is_master && !is_slave){
-        std::cerr << "Arg Error: re_node_manager needs to be run in slave or master mode." << std::endl;
-        valid_args = false;
-    }
-
-    if(!valid_args){
-        std::cout << options << std::endl;
-        return 1;
-    }*/
 
 
     std::string master_publisher_endpoint;
@@ -140,6 +105,11 @@ int main(int argc, char **argv){
         }
     }catch(const std::exception& ex){
         std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
+        return 1;
+    }
+
+    if(is_slave && !vm.count("library")){
+        std::cerr << "* No library path supplied to re_node_manager slave!" << std::endl;
         return 1;
     }
 
