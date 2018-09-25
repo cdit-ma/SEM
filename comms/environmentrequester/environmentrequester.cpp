@@ -5,7 +5,7 @@
 #include <sstream>
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
-EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address) {
+EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address){
     NodeManager::NodeManagerRegistrationRequest request;
 
     request.mutable_id()->set_experiment_name(experiment_name);

@@ -2,6 +2,7 @@
 #define NODEMANAGER_ENVIRONMENTREQUEST_H
 
 #include <mutex>
+#include <memory>
 #include <functional>
 #include <zmq/protorequester/protorequester.hpp>
 #include "heartbeater.h"
@@ -27,8 +28,8 @@ namespace EnvironmentRequest{
             std::unique_ptr<Heartbeater> heartbeater_;
     };
 
-    static std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
-    static std::unique_ptr<NodeManager::LoganRegistrationReply> TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
+    std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
+    std::unique_ptr<NodeManager::LoganRegistrationReply> TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
 };
 
 #endif //NODEMANAGER_ENVIRONMENTREQUEST_H
