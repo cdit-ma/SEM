@@ -55,7 +55,8 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
     throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");
 }
 
-EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester(const std::string& experiment_name,
+EnvironmentRequest::NodeManagerHeartbeatRequester::NodeManagerHeartbeatRequester(
+        const std::string& experiment_name,
         const std::string& node_ip_address,
         const std::string& heartbeat_endpoint,
         std::function<void (NodeManager::EnvironmentMessage &)> configure_function) :
@@ -87,4 +88,11 @@ void EnvironmentRequest::NodeManagerHeartbeatRequester::RemoveDeployment() {
 
     auto reply_future = requester_->SendRequest<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>("NodeManagerDeregisteration", request, 1000);
     reply_future.get();
+}
+
+std::unique_ptr<NodeManager::EnvironmentMessage> EnvironmentRequest::NodeManagerHeartbeatRequester::GetExperimentInfo() {
+    NodeManager::EnvironmentMessage request;
+    request.set_type(NodeManager::EnvironmentMessage::GET_EXPERIMENT_INFO);
+    auto reply_future = requester_->SendRequest<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>("GetExperimentInfo", request, 1000);
+    return reply_future.get();
 }
