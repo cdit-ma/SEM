@@ -2,17 +2,15 @@
 
 //Requires following parameters in jenkins job:
 // -String parameter: ENV_MANAGER_ENDPOINT
-// -String parameter: EXPERIMENT_NAME
 
 @Library('cditma-utils')
 import cditma.Utils
 def utils = new Utils(this);
 
 final env_manager_endpoint = "${ENV_MANAGER_ENDPOINT}"
-final experiment_name = "${EXPERIMENT_NAME}"
 
 stage("Execute Command"){
-    if(env_manager_endpoint && experiment_name){
+    if(env_manager_endpoint){
         node("master"){
             def re_path = env.RE_PATH;
 
