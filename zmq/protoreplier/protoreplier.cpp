@@ -149,7 +149,6 @@ void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::
                         }
                     }catch(const std::exception& ex){
                         error_str = ex.what();
-                        std::cerr << "zmq::ProtoReplier::ZmqReplier(): " << ex.what() << std::endl;
                     }
 
                     //Construct a success flag message

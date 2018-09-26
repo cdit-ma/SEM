@@ -6,6 +6,7 @@
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
 EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address){
+    const int retry_ms = 1000;
     NodeManager::NodeManagerRegistrationRequest request;
 
     request.mutable_id()->set_experiment_name(experiment_name);
@@ -19,14 +20,16 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
     while(retry_count < 3){
         try{
             auto reply_future = requester->SendRequest<NodeManager::NodeManagerRegistrationRequest, NodeManager::NodeManagerRegistrationReply>
-                    ("NodeManagerRegistration", request, 1000);
+                    ("NodeManagerRegistration", request, retry_ms);
             return reply_future.get();
         }catch(const zmq::TimeoutException& ex){
             retry_count++;
         }catch(const zmq::RMIException& ex){
+            std::cerr << "* RMI Exception: " << ex.what() << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
             retry_count++;
         }catch(const std::exception& ex){
-            std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
+            std::cerr << "Exception in EnvironmentRequester::TryRegisterNodeManager" << ex.what() << std::endl;
             throw;
         }
     }
@@ -35,6 +38,7 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
 
 std::unique_ptr<NodeManager::LoganRegistrationReply>
 EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address) {
+    const int retry_ms = 1000;
     NodeManager::LoganRegistrationRequest request;
 
     request.mutable_id()->set_experiment_name(experiment_name);
@@ -47,11 +51,13 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
     while(retry_count < 3){
         try{
             auto reply_future = requester->SendRequest<NodeManager::LoganRegistrationRequest, NodeManager::LoganRegistrationReply>
-                    ("LoganRegistration", request, 1000);
+                    ("LoganRegistration", request, retry_ms);
             return reply_future.get();
         }catch(const zmq::TimeoutException& ex){
             retry_count++;
         }catch(const zmq::RMIException& ex){
+            std::cerr << "* RMI Exception: " << ex.what() << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
             retry_count++;
         }catch(const std::exception& ex){
             std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
