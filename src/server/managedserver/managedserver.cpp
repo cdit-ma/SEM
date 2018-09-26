@@ -46,7 +46,6 @@ void ManagedServer::Terminate(){
 }
 
 void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
-    std::cerr << "AGHLLALHOAGO" << std::endl;
     switch(message.type()){
         case NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER:{
             Terminate();
