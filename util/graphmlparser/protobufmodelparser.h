@@ -151,7 +151,7 @@ class ProtobufModelParser{
         std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
 
         //ComponentInstance id - > HardwareNode id
-        std::unordered_map<std::string, std::string> deployed_entities_map_;
+        std::unordered_map<std::string, std::vector<std::string> > deployed_entities_map_;
 
         //component instance id -> definition id
         std::unordered_map<std::string, std::string> definition_ids_;

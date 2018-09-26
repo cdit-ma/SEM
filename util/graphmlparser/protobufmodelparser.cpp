@@ -196,7 +196,7 @@ bool ProtobufModelParser::PreProcess(){
     for(const auto& e_id: deployment_edge_ids_){
         auto source_id = graphml_parser_->GetAttribute(e_id, "source");
         auto target_id = graphml_parser_->GetAttribute(e_id, "target");
-        deployed_entities_map_[source_id] = target_id;
+        deployed_entities_map_[source_id].emplace_back(target_id);
     }
 
     top_level_assembly_ = new Assembly(graphml_parser_->GetDataValue(assembly_definition_id, "label"), assembly_definition_id);
@@ -418,53 +418,54 @@ bool ProtobufModelParser::ParseExternalDelegates(NodeManager::ControlMessage* co
 }
 
 std::string ProtobufModelParser::GetDeployedHardwareID(const std::string& component_id){
-    if(deployed_entities_map_.count(component_id)){
-       return deployed_entities_map_[component_id]; 
-    }else{
+    auto deployed_id = GetDeployedID(component_id);
+
+    if(deployed_id == ""){
         auto parent_id = graphml_parser_->GetParentNode(component_id);
         if(!parent_id.empty()){
             return GetDeployedHardwareID(parent_id);
-        }else{
-            return std::string();
         }
     }
+    return deployed_id;
 };
 
 void ProtobufModelParser::ParseLoggingClients(){
     for(const auto& client_id : logging_client_ids_){
         //Get hardware node pb message that this logger is deployed to
-        auto hardware_id = deployed_entities_map_[client_id];
-        NodeManager::Node* node_pb = 0;
-        if(node_message_map_.count(hardware_id)){
-            node_pb = node_message_map_.at(hardware_id);
-        }else{
-            continue;
-        }
 
-        auto logger_pb = node_pb->add_loggers();
+        for(const auto& hardware_id : deployed_entities_map_[client_id]){
+            NodeManager::Node* node_pb = 0;
+            if(node_message_map_.count(hardware_id)){
+                node_pb = node_message_map_.at(hardware_id);
+            }else{
+                continue;
+            }
 
-        logger_pb->set_type(NodeManager::Logger::CLIENT);
-        logger_pb->set_id(client_id);
-        logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
+            auto logger_pb = node_pb->add_loggers();
 
-        auto processes = graphml_parser_->GetDataValue(client_id, "processes_to_log");
-        std::transform(processes.begin(), processes.end(), processes.begin(), [](char ch) {
-            return ch == ',' ? ' ' : ch;
-        });
+            logger_pb->set_type(NodeManager::Logger::CLIENT);
+            logger_pb->set_id(client_id);
+            logger_pb->set_frequency(std::stod(graphml_parser_->GetDataValue(client_id, "frequency")));
+
+            auto processes = graphml_parser_->GetDataValue(client_id, "processes_to_log");
+            std::transform(processes.begin(), processes.end(), processes.begin(), [](char ch) {
+                return ch == ',' ? ' ' : ch;
+            });
 
 
-        std::istringstream iss(processes);
-        std::vector<std::string> split_processes(std::istream_iterator<std::string>{iss},
-                                 std::istream_iterator<std::string>());
+            std::istringstream iss(processes);
+            std::vector<std::string> split_processes(std::istream_iterator<std::string>{iss},
+                                    std::istream_iterator<std::string>());
 
-        for(const auto& process : split_processes){
-            logger_pb->add_processes(process);
-        }
+            for(const auto& process : split_processes){
+                logger_pb->add_processes(process);
+            }
 
-        if(graphml_parser_->GetDataValue(client_id, "mode") == "LIVE"){
-            logger_pb->set_mode(NodeManager::Logger::LIVE);
-        }else if(graphml_parser_->GetDataValue(client_id, "mode") == "CACHED"){
-            logger_pb->set_mode(NodeManager::Logger::CACHED);
+            if(graphml_parser_->GetDataValue(client_id, "mode") == "LIVE"){
+                logger_pb->set_mode(NodeManager::Logger::LIVE);
+            }else if(graphml_parser_->GetDataValue(client_id, "mode") == "CACHED"){
+                logger_pb->set_mode(NodeManager::Logger::CACHED);
+            }
         }
     }
 }
@@ -472,7 +473,7 @@ void ProtobufModelParser::ParseLoggingClients(){
 void ProtobufModelParser::ParseLoggingServers(){
     for(const auto& server_id : logging_server_ids_){
         //Get hardware node pb message that this logger is deployed to
-        auto hardware_id = deployed_entities_map_[server_id];
+        auto hardware_id = GetDeployedID(server_id);
         NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
@@ -762,7 +763,10 @@ void ProtobufModelParser::CalculateReplication(){
 
 std::string ProtobufModelParser::GetDeployedID(const std::string& id){
     if(deployed_entities_map_.count(id)){
-        return deployed_entities_map_[id];
+        auto& ids = deployed_entities_map_[id];
+        if(ids.size()){
+            return ids.front();
+        }
     }
     return std::string("");
 }
@@ -989,6 +993,8 @@ std::string ProtobufModelParser::BuildPortGuid(const std::string& port_id){
         if(parent_id.empty()){
             break;
         }
+
+
         if(deployed_entities_map_.count(parent_id)){
             out.insert(0, "." + graphml_parser_->GetDataValue(parent_id, "label"));
             parent_id = graphml_parser_->GetParentNode(parent_id);
