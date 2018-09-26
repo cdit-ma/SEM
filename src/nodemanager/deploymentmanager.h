@@ -13,70 +13,58 @@
 
 #include <core/modellogger.h>
 #include "deploymentcontainer.h"
-#include "zmq/registrant.h"
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
 
-namespace zmq{class ProtoReceiver;};
-class Execution;
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <zmq/protoreceiver/protoreceiver.h>
+#include <zmq/protorequester/protorequester.hpp>
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <util/execution.hpp>
 
 class DeploymentManager{
     public:
-        DeploymentManager(bool on_master_node,
-                            const std::string& library_path,
-                            Execution* execution,
-                            const std::string& experiment_id,
-                            const std::string& ip_address,
-                            const std::string& environment_manager_endpoint = "");
+        DeploymentManager(
+            Execution& execution,
+            const std::string& experiment_name,
+            const std::string& ip_address,
+            const std::string& master_publisher_endpoint,
+            const std::string& master_registration_endpoint,
+            const std::string& library_path,
+            bool is_master_node);
         ~DeploymentManager();
 
-        std::string GetSlaveIPAddress();
-        std::string GetMasterRegistrationEndpoint();
-        
-        bool QueryEnvironmentManager();
-
-        
         NodeManager::SlaveStartupResponse HandleSlaveStartup(const NodeManager::SlaveStartup startup);
+        void HandleExperimentUpdate(const NodeManager::ControlMessage& control_message);
+        void GotExperimentUpdate(const NodeManager::ControlMessage& control_message);
+        void HandleNodeUpdate(const NodeManager::Node& node);
 
-        void Teardown();
+        void Terminate();
+        void RequestDeployment();
     private:
-        std::shared_ptr<DeploymentContainer> GetDeploymentContainer(const std::string& node_name);
-        void GotControlMessage(const NodeManager::ControlMessage& control_message);
-        void ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message);
-        void InteruptQueueThread();
 
         void ProcessControlQueue();
+        void InteruptControlQueue();
 
+
+        bool is_master_node_ = false;
+        const std::string library_path_;
+        const std::string ip_address_;
+        const std::string experiment_name_;
+        Execution& execution_;
         
+        std::unique_ptr<zmq::ProtoReceiver> proto_receiever_;
+        std::unique_ptr<zmq::ProtoRequester> proto_requester_;
 
-        bool on_master_node_ = false;
-
-        const int RETRY_COUNT = 10;
-
-        std::unique_ptr<zmq::ProtoReceiver> subscriber_;
-
-        std::string library_path_;
-        std::string experiment_id_;
-        std::string ip_address_;
-        std::string environment_manager_endpoint_;
-
-        std::string master_registration_endpoint_;
-        std::string master_publisher_endpoint_;
-        
-        Execution* execution_;
-
+        //Storage of DeploymentContainers
+        std::mutex container_mutex_;
         std::unordered_map<std::string, std::shared_ptr<DeploymentContainer> > deployment_containers_;
 
-        std::unique_ptr<zmq::Registrant> registrant_;
-
         
-
-        std::queue<NodeManager::ControlMessage> control_message_queue_;
-        std::mutex mutex_;
         bool terminate_ = false;
-        std::mutex notify_mutex_;
+        std::mutex queue_mutex_;
+        std::queue<std::unique_ptr<NodeManager::ControlMessage> > control_message_queue_;
+        std::condition_variable queue_condition_;
         
         std::future<void> control_queue_future_;
-        std::condition_variable notify_lock_condition_;
 };
 
 #endif //DEPLOYMENTMANAGER_H

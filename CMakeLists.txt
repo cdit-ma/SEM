@@ -23,7 +23,7 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 
-SET(RE_VERSION "3.1.5")
+SET(RE_VERSION "3.2.0")
 
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
@@ -61,10 +61,12 @@ endif()
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
+#Build Logan
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
+
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 
 if(BUILD_TEST)
 	message(STATUS "Building re tests")

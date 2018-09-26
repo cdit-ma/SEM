@@ -5,7 +5,7 @@
 #include <core/ports/requestreply/replierport.hpp>
 #include <middleware/proto/prototranslator.h>
 #include <middleware/zmq/zmqhelper.h>
-#include <re_common/zmq/zmqutils.hpp>
+#include <zmq/zmqutils.hpp>
 
 namespace zmq{
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>

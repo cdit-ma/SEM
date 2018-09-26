@@ -1,266 +1,137 @@
 #include "deploymenthandler.h"
 #include <iostream>
+#include <zmq/zmqutils.hpp>
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
-                                    zmq::context_t& context,
                                     const std::string& ip_addr,
                                     EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
-                                    std::promise<std::string>* port_promise,
+                                    std::promise<std::string> port_promise,
                                     const std::string& experiment_id) :
-                                    environment_(env),
-                                    context_(context){
+environment_(env),
+environment_manager_ip_address_(ip_addr),
+deployment_type_(deployment_type),
+deployment_ip_address_(deployment_ip_address),
+experiment_id_(experiment_id)
+{
+    std::lock_guard<std::mutex> lock(replier_mutex_);
+    replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
+    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
 
-    ip_addr_ = ip_addr;
-    deployment_type_ = deployment_type;
-    deployment_ip_address_ = deployment_ip_address;
-    port_promise_ = port_promise;
-    experiment_id_ = experiment_id;
+    try{
+        replier_->Bind(bind_address);
+        port_promise.set_value(assigned_port);
+    }catch(const zmq::error_t& ex){
+        std::runtime_error error("Cannot bind ZMQ address: '" + bind_address + "'");
+        //Set our promise as exception and exit if we can't find a free port.
+        port_promise.set_exception(std::make_exception_ptr(error));
+        throw error;
+    }
 
+    
 
-    handler_thread_ = std::unique_ptr<std::thread>(new std::thread(&DeploymentHandler::HeartbeatLoop, this));
+    //Register the callbacks
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                ("NodeManagerHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
+    replier_->RegisterProtoCallback<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>
+                                ("NodeManagerDeregisteration", std::bind(&DeploymentHandler::HandleNodeManagerDeregisteration, this, std::placeholders::_1));
+    replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
+                                 ("GetExperimentInfo", std::bind(&DeploymentHandler::HandleGetExperimentInfo, this, std::placeholders::_1));
+
+    heartbeat_future_ = std::async(std::launch::async, &DeploymentHandler::HeartbeatLoop, this);
 }
 
-void DeploymentHandler::PrintError(const std::string& message){
-    std::cerr << "* ";
-    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
-        std::cerr << "Runtime Environment: ";
-    }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-        std::cerr << "Logan Server: ";
+DeploymentHandler::~DeploymentHandler(){
+    {
+        std::lock_guard<std::mutex> lock(replier_mutex_);
+        replier_->Terminate();
     }
-    std::cerr << "Experiment[" << experiment_id_ << "] IP: " << ip_addr_  << ": " << message << std::endl;
-}   
-
-void DeploymentHandler::Terminate(){
-    //TODO: (RE-253) send TERMINATE messages to node manager attached to this thread
-    handler_thread_->join();
+    if(heartbeat_future_.valid()){
+        heartbeat_future_.get();
+    }
 }
 
 void DeploymentHandler::HeartbeatLoop() noexcept{
-    auto handler_socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(context_, ZMQ_REP));
+    std::future<void> replier_future;
+    {
+        std::vector<std::chrono::milliseconds> timeouts;
+        timeouts.push_back(std::chrono::milliseconds(2000));
+        timeouts.push_back(std::chrono::milliseconds(4000));
+        timeouts.push_back(std::chrono::milliseconds(8000));
 
-    time_added_ = environment_.GetClock();
-
-    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
-    try{
-        handler_socket->bind(TCPify(ip_addr_, assigned_port));
-        port_promise_->set_value(assigned_port);
-
-    }catch(zmq::error_t ex){
-        //Set our promise as exception and exit if we can't find a free port.
-        port_promise_->set_exception(std::current_exception());
-        RemoveDeployment(time_added_);
-        return;
+        std::lock_guard<std::mutex> lock(replier_mutex_);
+        replier_future = replier_->Start(timeouts);
     }
-
-    //Initialise our poll item list
-    std::vector<zmq::pollitem_t> sockets = {{*handler_socket, 0, ZMQ_POLLIN, 0}};
-
-    //Wait for first heartbeat, allow more time for this one in case of server congestion
-    if(zmq::poll(sockets, INITIAL_TIMEOUT) >= 1){
+    
+    try{
+        replier_future.get();
+    }catch(const zmq::TimeoutException& ex){
+        //Timeout Exceptions should lead to shutdown
         try{
-            auto initial_request = ZMQReceiveRequest(*handler_socket);
-            auto initial_message = HandleRequest(initial_request);
-            ZMQSendReply(*handler_socket, initial_message);
-        }
-        catch(const zmq::error_t& exception){
-            PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + exception.what());
-            RemoveDeployment(time_added_);
-            return;
+            RemoveDeployment();
+        }catch(const std::exception& ex){
+
         }
     }
-    //Break out early if we never get our first heartbeat
-    else{
-        RemoveDeployment(time_added_);
-        return;
+}
+
+void DeploymentHandler::RemoveDeployment(){
+    if(!removed_flag_){
+        if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
+            environment_.RemoveExperiment(experiment_id_);
+        }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER){
+            //Do nothing
+        }
+        removed_flag_ = true;
+    }
+}
+
+
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message){
+
+    if(request_message.type() == NodeManager::EnvironmentMessage::END_HEARTBEAT){
+        // Kill replier
+        replier_->Terminate();
     }
 
-    int interval = INITIAL_INTERVAL;
-    int liveness = HEARTBEAT_LIVENESS;
-
-    while(!removed_flag_){
-        
-        //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
-        if(zmq::poll(sockets, HEARTBEAT_INTERVAL) >= 1){
-            //Reset
-            liveness = HEARTBEAT_LIVENESS;
-            interval = INITIAL_INTERVAL;
-
-            try{
-                auto request = ZMQReceiveRequest(*handler_socket);
-                auto message = HandleRequest(request);
-                ZMQSendReply(*handler_socket, message);
-            }
-            catch(const zmq::error_t& exception){
-                PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + exception.what());
-                break;
-            }
-            //TODO: Update experiments status to be ACTIVE (RE-253)
-        }
-        else if(--liveness == 0){
-            //TODO: Update experiments status to be TIMEOUT (RE-253)
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            if(interval < MAX_INTERVAL){
-                interval *= 2;
-            }
-            else{
-                PrintError("Timed out!");
-                //Timed out, break out and remove deployment
-                break;
-            }
-            liveness = HEARTBEAT_LIVENESS;
-        }
-    }
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+    reply_message->set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
     
-    RemoveDeployment(time_added_);
-}
-
-void DeploymentHandler::RemoveDeployment(uint64_t call_time) noexcept{
-    try{
-        if(!removed_flag_){
-            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
-                environment_.RemoveExperiment(experiment_id_, call_time);
-            }
-            if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-                environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
-            }
-            removed_flag_ = true;
-        }
-    }
-    catch(const std::exception& ex){
-        PrintError(std::string("Exception: HeartbeatLoop (Initial): ") + ex.what());
-    }
-}
-
-std::string DeploymentHandler::TCPify(const std::string& ip_address, const std::string& port) const{
-    return std::string("tcp://" + ip_address + ":" + port);
-}
-
-std::string DeploymentHandler::TCPify(const std::string& ip_address, int port) const{
-    return std::string("tcp://" + ip_address + ":" + std::to_string(port));
-}
-
-void DeploymentHandler::ZMQSendReply(zmq::socket_t& socket, const std::string& message){
-    std::string lamport_string = std::to_string(environment_.Tick());
-    zmq::message_t time_msg(lamport_string.begin(), lamport_string.end());
-    zmq::message_t msg(message.begin(), message.end());
-
-    socket.send(time_msg, ZMQ_SNDMORE);
-    socket.send(msg);
-}
-
-std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socket_t& socket){
-    zmq::message_t lamport_time_msg;
-    zmq::message_t request_contents_msg;
-    socket.recv(&lamport_time_msg);
-    socket.recv(&request_contents_msg);
-    std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
-
-    //Update and get current lamport time
-    std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
-
-    uint64_t lamport_time = environment_.SetClock(std::stoull(incoming_time));
-    return std::make_pair(lamport_time, contents);
-}
-
-std::string DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
-    auto message_time = request.first;
-
-    NodeManager::EnvironmentMessage message;
-    message.ParseFromString(request.second);
-
-    try{
-        switch(message.type()){
-            case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
-                //Register the Experiment, which will modify the control_message
-                environment_.PopulateExperiment(*(message.mutable_control_message()));
-                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                break;
-            }
-
-            case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
-                RemoveDeployment(message_time);
-                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                break;
-            }
-
-            case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
-
-                if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
-                    try{
-                        if(environment_.ExperimentIsDirty(experiment_id_)){
-                            HandleDirtyExperiment(message);
-                        }
-                    }catch(const std::exception& ex){
-                        PrintError(std::string("Failed to Update Dirty Experiment: ") + ex.what());
-                        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                    }
-                }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-                    std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-                    if(registered_logan_ip_addresses.count(ip_addr_)){
-                        //If we were registered, now we don't have the experiment anymore, Terminate
-                        if(!environment_.GotExperiment(experiment_id_)){
-                            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                        }
-                    }
-                }
-                break;
-            }
-
-            case NodeManager::EnvironmentMessage::LOGAN_QUERY:{
-                HandleLoganQuery(message);
-                break;
-            }
-
-            default:{
-                std::cerr << message.DebugString() << std::endl;
-                message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                break;
-            }
-        }
-    }
-    catch(std::exception& ex){
-        PrintError("Failed to HandleRequest[" + NodeManager::EnvironmentMessage_Type_Name(message.type()) + "]: " + ex.what());
-        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-        message.add_error_messages(std::string(ex.what()));
-    }
-
-    return message.SerializeAsString();
-}
-
-void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
-    message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
-
     if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
-        auto experiment_update = environment_.GetExperimentUpdate(experiment_id_);
-        if(experiment_update){
-            message.set_allocated_control_message(experiment_update);
+        if(environment_.ExperimentIsDirty(experiment_id_)){
+            auto experiment_update = environment_.GetProto(experiment_id_, false);
+            if(experiment_update){
+                reply_message.swap(experiment_update);
+            }
+        }
+    }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER){
+        //If we were registered, now we don't have the experiment anymore, Terminate
+        if(!environment_.GotExperiment(experiment_id_)){
+            reply_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER);
         }
     }
-
-    if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_CLIENT){
-        environment_.ExperimentIsDirty(experiment_id_);
-    }
+    return reply_message;
 }
 
-void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
-    message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+std::unique_ptr<NodeManager::NodeManagerDeregistrationReply> DeploymentHandler::HandleNodeManagerDeregisteration(const NodeManager::NodeManagerDeregistrationRequest& request_message){
+    RemoveDeployment();
+    auto success = std::unique_ptr<NodeManager::NodeManagerDeregistrationReply>(new NodeManager::NodeManagerDeregistrationReply());
+    return success;
+}
 
+std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExperimentInfo(const NodeManager::EnvironmentMessage& request_message){
+    auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
 
-    if(environment_.IsExperimentConfigured(message.experiment_id())){
-        std::lock_guard<std::mutex> lock(logan_ip_mutex_);
-        if(!registered_logan_ip_addresses.count(ip_addr_)){
-            auto environment_message = environment_.GetLoganDeploymentMessage(message.experiment_id(), message.update_endpoint());
-            if(environment_message){
-                message.Swap(environment_message);
-                delete environment_message;
-                message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
-                registered_logan_ip_addresses.insert(ip_addr_);
-            }
-        }else{
-            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+    auto& experiment = environment_.GetExperiment(experiment_id_);
+    if(experiment.IsConfigured()){
+        auto experiment_update = environment_.GetProto(experiment_id_, true);
+        if(experiment_update){
+            reply_message.swap(experiment_update);
         }
+        experiment.SetActive();
+    }else{
+        throw std::runtime_error("Experiment: '" + experiment_id_ + "' already active");
     }
-    
+    return reply_message;
 }

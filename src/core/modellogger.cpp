@@ -2,8 +2,8 @@
 #include <ctime>
 #include <iostream>
 
-#include <re_common/proto/modelevent/modelevent.pb.h>
-#include <re_common/zmq/protowriter/cachedprotowriter.h>
+#include <proto/modelevent/modelevent.pb.h>
+#include <zmq/protowriter/cachedprotowriter.h>
 
 #include "component.h"
 #include "ports/port.h"
@@ -148,7 +148,7 @@ void ModelLogger::LogLifecycleEvent(const Component& component, ModelLogger::Lif
 
 void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
     if(active_ && writer_ && message){
-        writer_->PushMessage("ModelEvent*", message);
+        writer_->PushMessage("ModelEvent*", std::unique_ptr<google::protobuf::MessageLite>(message));
     }else{
         delete message;
     }

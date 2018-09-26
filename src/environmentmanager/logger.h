@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "uniquequeue.hpp"
 #include <memory>
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Environment;
@@ -60,9 +60,7 @@ class Logger{
         void SetDirty();
         bool IsDirty();
 
-        NodeManager::Logger* GetUpdate();
-        NodeManager::Logger* GetProto();
-
+        std::unique_ptr<NodeManager::Logger> GetProto(const bool full_update);
     private:
         Node& node_;
         Environment& environment_;

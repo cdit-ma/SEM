@@ -2,7 +2,7 @@
 #include "environment.h"
 #include "node.h"
 #include "ports/port.h"
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 
@@ -28,8 +28,11 @@ Experiment::~Experiment(){
         node_map_.clear();
 
         environment_.FreeManagerPort(manager_port_);
-        environment_.FreePort(master_ip_address_, master_publisher_port_);
-        environment_.FreePort(master_ip_address_, master_registration_port_);
+        
+        if(GetState() == ExperimentState::ACTIVE){
+            environment_.FreePort(master_ip_address_, master_publisher_port_);
+            environment_.FreePort(master_ip_address_, master_registration_port_);
+        }
     }
     catch(...){
         std::cerr << "Could not delete deployment :" << model_name_ << std::endl;
@@ -46,13 +49,38 @@ Environment& Experiment::GetEnvironment() const{
 
 void Experiment::SetConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    is_configured_ = true;
+    if(state_ == ExperimentState::REGISTERED){
+        state_ = ExperimentState::CONFIGURED;
+    }else{
+        throw std::runtime_error("Invalid state");
+    }
 }
+
+void Experiment::SetActive(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(state_ == ExperimentState::CONFIGURED){
+        state_ = ExperimentState::ACTIVE;
+    }else{
+        throw std::runtime_error("Invalid state");
+    }
+}
+
 
 bool Experiment::IsConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return is_configured_;
+    return state_ == ExperimentState::CONFIGURED;
 }
+
+bool Experiment::IsRegistered(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return state_ == ExperimentState::REGISTERED;
+}
+
+bool Experiment::IsActive(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return state_ == ExperimentState::ACTIVE;
+}
+
 
 std::string Experiment::GetManagerPort() const{
     return manager_port_;
@@ -90,6 +118,23 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
     }
 }
 
+Node& Experiment::GetNodeManagerMaster() const{
+
+}
+
+ExperimentState Experiment::GetState(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    return state_;
+}
+
+Node& Experiment::GetNode(const std::string& ip_address) const{
+    try{
+        return *(node_map_.at(ip_address));
+    }catch(const std::exception& ex){
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' does not have registered node with IP: '" + ip_address + "'");
+    }
+}
+
 void Experiment::AddNode(const NodeManager::Node& node){
     if(node.type() == NodeManager::Node::HARDWARE_NODE){
         const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
@@ -99,11 +144,19 @@ void Experiment::AddNode(const NodeManager::Node& node){
             const auto& ip_address = internal_node->GetIp();
             node_map_.emplace(ip_address, std::move(internal_node));
             auto& node_ref = node_map_.at(ip_address);
-                
+            
+            
             //Build logan connection map
-            auto deploy_count = node_ref->GetDeployedComponentCount();
+            auto deploy_count = node_ref->GetDeployedCount();
+
             if(deploy_count > 0){
-                std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName() << " Deploys: " << deploy_count << " Components" << std::endl;
+                std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();
+                if(GetMasterIp().empty()){
+                    node_ref->SetNodeManagerMaster();
+                    SetMasterIp(ip_address);
+                    std::cout << " [RE_MASTER]";
+                }
+                std::cout << " Deploys: " << deploy_count << " Components" << std::endl;
             }
         }
         else{
@@ -113,22 +166,33 @@ void Experiment::AddNode(const NodeManager::Node& node){
 }
 
 bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
-    if(node_map_.count(ip_address)){
-        return node_map_.at(ip_address)->GetDeployedComponentCount() > 0;
-    }
-    else{
-        throw std::invalid_argument("No node found with ip " + ip_address);
-    }
+    return GetNode(ip_address).GetDeployedCount() > 0;
 }
 
-NodeManager::EnvironmentMessage* Experiment::GetLoganDeploymentMessage(const std::string& ip_address){
-    if(node_map_.count(ip_address)){
-        return node_map_.at(ip_address)->GetLoganDeploymentMessage();
+std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentInfo(){
+    auto reply = std::unique_ptr<NodeManager::RegisterExperimentReply>(new NodeManager::RegisterExperimentReply());
+
+    for(const auto& node_pair : node_map_){
+        auto& node = (*node_pair.second);
+
+        if(node.GetLoganServerCount()){
+            auto hardware_id = node.GetHardwareId();
+            if(hardware_id){
+                reply->add_logan_servers()->Swap(hardware_id.get());
+            }
+        }
+
+        if(node.GetDeployedComponentCount()){
+            auto hardware_id = node.GetHardwareId();
+            if(hardware_id){
+                reply->add_node_managers()->Swap(hardware_id.get());
+            }
+        }
     }
-    else{
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' Doesn't have a Node with IP address: '" + ip_address + "'");
-    }
+    return reply;
 }
+
+
 
 std::string Experiment::GetMasterPublisherAddress(){
     if(master_publisher_port_.empty()){
@@ -149,11 +213,18 @@ std::string Experiment::GetMasterRegistrationAddress(){
 }
 
 bool Experiment::IsDirty() const{
-    return dirty_flag_;
+    return dirty_;
 }
 
 void Experiment::SetDirty(){
-    dirty_flag_ = true;
+    dirty_ = true;
+}
+
+void Experiment::Shutdown(){
+    if(!shutdown_){
+        shutdown_ = true;
+        SetDirty();
+    }
 }
 
 void Experiment::UpdatePort(const std::string& external_port_label){
@@ -184,45 +255,44 @@ Port& Experiment::GetPort(const std::string& id){
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
-NodeManager::ControlMessage* Experiment::GetUpdate(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    if(dirty_flag_){
-        auto control_message = new NodeManager::ControlMessage();
-        control_message->set_experiment_id(model_name_);
+std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::EnvironmentMessage> environment_message;
 
-        for(auto& node_pair : node_map_){
-            if(node_pair.second->DeployedTo()){
-                auto node_update = node_pair.second->GetUpdate();
-                if(node_update){
-                    control_message->mutable_nodes()->AddAllocated(node_update);
+    if(dirty_ || full_update){
+        environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+
+        if(!shutdown_){
+            environment_message->set_type(NodeManager::EnvironmentMessage::CONFIGURE_EXPERIMENT);
+
+            auto control_message = environment_message->mutable_control_message();
+            control_message->set_experiment_id(model_name_);
+            for(auto& node_pair : node_map_){
+                if(node_pair.second->DeployedTo()){
+                    auto node_pb = node_pair.second->GetProto(full_update);
+                    if(node_pb){
+                        control_message->mutable_nodes()->AddAllocated(node_pb.release());
+                    }
                 }
             }
+
+            auto attrs = control_message->mutable_attributes();
+            NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
+            NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
+            NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
+        }else{
+            //Terminate the experiment
+            environment_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_EXPERIMENT);
         }
-        dirty_flag_ = false;
-        return control_message;
+
+        if(dirty_){
+            dirty_ = false;
+        }
     }
-    return nullptr;
+    return environment_message;
 }
 
-NodeManager::ControlMessage* Experiment::GetProto(){
-    NodeManager::ControlMessage* control_message = new NodeManager::ControlMessage();
-
-    control_message->set_experiment_id(model_name_);
-
-    for(auto& node_pair : node_map_){
-        if(node_pair.second->DeployedTo()){
-            control_message->mutable_nodes()->AddAllocated(node_pair.second->GetProto());
-        }
-    }
-
-    auto attrs = control_message->mutable_attributes();
-
-    NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
-    NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
-    NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
-
-
-    return control_message;
+std::vector<std::unique_ptr<NodeManager::Logger> > Experiment::GetAllocatedLoganServers(const std::string& ip_address){
+    return std::move(GetNode(ip_address).GetAllocatedLoganServers());
 }
 
 EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){

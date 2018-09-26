@@ -2,7 +2,7 @@
 #include "../environment.h"
 #include "../component.h"
 #include "../node.h"
-#include <re_common/proto/controlmessage/helper.h>
+#include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager::tao;
 

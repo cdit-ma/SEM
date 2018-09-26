@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "uniquequeue.hpp"
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 
@@ -28,6 +28,13 @@ class Node{
         std::string GetName() const;
         std::string GetIp() const;
         int GetDeployedComponentCount() const;
+        int GetDeployedCount() const;
+        
+        bool IsNodeManagerMaster() const;
+        void SetNodeManagerMaster();
+
+        std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
+
 
         //Fully qualified endpoint getters
         std::string GetManagementEndpoint() const;
@@ -52,6 +59,8 @@ class Node{
         void AddLogger(const NodeManager::Logger& logger);
         void AddModelLogger();
 
+        int GetLoganServerCount() const;
+
         bool HasLogger(const std::string& logger_id);
         Logger& GetLogger(const std::string& logger_id);
 
@@ -72,10 +81,10 @@ class Node{
         bool DeployedTo() const;
 
         //protobuf getters
-        NodeManager::Node* GetUpdate();
-        NodeManager::EnvironmentMessage* GetLoganDeploymentMessage() const;
+        std::unique_ptr<NodeManager::Node> GetProto(const bool full_update);
+        
+        std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers() const;
 
-        NodeManager::Node* GetProto();
 
     private:
         Environment& environment_;
@@ -103,7 +112,7 @@ class Node{
 
 
         bool dirty_;
-
+        bool is_node_manager_master_ = false;
 };
 };
 

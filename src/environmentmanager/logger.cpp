@@ -120,59 +120,59 @@ bool Logger::IsDirty(){
     return dirty_;
 }
 
-NodeManager::Logger* Logger::GetUpdate(){
-    return GetProto();
-}
-
 std::string Logger::GetPublisherEndpoint() const{
     return "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
 }
 
-NodeManager::Logger* Logger::GetProto(){
-    NodeManager::Logger* logger_pb = 0;
+std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
+    std::unique_ptr<NodeManager::Logger> logger_pb;
 
-    switch(GetType()){
-        case Type::Server:{
-            logger_pb = new NodeManager::Logger();
-            
-            //Get the clients
-            for(const auto& client_id : GetConnectedClientIds()){
-                for(const auto& logger : GetExperiment().GetLoggerClients(client_id)){
-                    logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
+
+    if(dirty_ || full_update){
+        logger_pb = std::unique_ptr<NodeManager::Logger>(new NodeManager::Logger());
+        switch(GetType()){
+            case Type::Server:{
+                //Get the clients
+                for(const auto& client_id : GetConnectedClientIds()){
+                    for(const auto& logger : GetExperiment().GetLoggerClients(client_id)){
+                        logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
+                    }
                 }
-            }
 
-            //Fetch the model logger
-            logger_pb->set_db_file_name(GetDbFileName());
-            break;
-        }
-        case Type::Client:{
-            logger_pb = new NodeManager::Logger();
-            logger_pb->set_mode(TranslateInternalMode(mode_));
-            for(const auto& process : GetProcesses()){
-                logger_pb->add_processes(process);
+                //Fetch the model logger
+                logger_pb->set_db_file_name(GetDbFileName());
+                break;
             }
-            logger_pb->set_frequency(GetFrequency());
-            
-            logger_pb->set_publisher_address(GetNode().GetIp());
-            logger_pb->set_publisher_port(GetPublisherPort());
-            break;
+            case Type::Client:{
+                logger_pb->set_mode(TranslateInternalMode(mode_));
+                for(const auto& process : GetProcesses()){
+                    logger_pb->add_processes(process);
+                }
+                logger_pb->set_frequency(GetFrequency());
+                logger_pb->set_publisher_address(GetNode().GetIp());
+                logger_pb->set_publisher_port(GetPublisherPort());
+                break;
+            }
+            case Type::Model:{
+                logger_pb->set_mode(TranslateInternalMode(mode_));
+                logger_pb->set_publisher_address(GetNode().GetIp());
+                logger_pb->set_publisher_port(GetPublisherPort());
+                break;
+            }
+            default:{
+                logger_pb.reset();
+                break;
+            }
         }
-        case Type::Model:{
-            logger_pb = new NodeManager::Logger();
-            logger_pb->set_mode(TranslateInternalMode(mode_));
-            logger_pb->set_publisher_address(GetNode().GetIp());
-            logger_pb->set_publisher_port(GetPublisherPort());
-            break;
-        }
-        default:{
-            break;
-        }
-    }
 
-    if(logger_pb){
-        //Set the Mode
-        logger_pb->set_type(TranslateInternalType(type_));
+        if(logger_pb){
+            //Set the Mode
+            logger_pb->set_type(TranslateInternalType(type_));
+        }
+        
+        if(dirty_){
+            dirty_ = false;
+        }
     }
     return logger_pb;
 }

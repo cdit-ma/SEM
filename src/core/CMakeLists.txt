@@ -42,6 +42,7 @@ set(HEADERS
 	)
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
@@ -66,3 +67,4 @@ target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
 target_link_libraries(${PROJ_NAME} ${Boost_THREAD_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})

@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_MANAGER_ATTRIBUTE_H
 #define ENVIRONMENT_MANAGER_ATTRIBUTE_H
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 
 namespace EnvironmentManager{
 class Attribute{
@@ -18,9 +18,8 @@ class Attribute{
 
         Attribute(const NodeManager::Attribute& attribute);
         std::string GetName() const;
-
-        NodeManager::Attribute* GetUpdate();
-        NodeManager::Attribute* GetProto();
+        
+        std::unique_ptr<NodeManager::Attribute> GetProto(const bool full_update);
 
     private:
         std::string name_;

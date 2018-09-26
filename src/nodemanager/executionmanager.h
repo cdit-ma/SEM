@@ -1,102 +1,79 @@
 #ifndef EXECUTIONMANAGER_H
 #define EXECUTIONMANAGER_H
 
-#include <mutex>
-#include <thread>
-#include <condition_variable>
+#include <memory>
 #include <string>
-#include <iostream>
+#include <mutex>
 #include <unordered_map>
-#include <vector>
-#include <google/protobuf/message_lite.h>
-#include "executionparser/protobufmodelparser.h"
-#include "environmentmanager/environment.h"
-#include <re_common/zmq/environmentrequester/environmentrequester.h>
-#include "zmq/registrar.h"
+
+#include <comms/environmentrequester/environmentrequester.h>
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <zmq/protowriter/protowriter.h>
+#include <zmq/protoreplier/protoreplier.hpp>
+#include <util/execution.hpp>
 
 namespace zmq{class ProtoWriter;};
-namespace Graphml{class ModelParser;};
-
-class Execution;
 
 class ExecutionManager{
     public:
         enum class SlaveState{
             OFFLINE = 0,
-            ONLINE = 1,
-            ERROR_ = 2,
+            CONFIGURED = 1,
+            TERMINATED = 2,
+            ERROR_ = 3
         };
 
-        ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration,
-                            Execution* execution, const std::string& experiment_id, const std::string& environment_manager_endpoint = "");
-
-        std::vector<std::string> GetSlaveAddresses();
-        const NodeManager::SlaveStartup GetSlaveStartupMessage(const std::string& slave_ip);
-
-        void GotSlaveTerminated(const std::string& slave_ip);
-
-        bool HandleSlaveResponseMessage(const NodeManager::SlaveStartupResponse& response);
-        
-        std::string GetMasterRegistrationEndpoint();
-        bool IsValid();
-
+        ExecutionManager(Execution& execution,
+                            int duration_sec,
+                            const std::string& experiment_name,
+                            const std::string& master_publisher_endpoint,
+                            const std::string& master_registration_endpoint,
+                            const std::string& master_heartbeat_endpoint);
+        ~ExecutionManager();
     private:
-        void ExecutionLoop(double duration_sec) noexcept;
+        void RequestDeployment();
+        void Terminate();
+        std::unique_ptr<NodeManager::SlaveStartupReply> HandleSlaveStartup(const NodeManager::SlaveStartupRequest& request);
+        std::unique_ptr<NodeManager::SlaveConfiguredReply> HandleSlaveConfigured(const NodeManager::SlaveConfiguredRequest& request);
+        std::unique_ptr<NodeManager::SlaveTerminatedReply> HandleSlaveTerminated(const NodeManager::SlaveTerminatedRequest& request);
+        void HandleExperimentUpdate(const NodeManager::EnvironmentMessage& environment_update);
+        
+        void ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future, std::future<void> slave_deregistration_future);
+        
+        void PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message);
+        static std::unique_ptr<NodeManager::ControlMessage> ConstructStateControlMessage(NodeManager::ControlMessage::Type type);
 
-        void ActivateExecution();
-        void TerminateExecution();
-
+        //These need slave_state_mutex_ Mutex
+        SlaveState GetSlaveState(const std::string& ip_address);
+        void SetSlaveState(const std::string& ip_address, SlaveState state);
         int GetSlaveStateCount(const SlaveState& state);
-        
-        void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
-        bool Finished();
-    private:
-        void UpdateCallback(NodeManager::EnvironmentMessage& environment_update);
-        int GetSlaveStateCountTS(const SlaveState& state);
-        void TriggerExecution(bool execute);
+        void HandleSlaveStateChange();
 
-        std::string GetSlaveHostName(const std::string& slave_ip);
-
-        bool ConstructControlMessages();
-        void ConfigureNode(const NodeManager::Node& node);
-        bool PopulateDeployment();
-
-        std::mutex mutex_;
-        
+        std::string experiment_name_;
         std::string master_ip_addr_;
         std::string master_publisher_endpoint_;
         std::string master_registration_endpoint_;
-        std::string experiment_id_;
         std::string environment_manager_endpoint_;
 
-        std::future<void> execution_future_;
-
-        NodeManager::ControlMessage* deployment_message_;
-
-        std::unique_ptr<zmq::Registrar> registrar_;
-
-        std::unordered_map<std::string, NodeManager::Node> deployment_map_;
-
         std::mutex execution_mutex_;
-        std::condition_variable execution_lock_condition_;
-        bool terminate_flag_ = false;
-        bool execute_flag_ = false;
-
-        bool local_mode_ = false;
-
-        bool finished_ = false;
-        bool parse_succeed_ = false;
-
-        Execution* execution_;
-        std::unique_ptr<EnvironmentRequester> requester_;
+        std::future<void> execution_future_;
         
-        zmq::ProtoWriter* proto_writer_ = 0;
-        std::unique_ptr<ProtobufModelParser> protobuf_model_parser_;
+        std::promise<void> execute_promise_;
+        std::promise<void> terminate_promise_;
+        std::promise<void> slave_deregistration_promise_;
+
 
         std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
-        std::condition_variable slave_state_cv_;
+        bool execution_valid_ = false;
 
+        std::mutex control_message_mutex_;
+        std::unique_ptr<NodeManager::ControlMessage> control_message_;
+        std::unique_ptr<zmq::ProtoWriter> proto_writer_;
+
+        Execution& execution_;
+        std::unique_ptr<zmq::ProtoReplier> slave_registration_handler_;
+        std::unique_ptr<EnvironmentRequest::HeartbeatRequester> requester_;
 };
 
 #endif //EXECUTIONMANAGER_H
