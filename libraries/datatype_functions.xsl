@@ -832,7 +832,7 @@
             
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
         
         <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'PROJ_NAME')" />
         <xsl:value-of select="o:nl(1)" />

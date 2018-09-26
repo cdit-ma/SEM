@@ -98,6 +98,7 @@
         <xsl:value-of select="cmake:find_library_safe('RE_CORE_LIBRARIES', 're_core', cmake:get_re_path('lib'))" />
     </xsl:function>
 
+
     <xsl:function name="cdit:build_module_library" as="xs:boolean">
         <xsl:param name="middleware" />
 
@@ -480,6 +481,11 @@
         <!-- Find re_core -->
         <xsl:value-of select="cmake:find_re_core_library()" />
 
+        <!-- Find boost -->
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS system REQUIRED', 0)" />
+
+
+
         <!-- Find the Middleware specific package -->
         <xsl:value-of select="cmake:find_middleware_package($middleware)" />
 
@@ -499,7 +505,7 @@
         <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
         <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
         <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
         <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
@@ -543,6 +549,7 @@
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
         <xsl:value-of select="cmake:comment('Link against the middleware libraries', 0)" />
         <xsl:value-of select="cmake:target_link_middleware_libraries('PROJ_NAME', $middleware, 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
 
         <xsl:if test="$middleware != 'base'">
             <xsl:value-of select="cmake:comment('Link against the base aggregate', 0)" />
@@ -615,7 +622,7 @@
         <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
         <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
         <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
         <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />

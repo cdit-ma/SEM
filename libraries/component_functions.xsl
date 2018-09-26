@@ -2030,6 +2030,9 @@
         <!-- Find re_core -->
         <xsl:value-of select="cmake:find_re_core_library()" />
 
+        <!-- Find boost -->
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread REQUIRED', 0)" />
+
         <!-- Get the source files -->
         <xsl:variable name="source_files" as="xs:string*">
             <xsl:choose>
@@ -2095,8 +2098,9 @@
         <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
 
