@@ -134,6 +134,9 @@ stage("Compiling C++"){
     parallel builder_map
 }
 
+
+def requires_shutdown = false
+
 //Run the environment controller on master
 def node_manager_node_names = []
 def logan_server_node_names = []
@@ -147,13 +150,13 @@ stage("Add Experiment"){
             def json_file = "experiment_config.json"
             def command = controller_path + args + ' > ' + json_file
 
-            if(utils.runScript(command)){
+            if(utils.runScript(command) == 0){
                 archiveArtifacts json_file
             }else{
                 error("Failed to add experiment to environment manager.")
             }
+            requires_shutdown = true
             def parsed_json = readJSON file: json_file
-            //def parsed_json = readJSON text: '{"nodeManagers": [{"hostName": "mandarin01","ipAddress": "192.168.111.230"},{"hostName": "dan-macosx","ipAddress": "192.168.111.187"}],"loganServers": [{"hostName": "dan-macosx","ipAddress": "192.168.111.187"}]}'
 
             print("Running re_node_manager on:")
             for(def node : parsed_json["nodeManagers"]){
@@ -165,6 +168,7 @@ stage("Add Experiment"){
                 print("** " + node["hostName"])
                 logan_server_node_names += node["hostName"]
             }
+
         }
     }
 }
@@ -191,19 +195,21 @@ for(n in execution_node_names){
                         //Unstash the required libraries for this node.
                         //Have to run in the lib directory due to dll linker paths
                         unstash "code_" + utils.getNodeOSVersion(node_name)
-                    }
                     
+                    }
                     def args = ' -n "' + experiment_name + '"'
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
-                    args += " -l lib"
+                    args += " -l ."
                     args += " -t " + execution_time
 
                     node_executions["RE_" + node_name] = {
-                        //Run re_node_manager
-                        if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                            FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
-                            FAILED = true
+                        dir("lib"){
+                            //Run re_node_manager
+                            if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
+                                FAILED = true
+                            }
                         }
                     }
                 }
@@ -248,6 +254,16 @@ if(FAILED){
     print(FAILURE_LIST.size() + " Error(s)")
     for(failure in FAILURE_LIST){
         print("ERROR: " + failure)
+    }
+    if(requires_shutdown){
+        stage("Purging Registered Experiment"){
+            node("master"){
+                def controller_path = '${RE_PATH}/bin/re_environment_controller '
+                def args = ' -n ' + experiment_name + ' -e ' + env_manager_addr + ' -s '
+                def command = controller_path + args
+                utils.runScript(command)
+            }
+        }
     }
     error("Model Execution failed!")
 }
