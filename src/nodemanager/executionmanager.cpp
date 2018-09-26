@@ -58,7 +58,6 @@ void ExecutionManager::Terminate(){
     }
 
     try{
-
         std::lock_guard<std::mutex> lock(slave_state_mutex_);
         if(!execution_valid_){
             //Only Ignore Deregistration if we didn't hit proper execution
