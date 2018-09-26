@@ -47,7 +47,7 @@ int main(int argc, char** argv){
 
             if(result){
                 google::protobuf::util::MessageToJsonString(*result, &output, options);
-                std::cerr << output << std::endl;
+                std::cout << output << std::endl;
             }else{
                 return 1;
             }
