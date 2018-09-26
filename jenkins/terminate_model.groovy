@@ -19,14 +19,13 @@ stage("Execute Command"){
             def re_path = env.RE_PATH;
 
             if(re_path){
-                command = re_path + "/bin/environment_controller -e " + env_manager_endpoint + " -s -n " + experiment_name
+                command = re_path + "/bin/re_environment_controller -e " + env_manager_endpoint + " -s -n " + experiment_name
                 if(utils.runScript(command) != 0){
                     error('Termination of Experiment failed.')
                 }
             }else{
                 error("RE_PATH not set")
             }
-            sh command
         }
     }else{
         error("Missing Parameters/Environment Variables")
