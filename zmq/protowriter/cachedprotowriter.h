@@ -40,12 +40,12 @@ namespace zmq{
             CachedProtoWriter(int cache_count = 50);
             ~CachedProtoWriter();
             
-            bool PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
+            bool PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message);
             void Terminate();
         private:
             void WriteQueue();
 
-            std::queue<Message_Struct*> ReadMessagesFromFile(std::string file_path);
+            std::queue<std::unique_ptr<Message_Struct> > ReadMessagesFromFile(const std::string& file_path);
 
             bool WriteDelimitedTo(const std::string& topic, const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* raw_output);
             bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string& topic, std::string& type, std::string& message);
@@ -61,7 +61,7 @@ namespace zmq{
             int written_to_disk_count = 0;
             int cache_count_ = 0;
             
-            std::queue<std::pair<std::string, google::protobuf::MessageLite*> > write_queue_;
+            std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> > > write_queue_;
             
             std::mutex queue_mutex_;
             std::condition_variable queue_lock_condition_;

@@ -2,7 +2,7 @@
 #ifndef RE_COMMON_CONTROL_MESSAGE_HELPER_H
 #define RE_COMMON_CONTROL_MESSAGE_HELPER_H
 
-#include <re_common/proto/controlmessage/controlmessage.pb.h>
+#include <proto/controlmessage/controlmessage.pb.h>
 #include <string>
 #include <vector>
 
@@ -14,6 +14,7 @@ namespace NodeManager{
     const NodeManager::Attribute& GetAttribute(const PbAttrMap& map, const std::string& attribute_key);
     NodeManager::Attribute& InsertAttribute(PbAttrMap* map, const std::string& attribute_key, const NodeManager::Attribute::Kind kind);
     NodeManager::Attribute& AddAllocatedAttribute(PbAttrMap* map, Attribute* attribute);
+    NodeManager::Attribute& AddAllocatedAttribute(PbAttrMap* map, std::unique_ptr<Attribute> attribute);
 
     NodeManager::Attribute& SetStringAttribute(PbAttrMap* map, const std::string& attribute_key, const std::string& value);
     NodeManager::Attribute& SetStringListAttribute(PbAttrMap* map, const std::string& attribute_key, const std::vector<std::string>& value);

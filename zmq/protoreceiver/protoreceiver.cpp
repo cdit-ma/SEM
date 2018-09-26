@@ -75,7 +75,7 @@ void zmq::ProtoReceiver::Terminate(){
         }
 
         //Wait for the zmq receiver to finish
-        zmq_receiver_.get();
+        zmq_receiver_.wait();
     }
 
     if(proto_converter_.valid()){
@@ -87,7 +87,7 @@ void zmq::ProtoReceiver::Terminate(){
         }
 
         //Wait for the proto converter to finish
-        proto_converter_.get();
+        proto_converter_.wait();
     }
 }
 
@@ -97,7 +97,9 @@ void zmq::ProtoReceiver::ZmqReceiver(){
     std::unique_ptr<zmq::socket_t> socket;
     {
         std::lock_guard<std::mutex> lock(zmq_mutex_);
-        socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_SUB));
+        if(context_){
+            socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_SUB));
+        }
 
         //Connect to all nodes on our network
         for (const auto& address : addresses_){
@@ -128,11 +130,15 @@ void zmq::ProtoReceiver::ZmqReceiver(){
             socket->recv(&(message_pair.first));
             socket->recv(&(message_pair.second));
             
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            rx_message_queue_.push(std::move(message_pair));
-                
-            //Notify the ProtoConverter
-            if(rx_message_queue_.size() > batch_size_){
+            bool notify = false;
+            {
+                std::lock_guard<std::mutex> lock(queue_mutex_);
+                rx_message_queue_.emplace(std::move(message_pair));
+                notify = rx_message_queue_.size() > batch_size_;
+            }
+
+            if(notify){
+                //Notify the ProtoConverter
                 queue_lock_condition_.notify_all();
             }
         }catch(const zmq::error_t& ex){
@@ -145,58 +151,34 @@ void zmq::ProtoReceiver::ZmqReceiver(){
 }
 
 void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite& message_default_instance, std::function<void(const google::protobuf::MessageLite&)> callback_function){
-    std::lock_guard<std::mutex> lock(proto_mutex_);
+    std::unique_lock<std::mutex> lock(callback_mutex_);
     const auto& proto_type_name = message_default_instance.GetTypeName();
-
-    if(!proto_constructor_lookup_.count(proto_type_name)){
-        //Insert a factory function which will construct a protobuf message from the zmq_message
-        proto_constructor_lookup_[proto_type_name] = [&message_default_instance](const zmq::message_t& zmq_message){
-            //Construct a Protobuf message
-            auto pb_message = message_default_instance.New();
-
-            if(!pb_message->ParseFromArray(zmq_message.data(), zmq_message.size())){
-                //If message failed to parse, clean up
-                delete pb_message;
-                pb_message = 0;
-            }
-            return pb_message;
-        };
-    }
-
     //Insert a callback function for this proto type
-    callback_lookup_.insert(std::make_pair(proto_type_name, callback_function));
+    callback_lookup_.insert({proto_type_name, callback_function});
 }
 
 int zmq::ProtoReceiver::GetRxCount(){
-    std::unique_lock<std::mutex> lock(proto_mutex_);
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     return rx_count_;
 }
 
 void zmq::ProtoReceiver::ProcessMessage(const zmq::message_t& proto_type, const zmq::message_t& proto_data){
     //Get the type of the protobuf message
     const auto& proto_type_str = Zmq2String(proto_type);
+    auto protobuf_message = proto_register_.ConstructProto(proto_type_str, proto_data);
 
-    std::unique_lock<std::mutex> lock(proto_mutex_);
-    if(proto_constructor_lookup_.count(proto_type_str)){
-        //Construct a new protobuf message
-        auto protobuf_message = proto_constructor_lookup_[proto_type_str](proto_data);
+    std::unique_lock<std::mutex> lock(callback_mutex_);
+    if(protobuf_message){
+        //Increment our count function
+        rx_count_++;
         
-        if(protobuf_message){
-            //Increment our count function
-            rx_count_++;
+        //Find all callbacks with the type proto_type_str
+        auto callback_range = callback_lookup_.equal_range(proto_type_str);
 
-            //Find all callbacks with the type proto_type_str
-            auto callback_range = callback_lookup_.equal_range(proto_type_str);
-
-            //Callback into all callbacks
-            for (auto i = callback_range.first; i != callback_range.second; ++i){
-                i->second(*protobuf_message);
-            }
-        }else{
-            std::cerr << "zmq::ProtoReceiver: Unable to parse Proto Type: '" << proto_type_str << "'" << std::endl;
+        //Callback into all callbacks
+        for (auto i = callback_range.first; i != callback_range.second; ++i){
+            i->second(*protobuf_message);
         }
-    }else{
-        std::cerr << "zmq::ProtoReceiver::Proto Type: '" << proto_type_str << "' not registered" << std::endl;
     }
 }
 
@@ -217,19 +199,20 @@ void zmq::ProtoReceiver::ProtoConverter(){
                 running = false;
             }
             
-            if(rx_message_queue_.size()){
-                //Swap queues
-                queue.swap(rx_message_queue_);
-            }
+            //Swap queues
+            queue.swap(rx_message_queue_);
         }
 
         while(!queue.empty()){
             const auto& type = queue.front().first;
             const auto& msg = queue.front().second;
 
-            ProcessMessage(type, msg);
+            try{
+                ProcessMessage(type, msg);
+            }catch(const std::exception& ex){
+                std::cerr << "Cannot Process Message: " << ex.what() << std::endl;
+            }
             queue.pop();
         }
     }
 }
-

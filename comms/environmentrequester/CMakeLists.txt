@@ -13,6 +13,7 @@ find_package(Protobuf REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/heartbeater.cpp
 	)
 
 set(HEADERS
@@ -29,7 +30,10 @@ endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../proto/controlmessage)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
+
 
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
+target_link_libraries(${PROJ_NAME} zmq_protorequester)
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})

@@ -4,7 +4,17 @@
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
 
-namespace zmq{  
+namespace zmq{
+    class TimeoutException : public std::runtime_error{
+        public:
+            TimeoutException(const std::string& what_arg) : std::runtime_error(what_arg){};
+    };
+
+    class RMIException : public std::runtime_error{
+        public:
+            RMIException(const std::string& what_arg) : std::runtime_error(what_arg){};
+    };
+
     inline zmq::message_t Proto2Zmq(const google::protobuf::MessageLite &ml){
         const auto& size = ml.ByteSize();
         zmq::message_t message(size);
@@ -18,6 +28,23 @@ namespace zmq{
 
     inline zmq::message_t String2Zmq(const std::string& str){
         return zmq::message_t(str.c_str(), str.size());
+    };
+
+    inline std::string TCPify(const std::string& ip_address, const std::string& port){
+        return std::string("tcp://" + ip_address + ":" + port);
+    };
+
+    inline std::string TCPify(const std::string& ip_address, int port){
+        return TCPify(ip_address, std::to_string(port));
+    };
+
+
+    template <class RequestType, class ReplyType>
+    inline std::string GetFunctionSignature(const std::string& function_name){
+        static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");
+        static_assert(std::is_base_of<google::protobuf::MessageLite, ReplyType>::value, "ReplyType must inherit from google::protobuf::MessageLite");
+        
+        return function_name + "(" + RequestType::default_instance().GetTypeName() + ") -> " + ReplyType::default_instance().GetTypeName();
     };
 
     template <class ProtoType>

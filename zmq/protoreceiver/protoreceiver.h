@@ -33,6 +33,7 @@
 
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
+#include "../protoregister/protoregister.hpp"
 
 namespace zmq{
     class ProtoReceiver{
@@ -47,29 +48,28 @@ namespace zmq{
             void Terminate();
             
             int GetRxCount(); 
-            template<class T>
-            void RegisterProtoCallback(std::function<void(const T&)> fn);
+            template<class ProtoType>
+            void RegisterProtoCallback(std::function<void(const ProtoType&)> fn);
         private:
             void RegisterNewProto(const google::protobuf::MessageLite& message_default_instance, std::function<void(const google::protobuf::MessageLite&)> callback_function);
             void ProcessMessage(const zmq::message_t& proto_type, const zmq::message_t& proto_data);
 
-            
             void ProtoConverter();
             void ZmqReceiver();
 
             //RecieverThread helper functions
             bool Connect_(const std::string& address);
             bool Filter_(const std::string& topic_filter);
+        private:
+            ProtoRegister proto_register_;
             
-
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
             std::set<std::string> addresses_;
             std::set<std::string> filters_;
 
-            std::mutex proto_mutex_;
+            std::mutex callback_mutex_;
             std::multimap<std::string, std::function<void(const google::protobuf::MessageLite&)> > callback_lookup_;
-            std::unordered_map<std::string, std::function<google::protobuf::MessageLite* (const zmq::message_t&)> > proto_constructor_lookup_;
 
             std::mutex queue_mutex_;
             size_t batch_size_ = 0;
@@ -84,13 +84,16 @@ namespace zmq{
     };
 };
 
-template<class T>
-void zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const T&)> callback_function){
-    static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value, "T must inherit from google::protobuf::MessageLite");
+template<class ProtoType>
+void zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const ProtoType&)> callback_function){
+    static_assert(std::is_base_of<google::protobuf::MessageLite, ProtoType>::value, "ProtoType must inherit from google::protobuf::MessageLite");
     
-    RegisterNewProto(T::default_instance(), [callback_function](const google::protobuf::MessageLite& ml){
+    //Register the callbacks
+    proto_register_.RegisterProto<ProtoType>();
+
+    RegisterNewProto(ProtoType::default_instance(), [callback_function](const google::protobuf::MessageLite& ml){
         //Call into the function provided with an up-casted message
-        callback_function((const T&) ml);
+        callback_function((const ProtoType&) ml);
     });
 }
 

@@ -72,14 +72,14 @@ zmq::CachedProtoWriter::~CachedProtoWriter(){
 }
 
 //Takes ownership of message
-bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
+bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message){
     std::unique_lock<std::mutex> lock(mutex_);
     if(writer_future_.valid()){
         if(message){
             //Gain the lock
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Push the message onto the queue
-            write_queue_.push(std::make_pair(topic, message));
+            write_queue_.emplace(std::make_pair(topic, std::move(message)));
             log_count_ ++;
             if(write_queue_.size() >= cache_count_){
                 //Notify the writer_thread to flush the queue if we have hit our write limit
@@ -119,10 +119,9 @@ void zmq::CachedProtoWriter::Terminate(){
 
                 //Send the messages serialized in the temp file
                 while(!messages.empty()){
-                    auto s = messages.front();
+                    auto& s = messages.front();
                     if(s){
                         zmq::ProtoWriter::PushString(s->topic, s->type, s->data);
-                        delete s;
                     }
                     messages.pop();
                 }
@@ -132,8 +131,8 @@ void zmq::CachedProtoWriter::Terminate(){
         //Send the Messages still in the write queue
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
-            auto message = write_queue_.front().second;
-            zmq::ProtoWriter::PushMessage(topic, message);
+            auto& message = write_queue_.front().second;
+            zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop();
         }
 
@@ -148,7 +147,7 @@ void zmq::CachedProtoWriter::Terminate(){
 
 void zmq::CachedProtoWriter::WriteQueue(){
     while(true){
-        std::queue<std::pair<std::string, google::protobuf::MessageLite*> >replace_queue;
+        std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> > > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -178,7 +177,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             //Write all messages in queue
             while(!replace_queue.empty()){
                 const auto& topic = replace_queue.front().first;
-                auto message = replace_queue.front().second;
+                auto message = std::move(replace_queue.front().second);
                 
                 if(message){
                     if(WriteDelimitedTo(topic, *message, &raw_output)){
@@ -186,8 +185,6 @@ void zmq::CachedProtoWriter::WriteQueue(){
                     }else{
                         std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
                     }
-                    //Delete protobuf message
-                    delete message;
                 }else{
                     std::cerr << "zmq::CachedProtoWriter::WriteQueue(): got NULL message." << std::endl;
                 }
@@ -201,11 +198,8 @@ void zmq::CachedProtoWriter::WriteQueue(){
     }
 }
 
-std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::string file_path){
-    //Construct a return queue
-    std::queue<Message_Struct*> queue;
-    
-
+std::queue< std::unique_ptr<Message_Struct> > zmq::CachedProtoWriter::ReadMessagesFromFile(const std::string& file_path){
+    std::queue< std::unique_ptr<Message_Struct> > queue;
 
     int filedesc = getReadFileDesc(file_path.c_str());
 
@@ -221,18 +215,16 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
     
     while(true){
         //Allocate a new string to store the read data
-        Message_Struct *m = new Message_Struct();
+        auto message_struct = std::unique_ptr<Message_Struct>(new Message_Struct());
 
         //Read the proto encoded string into our message and queue if successful
-        if(ReadDelimitedToStr(&raw_input, m->topic, m->type, m->data)){
-            queue.push(m);
+        if(ReadDelimitedToStr(&raw_input, message_struct->topic, message_struct->type, message_struct->data)){
+            queue.emplace(std::move(message_struct));
         }else{
-            //If we have an error, free memory
-            delete m;
             break;
         }
     }
-    return queue;
+    return std::move(queue);
 }
 
 bool zmq::CachedProtoWriter::WriteDelimitedTo(const std::string& topic, const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* raw_output){

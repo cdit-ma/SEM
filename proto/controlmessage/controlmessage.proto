@@ -31,38 +31,75 @@ enum Middleware{
     TAO = 5;
 }
 
+message RequestId{
+    string experiment_name = 1;
+    string ip_address = 2;
+    string host_name = 3;
+}
+
+message LoganRegistrationRequest{
+    RequestId id = 1;
+}
+
+message LoganRegistrationReply{
+    string heartbeat_endpoint = 1;
+    repeated Logger logger = 2;
+}
+
+message NodeManagerRegistrationRequest{
+    RequestId id = 1;
+}
+
+message NodeManagerRegistrationReply{
+    enum Type{
+        SLAVE = 0;
+        MASTER = 1;
+    }
+    repeated Type types = 1;
+    string heartbeat_endpoint = 2;
+    string master_publisher_endpoint = 3;
+    string master_registration_endpoint = 4;
+}
+
+message NodeManagerDeregistrationRequest{
+    RequestId id = 1;
+}
+
+message NodeManagerDeregistrationReply{
+}
+
+
+message HardwareId{
+    string host_name = 1;
+    string ip_address = 2;
+}
+
+message RegisterExperimentRequest{
+    RequestId id = 1;
+    ControlMessage control_message = 2;
+}
+
+message RegisterExperimentReply{
+    repeated HardwareId node_managers = 1;
+    repeated HardwareId logan_servers = 2;
+}
+
 message EnvironmentMessage{
     enum Type{
         NO_TYPE = 0;
-        ERROR_RESPONSE = 1;
-        ADD_DEPLOYMENT = 2;
-        GET_DEPLOYMENT_INFO = 3;
-        REMOVE_DEPLOYMENT = 4;
-        ADD_ENDPOINT = 5;
-        REMOVE_ENDPOINT = 6;
-        ADD_COMPONENT = 7;
-        REMOVE_COMPONENT = 8;
-        HEARTBEAT = 9;
-        HEARTBEAT_ACK = 10;
-        SUCCESS = 11;
-        NODE_QUERY = 12;
-        UPDATE_DEPLOYMENT = 13;
-        LOGAN_QUERY = 14;
-        LOGAN_RESPONSE = 15;
-        ADD_LOGAN_CLIENT = 16;
-        REMOVE_LOGAN_CLIENT = 17;
-        LOGAN_CLIENT_LIST_QUERY = 18;
+        //Sent from NodeManager -> Environment Manager
+        GET_EXPERIMENT_INFO = 1;
+        HEARTBEAT = 2;
+        END_HEARTBEAT = 3;
+
+        //Sent from Environment Manager -> NodeManager
+        HEARTBEAT_ACK = 4;
+        CONFIGURE_EXPERIMENT = 5;
+        SHUTDOWN_EXPERIMENT = 6;
+        SHUTDOWN_LOGAN_SERVER = 7;
     }
-
     Type type = 1;
-    string update_endpoint = 2;
-
-    string experiment_id = 3;
-    ControlMessage control_message = 4;
-    repeated Logger logger = 5;
-
-    repeated string error_messages = 6;
-
+    ControlMessage control_message = 2;
 }
 
 message Info{
@@ -190,16 +227,40 @@ message Logger{
     repeated string processes = 10;
 }
 
+
 message SlaveStartupRequest{
     string slave_ip = 1;
 }
 
+message SlaveStartupReply{
+    Node configuration = 1;
+}
+
+message SlaveConfiguredRequest{
+    string slave_ip = 1;
+    bool success = 2;
+    repeated string error_messages = 3;
+}
+
+message SlaveConfiguredReply{
+
+}
+
+
+message SlaveTerminatedRequest{
+    string slave_ip = 1;
+}
+
+message SlaveTerminatedReply{
+
+}
+
+
+
+
 message SlaveStartup{
     string slave_host_name = 1;
-    Logger logger = 2;
-    ControlMessage configure = 3;
-
-    string master_publisher_endpoint = 4;
+    Node configuration = 2;
 }
 
 message SlaveStartupResponse{
