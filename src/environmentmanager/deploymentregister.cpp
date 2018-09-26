@@ -70,12 +70,7 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
         throw std::runtime_error(error);
     }
 
-    //Check if Experiment Exists and isn't already running
-    if(!environment_->IsExperimentConfigured(experiment_name)){
-        std::string error("Experiment: '" + experiment_name + "' isn't in configured state.");
-        std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
-        throw std::runtime_error(error);
-    }
+    
 
     auto& experiment = environment_->GetExperiment(experiment_name);
     auto& node = experiment.GetNode(node_manager_ip_address);
@@ -88,6 +83,12 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
 
     if(component_count){
         if(node.IsNodeManagerMaster()){
+            //Check if Experiment Exists and isn't already running
+            if(!environment_->IsExperimentConfigured(experiment_name)){
+                std::string error("Experiment: '" + experiment_name + "' isn't in configured state.");
+                std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
+                throw std::runtime_error(error);
+            }
             std::promise<std::string> port_promise;
             auto port_future = port_promise.get_future();
 
