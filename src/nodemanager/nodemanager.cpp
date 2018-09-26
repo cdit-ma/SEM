@@ -76,7 +76,6 @@ int main(int argc, char **argv){
 
     try{
         auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address);
-        std::cerr << reply->DebugString() << std::endl;
         
         for(const auto& type : reply->types()){
             switch(type){
@@ -92,17 +91,16 @@ int main(int argc, char **argv){
                     break;
             }
         }
-        
-        if(is_master || is_slave){
-            if(is_master){
-                master_heartbeat_endpoint = reply->heartbeat_endpoint();
-            }
-            master_registration_endpoint = reply->master_registration_endpoint();
-            master_publisher_endpoint = reply->master_publisher_endpoint();
-        }else{
-            //Not needed
+
+        if(!is_master && !is_slave){
             return 0;
         }
+        
+        if(is_master){
+            master_heartbeat_endpoint = reply->heartbeat_endpoint();
+        }
+        master_registration_endpoint = reply->master_registration_endpoint();
+        master_publisher_endpoint = reply->master_publisher_endpoint();
     }catch(const std::exception& ex){
         std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
         return 1;

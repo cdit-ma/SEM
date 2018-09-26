@@ -121,12 +121,17 @@ std::unique_ptr<NodeManager::NodeManagerDeregistrationReply> DeploymentHandler::
 }
 
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExperimentInfo(const NodeManager::EnvironmentMessage& request_message){
-
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
 
-    auto experiment_update = environment_.GetProto(experiment_id_, true);
-    if(experiment_update){
-        reply_message.swap(experiment_update);
+    auto& experiment = environment_.GetExperiment(experiment_id_);
+    if(experiment.IsConfigured()){
+        auto experiment_update = environment_.GetProto(experiment_id_, true);
+        if(experiment_update){
+            reply_message.swap(experiment_update);
+        }
+        experiment.SetActive();
+    }else{
+        throw std::runtime_error("Experiment: '" + experiment_id_ + "' already active");
     }
     return reply_message;
 }

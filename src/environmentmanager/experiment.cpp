@@ -46,23 +46,38 @@ Environment& Experiment::GetEnvironment() const{
 
 void Experiment::SetConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    is_configured_ = true;
+    if(state_ == ExperimentState::REGISTERED){
+        state_ = ExperimentState::CONFIGURED;
+    }else{
+        throw std::runtime_error("Invalid state");
+    }
 }
+
+void Experiment::SetActive(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(state_ == ExperimentState::CONFIGURED){
+        state_ = ExperimentState::ACTIVE;
+    }else{
+        throw std::runtime_error("Invalid state");
+    }
+}
+
 
 bool Experiment::IsConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return is_configured_;
+    return state_ == ExperimentState::CONFIGURED;
 }
 
-bool Experiment::IsRunning(){
+bool Experiment::IsRegistered(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return is_running_;
+    return state_ == ExperimentState::REGISTERED;
 }
 
-void Experiment::SetRunning(){
+bool Experiment::IsActive(){
     std::unique_lock<std::mutex> lock(mutex_);
-    is_running_ = true;
+    return state_ == ExperimentState::ACTIVE;
 }
+
 
 std::string Experiment::GetManagerPort() const{
     return manager_port_;
@@ -102,6 +117,11 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
 
 Node& Experiment::GetNodeManagerMaster() const{
 
+}
+
+ExperimentState Experiment::GetState(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    return state_;
 }
 
 Node& Experiment::GetNode(const std::string& ip_address) const{

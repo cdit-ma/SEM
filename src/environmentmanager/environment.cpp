@@ -333,11 +333,21 @@ bool Environment::IsExperimentConfigured(const std::string& experiment_name){
     return false;
 }
 
-bool Environment::IsExperimentRunning(const std::string& experiment_name){
+bool Environment::IsExperimentRegistered(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     try{
         auto& experiment = GetExperimentInternal(experiment_name);
-        return experiment.IsRunning();
+        return experiment.IsRegistered();
+    }catch(const std::exception& ex){
+    }
+    return false;
+}
+
+bool Environment::IsExperimentActive(const std::string& experiment_name){
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    try{
+        auto& experiment = GetExperimentInternal(experiment_name);
+        return experiment.IsActive();
     }catch(const std::exception& ex){
 
     }

@@ -66,14 +66,14 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
     //Check if Experiment Exists
     if(!environment_->GotExperiment(experiment_name)){
         std::string error("Haven't got experiment with name: " + experiment_name);
-        std::cerr << "DeploymentRegister::HandleNodeManagerRegistration: "  << error << std::endl;
+        std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
         throw std::runtime_error(error);
     }
 
     //Check if Experiment Exists and isn't already running
-    if(environment_->IsExperimentRunning(experiment_name)){
-        std::string error("Experiment: '" + experiment_name + "' is already running.");
-        std::cerr << "DeploymentRegister::HandleNodeManagerRegistration: "  << error << std::endl;
+    if(!environment_->IsExperimentConfigured(experiment_name)){
+        std::string error("Experiment: '" + experiment_name + "' isn't in configured state.");
+        std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
         throw std::runtime_error(error);
     }
 

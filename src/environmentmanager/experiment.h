@@ -21,20 +21,26 @@ struct ExternalPort{
 };
 
 enum class ExperimentState{
-    ACTIVE,
-    TIMEOUT,
-    SHUTDOWN
+    REGISTERED,
+    CONFIGURED,
+    ACTIVE
 };
+
 
 class Experiment{
     public:
         Experiment(Environment& environment, std::string name);
         ~Experiment();
         
+        ExperimentState GetState();
+
         bool IsConfigured();
         void SetConfigured();
-        bool IsRunning();
-        void SetRunning();
+
+        bool IsRegistered();
+        bool IsActive();
+        void SetActive();
+
         const std::string& GetName() const;
 
         std::string GetManagerPort() const;
@@ -99,9 +105,6 @@ class Experiment{
 
         std::mutex mutex_;
 
-        bool is_configured_ = false;
-        bool is_running_ = false;
-
         Environment& environment_;
 
         NodeManager::ControlMessage deployment_message_;
@@ -127,7 +130,8 @@ class Experiment{
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
         uint64_t time_added_;
-        ExperimentState state_;
+
+        ExperimentState state_ = ExperimentState::REGISTERED;
 
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to

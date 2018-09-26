@@ -48,25 +48,25 @@ void ExecutionManager::Terminate(){
     try{
         execute_promise_.set_exception(std::make_exception_ptr(error));
     }catch(const std::exception& ex){
+    
     }
 
     try{
         terminate_promise_.set_exception(std::make_exception_ptr(error));
     }catch(const std::exception& ex){
+    
     }
 
     try{
 
         std::lock_guard<std::mutex> lock(slave_state_mutex_);
         if(!execution_valid_){
-            std::cerr << "FORCE DEREGISTRATION TO SKIP" << std::endl;
             //Only Ignore Deregistration if we didn't hit proper execution
             slave_deregistration_promise_.set_exception(std::make_exception_ptr(error));
         }
     }catch(const std::exception& ex){
-    }
-
     
+    }
 
     if(execution_future_.valid()){
         try{

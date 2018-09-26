@@ -48,7 +48,8 @@ class Environment{
         bool ExperimentIsDirty(const std::string& experiment_name);
         bool GotExperiment(const std::string& experiment_name);
         
-        bool IsExperimentRunning(const std::string& experiment_name);
+        bool IsExperimentRegistered(const std::string& experiment_name);
+        bool IsExperimentActive(const std::string& experiment_name);
         bool IsExperimentConfigured(const std::string& experiment_name);
 
 
