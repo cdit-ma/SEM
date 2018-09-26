@@ -55,10 +55,12 @@ inline QString getXMLAttribute(const QXmlStreamReader &xml, const QString& attri
     }
 }
 
-ModelController::ModelController():
+ModelController::ModelController(const QString& application_dir):
 QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
+    this->application_dir = application_dir;
+
     controller_thread = new QThread();
     moveToThread(controller_thread);
 
@@ -151,8 +153,8 @@ ModelController::~ModelController()
 void ModelController::loadWorkerDefinitions()
 {
     if(workerDefinitions){
-        QList<QDir> worker_directories{QDir(":/WorkerDefinitions")};
-        QStringList extensions{"*.worker"};
+        QList<QDir> worker_directories{QDir(":/WorkerDefinitions"), QDir(application_dir + "/Resources/WorkerDefinitions/")};
+        QStringList extensions{"*.worker.graphml"};
         
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){

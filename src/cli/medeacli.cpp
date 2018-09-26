@@ -44,7 +44,7 @@ int main(int argc, char** argv){
         parser.showHelp(1);
     }
     
-    QScopedPointer<ModelController> controller(new ModelController());
+    QScopedPointer<ModelController> controller(new ModelController(QCoreApplication::applicationDirPath()));
 
     //Setup the controller, passing in the project to open if we have any
     auto setup_success = controller->SetupController(open_project);

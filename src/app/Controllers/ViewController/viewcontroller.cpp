@@ -1749,7 +1749,7 @@ void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-        controller = new ModelController();
+        controller = new ModelController(QApplication::applicationDirPath());
         ConnectModelController(controller);
     }
 }

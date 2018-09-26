@@ -65,7 +65,7 @@ class ModelController: public QObject
 
 public:
     void ConnectViewController(ViewControllerInterface* view_controller);
-    ModelController();
+    ModelController(const QString& application_dir);
     ~ModelController();
     QString getProjectAsGraphML(bool functional_export = false);
 
@@ -308,6 +308,7 @@ private:
     int currentActionID = 0;
     int currentActionItemID = 0;
     QString currentAction;
+    QString application_dir;
    
     QThread* controller_thread = 0;
     EntityFactory* entity_factory = 0;

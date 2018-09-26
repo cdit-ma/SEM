@@ -178,7 +178,7 @@ void JenkinsMonitor::update_state_icon(){
 
 void JenkinsMonitor::stateChanged(Notification::Severity state){
     //Abortable
-    abort_action->setEnabled(state == Notification::Severity::RUNNING);
+    //abort_action->setEnabled(state == Notification::Severity::RUNNING);
     update_state_icon();
 
     //If our state is finished, get the list of artifacts
@@ -246,6 +246,7 @@ void JenkinsMonitor::setupLayout(){
     
     url_action = bottom_toolbar->addAction("Open Jenkins");
     abort_action = bottom_toolbar->addAction("Abort Job");
+    abort_action->setEnabled(false);
     close_action = top_toolbar->addAction("Close Tab");
 
        
