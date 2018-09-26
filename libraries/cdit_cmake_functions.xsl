@@ -738,7 +738,7 @@
         <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
         <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path(''), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
         <xsl:value-of select="cmake:comment('Include the middleware include directory', 0)" />
         <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
         <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
