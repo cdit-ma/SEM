@@ -41,8 +41,7 @@ class Environment{
 
         void ShutdownExperiment(const std::string& experiment_name);
         void RemoveExperiment(const std::string& experiment_name);
-        void RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address);
-
+        
         std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const std::string& experiment_name, const bool full_update);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
@@ -90,6 +89,7 @@ class Environment{
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
+        void RemoveExperimentTS(const std::string& experiment_name);
         void FinishConfigure(const std::string& experiment_name);
         static void DeclusterExperiment(NodeManager::ControlMessage& message);
         static void DeclusterNode(NodeManager::Node& message);

@@ -142,25 +142,30 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std
 }
 
 void Environment::ShutdownExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
 
     auto& experiment = GetExperimentInternal(experiment_name);
-    experiment.Shutdown();
+    if(experiment.IsActive()){
+        experiment.Shutdown();
+    }else{
+        RemoveExperimentTS(experiment_name);
+    }
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    RemoveExperimentTS(experiment_name);
+}
+
+void Environment::RemoveExperimentTS(const std::string& experiment_name){
     if(experiment_map_.count(experiment_name)){
+        std::cout << "* Experiment Deregistering: " << experiment_name << std::endl;
         experiment_map_.erase(experiment_name);
         std::cout << "* Experiment Deregistered: " << experiment_name << std::endl;
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
-}
-
-void Environment::RemoveLoganClientServer(const std::string& experiment_name, const std::string& ip_address){
-
 }
 
 

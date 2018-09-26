@@ -81,7 +81,7 @@ void DeploymentHandler::RemoveDeployment(){
         if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
             environment_.RemoveExperiment(experiment_id_);
         }else if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER){
-            environment_.RemoveLoganClientServer(experiment_id_, deployment_ip_address_);
+            //Do nothing
         }
         removed_flag_ = true;
     }

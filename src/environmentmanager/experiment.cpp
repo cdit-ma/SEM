@@ -28,8 +28,11 @@ Experiment::~Experiment(){
         node_map_.clear();
 
         environment_.FreeManagerPort(manager_port_);
-        environment_.FreePort(master_ip_address_, master_publisher_port_);
-        environment_.FreePort(master_ip_address_, master_registration_port_);
+        
+        if(GetState() == ExperimentState::ACTIVE){
+            environment_.FreePort(master_ip_address_, master_publisher_port_);
+            environment_.FreePort(master_ip_address_, master_registration_port_);
+        }
     }
     catch(...){
         std::cerr << "Could not delete deployment :" << model_name_ << std::endl;
