@@ -228,7 +228,8 @@ void Experiment::Shutdown(){
 }
 
 void Experiment::UpdatePort(const std::string& external_port_label){
-    if(IsConfigured()){
+    //Only Update configured/Active ports
+    if(IsConfigured() || IsActive()){
         if(external_id_to_internal_id_map_.count(external_port_label)){
             const auto& internal_id = external_id_to_internal_id_map_.at(external_port_label);
 
@@ -255,6 +256,7 @@ Port& Experiment::GetPort(const std::string& id){
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
+
 std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update){
     std::unique_ptr<NodeManager::EnvironmentMessage> environment_message;
 
@@ -263,8 +265,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
 
         if(!shutdown_){
             environment_message->set_type(NodeManager::EnvironmentMessage::CONFIGURE_EXPERIMENT);
-
             auto control_message = environment_message->mutable_control_message();
+            control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
+
             control_message->set_experiment_id(model_name_);
             for(auto& node_pair : node_map_){
                 if(node_pair.second->DeployedTo()){
