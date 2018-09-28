@@ -32,6 +32,7 @@ namespace zmq{
 
             std::shared_ptr<Attribute> end_points_;
 
+            std::mutex socket_mutex_;
             std::unordered_map<std::thread::id,  std::unique_ptr<zmq::socket_t> > sockets_;
     }; 
 };
@@ -52,8 +53,6 @@ zmq::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> 
 template <class BaseType, class ProtoType>
 zmq::socket_t& zmq::PublisherPort<BaseType, ProtoType>::GetSocket(){
     const auto& thread_id = std::this_thread::get_id();
-    
-    std::unique_lock<std::mutex> lock(mutex_);
     auto add_socket = sockets_.count(thread_id) == 0;
     
     if(add_socket){
@@ -70,8 +69,6 @@ zmq::socket_t& zmq::PublisherPort<BaseType, ProtoType>::GetSocket(){
         sockets_[thread_id] = std::move(socket);
     }
     auto& socket = *sockets_[thread_id];
-    lock.unlock();
-
     if(add_socket){
         //Sleep
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -147,11 +144,11 @@ void zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
 
 template <class BaseType, class ProtoType>
 void zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
-    
     //Log the recieving
     this->EventRecieved(message);
 
     if(this->is_running()){
+        std::unique_lock<std::mutex> lock(socket_mutex_);
         auto& socket = GetSocket();
         try{
             //Translate the base_request object into a string
@@ -175,7 +172,10 @@ void zmq::PublisherPort<BaseType, ProtoType>::InterruptLoop(){
     if(thread_manager_){
         thread_manager_->SetTerminate();
     }
-    sockets_.clear();
+    {
+        std::unique_lock<std::mutex> lock(socket_mutex_);
+        sockets_.clear();
+    }
     context_.reset();
 };
 

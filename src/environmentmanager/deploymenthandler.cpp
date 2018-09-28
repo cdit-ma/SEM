@@ -45,12 +45,12 @@ experiment_id_(experiment_id)
 DeploymentHandler::~DeploymentHandler(){
     {
         std::lock_guard<std::mutex> lock(replier_mutex_);
-        replier_->Terminate();
+        if(replier_){
+            replier_.reset();
+        }
     }
     if(heartbeat_future_.valid()){
-        std::cout << "waiting" << std::endl;
         heartbeat_future_.get();
-        std::cout << "waited" << std::endl;
     }
 }
 
@@ -73,7 +73,6 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
         try{
             RemoveDeployment();
         }catch(const std::exception& ex){
-
         }
     }
 }
@@ -93,8 +92,7 @@ void DeploymentHandler::RemoveDeployment(){
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message){
 
     if(request_message.type() == NodeManager::EnvironmentMessage::END_HEARTBEAT){
-        // Kill replier
-        replier_->Terminate();
+        throw zmq::ShutdownException("Terminate Replier");
     }
 
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());

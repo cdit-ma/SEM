@@ -24,7 +24,8 @@ ExecutionManager::ExecutionManager(
 
     //Starting our HeartBeat Requester with the EnvironmentManager
     requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::HandleExperimentUpdate, this, std::placeholders::_1)));
-    
+    requester_->SetTimeoutCallback(std::bind(&Execution::Interrupt, &execution_));
+
     RequestDeployment();
 
     //Construct the execution future
@@ -126,7 +127,7 @@ void ExecutionManager::HandleSlaveStateChange(){
     auto configured_count = GetSlaveStateCount(SlaveState::CONFIGURED);
     auto terminated_count = GetSlaveStateCount(SlaveState::TERMINATED);
     auto error_count = GetSlaveStateCount(SlaveState::ERROR_);
-
+    
     if(configured_count == slave_count){
         //All Slaves are configured, so Start
         execute_promise_.set_value();
@@ -249,6 +250,8 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     try{
         if(execute_future.valid()){
             execute_future.get();
+            //Sleep to allow time for the publisher to be bound
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         std::lock_guard<std::mutex> lock(slave_state_mutex_);
         execution_valid_ = true;
@@ -291,10 +294,14 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         }
     }
 
-    std::cout << "--------[Remove Deployment]--------" << std::endl;
-    requester_->RemoveDeployment();
+    try{
+        std::cout << "--------[Removing Deployment]--------" << std::endl;
+        requester_->RemoveDeployment();
+    }catch(const std::exception& ex){
+        std::cerr << "* Removing Deployment Exception: " << ex.what() << std::endl;
+    }
 
-    //Terminate the Execution
+    //Interupt the Execution
     std::lock_guard<std::mutex> lock(execution_mutex_);
     execution_.Interrupt();
 }

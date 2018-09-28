@@ -118,10 +118,6 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
     }
 }
 
-Node& Experiment::GetNodeManagerMaster() const{
-
-}
-
 ExperimentState Experiment::GetState(){
     std::lock_guard<std::mutex> lock(mutex_);
     return state_;
@@ -147,7 +143,7 @@ void Experiment::AddNode(const NodeManager::Node& node){
 
 
                 //Build logan connection map
-                auto deploy_count = node_ref->GetDeployedCount();
+                auto deploy_count = node_ref->GetDeployedComponentCount();
 
                 if(deploy_count > 0){
                     std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();

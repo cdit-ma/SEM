@@ -49,6 +49,7 @@ environment_manager_ip_address_(environment_manager_ip_address)
 
 DeploymentRegister::~DeploymentRegister(){
     Terminate();
+    environment_.reset();
 }
 
 void DeploymentRegister::Terminate(){
@@ -118,7 +119,6 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
         reply->set_master_publisher_endpoint(experiment.GetMasterPublisherAddress());
         reply->set_master_registration_endpoint(experiment.GetMasterRegistrationAddress());
     }
-
     return std::move(reply);
 }
 
@@ -176,5 +176,6 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.control_message());
-    return environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    return reply;
 };

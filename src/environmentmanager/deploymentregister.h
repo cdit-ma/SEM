@@ -43,7 +43,6 @@ class DeploymentRegister{
 
         std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
         std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
-
         Execution& execution_;
 };
 

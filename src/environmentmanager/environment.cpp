@@ -32,7 +32,11 @@ Environment::Environment(const std::string& address, const std::string& qpid_bro
     for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
         available_node_manager_ports_.push(i);
     }
-    clock_ = 0;
+}
+
+Environment::~Environment(){
+    //Force that anything that requires the Environment to teardown is destroyed
+    experiment_map_.clear();
 }
 
 
@@ -408,24 +412,6 @@ std::string Environment::GetTaoNamingServiceAddress(){
     }
     return tao_naming_service_address_;
 }
-
-uint64_t Environment::GetClock(){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    return clock_;
-}
-
-uint64_t Environment::SetClock(uint64_t incoming){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    clock_ = std::max(incoming, clock_) + 1;
-    return clock_;
-}
-
-uint64_t Environment::Tick(){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    clock_++;
-    return clock_;
-}
-
 Environment::ExternalPort& Environment::GetExternalPort(const std::string& external_port_label){
     if(external_eventport_map_.count(external_port_label)){
         return *external_eventport_map_[external_port_label];

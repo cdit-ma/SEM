@@ -29,6 +29,7 @@ class Environment{
         };
 
         Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
+        ~Environment();
 
 
         Experiment& GetExperiment(const std::string experiment_name);
@@ -84,10 +85,6 @@ class Environment{
         std::string GetTaoNamingServiceAddress();
 
         static const NodeManager::Attribute& GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name);
-
-        uint64_t GetClock();
-        uint64_t SetClock(uint64_t clock);
-        uint64_t Tick();
     private:
         void RemoveExperimentTS(const std::string& experiment_name);
         void FinishConfigure(const std::string& experiment_name);
@@ -101,9 +98,6 @@ class Environment{
         ExternalPort& GetExternalPort(const std::string& external_port_label);
         Experiment& GetExperimentInternal(const std::string experiment_name);
         void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);
-
-        std::mutex clock_mutex_;
-        uint64_t clock_;
 
         //Port range
         int PORT_RANGE_MIN;
