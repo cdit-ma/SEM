@@ -51,8 +51,6 @@ class Experiment{
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
 
-        Node& GetNodeManagerMaster() const;
-
         Node& GetNode(const std::string& ip_address) const;
 
         void Shutdown();

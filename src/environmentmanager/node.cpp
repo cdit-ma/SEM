@@ -14,9 +14,13 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     
     name_ = node.info().name();
     id_ = node.info().id();
-
-    
     ip_ = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
+
+    bool utilized = node.loggers_size() + node.components_size() > 0;
+
+    if(ip_ == "OFFLINE" && utilized){
+        throw std::invalid_argument("Experiment: '" + experiment_.GetName() + "' Has OFFLINE node '" + name_ + "' utilized.");
+    }
 
     for(const auto& logger : node.loggers()){
         AddLogger(logger);
@@ -67,7 +71,7 @@ int Node::GetDeployedComponentCount() const{
 }
 
 int Node::GetDeployedCount() const {
-    return GetDeployedComponentCount() + loggers_.size();
+    return GetDeployedComponentCount() + GetLoganClientCount();
 }
 
 int Node::GetLoganServerCount() const{
@@ -79,6 +83,17 @@ int Node::GetLoganServerCount() const{
     }
     return server_count;
 }
+
+int Node::GetLoganClientCount() const{
+    int client_count = 0;
+    for(const auto& log_pair : loggers_){
+        if(log_pair.second->GetType() == Logger::Type::Client){
+            client_count ++;
+        }
+    }
+    return client_count;
+}
+
 
 
 bool Node::IsNodeManagerMaster() const{
@@ -190,12 +205,15 @@ Port& Node::GetPort(const std::string& port_id) const{
 std::unique_ptr<NodeManager::Node> Node::GetProto(const bool full_update){
     std::unique_ptr<NodeManager::Node> node;
 
-    if(dirty_ || full_update){
+    //Only produce a node if we have Deployed Components?
+    if(GetDeployedComponentCount() && (dirty_ || full_update)){
         node = std::unique_ptr<NodeManager::Node>(new NodeManager::Node());
         
         node->mutable_info()->set_name(name_);
         node->mutable_info()->set_id(id_);
         node->set_type(NodeManager::Node::HARDWARE_NODE);
+
+
 
         for(const auto& logger : loggers_){
             auto logger_pb = logger.second->GetProto(full_update);

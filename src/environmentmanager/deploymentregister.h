@@ -16,16 +16,15 @@
 
 class DeploymentRegister{
     public:
-        DeploymentRegister(Execution& exe, const std::string& ip_addr,
+        DeploymentRegister(Execution& execution,
+                            const std::string& ip_addr,
                             const std::string& registration_port,
                             const std::string& qpid_broker_address,
                             const std::string& tao_naming_server_address,
                             int portrange_min = 30000, int portrange_max = 40000);
-
-        void Start();
-        void Terminate();
-
+        ~DeploymentRegister();
     private:
+        void Terminate();
         //Re Node Manager Functions
         std::unique_ptr<NodeManager::NodeManagerRegistrationReply> HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request);
         
@@ -37,9 +36,6 @@ class DeploymentRegister{
         std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message);
         std::unique_ptr<EnvironmentControl::ListExperimentsReply> HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message);
 
-        //Members
-        Execution& execution_;
-        
         std::unique_ptr<zmq::ProtoReplier> replier_;
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
@@ -47,6 +43,7 @@ class DeploymentRegister{
 
         std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
         std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
+        Execution& execution_;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER

@@ -32,40 +32,50 @@ Environment::Environment(const std::string& address, const std::string& qpid_bro
     for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
         available_node_manager_ports_.push(i);
     }
-    clock_ = 0;
+}
+
+Environment::~Environment(){
+    //Force that anything that requires the Environment to teardown is destroyed
+    experiment_map_.clear();
 }
 
 
 void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    
     //Take a copy
     auto control_message = const_control_message;
     const auto& experiment_name = control_message.experiment_id();
-    
-    //Register the experiment
-    RegisterExperiment(experiment_name);
+    try{
+        //Register the experiment
+        RegisterExperiment(experiment_name);
+        
+        //Get the experiment_name
+        auto& experiment = GetExperimentInternal(experiment_name);
+        
+        if(experiment.IsConfigured()){
+            throw std::runtime_error("Experiment '" + experiment_name + "' has already been Configured once.");
+        }
 
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
-    //Get the experiment_name
-    auto& experiment = GetExperimentInternal(experiment_name);
-    
-    if(experiment.IsConfigured()){
-        throw std::runtime_error("Experiment '" + experiment_name + "' has already been Configured once.");
+        //Handle Deployments etc
+        DeclusterExperiment(control_message);
+
+        //Handle the External Ports
+        experiment.AddExternalPorts(control_message);
+        
+        //Add all nodes
+        for(const auto& node : control_message.nodes()){
+            RecursiveAddNode(experiment_name, node);
+        }
+        
+        //Complete the Configuration
+        experiment.SetConfigured();
+    }catch(const std::exception& ex){
+        //Remove the Experiment if we have any exceptions
+        RemoveExperimentInternal(experiment_name);
+        throw;
     }
-
-    //Handle Deployments etc
-    DeclusterExperiment(control_message);
-
-    //Handle the External Ports
-    experiment.AddExternalPorts(control_message);
-    
-    //Add all nodes
-    for(const auto& node : control_message.nodes()){
-        RecursiveAddNode(experiment_name, node);
-    }
-    
-    //Complete the Configuration
-    experiment.SetConfigured();
 }
 
 
@@ -76,38 +86,40 @@ void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeM
     AddNodeToExperiment(experiment_id, node_pb);
 }
 
-std::string Environment::AddDeployment(const std::string& experiment_name,
+std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,
                                        const std::string& ip_address,
                                        DeploymentType deployment_type){
 
     switch(deployment_type){
         case DeploymentType::EXECUTION_MASTER:{
-            return RegisterExperiment(experiment_name);
+            return GetExperimentHandlerPort(experiment_name);
         }
         case DeploymentType::LOGAN_SERVER:{
-            return AddLoganClientServer();
+            //Get a fresh port for the environment to service the LoganServer
+            return GetManagerPort();
         }
         default:
             throw std::runtime_error("Unexpected Deployment Type");
     }
 }
 
+std::string Environment::GetExperimentHandlerPort(const std::string& experiment_name){
+    return GetExperiment(experiment_name).GetManagerPort();
+}
 
 
-std::string Environment::RegisterExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> lock(experiment_mutex_);
-    if(!experiment_map_.count(experiment_name)){
-        //Try and get a Manager Port, if this fails we shouldn't register
-        auto manager_port = GetManagerPort();
-        
-        auto experiment = std::unique_ptr<EnvironmentManager::Experiment>(new EnvironmentManager::Experiment(*this, experiment_name));
-        experiment_map_.emplace(experiment_name, std::move(experiment));
-        experiment_map_.at(experiment_name)->SetManagerPort(manager_port);
-        
-        std::cout << "* Registered experiment: '" << experiment_name << "'" << std::endl;
-        std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
+void Environment::RegisterExperiment(const std::string& experiment_name){
+    if(experiment_map_.count(experiment_name)){
+        throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
     }
-    return experiment_map_.at(experiment_name)->GetManagerPort();
+    //Try and get a Manager Port, if this fails we shouldn't register
+    auto manager_port = GetManagerPort();
+        
+    auto experiment = std::unique_ptr<EnvironmentManager::Experiment>(new EnvironmentManager::Experiment(*this, experiment_name));
+    experiment_map_.emplace(experiment_name, std::move(experiment));
+    experiment_map_.at(experiment_name)->SetManagerPort(manager_port);
+    std::cout << "* Registered experiment: '" << experiment_name << "'" << std::endl;
+    std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
 }
 
 std::string Environment::AddLoganClientServer(){
@@ -149,21 +161,20 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
     if(experiment.IsActive()){
         experiment.Shutdown();
     }else{
-        RemoveExperimentTS(experiment_name);
+        RemoveExperimentInternal(experiment_name);
     }
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
-    RemoveExperimentTS(experiment_name);
+    RemoveExperimentInternal(experiment_name);
 }
 
-void Environment::RemoveExperimentTS(const std::string& experiment_name){
+void Environment::RemoveExperimentInternal(const std::string& experiment_name){
     if(experiment_map_.count(experiment_name)){
         std::cout << "* Experiment Deregistering: " << experiment_name << std::endl;
         experiment_map_.erase(experiment_name);
-        std::cout << "* Experiment Deregistered: " << experiment_name << std::endl;
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
 }
@@ -247,12 +258,13 @@ void Environment::DeclusterNode(NodeManager::Node& node){
 
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperimentInternal(experiment_name);
-    AddNodeToEnvironment(node);
     try{
+        AddNodeToEnvironment(node);
         experiment.AddNode(node);
     }
-    catch(const std::invalid_argument& ex){
-        std::cerr << ex.what() << std::endl;
+    catch(const std::exception& ex){
+        std::cerr << "* AddNodeToExperiment: " << ex.what() << std::endl;
+        throw;
     }
 }
 
@@ -260,9 +272,9 @@ void Environment::AddNodeToExperiment(const std::string& experiment_name, const 
 
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
+    const auto& node_name = node.info().name();
     try{
         const auto& ip = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
-        const auto& node_name = node.info().name();
 
         std::lock_guard<std::mutex> lock(node_mutex_);
         if(!node_map_.count(ip)){
@@ -273,7 +285,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
             node_map_.emplace(ip, std::move(port_tracker));
         }
     }catch(const std::exception& ex){
-
+        //Ignore the exception
     }
 }
 
@@ -408,24 +420,6 @@ std::string Environment::GetTaoNamingServiceAddress(){
     }
     return tao_naming_service_address_;
 }
-
-uint64_t Environment::GetClock(){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    return clock_;
-}
-
-uint64_t Environment::SetClock(uint64_t incoming){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    clock_ = std::max(incoming, clock_) + 1;
-    return clock_;
-}
-
-uint64_t Environment::Tick(){
-    std::lock_guard<std::mutex> lock(clock_mutex_);
-    clock_++;
-    return clock_;
-}
-
 Environment::ExternalPort& Environment::GetExternalPort(const std::string& external_port_label){
     if(external_eventport_map_.count(external_port_label)){
         return *external_eventport_map_[external_port_label];

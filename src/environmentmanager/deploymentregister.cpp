@@ -7,18 +7,16 @@
 #include <proto/controlmessage/helper.h>
 #include "node.h"
 
-DeploymentRegister::DeploymentRegister(Execution& exe, const std::string& environment_manager_ip_address, const std::string& registration_port, 
+DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
                                         int portrange_min, int portrange_max)
                                         :
-execution_(exe),
+execution_(execution),
 environment_manager_ip_address_(environment_manager_ip_address)
 {
 
     assert(portrange_min < portrange_max);
     environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
-
-    execution_.AddTerminateCallback(std::bind(&DeploymentRegister::Terminate, this));
 
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     replier_->Bind(zmq::TCPify(environment_manager_ip_address, registration_port));
@@ -46,15 +44,19 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
-}
-
-void DeploymentRegister::Start(){
     replier_->Start();
 }
 
-void DeploymentRegister::Terminate(){
-    replier_->Terminate();
+DeploymentRegister::~DeploymentRegister(){
+    Terminate();
+    environment_.reset();
+}
 
+void DeploymentRegister::Terminate(){
+    if(replier_){
+        replier_->Terminate();
+        replier_.reset();
+    }
     re_handlers_.clear();
     logan_handlers_.clear();
 }
@@ -117,7 +119,6 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
         reply->set_master_publisher_endpoint(experiment.GetMasterPublisherAddress());
         reply->set_master_registration_endpoint(experiment.GetMasterRegistrationAddress());
     }
-
     return std::move(reply);
 }
 
@@ -175,5 +176,6 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.control_message());
-    return environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    return reply;
 };

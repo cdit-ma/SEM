@@ -60,6 +60,7 @@ class Node{
         void AddModelLogger();
 
         int GetLoganServerCount() const;
+        int GetLoganClientCount() const;
 
         bool HasLogger(const std::string& logger_id);
         Logger& GetLogger(const std::string& logger_id);

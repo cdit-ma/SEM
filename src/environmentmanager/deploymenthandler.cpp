@@ -3,20 +3,20 @@
 #include <zmq/zmqutils.hpp>
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
-                                    const std::string& ip_addr,
+                                    const std::string& environment_manager_ip_address,
                                     EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string> port_promise,
                                     const std::string& experiment_id) :
 environment_(env),
-environment_manager_ip_address_(ip_addr),
+environment_manager_ip_address_(environment_manager_ip_address),
 deployment_type_(deployment_type),
 deployment_ip_address_(deployment_ip_address),
 experiment_id_(experiment_id)
 {
     std::lock_guard<std::mutex> lock(replier_mutex_);
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
-    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_ip_address_, deployment_type_);
     const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
 
     try{
@@ -45,7 +45,9 @@ experiment_id_(experiment_id)
 DeploymentHandler::~DeploymentHandler(){
     {
         std::lock_guard<std::mutex> lock(replier_mutex_);
-        replier_->Terminate();
+        if(replier_){
+            replier_.reset();
+        }
     }
     if(heartbeat_future_.valid()){
         heartbeat_future_.get();
@@ -71,7 +73,6 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
         try{
             RemoveDeployment();
         }catch(const std::exception& ex){
-
         }
     }
 }
@@ -91,8 +92,7 @@ void DeploymentHandler::RemoveDeployment(){
 std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleHeartbeat(const NodeManager::EnvironmentMessage& request_message){
 
     if(request_message.type() == NodeManager::EnvironmentMessage::END_HEARTBEAT){
-        // Kill replier
-        replier_->Terminate();
+        throw zmq::ShutdownException("Terminate Replier");
     }
 
     auto reply_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
