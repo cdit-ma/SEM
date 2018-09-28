@@ -147,6 +147,9 @@ void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::
                         }else{
                             throw std::runtime_error("No registered function: '" + str_fn_signature + "'");
                         }
+                    }catch(const ShutdownException& ex){
+                        //Break out
+                        break;
                     }catch(const std::exception& ex){
                         error_str = ex.what();
                     }
@@ -184,7 +187,9 @@ void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::
     }catch(...){
         //Set the exception caught on the blocking future
         blocked_promise.set_exception(std::current_exception());
+        return;
     }
+    blocked_promise.set_value();
 }
 
 void zmq::ProtoReplier::RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function){

@@ -15,6 +15,11 @@ namespace zmq{
             RMIException(const std::string& what_arg) : std::runtime_error(what_arg){};
     };
 
+    class ShutdownException : public std::runtime_error{
+        public:
+            ShutdownException(const std::string& what_arg) : std::runtime_error(what_arg){};
+    };
+
     inline zmq::message_t Proto2Zmq(const google::protobuf::MessageLite &ml){
         const auto& size = ml.ByteSize();
         zmq::message_t message(size);
