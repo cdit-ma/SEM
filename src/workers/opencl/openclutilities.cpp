@@ -13,7 +13,10 @@
 	std::cerr << "OpenCL error: " << message << std::endl;
 }*/
 
-std::string clErrorNames[] = {
+
+
+std::string OpenCLErrorName(int opencl_error_code) {
+	static const std::vector<std::string> clErrorNames({
 	"CL_SUCCESS",
 	"CL_DEVICE_NOT_FOUND",
 	"CL_DEVICE_NOT_AVAILABLE",
@@ -79,10 +82,14 @@ std::string clErrorNames[] = {
 	"CL_INVALID_MIP_LEVEL",
 	"CL_INVALID_GLOBAL_WORK_SIZE",
 	"CL_INVALID_PROPERTY"
-};
+});
 
-std::string OpenCLErrorName(int opencl_error_code) {
-	return clErrorNames[-opencl_error_code];
+	auto index = -opencl_error_code;
+	if(index >= 0 && index < clErrorNames.size()){
+		return clErrorNames.at(index);
+	}else{
+		return std::string("Unknown OpenCL error code: ") + std::to_string(opencl_error_code);
+	}
 }
 
 
@@ -221,7 +228,7 @@ void LogOpenCLError(const Worker& worker,
 	std::string error_message,
 	cl_int cl_error_code)
 {
-	std::string message = error_message + " (" + clErrorNames[-cl_error_code] + ")";
+	std::string message = error_message + " (" + OpenCLErrorName(cl_error_code) + ")";
 			
 #ifdef OPENCL_DEBUG_TO_STDERR
 	std::cerr << function_signature << ": " << error_message << std::endl;

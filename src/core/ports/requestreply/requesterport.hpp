@@ -54,18 +54,20 @@ RequesterPort<BaseReplyType, BaseRequestType>::RequesterPort(std::weak_ptr<Compo
 template  <class BaseReplyType, class BaseRequestType>
 std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
-    try{
-        EventRecieved(base_request);
-        auto base_reply = std::move(ProcessRequest(base_request, timeout));
-        EventProcessed(base_request);
-        return {true, std::move(base_reply)};
-    }catch(const std::exception& ex){
-        std::string error_str = "Failed to Send Request: ";
-        ProcessMessageException(base_request, error_str + ex.what(), true);
-        EventIgnored(base_request);
+    if(this->is_running()){
+        try{
+            EventRecieved(base_request);
+            auto base_reply = std::move(ProcessRequest(base_request, timeout));
+            EventProcessed(base_request);
+            return {true, std::move(base_reply)};
+        }catch(const std::exception& ex){
+            std::string error_str = "Failed to Send Request: ";
+            ProcessMessageException(base_request, error_str + ex.what(), true);
+        }
     }
+    EventIgnored(base_request);
     return {false, BaseReplyType()};
-    };
+};
 
 //Specialised templated RequesterPort for void returning
 template  <class BaseRequestType>
@@ -77,15 +79,17 @@ RequesterPort<void, BaseRequestType>::RequesterPort(std::weak_ptr<Component> com
 template  <class BaseRequestType>
 bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& base_request, std::chrono::milliseconds timeout)
 {
-    try{
-        EventRecieved(base_request);
-        ProcessRequest(base_request, timeout);
-        EventProcessed(base_request);
-        return true;
-    }catch(const std::exception& ex){
-        std::string error_str = "Failed to Send Request: ";
-        ProcessMessageException(base_request, error_str + ex.what(), true);
-        EventIgnored(base_request);
+    if(this->is_running()){
+        try{
+            EventRecieved(base_request);
+            ProcessRequest(base_request, timeout);
+            EventProcessed(base_request);
+            return true;
+        }catch(const std::exception& ex){
+            std::string error_str = "Failed to Send Request: ";
+            ProcessMessageException(base_request, error_str + ex.what(), true);
+            EventIgnored(base_request);
+        }
     }
     EventIgnored(base_request);
     return false;
@@ -102,16 +106,18 @@ RequesterPort<BaseReplyType, void>::RequesterPort(std::weak_ptr<Component> compo
 template  <class BaseReplyType>
 std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, void>::SendRequest(std::chrono::milliseconds timeout)
 {
-    //Generate a request
-    try{
-        BaseMessage m;
-        EventRecieved(m);
-        auto base_reply = std::move(ProcessRequest(timeout));
-        EventProcessed(m);
-        return {true, std::move(base_reply)};
-    }catch(const std::exception& ex){
-        std::string error_str = "Sending Request Failed: ";
-        ProcessGeneralException(error_str + ex.what(), true);
+    if(this->is_running()){
+        //Generate a request
+        try{
+            BaseMessage m;
+            EventRecieved(m);
+            auto base_reply = std::move(ProcessRequest(timeout));
+            EventProcessed(m);
+            return {true, std::move(base_reply)};
+        }catch(const std::exception& ex){
+            std::string error_str = "Sending Request Failed: ";
+            ProcessGeneralException(error_str + ex.what(), true);
+        }
     }
     return {false, BaseReplyType()};
 };
