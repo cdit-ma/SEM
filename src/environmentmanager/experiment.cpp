@@ -140,23 +140,24 @@ void Experiment::AddNode(const NodeManager::Node& node){
         const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
 
         if(!node_map_.count(ip_address)){
-            auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-            const auto& ip_address = internal_node->GetIp();
-            node_map_.emplace(ip_address, std::move(internal_node));
-            auto& node_ref = node_map_.at(ip_address);
-            
-            
-            //Build logan connection map
-            auto deploy_count = node_ref->GetDeployedCount();
+            if(ip_address != "OFFLINE"){
+                auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
+                node_map_.emplace(ip_address, std::move(internal_node));
+                auto& node_ref = node_map_.at(ip_address);
 
-            if(deploy_count > 0){
-                std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();
-                if(GetMasterIp().empty()){
-                    node_ref->SetNodeManagerMaster();
-                    SetMasterIp(ip_address);
-                    std::cout << " [RE_MASTER]";
+
+                //Build logan connection map
+                auto deploy_count = node_ref->GetDeployedCount();
+
+                if(deploy_count > 0){
+                    std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();
+                    if(GetMasterIp().empty()){
+                        node_ref->SetNodeManagerMaster();
+                        SetMasterIp(ip_address);
+                        std::cout << " [RE_MASTER]";
+                    }
+                    std::cout << " Deploys: " << deploy_count << " Components" << std::endl;
                 }
-                std::cout << " Deploys: " << deploy_count << " Components" << std::endl;
             }
         }
         else{

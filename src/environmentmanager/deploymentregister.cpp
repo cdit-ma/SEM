@@ -54,6 +54,7 @@ void DeploymentRegister::Start(){
 
 void DeploymentRegister::Terminate(){
     replier_->Terminate();
+    replier_.reset();
 
     re_handlers_.clear();
     logan_handlers_.clear();

@@ -48,7 +48,9 @@ DeploymentHandler::~DeploymentHandler(){
         replier_->Terminate();
     }
     if(heartbeat_future_.valid()){
+        std::cout << "waiting" << std::endl;
         heartbeat_future_.get();
+        std::cout << "waited" << std::endl;
     }
 }
 
