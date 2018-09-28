@@ -193,6 +193,8 @@ std::vector<FFTParam> getConstantTests() {
     tests.emplace_back(generateConstantInput(8, -7.0), generateConstantOutput(8, 7.0), true);
     tests.emplace_back(generateConstantInput(4096, 1.0), generateConstantOutput(4096, 1.0), true);
     tests.emplace_back(generateConstantInput(4096, 7.0), generateConstantOutput(4096, 7.0), true);
+    //Test a non-divisible by two length RE-343
+    tests.emplace_back(std::vector<float>(11), std::vector<float>(11), false);
     return permuteFFTTests(getDevices(), tests);
 }
 
