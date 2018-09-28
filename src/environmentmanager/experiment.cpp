@@ -136,24 +136,21 @@ void Experiment::AddNode(const NodeManager::Node& node){
         const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
 
         if(!node_map_.count(ip_address)){
-            if(ip_address != "OFFLINE"){
-                auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-                node_map_.emplace(ip_address, std::move(internal_node));
-                auto& node_ref = node_map_.at(ip_address);
+            auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
+            if(internal_node->GetIp() != "OFFLINE"){
+                auto deploy_component_count = internal_node->GetDeployedComponentCount();
 
-
-                //Build logan connection map
-                auto deploy_count = node_ref->GetDeployedComponentCount();
-
-                if(deploy_count > 0){
-                    std::cout << "* Experiment[" << model_name_ << "] Node: " << node_ref->GetName();
+                if(deploy_component_count > 0){
+                    std::cout << "* Experiment[" << model_name_ << "] Node: " << internal_node->GetName();
                     if(GetMasterIp().empty()){
-                        node_ref->SetNodeManagerMaster();
+                        //Set the first node with components to be the master
+                        internal_node->SetNodeManagerMaster();
                         SetMasterIp(ip_address);
                         std::cout << " [RE_MASTER]";
                     }
-                    std::cout << " Deploys: " << deploy_count << " Components" << std::endl;
+                    std::cout << " Deploys: " << deploy_component_count << " Components" << std::endl;
                 }
+                node_map_.emplace(ip_address, std::move(internal_node));
             }
         }
         else{

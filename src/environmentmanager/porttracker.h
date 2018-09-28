@@ -31,24 +31,26 @@ class PortTracker{
         };
 
         void FreePort(const std::string& port){
-            std::unique_lock<std::mutex> lock(port_mutex_);
-            int port_number;
-            try{
-                port_number = std::stoi(port);
-                if(available_ports_.push(port_number)){
-                    //std::cout << "* Port Freed: " << name_ << " : " << port << std::endl;
+            if(port.size()){
+                std::unique_lock<std::mutex> lock(port_mutex_);
+                int port_number;
+                try{
+                    port_number = std::stoi(port);
+                    if(available_ports_.push(port_number)){
+                        //std::cout << "* Port Freed: " << name_ << " : " << port << std::endl;
+                    }
                 }
-            }
-            catch(const std::invalid_argument& ex){
-                std::cerr << "Could not free port <\'" << port <<"\'> from ip <\'" << ip_ <<"\'>, port string could not be converted to int." << std::endl;
-                std::cerr << ex.what() << std::endl;
-            }
-            catch(const std::out_of_range& ex){
-                std::cerr << "Could not free port, port # out of range for int." << std::endl;
-                std::cerr << ex.what() << std::endl;
-            }
-            catch(...){
-                std::cerr << "Unknown exception thrown in Node::FreePort" << std::endl;
+                catch(const std::invalid_argument& ex){
+                    std::cerr << "Could not free port <\'" << port <<"\'> from ip <\'" << ip_ <<"\'>, port string could not be converted to int." << std::endl;
+                    std::cerr << ex.what() << std::endl;
+                }
+                catch(const std::out_of_range& ex){
+                    std::cerr << "Could not free port, port # out of range for int." << std::endl;
+                    std::cerr << ex.what() << std::endl;
+                }
+                catch(...){
+                    std::cerr << "Unknown exception thrown in Node::FreePort" << std::endl;
+                }
             }
         }
         std::string GetName(){

@@ -3,20 +3,20 @@
 #include <zmq/zmqutils.hpp>
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
-                                    const std::string& ip_addr,
+                                    const std::string& environment_manager_ip_address,
                                     EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string> port_promise,
                                     const std::string& experiment_id) :
 environment_(env),
-environment_manager_ip_address_(ip_addr),
+environment_manager_ip_address_(environment_manager_ip_address),
 deployment_type_(deployment_type),
 deployment_ip_address_(deployment_ip_address),
 experiment_id_(experiment_id)
 {
     std::lock_guard<std::mutex> lock(replier_mutex_);
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
-    const auto& assigned_port = environment_.AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_ip_address_, deployment_type_);
     const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
 
     try{

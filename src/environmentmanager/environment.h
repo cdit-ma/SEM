@@ -37,7 +37,7 @@ class Environment{
 
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
 
-        std::string AddDeployment(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
+        std::string GetDeploymentHandlerPort(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
 
 
         void ShutdownExperiment(const std::string& experiment_name);
@@ -86,7 +86,9 @@ class Environment{
 
         static const NodeManager::Attribute& GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name);
     private:
-        void RemoveExperimentTS(const std::string& experiment_name);
+        std::string GetExperimentHandlerPort(const std::string& experiment_name);
+
+        void RemoveExperimentInternal(const std::string& experiment_name);
         void FinishConfigure(const std::string& experiment_name);
         static void DeclusterExperiment(NodeManager::ControlMessage& message);
         static void DeclusterNode(NodeManager::Node& message);
@@ -114,8 +116,7 @@ class Environment{
         //Returns management port for logan client to communicate with environment_manager
         std::string AddLoganClientServer();
 
-        //Returns management port for re_node_manager(master) to communicate with environment_manager
-        std::string RegisterExperiment(const std::string& experiment_name);
+        void RegisterExperiment(const std::string& experiment_name);
 
         std::mutex configure_experiment_mutex_;
 

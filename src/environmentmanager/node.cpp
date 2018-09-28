@@ -14,9 +14,13 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     
     name_ = node.info().name();
     id_ = node.info().id();
-
-    
     ip_ = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
+
+    bool utilized = node.loggers_size() + node.components_size() > 0;
+
+    if(ip_ == "OFFLINE" && utilized){
+        throw std::invalid_argument("Experiment: '" + experiment_.GetName() + "' Has OFFLINE node '" + name_ + "' utilized.");
+    }
 
     for(const auto& logger : node.loggers()){
         AddLogger(logger);
