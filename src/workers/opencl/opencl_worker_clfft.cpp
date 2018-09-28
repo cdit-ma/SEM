@@ -42,10 +42,17 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	cl_int err;
 
+    size_t length = data.size();
+
+    if(length % 2 != 0){
+		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Non-even length of array, implies half a sample (No complex number)");
+        return false;
+    }
+
 	// Find the size of each datapoint and how many datapoints there are
 	//size_t pointSize = sizeof(float);
 	//size_t N = dataBytes/pointSize;
-    size_t N = data.size()/2;
+    size_t N = length / 2;
 
 	// Check that prime decomposition only uses 2, 3 and 5 as clFFT doesnt support other prime numbers
 	if (N==0) {

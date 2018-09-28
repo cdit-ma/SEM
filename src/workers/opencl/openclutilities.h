@@ -20,8 +20,6 @@
 	std::cerr << "OpenCL error: " << message << std::endl;
 }*/
 
-extern std::string clErrorNames[];
-
 extern std::string OpenCLErrorName(int opencl_error_code);
 
 extern std::string SanitisePathString(const std::string& str);
