@@ -35,6 +35,7 @@ ip_address_(ip_address)
 
     //Construct a heartbeater
     requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(logan_info->heartbeat_endpoint(), std::bind(&ManagedServer::HandleExperimentUpdate, this, std::placeholders::_1)));
+    requester_->SetTimeoutCallback(std::bind(&ManagedServer::DelayedTerminate, this));
 }
 
 void ManagedServer::Terminate(){
@@ -43,6 +44,10 @@ void ManagedServer::Terminate(){
     if(requester_){
         requester_.reset();
     }
+}
+void ManagedServer::DelayedTerminate(){
+    std::this_thread::sleep_for(std::chrono::seconds(20));
+    Terminate();
 }
 
 void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
