@@ -37,23 +37,35 @@ def FAILURE_LIST = []
 final UNIQUE_ID =  experiment_name + "_" + build_id
 final MODEL_FILE = UNIQUE_ID + ".graphml"
 
-def builder_nodes = []
-def nodes = nodesByLabel("re")
+def builder_nodes = [:]
+def re_nodes = nodesByLabel("re")
 
-//Get the builder nodes
+def requires_shutdown = false
+//Run the environment controller on master
+def node_manager_node_names = []
+def logan_server_node_names = []
+
+
+//Get one builder node per architecture
 for(node_name in nodesByLabel("builder")){
-    builder_nodes += node_name
+    def os_version = utils.getNodeOSVersion(node_name)
+
+    if(os_version.length() && !builder_nodes.containsKey(os_version)){
+        builder_nodes[os_version] = node_name
+    }
 }
 
+//Check for builder nodes
 if(builder_nodes.size() == 0){
     error('Cannot find any builder nodes.')
 }
 
-if(nodes.size() == 0){
+if(re_nodes.size() == 0){
     error('Cannot find any nodes.')
 }
 
-//Run codegen on the first node
+
+//Generate Project Code on first builder node
 node(builder_nodes[0]){
     //Unstash the model from parameter
     unstashParam "model", MODEL_FILE
@@ -72,14 +84,9 @@ node(builder_nodes[0]){
             def file_parameter = ' -s:' + MODEL_FILE
             
             def run_generation = saxon_call + '/generate_project.xsl' + file_parameter
-            def run_validation = saxon_call + '/generate_validation.xsl' + file_parameter + ' write_file=true'
 
             if(utils.runScript(run_generation) != 0){
                 error('Project code generation failed.')
-            }
-
-            if(utils.runScript(run_validation) != 0){
-                error('Validation report generation failed.')
             }
 
             //Construct a zip file with the code
@@ -99,54 +106,17 @@ node(builder_nodes[0]){
     }
 }
 
-//Run Compilation
-for(n in builder_nodes){
-    def node_name = n;
-    //Define the Builder instructions
-    builder_map[node_name] = {
-        node(node_name){
-            //Cache dir is the experiment_name
-            def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-            dir(UNIQUE_ID){
-                //Unstash the generated code
-                unstash 'codegen'
-                dir("lib"){
-                    //Clear any cached binaries
-                    deleteDir()
-                }
-                dir("build"){
-                    if(!utils.buildProject("Ninja", "", false)){
-                        error("CMake failed on Builder Node: " + node_name)
-                    }
-                }
-                dir("lib"){
-                    //Stash all built libraries
-                    stash includes: '**', name: stash_name
-                }
-                deleteDir()
-            }
-        }
-    }
-}
 
-//Run compilation scripts
-stage("Compiling C++"){
-    parallel builder_map
-}
-
-
-def requires_shutdown = false
-
-//Run the environment controller on master
-def node_manager_node_names = []
-def logan_server_node_names = []
+//Register the Experiment
 stage("Add Experiment"){
     node("master"){
         dir(UNIQUE_ID){
-
             unstash "model"
             def controller_path = '${RE_PATH}/bin/re_environment_controller '
-            def args = ' -n ' + experiment_name + ' -e ' + env_manager_addr + ' -a ' + MODEL_FILE
+            def args = " -e " + env_manager_addr
+            args += " -a " + MODEL_FILE
+            args += " -n " + experiment_name
+
             def json_file = "experiment_config.json"
             def command = controller_path + args + ' > ' + json_file
 
@@ -158,24 +128,74 @@ stage("Add Experiment"){
             requires_shutdown = true
             def parsed_json = readJSON file: json_file
 
-            print("Running re_node_manager on:")
             for(def node : parsed_json["nodeManagers"]){
-                print("** " + node["hostName"])
                 node_manager_node_names += node["hostName"]
             }
-            print("Running logan_server on:")
             for(def node : parsed_json["loganServers"]){
-                print("** " + node["hostName"])
                 logan_server_node_names += node["hostName"]
             }
-
         }
     }
 }
 
-def execution_node_names = (node_manager_node_names + logan_server_node_names).unique(false)
+//Get the required os versions to be compiled
+def required_os_versions = []
+for(node_name in node_manager_node_names){
+    def os_version = utils.getNodeOSVersion(node_name)
+    if(!required_os_versions.contains(os_version)){
+        required_versions += os_version
+    }
+}
+
+//Construct the builder map
+for(v in required_os_versions){
+    def os_version = v
+    
+    if(builder_nodes[builder_nodes]){
+        def node_name = builder_nodes[builder_nodes]
+        builder_map[node_name] = {
+            node(node_name){
+                //Construct a stash name
+                def stash_name = "code_" + os_version
+                dir(UNIQUE_ID){
+                    //Unstash the generated code
+                    unstash 'codegen'
+
+                    dir("lib"){
+                        //Clear any cached binaries
+                        deleteDir()
+                    }
+
+                    dir("build"){
+                        if(!utils.buildProject("Ninja", "", false)){
+                            error("CMake failed on Builder Node: " + node_name)
+                        }
+                    }
+
+                    dir("lib"){
+                        //Stash all built libraries
+                        stash includes: '**', name: stash_name
+                    }
+                    deleteDir()
+                }
+            }
+        }
+    }else{
+        //Fail if we don't have a 
+        FAILURE_LIST += ("Missing Builder Node for OS: '" + os_version + "'")
+        FAILED = true
+    }
+}
+
+//Run compilation scripts
+stage("Compiling C++"){
+    if(!FAILED){
+        parallel builder_map
+    }
+}
 
 //Produce the execution map
+def execution_node_names = (node_manager_node_names + logan_server_node_names).unique(false)
 for(n in execution_node_names){
     def node_name = n;
     execution_map[node_name] = {
@@ -219,7 +239,6 @@ for(n in execution_node_names){
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
 
-
                     node_executions["LOGAN_" + node_name] = {
                         //Run Logan
                         if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
@@ -228,7 +247,6 @@ for(n in execution_node_names){
                         }
                     }
                 }
-
                 parallel(node_executions)
                     
                 //Archive any sql databases produced
