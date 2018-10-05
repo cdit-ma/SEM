@@ -8,6 +8,7 @@
 #include <future>
 #include "environment.h"
 #include "deploymenthandler.h"
+#include "aggregationserverhandler.h"
 
 #include <zmq/protoreplier/protoreplier.hpp>
 #include <proto/controlmessage/controlmessage.pb.h>
@@ -17,11 +18,11 @@
 class DeploymentRegister{
     public:
         DeploymentRegister(Execution& execution,
-                            const std::string& ip_addr,
+                            const std::string& environment_manager_ip_address,
                             const std::string& registration_port,
                             const std::string& qpid_broker_address,
                             const std::string& tao_naming_server_address,
-                            int portrange_min = 30000, int portrange_max = 40000);
+                            int port_range_min = 30000, int port_range_max = 40000);
         ~DeploymentRegister();
     private:
         void Terminate();
@@ -36,6 +37,10 @@ class DeploymentRegister{
         std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message);
         std::unique_ptr<EnvironmentControl::ListExperimentsReply> HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message);
 
+
+        //Aggregation Server functions
+        std::unique_ptr<NodeManager::AggregationServerRegistrationReply> HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request);
+
         std::unique_ptr<zmq::ProtoReplier> replier_;
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
@@ -43,8 +48,9 @@ class DeploymentRegister{
 
         std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
         std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
+        std::vector<std::unique_ptr<AggregationServerHandler> > aggregation_server_handlers_;
 
         Execution& execution_;
-};
+    };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER

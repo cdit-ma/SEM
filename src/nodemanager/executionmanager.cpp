@@ -146,9 +146,10 @@ std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveSta
     using namespace NodeManager;
     std::unique_ptr<SlaveStartupReply> reply;
     const auto& slave_ip_address = request.slave_ip();
-    
-    std::lock_guard<std::mutex> lock(control_message_mutex_);
-    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+
+    std::lock(control_message_mutex_, slave_state_mutex_);
+    std::lock_guard<std::mutex> lock(control_message_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_, std::adopt_lock);
     for(auto& node : control_message_->nodes()){
         const auto& node_ip_address = GetAttribute(node.attributes(), "ip_address").s(0);
 

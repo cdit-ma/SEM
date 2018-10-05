@@ -14,7 +14,6 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     
     name_ = node.info().name();
     id_ = node.info().id();
-
     
     ip_ = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
 
@@ -31,7 +30,7 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     }
 
     //set logger port
-    if(components_.size()){
+    if(!components_.empty()){
         AddModelLogger();
     }
     

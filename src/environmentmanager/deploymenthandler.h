@@ -17,7 +17,7 @@ class DeploymentHandler{
     public:
         
         DeploymentHandler(EnvironmentManager::Environment& env,
-                        const std::string& ip_addr,
+                        const std::string& environment_manager_ip_address,
                         EnvironmentManager::Environment::DeploymentType deployment_type,
                         const std::string& deployment_ip_address,
                         std::promise<std::string> port_promise,

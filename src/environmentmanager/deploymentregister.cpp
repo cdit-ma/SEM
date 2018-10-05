@@ -9,14 +9,14 @@
 
 DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
-                                        int portrange_min, int portrange_max)
+                                        int port_range_min, int port_range_max)
                                         :
 execution_(execution),
 environment_manager_ip_address_(environment_manager_ip_address)
 {
 
-    assert(portrange_min < portrange_max);
-    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
+    assert(port_range_min < port_range_max);
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, port_range_min, port_range_max));
 
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     replier_->Bind(zmq::TCPify(environment_manager_ip_address, registration_port));
@@ -44,6 +44,12 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+
+    replier_->RegisterProtoCallback<NodeManager::AggregationServerRegistrationRequest, NodeManager::AggregationServerRegistrationReply>
+                                  ("AggregationServerRegistration",
+                                          [this](const NodeManager::AggregationServerRegistrationRequest& message) {
+                                      return DeploymentRegister::HandleAggregationServerRegistration(message);}
+                                      );
     replier_->Start();
 }
 
@@ -138,7 +144,7 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
         auto logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
 
         auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
-        if(logging_servers.size() > 0){
+        if(!logging_servers.empty()){
             auto handler = std::unique_ptr<DeploymentHandler>(new DeploymentHandler(*environment_,
                                         environment_manager_ip_address_,
                                         EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER,
@@ -177,4 +183,25 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.control_message());
     return environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
-};
+}
+
+std::unique_ptr<NodeManager::AggregationServerRegistrationReply>
+        DeploymentRegister::HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request){
+
+    auto aggregation_ip_address = request.id().ip_address();
+
+    std::promise<std::string> port_promise;
+    auto port_future = port_promise.get_future();
+
+
+    if(!aggregation_ip_address.empty()){
+        auto aggregation_server_handler = std::unique_ptr<AggregationServerHandler>(new AggregationServerHandler(*environment_,
+                environment_manager_ip_address_, aggregation_ip_address, std::move(port_promise)));
+        auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
+        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
+
+        aggregation_server_handlers_.push_back(std::move(aggregation_server_handler));
+        return reply;
+    }
+    return std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
+}

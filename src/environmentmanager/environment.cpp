@@ -44,8 +44,9 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
     //Register the experiment
     RegisterExperiment(experiment_name);
 
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     //Get the experiment_name
     auto& experiment = GetExperimentInternal(experiment_name);
     
@@ -116,7 +117,7 @@ std::string Environment::AddLoganClientServer(){
 
 
 
-Experiment& Environment::GetExperiment(const std::string experiment_name){
+Experiment& Environment::GetExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return GetExperimentInternal(experiment_name);
 }
@@ -142,8 +143,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std
 }
 
 void Environment::ShutdownExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     auto& experiment = GetExperimentInternal(experiment_name);
     if(experiment.IsActive()){
@@ -154,8 +156,9 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     RemoveExperimentTS(experiment_name);
 }
 

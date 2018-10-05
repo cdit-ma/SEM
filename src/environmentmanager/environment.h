@@ -31,7 +31,7 @@ class Environment{
         Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
 
 
-        Experiment& GetExperiment(const std::string experiment_name);
+        Experiment& GetExperiment(const std::string& experiment_name);
         void PopulateExperiment(const NodeManager::ControlMessage& message);
 
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);

@@ -3,13 +3,13 @@
 #include <zmq/zmqutils.hpp>
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
-                                    const std::string& ip_addr,
+                                    const std::string& environment_manager_ip_address,
                                     EnvironmentManager::Environment::DeploymentType deployment_type,
                                     const std::string& deployment_ip_address,
                                     std::promise<std::string> port_promise,
                                     const std::string& experiment_id) :
 environment_(env),
-environment_manager_ip_address_(ip_addr),
+environment_manager_ip_address_(environment_manager_ip_address),
 deployment_type_(deployment_type),
 deployment_ip_address_(deployment_ip_address),
 experiment_id_(experiment_id)
@@ -29,8 +29,6 @@ experiment_id_(experiment_id)
         throw error;
     }
 
-    
-
     //Register the callbacks
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                 ("NodeManagerHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
@@ -48,9 +46,7 @@ DeploymentHandler::~DeploymentHandler(){
         replier_->Terminate();
     }
     if(heartbeat_future_.valid()){
-        std::cout << "waiting" << std::endl;
         heartbeat_future_.get();
-        std::cout << "waited" << std::endl;
     }
 }
 
@@ -58,9 +54,9 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     std::future<void> replier_future;
     {
         std::vector<std::chrono::milliseconds> timeouts;
-        timeouts.push_back(std::chrono::milliseconds(2000));
-        timeouts.push_back(std::chrono::milliseconds(4000));
-        timeouts.push_back(std::chrono::milliseconds(8000));
+        timeouts.emplace_back(2000);
+        timeouts.emplace_back(4000);
+        timeouts.emplace_back(8000);
 
         std::lock_guard<std::mutex> lock(replier_mutex_);
         replier_future = replier_->Start(timeouts);

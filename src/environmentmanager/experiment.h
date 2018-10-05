@@ -32,21 +32,19 @@ class Experiment{
         Experiment(Environment& environment, std::string name);
         ~Experiment();
         
-        ExperimentState GetState();
+        ExperimentState GetState() const;
 
-        bool IsConfigured();
         void SetConfigured();
-
-        bool IsRegistered();
-        bool IsActive();
         void SetActive();
+
+        bool IsRegistered() const;
+        bool IsConfigured() const;
+        bool IsActive() const;
 
         const std::string& GetName() const;
 
         std::string GetManagerPort() const;
-        void SetManagerPort(const std::string& manager_Gport);
-
-        
+        void SetManagerPort(const std::string& manager_port);
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);
@@ -103,7 +101,7 @@ class Experiment{
     
         std::string GetNodeIpByName(const std::string& node_name);
 
-        std::mutex mutex_;
+        mutable std::mutex mutex_;
 
         Environment& environment_;
 
@@ -128,8 +126,6 @@ class Experiment{
 
         //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
-
-        uint64_t time_added_;
 
         ExperimentState state_ = ExperimentState::REGISTERED;
 
