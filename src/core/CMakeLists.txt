@@ -9,8 +9,6 @@ set(PROJ_NAME re_core)
 project(${PROJ_NAME})
 
 #Find protobuf
-find_package(Protobuf REQUIRED)
-find_package(ZMQ REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS thread REQUIRED)
 
 set(SOURCE
@@ -41,12 +39,12 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/threadmanager.h
 	)
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+
+
+target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 
 if (MSVC)
-	#Windows requires protobuf in DLLs
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
 	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 elseif(UNIX)
@@ -54,17 +52,10 @@ elseif(UNIX)
 endif(MSVC)
 
 #Include the directories
-target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
-
-#target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 
 #Link against other libraries
-target_link_libraries(${PROJ_NAME} zmq_protowriter)
-target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
-target_link_libraries(${PROJ_NAME} re_common_proto_control)
-target_link_libraries(${PROJ_NAME} ${Boost_THREAD_LIBRARY})
-target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(${PROJ_NAME} PUBLIC zmq_protowriter)
+target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_modelevent)
+target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
+target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_THREAD_LIBRARY})

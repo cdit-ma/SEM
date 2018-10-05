@@ -28,7 +28,7 @@ set(HEADERS
 #Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
+add_library(${RE_NODE_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})
 
 add_executable(${RE_NODE_MANAGER} "${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp")
 
@@ -62,18 +62,13 @@ elseif(UNIX)
 endif(MSVC)
 
 #Link against required libraries
-target_link_libraries(${RE_NODE_MANAGER_LIB} ${ZMQ_LIBRARIES})
-target_link_libraries(${RE_NODE_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_core)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protoreceiver)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_environment_manager_lib)
-target_link_libraries(${RE_NODE_MANAGER_LIB} logan_client_lib)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC re_core)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC zmq_protoreceiver)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC zmq_protoreplier)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC zmq_protowriter)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC zmq_environmentrequester)
+target_link_libraries(${RE_NODE_MANAGER_LIB} PUBLIC logan_client_lib)
 
-target_link_libraries(${RE_NODE_MANAGER} zmq_environmentrequester)
 
 target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
 target_link_libraries(${RE_NODE_MANAGER} ${RE_NODE_MANAGER_LIB})
