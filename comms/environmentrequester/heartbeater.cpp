@@ -72,7 +72,7 @@ void Heartbeater::AddCallback(std::function<void (NodeManager::EnvironmentMessag
     callback_func_ = std::move(callback_func);
 }
 void Heartbeater::SetTimeoutCallback(std::function<void (void)> timeout_callback){
-    timeout_callback_ = timeout_callback;
+    timeout_callback_ = std::move(timeout_callback);
 }
 
 void Heartbeater::HandleReply(NodeManager::EnvironmentMessage& environment_message){
