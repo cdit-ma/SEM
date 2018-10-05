@@ -34,6 +34,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 
 
 target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
+target_compile_definitions(${PROJ_NAME} PRIVATE PROTOBUF_USE_DLLS)
 
 
 #Link against our required libraries

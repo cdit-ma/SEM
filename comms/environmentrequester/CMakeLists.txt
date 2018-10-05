@@ -22,11 +22,7 @@ set(HEADERS
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
-if (MSVC)
-	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)    
-endif()
+target_compile_definitions(${PROJ_NAME} PRIVATE PROTOBUF_USE_DLLS)
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
