@@ -11,6 +11,8 @@ class Heartbeater{
         void Start();
         void Terminate();
         void AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func);
+        void SetTimeoutCallback(std::function<void (void)> timeout_callback);
+        
 
     private:
         void HeartbeatLoop();
@@ -27,6 +29,7 @@ class Heartbeater{
         bool end_flag_ = false;
 
         std::function<void (NodeManager::EnvironmentMessage&)> callback_func_;
+        std::function<void (void)> timeout_callback_;
 };
 
 #endif //ENVIRONMENTREQESTER_HEARTBEATER_H

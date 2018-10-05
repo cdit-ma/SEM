@@ -36,10 +36,6 @@ void Heartbeater::HeartbeatLoop(){
             HandleReply(*reply_message);
         }catch(const zmq::TimeoutException& ex){
             retry_count ++;
-            if(!shutdown){
-                //Not Expecting a response from the END_HEARTBEAT
-                std::cerr << "Heartbeat timed out: Retry # " << retry_count << std::endl;
-            }
         }catch(const std::exception& ex){
             retry_count ++;
             std::cerr << "EnvironmentRequester::HeartbeatLoop handle reply " << ex.what() << std::endl;
@@ -47,7 +43,10 @@ void Heartbeater::HeartbeatLoop(){
     }
 
     if(retry_count >= 5){
-        std::cerr << "Heartbeater::HeartbeatLoop Timed out" << std::endl;
+        std::cerr << "* Heartbeater::HeartbeatLoop Timed out" << std::endl;
+        if(timeout_callback_){
+            timeout_callback_();
+        }
     }
 }
 
@@ -71,6 +70,9 @@ void Heartbeater::Terminate(){
 
 void Heartbeater::AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){
     callback_func_ = std::move(callback_func);
+}
+void Heartbeater::SetTimeoutCallback(std::function<void (void)> timeout_callback){
+    timeout_callback_ = timeout_callback;
 }
 
 void Heartbeater::HandleReply(NodeManager::EnvironmentMessage& environment_message){

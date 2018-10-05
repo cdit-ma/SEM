@@ -89,6 +89,13 @@ void EnvironmentRequest::HeartbeatRequester::Terminate() {
     }
 }
 
+void EnvironmentRequest::HeartbeatRequester::SetTimeoutCallback(std::function<void (void)> timeout_func){
+    std::lock_guard<std::mutex> lock(heartbeater_mutex_);
+    if(heartbeater_){
+        heartbeater_->SetTimeoutCallback(timeout_func);
+    }
+}
+
 void EnvironmentRequest::HeartbeatRequester::RemoveDeployment() {
     NodeManager::NodeManagerDeregistrationRequest request;
     auto reply_future = requester_->SendRequest<NodeManager::NodeManagerDeregistrationRequest, NodeManager::NodeManagerDeregistrationReply>("NodeManagerDeregisteration", request, 1000);
