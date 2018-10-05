@@ -21,6 +21,9 @@ set(HEADERS
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
+target_compile_definitions(${PROJ_NAME} PUBLIC PROTOBUF_USE_DLLS)
+target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
+
 target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PUBLIC ${ZMQ_INCLUDE_DIRS})
 
