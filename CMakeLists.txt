@@ -1,14 +1,9 @@
-
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-
 if(NOT RE_COMMON_FOUND)
     if(MSVC)
         #Protobuf says everything is rubbish on windows https://github.com/google/protobuf/blob/master/cmake/README.md
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
     endif()
     message(STATUS "Building re_common")
-
-    set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
     
     set(RE_COMMON_FOUND true PARENT_SCOPE)
     set(RE_COMMON_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

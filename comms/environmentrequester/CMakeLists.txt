@@ -20,7 +20,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
     )
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 target_compile_definitions(${PROJ_NAME} PRIVATE PROTOBUF_USE_DLLS)
 
