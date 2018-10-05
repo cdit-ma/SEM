@@ -34,7 +34,7 @@ set(HEADERS
 add_executable(${LOGAN_CLIENT} ${EXEC_SOURCE})
 
 # Construct a shared library
-add_library(${LOGAN_CLIENT_LIB} SHARED ${SOURCE} ${HEADERS})
+add_library(${LOGAN_CLIENT_LIB} STATIC ${SOURCE} ${HEADERS})
 
 # Link against boost dynamically
 target_compile_definitions(${LOGAN_CLIENT} PRIVATE -DBOOST_ALL_DYN_LINK)
