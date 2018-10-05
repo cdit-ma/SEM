@@ -70,7 +70,7 @@ void Heartbeater::Terminate(){
 }
 
 void Heartbeater::AddCallback(std::function<void (NodeManager::EnvironmentMessage& environment_message)> callback_func){
-    callback_func_ = callback_func;
+    callback_func_ = std::move(callback_func);
 }
 
 void Heartbeater::HandleReply(NodeManager::EnvironmentMessage& environment_message){

@@ -37,6 +37,14 @@ message RequestId{
     string host_name = 3;
 }
 
+message AggregationServerRegistrationRequest{
+    RequestId id = 1;
+}
+
+message AggregationServerRegistrationReply{
+    string heartbeat_endpoint = 1;
+}
+
 message LoganRegistrationRequest{
     RequestId id = 1;
 }

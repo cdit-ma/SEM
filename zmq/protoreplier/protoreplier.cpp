@@ -50,8 +50,9 @@ std::future<void> zmq::ProtoReplier::Start(const std::vector<std::chrono::millis
 }
 
 void zmq::ProtoReplier::Terminate(){
-    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
-    std::lock_guard<std::mutex> future_lock(future_mutex_);
+    std::lock(zmq_mutex_, future_mutex_);
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> future_lock(future_mutex_, std::adopt_lock);
 
     //Shutting down the contexts forces all zmq_sockets to stop blocking on recv and throw and exceptions.
     //Which should terminate all async requests
@@ -66,8 +67,9 @@ void zmq::ProtoReplier::Terminate(){
 }
 
 zmq::socket_t zmq::ProtoReplier::GetReplySocket(){
-    std::lock_guard<std::mutex> address_lock(address_mutex_);
-    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
+    std::lock(address_mutex_, zmq_mutex_);
+    std::lock_guard<std::mutex> address_lock(address_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> zmq_lock(zmq_mutex_, std::adopt_lock);
 
     if(!context_){
         context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
@@ -97,13 +99,13 @@ zmq::socket_t zmq::ProtoReplier::GetReplySocket(){
 
 void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::chrono::milliseconds> retry_timeouts, std::promise<void> blocked_promise){
     try{
-        int retry_count = 0;
+        unsigned long retry_count = 0;
         
         while(true){
             //zmq::poll with -1 timeout blocks until new message is returned
             std::chrono::milliseconds poll_ms(-1);
             
-            if(retry_timeouts.size()){
+            if(!retry_timeouts.empty()){
                 if(retry_count < retry_timeouts.size()){
                     //Get the next timeout time
                     poll_ms = retry_timeouts.at(retry_count);
@@ -170,7 +172,7 @@ void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::
                         socket.send(zmq_reply_error);
                     }
                 }else{
-                    if(retry_timeouts.size()){
+                    if(!retry_timeouts.empty()){
                         retry_count ++;
                     }
                 }
@@ -190,7 +192,7 @@ void zmq::ProtoReplier::ZmqReplier(zmq::socket_t socket, const std::vector<std::
 void zmq::ProtoReplier::RegisterNewProto(const std::string& fn_signature, std::function<std::unique_ptr<google::protobuf::MessageLite> (const google::protobuf::MessageLite&)> callback_function){
     std::unique_lock<std::mutex> callback_lock(callback_mutex_);
     if(!callback_lookup_.count(fn_signature)){
-        callback_lookup_[fn_signature] = callback_function;
+        callback_lookup_[fn_signature] = std::move(callback_function);
     }else{
         throw std::invalid_argument("Request Type '" + fn_signature + "' Already Registered");
     }
