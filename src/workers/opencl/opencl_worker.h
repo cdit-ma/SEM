@@ -23,9 +23,9 @@ public:
 
     // Base/Utility functions
     template <typename T>
-    OCLBuffer<T>* CreateBuffer(std::vector<T> data, bool blocking=true);
+    OCLBuffer<T> CreateBuffer(std::vector<T> data, bool blocking=true);
     template <typename T>
-    void ReleaseBuffer(OCLBuffer<T>* buffer);
+    void ReleaseBuffer(OCLBuffer<T>& buffer);
     template <typename T>
     bool WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking=true);
     template <typename T>
@@ -81,17 +81,27 @@ private:
 
 
 template <typename T>
-OCLBuffer<T>* OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
-    OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(*this, data.size());
-    /*for (const auto& dev_wrapper : devices_) {
-        new_buffer->WriteData(data, dev_wrapper.get(), blocking, this);
-    }*/
-    WriteBuffer(*new_buffer, data, blocking);
+OCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
+    OCLBuffer<T> new_buffer ;
+    try {
+        new_buffer = manager_->CreateBuffer<T>(*this, data.size());
+        new_buffer.Track(*this, *manager_);
+        WriteBuffer(new_buffer, data, blocking);
+    } catch (const std::exception& e) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            std::string("Unable to create an OpenCL buffer from a vector:\n")+e.what());
+    }
     return new_buffer;
 }
 
 template <typename T>
-void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>* buffer) {
+void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>& buffer) {
+    try {
+        buffer.Release(*manager_);
+    } catch (const std::exception& e) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            std::string("Unable to release an OpenCL buffer:\n")+e.what());
+    }
     return manager_->ReleaseBuffer(*this, buffer);
 }
 
