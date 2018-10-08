@@ -1,8 +1,31 @@
+
+
+
+
 if(NOT RE_COMMON_FOUND)
-    if(MSVC)
-        #Protobuf says everything is rubbish on windows https://github.com/google/protobuf/blob/master/cmake/README.md
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
-    endif()
+    get_directory_property(IS_SUB_REPO PARENT_DIRECTORY)
+    
+    # Only set this if we aren't a sub repo
+    if(NOT IS_SUB_REPO)
+        set(CMAKE_CXX_STANDARD 11)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+        set(CMAKE_CXX_EXTENSIONS OFF)
+        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+        set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
+
+        #Set the binary and library locations
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+        if(MSVC)
+		    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+		    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+		    SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	    endif()
+    endif(NOT IS_SUB_REPO)
+
     message(STATUS "Building re_common")
     
     set(RE_COMMON_FOUND true PARENT_SCOPE)
