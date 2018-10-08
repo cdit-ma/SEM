@@ -1,7 +1,7 @@
 set(PROJ_NAME "re_node_manager")
 project(${PROJ_NAME})
 
-find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS program_options date_time chrono REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
@@ -42,6 +42,8 @@ target_link_libraries(${PROJ_NAME} PRIVATE zmq_protowriter)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_environmentrequester)
 target_link_libraries(${PROJ_NAME} PRIVATE logan_client_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_DATE_TIME_LIBRARY})
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_CHRONO_LIBRARY})
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} PRIVATE pthread)

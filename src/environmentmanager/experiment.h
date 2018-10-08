@@ -12,6 +12,7 @@ class Environment;
 class Node;
 class Port;
 class Logger;
+
 struct ExternalPort{
     std::string external_label;
     std::string internal_id;
@@ -21,9 +22,9 @@ struct ExternalPort{
 };
 
 enum class ExperimentState{
-    REGISTERED,
-    CONFIGURED,
-    ACTIVE
+    S_REGISTERED,
+    S_CONFIGURED,
+    S_ACTIVE
 };
 
 
@@ -129,7 +130,7 @@ class Experiment{
 
         uint64_t time_added_;
 
-        ExperimentState state_ = ExperimentState::REGISTERED;
+        ExperimentState state_ = ExperimentState::S_REGISTERED;
 
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to

@@ -29,7 +29,7 @@ Experiment::~Experiment(){
 
         environment_.FreeManagerPort(manager_port_);
         
-        if(GetState() == ExperimentState::ACTIVE){
+        if(GetState() == ExperimentState::S_ACTIVE){
             environment_.FreePort(master_ip_address_, master_publisher_port_);
             environment_.FreePort(master_ip_address_, master_registration_port_);
         }
@@ -49,8 +49,8 @@ Environment& Experiment::GetEnvironment() const{
 
 void Experiment::SetConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::REGISTERED){
-        state_ = ExperimentState::CONFIGURED;
+    if(state_ == ExperimentState::S_REGISTERED){
+        state_ = ExperimentState::S_CONFIGURED;
     }else{
         throw std::runtime_error("Invalid state");
     }
@@ -58,8 +58,8 @@ void Experiment::SetConfigured(){
 
 void Experiment::SetActive(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::CONFIGURED){
-        state_ = ExperimentState::ACTIVE;
+    if(state_ == ExperimentState::S_CONFIGURED){
+        state_ = ExperimentState::S_ACTIVE;
     }else{
         throw std::runtime_error("Invalid state");
     }
@@ -68,17 +68,17 @@ void Experiment::SetActive(){
 
 bool Experiment::IsConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::CONFIGURED;
+    return state_ == ExperimentState::S_CONFIGURED;
 }
 
 bool Experiment::IsRegistered(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::REGISTERED;
+    return state_ == ExperimentState::S_REGISTERED;
 }
 
 bool Experiment::IsActive(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::ACTIVE;
+    return state_ == ExperimentState::S_ACTIVE;
 }
 
 
@@ -126,7 +126,7 @@ ExperimentState Experiment::GetState(){
 Node& Experiment::GetNode(const std::string& ip_address) const{
     try{
         return *(node_map_.at(ip_address));
-    }catch(const std::exception& ex){
+    }catch(const std::exception&){
         throw std::invalid_argument("Experiment: '" + model_name_ + "' does not have registered node with IP: '" + ip_address + "'");
     }
 }
@@ -307,7 +307,7 @@ void Experiment::AddExternalConsumerPort(const std::string& external_port_intern
         environment_.AddExternalConsumerPort(model_name_, external_port.external_label);
         external_port.consumer_ids.insert(internal_port_id);
     }
-    catch(const std::exception& ex){
+    catch(const std::exception&){
     }
 }
 
@@ -317,7 +317,7 @@ void Experiment::AddExternalProducerPort(const std::string& external_port_intern
         environment_.AddExternalProducerPort(model_name_, external_port.external_label);
         external_port.producer_ids.insert(internal_port_id);
     }
-    catch(const std::exception& ex){
+    catch(const std::exception&){
     }
 }
 
@@ -327,7 +327,7 @@ void Experiment::RemoveExternalConsumerPort(const std::string& external_port_int
         environment_.RemoveExternalConsumerPort(model_name_, external_port.external_label);
         external_port.consumer_ids.erase(internal_port_id);
     }
-    catch(const std::exception& ex){
+    catch(const std::exception&){
     }
 }
 
@@ -337,7 +337,7 @@ void Experiment::RemoveExternalProducerPort(const std::string& external_port_int
         environment_.RemoveExternalProducerPort(model_name_, external_port.external_label);
         external_port.producer_ids.erase(internal_port_id);
     }
-    catch(const std::exception& ex){
+    catch(const std::exception&){
     }
 }
 
@@ -351,7 +351,7 @@ std::vector< std::reference_wrapper<Port> > Experiment::GetExternalProducerPorts
         for(const auto& port_id : external_port.producer_ids){
             producer_ports.emplace_back(GetPort(port_id));
         }
-    }catch(const std::runtime_error& ex){
+    }catch(const std::runtime_error&){
     }
     
     return producer_ports;

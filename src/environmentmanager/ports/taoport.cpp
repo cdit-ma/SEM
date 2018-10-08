@@ -4,10 +4,10 @@
 #include "../node.h"
 #include <proto/controlmessage/helper.h>
 
-using namespace EnvironmentManager::tao;
+using namespace EnvironmentManager;
 
 
-Port::Port(Component& parent, const NodeManager::Port& port):
+tao::Port::Port(Component& parent, const NodeManager::Port& port):
     ::EnvironmentManager::Port(parent, port){
 
     //Assign port to this
@@ -30,10 +30,9 @@ Port::Port(Component& parent, const NodeManager::Port& port):
     if(GetKind() == Kind::Replier){
         server_kind_ = "medea_port";
     }    
-
 }
 
-Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port):
+tao::Port::Port(Experiment& parent, const NodeManager::ExternalPort& port):
     ::EnvironmentManager::Port(parent, port){
     naming_service_endpoint_ = NodeManager::GetAttribute(port.attributes(), "naming_server_endpoint").s(0);
     auto& attr = NodeManager::GetAttribute(port.attributes(), "server_name");
@@ -54,23 +53,23 @@ Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::External
     }
 }
 
-const std::vector<std::string>& Port::GetServerName() const{
+const std::vector<std::string>& tao::Port::GetServerName() const{
     return server_name_;
 }
 
-const std::string& Port::GetServerKind() const{
+const std::string& tao::Port::GetServerKind() const{
     return server_kind_;
 }
 
-const std::string& Port::GetNamingServiceEndpoint() const{
+const std::string& tao::Port::GetNamingServiceEndpoint() const{
     return naming_service_endpoint_;
 }
 
-const std::string& Port::GetOrbEndpoint() const{
+const std::string& tao::Port::GetOrbEndpoint() const{
     return orb_endpoint_;
 }
 
-void Port::FillPortPb(NodeManager::Port& port_pb){
+void tao::Port::FillPortPb(NodeManager::Port& port_pb){
     auto attrs = port_pb.mutable_attributes();
 
     if(!IsBlackbox()){
