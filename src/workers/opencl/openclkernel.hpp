@@ -6,7 +6,7 @@
 typedef struct _cl_mem *cl_mem;
 
 #include "openclkernelbase.h"
-#include "OpenCLBufferBase.h"
+#include "openclbufferbase.h"
 #include "openclexception.h"
 
 //#include "openclutilities.h"
