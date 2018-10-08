@@ -80,7 +80,7 @@ void LogController::Start(const std::string& publisher_endpoint, double frequenc
         //Wait for the thread to be up or dead
         state_condition_.wait(alive_lock, [this]{return thread_state_ != LogController::State::NONE;});
 
-        if(thread_state_ == State::ERROR){
+        if(thread_state_ == State::S_ERROR){
             throw std::runtime_error("LogController could not be started");
         }
     }
@@ -127,7 +127,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
 
         if(!writer->BindPublisherSocket(publisher_endpoint)){
             std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
-            state = State::ERROR;
+            state = State::S_ERROR;
         }
 
         {
@@ -138,7 +138,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         }
 
         
-        if(state == State::ERROR){
+        if(state == State::S_ERROR){
             return;
         }
         

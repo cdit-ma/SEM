@@ -27,6 +27,6 @@ target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Link Libraries 
-target_link_libraries(${PROJ_NAME} PRIVATE logan_server_lib)
-target_link_libraries(${PROJ_NAME} PRIVATE zmq_environmentrequester)
-target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME} PUBLIC logan_server_lib)
+target_link_libraries(${PROJ_NAME} PUBLIC zmq_environmentrequester)
+target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_PROGRAM_OPTIONS_LIBRARY})

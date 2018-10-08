@@ -15,9 +15,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../cmakevars.h.in ${CMAKE_CURRENT_
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
-# Compile Definitions
-target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
-
 # Include Directories
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

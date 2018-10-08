@@ -22,8 +22,9 @@
 #define LOGAN_TABLEINSERT_H
 
 #include <string>
-#include "sqlite3.h"
+
 class Table;
+class sqlite3_stmt;
 
 class TableInsert{
     public:   
@@ -35,7 +36,7 @@ class TableInsert{
 
         sqlite3_stmt* get_statement();
     private:
-        sqlite3_stmt* stmt_;
-        Table* table_;        
+        sqlite3_stmt* stmt_ = 0;
+        Table* table_ = 0;        
 };
 #endif //LOGAN_TABLEINSERT_H

@@ -37,7 +37,7 @@ namespace re_common{
 class LogController{
     enum class State{
         NONE,
-        ERROR,
+        S_ERROR,
         RUNNING
     };
 

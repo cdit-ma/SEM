@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <util/execution.hpp>

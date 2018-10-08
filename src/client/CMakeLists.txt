@@ -30,7 +30,7 @@ add_library(${LOGAN_CLIENT_LIB} STATIC ${SOURCE} ${HEADERS})
 # Include Directories
 target_include_directories(${LOGAN_CLIENT} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${LOGAN_CLIENT} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${LOGAN_CLIENT_LIB} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/sigar/src")
+target_include_directories(${LOGAN_CLIENT_LIB} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sigar/include")
 
 # Link Libraries
 target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC re_common_proto_systemstatus)
