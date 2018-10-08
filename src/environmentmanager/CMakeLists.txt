@@ -1,7 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(PROJ_NAME "re_environment_manager")
 project(${PROJ_NAME})
 
@@ -43,27 +39,27 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
     )
 
-#Pass Version info into cmakevars.h
+# Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
+add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
-target_compile_definitions(${PROJ_NAME} BOOST_ALL_DYN_LINK)
+# Compile Definitions
+target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 
-if (MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-elseif(UNIX)
-    target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
-endif(MSVC)
+# Include Directories
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-target_include_directories(${PROJ_NAME} ${Boost_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} ${CMAKE_CURRENT_BINARY_DIR})
+# Link Libraries
+target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_control)
+target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_environmentcontrol)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreplier)
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
-#Link executable against all libraries required
-target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${PROJ_NAME} re_common_proto_control)
-target_link_libraries(${PROJ_NAME} re_common_proto_environmentcontrol)
-target_link_libraries(${PROJ_NAME} zmq_protoreplier)
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
+endif(UNIX)
