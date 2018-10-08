@@ -299,8 +299,6 @@ bool OpenCLManager::IsFPGA() const {
 
 int OpenCLManager::TrackBuffer(const Worker& worker, const OpenCLBufferBase& buffer){
     std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
-
-	std::cout << "ola" << std::endl;
 	
 	//try to retrieve a new buffer ID
 	auto buffer_id  = buffer_id_count_++;
@@ -320,7 +318,6 @@ int OpenCLManager::TrackBuffer(const Worker& worker, const OpenCLBufferBase& buf
 
 void OpenCLManager::UntrackBuffer(int buffer_id) {
     std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
-	std::cout << "comesta?" << std::endl;
 	buffer_store_.erase(buffer_id);
 }
 
