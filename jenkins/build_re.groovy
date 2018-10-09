@@ -38,18 +38,15 @@ for(n in builder_nodes){
     builder_map[node_name] = {
         node(node_name){
             dir(PROJECT_NAME){
-                dir("bin"){
-                    deleteDir()
-                }
-                dir("lib"){
-                    deleteDir()
-                }
-                dir("build"){
-                    deleteDir()
-                }
-
+                deleteDir()
+            }
+            dir(PROJECT_NAME){
                 //Unstash the code
                 unstash name: "source_code"
+
+                dir("testybois"){
+                    unstash name: "source_code"
+                }
                 
                 dir("build"){
                     if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
