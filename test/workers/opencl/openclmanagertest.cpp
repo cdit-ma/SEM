@@ -136,15 +136,22 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     //Load the kernel
     ASSERT_TRUE(device->LoadKernelsFromSource(worker_, {GetSourcePath("kernel.cl")}));
 
+    for ( const auto& kernels : device->GetKernels()) {
+
+    }
+
     //TODO: Jackson Add a kernel getter for a device which takes the name of the kernel, and throws exception if it can't find it
     OpenCLKernel* passthrough_kernel = NULL;
     for (auto& kernel_refwrapper : device->GetKernels()) {
         auto& kernel = kernel_refwrapper.get();
         if (kernel.GetName() == "dataPassthroughTest") {
-            passthrough_kernel = &kernel;
+            std::cerr << "I a bad programmer" << std::endl;
+            passthrough_kernel = &kernel;           
         }
     }
     ASSERT_FALSE(passthrough_kernel == NULL);
+
+    std::cerr << "iz mah test 1" << std::endl;
 
     passthrough_kernel->SetArgs((in_buffer), (out_buffer));
     passthrough_kernel->Run(*device, true, cl::NullRange, cl::NDRange(size), cl::NDRange(size));
