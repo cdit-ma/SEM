@@ -113,6 +113,7 @@ endif()
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
+message(STATUS "KERNAL FILEPATH: ${KERNEL_FILEPATH}")
 target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
