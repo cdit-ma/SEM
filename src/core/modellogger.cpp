@@ -2,13 +2,13 @@
 #include <ctime>
 #include <iostream>
 
-#include <proto/modelevent/modelevent.pb.h>
-#include <zmq/protowriter/cachedprotowriter.h>
+//#include <proto/modelevent/modelevent.pb.h>
+//#include <zmq/protowriter/cachedprotowriter.h>
 
 #include "component.h"
 #include "ports/port.h"
 #include "worker.h"
-
+/*
 void ErrorPrint_ComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& event){
     static std::mutex cerr_mutex;
     std::lock_guard<std::mutex> lock(cerr_mutex);
@@ -29,7 +29,7 @@ void Print_WorkerEvent(const re_common::WorkloadEvent& event){
     std::cout << event.name() << "/" << event.function() << "";
     std::cout << "] " << event.args();
     std::cout << std::endl;
-}
+}*/
 
 bool ModelLogger::setup_model_logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Mode mode){
     auto& s = get_model_logger();
@@ -54,20 +54,20 @@ bool ModelLogger::shutdown_logger(){
     auto& s = get_model_logger();
     std::lock_guard<std::mutex> lock(s.mutex_);
     if(s.is_setup()){
-        s.writer_.reset();
+        //s.writer_.reset();
         return true;
     }
     return false;
 }
 
 bool ModelLogger::is_setup(){
-    return writer_ != nullptr;
+    return true;//writer_ != nullptr;
 }
 
 void ModelLogger::setup_logger(const std::string& experiment_name, const std::string& host_name, const std::string& endpoint, Mode mode){
     host_name_ = host_name;
     experiment_name_ = experiment_name;
-    switch(mode){
+    /*switch(mode){
         case Mode::LIVE:{
             writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
             break;
@@ -83,7 +83,7 @@ void ModelLogger::setup_logger(const std::string& experiment_name, const std::st
         if(!writer_->BindPublisherSocket(endpoint)){
             throw std::runtime_error("Cannot bind endpoint: " + endpoint);
         }
-    }
+    }*/
 }
 
 const std::string& ModelLogger::get_hostname() const{
@@ -100,7 +100,7 @@ std::chrono::milliseconds get_current_time(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 }
 
-
+/*
 void fill_info(re_common::Info& info){
     info.set_experiment_name(ModelLogger::get_model_logger().get_experiment_name());
     info.set_hostname(ModelLogger::get_model_logger().get_hostname());
@@ -135,27 +135,23 @@ void fill_port(re_common::Port& p, std::weak_ptr<Port>& e_wp){
         fill_port(p, *port);
     }
 }
-
+*/
 void ModelLogger::LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event){
-    auto e = new re_common::LifecycleEvent();
+    /*auto e = new re_common::LifecycleEvent();
     fill_info(*e->mutable_info());
     fill_component(*e->mutable_component(), component);
     
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
     
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
-void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
-    if(active_ && writer_ && message){
-        writer_->PushMessage("ModelEvent*", std::unique_ptr<google::protobuf::MessageLite>(message));
-    }else{
-        delete message;
-    }
-}
+/*void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
+}*/
 
 void ModelLogger::LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEvent event){
-    auto e = new re_common::LifecycleEvent();
+    /*
+    //auto e = new re_common::LifecycleEvent();
     auto component = port.get_component();
     //Set info
 
@@ -165,10 +161,11 @@ void ModelLogger::LogLifecycleEvent(const Port& port, ModelLogger::LifeCycleEven
     fill_port(*e->mutable_port(), port);
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
 
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args, bool print){
+    /*
     auto e = new re_common::WorkloadEvent();
 
     const auto& container = worker.get_container();
@@ -199,11 +196,11 @@ void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name
         Print_WorkerEvent(*e);
     }
 
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 void ModelLogger::LogComponentEvent(const Port& port, const ::BaseMessage& message, ModelLogger::ComponentEvent event){
-    auto component = port.get_component();
+    /*auto component = port.get_component();
     int ID = message.get_base_message_id();
     auto e = new re_common::ComponentUtilizationEvent();
 
@@ -214,15 +211,14 @@ void ModelLogger::LogComponentEvent(const Port& port, const ::BaseMessage& messa
         //Set Type, Name
     e->set_port_event_id(ID);
     e->set_type((re_common::ComponentUtilizationEvent::Type)(int)event);
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 
 
 
 void ModelLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print){
-    
-
+    /*
     auto component = port.get_component();
     int ID = message.get_base_message_id();
     auto e = new re_common::ComponentUtilizationEvent();
@@ -238,13 +234,13 @@ void ModelLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& m
     if(print){
         ErrorPrint_ComponentUtilizationEvent(*e);
     }
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 
 
 void ModelLogger::LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print){
-    auto component = port.get_component();
+    /*auto component = port.get_component();
     auto e = new re_common::ComponentUtilizationEvent();
 
     fill_info(*e->mutable_info());
@@ -257,10 +253,11 @@ void ModelLogger::LogPortExceptionEvent(const Port& port, const std::string& err
     if(print){
         ErrorPrint_ComponentUtilizationEvent(*e);
     }
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 void ModelLogger::LogMessageEvent(const Port& port){
+    /*
     //Do Nothing
     auto e = new re_common::MessageEvent();
     auto component = port.get_component();
@@ -271,29 +268,29 @@ void ModelLogger::LogMessageEvent(const Port& port){
     fill_port(*e->mutable_port(), port);
 
 
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 void ModelLogger::LogUserMessageEvent(const Component& component, std::string message){
-    auto e = new re_common::UserEvent();
+    /*auto e = new re_common::UserEvent();
     fill_info(*e->mutable_info());
     fill_component(*e->mutable_component(), component);
     
     e->set_type(re_common::UserEvent::MESSAGE);
     e->set_message(message);
 
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 void ModelLogger::LogUserFlagEvent(const Component& component, std::string message){
-    auto e = new re_common::UserEvent();
+    /*auto e = new re_common::UserEvent();
     fill_info(*e->mutable_info());
     fill_component(*e->mutable_component(), component);
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
 
-    PushMessage(e);
+    PushMessage(e);*/
 }
 
 Log& Log::Msg(const std::string& message){

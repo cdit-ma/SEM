@@ -76,8 +76,8 @@ class ModelLogger{
         const std::string& get_experiment_name() const;
 
     private:
-        void PushMessage(google::protobuf::MessageLite* message);
-        std::unique_ptr<zmq::ProtoWriter> writer_;
+        //void PushMessage(google::protobuf::MessageLite* message);
+        //std::unique_ptr<zmq::ProtoWriter> writer_;
         bool active_ = true;
 
         std::string host_name_;
