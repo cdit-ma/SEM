@@ -20,7 +20,7 @@ public:
     bool FFT(std::vector<float> &data);
 
 protected:
-    virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+    virtual void Log(std::string function_name, Logger::WorkloadEvent event, int work_id = -1, std::string args = "");
 
 private:
     

@@ -1,5 +1,4 @@
 #include "periodicport.h"
-#include "../modellogger.h"
 #include "../component.h"
 #include <iostream>
 #include <memory>

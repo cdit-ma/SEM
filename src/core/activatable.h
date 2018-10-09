@@ -8,8 +8,7 @@
 
 #include "attribute.h"
 
-
-class ModelLogger;
+#include <core/loggerproxy.h>
 
 class Activatable{
 public:
@@ -30,7 +29,8 @@ public:
     static const std::string ToString(const Transition& transation);
     static const std::string ToString(const State& transation);
 
-    public: 
+    public:
+        Activatable();
         virtual ~Activatable(){};
         
         void set_name(std::string name);
@@ -42,7 +42,7 @@ public:
         std::string get_type() const;
 
         bool is_running();
-        ModelLogger& logger();
+        LoggerProxy& logger();
 
         Activatable::State get_state();
 
@@ -63,6 +63,7 @@ public:
     private:
         bool transition_state(const Activatable::Transition transition);
 
+        std::unique_ptr<LoggerProxy> logger_;
         std::string name_;
         std::string type_;
         std::string id_;

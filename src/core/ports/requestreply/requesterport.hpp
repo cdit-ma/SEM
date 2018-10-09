@@ -2,7 +2,6 @@
 #define BASE_PORT_REQUESTER_HPP
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Generic templated RequesterPort

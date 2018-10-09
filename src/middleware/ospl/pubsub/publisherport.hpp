@@ -88,7 +88,7 @@ void ospl::PublisherPort<BaseType, OsplType>::Send(const BaseType& message){
                     writer_.write(*m);
                     delete m;
                     this->EventProcessed(message);
-                    this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+                    this->logger().LogComponentEvent(*this, message, Logger::ComponentEvent::SENT);
                     return;
                 }
             }catch(const std::exception& ex){

@@ -83,7 +83,7 @@ void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
                 const auto& request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
                 sender.send(qpid::messaging::Message(request_str));
                 this->EventProcessed(message);
-                this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+                this->logger().LogComponentEvent(*this, message, Logger::ComponentEvent::SENT);
                 return;
             }catch(const std::exception& ex){
                 std::string error_str("Failed to Translate Message to publish: ");

@@ -6,7 +6,7 @@
 #include <map>
 #include <mutex>
 
-#include <core/modellogger.h>
+#include <core/logger.h>
 #include <core/worker.h>
 
 #include "oclbuffer.hpp"

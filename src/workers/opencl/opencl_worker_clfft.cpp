@@ -7,14 +7,14 @@ bool OpenCL_Worker::InitFFT() {
     fftSetupData = new clfftSetupData();
 	err = clfftInitSetupData(fftSetupData);
     if (err != clfftStatus::CLFFT_SUCCESS) {
-        Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(std::string(__func__), Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to successfully initialise clFFT setup data");
         return false;
     }
     err = clfftSetup(fftSetupData);
     delete fftSetupData;
     if (err != clfftStatus::CLFFT_SUCCESS) {
-        Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(std::string(__func__), Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to successfully set up the clFFT library");
         return false;
     }
@@ -25,7 +25,7 @@ bool OpenCL_Worker::CleanupFFT() {
 	clfftStatus err;
 	err = clfftTeardown();
     if (err != clfftStatus::CLFFT_SUCCESS) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Could not successfully tear down clFFT library");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), "Could not successfully tear down clFFT library");
         return false;
     }
     return true;
@@ -36,7 +36,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	auto work_id = get_new_work_id();
     if (!is_valid_) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid!");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid!");
 		return false;
 	}
 
@@ -45,7 +45,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     size_t length = data.size();
 
     if(length % 2 != 0){
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Non-even length of array, implies half a sample (No complex number)");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Non-even length of array, implies half a sample (No complex number)");
         return false;
     }
 
@@ -56,14 +56,14 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	// Check that prime decomposition only uses 2, 3 and 5 as clFFT doesnt support other prime numbers
 	if (N==0) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Passed an array of length 0");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Passed an array of length 0");
 		return false;
 	}
 	while (N%2 == 0) N = N/2;
 	while (N%3 == 0) N = N/3;
 	while (N%5 == 0) N = N/5;
 	if (N > 1) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Number of samples must be a mix of powers of 2, 3 and 5");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Number of samples must be a mix of powers of 2, 3 and 5");
 		return false;
 	}
 	N = data.size();
@@ -105,7 +105,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
         err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer->GetBackingRef()()), NULL, NULL);
 
         if (err != CL_SUCCESS) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
                 "Failed to enqueue FFT transform with error message: "+OpenCLErrorName(err));
         }
 
@@ -113,7 +113,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
         err = dev->GetQueue().GetRef().finish();
 
         if (err != CL_SUCCESS) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
                 "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
         }
 

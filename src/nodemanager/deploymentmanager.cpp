@@ -202,9 +202,8 @@ void DeploymentManager::ProcessControlQueue(){
                         for(const auto& c : deployment_containers_){
                             c.second->Terminate();
                         }
+                        deployment_containers_.clear();
                     }
-
-                    ModelLogger::shutdown_logger();
                     
                     //Interupt and die
                     InteruptControlQueue();

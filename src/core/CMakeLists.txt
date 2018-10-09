@@ -10,7 +10,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/loggerprinter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/loggerproxy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
@@ -24,7 +25,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/port.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/periodicport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/loggerprinter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/loggerproxy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.h

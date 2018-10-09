@@ -5,7 +5,6 @@
 #include <middleware/proto/prototranslator.h>
 #include <middleware/zmq/zmqhelper.h>
 #include <zmq/zmqutils.hpp>
-#include <core/modellogger.h>
 
 
 namespace zmq{
@@ -155,7 +154,7 @@ void zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
             const auto& request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
             socket.send(String2Zmq(request_str));
             this->EventProcessed(message);
-            this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+            this->logger().LogComponentEvent(*this, message, Logger::ComponentEvent::SENT);
             return;
         }catch(const std::exception& ex){
             std::string error_str("Failed to Translate Message to publish: ");

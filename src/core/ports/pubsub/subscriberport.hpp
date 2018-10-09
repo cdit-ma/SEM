@@ -10,7 +10,6 @@
 #include "../../threadmanager.h"
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Interface for a standard templated SubscriberPort
@@ -131,9 +130,9 @@ void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
 
     if(process_message){
         //Call into the function and log
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger().LogComponentEvent(*this, message, Logger::ComponentEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(message);
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        logger().LogComponentEvent(*this, message, Logger::ComponentEvent::FINISHED_FUNC);
         EventProcessed(message);
     }else{
         EventIgnored(message);

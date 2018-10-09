@@ -6,7 +6,6 @@
 #include <stdarg.h>
 
 #include "behaviourcontainer.h"
-#include "modellogger.h"
 
 class Worker: public BehaviourContainer{
     public:
@@ -25,7 +24,7 @@ class Worker: public BehaviourContainer{
 
     protected:
         int get_new_work_id();
-        void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "", bool print = false);
+        void Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", bool print = false);
         
     private:
         const BehaviourContainer& container_;

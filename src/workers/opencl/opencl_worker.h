@@ -45,7 +45,7 @@ public:
 
 
 protected:
-    virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+    virtual void Log(std::string function_name, Logger::WorkloadEvent event, int work_id = -1, std::string args = "");
 
     bool InitFFT();
     bool CleanupFFT();
@@ -98,13 +98,13 @@ void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>* buffer) {
 template <typename T>
 bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
     if (devices_.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot write to buffer when worker has no associated devices");
         return false;
     }
 
     if (devices_.size() > 1) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Attempting to write to buffer using a worker that has multiple associated devices");
     }
 
@@ -112,7 +112,7 @@ bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data
     for (const auto& dev_wrapper : devices_) {
         bool success = buffer.WriteData(*this, data, dev_wrapper.get(), blocking);
         if (!success) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to write to OpenCLBuffer for device "+dev_wrapper.get().GetName());
             did_all_succeed = false;
         }
@@ -123,13 +123,13 @@ bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data
 template <typename T>
 std::vector<T> OpenCL_Worker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
     if (devices_.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot read from buffer when worker has no associated devices");
         return std::vector<T>();
     }
 
     if (devices_.size() > 1) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot read buffer using a worker that has multiple associated devices");
         return std::vector<T>();
     }

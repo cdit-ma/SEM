@@ -10,6 +10,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/loganlogger.cpp
     )
 
 set(HEADERS
@@ -19,6 +20,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/loganlogger.h
     )
 
 # Pass Version info into cmakevars.h

@@ -102,6 +102,7 @@ class Component : public BehaviourContainer{
         const std::vector<std::string>& GetLocation() const;
         const std::vector<int>& GetReplicationIndices() const;
         std::string GetLocalisedName();
+        const std::string& GetExperimentName();
     protected:
         virtual void HandleActivate();
         virtual void HandleConfigure();
@@ -110,6 +111,7 @@ class Component : public BehaviourContainer{
 
         void SetLocation(const std::vector<std::string>& location);
         void SetReplicationIndices(const std::vector<int>& indices);
+        void SetExperimentName(const std::string& experiment_name);
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
@@ -122,6 +124,7 @@ class Component : public BehaviourContainer{
 
         std::vector<std::string> component_location_;
         std::vector<int> replication_indices_;
+        std::string experiment_name_;
 };
 
 template<class PortType>
