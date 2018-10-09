@@ -37,7 +37,7 @@ typedef BufferFixture<double> DoubleFixture;
 template <typename T>
 void BufferTest(OpenCL_Worker& worker_, const BufferParam<T> bf){
     // Create buffer
-    OCLBuffer<T> buffer;
+    OpenCLBuffer<T> buffer;
     buffer = worker_.CreateBuffer(bf.data, true);
     
     // Check for valid buffer

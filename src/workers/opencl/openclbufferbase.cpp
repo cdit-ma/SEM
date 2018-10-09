@@ -55,13 +55,13 @@ cl::Buffer& OpenCLBufferBase::GetBackingRef() const {
 
 void OpenCLBufferBase::LogError(const Worker& worker_reference, std::string function_name, std::string error_message, int cl_error_code) const {
     LogOpenCLError(worker_reference,
-        "OCLBuffer::" + function_name,
+        "OpenCLBuffer::" + function_name,
         error_message,
         cl_error_code);
 }
 
 void OpenCLBufferBase::LogError(const Worker& worker_reference, std::string function_name, std::string error_message) const {
     LogOpenCLError(worker_reference,
-        "OCLBuffer::" + function_name,
+        "OpenCLBuffer::" + function_name,
         error_message);
 }

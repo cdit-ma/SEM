@@ -4,7 +4,7 @@
 #include <core/worker.h>
 #include <core/component.h>
 #include "openclmanager.h"
-#include "oclbuffer.hpp"
+#include "OpenCLBuffer.hpp"
 #include "openclkernel.hpp"
 #include "openclloadbalancer.h"
 
@@ -23,24 +23,24 @@ public:
 
     // Base/Utility functions
     template <typename T>
-    OCLBuffer<T> CreateBuffer(std::vector<T> data, bool blocking=true);
+    OpenCLBuffer<T> CreateBuffer(std::vector<T> data, bool blocking=true);
     template <typename T>
-    void ReleaseBuffer(OCLBuffer<T>& buffer);
+    void ReleaseBuffer(OpenCLBuffer<T>& buffer);
     template <typename T>
-    bool WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking=true);
+    bool WriteBuffer(OpenCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking=true);
     template <typename T>
-    std::vector<T> ReadBuffer(const OCLBuffer<T>& buffer, bool blocking=true);
+    std::vector<T> ReadBuffer(const OpenCLBuffer<T>& buffer, bool blocking=true);
 
     // Bespoke algorithms
     bool RunParallel(int num_threads, long long ops_per_thread);
-    bool MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC, OpenCLDevice& device);
+    bool MatrixMult(const OpenCLBuffer<float>& matA, const OpenCLBuffer<float>& matB, OpenCLBuffer<float>& matC, OpenCLDevice& device);
     bool MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC);
-    bool KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations);
+    bool KmeansCluster(const OpenCLBuffer<float>& points, OpenCLBuffer<float>& centroids, OpenCLBuffer<int>& point_classifications, int iterations);
     bool KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations);
 
     // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
     bool FFT(std::vector<float> &data);
-    bool FFT(OCLBuffer<float> &data);
+    bool FFT(OpenCLBuffer<float> &data);
 
 
 
@@ -81,8 +81,8 @@ private:
 
 
 template <typename T>
-OCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
-    OCLBuffer<T> new_buffer ;
+OpenCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
+    OpenCLBuffer<T> new_buffer ;
     try {
         new_buffer = manager_->CreateBuffer<T>(*this, data.size());
         new_buffer.Track(*this, *manager_);
@@ -95,7 +95,7 @@ OCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
 }
 
 template <typename T>
-void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>& buffer) {
+void OpenCL_Worker::ReleaseBuffer(OpenCLBuffer<T>& buffer) {
     try {
         buffer.Release(*manager_);
     } catch (const std::exception& e) {
@@ -106,7 +106,7 @@ void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>& buffer) {
 }
 
 template <typename T>
-bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
+bool OpenCL_Worker::WriteBuffer(OpenCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot write to buffer when worker has no associated devices");
@@ -131,7 +131,7 @@ bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data
 }
 
 template <typename T>
-std::vector<T> OpenCL_Worker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
+std::vector<T> OpenCL_Worker::ReadBuffer(const OpenCLBuffer<T>& buffer, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot read from buffer when worker has no associated devices");

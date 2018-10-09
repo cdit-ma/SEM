@@ -321,9 +321,9 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Created valid OCLBuffer of floats");
+	recordTest(res, "Created valid OpenCLBuffer of floats");
 	if (res == FAIL) return;
-	//OCLBuffer<std::string>* stringBuffer = manager->CreateBuffer<std::string>(1024);
+	//OpenCLBuffer<std::string>* stringBuffer = manager->CreateBuffer<std::string>(1024);
 
 	// Send some data through
 	printInfo("Writing data to a buffer (4 elements containing numbers 10~13)...");
@@ -401,7 +401,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Created valid OCLBuffer to write data to");
+	recordTest(res, "Created valid OpenCLBuffer to write data to");
 
 	auto out_buffer = manager.CreateBuffer<float>(passthroughWorker, 4);
 	if (out_buffer.IsValid()) {
@@ -409,7 +409,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Created valid OCLBuffer to read data from");
+	recordTest(res, "Created valid OpenCLBuffer to read data from");
 
 	std::vector<std::string> filenames;
 	filenames.push_back(GetSourcePath("kernel.cl"));
@@ -530,7 +530,7 @@ template <typename T>
 void testWorkerCreateBufferOfType(OpenCL_Worker& worker, std::string type_name, std::vector<T> vec_4) {
 	Result res = UNKNOWN;
 	std::vector<T> vec_empty;
-	OCLBuffer<T> buffer_empty = worker.CreateBuffer(vec_empty, true);
+	OpenCLBuffer<T> buffer_empty = worker.CreateBuffer(vec_empty, true);
 	/*if (buffer_empty != NULL) {
 		res = PASS;
 	} else {
@@ -553,7 +553,7 @@ void testWorkerCreateBufferOfType(OpenCL_Worker& worker, std::string type_name, 
 	//worker.ReleaseBuffer(buffer_empty);
 	
 
-	OCLBuffer<T> buffer_4 = worker.CreateBuffer(vec_4);
+	OpenCLBuffer<T> buffer_4 = worker.CreateBuffer(vec_4);
 	/*if (buffer_4 != NULL) {
 		res = PASS;
 	} else {

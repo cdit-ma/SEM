@@ -9,7 +9,7 @@
 #include <core/modellogger.h>
 #include <core/worker.h>
 
-#include "oclbuffer.hpp"
+#include "OpenCLBuffer.hpp"
 #include "opencldevice.h"
 
 class OpenCLKernel;
@@ -59,12 +59,12 @@ class OpenCLManager {
 		const std::vector<OpenCLKernel> CreateKernels(const Worker& worker, const std::vector<std::string>& filenames);
 		
 		template <typename T>
-		OCLBuffer<T> CreateBuffer(const Worker& worker, size_t buffer_size);
+		OpenCLBuffer<T> CreateBuffer(const Worker& worker, size_t buffer_size);
 		template <typename T>
-		OCLBuffer<T> CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking=true);
+		OpenCLBuffer<T> CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking=true);
 
 		template <typename T>
-		void ReleaseBuffer(const Worker& worker, OCLBuffer<T>& buffer);
+		void ReleaseBuffer(const Worker& worker, OpenCLBuffer<T>& buffer);
 		
 		bool IsValid() const;
         bool IsFPGA() const;
@@ -127,18 +127,18 @@ class OpenCLManager {
 
 
 template <typename T>
-OCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
-	return OCLBuffer<T>(worker, *this, buffer_size);
+OpenCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
+	return OpenCLBuffer<T>(worker, *this, buffer_size);
 }
 
 template <typename T>
-OCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
-	return OCLBuffer<T>(worker, *this, data, device, blocking);
+OpenCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
+	return OpenCLBuffer<T>(worker, *this, data, device, blocking);
 }
 
 
 template <typename T>
-void OpenCLManager::ReleaseBuffer(const Worker& worker, OCLBuffer<T>& buffer) {
+void OpenCLManager::ReleaseBuffer(const Worker& worker, OpenCLBuffer<T>& buffer) {
 	//UntrackBuffer(buffer.GetID());
 }
 

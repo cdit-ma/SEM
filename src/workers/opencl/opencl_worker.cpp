@@ -110,9 +110,9 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
-    OCLBuffer<float> bufferA;
-    OCLBuffer<float> bufferB;
-    OCLBuffer<float> result_buffer;
+    OpenCLBuffer<float> bufferA;
+    OpenCLBuffer<float> bufferB;
+    OpenCLBuffer<float> result_buffer;
 
     try {
         bufferA = manager_->CreateBuffer<float>(*this, matA, *device);
@@ -153,7 +153,7 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     return success;
 }
 
-bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC, OpenCLDevice& device) {
+bool OpenCL_Worker::MatrixMult(const OpenCLBuffer<float>& matA, const OpenCLBuffer<float>& matB, OpenCLBuffer<float>& matC, OpenCLDevice& device) {
     cl_uint lenA = (cl_uint)matA.GetNumElements();
     cl_uint lenB = (cl_uint)matB.GetNumElements();
     cl_uint lenC = (cl_uint)matC.GetNumElements();
@@ -238,9 +238,9 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
-    OCLBuffer<float> point_buffer;
-    OCLBuffer<float> centroid_buffer;
-    OCLBuffer<int> classification_buffer;
+    OpenCLBuffer<float> point_buffer;
+    OpenCLBuffer<float> centroid_buffer;
+    OpenCLBuffer<int> classification_buffer;
 
     try {
         point_buffer = manager_->CreateBuffer(*this, points, *device);
@@ -285,7 +285,7 @@ bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<
     return true;
 }
 
-bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
+bool OpenCL_Worker::KmeansCluster(const OpenCLBuffer<float>& points, OpenCLBuffer<float>& centroids, OpenCLBuffer<int>& point_classifications, int iterations) {
     
     auto device_id = load_balancer_->RequestDevice();
     const auto& device = manager_->GetDevices(*this)[device_id];    
@@ -330,8 +330,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     cl::LocalSpaceArg local_center_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_float4));
     cl::LocalSpaceArg local_count_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_uint));
 
-    OCLBuffer<float> work_group_center_buffer;
-    OCLBuffer<cl_uint> work_group_count_buffer;
+    OpenCLBuffer<float> work_group_center_buffer;
+    OpenCLBuffer<cl_uint> work_group_count_buffer;
 
     try {
         work_group_center_buffer = manager_->CreateBuffer<float>(*this, num_centroids*num_compute_units*4);
