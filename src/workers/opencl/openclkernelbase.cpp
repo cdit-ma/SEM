@@ -24,12 +24,17 @@ void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDR
 
     cl_int err;
     cl::Event kernel_event;
+    std::cerr << 1 << std::endl;
     auto& queue = device.GetQueue();
     
     {
+        std::cerr << 2 << std::endl;
         std::lock_guard<std::mutex> guard(kernel_mutex_);
 
+        std::cerr << 3 << std::endl;
+
         err = queue.GetRef().enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
+        std::cerr << 4 << std::endl;
         if (err != CL_SUCCESS) {
             throw OpenCLException(std::string(GET_FUNC)+": Failed to enqueue kernel '"+name_+"' for execution", err);
         }
@@ -41,7 +46,9 @@ void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDR
     }
 
     if (block) {
+        std::cerr << 5 << std::endl;
         kernel_event.wait();
+        std::cerr << 6 << std::endl;
     }
 }
 
