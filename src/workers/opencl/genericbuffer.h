@@ -17,9 +17,6 @@ class
 GenericBuffer {
 public:
     GenericBuffer(const Worker& worker, OpenCLManager& manager, size_t size);
-    ~GenericBuffer() {
-        std::cerr << "killing GenericBuffer @ " << this << std::endl;
-    }
 
     void Release();
 

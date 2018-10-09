@@ -50,7 +50,7 @@ cl::Buffer& OpenCLBufferBase::GetBackingRef() const {
     if (!IsValid()) {
         throw std::runtime_error("Attempting to get backing reference for an invalid OpenCLBuffer");
     }
-    buffer_->GetBackingRef();
+    return buffer_->GetBackingRef();
 }
 
 void OpenCLBufferBase::LogError(const Worker& worker_reference, std::string function_name, std::string error_message, int cl_error_code) const {

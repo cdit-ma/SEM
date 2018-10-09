@@ -22,7 +22,6 @@ public:
 protected:
     OpenCLBufferBase() = default;
     OpenCLBufferBase(const Worker& worker, OpenCLManager& manager, size_t num_bytes);
-    ~OpenCLBufferBase() { if (!IsValid()) return; std::cerr << "BufferBase DED" << this << std::endl;};
 
     std::shared_ptr<GenericBuffer> buffer_;
     int id_ = -1;

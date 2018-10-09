@@ -123,7 +123,6 @@ typename std::enable_if<std::is_base_of<OpenCLBufferBase, T0>::value, void>::typ
 OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     //std::cerr << "entering base call for OpenCLBufferBase object of type " << typeid(T0).name() <<std::endl;
     const cl::Buffer& buffer_ref = static_cast<const OpenCLBufferBase&>(arg0).GetBackingRef();
-    //bool success = 
     SetArg(index, buffer_ref);
     
     // if (!success) {
