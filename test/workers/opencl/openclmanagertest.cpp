@@ -154,13 +154,19 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     std::cerr << "iz mah test 1" << std::endl;
 
     passthrough_kernel->SetArgs((in_buffer), (out_buffer));
+    std::cerr << "iz mah test 2" << std::endl;
     passthrough_kernel->Run(*device, true, cl::NullRange, cl::NDRange(size), cl::NDRange(size));
+    std::cerr << "iz mah test 3" << std::endl;
 
     auto out_data = out_buffer.ReadData(worker_, *device);
+    std::cerr << "iz mah test 4" << std::endl;
     EXPECT_EQ(in_data, out_data);
 
+    std::cerr << "iz mah test 5" << std::endl;
     manager_->ReleaseBuffer(worker_, in_buffer);
+    std::cerr << "iz mah test 6" << std::endl;
     manager_->ReleaseBuffer(worker_, out_buffer);
+    std::cerr << "iz mah test 7" << std::endl;
 }
 
 TEST(LoadBalancer, Simple3Device)
