@@ -128,16 +128,12 @@ class OpenCLManager {
 
 template <typename T>
 OCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
-	auto buffer = OCLBuffer<T>(worker, *this, buffer_size);
-	//TrackBuffer(worker, buffer);
-	return buffer;
+	return OCLBuffer<T>(worker, *this, buffer_size);
 }
 
 template <typename T>
 OCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
-	auto buffer = OCLBuffer<T>(worker, *this, data, device, blocking);
-	//TrackBuffer(worker, buffer);
-	return buffer;
+	return OCLBuffer<T>(worker, *this, data, device, blocking);
 }
 
 
