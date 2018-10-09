@@ -132,7 +132,6 @@ std::string GetSourcePath(std::string filename) {
 	//std::string source_file_path(__FILE__);
 	std::cerr << "LOADING KERNEL FROM: " << KERNEL_FILEPATH << std::endl;
 	std::string source_file_path(KERNEL_FILEPATH);
-	std::cerr << "LOADING KERNEL FROM: " << source_dir << std::endl;
 	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
 	return source_dir + filename;
 }
