@@ -44,6 +44,9 @@ for(n in builder_nodes){
                 dir("lib"){
                     deleteDir()
                 }
+                dir("build"){
+                    deleteDir()
+                }
 
                 //Unstash the code
                 unstash name: "source_code"
