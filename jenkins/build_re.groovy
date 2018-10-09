@@ -49,7 +49,7 @@ for(n in builder_nodes){
                 }
                 
                 dir("build"){
-                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
+                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON -DCMAKE_BUILD_TYPE=Debug")){
                         error("CMake failed on Builder Node: " + node_name)
                     }
                 }
@@ -82,7 +82,7 @@ for(n in builder_nodes){
                         }
                         def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output + test_filter)
 
-                        if(test_error_code != 0){
+                    if(test_error_code != 0){
                             FAILED = true
                             print("Test: " + file_path + " Failed!")
                             FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)
