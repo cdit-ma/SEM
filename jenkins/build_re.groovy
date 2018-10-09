@@ -49,7 +49,8 @@ for(n in builder_nodes){
                 }
                 
                 dir("build"){
-                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON -DCMAKE_BUILD_TYPE=Debug")){
+                    sh("env")
+                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
                         error("CMake failed on Builder Node: " + node_name)
                     }
                 }
