@@ -130,9 +130,10 @@ static_assert(false, "No Kernel filepath defined!");
 
 std::string GetSourcePath(std::string filename) {
 	//std::string source_file_path(__FILE__);
+	std::cerr << "LOADING KERNEL FROM: " << KERNEL_FILEPATH << std::endl;
 	std::string source_file_path(KERNEL_FILEPATH);
-	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
 	std::cerr << "LOADING KERNEL FROM: " << source_dir << std::endl;
+	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
 	return source_dir + filename;
 }
 
@@ -143,6 +144,8 @@ cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filena
 	cl::Program::Sources source_list;
 
 	for (const auto& filename : filenames) {
+
+		std::cerr << "Reading file with path " << filename << std::endl;
 		std::ifstream source_file;
 		source_file.open(filename);
 		if (!source_file.is_open()) {

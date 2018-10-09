@@ -56,6 +56,8 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
+	std::cerr << "read source code " << std::endl;
+
 	std::lock_guard<std::mutex> guard(kernel_list_mutex_);
 
 	programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), sources, &err));
