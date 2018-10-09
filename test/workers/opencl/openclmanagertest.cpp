@@ -127,8 +127,9 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     
     auto in_data = std::vector<float>(size, 2.0f/3.0f);
     auto in_buffer = manager_->CreateBuffer<float>(worker_, in_data, *device);
+    auto out_buffer = manager_->CreateBuffer<float>(worker_, in_data, *device);
     //ASSERT_NE(in_buffer, nullptr);
-    auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
+    //auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
     //ASSERT_NE(out_buffer, nullptr);
 
     ASSERT_TRUE(in_buffer.IsValid());
