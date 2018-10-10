@@ -58,6 +58,7 @@ message Port{
     string middleware = 5;  //middleware of port
 }
 
+
 message LifecycleEvent{
     enum Type{
         NONE = 0;
@@ -86,7 +87,7 @@ message WorkloadEvent{
     Component component = 3;        //Instance id of component impl
     Worker worker = 4;
 
-    uint64 work_id = 5;                  //Implementation's work id
+    uint64 workload_id = 5;                  //Implementation's work id
     string function_name = 6;            //Workers Function Name
     string args = 7;
 }
