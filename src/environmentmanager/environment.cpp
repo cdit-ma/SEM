@@ -40,8 +40,9 @@ Environment::~Environment(){
 }
 
 void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     
     //Take a copy
     auto control_message = const_control_message;
@@ -149,8 +150,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std
 }
 
 void Environment::ShutdownExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     auto& experiment = GetExperimentInternal(experiment_name);
     if(experiment.IsActive()){
@@ -161,8 +163,9 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     RemoveExperimentInternal(experiment_name);
 }
 

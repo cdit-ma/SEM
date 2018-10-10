@@ -46,19 +46,17 @@ class Experiment{
         
         ExperimentState GetState() const;
 
-        bool IsConfigured();
         void SetConfigured();
-
-        bool IsRegistered();
-        bool IsActive();
         void SetActive();
+
+        bool IsRegistered() const;
+        bool IsConfigured() const;
+        bool IsActive() const;
 
         const std::string& GetName() const;
 
         std::string GetManagerPort() const;
-        void SetManagerPort(const std::string& manager_Gport);
-
-        
+        void SetManagerPort(const std::string& manager_port);
 
         void AddExternalPorts(const NodeManager::ControlMessage& message);
         void AddNode(const NodeManager::Node& node);

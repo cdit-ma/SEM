@@ -16,10 +16,10 @@ Experiment::~Experiment(){
             const auto& port = external_port_pair.second;
             const auto& external_port_label = port->external_label;
 
-            if(port->consumer_ids.size() > 0){
+            if(!port->consumer_ids.empty()){
                 environment_.RemoveExternalConsumerPort(model_name_, external_port_label);
             }
-            if(port->producer_ids.size() > 0){
+            if(!port->producer_ids.empty()){
                 environment_.RemoveExternalProducerPort(model_name_, external_port_label);
             }
         }
@@ -66,17 +66,17 @@ void Experiment::SetActive(){
 }
 
 
-bool Experiment::IsConfigured(){
+bool Experiment::IsConfigured() const {
     std::unique_lock<std::mutex> lock(mutex_);
     return state_ == ExperimentState::CONFIGURED;
 }
 
-bool Experiment::IsRegistered(){
+bool Experiment::IsRegistered() const {
     std::unique_lock<std::mutex> lock(mutex_);
     return state_ == ExperimentState::REGISTERED;
 }
 
-bool Experiment::IsActive(){
+bool Experiment::IsActive() const {
     std::unique_lock<std::mutex> lock(mutex_);
     return state_ == ExperimentState::ACTIVE;
 }

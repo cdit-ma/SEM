@@ -9,14 +9,14 @@
 
 DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
-                                        int portrange_min, int portrange_max)
+                                        int port_range_min, int port_range_max)
                                         :
 execution_(execution),
 environment_manager_ip_address_(environment_manager_ip_address)
 {
 
-    assert(portrange_min < portrange_max);
-    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
+    assert(port_range_min < port_range_max);
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, port_range_min, port_range_max));
 
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     replier_->Bind(zmq::TCPify(environment_manager_ip_address, registration_port));
@@ -54,6 +54,7 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<NodeManager::MEDEAInterfaceRequest, NodeManager::MEDEAInterfaceReply>(
             "MEDEAInterfaceRequest", [this](const NodeManager::MEDEAInterfaceRequest& message){
                 return DeploymentRegister::HandleMEDEAInterfaceRequest(message);});
+
 
     replier_->Start();
 }
@@ -199,15 +200,15 @@ std::unique_ptr<NodeManager::AggregationServerRegistrationReply>
     auto port_future = port_promise.get_future();
 
 
-//    if(!aggregation_ip_address.empty()){
-//        auto aggregation_server_handler = std::unique_ptr<AggregationServerHandler>(new AggregationServerHandler(*environment_,
-//                environment_manager_ip_address_, aggregation_ip_address, std::move(port_promise)));
-//        auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
-//        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
-//
-//        aggregation_server_handlers_.push_back(std::move(aggregation_server_handler));
-//        return reply;
-//    }
+    if(!aggregation_ip_address.empty()){
+        auto aggregation_server_handler = std::unique_ptr<AggregationServerHandler>(new AggregationServerHandler(*environment_,
+                environment_manager_ip_address_, aggregation_ip_address, std::move(port_promise)));
+        auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
+        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
+
+        aggregation_server_handlers_.push_back(std::move(aggregation_server_handler));
+        return reply;
+    }
     return std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
 }
 

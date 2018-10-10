@@ -29,8 +29,6 @@ experiment_id_(experiment_id)
         throw error;
     }
 
-    
-
     //Register the callbacks
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
                                 ("NodeManagerHeartbeat", std::bind(&DeploymentHandler::HandleHeartbeat, this, std::placeholders::_1));
@@ -58,9 +56,9 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     std::future<void> replier_future;
     {
         std::vector<std::chrono::milliseconds> timeouts;
-        timeouts.push_back(std::chrono::milliseconds(2000));
-        timeouts.push_back(std::chrono::milliseconds(4000));
-        timeouts.push_back(std::chrono::milliseconds(8000));
+        timeouts.emplace_back(2000);
+        timeouts.emplace_back(4000);
+        timeouts.emplace_back(8000);
 
         std::lock_guard<std::mutex> lock(replier_mutex_);
         replier_future = replier_->Start(timeouts);

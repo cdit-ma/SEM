@@ -29,7 +29,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/aggregationserverhandler.cpp)
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
@@ -47,7 +47,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/taoport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/aggregationserverhandler.h)
 
 #Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
@@ -94,6 +94,7 @@ target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} re_common_proto_control)
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} re_common_proto_environmentcontrol)
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} zmq_protoreplier)
+target_link_libraries(${ENVIRONMENT_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ENVIRONMENT_MANAGER_LIB})
 
 #target_link_libraries(rule_tester ${ENVIRONMENT_MANAGER_LIB})

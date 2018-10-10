@@ -35,7 +35,7 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     }
 
     //set logger port
-    if(components_.size()){
+    if(!components_.empty()){
         AddModelLogger();
     }
     
