@@ -57,245 +57,222 @@ const std::string LOGAN_PORT_TYPE = "port_type";
 const std::string LOGAN_PORT_MIDDLEWARE = "port_middleware";
 const std::string LOGAN_WORKER_NAME = "worker_name";
 const std::string LOGAN_WORKER_TYPE = "worker_type";
+const std::string LOGAN_WORKER_ID = "worker_id";
+
 const std::string LOGAN_EVENT = "event";
 
 
 //Model Table names
-const std::string LOGAN_LIFECYCLE_PORT_TABLE = "Model_Lifecycle_EventPort";
-const std::string LOGAN_LIFECYCLE_COMPONENT_TABLE = "Model_Lifecycle_Component";
-const std::string LOGAN_EVENT_USER_TABLE = "Model_Event_User";
-const std::string LOGAN_EVENT_WORKLOAD_TABLE = "Model_Event_Workload";
-const std::string LOGAN_EVENT_COMPONENT_TABLE = "Model_Event_Component";
+const std::string LOGAN_MODELEVENT_LIFECYCLE_TABLE = "ModelEvents_Lifecycle";
+const std::string LOGAN_MODELEVENT_WORKLOAD_TABLE = "ModelEvents_Workload";
+const std::string LOGAN_MODELEVENT_UTILIZATION_TABLE = "ModelEvents_Utilization";
 
 ModelProtoHandler::ModelProtoHandler(SQLiteDatabase& database):
     ProtoHandler(),
     database_(database)
 {
-    CreatePortEventTable();
-    CreateComponentEventTable();
-    CreateUserEventTable();
-    CreateWorkloadEventTable();
-    CreateComponentUtilizationTable();
+    CreateLifecycleTable();
+    CreateWorkloadTable();
+    CreateUtilizationTable();
 }
 
 void ModelProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
-    receiver.RegisterProtoCallback<re_common::UserEvent>(std::bind(&ModelProtoHandler::ProcessUserEvent, this, std::placeholders::_1));
     receiver.RegisterProtoCallback<re_common::LifecycleEvent>(std::bind(&ModelProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
     receiver.RegisterProtoCallback<re_common::WorkloadEvent>(std::bind(&ModelProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
-    receiver.RegisterProtoCallback<re_common::ComponentUtilizationEvent>(std::bind(&ModelProtoHandler::ProcessComponentUtilizationEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<re_common::UtilizationEvent>(std::bind(&ModelProtoHandler::ProcessUtilizationEvent, this, std::placeholders::_1));
 }
 
+Table& ModelProtoHandler::GetTable(const std::string& table_name){
+    return *(tables_.at(table_name));
+}
 
-void ModelProtoHandler::CreatePortEventTable(){
-    if(table_map_.count(LOGAN_LIFECYCLE_PORT_TABLE)){
+bool ModelProtoHandler::GotTable(const std::string& table_name){
+    try{
+        GetTable(table_name);
+        return true;
+    }catch(const std::exception& ex){
+    }
+    return false;
+}
+
+void AddInfoColumns(Table& table){
+    table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    table.AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+}
+
+void AddComponentColumns(Table& table){
+    table.AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
+}
+
+void AddPortColumns(Table& table){
+    table.AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
+}
+void AddWorkerColumns(Table& table){
+    table.AddColumn(LOGAN_WORKER_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_WORKER_ID, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_WORKER_TYPE, LOGAN_VARCHAR);
+}
+
+void ModelProtoHandler::CreateLifecycleTable(){
+    if(GotTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE)){
+        return;
+    }
+    
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_MODELEVENT_LIFECYCLE_TABLE));
+    auto& table = *table_ptr;
+
+    AddInfoColumns(table);
+    AddComponentColumns(table);
+    AddPortColumns(table);
+    table.AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
+    table.Finalize();
+
+    tables_.insert({LOGAN_MODELEVENT_LIFECYCLE_TABLE, std::move(table_ptr)});
+
+    //Queue the insert
+    database_.QueueSqlStatement(table.get_table_construct_statement());
+}
+
+void ModelProtoHandler::CreateWorkloadTable(){
+    if(GotTable(LOGAN_MODELEVENT_WORKLOAD_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_LIFECYCLE_PORT_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
-    t->Finalize();
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_MODELEVENT_WORKLOAD_TABLE));
+    auto& table = *table_ptr;
 
-    table_map_[LOGAN_LIFECYCLE_PORT_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
-}
-
-void ModelProtoHandler::CreateComponentEventTable(){
-    if(table_map_.count(LOGAN_LIFECYCLE_COMPONENT_TABLE)){
-        return;
-    }
-
-    Table* t = new Table(database_, LOGAN_LIFECYCLE_COMPONENT_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
-    t->Finalize();
-
-    table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
-}
-
-void ModelProtoHandler::CreateUserEventTable(){
-    if(table_map_.count(LOGAN_EVENT_USER_TABLE)){
-        return;
-    }
-
-    Table* t = new Table(database_, LOGAN_EVENT_USER_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
-    t->Finalize();
-
-    table_map_[LOGAN_EVENT_USER_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
-}
-
-void ModelProtoHandler::CreateWorkloadEventTable(){
-    if(table_map_.count(LOGAN_EVENT_WORKLOAD_TABLE)){
-        return;
-    }
-
-    Table* t = new Table(database_, LOGAN_EVENT_WORKLOAD_TABLE);
     //Info
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    //Component specific
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
+    AddInfoColumns(table);
+    AddComponentColumns(table);
+    AddWorkerColumns(table);
 
     //Workload specific info
-    t->AddColumn("workload_id", LOGAN_INT);
-    t->AddColumn(LOGAN_WORKER_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_WORKER_TYPE, LOGAN_VARCHAR);
-    t->AddColumn("function", LOGAN_VARCHAR);
-    t->AddColumn("event_type", LOGAN_VARCHAR);
-    t->AddColumn("args", LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    table.AddColumn("workload_id", LOGAN_INT);
+    table.AddColumn("function_name", LOGAN_VARCHAR);
+    table.AddColumn("args", LOGAN_VARCHAR);
 
-    t->Finalize();
-    table_map_[LOGAN_EVENT_WORKLOAD_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    table.Finalize();
+    tables_.insert({LOGAN_MODELEVENT_WORKLOAD_TABLE, std::move(table_ptr)});
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
-void ModelProtoHandler::CreateComponentUtilizationTable(){
-    if(table_map_.count(LOGAN_EVENT_COMPONENT_TABLE)){
+void ModelProtoHandler::CreateUtilizationTable(){
+    if(GotTable(LOGAN_MODELEVENT_UTILIZATION_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_MODELEVENT_UTILIZATION_TABLE));
+    auto& table = *table_ptr;
+    AddInfoColumns(table);
+    AddComponentColumns(table);
+    AddPortColumns(table);
 
-    Table* t = new Table(database_, LOGAN_EVENT_COMPONENT_TABLE);
-    //Info
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    //Component specific
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
-    //Port specific
-    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
+    table.AddColumn("port_event_id", LOGAN_INT);
+    table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
+    table.Finalize();
 
-    t->AddColumn("port_event_id", LOGAN_INT);
-    t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
-    t->Finalize();
-    table_map_[LOGAN_EVENT_COMPONENT_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.insert({LOGAN_MODELEVENT_UTILIZATION_TABLE, std::move(table_ptr)});
+    database_.QueueSqlStatement(table.get_table_construct_statement());
+}
+
+void BindInfoColumns(TableInsert& row, const re_common::Info& info){
+    row.BindDouble(LOGAN_TIMEOFDAY, info.timestamp());
+    row.BindString(LOGAN_EXPERIMENT_NAME, info.experiment_name());
+    row.BindString(LOGAN_HOSTNAME, info.hostname());
+}
+
+void BindComponentColumns(TableInsert& row, const re_common::Component& component){
+    row.BindString(LOGAN_COMPONENT_NAME, component.name());
+    row.BindString(LOGAN_COMPONENT_ID, component.id());
+    row.BindString(LOGAN_COMPONENT_TYPE, component.type());
+}
+
+void BindWorkerColumns(TableInsert& row, const re_common::Worker& worker){
+    row.BindString(LOGAN_WORKER_NAME, worker.name());
+    row.BindString(LOGAN_WORKER_ID, worker.id());
+    row.BindString(LOGAN_WORKER_TYPE, worker.type());
+}
+
+void BindPortColumns(TableInsert& row, const re_common::Port& port){
+    row.BindString(LOGAN_PORT_NAME, port.name());
+    row.BindString(LOGAN_PORT_ID, port.id());
+    row.BindString(LOGAN_PORT_TYPE, port.type());
+    row.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(port.kind()));
+    row.BindString(LOGAN_PORT_MIDDLEWARE, port.middleware());
 }
 
 void ModelProtoHandler::ProcessLifecycleEvent(const re_common::LifecycleEvent& event){
-    if(event.has_port() && event.has_component()){
-        //Process port event
-        auto ins = table_map_[LOGAN_LIFECYCLE_PORT_TABLE]->get_insert_statement();
-        ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
-        ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
-        ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
-        ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
-        ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
-        ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
-        ins.BindString(LOGAN_PORT_NAME, event.port().name());
-        ins.BindString(LOGAN_PORT_ID, event.port().id());
-        ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event.port().kind()));
-        ins.BindString(LOGAN_PORT_TYPE, event.port().type());
-        ins.BindString(LOGAN_PORT_MIDDLEWARE, event.port().middleware());
-        ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event.type()));
+    try{
+        auto row = GetTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE).get_insert_statement();
+        if(event.has_info())
+            BindInfoColumns(row, event.info());
+        
+        if(event.has_component())
+            BindComponentColumns(row, event.component());
 
-        database_.QueueSqlStatement(ins.get_statement());
-    }
+        if(event.has_port())
+            BindPortColumns(row, event.port());
 
-    else if(event.has_component()){
-            auto ins = table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE]->get_insert_statement();
-            ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
-            ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
-            ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
-            ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
-            ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
-            ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
-            ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event.type()));
-            database_.QueueSqlStatement(ins.get_statement());
+        row.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event.type()));
+        
+        database_.QueueSqlStatement(row.get_statement());
+    }catch(const std::exception& ex){
+        std::cerr << "* ModelProtoHander::ProcessLifecycleEvent() Exception: " << ex.what() << std::endl;
     }
 }
 
-void ModelProtoHandler::ProcessUserEvent(const re_common::UserEvent& event){
-    auto ins = table_map_[LOGAN_EVENT_USER_TABLE]->get_insert_statement();
-    ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
-    ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
-    ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
-    ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
-    ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
-    ins.BindString(LOGAN_MESSAGE, event.message());
-    ins.BindString(LOGAN_TYPE, re_common::UserEvent::Type_Name(event.type()));
-    database_.QueueSqlStatement(ins.get_statement());
-}
 
 void ModelProtoHandler::ProcessWorkloadEvent(const re_common::WorkloadEvent& event){
-    auto ins = table_map_[LOGAN_EVENT_WORKLOAD_TABLE]->get_insert_statement();
-    //Info
-    ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
-    ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
-    ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
+    try{
+        auto row = GetTable(LOGAN_MODELEVENT_WORKLOAD_TABLE).get_insert_statement();
+        if(event.has_info())
+            BindInfoColumns(row, event.info());
+        
+        if(event.has_component())
+            BindComponentColumns(row, event.component());
 
-    //Component
-    ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
-    ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
-    ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
+        if(event.has_worker())
+            BindWorkerColumns(row, event.worker());
 
-    //Workload
-    ins.BindString(LOGAN_WORKER_NAME, event.name());
-    ins.BindInt("workload_id", event.id());
-    ins.BindString(LOGAN_WORKER_TYPE, event.type());
-    ins.BindString("function", event.function());
-    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event.event_type()));
-    ins.BindString("args", event.args());
-    database_.QueueSqlStatement(ins.get_statement());
+        row.BindString(LOGAN_TYPE, re_common::WorkloadEvent::Type_Name(event.event_type()));
+        row.BindInt("workload_id", event.workload_id());
+
+        row.BindString("function_name", event.function_name());
+        row.BindString("args", event.args());
+
+        database_.QueueSqlStatement(row.get_statement());
+    }catch(const std::exception& ex){
+        std::cerr << "* ModelProtoHander::ProcessWorkloadEvent() Exception: " << ex.what() << std::endl;
+    }
 }
 
-void ModelProtoHandler::ProcessComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& event){
-    auto ins = table_map_[LOGAN_EVENT_COMPONENT_TABLE]->get_insert_statement();
+void ModelProtoHandler::ProcessUtilizationEvent(const re_common::UtilizationEvent& event){
+    try{
+        auto row = GetTable(LOGAN_MODELEVENT_UTILIZATION_TABLE).get_insert_statement();
+        if(event.has_info())
+            BindInfoColumns(row, event.info());
+        
+        if(event.has_component())
+            BindComponentColumns(row, event.component());
 
-    //Info
-    ins.BindDouble(LOGAN_TIMEOFDAY, event.info().timestamp());
-    ins.BindString(LOGAN_EXPERIMENT_NAME, event.info().experiment_name());
-    ins.BindString(LOGAN_HOSTNAME, event.info().hostname());
+        if(event.has_port())
+            BindPortColumns(row, event.port());
 
-    //Component
-    ins.BindString(LOGAN_COMPONENT_NAME, event.component().name());
-    ins.BindString(LOGAN_COMPONENT_ID, event.component().id());
-    ins.BindString(LOGAN_COMPONENT_TYPE, event.component().type());
+        
+        row.BindInt("port_event_id", event.port_event_id());
+        row.BindString(LOGAN_TYPE, re_common::UtilizationEvent::Type_Name(event.type()));
+        row.BindString(LOGAN_MESSAGE, event.message());
 
-    //Port
-    ins.BindString(LOGAN_PORT_NAME, event.port().name());
-    ins.BindString(LOGAN_PORT_ID, event.port().id());
-    ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event.port().kind()));
-    ins.BindString(LOGAN_PORT_TYPE, event.port().type());
-    ins.BindString(LOGAN_PORT_MIDDLEWARE, event.port().middleware());
-
-    ins.BindInt("port_event_id", event.port_event_id());
-    ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event.type()));
-    ins.BindString(LOGAN_MESSAGE, event.message());
-
-    database_.QueueSqlStatement(ins.get_statement());
+        database_.QueueSqlStatement(row.get_statement());
+    }catch(const std::exception& ex){
+        std::cerr << "* ModelProtoHander::ProcessUtilizationEvent() Exception: " << ex.what() << std::endl;
+    }
 }

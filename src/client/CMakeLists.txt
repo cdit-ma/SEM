@@ -44,5 +44,3 @@ endif(UNIX)
 
 target_link_libraries(${LOGAN_CLIENT} PRIVATE ${LOGAN_CLIENT_LIB})
 target_link_libraries(${LOGAN_CLIENT} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sigar")
