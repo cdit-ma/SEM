@@ -51,7 +51,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/OpenCLBuffer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclbuffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclbufferbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
