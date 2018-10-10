@@ -4,7 +4,7 @@
 #include <core/worker.h>
 #include <core/component.h>
 #include "openclmanager.h"
-#include "OpenCLBuffer.hpp"
+#include "openclbuffer.hpp"
 #include "openclkernel.hpp"
 #include "openclloadbalancer.h"
 

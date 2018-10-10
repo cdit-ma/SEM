@@ -9,7 +9,7 @@
 #include <core/modellogger.h>
 #include <core/worker.h>
 
-#include "OpenCLBuffer.hpp"
+#include "openclbuffer.hpp"
 #include "opencldevice.h"
 
 class OpenCLKernel;
