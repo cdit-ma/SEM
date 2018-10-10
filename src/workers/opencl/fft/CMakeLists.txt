@@ -13,8 +13,6 @@ if(NOT OPENCL_LIB)
     return()
 endif()
 
-
-
 # Search for OpenCL FFT libraries
 set(CLFFT_ROOT $ENV{CLFFT_ROOT})
 set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
@@ -46,35 +44,23 @@ set(HEADERS
     )
 
 # Mark library dependencies
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-
-# Specify the location of kernels - consider moving kernels to be exported alongside binaries?
-#get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
-#target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 #Add RE_PATH to include directories
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE "${OPENCL_ROOT}/include")
-target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC "${OPENCL_ROOT}/include")
+target_include_directories(${PROJ_NAME} PUBLIC "${CLFFT_ROOT}/include")
 
-#target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
-#target_include_directories(${TESTER_NAME} PRIVATE "${OPENCL_ROOT}/include")
-#target_include_directories(${TESTER_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 elseif(UNIX)
-	target_link_libraries(${PROJ_NAME} pthread)
+	target_link_libraries(${PROJ_NAME} PUBLIC pthread)
 endif(MSVC)
 
 
-target_link_libraries(${PROJ_NAME} re_core)
-target_link_libraries(${PROJ_NAME} opencl_worker)
-target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
-target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
-
-# target_link_libraries(${TESTER_NAME} re_core)
-# target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
-# target_link_libraries(${TESTER_NAME} ${OPENCL_LIB})
-# target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})
+target_link_libraries(${PROJ_NAME} PUBLIC re_core)
+target_link_libraries(${PROJ_NAME} PUBLIC opencl_worker)
+target_link_libraries(${PROJ_NAME} PUBLIC ${OPENCL_LIB})
+target_link_libraries(${PROJ_NAME} PUBLIC ${CLFFT_LIB})

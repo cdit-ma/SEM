@@ -14,7 +14,7 @@ SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
 )
 
-add_library(${PROJ_NAME} SHARED ${HEADER} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
+add_library(${PROJ_NAME} PUBLIC ${HEADER} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
