@@ -184,11 +184,11 @@ bool Activatable::transition_state(Transition transition){
             state_condition_.notify_all();
             return true;
         }else{
-            logger().LogLifecycleException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
             return false;
         }
     }else{
-        logger().LogLifecycleException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
+        logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
     }
     return false;
 }
@@ -215,10 +215,10 @@ std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> at
             attributes_[name] = std::move(attribute);
             return attributes_[name];
         }else{
-            logger().LogLifecycleException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attribute with name: '" + name + "'");
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attribute with name: '" + name + "'");
         }
     }else{
-        logger().LogLifecycleException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot attach a NULL attribute");
+        logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot attach a NULL attribute");
     }
     return std::weak_ptr<Attribute>();
 }
@@ -228,7 +228,7 @@ std::weak_ptr<Attribute> Activatable::ConstructAttribute(const ATTRIBUTE_TYPE ty
     auto attribute_sp = GetAttribute(name).lock();
     if(attribute_sp){
         if(attribute_sp->get_type() != type){
-            logger().LogLifecycleException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attached Attribute with name '" + name + "' with a differing type");
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attached Attribute with name '" + name + "' with a differing type");
             attribute_sp.reset();
         }
     }else{

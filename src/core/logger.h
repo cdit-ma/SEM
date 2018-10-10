@@ -40,26 +40,25 @@ class Logger{
             ERROR = 4
         };
 
-        enum class ComponentEvent{
+        enum class UtilizationEvent{
             SENT = 0,
             RECEIVED = 1,
             STARTED_FUNC = 2,
             FINISHED_FUNC = 3,
             IGNORED = 4,
+            EXCEPTION = 5
         };
     
     protected:
         static int GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_level = -1);
     public:
+        virtual void LogMessage(const Activatable& entity, const std::string& message) = 0;
+        virtual void LogException(const Activatable& entity, const std::string& message) = 0;
+        virtual void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event) = 0;
+        
         virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
-        virtual void LogComponentMessage(const Component& component, const std::string& message) = 0;
-
-        virtual void LogLifecycleException(const Activatable& entity, const std::string& message) = 0;
-        virtual void LogLifecycleEvent(const Component& component, const Logger::LifeCycleEvent& event) = 0;
-        virtual void LogLifecycleEvent(const Port& port, const Logger::LifeCycleEvent& event) = 0;
-        virtual void LogComponentEvent(const Port& port, const ::BaseMessage& message, const Logger::ComponentEvent& event) = 0;
-        virtual void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string) = 0;
-        virtual void LogPortExceptionEvent(const Port& port, const std::string& error_string) = 0;
+        
+        virtual void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str = "") = 0;
 };
 
 #endif //CORE_LOGGER_H

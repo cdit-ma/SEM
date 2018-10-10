@@ -12,19 +12,15 @@ class LoggerPrinter : public Logger{
         static Logger& get_logger();
         void SetLogLevel(int level);
 
-        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
-        void LogComponentMessage(const Component& component, const std::string& message);
-
-        void LogLifecycleEvent(const Component& component, const Logger::LifeCycleEvent& event);
-        void LogLifecycleEvent(const Port& port, const Logger::LifeCycleEvent& event);
-        void LogComponentEvent(const Port& port, const ::BaseMessage& message, const Logger::ComponentEvent& event);
+        void LogMessage(const Activatable& entity, const std::string& message);
+        void LogException(const Activatable& entity, const std::string& message);
+        void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event);
         
-        void LogLifecycleException(const Activatable& entity, const std::string& message);
-        void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string);
-        void LogPortExceptionEvent(const Port& port, const std::string& error_string);
+        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
+        void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str);
     private:
-        bool Print(const int& level);
-        std::mutex mutex_;
+        bool Print(const int& level) const;
+        mutable std::mutex mutex_;
         int log_level_ = 10;
 };
 

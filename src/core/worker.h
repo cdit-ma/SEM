@@ -7,12 +7,16 @@
 
 #include "behaviourcontainer.h"
 
+class Component;
+
 class Worker: public BehaviourContainer{
     public:
         Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, bool is_worker = true);
         virtual ~Worker();
 
         const BehaviourContainer& get_container() const;
+
+        const Component& get_component() const;
         
         std::string get_worker_name() const;
         

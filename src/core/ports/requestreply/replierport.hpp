@@ -57,9 +57,9 @@ BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRe
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::STARTED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn(base_request);
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::FINISHED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
         EventProcessed(base_request);
         return base_reply;
     }
@@ -79,9 +79,9 @@ void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& base_re
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::STARTED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(base_request);
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::FINISHED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
         EventProcessed(base_request);
         return;
     }
@@ -103,9 +103,9 @@ BaseReplyType ReplierPort<BaseReplyType, void>::ProcessRequest(){
     EventRecieved(base_request);
     auto process_message = is_running() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::STARTED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn();
-        logger().LogComponentEvent(*this, base_request, Logger::ComponentEvent::FINISHED_FUNC);
+        logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
         EventProcessed(base_request);
         return base_reply;
     }

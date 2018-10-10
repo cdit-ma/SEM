@@ -130,9 +130,9 @@ void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
 
     if(process_message){
         //Call into the function and log
-        logger().LogComponentEvent(*this, message, Logger::ComponentEvent::STARTED_FUNC);
+        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(message);
-        logger().LogComponentEvent(*this, message, Logger::ComponentEvent::FINISHED_FUNC);
+        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::FINISHED_FUNC);
         EventProcessed(message);
     }else{
         EventIgnored(message);

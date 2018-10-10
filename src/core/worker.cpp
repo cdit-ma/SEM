@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdarg.h>
+#include <core/component.h>
 
 Worker::Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, const bool is_worker):
     container_(container),
@@ -34,6 +35,23 @@ int Worker::get_new_work_id(){
 const BehaviourContainer& Worker::get_container() const{
     return container_;
 };
+
+const Component& Worker::get_component() const{
+    try{
+        const auto& component = dynamic_cast<const Component&>(get_container());
+        return component;
+    }catch(const std::bad_cast& ex){
+    
+    }
+
+    try{
+        const auto& worker = dynamic_cast<const Worker&>(get_container());
+        return worker.get_component();
+    }catch(const std::bad_cast& ex){
+    
+    }
+    throw std::runtime_error("Worker isn't contained in a Component");
+}
 
 std::string Worker::get_arg_string(const std::string str_format, va_list args){
     //We need to make a copy of the arg list before we unwind it.

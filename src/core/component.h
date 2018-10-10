@@ -101,8 +101,8 @@ class Component : public BehaviourContainer{
 
         const std::vector<std::string>& GetLocation() const;
         const std::vector<int>& GetReplicationIndices() const;
-        std::string GetLocalisedName();
-        const std::string& GetExperimentName();
+        std::string GetLocalisedName() const;
+        const std::string& GetExperimentName() const;
     protected:
         virtual void HandleActivate();
         virtual void HandleConfigure();

@@ -51,15 +51,15 @@ void Port::EventProcessed(const BaseMessage& message){
 
 void Port::EventIgnored(const BaseMessage& message){
     std::lock_guard<std::mutex> lock(mutex_);
-    logger().LogComponentEvent(*this, message, Logger::ComponentEvent::IGNORED);
+    logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::IGNORED);
     ignored_count_ ++;
 }
 
 void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str){
-    logger().LogPortExceptionEvent(*this, message, error_str);
+    logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::EXCEPTION, error_str);
 }
 void Port::ProcessGeneralException(const std::string& error_str){
-    logger().LogPortExceptionEvent(*this, error_str);
+    logger().LogException(*this, error_str);
 }
 
 void Port::HandleConfigure(){

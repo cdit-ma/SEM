@@ -80,7 +80,7 @@ void Component::SetReplicationIndices(const std::vector<int>& indices){
     replication_indices_ = indices;
 }
 
-std::string Component::GetLocalisedName(){
+std::string Component::GetLocalisedName() const{
     std::ostringstream s_stream;
 
     auto location_count = component_location_.size();
@@ -196,7 +196,7 @@ bool Component::RemoveCallback(const std::string& port_name){
     return false;
 }
 
-const std::string& Component::GetExperimentName(){
+const std::string& Component::GetExperimentName() const{
     return experiment_name_;
 }
 
@@ -204,6 +204,6 @@ void Component::SetExperimentName(const std::string& experiment_name){
     if(experiment_name_.empty()){
         experiment_name_ = experiment_name;
     }else{
-        logger().LogComponentMessage(*this, "Component: " + get_name() + " has already had it's experiment name set! '" + experiment_name_ + "'");
+        logger().LogMessage(*this, "Component: " + get_name() + " has already had it's experiment name set! '" + experiment_name_ + "'");
     }
 }
