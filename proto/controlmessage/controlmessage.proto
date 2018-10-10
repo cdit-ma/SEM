@@ -263,9 +263,6 @@ message SlaveTerminatedReply{
 
 }
 
-
-
-
 message SlaveStartup{
     string slave_host_name = 1;
     Node configuration = 2;
@@ -289,4 +286,14 @@ message SlaveStartupMessage{
     SlaveStartupRequest request = 2;
     SlaveStartup startup = 3;
     SlaveStartupResponse response = 4;
+}
+
+message MEDEAInterfaceRequest{
+
+}
+
+message MEDEAInterfaceReply{
+    repeated string experiment_names = 1;
+
+    repeated ExternalPort external_ports = 2;
 }
