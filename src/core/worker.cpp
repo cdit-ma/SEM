@@ -64,6 +64,6 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
 };
 
 
-void Worker::Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, bool print){
-    logger().LogWorkerEvent(*this, function_name, event, work_id, args, print);
+void Worker::Log(const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
+    logger().LogWorkerEvent(*this, function_name, event, log_level, work_id, args);
 }

@@ -45,12 +45,8 @@ public:
 
 
 protected:
-    virtual void Log(std::string function_name, Logger::WorkloadEvent event, int work_id = -1, std::string args = "");
-
     bool InitFFT();
     bool CleanupFFT();
-
-
 private:
 
     //OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);

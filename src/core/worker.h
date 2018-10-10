@@ -24,7 +24,7 @@ class Worker: public BehaviourContainer{
 
     protected:
         int get_new_work_id();
-        void Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", bool print = false);
+        void Log(const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id = -1, std::string args = "");
         
     private:
         const BehaviourContainer& container_;

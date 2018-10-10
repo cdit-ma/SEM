@@ -55,11 +55,11 @@ void Port::EventIgnored(const BaseMessage& message){
     ignored_count_ ++;
 }
 
-void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str, bool print){
-    logger().LogPortExceptionEvent(*this, message, error_str, print);
+void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str){
+    logger().LogPortExceptionEvent(*this, message, error_str);
 }
-void Port::ProcessGeneralException(const std::string& error_str, bool print){
-    logger().LogPortExceptionEvent(*this, error_str, print);
+void Port::ProcessGeneralException(const std::string& error_str){
+    logger().LogPortExceptionEvent(*this, error_str);
 }
 
 void Port::HandleConfigure(){

@@ -31,7 +31,7 @@ void LoganLogger::LogLifecycleException(const Activatable& entity, const std::st
 std::cerr << GET_FUNC << std::endl;
 }
 
-void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, bool print){
+void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
 std::cerr << GET_FUNC << std::endl;
 }
 
@@ -51,10 +51,10 @@ void LoganLogger::LogComponentEvent(const Port& port, const ::BaseMessage& messa
 std::cerr << GET_FUNC << std::endl;
 }
 
-void LoganLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print){
+void LoganLogger::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string){
 std::cerr << GET_FUNC << std::endl;
 }
 
-void LoganLogger::LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print){
+void LoganLogger::LogPortExceptionEvent(const Port& port, const std::string& error_string){
 std::cerr << GET_FUNC << std::endl;
 }

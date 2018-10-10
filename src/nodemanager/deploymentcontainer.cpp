@@ -106,7 +106,7 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
 
         if(worker){
             if(logan_logger_){
-                worker->logger().SetLogger(*logan_logger_);
+                worker->logger().AddLogger(*logan_logger_);
             }
 
             //Handle the attributes
@@ -133,7 +133,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         if(component){
             if(logan_logger_){
                 //Set the logan logger
-                component->logger().SetLogger(*logan_logger_);
+                component->logger().AddLogger(*logan_logger_);
             }
             const auto& location = component_pb.location();
             const auto& replicate_indices = component_pb.replicate_indices();
@@ -284,7 +284,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
 
             if(port){
                 if(logan_logger_){
-                    port->logger().SetLogger(*logan_logger_);
+                    port->logger().AddLogger(*logan_logger_);
                 }
                 //Set the ID/TYPE Once
                 port->set_id(port_info_pb.id());

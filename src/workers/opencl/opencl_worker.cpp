@@ -6,6 +6,10 @@
 
 #include <exception>
 
+const int OPENCL_WORKER_ERROR = 5;
+const int OPENCL_WORKER_WARN = 7;
+const int OPENCL_WORKER_MESSAGE = 8;
+
 OpenCL_Worker::OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name)
     : Worker(bc, __func__, inst_name) {
 
@@ -80,13 +84,17 @@ bool OpenCL_Worker::IsValid() const {
 }
 
 bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
+    auto work_id = get_new_work_id();
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, OPENCL_WORKER_MESSAGE, work_id,
+            "Executing Threads: " + std::to_string(num_threads) + " Executing Ops: " + std::to_string(ops_per_thread));
+    
     bool success = false;
-
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
     std::string filename = GetSourcePath("parallelthreads.cl");
     try {
+
         auto& parallel_kernel = GetKernel(*device, "runParallel", filename);
         auto kernel_lock = parallel_kernel.AcquireLock();
 
@@ -97,10 +105,10 @@ bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
 
         success = true;
     } catch (const std::exception& e) {
-        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, OPENCL_WORKER_ERROR, work_id, 
             "Failed to execute RunParallel kernel: \n"+std::string(e.what()));
     }
-
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, OPENCL_WORKER_MESSAGE, work_id);
     load_balancer_->ReleaseDevice(device_id);
     
     return success;
@@ -443,10 +451,6 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     return true;
 }
 
-void OpenCL_Worker::Log(std::string function_name, Logger::WorkloadEvent event, int work_id, std::string args) {
-    Worker::Log("OpenCL_Worker::"+function_name, event, work_id, args);
-    std::cerr << "OpenCL_Worker::" << function_name << ", " << args << std::endl;
-}
 /*
 OpenCLKernel* OpenCL_Worker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
     std::vector<std::string> filenames;
@@ -485,7 +489,7 @@ OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& 
 
     auto kernel_vec = device.GetKernels();
     if (kernel_vec.size() == 0) {
-        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::ERROR, get_new_work_id(),
         "Unable to find any kernels in "+source_file);
         throw std::invalid_argument("No kernels in file "+source_file);
     }

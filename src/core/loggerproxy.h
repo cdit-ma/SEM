@@ -4,14 +4,15 @@
 #include <string>
 #include <core/logger.h>
 #include <functional>
+#include <vector>
+#include <mutex>
 
 class LoggerProxy : public Logger{
     public:
         LoggerProxy();
-        Logger& GetLogger();
-        void SetLogger(Logger& logger);
+        void AddLogger(Logger& logger);
 
-        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, bool print);
+        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args);
         void LogComponentMessage(const Component& component, const std::string& message);
 
         void LogLifecycleException(const Activatable& entity, const std::string& message);
@@ -19,10 +20,13 @@ class LoggerProxy : public Logger{
 
         void LogLifecycleEvent(const Port& port, const Logger::LifeCycleEvent& event);
         void LogComponentEvent(const Port& port, const ::BaseMessage& message, const Logger::ComponentEvent& event);
-        void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print);
-        void LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print);
+        void LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string);
+        void LogPortExceptionEvent(const Port& port, const std::string& error_string);
     private:
-        std::reference_wrapper<Logger> logger_;
+        void RunOnLoggers(std::function<void (Logger&)> func);
+
+        std::mutex mutex_;
+        std::vector<std::reference_wrapper<Logger>> attached_loggers_;
 };
 
 #endif //CORE_LOGGERPROXY_H

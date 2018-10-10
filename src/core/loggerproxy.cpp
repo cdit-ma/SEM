@@ -1,48 +1,49 @@
 #include "loggerproxy.h"
 #include "loggerprinter.h"
-#include <iostream>
+#include <algorithm>
 
-LoggerProxy::LoggerProxy(): Logger(),
-    logger_(LoggerEmpty::get_logger())
-{
+LoggerProxy::LoggerProxy(): Logger(){
+    AddLogger(LoggerPrinter::get_logger());
 }
 
-Logger& LoggerProxy::GetLogger(){
-    return logger_;
+void LoggerProxy::AddLogger(Logger& logger){
+    std::lock_guard<std::mutex> lock(mutex_);
+    attached_loggers_.emplace_back(logger);
 }
 
-void LoggerProxy::SetLogger(Logger& logger){
-    logger_ = std::ref(logger);
-}
-
-void LoggerProxy::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, bool print){
-    GetLogger().LogWorkerEvent(worker, function_name, event, work_id, args, print);
+void LoggerProxy::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
+    RunOnLoggers([&](Logger& l){l.LogWorkerEvent(worker, function_name, event, log_level, work_id, args);});
 }
 
 void LoggerProxy::LogLifecycleException(const Activatable& entity, const std::string& message){
-    GetLogger().LogLifecycleException(entity, message);
+    RunOnLoggers([&](Logger& l){l.LogLifecycleException(entity, message);});
 }
 
 void LoggerProxy::LogComponentMessage(const Component& component, const std::string& message){
-    GetLogger().LogComponentMessage(component, message);
+    RunOnLoggers([&](Logger& l){l.LogComponentMessage(component, message);});
 }
 
 void LoggerProxy::LogLifecycleEvent(const Component& component, const Logger::LifeCycleEvent& event){
-    GetLogger().LogLifecycleEvent(component, event);
+    RunOnLoggers([&](Logger& l){l.LogLifecycleEvent(component, event);});
 }
 
 void LoggerProxy::LogLifecycleEvent(const Port& port, const Logger::LifeCycleEvent& event){
-    GetLogger().LogLifecycleEvent(port, event);
+    RunOnLoggers([&](Logger& l){l.LogLifecycleEvent(port, event);});
 }
 
 void LoggerProxy::LogComponentEvent(const Port& port, const ::BaseMessage& message, const Logger::ComponentEvent& event){
-    GetLogger().LogComponentEvent(port, message, event);
+    RunOnLoggers([&](Logger& l){l.LogComponentEvent(port, message, event);});
 }
 
-void LoggerProxy::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string, bool print){
-    GetLogger().LogPortExceptionEvent(port, message, error_string, print);
+void LoggerProxy::LogPortExceptionEvent(const Port& port, const ::BaseMessage& message, const std::string& error_string){
+    RunOnLoggers([&](Logger& l){l.LogPortExceptionEvent(port, message, error_string);});
 }
 
-void LoggerProxy::LogPortExceptionEvent(const Port& port, const std::string& error_string, bool print){
-    GetLogger().LogPortExceptionEvent(port, error_string, print);
+void LoggerProxy::LogPortExceptionEvent(const Port& port, const std::string& error_string){
+    RunOnLoggers([&](Logger& l){l.LogPortExceptionEvent(port, error_string);});
+}
+
+void LoggerProxy::RunOnLoggers(std::function<void (Logger&)> func){
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::for_each(attached_loggers_.begin(), attached_loggers_.end(), [func](std::reference_wrapper<Logger> logger){func(logger.get());});
 }
