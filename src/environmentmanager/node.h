@@ -110,8 +110,6 @@ class Node{
         //attribute id -> attribute
         std::unordered_map<std::string, std::unique_ptr<Attribute> > attributes_;
 
-
-
         bool dirty_;
         bool is_node_manager_master_ = false;
 };

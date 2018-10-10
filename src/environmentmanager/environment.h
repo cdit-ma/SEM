@@ -32,7 +32,7 @@ class Environment{
         ~Environment();
 
 
-        Experiment& GetExperiment(const std::string experiment_name);
+        Experiment& GetExperiment(const std::string& experiment_name);
         void PopulateExperiment(const NodeManager::ControlMessage& message);
 
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
@@ -46,14 +46,15 @@ class Environment{
         std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const std::string& experiment_name, const bool full_update);
 
         bool ExperimentIsDirty(const std::string& experiment_name);
-        bool GotExperiment(const std::string& experiment_name);
+        bool GotExperiment(const std::string& experiment_name) const;
         
         bool IsExperimentRegistered(const std::string& experiment_name);
         bool IsExperimentActive(const std::string& experiment_name);
         bool IsExperimentConfigured(const std::string& experiment_name);
 
 
-        std::vector<std::string> GetExperimentNames();
+        std::vector<std::string> GetExperimentNames() const;
+        std::vector<std::unique_ptr<NodeManager::ExternalPort> > GetExternalPorts() const;
         
 
         bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
@@ -120,7 +121,7 @@ class Environment{
 
         std::mutex configure_experiment_mutex_;
 
-        std::mutex experiment_mutex_;
+        mutable std::mutex experiment_mutex_;
         //experiment_name -> experiment data structure
         std::unordered_map<std::string, std::unique_ptr<EnvironmentManager::Experiment> > experiment_map_;
 

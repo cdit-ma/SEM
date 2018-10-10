@@ -39,7 +39,6 @@ Environment::~Environment(){
     experiment_map_.clear();
 }
 
-
 void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
@@ -77,7 +76,6 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
         throw;
     }
 }
-
 
 void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node_pb){
     for(const auto& node : node_pb.nodes()){
@@ -126,9 +124,7 @@ std::string Environment::AddLoganClientServer(){
     return GetManagerPort();
 }
 
-
-
-Experiment& Environment::GetExperiment(const std::string experiment_name){
+Experiment& Environment::GetExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return GetExperimentInternal(experiment_name);
 }
@@ -255,7 +251,6 @@ void Environment::DeclusterNode(NodeManager::Node& node){
     }
 }
 
-
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperimentInternal(experiment_name);
     try{
@@ -267,9 +262,6 @@ void Environment::AddNodeToExperiment(const std::string& experiment_name, const 
         throw;
     }
 }
-
-
-
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     const auto& node_name = node.info().name();
@@ -394,9 +386,9 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& experim
     }
     return std::string();
 }
-bool Environment::GotExperiment(const std::string& experiment_name){
+bool Environment::GotExperiment(const std::string& experiment_name) const{
     std::lock_guard<std::mutex> lock(experiment_mutex_);
-    return experiment_map_.count(experiment_name);
+    return experiment_map_.count(experiment_name) > 0;
 }
 
 bool Environment::ExperimentIsDirty(const std::string& experiment_name){
@@ -406,9 +398,6 @@ bool Environment::ExperimentIsDirty(const std::string& experiment_name){
     }
     return false;
 }
-
-
-
 
 std::string Environment::GetAmqpBrokerAddress(){
     return qpid_broker_address_;
@@ -420,6 +409,7 @@ std::string Environment::GetTaoNamingServiceAddress(){
     }
     return tao_naming_service_address_;
 }
+
 Environment::ExternalPort& Environment::GetExternalPort(const std::string& external_port_label){
     if(external_eventport_map_.count(external_port_label)){
         return *external_eventport_map_[external_port_label];
@@ -495,11 +485,39 @@ const NodeManager::Attribute& Environment::GetAttributeByName(const google::prot
     throw std::invalid_argument("No attribute found with name " + attribute_name);
 }
 
-std::vector<std::string> Environment::GetExperimentNames(){
+std::vector<std::string> Environment::GetExperimentNames() const{
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     std::vector<std::string> experiment_names;
     for(const auto& key_pair : experiment_map_){
         experiment_names.emplace_back(key_pair.first);
     }
     return experiment_names;
+}
+
+std::vector<std::unique_ptr<NodeManager::ExternalPort> > Environment::GetExternalPorts() const{
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::vector<std::unique_ptr<NodeManager::ExternalPort> > external_ports;
+
+    for(auto& experiment_pair : experiment_map_){
+        auto& experiment = experiment_pair.second;
+
+        for(auto& external_port : experiment->GetExternalPorts()){
+            auto port_message = std::unique_ptr<NodeManager::ExternalPort>(new NodeManager::ExternalPort());
+
+            port_message->mutable_info()->set_name(external_port.get().external_label);
+            port_message->mutable_info()->set_type(external_port.get().type);
+
+            port_message->set_middleware(Port::TranslateInternalMiddleware(external_port.get().middleware));
+
+            if(external_port.get().kind == Experiment::ExternalPort::Kind::PubSub){
+                port_message->set_kind(NodeManager::ExternalPort::PUBSUB);
+            }
+            if(external_port.get().kind == Experiment::ExternalPort::Kind::ReqRep){
+                port_message->set_kind(NodeManager::ExternalPort::SERVER);
+            }
+            external_ports.push_back(std::move(port_message));
+        }
+    }
+
+    return external_ports;
 }

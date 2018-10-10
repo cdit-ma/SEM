@@ -44,6 +44,17 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+
+    // Aggregation server functions
+    replier_->RegisterProtoCallback<NodeManager::AggregationServerRegistrationRequest, NodeManager::AggregationServerRegistrationReply>(
+            "AggregationServerRegistration", [this](const NodeManager::AggregationServerRegistrationRequest& message) {
+                return DeploymentRegister::HandleAggregationServerRegistration(message);});
+
+    // Medea request functions
+    replier_->RegisterProtoCallback<NodeManager::MEDEAInterfaceRequest, NodeManager::MEDEAInterfaceReply>(
+            "MEDEAInterfaceRequest", [this](const NodeManager::MEDEAInterfaceRequest& message){
+                return DeploymentRegister::HandleMEDEAInterfaceRequest(message);});
+
     replier_->Start();
 }
 
@@ -138,7 +149,7 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
         auto logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
 
         auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
-        if(logging_servers.size() > 0){
+        if(!logging_servers.empty()){
             auto handler = std::unique_ptr<DeploymentHandler>(new DeploymentHandler(*environment_,
                                         environment_manager_ip_address_,
                                         EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER,
@@ -176,6 +187,43 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.control_message());
-    auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
-    return reply;
-};
+    return environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+}
+
+std::unique_ptr<NodeManager::AggregationServerRegistrationReply>
+        DeploymentRegister::HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request){
+
+    auto aggregation_ip_address = request.id().ip_address();
+
+    std::promise<std::string> port_promise;
+    auto port_future = port_promise.get_future();
+
+
+//    if(!aggregation_ip_address.empty()){
+//        auto aggregation_server_handler = std::unique_ptr<AggregationServerHandler>(new AggregationServerHandler(*environment_,
+//                environment_manager_ip_address_, aggregation_ip_address, std::move(port_promise)));
+//        auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
+//        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
+//
+//        aggregation_server_handlers_.push_back(std::move(aggregation_server_handler));
+//        return reply;
+//    }
+    return std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
+}
+
+std::unique_ptr<NodeManager::MEDEAInterfaceReply>
+DeploymentRegister::HandleMEDEAInterfaceRequest(const NodeManager::MEDEAInterfaceRequest &message) {
+
+    auto reply_message = std::unique_ptr<NodeManager::MEDEAInterfaceReply>(new NodeManager::MEDEAInterfaceReply());
+
+    auto experiment_names = environment_->GetExperimentNames();
+    *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
+
+    auto external_ports = environment_->GetExternalPorts();
+
+    for(auto& external_port : external_ports){
+        reply_message->mutable_external_ports()->AddAllocated(external_port.release());
+    }
+
+    return reply_message;
+}
