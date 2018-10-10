@@ -33,8 +33,13 @@ TableInsert::TableInsert(Table* table){
 
 int TableInsert::BindString(const std::string& field, const std::string& val){
     auto id = table_->get_field_id(field);
-    //SQLITE_TRANSIENT = Copy straight away
-    return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
+    
+    if(val.size()){
+        //SQLITE_TRANSIENT = Copy straight away
+        return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
+    }else{
+        return sqlite3_bind_null(stmt_, id);
+    }
 }
 
 int TableInsert::BindInt(const std::string& field, const int& val){

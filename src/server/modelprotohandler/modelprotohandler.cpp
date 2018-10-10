@@ -114,6 +114,7 @@ void AddPortColumns(Table& table){
     table.AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
 }
+
 void AddWorkerColumns(Table& table){
     table.AddColumn(LOGAN_WORKER_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_WORKER_ID, LOGAN_VARCHAR);
