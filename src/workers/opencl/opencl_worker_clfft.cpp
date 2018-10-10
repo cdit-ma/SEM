@@ -96,13 +96,13 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
         /* Prepare OpenCL memory objects and place data inside them. */
-        OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, *dev, true);
+        OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
         //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
         //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
 
         /* Execute the plan. */
         //err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &(*(queues[gpuNum]))(), 0, NULL, NULL, &bufX(), NULL, NULL);
-        err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer->GetBackingRef()()), NULL, NULL);
+        err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer.GetBackingRef()()), NULL, NULL);
 
         if (err != CL_SUCCESS) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
@@ -119,7 +119,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
         /* Fetch results of calculations. */
         //dev.GetQueue().enqueueReadBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
-        data = buffer->ReadData(*this, *dev, true);
+        data = buffer.ReadData(*this, *dev, true);
 
         /* Release the plan. */
         err = clfftDestroyPlan( &planHandle );

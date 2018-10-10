@@ -133,7 +133,7 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
         /* Prepare OpenCL memory objects and place data inside them. */
-        OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
+        OpenCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
         //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
         //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
 
