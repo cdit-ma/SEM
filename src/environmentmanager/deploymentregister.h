@@ -46,11 +46,11 @@ class DeploymentRegister{
         std::unique_ptr<zmq::ProtoReplier> replier_;
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
-        std::string environment_manager_ip_address_;
 
         std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
         std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
         Execution& execution_;
+        std::string environment_manager_ip_address_;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER

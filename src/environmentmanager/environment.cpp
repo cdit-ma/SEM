@@ -85,7 +85,6 @@ void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeM
 }
 
 std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,
-                                       const std::string& ip_address,
                                        DeploymentType deployment_type){
 
     switch(deployment_type){
@@ -361,10 +360,6 @@ bool Environment::IsExperimentActive(const std::string& experiment_name){
 
     }
     return false;
-}
-
-void Environment::SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address){
-
 }
 
 std::string Environment::GetMasterPublisherAddress(const std::string& experiment_name){

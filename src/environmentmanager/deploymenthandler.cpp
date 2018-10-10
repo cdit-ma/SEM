@@ -16,7 +16,7 @@ experiment_id_(experiment_id)
 {
     std::lock_guard<std::mutex> lock(replier_mutex_);
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
-    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_type_);
     const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
 
     try{

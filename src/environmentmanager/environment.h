@@ -37,7 +37,7 @@ class Environment{
 
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
 
-        std::string GetDeploymentHandlerPort(const std::string& experiment_name, const std::string& ip_address, DeploymentType deployment_type);
+        std::string GetDeploymentHandlerPort(const std::string& experiment_name, DeploymentType deployment_type);
 
 
         void ShutdownExperiment(const std::string& experiment_name);
@@ -59,8 +59,6 @@ class Environment{
 
         bool NodeDeployedTo(const std::string& experiment_name, const std::string& ip_address);
         
-        void SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address);
-
         std::string GetMasterPublisherAddress(const std::string& experiment_name);
         std::string GetMasterRegistrationAddress(const std::string& experiment_name);
 
