@@ -30,12 +30,17 @@ const std::string Activatable::ToString(const Activatable::State& state){
     }
 };
 
-Activatable::Activatable(){
+Activatable::Activatable(Class c){
+    class_ = c;
     logger_ = std::unique_ptr<LoggerProxy>(new LoggerProxy);
 }
 
 std::string Activatable::get_name() const{
     return name_;
+}
+
+Activatable::Class Activatable::get_class() const{
+    return class_;
 }
 
 void Activatable::set_name(std::string name){

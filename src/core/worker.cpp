@@ -5,11 +5,11 @@
 #include <core/component.h>
 
 Worker::Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, const bool is_worker):
+    BehaviourContainer(Class::WORKER, inst_name),
     container_(container),
     worker_name_(class_name),
     is_worker_class_(is_worker)
 {
-    set_name(inst_name);
 };
 
 Worker::~Worker(){

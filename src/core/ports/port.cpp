@@ -1,7 +1,8 @@
 #include "port.h"
 #include "../component.h"
 
-Port::Port(std::weak_ptr<Component> component, const std::string& port_name, const Port::Kind& port_kind, const std::string& port_middleware)
+Port::Port(std::weak_ptr<Component> component, const std::string& port_name, const Port::Kind& port_kind, const std::string& port_middleware):
+Activatable(Class::PORT)
 {
     component_ = component;
     set_name(port_name);
@@ -45,6 +46,7 @@ void Port::EventRecieved(const BaseMessage& message){
 }
 
 void Port::EventProcessed(const BaseMessage& message){
+
     std::lock_guard<std::mutex> lock(mutex_);
     processed_count_++;
 }

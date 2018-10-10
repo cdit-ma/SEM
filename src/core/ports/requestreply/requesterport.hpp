@@ -61,7 +61,7 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::Se
             return {true, std::move(base_reply)};
         }catch(const std::exception& ex){
             std::string error_str = "Failed to Send Request: ";
-            ProcessMessageException(base_request, error_str + ex.what(), true);
+            ProcessMessageException(base_request, error_str + ex.what());
         }
     }
     EventIgnored(base_request);

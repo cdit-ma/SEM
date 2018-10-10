@@ -11,6 +11,7 @@
 class LoganLogger : public Logger{
     public:
         LoganLogger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Logger::Mode mode);
+        ~LoganLogger();
         
         void LogMessage(const Activatable& entity, const std::string& message);
         void LogException(const Activatable& entity, const std::string& message);

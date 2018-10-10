@@ -160,7 +160,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
                     zmq_response = String2Zmq(reply_str);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply/Request Failed: ";
-                    port.ProcessGeneralException(error_str + ex.what(), true);
+                    port.ProcessGeneralException(error_str + ex.what());
                 }
 
                 //Send reply, regardless if we failed
@@ -168,7 +168,7 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }

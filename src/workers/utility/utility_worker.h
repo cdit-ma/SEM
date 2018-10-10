@@ -8,7 +8,7 @@ class Utility_Worker_Impl;
 class Utility_Worker: public Worker{
     public:
         Utility_Worker(const BehaviourContainer& component, const std::string& inst_name);
-
+        ~Utility_Worker();
         void Log(const std::string format_str, int log_level, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         

@@ -9,8 +9,9 @@
 #include "ports/port.h"
 #include "worker.h"
 
-Component::Component(const std::string& component_name){
-    set_name(component_name);
+Component::Component(const std::string& component_name):
+    BehaviourContainer(Class::COMPONENT, component_name){
+
 }
 
 Component::~Component(){

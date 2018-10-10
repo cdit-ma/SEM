@@ -69,7 +69,6 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                     //Setup logan logger
                     if(!logan_logger_){
                         logan_logger_ = std::unique_ptr<LoganLogger>(new LoganLogger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
-                        //logan_logger_ = std::unique_ptr<Logger>(new LoggerPrinter());
                     }
                     break;
                 }
@@ -346,6 +345,10 @@ void DeploymentContainer::HandleTerminate(){
     
     components_.clear();
     logan_clients_.clear();
+
+    if(logan_logger_){
+        logan_logger_.reset();
+    }
 }
 
 void DeploymentContainer::HandleConfigure(){

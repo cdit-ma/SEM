@@ -11,6 +11,10 @@ Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::s
     impl_->SetRandomSeed(static_cast<unsigned int>(GetTimeOfDay()));
 }
 
+Utility_Worker::~Utility_Worker(){
+    impl_.reset();
+}
+
 double Utility_Worker::GetTimeOfDay(){
     return impl_->TimeOfDay();
 }

@@ -12,6 +12,7 @@ enum class ThreadState{WAITING, STARTED, ACTIVE, TERMINATED};
 //Interface for a standard Port
 class Port : public Activatable
 {
+    
     public:
         enum class Kind{
             NONE = 0,

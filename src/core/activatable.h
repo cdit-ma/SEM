@@ -12,6 +12,12 @@
 
 class Activatable{
 public:
+    enum class Class{
+        UNKNOWN,
+        COMPONENT,
+        PORT,
+        WORKER,
+    };
     enum class Transition{
         NO_TRANSITION = 0,
         CONFIGURE = 1,
@@ -30,12 +36,14 @@ public:
     static const std::string ToString(const State& transation);
 
     public:
-        Activatable();
+        Activatable(Class c = Class::UNKNOWN);
         virtual ~Activatable(){};
         
         void set_name(std::string name);
         void set_id(std::string id);
         void set_type(std::string type);
+
+        Class get_class() const; 
 
         std::string get_name() const;
         std::string get_id() const;
@@ -67,6 +75,7 @@ public:
         std::string name_;
         std::string type_;
         std::string id_;
+        Class class_;
 
         std::mutex attributes_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Attribute> > attributes_;
