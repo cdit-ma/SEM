@@ -198,7 +198,7 @@ Activatable::State Activatable::get_state(){
     return state_;
 }
 
-LoggerProxy& Activatable::logger(){
+LoggerProxy& Activatable::logger() const{
     return *logger_;
 };
 

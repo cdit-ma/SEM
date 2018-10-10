@@ -4,6 +4,8 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <core/worker.h>
+#include <core/logger.h>
 
 /*void LogOpenCLError(std::string message, cl_int errorCode) {
 	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
@@ -234,9 +236,9 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	Logger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		Logger::WorkloadEvent::MESSAGE,
+		Logger::WorkloadEvent::ERROR,
 		-1,		// Need to expose something like get_current_work_id() 
 		message);
 }
@@ -249,9 +251,9 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	Logger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		Logger::WorkloadEvent::MESSAGE,
-		-1,		// Need to expose something like get_current_work_id() 
-		error_message);
+		Logger::WorkloadEvent::ERROR,
+		-1,
+		error_message, -1);
 }

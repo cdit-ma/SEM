@@ -48,8 +48,10 @@ class Logger{
             IGNORED = 4,
         };
     
+    protected:
+        static int GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_level = -1);
     public:
-        virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id = -1, std::string args = "") = 0;
+        virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
         virtual void LogComponentMessage(const Component& component, const std::string& message) = 0;
 
         virtual void LogLifecycleException(const Activatable& entity, const std::string& message) = 0;

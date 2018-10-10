@@ -12,7 +12,7 @@ class LoggerPrinter : public Logger{
         static Logger& get_logger();
         void SetLogLevel(int level);
 
-        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args);
+        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
         void LogComponentMessage(const Component& component, const std::string& message);
 
         void LogLifecycleEvent(const Component& component, const Logger::LifeCycleEvent& event);

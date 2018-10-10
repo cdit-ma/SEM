@@ -31,6 +31,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclbufferbase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
@@ -45,7 +46,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/oclbuffer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclbuffer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclbufferbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
@@ -102,7 +104,12 @@ endif()
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
-target_compile_definitions(${PROJ_NAME} PUBLIC KERNEL_FILEPATH="${KERNEL_FILEPATH}")
+message(STATUS "KERNAL FILEPATH: ${KERNEL_FILEPATH}")
+target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
+
+#Add RE_PATH to include directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})

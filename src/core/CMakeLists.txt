@@ -16,6 +16,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/threadmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     )
 
 set(HEADERS

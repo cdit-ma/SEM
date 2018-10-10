@@ -42,7 +42,7 @@ public:
         std::string get_type() const;
 
         bool is_running();
-        LoggerProxy& logger();
+        LoggerProxy& logger() const;
 
         Activatable::State get_state();
 

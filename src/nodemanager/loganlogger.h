@@ -11,7 +11,7 @@ class LoganLogger : public Logger{
     public:
         LoganLogger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Logger::Mode mode);
         
-        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args);
+        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
         void LogComponentMessage(const Component& component, const std::string& message);
 
         void LogLifecycleException(const Activatable& entity, const std::string& message);

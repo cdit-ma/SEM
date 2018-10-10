@@ -12,7 +12,7 @@ class LoggerProxy : public Logger{
         LoggerProxy();
         void AddLogger(Logger& logger);
 
-        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args);
+        void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1);
         void LogComponentMessage(const Component& component, const std::string& message);
 
         void LogLifecycleException(const Activatable& entity, const std::string& message);

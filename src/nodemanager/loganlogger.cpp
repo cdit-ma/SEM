@@ -31,7 +31,7 @@ void LoganLogger::LogLifecycleException(const Activatable& entity, const std::st
 std::cerr << GET_FUNC << std::endl;
 }
 
-void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
+void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
 std::cerr << GET_FUNC << std::endl;
 }
 

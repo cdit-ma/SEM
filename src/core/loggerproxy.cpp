@@ -11,8 +11,8 @@ void LoggerProxy::AddLogger(Logger& logger){
     attached_loggers_.emplace_back(logger);
 }
 
-void LoggerProxy::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
-    RunOnLoggers([&](Logger& l){l.LogWorkerEvent(worker, function_name, event, log_level, work_id, args);});
+void LoggerProxy::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
+    RunOnLoggers([&](Logger& l){l.LogWorkerEvent(worker, function_name, event, work_id, args, message_log_level);});
 }
 
 void LoggerProxy::LogLifecycleException(const Activatable& entity, const std::string& message){

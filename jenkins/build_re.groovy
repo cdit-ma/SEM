@@ -38,17 +38,18 @@ for(n in builder_nodes){
     builder_map[node_name] = {
         node(node_name){
             dir(PROJECT_NAME){
-                dir("bin"){
-                    deleteDir()
-                }
-                dir("lib"){
-                    deleteDir()
-                }
-
+                deleteDir()
+            }
+            dir(PROJECT_NAME){
                 //Unstash the code
                 unstash name: "source_code"
+
+                dir("testybois"){
+                    unstash name: "source_code"
+                }
                 
                 dir("build"){
+                    sh("env")
                     if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
                         error("CMake failed on Builder Node: " + node_name)
                     }
@@ -82,7 +83,7 @@ for(n in builder_nodes){
                         }
                         def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output + test_filter)
 
-                        if(test_error_code != 0){
+                    if(test_error_code != 0){
                             FAILED = true
                             print("Test: " + file_path + " Failed!")
                             FAILURE_LIST << ("Test "+file_path+" failed on node: " + node_name)

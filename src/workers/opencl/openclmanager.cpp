@@ -219,27 +219,27 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 }
 
 OpenCLManager::~OpenCLManager() {
-	if (buffer_store_.empty()) {
-		return;
+	size_t leaked_memory = 0;
+	size_t num_unfreed_buffers = buffer_store_.size();
+	for (auto& unfreed_buffer_pair : buffer_store_) {
+		//std::cerr << unfreed_buffer_pair.second.get() << std::endl;
+		//std::cerr << unfreed_buffer_pair.second->IsValid() << std::endl;
+		//std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
+		//delete unfreed_buffer_pair.second;
+		leaked_memory += unfreed_buffer_pair.second;
 	}
-	
-	Log(Severity::WARNING)
-		.Class("OpenCLManager")
-		.Func(__func__)
-		.Msg("OpenCLManager was deleted before all associated buffers had been released");
+
+	if (!buffer_store_.empty()) {
+		std::cout << "OpenCLManager was destroyed before all buffers were released, "
+				+std::to_string(leaked_memory)+" bytes automatically freed across "
+				+std::to_string(num_unfreed_buffers)+" buffers" << std::endl;
+	}
+
+	buffer_store_.clear();
 
 #ifdef BUILD_TEST
 	std::cerr << buffer_store_.size() << " buffers haven't been deallocated after OpenCL testing has finished" << std::endl;	
 #endif
-
-	/*
-	for (auto& unfreed_buffer_pair : buffer_store_) {
-#ifdef BUILD_TEST
-		std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
-#endif
-		delete unfreed_buffer_pair.second;
-	}
-	*/
 }
 
 // TODO: Handle the !valid_ case
@@ -290,10 +290,8 @@ bool OpenCLManager::IsFPGA() const {
 /************************************************************************/
 
 
-int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
+int OpenCLManager::TrackBuffer(const Worker& worker, const OpenCLBufferBase& buffer){
     std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
-	auto success = false;
-	//auto worker = buffer->GetInitialWorker();
 	
 	//try to retrieve a new buffer ID
 	auto buffer_id  = buffer_id_count_++;
@@ -301,11 +299,9 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 		buffer_id = buffer_id_count_++;
 	}
 
-	//TODO: See Dan for how to C++11 mutex good bruh
 	if (!buffer_store_.count(buffer_id)){
     	std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
-		buffer_store_.insert(std::make_pair(buffer_id, std::unique_ptr<GenericBuffer>(buffer)));
-		success = true;
+		buffer_store_.insert(std::make_pair(buffer_id, buffer.GetByteSize()));
 	} else {
 		LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));
 		buffer_id = invalid_buffer_id_;

@@ -22,8 +22,8 @@ void LoggerPrinter::LogLifecycleException(const Activatable& entity, const std::
     std::cerr << "* Lifecycle Exception: " << entity.get_name() << " [" << entity.get_id() << "] " <<  " | " << message << std::endl;
 }
     
-void LoggerPrinter::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int log_level, int work_id, std::string args){
-    if(Print(log_level)){
+void LoggerPrinter::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
+    if(Print(GetWorkloadLogLevel(event, message_log_level))){
         std::lock_guard<std::mutex> lock(mutex_);
         std::cerr << "* Worker: " << worker.get_name() << " [" << worker.get_type() << " - " << worker.get_id() << "] " << function_name << " | " << args << std::endl;
     }
