@@ -45,6 +45,10 @@ environment_manager_ip_address_(environment_manager_ip_address)
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
     replier_->Start();
+
+
+    cleanup_future_ = std::async(std::launch::async, &DeploymentRegister::CleanupTask, this);
+
 }
 
 DeploymentRegister::~DeploymentRegister(){
@@ -57,8 +61,21 @@ void DeploymentRegister::Terminate(){
         replier_->Terminate();
         replier_.reset();
     }
-    re_handlers_.clear();
-    logan_handlers_.clear();
+
+    {
+        std::lock_guard<std::mutex> lock(termination_mutex_);
+        terminated_ = true;
+        cleanup_cv_.notify_all();
+    }
+
+    if(cleanup_future_.valid()){
+        cleanup_future_.get();
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(handler_mutex_);
+        handlers_.clear();
+    }
 }
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request){
@@ -71,8 +88,6 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
         std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
         throw std::runtime_error(error);
     }
-
-    
 
     auto& experiment = environment_->GetExperiment(experiment_name);
     auto& node = experiment.GetNode(node_manager_ip_address);
@@ -101,7 +116,10 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
                             std::move(port_promise),
                             experiment_name));
 
-            re_handlers_.emplace_back(std::move(handler));
+            {
+                std::lock_guard<std::mutex> lock(handler_mutex_);
+                handlers_.emplace_back(std::move(handler));
+            }
 
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
@@ -138,14 +156,17 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
         auto logging_servers = experiment.GetAllocatedLoganServers(logan_server_ip_address);
 
         auto reply = std::unique_ptr<NodeManager::LoganRegistrationReply>(new NodeManager::LoganRegistrationReply());
-        if(logging_servers.size() > 0){
+        if(!logging_servers.empty()){
             auto handler = std::unique_ptr<DeploymentHandler>(new DeploymentHandler(*environment_,
                                         environment_manager_ip_address_,
                                         EnvironmentManager::Environment::DeploymentType::LOGAN_SERVER,
                                         logan_server_ip_address,
                                         std::move(port_promise),
                                         experiment_name));
-            logan_handlers_.emplace_back(std::move(handler));
+            {
+                std::lock_guard<std::mutex> lock(handler_mutex_);
+                handlers_.emplace_back(std::move(handler));
+            }
             //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
             reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
         }
@@ -178,4 +199,19 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::Handle
     environment_->PopulateExperiment(request.control_message());
     auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
     return reply;
-};
+}
+
+void DeploymentRegister::CleanupTask(){
+    while(true){
+        std::unique_lock<std::mutex> termination_lock(termination_mutex_);
+        cleanup_cv_.wait_for(termination_lock, std::chrono::milliseconds(cleanup_period_), [this]{return terminated_;});
+
+        if(terminated_){
+           break;
+        }
+
+        std::lock_guard<std::mutex> handler_lock(handler_mutex_);
+        handlers_.erase(
+                std::remove_if(handlers_.begin(), handlers_.end(), [](const std::unique_ptr<DeploymentHandler>& handler){return handler->IsRemovable();}), handlers_.end());
+    }
+}
