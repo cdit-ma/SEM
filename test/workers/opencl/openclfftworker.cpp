@@ -11,42 +11,6 @@
  * FFT testing
  ****/
 
-/*struct Matrix{
-    Matrix(size_t rows, size_t columns){
-        this->rows = rows;
-        this->columns = columns;
-    }
-    Matrix(size_t size) : Matrix(size, size){};
-    Matrix() = default;
-
-     size_t GetElements() const{
-        return rows * columns;
-    }
-
-    size_t rows = 0;
-    size_t columns = 0;
-};*/
-
-/*class OpenCLFFTWorkerConstructor{
-    public:
-        OpenCLFFTWorkerConstructor(DeviceParam device):
-            component_("component"),
-            worker_(component_, "openclworker")
-        {
-            auto platform_attr = worker_.GetAttribute("platform_id").lock();
-            if (platform_attr) {
-                platform_attr->set_Integer(device.platform_id);
-            }
-            auto device_attr = worker_.GetAttribute("device_id").lock();
-            if (device_attr) {
-                device_attr->set_Integer(device.device_id);
-            }
-        }
-        Component component_;
-        OpenCL_Worker worker_;
-};*/
-
-
 struct FFTParam{
     FFTParam(DeviceParam device, const std::vector<float>& data_in, const std::vector<float>& data_out, bool expect_success = true) {
         this->device = device;
@@ -138,33 +102,12 @@ TEST_P(FFTFixture, FFTtest)
     // Make sure that test case params are valid in terms of size
     ASSERT_EQ(data.size(), expected_output.size());
 
-    // As a constant vector has been passed in, we can pull amplitude out of the first element
-    //float amplitude = data[0];
-
-    /*for (const auto& e : data) {
-        std::cout << e << std::endl;
-    }
-    std::cout << "======" << std::endl;*/
-
 	bool did_succeed = worker_.FFT(data);
-
-    /*if (expected_output[0] != 0) {
-        for (const auto& val : data) {
-            std::cout << val << ", ";
-        }
-        std::cerr << std::endl;
-    }*/
 
     ASSERT_EQ(did_succeed, expect_success);
 
     ASSERT_EQ(data.size(), expected_output.size());
 
-    // Check that output is the sum of the amplitudes for constant testsB
-    //EXPECT_NEAR_RELATIVE(data[0], amplitude * data.size(), EPS);
-	
-    /*for (const auto& e : data) {
-        std::cout << e << std::endl;
-    }*/
     EXPECT_FLOATS_NEARLY_EQ(data, expected_output, 1e-3)
 }
 

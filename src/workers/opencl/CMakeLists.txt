@@ -60,7 +60,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/fft/openclfft_worker.h
     )
 
 # Search for OpenCL FFT libraries
@@ -119,11 +118,9 @@ target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEP
 #Add RE_PATH to include directories
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
-#target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${TESTER_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
-#target_include_directories(${TESTER_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -135,9 +132,7 @@ endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
-#target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
 
 target_link_libraries(${TESTER_NAME} re_core)
 target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
 target_link_libraries(${TESTER_NAME} ${OPENCL_LIB})
-#target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})

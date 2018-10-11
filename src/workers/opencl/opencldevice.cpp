@@ -3,35 +3,12 @@
 #include "openclmanager.h"
 #include "openclutilities.h"
 
-
-/*std::vector<cl::Device> device_store;
-
-cl::Device& storeDevice(cl::Device& dev) {
-	device_store.reserve(10);
-	cl::Device new_device(dev);
-	device_store.push_back(new_device);
-	//std::cout << & device_store.back() << " vs " << &dev << std::endl;
-	return device_store.back();
-	//return *new  cl::Device(dev);
-}*/
-
-
 OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device) :
-    //dev_(std::make_shared<cl::Device>(device)),
     dev_(new cl::Device(device)),
     manager_(manager),
     name_(dev_->getInfo<CL_DEVICE_NAME>())
 {
 	queue_ = std::make_shared<OpenCLQueue>(manager, *this);
-    // /int err;
-    //auto command_queue = new cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE, &err);
-
-    /*if (err_ != CL_SUCCESS) {
-        LogError(worker,
-            __func__,
-            "Unable to create a command queue for device " + name_);
-    }*/
-	//name_ = dev_.getInfo<CL_DEVICE_NAME>();
     valid_ = true;
 }
 
@@ -68,8 +45,8 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	}
     cl::Program& new_program = *(programs_.back());
 
+	// Get all devices with the same name
     std::vector<cl::Device> device_vec;
-    //device_vec.emplace_back(*dev_);
 	for (const auto& other_dev : manager_.GetDevices(worker)) {
 		if (other_dev->GetName() == name_) {
 			device_vec.emplace_back(other_dev->GetRef());
@@ -114,7 +91,6 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	}
 
 	for (auto& kernel : new_kernels) {
-		//kernels_.emplace_back(worker, manager_, kernel);
 		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
@@ -190,7 +166,6 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 				err);
 			continue;
 		}
-		//kernels_.emplace_back(worker, manager_, kernel);
 		kernels_.emplace_back(new OpenCLKernel(worker, manager_, kernel));
 	}
 
@@ -205,14 +180,6 @@ const std::vector<std::reference_wrapper<OpenCLKernel> > OpenCLDevice::GetKernel
 	}
 	return kernel_refs;
 }
-
-/*OpenCLKernel& OpenCLDevice::GetKernel(const std::string& kernel_name) const {
-	for (const auto& kernel : kernels_) {
-		if (kernel.GetName() == kernel_name) {
-			return kernel;
-		}
-	}
-}*/
 
 void OpenCLDevice::LogError(const Worker& worker, std::string function_name, std::string error_message, cl_int cl_error_code) {
     LogOpenCLError(worker,

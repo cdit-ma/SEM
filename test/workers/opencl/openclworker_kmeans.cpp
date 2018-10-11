@@ -120,15 +120,12 @@ KMeansData generateKMeansTuple(const std::vector<ClusterData>& clusters) {
     for (const auto& cluster : clusters) {
         std::normal_distribution<double> spread_distribution(-cluster.spread, cluster.spread);
         float4 new_center;
-        for (int i=0; i<cluster.num_points; i++) {
-            //float4 new_point;
-            for (int i=0; i<4; i++) {
+        for (unsigned int i=0; i<cluster.num_points; i++) {
+            for (unsigned int i=0; i<4; i++) {
                 double val = spread_distribution(generator);
                 data.points.emplace_back((float)val);
-                //new_point[i] = (float)val;
                 new_center[i] += (float) (val/cluster.num_points);
             }
-            //data.points.push_back(new_point);
             data.classifications.emplace_back(cluster_num);
         }
         for (int i=0; i<4; i++) {

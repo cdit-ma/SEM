@@ -15,6 +15,7 @@ public:
     size_t GetByteSize() const;
 
     void Track(const Worker& worker, OpenCLManager& manager);
+    void Untrack(OpenCLManager& manager);
     void Release(OpenCLManager& manager);
     
     cl::Buffer& GetBackingRef() const;
