@@ -195,7 +195,7 @@ void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message)
         
         std::lock_guard<std::mutex> lock(queue_mutex_);
         //Sum the total number of messages we are processing
-        auto queue_size = message_queue_.size() + processing_count_;
+        int queue_size = message_queue_.size() + processing_count_;
 
         //We should enqueue the message, if we are running, and we have room in our queue size (Or we don't care about queue size)
         bool enqueue_message = is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);

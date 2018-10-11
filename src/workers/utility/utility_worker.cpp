@@ -12,7 +12,6 @@ Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::s
 }
 
 Utility_Worker::~Utility_Worker(){
-    impl_.reset();
 }
 
 double Utility_Worker::GetTimeOfDay(){

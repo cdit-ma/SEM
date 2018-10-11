@@ -37,6 +37,8 @@ set(HEADERS
 
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
+add_library(re_id_generator SHARED ${CMAKE_CURRENT_SOURCE_DIR}/id_generator.cpp)
+
 # Compile Definitions
 target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 
@@ -49,6 +51,7 @@ target_link_libraries(${PROJ_NAME} PUBLIC zmq_protowriter)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
 target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_THREAD_LIBRARY})
+target_link_libraries(${PROJ_NAME} PUBLIC re_id_generator)
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} PRIVATE pthread)

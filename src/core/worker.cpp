@@ -37,20 +37,15 @@ const BehaviourContainer& Worker::get_container() const{
 };
 
 const Component& Worker::get_component() const{
-    try{
-        const auto& component = dynamic_cast<const Component&>(get_container());
-        return component;
-    }catch(const std::bad_cast& ex){
-    
-    }
-
-    try{
-        const auto& worker = dynamic_cast<const Worker&>(get_container());
+    const auto& container = get_container();
+    if(container.get_class() == Activatable::Class::COMPONENT){
+        return (const Component&)container;
+    }else if(container.get_class() == Activatable::Class::WORKER){
+        const auto& worker = (const Worker&) container;
         return worker.get_component();
-    }catch(const std::bad_cast& ex){
-    
+    }else{
+        throw std::runtime_error("Worker isn't contained in a Component");
     }
-    throw std::runtime_error("Worker isn't contained in a Component");
 }
 
 std::string Worker::get_arg_string(const std::string str_format, va_list args){

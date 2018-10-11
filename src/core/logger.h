@@ -11,7 +11,6 @@
 #endif
 
 class Worker;
-class Component;
 class Port;
 class BaseMessage;
 class Activatable;
@@ -19,9 +18,9 @@ class Activatable;
 class Logger{
     public:
         enum class Mode {
-            OFF,
-            LIVE,
-            CACHED
+            OFF = 0,
+            LIVE = 1,
+            CACHED = 2
         };
 
         enum class LifeCycleEvent{
@@ -48,16 +47,13 @@ class Logger{
             IGNORED = 4,
             EXCEPTION = 5
         };
-    
     protected:
         static int GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_level = -1);
     public:
         virtual void LogMessage(const Activatable& entity, const std::string& message) = 0;
         virtual void LogException(const Activatable& entity, const std::string& message) = 0;
         virtual void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event) = 0;
-        
         virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
-        
         virtual void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str = "") = 0;
 };
 
