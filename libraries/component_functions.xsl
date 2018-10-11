@@ -2013,16 +2013,6 @@
 
         <!-- Preamble -->
         <xsl:value-of select="cmake:print_regen_version('component_functions.xsl', 'cdit:get_class_cmake', 0)" />
-
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(($kind, $namespace, $label))" />
-
-        <xsl:variable name="top_source_dir" select="cmake:wrap_variable('TOP_SOURCE_DIR')" />
-        <xsl:variable name="top_binary_dir" select="cmake:wrap_variable('TOP_BINARY_DIR')" />
-
-        <!-- Set the TOP_SOURCE TOP_BINARY vars -->
-        <xsl:value-of select="cmake:set_variable('TOP_SOURCE_DIR', o:join_paths(($source_dir_var, $relative_path)), 0)" />
-        <xsl:value-of select="cmake:set_variable('TOP_BINARY_DIR', o:join_paths(($binary_dir_var, $relative_path)), 0)" />
-        <xsl:value-of select="o:nl(1)" />
         
         <!-- Set the project name -->
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
@@ -2031,8 +2021,9 @@
         <xsl:value-of select="cmake:find_re_core_library()" />
 
         <!-- Find boost -->
-        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread REQUIRED', 0)" />
-
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system REQUIRED', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+        
         <!-- Get the source files -->
         <xsl:variable name="source_files" as="xs:string*">
             <xsl:choose>
@@ -2086,23 +2077,28 @@
             </xsl:choose>
         </xsl:variable>
 
+        <xsl:value-of select="o:nl(1)" />
         <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS')), ' ')" />
-        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', $library_type, $args)" />
+        <xsl:value-of select="cmake:add_library('PROJ_NAME', $library_type, $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-        
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $top_source_dir, 0)" />
+        <!-- Include -->
+        <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SOURCE_DIR'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Runtime Environment -->
-        <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
-        <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_ID_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Link against Boost -->
+        <xsl:value-of select="cmake:comment('Link against Boost', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_THREAD_LIBRARY'), 0)" />
+        <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Required Aggregates -->
         <xsl:value-of select="cmake:target_link_aggregate_libraries($entity)" />
