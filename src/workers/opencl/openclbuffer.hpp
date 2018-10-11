@@ -1,7 +1,6 @@
 #ifndef OPENCLBUFFER_H
 #define OPENCLBUFFER_H
 
-//#include "openclutilities.h"
 #include "openclmanager.h"
 #include "openclbufferbase.h"
 #include "opencldevice.h"
@@ -9,7 +8,6 @@
 #include <vector>
 
 class OpenCLManager;
-//class OpenCLDevice;
 
 template <typename T>
 class OpenCLBuffer : public OpenCLBufferBase {
@@ -67,7 +65,6 @@ bool OpenCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data
     }
     
     bool write_success = buffer_->WriteData(worker, data.data(), buffer_->GetSize(), device, blocking);
-    //bool write_success = GenericBuffer::WriteData(&(front_ref), size_, blocking, worker_reference);
     return write_success;
 }
 
@@ -76,7 +73,6 @@ const std::vector<T> OpenCLBuffer<T>::ReadData(const Worker& worker, const OpenC
     std::vector<T> data(GetNumElements());
 
     bool read_success = buffer_->ReadData(worker, data.data(), buffer_->GetSize(), device, blocking);
-    //bool read_success = GenericBuffer::ReadData(&(front_ref), size_, blocking, worker_reference);
     if (!read_success) {
         data.clear();
     }

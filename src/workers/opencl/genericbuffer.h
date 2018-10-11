@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <core/worker.h>
-#include <iostream>
 
 namespace cl {
     class Buffer;
