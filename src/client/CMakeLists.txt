@@ -5,7 +5,7 @@ project(${PROJ_NAME})
 
 #find_package(SIGAR REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(sigar REQUIRED)
+find_package(SIGAR REQUIRED)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/sigarsysteminfo.cpp
