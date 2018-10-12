@@ -1,6 +1,5 @@
 
 set(PROJ_NAME opencl_worker)
-set(TESTER_NAME ${PROJ_NAME}_tester)
 project(${PROJ_NAME})
 
 # Set OpenCL Root / Lib Path
@@ -20,10 +19,6 @@ if(NOT OPENCL_LIB)
     message(STATUS "Not Found OpenCL - Not building opencl_worker")
     return()
 endif()
-
-# Specify the subprojects that depend on OpenCL
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
 
 # Apply overrides to OpenCL include directory if specified
 set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
@@ -65,12 +60,12 @@ set(HEADERS
 # Search for OpenCL FFT libraries
 set(CLFFT_ROOT $ENV{CLFFT_ROOT})
 set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
+
 find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
 # Add implementations for fft library as necessary
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "building OpenCL worker with FPGA FFT library")
-    # set(FFT_LIB FPGA)
     set(SOURCE
         ${SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
@@ -85,30 +80,26 @@ elseif (CLFFT_LIB)
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
     set(SOURCE
-    ${SOURCE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
-    )
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
+        )
 endif()
 
 
 # Mark library dependencies
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} openclmanagertests.cpp)
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 # Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "Building OpenCL worker with FPGA FFT library")
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
-    #target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fft1d")
+    target_compile_definitions(${PROJ_NAME} PUBLIC FFT_LIBRARY='2')
 elseif(CLFFT_LIB)
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
-    target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
-    target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
-    target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})
+    target_compile_definitions(${PROJ_NAME} PUBLIC FFT_LIBRARY='1')
+    target_include_directories(${PROJ_NAME} PUBLIC "${CLFFT_ROOT}/include")
+    target_link_libraries(${PROJ_NAME} PUBLIC ${CLFFT_LIB})
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
 endif()
-
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
@@ -116,23 +107,17 @@ message(STATUS "KERNAL FILEPATH: ${KERNEL_FILEPATH}")
 target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
-target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${TESTER_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
+# Include Directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
-if (MSVC)
- 	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-elseif(UNIX)
-	target_link_libraries(${PROJ_NAME} pthread)
-endif(MSVC)
+# Link Libraries
+target_link_libraries(${PROJ_NAME} PUBLIC re_core)
+target_link_libraries(${PROJ_NAME} PUBLIC ${OPENCL_LIB})
 
-
-target_link_libraries(${PROJ_NAME} re_core)
-target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
-
-target_link_libraries(${TESTER_NAME} re_core)
-target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
-target_link_libraries(${TESTER_NAME} ${OPENCL_LIB})
+# Specify the subprojects that depend on OpenCL
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")

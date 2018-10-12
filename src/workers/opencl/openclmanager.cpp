@@ -208,13 +208,6 @@ OpenCLManager::~OpenCLManager() {
 		std::cout << "OpenCLManager was destroyed before all buffers were released, "
 				+std::to_string(leaked_memory)+" bytes automatically freed across "
 				+std::to_string(num_unfreed_buffers)+" buffers" << std::endl;
-		
-		Log(Severity::WARNING)
-			.Class("OpenCLManager")
-			.Func(__func__)
-			.Msg("OpenCLManager was destroyed before all buffers were released, "
-				+std::to_string(leaked_memory)+" bytes automatically freed across "
-				+std::to_string(num_unfreed_buffers)+" buffers");
 	}
 
 	buffer_store_.clear();

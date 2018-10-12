@@ -3,7 +3,7 @@
 
 #include <string>
 #include <iostream>
-#include <core/modellogger.h>
+#include <core/logger.h>
 
 //#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
 #define CL_HPP_TARGET_OPENCL_VERSION 120

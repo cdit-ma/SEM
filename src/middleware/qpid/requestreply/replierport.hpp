@@ -161,7 +161,7 @@ if(success){
                             reply_sender.getSession().acknowledge();
                         }catch(const std::exception& ex){
                             std::string error_str = "Translating Reply/Request Failed: ";
-                            port.ProcessGeneralException(error_str + ex.what(), true);
+                            port.ProcessGeneralException(error_str + ex.what());
                         }
                     }
                 }
@@ -169,7 +169,7 @@ if(success){
 
             }
             catch(const std::exception& ex){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }
@@ -211,14 +211,14 @@ void qpid::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(T
                             reply_sender.getSession().acknowledge();
                         }catch(const std::exception& ex){
                             std::string error_str = "Translating Request Failed: ";
-                            port.ProcessGeneralException(ex.what(), true);
+                            port.ProcessGeneralException(ex.what());
                         }
                     }
                 }
             }catch(const qpid::messaging::MessagingException& ex){
             }
             catch(const std::exception& ex){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }
@@ -259,14 +259,14 @@ void qpid::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Threa
                             reply_sender.getSession().acknowledge();
                         }catch(const std::exception& ex){
                             std::string error_str = "Translating Reply Failed: ";
-                            port.ProcessGeneralException(ex.what(), true);
+                            port.ProcessGeneralException(ex.what());
                         }
                     }
                 }
             }catch(const qpid::messaging::MessagingException& ex){
             }
             catch(const std::exception& ex){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }

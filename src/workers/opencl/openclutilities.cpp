@@ -4,6 +4,8 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <core/worker.h>
+#include <core/logger.h>
 
 std::string OpenCLErrorName(int opencl_error_code) {
 	static const std::vector<std::string> clErrorNames({
@@ -190,9 +192,9 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		ModelLogger::WorkloadEvent::MESSAGE,
+		Logger::WorkloadEvent::ERROR,
 		-1,		// Need to expose something like get_current_work_id() 
 		message);
 }
@@ -205,9 +207,9 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		ModelLogger::WorkloadEvent::MESSAGE,
-		-1,		// Need to expose something like get_current_work_id() 
-		error_message);
+		Logger::WorkloadEvent::ERROR,
+		-1,
+		error_message, -1);
 }

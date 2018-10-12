@@ -4,16 +4,15 @@
 #include <iostream>
 #include <stdarg.h>
 
+const int UTILITY_WORKER_LOG_LEVEL = 8;
+
 Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
-    impl_ = new Utility_Worker_Impl();
+    impl_ = std::unique_ptr<Utility_Worker_Impl>(new Utility_Worker_Impl());
     impl_->SetRandomSeed(static_cast<unsigned int>(GetTimeOfDay()));
 }
 
 Utility_Worker::~Utility_Worker(){
-    if(impl_){
-        delete impl_;
-        impl_ = 0;
-    }
+    impl_.reset();
 }
 
 double Utility_Worker::GetTimeOfDay(){
@@ -32,35 +31,36 @@ double Utility_Worker::EvaluateComplexity(const std::string complexity, ...){
     return out;
 }
 
-void Utility_Worker::Log(const std::string str_format, bool print, ...){
+void Utility_Worker::Log(const std::string str_format, int log_level, ...){
     va_list args;
-    va_start(args, print);
-    std::string message = get_arg_string(str_format, args);
+    va_start(args, log_level);
+    const auto& message = get_arg_string(str_format, args);
     va_end(args);
 
-    Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message, print);
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), message, log_level);
 }
 
 
 
 void Utility_Worker::USleep(int microseconds){
     auto id = get_new_work_id();
-    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(microseconds) + " us");
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::STARTED, id, "Sleeping for: " + std::to_string(microseconds) + " us");
     impl_->USleep(microseconds);
-    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, id);
 }
+
 void Utility_Worker::Sleep(int seconds){
     auto id = get_new_work_id();
-    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(seconds) + " s");
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::STARTED, id, "Sleeping for: " + std::to_string(seconds) + " s");
     impl_->Sleep(seconds);
-    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, id);
 }
 
 
  
 void Utility_Worker::SetRandomSeed(unsigned int seed){
-    Worker::Log("SetRandomSeed", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Set random seed: " + std::to_string(seed));
-    return impl_->SetRandomSeed(seed);
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), "Set random seed: " + std::to_string(seed));
+    impl_->SetRandomSeed(seed);
 }
 
 int Utility_Worker::RandomUniformInt(int lower_bound, int upper_bound){

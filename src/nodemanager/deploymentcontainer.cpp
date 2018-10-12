@@ -2,10 +2,12 @@
 
 #include <core/translate.h>
 #include <core/worker.h>
-#include <core/modellogger.h>
 #include <core/ports/periodicport.h>
 
 #include <proto/controlmessage/controlmessage.pb.h>
+
+#include "loganlogger.h"
+#include <core/loggerprinter.h>
 
 #include <iostream>
 #include <algorithm>
@@ -64,8 +66,9 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                     break;
                 }
                 case NodeManager::Logger::MODEL:{
-                    if(!ModelLogger::is_logger_setup()){
-                        ModelLogger::setup_model_logger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
+                    //Setup logan logger
+                    if(!logan_logger_){
+                        logan_logger_ = std::unique_ptr<LoganLogger>(new LoganLogger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                     }
                     break;
                 }
@@ -101,6 +104,10 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
         auto worker = component->GetWorker(worker_name).lock();
 
         if(worker){
+            if(logan_logger_){
+                worker->logger().AddLogger(*logan_logger_);
+            }
+
             //Handle the attributes
             for(const auto& attr : worker_pb.attributes()){
                 SetAttributeFromPb(*worker, attr.second);
@@ -123,10 +130,15 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         
         //Set the once off information
         if(component){
+            if(logan_logger_){
+                //Set the logan logger
+                component->logger().AddLogger(*logan_logger_);
+            }
             const auto& location = component_pb.location();
             const auto& replicate_indices = component_pb.replicate_indices();
             component->SetLocation({location.begin(), location.end()});
             component->SetReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+            component->SetExperimentName(experiment_name_);
         }
     }
 
@@ -270,6 +282,9 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
             }
 
             if(port){
+                if(logan_logger_){
+                    port->logger().AddLogger(*logan_logger_);
+                }
                 //Set the ID/TYPE Once
                 port->set_id(port_info_pb.id());
                 port->set_type(port_info_pb.type());
@@ -330,6 +345,10 @@ void DeploymentContainer::HandleTerminate(){
     
     components_.clear();
     logan_clients_.clear();
+
+    if(logan_logger_){
+        logan_logger_.reset();
+    }
 }
 
 void DeploymentContainer::HandleConfigure(){

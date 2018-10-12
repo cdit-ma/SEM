@@ -1,5 +1,4 @@
 #include "periodicport.h"
-#include "../modellogger.h"
 #include "../component.h"
 #include <iostream>
 #include <memory>
@@ -24,6 +23,7 @@ PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string
     //Force set the kind
     SetKind(Port::Kind::PERIODIC);
     SetMaxQueueSize(1);
+    set_type("periodic");
 
     //Construct an attribute called frequency
     frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "frequency").lock();

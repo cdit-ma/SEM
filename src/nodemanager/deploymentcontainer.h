@@ -15,6 +15,7 @@
 #include "dllloader.h"
 #include "loganclient.h"
 
+class LoganLogger;
 namespace NodeManager{
     class Component;
     class Port;
@@ -93,6 +94,8 @@ class DeploymentContainer : public Activatable{
         std::unordered_map<std::string, std::shared_ptr<LoganClient> > logan_clients_;
 
         DllLoader dll_loader;
+
+        std::unique_ptr<LoganLogger> logan_logger_;
 
         const std::string experiment_name_;
 };

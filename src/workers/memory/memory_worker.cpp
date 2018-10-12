@@ -1,17 +1,12 @@
 #include "memory_worker.h"
 #include "memory_worker_impl.h"
-
 #include <exception>
 
 Memory_Worker::Memory_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
-    impl_ = new Memory_Worker_Impl();
+    impl_ = std::unique_ptr<Memory_Worker_Impl>(new Memory_Worker_Impl());
 }
-
 Memory_Worker::~Memory_Worker(){
-    if(impl_){
-        delete impl_;
-        impl_ = 0;
-    }
+    impl_.reset();
 }
 
 void Memory_Worker::Allocate(int kilobytes){
@@ -20,28 +15,27 @@ void Memory_Worker::Allocate(int kilobytes){
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before
-    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, Logger::WorkloadEvent::STARTED, work_id, args);
 
     // Bounds check for negative sizes
     if (kilobytes < 0) {
-        Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, 
+        Log(fun, Logger::WorkloadEvent::WARNING, work_id, 
             "Allocation Failed; attempting to deallocate with a negative number");
     } else {
         try {
             //Do work
             auto res = impl_->Allocate(kilobytes);
             if(!res){
-                Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Allocation Failed");
+                Log(fun, Logger::WorkloadEvent::ERROR, work_id, "Allocation Failed");
             }
         } catch (const std::exception& ex) {
-            Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id,
+            Log(fun, Logger::WorkloadEvent::ERROR, work_id,
                 "Allocation failed with exception: "+std::string(ex.what()));
         }
     }
 
     //Log After
-    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id, args);
-    
+    Log(fun, Logger::WorkloadEvent::FINISHED, work_id, args);
 }
 
 void Memory_Worker::Deallocate(int kilobytes){
@@ -50,27 +44,27 @@ void Memory_Worker::Deallocate(int kilobytes){
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before
-    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, Logger::WorkloadEvent::STARTED, work_id, args);
 
     // Bounds check for negative sizes
     if (kilobytes < 0) {
-        Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id,
+        Log(fun, Logger::WorkloadEvent::WARNING, work_id,
             "Deallocation Failed; attempting to deallocate with a negative number");
     } else {
         try {
             //Do work
             auto res = impl_->Deallocate(kilobytes);
             if(!res){
-                Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Deallocation Failed");
+                Log(fun, Logger::WorkloadEvent::ERROR, work_id, "Deallocation Failed");
             }
         } catch (const std::exception& ex) {
-            Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id,
+            Log(fun, Logger::WorkloadEvent::ERROR, work_id,
                 "Deallocation failed with exception: "+std::string(ex.what()));
         }
     }
 
     //Log After
-    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id, args);
+    Log(fun, Logger::WorkloadEvent::FINISHED, work_id, args);
 }
 
 int Memory_Worker::GetAllocatedCount() const{

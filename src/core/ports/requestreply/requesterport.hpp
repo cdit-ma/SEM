@@ -2,7 +2,6 @@
 #define BASE_PORT_REQUESTER_HPP
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Generic templated RequesterPort
@@ -62,7 +61,7 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, BaseRequestType>::Se
             return {true, std::move(base_reply)};
         }catch(const std::exception& ex){
             std::string error_str = "Failed to Send Request: ";
-            ProcessMessageException(base_request, error_str + ex.what(), true);
+            ProcessMessageException(base_request, error_str + ex.what());
         }
     }
     EventIgnored(base_request);
@@ -87,7 +86,7 @@ bool RequesterPort<void, BaseRequestType>::SendRequest(const BaseRequestType& ba
             return true;
         }catch(const std::exception& ex){
             std::string error_str = "Failed to Send Request: ";
-            ProcessMessageException(base_request, error_str + ex.what(), true);
+            ProcessMessageException(base_request, error_str + ex.what());
             EventIgnored(base_request);
         }
     }
@@ -116,7 +115,7 @@ std::pair<bool, BaseReplyType> RequesterPort<BaseReplyType, void>::SendRequest(s
             return {true, std::move(base_reply)};
         }catch(const std::exception& ex){
             std::string error_str = "Sending Request Failed: ";
-            ProcessGeneralException(error_str + ex.what(), true);
+            ProcessGeneralException(error_str + ex.what());
         }
     }
     return {false, BaseReplyType()};

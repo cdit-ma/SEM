@@ -8,11 +8,16 @@
 
 #include "attribute.h"
 
-
-class ModelLogger;
+#include <core/loggerproxy.h>
 
 class Activatable{
 public:
+    enum class Class{
+        UNKNOWN,
+        COMPONENT,
+        PORT,
+        WORKER,
+    };
     enum class Transition{
         NO_TRANSITION = 0,
         CONFIGURE = 1,
@@ -30,19 +35,22 @@ public:
     static const std::string ToString(const Transition& transation);
     static const std::string ToString(const State& transation);
 
-    public: 
+    public:
+        Activatable(Class c = Class::UNKNOWN);
         virtual ~Activatable(){};
         
         void set_name(std::string name);
         void set_id(std::string id);
         void set_type(std::string type);
 
+        Class get_class() const; 
+
         std::string get_name() const;
         std::string get_id() const;
         std::string get_type() const;
 
         bool is_running();
-        ModelLogger& logger();
+        LoggerProxy& logger() const;
 
         Activatable::State get_state();
 
@@ -63,9 +71,11 @@ public:
     private:
         bool transition_state(const Activatable::Transition transition);
 
+        std::unique_ptr<LoggerProxy> logger_;
         std::string name_;
         std::string type_;
         std::string id_;
+        Class class_;
 
         std::mutex attributes_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Attribute> > attributes_;

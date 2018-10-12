@@ -2,9 +2,6 @@
 set(PROJ_NAME test_rti_pubsub)
 project(${PROJ_NAME})
 
-#Find protobuf
-find_package(Protobuf REQUIRED)
-
 # Find package RTIDDS
 find_package(RTI_DDS)
 
@@ -26,16 +23,15 @@ add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 # Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE ${RTI_DDS_DEFINITIONS})
 
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RTI_DDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(UNIX)
-    target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
+    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
 endif()
 
-target_link_libraries(${PROJ_NAME} re_core)
-target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${PROJ_NAME} ${RTI_DDS_LIBRARIES})
-target_link_libraries(${PROJ_NAME} rti_dds_helper)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE gtest)
+target_link_libraries(${PROJ_NAME} PRIVATE ${RTI_DDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PRIVATE rti_dds_helper)
