@@ -135,7 +135,7 @@ void ModelProtoHandler::CreateLifecycleTable(){
     table.AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     table.Finalize();
 
-    tables_.insert({LOGAN_MODELEVENT_LIFECYCLE_TABLE, std::move(table_ptr)});
+    tables_.emplace(std::make_pair(LOGAN_MODELEVENT_LIFECYCLE_TABLE, std::move(table_ptr)));
 
     //Queue the insert
     database_.QueueSqlStatement(table.get_table_construct_statement());
@@ -161,7 +161,8 @@ void ModelProtoHandler::CreateWorkloadTable(){
     table.AddColumn("args", LOGAN_VARCHAR);
 
     table.Finalize();
-    tables_.insert({LOGAN_MODELEVENT_WORKLOAD_TABLE, std::move(table_ptr)});
+
+    tables_.emplace(std::make_pair(LOGAN_MODELEVENT_WORKLOAD_TABLE, std::move(table_ptr)));
     database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
@@ -180,7 +181,7 @@ void ModelProtoHandler::CreateUtilizationTable(){
     table.AddColumn(LOGAN_MESSAGE, LOGAN_VARCHAR);
     table.Finalize();
 
-    tables_.insert({LOGAN_MODELEVENT_UTILIZATION_TABLE, std::move(table_ptr)});
+    tables_.emplace(std::make_pair(LOGAN_MODELEVENT_UTILIZATION_TABLE, std::move(table_ptr)));
     database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
