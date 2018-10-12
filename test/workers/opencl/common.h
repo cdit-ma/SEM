@@ -8,6 +8,7 @@
 #include <workers/opencl/openclutilities.h>
 #include <workers/opencl/openclmanager.h>
 #include <workers/opencl/opencl_worker.h>
+#include <core/loggers/print_logger.h>
 
 #define EPS 1e-6
 #define CHECK_FLOAT(x, y, eps) (fabs(x-y)<eps)
@@ -49,6 +50,11 @@ class OpenCL_WorkerConstructor{
             component_("component"),
             worker_(component_, "OpenCL_Worker")
         {
+            Print::Logger::get_logger().SetLogLevel(10);
+            worker_.logger().AddLogger(Print::Logger::get_logger());
+
+            //Set the logger
+            
             auto platform_attr = worker_.GetAttribute("platform_id").lock();
             if (platform_attr) {
                 platform_attr->set_Integer(device.platform_id);

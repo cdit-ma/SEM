@@ -8,6 +8,9 @@
 #include <workers/opencl/opencl_worker.h>
 
 #include "common.h"
+#include <core/loggers/print_logger.h>
+
+
 
 //This is our test case for the frame
 TEST(OpenCLManager, GetDevices)
@@ -41,6 +44,8 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
             component_("dummy_component"),
             worker_(component_, "dummy_worker", "dummy_worker")
         {
+            Print::Logger::get_logger().SetLogLevel(10);
+            worker_.logger().AddLogger(Print::Logger::get_logger());
             device_ = GetParam();
             RecordProperty("Device_ID", device_.device_id);
             RecordProperty("Platform_ID", device_.platform_id);
