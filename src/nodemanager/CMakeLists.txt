@@ -1,7 +1,7 @@
 set(PROJ_NAME "re_node_manager")
 project(${PROJ_NAME})
 
-find_package(Boost 1.30.0 COMPONENTS program_options date_time chrono REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
