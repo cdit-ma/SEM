@@ -33,35 +33,38 @@
 
     <!--
         Sets a compiler definition for a particular target (will wrap target using cmake:wrap_variable)
-        ie. target_compile_definitions(${target} PRIVATE ${args})
+        ie. target_compile_definitions(${target} ${scope} ${args})
     -->
     <xsl:function name="cmake:target_compile_definitions" as="xs:string">
         <xsl:param name="target" as="xs:string" />
+        <xsl:param name="scope" as="xs:string" />
         <xsl:param name="args" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
-        <xsl:value-of select="concat(o:t($tab), 'target_compile_definitions', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), 'PRIVATE', o:wrap_dblquote($args)), ' ')), o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), 'target_compile_definitions', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), $scope, o:wrap_dblquote($args)), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
         Includes a directory for a particular target (will wrap target using cmake:wrap_variable)
-        target_include_directories(${target} PRIVATE ${directory})
+        target_include_directories(${target} ${scope} ${directory})
     -->
     <xsl:function name="cmake:target_include_directories" as="xs:string">
         <xsl:param name="target" as="xs:string" />
+        <xsl:param name="scope" as="xs:string" />
         <xsl:param name="directory" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
-        <xsl:value-of select="concat(o:t($tab), 'target_include_directories', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), 'PRIVATE', o:wrap_dblquote($directory)), ' ')), o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), 'target_include_directories', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), $scope, o:wrap_dblquote($directory)), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
         Links a library against a particular target (will wrap target using cmake:wrap_variable)
-        target_link_libraries(${target} ${library_name})
+        target_link_libraries(${target} ${scope} ${library_name})
     -->
     <xsl:function name="cmake:target_link_libraries" as="xs:string">
         <xsl:param name="target" as="xs:string" />
+        <xsl:param name="scope" as="xs:string" />
         <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
-        <xsl:value-of select="concat(o:t($tab), 'target_link_libraries', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), o:wrap_dblquote($library_name)), ' ')), o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), 'target_link_libraries', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), $scope, o:wrap_dblquote($library_name)), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
@@ -99,7 +102,7 @@
         <xsl:param name="args" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="cmake:comment(concat('Find package ', $package_name), $tab)" />
+        <xsl:value-of select="cmake:comment(concat('Find ', $package_name), $tab)" />
         <xsl:value-of select="concat(o:t($tab), 'find_package', o:wrap_bracket(o:join_list(($package_name, $args), ' ')), o:nl(1))" />
     </xsl:function>
 
@@ -142,14 +145,14 @@
         <xsl:param name="project_name" as="xs:string" />
 
         <xsl:value-of select="cmake:set_variable('PROJ_NAME', $project_name, 0)" />
-        <xsl:value-of select="concat('project(${PROJ_NAME})', o:nl(1))" />
+        <xsl:value-of select="concat('project(${PROJ_NAME})', o:nl(2))" />
     </xsl:function>
 
     <!--
         Adds a shared library (MODULE/SHARED)
         ie. add_library(${library_name} ${library_type} ${args})
     -->
-    <xsl:function name="cmake:add_shared_library" as="xs:string">
+    <xsl:function name="cmake:add_library" as="xs:string">
         <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="library_type" as="xs:string" />
         <xsl:param name="args" as="xs:string" />
