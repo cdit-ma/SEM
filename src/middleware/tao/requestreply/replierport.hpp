@@ -104,7 +104,7 @@ namespace tao{
                     return delayedTaoCast(tao_result_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply/Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    eventport.ProcessGeneralException(error_str + ex.what());
                     throw std::runtime_error(error_str + ex.what());
                 }
             };
@@ -125,7 +125,7 @@ namespace tao{
                     delete base_message;
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    eventport.ProcessGeneralException(error_str + ex.what());
                     throw std::runtime_error(error_str + ex.what());
                 }
             };
@@ -146,7 +146,7 @@ namespace tao{
                     return delayedTaoCast(tao_result_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
+                    eventport.ProcessGeneralException(error_str + ex.what());
                     throw std::runtime_error(error_str + ex.what());
                 }
             };

@@ -111,7 +111,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
 	// Altera implementation requires exactly N complex numbers
 	if (data.size() != N*2) {
-         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+         Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
                  "FFT implementation for FPGA requires data of length "+std::to_string(N)+", skipping calculation");
          return false;
     }
@@ -192,6 +192,12 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	return true;
 }
 
+bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
+	Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        "Unable to run buffered FFT on FPGA, consider using the vector input version instead");
+    return false;
+}
+
 bool OpenCL_Worker::InitFFT() {
     cl_int status;
 
@@ -215,7 +221,7 @@ bool OpenCL_Worker::InitFFT() {
 		if (kernels_found < 2) {
 			bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
 			if (!did_read_binary) {
-				Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+				Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
 						"Unable to load kernels from fft1d.aocx binary");
 				return false;
 			}

@@ -10,12 +10,12 @@ bool OpenCL_Worker::CleanupFFT() {return false; };
 
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
-    Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+    Log(std::string(__func__), Logger::WorkloadEvent::ERROR, get_new_work_id(),
         "Unable to run FFT; no implementation provided. Please install an FFT library");
     return false;
 }
-bool OpenCL_Worker::FFT(OpenCLBuffer<float> &data) {
-    Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+bool OpenCL_Worker::FFT(OpenCLBuffer<float> &data, int device_id) {
+    Log(std::string(__func__), Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
         "Unable to run FFT; no implementation provided. Please install an FFT library");
     return false;
 }

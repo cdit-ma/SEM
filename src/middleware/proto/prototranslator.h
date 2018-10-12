@@ -25,13 +25,12 @@ namespace Proto{
     template <>
     class Translator<void, void>{
         public:
-            static void StringToBase(const std::string& message){
+            static void StringToBase(const std::string&){
                 return;
             };
 
             static std::string BaseToString(){
-                std::string str_value;
-                return str_value;
+                return std::string();
             };
     };
 };

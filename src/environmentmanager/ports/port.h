@@ -73,7 +73,7 @@ class Port{
         const std::set<std::string>& GetInternalConnectedPortIds() const;;
         const std::set<std::string>& GetExternalConnectedPortIds() const;
         void FillTopicPb(NodeManager::Port& port_pb);
-
+        virtual void FillPortPb(::NodeManager::Port& port_pb) = 0;
     private:
         void SetType(const std::string& type);
 
@@ -83,7 +83,7 @@ class Port{
         void AddAttribute(const NodeManager::Attribute& attribute);
 
 
-        virtual void FillPortPb(NodeManager::Port& port_pb) = 0;
+        
 
         Experiment& experiment_;
         Component* component_ = 0;

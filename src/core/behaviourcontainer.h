@@ -7,7 +7,7 @@ class Worker;
 
 class BehaviourContainer : public Activatable{
     public:
-        BehaviourContainer(const std::string& inst_name = "");
+        BehaviourContainer(Class c, const std::string& inst_name = "");
         virtual ~BehaviourContainer();        
 
         template<class T>

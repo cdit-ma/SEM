@@ -72,7 +72,7 @@ void* DllLoader::GetLibrary(const std::string& dll_path){
             library = LoadLibrary(dll_path.c_str());
         #else
             //Get a handle to the dynamically linked library
-            library = dlopen(dll_path.c_str(), RTLD_LAZY);
+            library = dlopen(dll_path.c_str(), RTLD_GLOBAL);
         #endif
 
         auto end = std::chrono::steady_clock::now();

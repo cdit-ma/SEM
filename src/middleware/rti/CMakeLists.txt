@@ -1,37 +1,30 @@
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-#Find rti library
-find_package(RTI_DDS)
 
 set(PROJ_NAME rti_dds_helper)
 project (${PROJ_NAME})
-set(RTI_DDS_HELPER_LIBRARIES ${PROJ_NAME})
+
+# Find RTI
+find_package(RTI_DDS)
 
 if(NOT RTI_DDS_FOUND)
-message(STATUS "Not Found RTI - Not building RTI Middleware library")
-return()
+    message(STATUS "Cannot find RTI_DDS cannot build project ${PROJ_NAME}")
+    return()
 endif()
-
-
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
-	)
+    )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
     )
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
-# Need this to make sure headers are using the correct function calls.
-target_compile_definitions(${PROJ_NAME} PRIVATE ${RTI_DDS_DEFINITIONS})
+# Compile Definitions
+target_compile_definitions(${PROJ_NAME} PUBLIC ${RTI_DDS_DEFINITIONS})
 
+# Include Directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RTI_DDS_INCLUDE_DIRS})
 
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${RTI_DDS_INCLUDE_DIRS})
-
-
-target_link_libraries(${PROJ_NAME} ${RTI_DDS_LIBRARIES})
+# Link Libraries
+target_link_libraries(${PROJ_NAME} PUBLIC ${RTI_DDS_LIBRARIES})

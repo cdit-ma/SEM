@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdarg.h>
+#include <core/component.h>
 
 Worker::Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, const bool is_worker):
+    BehaviourContainer(Class::WORKER, inst_name),
     container_(container),
     worker_name_(class_name),
     is_worker_class_(is_worker)
 {
-    set_name(inst_name);
 };
 
 Worker::~Worker(){
@@ -34,6 +35,18 @@ int Worker::get_new_work_id(){
 const BehaviourContainer& Worker::get_container() const{
     return container_;
 };
+
+const Component& Worker::get_component() const{
+    const auto& container = get_container();
+    if(container.get_class() == Activatable::Class::COMPONENT){
+        return (const Component&)container;
+    }else if(container.get_class() == Activatable::Class::WORKER){
+        const auto& worker = (const Worker&) container;
+        return worker.get_component();
+    }else{
+        throw std::runtime_error("Worker isn't contained in a Component");
+    }
+}
 
 std::string Worker::get_arg_string(const std::string str_format, va_list args){
     //We need to make a copy of the arg list before we unwind it.
@@ -63,6 +76,7 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
     return str;
 };
 
-void Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args, bool print){
-    logger().LogWorkerEvent(*this, function_name, event, work_id, args, print);
+
+void Worker::Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
+    logger().LogWorkerEvent(*this, function_name, event, work_id, args, message_log_level);
 }

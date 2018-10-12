@@ -44,7 +44,7 @@ int main(int argc, char **argv){
     
     //Add optional arguments
     options.add_options()("time,t", boost::program_options::value<int>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
-    options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Model generated library path.");
+    options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path)->required(), "Model generated library path.");
     
     options.add_options()("help,h", "Display help");
 
@@ -103,11 +103,6 @@ int main(int argc, char **argv){
         master_publisher_endpoint = reply->master_publisher_endpoint();
     }catch(const std::exception& ex){
         std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
-        return 1;
-    }
-
-    if(is_slave && !vm.count("library")){
-        std::cerr << "* No library path supplied to re_node_manager slave!" << std::endl;
         return 1;
     }
 

@@ -128,12 +128,12 @@ void zmq::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manage
                     this->EnqueueMessage(std::move(basetype_ptr));
                 }catch(const std::exception& ex){
                     std::string error_str("Failed to translate subscribed message: ");
-                    this->ProcessGeneralException(error_str + ex.what(), true);
+                    this->ProcessGeneralException(error_str + ex.what());
                 }
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                this->ProcessGeneralException(ex.what(), true);
+                this->ProcessGeneralException(ex.what());
             }
         }
     }

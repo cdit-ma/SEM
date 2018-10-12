@@ -6,7 +6,7 @@
 #include <map>
 #include <mutex>
 
-#include <core/modellogger.h>
+#include <core/logger.h>
 #include <core/worker.h>
 
 #include "openclbuffer.hpp"
@@ -93,6 +93,9 @@ class OpenCLManager {
 		static void LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message);
+		static void LogMessage(const Worker& worker,
+							std::string function_name,
+							std::string message);
 
 		// A separate OpenCLManager is maintained for each OpenCL platform
 		static std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > reference_map_;

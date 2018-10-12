@@ -12,6 +12,7 @@ enum class ThreadState{WAITING, STARTED, ACTIVE, TERMINATED};
 //Interface for a standard Port
 class Port : public Activatable
 {
+    
     public:
         enum class Kind{
             NONE = 0,
@@ -40,8 +41,8 @@ class Port : public Activatable
         void EventRecieved(const BaseMessage& message);
         void EventProcessed(const BaseMessage& message);
         void EventIgnored(const BaseMessage& message);
-        void ProcessMessageException(const BaseMessage& message, const std::string& error_str, bool print);
-        void ProcessGeneralException(const std::string& error_str, bool print);
+        void ProcessMessageException(const BaseMessage& message, const std::string& error_str);
+        void ProcessGeneralException(const std::string& error_str);
         
         void SetKind(const Port::Kind& port_kind);
     private:

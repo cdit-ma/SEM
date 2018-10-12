@@ -27,12 +27,12 @@ namespace ospl{
                                 }
                             }catch(const std::exception& ex){
                                 std::string error_str("Failed to translate subscribed message: ");
-                                port_->ProcessGeneralException(error_str + ex.what(), true);
+                                port_->ProcessGeneralException(error_str + ex.what());
                             }
                         }
                     }
                 }catch(const std::exception& ex){
-                    Log(Severity::ERROR_).Context(port_).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
+                    port_->ProcessGeneralException(std::string("Unable to process samples") + ex.what());
                 }
             };
         private:

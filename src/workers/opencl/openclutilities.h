@@ -3,7 +3,7 @@
 
 #include <string>
 #include <iostream>
-#include <core/modellogger.h>
+#include <core/logger.h>
 
 //#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
 #define CL_HPP_TARGET_OPENCL_VERSION 120
@@ -36,6 +36,10 @@ extern void LogOpenCLError(const Worker& worker,
 	cl_int cl_error_code);
 
 extern void LogOpenCLError(const Worker& worker,
+	std::string function_signature,
+	std::string error_message);
+
+extern void LogOpenCLMessage(const Worker& worker,
 	std::string function_signature,
 	std::string error_message);
 

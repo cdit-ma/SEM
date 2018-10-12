@@ -12,10 +12,10 @@ SET(SOURCE
 add_executable(${PROJ_NAME} ${SOURCE})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 
 if(UNIX)
-    target_link_libraries(${PROJ_NAME} pthread)
+    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
 endif(UNIX)
 
-target_link_libraries(${PROJ_NAME} gtest)
+target_link_libraries(${PROJ_NAME} PRIVATE gtest)

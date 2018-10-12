@@ -10,7 +10,6 @@
 #include "../../threadmanager.h"
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Interface for a standard templated SubscriberPort
@@ -131,9 +130,9 @@ void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
 
     if(process_message){
         //Call into the function and log
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(message);
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::FINISHED_FUNC);
         EventProcessed(message);
     }else{
         EventIgnored(message);
@@ -196,7 +195,7 @@ void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message)
         
         std::lock_guard<std::mutex> lock(queue_mutex_);
         //Sum the total number of messages we are processing
-        auto queue_size = message_queue_.size() + processing_count_;
+        int queue_size = message_queue_.size() + processing_count_;
 
         //We should enqueue the message, if we are running, and we have room in our queue size (Or we don't care about queue size)
         bool enqueue_message = is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);

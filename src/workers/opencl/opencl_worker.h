@@ -15,7 +15,6 @@ struct cl_comand_queue;
 class OpenCL_Worker : public Worker {
 public:
     OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name);
-    //~OpenCL_Worker();
 
     void HandleConfigure() override;
     void HandleTerminate() override;
@@ -42,17 +41,13 @@ public:
 
     // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
     bool FFT(std::vector<float> &data);
-    bool FFT(OpenCLBuffer<float> &data);
+    bool FFT(OpenCLBuffer<float> &data, int device_id=-1);
 
 
 
 protected:
-    virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
-
     bool InitFFT();
     bool CleanupFFT();
-
-
 private:
     // Can throw if source file doesn't exist, contains no kernels or doesn't contain the specified kernel
     OpenCLKernel& GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file);
@@ -85,7 +80,7 @@ OpenCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) 
         new_buffer.Track(*this, *manager_);
         WriteBuffer(new_buffer, data, blocking);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
             std::string("Unable to create an OpenCL buffer from a vector:\n")+e.what());
     }
     return new_buffer;
@@ -98,7 +93,7 @@ void OpenCL_Worker::ReleaseBuffer(OpenCLBuffer<T>& buffer) {
         buffer.Untrack(*manager_);
         manager_->ReleaseBuffer(*this, buffer);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
             std::string("Unable to release an OpenCL buffer:\n")+e.what());
     }
     //return manager_->ReleaseBuffer(*this, buffer);
@@ -107,22 +102,22 @@ void OpenCL_Worker::ReleaseBuffer(OpenCLBuffer<T>& buffer) {
 template <typename T>
 bool OpenCL_Worker::WriteBuffer(OpenCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
     if (devices_.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Cannot write to buffer when worker has no associated devices");
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
+        "Cannot write to buffer when worker has no associated devices");
         return false;
     }
 
     if (devices_.size() > 1) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Attempting to write to buffer using a worker that has multiple associated devices");
+        Log(GET_FUNC, Logger::WorkloadEvent::WARNING, get_new_work_id(), 
+        "Attempting to write to buffer using a worker that has multiple associated devices");
     }
 
     bool did_all_succeed = true;
     for (const auto& dev_wrapper : devices_) {
         bool success = buffer.WriteData(*this, data, dev_wrapper.get(), blocking);
         if (!success) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to write to OpenCLBuffer for device "+dev_wrapper.get().GetName());
+            Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
+                "Failed to write to OpenCLBuffer for device " + dev_wrapper.get().GetName());
             did_all_succeed = false;
         }
     }
@@ -132,13 +127,13 @@ bool OpenCL_Worker::WriteBuffer(OpenCLBuffer<T>& buffer, const std::vector<T>& d
 template <typename T>
 std::vector<T> OpenCL_Worker::ReadBuffer(const OpenCLBuffer<T>& buffer, bool blocking) {
     if (devices_.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
             "Cannot read from buffer when worker has no associated devices");
         return std::vector<T>();
     }
 
     if (devices_.size() > 1) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
             "Cannot read buffer using a worker that has multiple associated devices");
         return std::vector<T>();
     }

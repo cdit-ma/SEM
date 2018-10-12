@@ -11,7 +11,7 @@
 #include <memory>
 #include <future>
 
-#include <core/modellogger.h>
+#include <core/logger.h>
 #include "deploymentcontainer.h"
 
 #include <proto/controlmessage/controlmessage.pb.h>
