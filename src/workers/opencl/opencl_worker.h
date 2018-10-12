@@ -41,7 +41,7 @@ public:
 
     // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
     bool FFT(std::vector<float> &data);
-    bool FFT(OpenCLBuffer<float> &data);
+    bool FFT(OpenCLBuffer<float> &data, int device_id=-1);
 
 
 

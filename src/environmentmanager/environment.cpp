@@ -47,6 +47,11 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
     //Take a copy
     auto control_message = const_control_message;
     const auto& experiment_name = control_message.experiment_id();
+
+    if(experiment_map_.count(experiment_name) > 0){
+        throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
+    }
+
     try{
         //Register the experiment
         RegisterExperiment(experiment_name);

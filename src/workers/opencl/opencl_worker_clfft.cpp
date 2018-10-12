@@ -34,15 +34,42 @@ bool OpenCL_Worker::CleanupFFT() {
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
-	auto work_id = get_new_work_id();
     if (!is_valid_) {
-		Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id, "Unable to perform FFT calculations, worker is invalid!");
+		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Unable to perform FFT calculations, worker is invalid");
 		return false;
 	}
 
-	cl_int err;
+    unsigned int allocated_dev_index = load_balancer_->RequestDevice();
 
-    size_t length = data.size();
+    auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
+
+    /* Prepare OpenCL memory objects and place data inside them. */
+    OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
+
+    auto success = FFT(buffer, allocated_dev_index);
+
+    /* Fetch results of calculations. */
+    data = buffer.ReadData(*this, *dev, true);
+
+    load_balancer_->ReleaseDevice(allocated_dev_index);
+
+    return success;
+}
+
+
+bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
+
+	auto work_id = get_new_work_id();
+    if (!is_valid_) {
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid");
+		return false;
+	}
+
+    auto& dev = manager_->GetDevices(*this)[device_id];
+
+	cl_int err;
+    
+    size_t length = buffer.GetNumElements();
 
     if(length % 2 != 0){
 		Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id, "Unable to perform FFT: Non-even length of array, implies half a sample (No complex number)");
@@ -64,7 +91,7 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 		Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id, "Unable to perform FFT: Number of samples must be a mix of powers of 2, 3 and 5");
 		return false;
 	}
-	N = data.size();
+	N = length;
 
     /* FFT library realted declarations */
     clfftDim dim = CLFFT_1D;
@@ -82,16 +109,9 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	err = clfftSetLayout(planHandle, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
     err = clfftSetResultLocation(planHandle, CLFFT_INPLACE);
 
-    unsigned int allocated_dev_index = load_balancer_->RequestDevice();
-
-    auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
-
     cl_command_queue dev_queue = dev->GetQueue().GetRef()();
     /* Bake the plan. */
     err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
-
-    /* Prepare OpenCL memory objects and place data inside them. */
-    OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
 
     /* Execute the plan. */
     err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer.GetBackingRef()()), NULL, NULL);
@@ -109,13 +129,8 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
             "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
     }
 
-    /* Fetch results of calculations. */
-    data = buffer.ReadData(*this, *dev, true);
-
     /* Release the plan. */
     err = clfftDestroyPlan( &planHandle );
-
-    load_balancer_->ReleaseDevice(allocated_dev_index);
 
     return true;
 }

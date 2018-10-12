@@ -78,6 +78,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 }
 
 void DeploymentHandler::RemoveDeployment(){
+    std::lock_guard<std::mutex> lock(remove_mutex_);
     if(!removed_flag_){
         if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
             environment_.RemoveExperiment(experiment_id_);
@@ -134,4 +135,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExp
         throw std::runtime_error("Experiment: '" + experiment_id_ + "' already active");
     }
     return reply_message;
+}
+
+bool DeploymentHandler::IsRemovable() const{
+    std::lock_guard<std::mutex> lock(remove_mutex_);
+    return removed_flag_;
 }
