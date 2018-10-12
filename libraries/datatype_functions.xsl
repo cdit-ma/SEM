@@ -834,7 +834,7 @@
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_ID_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the required aggregate files -->

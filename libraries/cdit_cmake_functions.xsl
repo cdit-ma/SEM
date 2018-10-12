@@ -97,9 +97,9 @@
         <xsl:variable name="lib_path" select="cmake:get_re_path('lib')" />
 
         <xsl:value-of select="cmake:find_library('RE_CORE_LIBRARIES', 're_core', $lib_path, 0)" />
-        <xsl:value-of select="cmake:find_library('RE_ID_LIBRARIES', 're_id_generator', $lib_path, 0)" />
+        <xsl:value-of select="cmake:find_library('RE_SINGLETON_LIBRARIES', 're_core_singletons', $lib_path, 0)" />
 
-        <xsl:value-of select="cmake:if_start('NOT RE_CORE_LIBRARIES OR NOT RE_ID_LIBRARIES', 0)" />
+        <xsl:value-of select="cmake:if_start('NOT RE_CORE_LIBRARIES OR NOT RE_SINGLETON_LIBRARIES', 0)" />
         <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find re_core cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 1)" />
         <xsl:value-of select="cmake:return(1)" />
         <xsl:value-of select="cmake:if_end('', 0)" />
@@ -500,7 +500,7 @@
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_ID_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
 
@@ -612,7 +612,7 @@
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_ID_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Link Libraries -->
@@ -703,7 +703,7 @@
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_ID_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Link Libraries -->
