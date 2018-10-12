@@ -65,6 +65,13 @@ bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
 		return false;
 	}
 
+    bool did_request_device = false;
+    if(device_id == -1){
+        //If we haven't got a valid device_id, get one from the load_balancer
+        device_id = load_balancer_->RequestDevice();
+        did_request_device = true;
+    }
+
     auto& dev = manager_->GetDevices(*this)[device_id];
 
 	cl_int err;
@@ -131,6 +138,10 @@ bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
 
     /* Release the plan. */
     err = clfftDestroyPlan( &planHandle );
+
+    if(did_request_device){
+        load_balancer_->ReleaseDevice(device_id);
+    }
 
     return true;
 }

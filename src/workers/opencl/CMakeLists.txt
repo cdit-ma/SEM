@@ -87,7 +87,7 @@ endif()
 
 
 # Mark library dependencies
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
 if(ALTERA_OCLSDK_LIB)

@@ -213,3 +213,15 @@ void LogOpenCLError(const Worker& worker,
 		-1,
 		error_message, -1);
 }
+
+void LogOpenCLMessage(const Worker& worker,
+	std::string function_signature,
+	std::string message)
+{		
+	worker.logger().LogWorkerEvent(worker,
+		function_signature,
+		Logger::WorkloadEvent::MESSAGE,
+		-1,
+		message, -1);
+}
+

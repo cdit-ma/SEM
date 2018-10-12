@@ -39,5 +39,9 @@ extern void LogOpenCLError(const Worker& worker,
 	std::string function_signature,
 	std::string error_message);
 
+extern void LogOpenCLMessage(const Worker& worker,
+	std::string function_signature,
+	std::string error_message);
+
 
 #endif

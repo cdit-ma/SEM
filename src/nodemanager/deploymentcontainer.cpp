@@ -108,6 +108,9 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
                 worker->logger().AddLogger(*logan_logger_);
             }
 
+            //Attach the ID
+            worker->set_id(worker_info_pb.id());
+
             //Handle the attributes
             for(const auto& attr : worker_pb.attributes()){
                 SetAttributeFromPb(*worker, attr.second);

@@ -312,9 +312,8 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
                 "Note: Failed to load binary for device "+dev_name+", will attempt to compile kernels on demand at runtime");
             did_all_succeed = false;
         } else {
-			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
 			for (OpenCLKernel& kernel : device->GetKernels()) {
-				std::cout << " - " << kernel.GetName() << std::endl;
+				LogMessage(worker, GET_FUNC, "Found Precompiled kernel: '" + kernel.GetName() + "'");
 			}
 		}
     }
@@ -340,4 +339,13 @@ void OpenCLManager::LogError(const Worker& worker,
 	LogOpenCLError(worker,
 		"OpenCLManager::" + function_name,
 		error_message);
+}
+
+void OpenCLManager::LogMessage(const Worker& worker,
+							std::string function_name,
+							std::string message)
+{
+	LogOpenCLMessage(worker,
+		"OpenCLManager::" + function_name,
+		message);
 }
