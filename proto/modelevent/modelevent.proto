@@ -90,6 +90,7 @@ message WorkloadEvent{
     uint64 workload_id = 5;                  //Implementation's work id
     string function_name = 6;            //Workers Function Name
     string args = 7;
+    uint32 log_level = 8;
 }
 
 message UtilizationEvent{
