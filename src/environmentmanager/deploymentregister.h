@@ -8,7 +8,6 @@
 #include <future>
 #include "environment.h"
 #include "deploymenthandler.h"
-#include "aggregationserverhandler.h"
 
 #include <zmq/protoreplier/protoreplier.hpp>
 #include <proto/controlmessage/controlmessage.pb.h>
@@ -54,7 +53,6 @@ class DeploymentRegister{
         std::vector<std::unique_ptr<DeploymentHandler> > handlers_;
 
         std::mutex aggregation_server_handler_mutex_;
-        std::vector<std::unique_ptr<AggregationServerHandler> > aggregation_server_handlers_;
 
         Execution& execution_;
 
