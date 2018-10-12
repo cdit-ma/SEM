@@ -3,6 +3,7 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq/protorequester/protorequester.hpp>
 #include <sstream>
+#include <iostream>
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
 EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address){
