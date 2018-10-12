@@ -192,6 +192,12 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 	return true;
 }
 
+bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
+	Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        "Unable to run buffered FFT on FPGA, consider using the vector input version instead");
+    return false;
+}
+
 bool OpenCL_Worker::InitFFT() {
     cl_int status;
 
