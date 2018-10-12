@@ -24,13 +24,7 @@ namespace cl {
 
 class OpenCLManager {
 	public:
-		//OpenCLManager(OpenCLManager&& other) = default;
-		//OpenCLManager& operator=(OpenCLManager&& other) = default;
-		//OpenCLManager(const OpenCLManager& other) = delete;
-		//OpenCLManager& operator=(const OpenCLManager& other) = delete;
-		//OpenCLManager(OpenCLManager&& other) = delete;
-		//OpenCLManager& operator=(OpenCLManager&& other) = delete;
-		~OpenCLManager();// = default;
+		~OpenCLManager();
 
 		/**
 		* Returns the OpenCLManager responsible for managing a given OpenCL platform,
@@ -85,7 +79,6 @@ class OpenCLManager {
 
 	private:
 		OpenCLManager(const Worker& worker, cl::Platform &platform);
-		//~OpenCLManager() {};
 
 		int TrackBuffer(const Worker& worker, const OpenCLBufferBase& buffer);
 		void UntrackBuffer(int buffer_id);
@@ -112,12 +105,9 @@ class OpenCLManager {
 		std::unique_ptr<cl::Context> context_;
 		std::vector<std::unique_ptr<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
-		//cl::Program* program_;
-		//std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
 		std::mutex opencl_resource_mutex_;
 
-		//std::map<int, std::unique_ptr<OpenCLBufferBase> > buffer_store_;
 		std::map<int, size_t> buffer_store_;
 		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
@@ -139,7 +129,7 @@ OpenCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, const std::vec
 
 template <typename T>
 void OpenCLManager::ReleaseBuffer(const Worker& worker, OpenCLBuffer<T>& buffer) {
-	//UntrackBuffer(buffer.GetID());
+	buffer.Release(*this);
 }
 
 #endif // OPENCL_MANAGER_H

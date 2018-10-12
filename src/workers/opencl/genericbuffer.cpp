@@ -65,8 +65,6 @@ bool GenericBuffer::ReadData(const Worker& worker, void* dest, size_t size, cons
         return false;
     }
 
-    // NEEDS TO HAVE LENGTH INITIALISED FIRST
-    //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
     err = device.GetQueue().GetRef().enqueueReadBuffer(GetBackingRef(), blocking, 0, size, dest);
     if(err != CL_SUCCESS){
         LogError(worker,
@@ -96,7 +94,6 @@ bool GenericBuffer::WriteData(const Worker& worker, const void* source, size_t s
         return false;
     }
 
-    //err = cl::copy(manager_->GetQueues().at(0), data.begin(), data.end(), buffer_);
     err = device.GetQueue().GetRef().enqueueWriteBuffer(GetBackingRef(), blocking, 0, size, source);
     if(err != CL_SUCCESS){
         LogError(worker,

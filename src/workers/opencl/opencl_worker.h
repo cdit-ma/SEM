@@ -29,6 +29,8 @@ public:
     bool WriteBuffer(OpenCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking=true);
     template <typename T>
     std::vector<T> ReadBuffer(const OpenCLBuffer<T>& buffer, bool blocking=true);
+    template <typename T>
+    bool IsBufferValid(const OpenCLBuffer<T>& buffer) const;
 
     // Bespoke algorithms
     bool RunParallel(int num_threads, long long ops_per_thread);
@@ -47,8 +49,6 @@ protected:
     bool InitFFT();
     bool CleanupFFT();
 private:
-
-    //OpenCLKernel* InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file);
     // Can throw if source file doesn't exist, contains no kernels or doesn't contain the specified kernel
     OpenCLKernel& GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file);
 
@@ -67,11 +67,8 @@ private:
 
     // FPGA FFT specific members
     std::vector<OpenCLQueue> fetch_queues_;
-    //cl_command_queue* fetch_queue_ = 0;
     OpenCLKernel* fpga_fft_kernel_ = 0;
     OpenCLKernel* fpga_fetch_kernel_ = 0;
-    
-    //cl_mem d_inData, d_outData;
 };
 
 
@@ -92,12 +89,14 @@ OpenCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) 
 template <typename T>
 void OpenCL_Worker::ReleaseBuffer(OpenCLBuffer<T>& buffer) {
     try {
-        buffer.Release(*manager_);
+        //buffer.Release(*manager_);
+        buffer.Untrack(*manager_);
+        manager_->ReleaseBuffer(*this, buffer);
     } catch (const std::exception& e) {
         Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
             std::string("Unable to release an OpenCL buffer:\n")+e.what());
     }
-    return manager_->ReleaseBuffer(*this, buffer);
+    //return manager_->ReleaseBuffer(*this, buffer);
 }
 
 template <typename T>
@@ -140,6 +139,11 @@ std::vector<T> OpenCL_Worker::ReadBuffer(const OpenCLBuffer<T>& buffer, bool blo
     }
 
     return buffer.ReadData(*this, devices_.at(0), blocking);
+}
+
+template <typename T>
+bool OpenCL_Worker::IsBufferValid(const OpenCLBuffer<T>& buffer) const {
+    return buffer.IsValid();
 }
 
 #endif

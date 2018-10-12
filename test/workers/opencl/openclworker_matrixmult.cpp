@@ -117,35 +117,35 @@ TEST_P(MatrixMultFixture, DISABLED_RandomTest)
 }
 
 // Quick test for NVIDIA to try to isolate apparent rounding errors during fused multiply addition operations
-TEST_P(MatrixMultFixture, RandomIdentityTest)
+TEST_P(MatrixMultFixture, DISABLED_RandomIdentityTest)
 {
     auto& m_a = GetParam().matrix_a;
     auto& m_b = GetParam().matrix_b;
 
 	std::vector<float> matrix_a(m_a.rows * m_a.columns);
-	std::vector<float> matrix_b(m_a.columns * m_a.columns);
-	std::vector<float> matrix_c(m_a.rows * m_a.columns, std::numeric_limits<float>::signaling_NaN());
+	std::vector<float> matrix_b(m_b.columns * m_b.columns);
+	std::vector<float> matrix_c(m_a.rows * m_b.columns, std::numeric_limits<float>::signaling_NaN());
 
     std::default_random_engine random_generator;
     std::default_random_engine generator(testing::UnitTest::GetInstance()->random_seed());
     std::uniform_real_distribution<float> distribution(-1, 1);
 
     for (size_t index = 0; index < matrix_a.size(); index++) matrix_a[index] = distribution(generator);
-    for (size_t x = 0; x < m_a.columns; x++) {
-        for (size_t y = 0; y < m_a.columns; y++) {
+    for (size_t x = 0; x < m_b.columns; x++) {
+        for (size_t y = 0; y < m_b.rows; y++) {
             if (x == y) {
-                matrix_b[x + y*m_a.columns] = 1.0f;
+                matrix_b[x + y*m_b.columns] = 1.0f;
             } else {
-                matrix_b[x + y*m_a.columns] = 0.0f;
+                matrix_b[x + y*m_b.columns] = 0.0f;
             }
         }
     }
     
-    ASSERT_EQ(worker_.MatrixMult(matrix_a, matrix_b, matrix_c), m_a.columns != 0);
+    ASSERT_EQ(worker_.MatrixMult(matrix_a, matrix_b, matrix_c), GetParam().expect_success);
     
     if(GetParam().expect_success){
         //Calculate the expected result
-        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_a.columns);
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
         EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, 1e-6);
     }
 }
@@ -227,14 +227,3 @@ std::vector<MatrixMultParam> getRectTests(){
 
 INSTANTIATE_TEST_CASE_P(LONG_Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
 INSTANTIATE_TEST_CASE_P(LONG_Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
-
-
-/*
-class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCL_WorkerConstructor{
-    public:
-        RunParallelFixture() : OpenCL_WorkerConstructor(GetParam().device){
-            if(!worker_.Configure()){
-                HasFatalFailure();
-            }
-        }
-};*/

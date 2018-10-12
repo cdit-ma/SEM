@@ -25,23 +25,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 	
     std::lock_guard<std::mutex> guard(reference_list_mutex_);
 
-	// If we haven't initialized the length of the reference list yet do so now
-	//if (reference_map_.empty()) {
-		/*cl_int errCode = cl::Platform::get(&platform_list_);
-		if (errCode != CL_SUCCESS) {
-			LogError(worker,
-					std::string(__func__),
-					"Failed to retrieve the list of OpenCL platforms",
-					errCode);
-			return NULL;
-		}*/
-		GetPlatforms(worker);
-		//reference_list_.resize(platform_list_.size());
-	//}
+	GetPlatforms(worker);
 
 	// Check that the specified platform index isn't out of bounds
 	if (platform_id >= platform_list_.size() || platform_id < 0) {
-	//if (!reference_map_.count(platform_id)) 
 		LogError(worker,
 			std::string(__func__),
 			"platform_id is out of bounds (" + std::to_string(platform_id) + ")");
@@ -61,12 +48,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 		}
 
 		reference_map_.emplace(platform_id,  std::move(std::unique_ptr<OpenCLManager>(new_manager)));
-		//reference_list_.at(platform_id).swap(std::move(std::unique_ptr<OpenCLManager>(new_manager)));// = std::move();
 	}
 
 	// Return the relevant reference
 	return reference_map_.at(platform_id).get();
-	//return reference_list_[platform_id].get();
 
 }
 
@@ -75,11 +60,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
     std::lock_guard<std::mutex> guard(reference_list_mutex_);
 	cl_int err;
 
-	// If we haven't initialized the length of the reference list yet do so now
-	//if (reference_list_.empty()) {
-		GetPlatforms(worker);
-		//reference_list_.resize(platform_list_.size(), NULL);
-	//}
+	GetPlatforms(worker);
 
 	// Find the index of the platform with the requested name
 	unsigned int platform_id = 0;
@@ -113,12 +94,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 		}
 
 		reference_map_.emplace(platform_id, std::move(std::unique_ptr<OpenCLManager>(new_manager)));
-		//reference_list_.at(platform_id).swap(std::unique_ptr<OpenCLManager>(new_manager));
 	}
 
 	// Return the relevant reference
 	return reference_map_.at(platform_id).get();
-	//return reference_list_[platform_id].get();
 
 }
 
@@ -222,10 +201,6 @@ OpenCLManager::~OpenCLManager() {
 	size_t leaked_memory = 0;
 	size_t num_unfreed_buffers = buffer_store_.size();
 	for (auto& unfreed_buffer_pair : buffer_store_) {
-		//std::cerr << unfreed_buffer_pair.second.get() << std::endl;
-		//std::cerr << unfreed_buffer_pair.second->IsValid() << std::endl;
-		//std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
-		//delete unfreed_buffer_pair.second;
 		leaked_memory += unfreed_buffer_pair.second;
 	}
 

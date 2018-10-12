@@ -43,6 +43,7 @@ void BufferTest(OpenCL_Worker& worker_, const BufferParam<T> bf){
     // Check for valid buffer
     auto is_valid = buffer.IsValid();
     ASSERT_EQ(is_valid, bf.expect_valid);
+    ASSERT_EQ(worker_.IsBufferValid(buffer), bf.expect_valid);
 
     if(is_valid){
         // Check the buffers values
@@ -52,6 +53,7 @@ void BufferTest(OpenCL_Worker& worker_, const BufferParam<T> bf){
     
     // Release the buffer
     worker_.ReleaseBuffer(buffer);
+    ASSERT_FALSE(worker_.IsBufferValid(buffer));
 }
 
 

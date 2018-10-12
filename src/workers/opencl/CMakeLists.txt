@@ -55,7 +55,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/fft/openclfft_worker.h
     )
 
 # Search for OpenCL FFT libraries

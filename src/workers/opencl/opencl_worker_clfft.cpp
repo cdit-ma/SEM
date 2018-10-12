@@ -50,8 +50,6 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     }
 
 	// Find the size of each datapoint and how many datapoints there are
-	//size_t pointSize = sizeof(float);
-	//size_t N = dataBytes/pointSize;
     size_t N = length / 2;
 
 	// Check that prime decomposition only uses 2, 3 and 5 as clFFT doesnt support other prime numbers
@@ -88,42 +86,34 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
     auto& dev = manager_->GetDevices(*this)[allocated_dev_index];
 
-    //for (auto& dev_ref : devices_) {
-        //auto& dev = dev_ref.get();
-        //auto& dev_queue = dev.GetQueue().GetRef()();
-        cl_command_queue dev_queue = dev->GetQueue().GetRef()();
-        /* Bake the plan. */
-        err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
+    cl_command_queue dev_queue = dev->GetQueue().GetRef()();
+    /* Bake the plan. */
+    err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
-        /* Prepare OpenCL memory objects and place data inside them. */
-        OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
-        //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
-        //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
+    /* Prepare OpenCL memory objects and place data inside them. */
+    OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
 
-        /* Execute the plan. */
-        //err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &(*(queues[gpuNum]))(), 0, NULL, NULL, &bufX(), NULL, NULL);
-        err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer.GetBackingRef()()), NULL, NULL);
+    /* Execute the plan. */
+    err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer.GetBackingRef()()), NULL, NULL);
 
-        if (err != CL_SUCCESS) {
-            Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
-                "Failed to enqueue FFT transform with error message: "+OpenCLErrorName(err));
-        }
+    if (err != CL_SUCCESS) {
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            "Failed to enqueue FFT transform with error message: "+OpenCLErrorName(err));
+    }
 
-        /* Wait for calculations to be finished. */
-        err = dev->GetQueue().GetRef().finish();
+    /* Wait for calculations to be finished. */
+    err = dev->GetQueue().GetRef().finish();
 
-        if (err != CL_SUCCESS) {
-            Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
-                "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
-        }
+    if (err != CL_SUCCESS) {
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
+    }
 
-        /* Fetch results of calculations. */
-        //dev.GetQueue().enqueueReadBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
-        data = buffer.ReadData(*this, *dev, true);
+    /* Fetch results of calculations. */
+    data = buffer.ReadData(*this, *dev, true);
 
-        /* Release the plan. */
-        err = clfftDestroyPlan( &planHandle );
-    //}
+    /* Release the plan. */
+    err = clfftDestroyPlan( &planHandle );
 
     load_balancer_->ReleaseDevice(allocated_dev_index);
 
