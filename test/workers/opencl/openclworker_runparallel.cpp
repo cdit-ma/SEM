@@ -33,10 +33,7 @@ TEST_P(RunParallelFixture, RunParallel)
     auto num_threads = GetParam().num_threads;
     auto num_ops = GetParam().num_ops;
 
-	//auto start = std::chrono::steady_clock::now();
 	EXPECT_TRUE(worker_.RunParallel(num_threads, num_ops));
-	//auto end = std::chrono::steady_clock::now();
-	//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 	
 }
 

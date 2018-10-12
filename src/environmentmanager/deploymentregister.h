@@ -26,6 +26,7 @@ class DeploymentRegister{
         ~DeploymentRegister();
     private:
         void Terminate();
+        void CleanupTask();
         //Re Node Manager Functions
         std::unique_ptr<NodeManager::NodeManagerRegistrationReply> HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request);
         
@@ -47,14 +48,22 @@ class DeploymentRegister{
         std::unique_ptr<zmq::ProtoReplier> replier_;
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
+        std::string environment_manager_ip_address_;
 
-        std::vector<std::unique_ptr<DeploymentHandler> > re_handlers_;
-        std::vector<std::unique_ptr<DeploymentHandler> > logan_handlers_;
+        std::mutex handler_mutex_;
+        std::vector<std::unique_ptr<DeploymentHandler> > handlers_;
+
+        std::mutex aggregation_server_handler_mutex_;
         std::vector<std::unique_ptr<AggregationServerHandler> > aggregation_server_handlers_;
 
         Execution& execution_;
-        std::string environment_manager_ip_address_;
 
+        std::mutex termination_mutex_;
+        bool terminated_ = false;
+
+        std::future<void> cleanup_future_;
+        int cleanup_period_ = 1000;
+        std::condition_variable cleanup_cv_;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER

@@ -18,16 +18,6 @@ namespace cl {
 
 class OpenCLKernelBase {
 public:
-
-    OpenCLKernelBase(OpenCLKernelBase&& other) noexcept :
-        manager_(other.manager_),
-        kernel_(other.kernel_),
-        worker_ref_(other.worker_ref_),
-        name_(other.name_) {
-
-    };
-    OpenCLKernelBase& operator=(OpenCLKernelBase&& other) noexcept {};
-
     void Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset,
         const cl::NDRange& global, const cl::NDRange& local, std::unique_lock<std::mutex> lock=std::unique_lock<std::mutex>());
 

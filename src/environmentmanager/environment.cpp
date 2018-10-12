@@ -5,33 +5,41 @@
 #include <algorithm>
 #include <vector>
 #include <proto/controlmessage/helper.h>
-
+#include <zmq/zmqutils.hpp>
 using namespace EnvironmentManager;
-Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
-    PORT_RANGE_MIN = port_range_min;
-    PORT_RANGE_MAX = port_range_max;
-    address_ = address;
-    qpid_broker_address_ = qpid_broker_address;
-    tao_naming_service_address_ = tao_naming_service_address;
+Environment::Environment(const std::string& ip_address,
+        const std::string& qpid_broker_address,
+        const std::string& tao_naming_service_address,
+        int port_range_min,
+        int port_range_max) :
+        ip_address_(ip_address),
+        qpid_broker_address_(qpid_broker_address),
+        tao_naming_service_address_(tao_naming_service_address),
+        port_range_min_(port_range_min),
+        manager_port_range_min_(port_range_min + 10000),
+        manager_port_range_max_(port_range_max + 10000)
 
-    MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
-    MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
-
+{
     //Ensure that ports arent allocated out of 16bit port max
-    assert(MANAGER_PORT_RANGE_MAX < 65535);
+    assert(manager_port_range_max_ < 65535);
 
     //Bail out if ranges are illegal
-    assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
-    assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
+    assert(port_range_min_ < port_range_max_);
+    assert(manager_port_range_min_ < manager_port_range_max_);
 
     //Populate range sets
-    for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
+    for(int i = port_range_min_; i <= port_range_max_; i++){
         available_ports_.push(i);
     }
 
-    for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
+    for(int i = manager_port_range_min_; i < manager_port_range_max_; i++){
         available_node_manager_ports_.push(i);
     }
+
+    update_publisher_port_ = GetManagerPort();
+    // TODO: Publish to update publisher when we have a new experiment or an update for an experiment.
+    update_publisher_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
+    update_publisher_->BindPublisherSocket(zmq::TCPify(ip_address_, update_publisher_port_));
 }
 
 Environment::~Environment(){
@@ -47,6 +55,11 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
     //Take a copy
     auto control_message = const_control_message;
     const auto& experiment_name = control_message.experiment_id();
+
+    if(experiment_map_.count(experiment_name) > 0){
+        throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
+    }
+
     try{
         //Register the experiment
         RegisterExperiment(experiment_name);
@@ -518,4 +531,8 @@ std::vector<std::unique_ptr<NodeManager::ExternalPort> > Environment::GetExterna
     }
 
     return external_ports;
+}
+
+std::string Environment::GetUpdatePublisherPort() const{
+    return update_publisher_port_;
 }

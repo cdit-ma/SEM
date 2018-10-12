@@ -37,13 +37,18 @@ void OpenCLBufferBase::Track(const Worker& worker, OpenCLManager& manager) {
         return;
     }
 }
+void OpenCLBufferBase::Untrack(OpenCLManager& manager) {
+    if (!IsValid()) {
+        throw std::runtime_error("Trying to untrack an invalid OpenCL buffer");
+    }
+    OpenCLManager::BufferAttorney::ReleaseBufferID(manager, *this);
+}
 
 void OpenCLBufferBase::Release(OpenCLManager& manager) {
     if (!IsValid()) {
         throw std::runtime_error("Trying to release an invalid OpenCL buffer");
     }
     buffer_->Release();
-    OpenCLManager::BufferAttorney::ReleaseBufferID(manager, *this);
 }
 
 cl::Buffer& OpenCLBufferBase::GetBackingRef() const {

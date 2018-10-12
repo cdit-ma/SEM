@@ -43,8 +43,6 @@ struct DeviceParam{
 };
 
 
-
-
 class OpenCL_WorkerConstructor{
     public:
         OpenCL_WorkerConstructor(DeviceParam device):

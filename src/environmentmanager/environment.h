@@ -11,6 +11,7 @@
 #include "uniquequeue.hpp"
 #include "experiment.h"
 #include "porttracker.h"
+#include <zmq/protowriter/protowriter.h>
 
 namespace EnvironmentManager{
 
@@ -28,7 +29,11 @@ class Environment{
             LOGAN_SERVER
         };
 
-        Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
+        Environment(const std::string& ip_address,
+                const std::string& qpid_broker_address,
+                const std::string& tao_naming_service_address,
+                int port_range_min = 30000,
+                int port_range_max = 50000);
         ~Environment();
 
 
@@ -38,6 +43,7 @@ class Environment{
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
 
         std::string GetDeploymentHandlerPort(const std::string& experiment_name, DeploymentType deployment_type);
+        std::string GetUpdatePublisherPort() const;
 
 
         void ShutdownExperiment(const std::string& experiment_name);
@@ -101,13 +107,13 @@ class Environment{
         void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);
 
         //Port range
-        int PORT_RANGE_MIN;
-        int PORT_RANGE_MAX;
+        int port_range_min_;
+        int port_range_max_;
 
-        int MANAGER_PORT_RANGE_MIN;
-        int MANAGER_PORT_RANGE_MAX;
+        int manager_port_range_min_;
+        int manager_port_range_max_;
 
-        std::string address_;
+        std::string ip_address_;
 
         std::string qpid_broker_address_;
         std::string tao_naming_service_address_;
@@ -137,10 +143,13 @@ class Environment{
         //event port guid takes form "experiment_id.{component_assembly_label}*n.component_instance_label.event_port_label"
         std::unordered_map<std::string, std::unique_ptr<ExternalPort> > external_eventport_map_;
 
+        std::string update_publisher_port_;
+        std::unique_ptr<::zmq::ProtoWriter> update_publisher_;
+
         std::mutex port_mutex_;
         
         
-        //initially allocated unique_queue of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct
+        //initially allocated unique_queue of port nums from port_range_min_ to port_range_max_ so we can copy into each node struct
         unique_queue<int> available_ports_;
 
         //ports available on the environment manager, uses same port range as nodes.

@@ -18,6 +18,8 @@ class AggregationServerHandler {
 
         ~AggregationServerHandler();
 
+        bool IsRemovable();
+
     private:
         void HeartbeatLoop() noexcept;
 

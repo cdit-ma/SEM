@@ -57,6 +57,10 @@ environment_manager_ip_address_(environment_manager_ip_address)
 
 
     replier_->Start();
+
+
+    cleanup_future_ = std::async(std::launch::async, &DeploymentRegister::CleanupTask, this);
+
 }
 
 DeploymentRegister::~DeploymentRegister(){
@@ -69,8 +73,21 @@ void DeploymentRegister::Terminate(){
         replier_->Terminate();
         replier_.reset();
     }
-    re_handlers_.clear();
-    logan_handlers_.clear();
+
+    {
+        std::lock_guard<std::mutex> lock(termination_mutex_);
+        terminated_ = true;
+        cleanup_cv_.notify_all();
+    }
+
+    if(cleanup_future_.valid()){
+        cleanup_future_.get();
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(handler_mutex_);
+        handlers_.clear();
+    }
 }
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request){
@@ -83,8 +100,6 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
         std::cerr << "* DeploymentRegister::HandleNodeManagerRegistration: " << error << std::endl;
         throw std::runtime_error(error);
     }
-
-    
 
     auto& experiment = environment_->GetExperiment(experiment_name);
     auto& node = experiment.GetNode(node_manager_ip_address);
@@ -113,7 +128,10 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
                             std::move(port_promise),
                             experiment_name));
 
-            re_handlers_.emplace_back(std::move(handler));
+            {
+                std::lock_guard<std::mutex> lock(handler_mutex_);
+                handlers_.emplace_back(std::move(handler));
+            }
 
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
@@ -157,7 +175,10 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
                                         logan_server_ip_address,
                                         std::move(port_promise),
                                         experiment_name));
-            logan_handlers_.emplace_back(std::move(handler));
+            {
+                std::lock_guard<std::mutex> lock(handler_mutex_);
+                handlers_.emplace_back(std::move(handler));
+            }
             //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
             reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
         }
@@ -193,23 +214,13 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::Handle
 
 std::unique_ptr<NodeManager::AggregationServerRegistrationReply>
         DeploymentRegister::HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request){
+    auto publisher_port = environment_->GetUpdatePublisherPort();
+    auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(
+            new NodeManager::AggregationServerRegistrationReply());
+    reply->set_publisher_endpoint(zmq::TCPify(environment_manager_ip_address_, publisher_port));
 
-    auto aggregation_ip_address = request.id().ip_address();
+    return reply;
 
-    std::promise<std::string> port_promise;
-    auto port_future = port_promise.get_future();
-
-
-    if(!aggregation_ip_address.empty()){
-        auto aggregation_server_handler = std::unique_ptr<AggregationServerHandler>(new AggregationServerHandler(*environment_,
-                environment_manager_ip_address_, aggregation_ip_address, std::move(port_promise)));
-        auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
-        reply->set_heartbeat_endpoint(zmq::TCPify(environment_manager_ip_address_, port_future.get()));
-
-        aggregation_server_handlers_.push_back(std::move(aggregation_server_handler));
-        return reply;
-    }
-    return std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(new NodeManager::AggregationServerRegistrationReply());
 }
 
 std::unique_ptr<NodeManager::MEDEAInterfaceReply>
@@ -227,4 +238,21 @@ DeploymentRegister::HandleMEDEAInterfaceRequest(const NodeManager::MEDEAInterfac
     }
 
     return reply_message;
+}
+
+void DeploymentRegister::CleanupTask(){
+    while(true){
+        std::unique_lock<std::mutex> termination_lock(termination_mutex_);
+        cleanup_cv_.wait_for(termination_lock, std::chrono::milliseconds(cleanup_period_), [this]{return terminated_;});
+
+        if(terminated_){
+           break;
+        }
+
+        {
+            std::lock_guard<std::mutex> handler_lock(handler_mutex_);
+            handlers_.erase(
+                    std::remove_if(handlers_.begin(), handlers_.end(), [](const std::unique_ptr<DeploymentHandler>& handler){return handler->IsRemovable();}), handlers_.end());
+        }
+    }
 }

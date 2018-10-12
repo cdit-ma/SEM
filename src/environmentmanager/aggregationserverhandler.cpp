@@ -80,4 +80,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> AggregationServerHandler::Handl
     return std::unique_ptr<NodeManager::EnvironmentMessage>();
 }
 
+bool AggregationServerHandler::IsRemovable() {
+    throw std::runtime_error("AggregationServerHandler::IsRemovable NOT IMPLEMENTED");
+    //return false;
+}
+
 

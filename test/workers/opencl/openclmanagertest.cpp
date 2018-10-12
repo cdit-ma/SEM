@@ -71,7 +71,6 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
 {
     auto buffer = manager_->CreateBuffer<float>(worker_, 4);
-    //ASSERT_NE(buffer, nullptr);
     
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
@@ -99,8 +98,6 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
 
     auto buffer = manager_->CreateBuffer<float>(worker_, 1024);
 
-    //ASSERT_NE(buffer, nullptr);
-
     auto device = GetDevice();
     ASSERT_NE(device, nullptr);
 
@@ -116,7 +113,6 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
     EXPECT_EQ(in_data, out_data);
     
     manager_->ReleaseBuffer(worker_, buffer);
-    //delete buffer;
 }
 
 TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
@@ -127,10 +123,7 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     
     auto in_data = std::vector<float>(size, 2.0f/3.0f);
     auto in_buffer = manager_->CreateBuffer<float>(worker_, in_data, *device);
-    auto out_buffer = manager_->CreateBuffer<float>(worker_, in_data, *device);
-    //ASSERT_NE(in_buffer, nullptr);
-    //auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
-    //ASSERT_NE(out_buffer, nullptr);
+    auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
 
     ASSERT_TRUE(in_buffer.IsValid());
     ASSERT_TRUE(out_buffer.IsValid());
