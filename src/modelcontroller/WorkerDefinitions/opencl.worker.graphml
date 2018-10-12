@@ -30,10 +30,28 @@
             <data key="folder">${RE_PATH}/src/workers/opencl</data>
             <data key="file">opencl_worker</data>
             <graph id="opencl:">
+                <node id="opencl::opencl_buffer_int">
+					<data key="inner_type">Integer</data>
+                    <data key="outer_type">OpenCLBuffer</data>
+					<data key="label">OpenCLBuffer::Integer</data>
+					<data key="kind">ExternalType</data>
+				</node>
                 <node id="opencl::opencl_buffer_float">
 					<data key="inner_type">Float</data>
                     <data key="outer_type">OpenCLBuffer</data>
 					<data key="label">OpenCLBuffer::Float</data>
+					<data key="kind">ExternalType</data>
+				</node>
+                <node id="opencl::opencl_buffer_double">
+					<data key="inner_type">Double</data>
+                    <data key="outer_type">OpenCLBuffer</data>
+					<data key="label">OpenCLBuffer::Double</data>
+					<data key="kind">ExternalType</data>
+				</node>
+                <node id="opencl::opencl_buffer_char">
+					<data key="inner_type">Character</data>
+                    <data key="outer_type">OpenCLBuffer</data>
+					<data key="label">OpenCLBuffer::Character</data>
 					<data key="kind">ExternalType</data>
 				</node>
                 <node id="opencl::createbuffer">
