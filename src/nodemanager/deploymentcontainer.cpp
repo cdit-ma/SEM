@@ -6,8 +6,6 @@
 
 #include <proto/controlmessage/controlmessage.pb.h>
 
-#include "loganlogger.h"
-#include <core/loggerprinter.h>
 
 #include <iostream>
 #include <algorithm>
@@ -68,7 +66,7 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
                 case NodeManager::Logger::MODEL:{
                     //Setup logan logger
                     if(!logan_logger_){
-                        logan_logger_ = std::unique_ptr<LoganLogger>(new LoganLogger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
+                        logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                     }
                     break;
                 }
@@ -95,6 +93,13 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
     return false;
 }
 
+void DeploymentContainer::SetLoggers(Activatable& entity){
+    if(logan_logger_){
+        entity.logger().AddLogger(*logan_logger_);
+    }
+    entity.logger().AddLogger(Print::Logger::get_logger());
+}
+
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
     if(component){
         const auto& worker_info_pb = worker_pb.info();
@@ -104,9 +109,7 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
         auto worker = component->GetWorker(worker_name).lock();
 
         if(worker){
-            if(logan_logger_){
-                worker->logger().AddLogger(*logan_logger_);
-            }
+            SetLoggers(*worker);
 
             //Attach the ID
             worker->set_id(worker_info_pb.id());
@@ -133,10 +136,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         
         //Set the once off information
         if(component){
-            if(logan_logger_){
-                //Set the logan logger
-                component->logger().AddLogger(*logan_logger_);
-            }
+            SetLoggers(*component);
             const auto& location = component_pb.location();
             const auto& replicate_indices = component_pb.replicate_indices();
             component->SetLocation({location.begin(), location.end()});
@@ -285,9 +285,8 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
             }
 
             if(port){
-                if(logan_logger_){
-                    port->logger().AddLogger(*logan_logger_);
-                }
+                SetLoggers(*port);
+
                 //Set the ID/TYPE Once
                 port->set_id(port_info_pb.id());
                 port->set_type(port_info_pb.type());

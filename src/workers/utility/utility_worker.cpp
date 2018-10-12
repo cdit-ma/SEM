@@ -4,9 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-const int UTILITY_WORKER_LOG_LEVEL = 8;
-
-Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
+Utility_Worker::Utility_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, "Utility_Worker", inst_name){
     impl_ = std::unique_ptr<Utility_Worker_Impl>(new Utility_Worker_Impl());
     impl_->SetRandomSeed(static_cast<unsigned int>(GetTimeOfDay()));
 }

@@ -18,7 +18,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
     )
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Compile Definitions
 target_compile_definitions(${PROJ_NAME} PUBLIC ${RTI_DDS_DEFINITIONS})

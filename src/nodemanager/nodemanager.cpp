@@ -28,9 +28,9 @@ int main(int argc, char **argv){
     //Shared arguments
     std::string environment_manager_endpoint;
     std::string experiment_name;
-    bool live_logging = false;
     std::string ip_address;
     int execution_duration = 60;
+    int log_verbosity = 1;
 
     //Slave arguments
     std::string dll_path;
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
     options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "Node manager ip address.");
     options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name)->required(), "Name of experiment.");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
-    options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Live model logging toggle.");
+    options.add_options()("log-verbosity,v", boost::program_options::value<int>(&log_verbosity), "Logging verbosity.");
     
     //Add optional arguments
     options.add_options()("time,t", boost::program_options::value<int>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
@@ -73,6 +73,9 @@ int main(int argc, char **argv){
     std::string master_heartbeat_endpoint;
     bool is_master = false;
     bool is_slave = false;
+
+    //Set the verbosity
+    Print::Logger::get_logger().SetLogLevel(log_verbosity);
 
     try{
         auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address);

@@ -1,11 +1,12 @@
-#include "loganlogger.h"
+
+#include "logan_logger.h"
 #include <proto/modelevent/modelevent.pb.h>
 
 #include <core/ports/port.h>
 #include <core/component.h>
 #include <core/worker.h>
 
-void FillInfoPB(re_common::Info& info, LoganLogger& logger){
+void FillInfoPB(re_common::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
     info.set_timestamp(logger.GetCurrentTime().count() / 1000.0);
@@ -31,7 +32,7 @@ void FillPortPB(re_common::Port& p, const Port& port){
     p.set_middleware(port.get_middleware());
 }
 
-LoganLogger::LoganLogger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Logger::Mode mode):
+Logan::Logger::Logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Logger::Mode mode):
     experiment_name_(experiment_name),
     host_name_(host_name)
 {
@@ -55,12 +56,7 @@ LoganLogger::LoganLogger(const std::string& experiment_name, const std::string& 
     }
 }
 
-LoganLogger::~LoganLogger(){
-    std::cerr << "* Produced: " << writer_->GetTxCount() << std::endl;
-    writer_.reset();
-}
-
-void LoganLogger::LogMessage(const Activatable& entity, bool is_exception, const std::string& message){
+void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, const std::string& message){
     auto event_pb = std::unique_ptr<re_common::UtilizationEvent>(new re_common::UtilizationEvent());
     event_pb->set_type(is_exception ? re_common::UtilizationEvent::EXCEPTION : re_common::UtilizationEvent::MESSAGE);
     if(message.size()){
@@ -87,19 +83,21 @@ void LoganLogger::LogMessage(const Activatable& entity, bool is_exception, const
     PushMessage(std::move(event_pb));
 }
 
-void LoganLogger::LogMessage(const Activatable& entity, const std::string& message){
+void Logan::Logger::LogMessage(const Activatable& entity, const std::string& message){
     LogMessage(entity, false, message);
 }
 
-void LoganLogger::LogException(const Activatable& entity, const std::string& message){
+void Logan::Logger::LogException(const Activatable& entity, const std::string& message){
     LogMessage(entity, true, message);
 }
 
-void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
+void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
     auto event_pb = std::unique_ptr<re_common::WorkloadEvent>(new re_common::WorkloadEvent());
     event_pb->set_event_type((re_common::WorkloadEvent::Type)(int)event);
 
     FillInfoPB(*(event_pb->mutable_info()), *this);
+
+    auto log_level = GetWorkloadLogLevel(event, message_log_level);
 
     
     try{
@@ -118,6 +116,8 @@ void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& functi
         event_pb->set_function_name(function_name);
     }
 
+    event_pb->set_log_level(log_level);
+
     if(args.size()){
         event_pb->set_args(args);
     }
@@ -125,7 +125,7 @@ void LoganLogger::LogWorkerEvent(const Worker& worker, const std::string& functi
     PushMessage(std::move(event_pb));
 }
 
-void LoganLogger::LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event){
+void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger::LifeCycleEvent& event){
     auto event_pb = std::unique_ptr<re_common::LifecycleEvent>(new re_common::LifecycleEvent());
     
     event_pb->set_type((re_common::LifecycleEvent::Type)(int)event);
@@ -148,7 +148,7 @@ void LoganLogger::LogLifecycleEvent(const Activatable& entity, const Logger::Lif
     PushMessage(std::move(event_pb)); 
 }
 
-void LoganLogger::LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str){
+void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const ::Logger::UtilizationEvent& event, const std::string& message_str){
     auto event_pb = std::unique_ptr<re_common::UtilizationEvent>(new re_common::UtilizationEvent());
     
     event_pb->set_type((re_common::UtilizationEvent::Type)(int)event);
@@ -170,21 +170,21 @@ void LoganLogger::LogPortUtilizationEvent(const Port& port, const ::BaseMessage&
     PushMessage(std::move(event_pb)); 
 }
 
-std::chrono::milliseconds LoganLogger::GetCurrentTime(){
+std::chrono::milliseconds Logan::Logger::GetCurrentTime(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 }
 
-void LoganLogger::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
+void Logan::Logger::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
     if(writer_){
         writer_->PushMessage("ModelEvent*", std::move(message));
     }
 }
-const std::string& LoganLogger::GetExperimentName() const{
+const std::string& Logan::Logger::GetExperimentName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return experiment_name_;
 }
 
-const std::string& LoganLogger::GetHostName() const{
+const std::string& Logan::Logger::GetHostName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return host_name_;
 }
