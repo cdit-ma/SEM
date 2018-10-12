@@ -31,7 +31,7 @@
 #include <set>
 #include <google/protobuf/message_lite.h>
 
-class Table;
+#include "../table.h"
 class SQLiteDatabase;
 namespace re_common{
     class SystemInfo;

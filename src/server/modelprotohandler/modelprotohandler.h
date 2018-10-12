@@ -28,8 +28,7 @@
 #include <google/protobuf/message_lite.h>
 #include <memory>
 
-
-class Table;
+#include "../table.h"
 
 class SQLiteDatabase;
 namespace re_common{
