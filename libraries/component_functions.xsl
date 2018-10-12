@@ -2095,12 +2095,9 @@
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Runtime Environment -->
-        <xsl:value-of select="cmake:comment('Include/Link against runtime environment', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
-        <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
 

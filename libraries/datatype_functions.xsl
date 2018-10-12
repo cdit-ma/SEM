@@ -827,17 +827,11 @@
         <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'SHARED', $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-        <xsl:variable name="relative_path" select="cmake:get_relative_path(('datatypes', 'base', $aggregate_namespace, $aggregate_label))" />
-
-            
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
-        <xsl:value-of select="cmake:comment('Include the re_common directory', 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('re_common'), 0)" />
-        
-        <xsl:value-of select="cmake:include_top_level_source_dir($relative_path, 'PROJ_NAME')" />
+        <!-- Link Runtime Environment -->
+        <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
-
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
 
         <!-- Include the required aggregate files -->
         <xsl:for-each select="cdit:get_required_aggregates($aggregate, true())">
