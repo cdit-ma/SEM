@@ -108,11 +108,11 @@ message(STATUS "KERNAL FILEPATH: ${KERNEL_FILEPATH}")
 target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
 # Include Directories
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
 # Link Libraries

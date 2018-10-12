@@ -47,7 +47,7 @@ set(HEADERS
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 #Add RE_PATH to include directories
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PUBLIC "${OPENCL_ROOT}/include")
 target_include_directories(${PROJ_NAME} PUBLIC "${CLFFT_ROOT}/include")
 

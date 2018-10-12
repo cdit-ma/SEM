@@ -93,7 +93,7 @@ void ospl::PublisherPort<BaseType, OsplType>::Send(const BaseType& message){
                 }
             }catch(const std::exception& ex){
                 std::string error_str("Failed to Translate Message to publish: ");
-                this->ProcessMessageException(message, error_str + ex.what(), true);
+                this->ProcessMessageException(message, error_str + ex.what());
             }
         }
     }

@@ -196,7 +196,7 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
                     port.ProcessRequest(*base_request_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Request Failed: ";
-                    port.ProcessGeneralException(error_str + ex.what(), true);
+                    port.ProcessGeneralException(error_str + ex.what());
                 }
 
                 //Send reply, regardless if we failed
@@ -204,7 +204,7 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }
@@ -235,14 +235,14 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Thread
                     zmq_response = String2Zmq(reply_str);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Reply Failed: ";
-                    port.ProcessGeneralException(ex.what(), true);
+                    port.ProcessGeneralException(ex.what());
                 }
                 //Send reply
                 socket->send(zmq_response);
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                port.ProcessGeneralException(ex.what(), true);
+                port.ProcessGeneralException(ex.what());
             }
         }
     }

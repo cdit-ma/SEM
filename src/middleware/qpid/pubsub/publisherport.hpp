@@ -87,7 +87,7 @@ void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
                 return;
             }catch(const std::exception& ex){
                 std::string error_str("Failed to Translate Message to publish: ");
-                this->ProcessMessageException(message, error_str + ex.what(), true);
+                this->ProcessMessageException(message, error_str + ex.what());
             }
         }
     }

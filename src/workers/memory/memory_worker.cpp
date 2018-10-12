@@ -5,6 +5,9 @@
 Memory_Worker::Memory_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
     impl_ = std::unique_ptr<Memory_Worker_Impl>(new Memory_Worker_Impl());
 }
+Memory_Worker::~Memory_Worker(){
+    impl_.reset();
+}
 
 void Memory_Worker::Allocate(int kilobytes){
     auto work_id = get_new_work_id();

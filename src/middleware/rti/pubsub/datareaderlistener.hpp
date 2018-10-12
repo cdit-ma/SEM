@@ -27,7 +27,7 @@ namespace rti{
                                 }
                             }catch(const std::exception& ex){
                                 std::string error_str("Failed to translate subscribed message: ");
-                                port_->ProcessGeneralException(error_str + ex.what(), true);
+                                port_->ProcessGeneralException(error_str + ex.what());
                             }
                         }
                     }

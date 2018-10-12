@@ -7,6 +7,10 @@ Cpu_Worker::Cpu_Worker(const BehaviourContainer& container, const std::string& i
     impl_ = std::unique_ptr<Cpu_Worker_Impl>(new Cpu_Worker_Impl());
 }
 
+Cpu_Worker::~Cpu_Worker(){
+    impl_.reset();
+}
+
 int Cpu_Worker::IntOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(GET_FUNC);

@@ -32,7 +32,7 @@ SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${NO_OPTIMIZE_FLAG}")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${NO_OPTIMIZE_FLAG}")
 
 # Include Directories
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)
