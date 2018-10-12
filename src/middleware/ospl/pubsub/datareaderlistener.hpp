@@ -32,7 +32,7 @@ namespace ospl{
                         }
                     }
                 }catch(const std::exception& ex){
-                    Log(Severity::ERROR_).Context(port_).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
+                    port_->ProcessGeneralException(std::string("Unable to process samples") + ex.what());
                 }
             };
         private:
