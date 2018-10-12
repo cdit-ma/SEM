@@ -35,7 +35,7 @@ bool OpenCL_Worker::CleanupFFT() {
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
     if (!is_valid_) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Unable to perform FFT calculations, worker is invalid");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), "Unable to perform FFT calculations, worker is invalid");
 		return false;
 	}
 
