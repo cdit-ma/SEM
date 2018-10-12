@@ -1,4 +1,5 @@
 #include "heartbeater.h"
+#include <iostream>
 
 Heartbeater::Heartbeater(const int heartbeat_period, zmq::ProtoRequester& requester) : 
 heartbeat_period_(heartbeat_period),
