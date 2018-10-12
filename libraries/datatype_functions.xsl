@@ -825,14 +825,6 @@
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'STATIC', $args)" />
         <xsl:value-of select="o:nl(1)" />
 
-<<<<<<< HEAD
-        <!-- Link Runtime Environment -->
-        <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
-        <xsl:value-of select="o:nl(1)" />
-
-=======
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
@@ -845,7 +837,6 @@
         <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
->>>>>>> re_common-MED-418
         <!-- Include the required aggregate files -->
         <xsl:for-each select="cdit:get_required_aggregates($aggregate, true())">
             <xsl:if test="position() = 1">
