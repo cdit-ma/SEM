@@ -207,6 +207,46 @@
                     </graph>
                 </node>
 
+                <node id="opencl::isbuffervalid">
+                    <data key="kind">Function</data>
+                    <data key="label">Is Buffer Valid</data>
+                    <data key="operation">IsBufferValid</data>
+                    <data key="description">Return whether the current buffer has been initialised and is still yet to be released</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleTickDark</data>
+                    <graph id="opencl::isbuffervalid:">
+                        <node id="opencl::isbuffervalid::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="opencl::isbuffervalid::in:">
+                                <node id="opencl::isbuffervalid::in::buffer">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Buffer</data>
+                                    <data key="inner_type" />
+                                    <data key="outer_type">OpenCLBuffer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The buffer to be checked</data>
+                                    <data key="is_generic_param_src">true</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="opencl::isbuffervalid::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="opencl::isbuffervalid::out:">
+                                <node id="opencl::ibuffervalid::out::result">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Result</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">circleTickDark</data>
+                                    <data key="description">Whether or not the vector is valid</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
                 <node id="opencl::runparallel">
                     <data key="kind">Function</data>
                     <data key="label">Run Parallel</data>
