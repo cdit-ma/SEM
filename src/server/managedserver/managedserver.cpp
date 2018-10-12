@@ -1,6 +1,7 @@
 #include "managedserver.h"
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq.hpp>
+#include <iostream>
 
 ManagedServer::ManagedServer(Execution& execution, const std::string& experiment_name, const std::string& ip_address, const std::string& environment_manager_endpoint)
 :
