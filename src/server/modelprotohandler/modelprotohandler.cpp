@@ -58,6 +58,7 @@ const std::string LOGAN_PORT_MIDDLEWARE = "port_middleware";
 const std::string LOGAN_WORKER_NAME = "worker_name";
 const std::string LOGAN_WORKER_TYPE = "worker_type";
 const std::string LOGAN_WORKER_ID = "worker_id";
+const std::string LOGAN_LOG_LEVEL = "log_level";
 
 const std::string LOGAN_EVENT = "event";
 
@@ -156,6 +157,7 @@ void ModelProtoHandler::CreateWorkloadTable(){
 
     //Workload specific info
     table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_LOG_LEVEL, LOGAN_INT);
     table.AddColumn("workload_id", LOGAN_INT);
     table.AddColumn("function_name", LOGAN_VARCHAR);
     table.AddColumn("args", LOGAN_VARCHAR);
@@ -245,6 +247,7 @@ void ModelProtoHandler::ProcessWorkloadEvent(const re_common::WorkloadEvent& eve
             BindWorkerColumns(row, event.worker());
 
         row.BindString(LOGAN_TYPE, re_common::WorkloadEvent::Type_Name(event.event_type()));
+        row.BindInt(LOGAN_LOG_LEVEL, event.log_level());
         row.BindInt("workload_id", event.workload_id());
 
         row.BindString("function_name", event.function_name());
