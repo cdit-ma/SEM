@@ -39,6 +39,10 @@ else()
     target_compile_definitions(${PROJ_NAME} PUBLIC DISABLE_HARDWARE_HANDLER)
 endif()
 
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} PUBLIC dl)
+endif()
+
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_systemstatus)
