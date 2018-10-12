@@ -26,6 +26,8 @@
 #include <unordered_map>
 #include <set>
 #include <google/protobuf/message_lite.h>
+#include <memory>
+
 
 class Table;
 
