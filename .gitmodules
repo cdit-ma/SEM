@@ -1,3 +1,6 @@
 [submodule "re_gen"]
 	path = re_gen
 	url = https://github.com/cdit-ma/re_gen
+[submodule "re_common"]
+	path = re_common
+	url = https://github.com/cdit-ma/re_common

@@ -38,7 +38,6 @@ set(CMAKE_AUTORCC ON)
 #Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
-#option(BUILD_TEST "Build MEDEA Test" ON)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     #Pass Version info into cmakevars.h
@@ -60,7 +59,11 @@ endif(BUILD_CLI)
 
 if(BUILD_APP)
     message(STATUS "Building MEDEA App")
+    
+    set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
+
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 endif(BUILD_APP)
 
 SET(CPACK_GENERATOR "IFW;ZIP") 
