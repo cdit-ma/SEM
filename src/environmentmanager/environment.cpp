@@ -84,6 +84,9 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
         
         //Complete the Configuration
         experiment.SetConfigured();
+
+        // Take a unique_ptr copy of the configured control message and push to aggregation servers along our update_publisher channel.
+        update_publisher_->PushMessage(std::move(std::unique_ptr<NodeManager::ControlMessage>(new NodeManager::ControlMessage(control_message))));
     }catch(const std::exception& ex){
         //Remove the Experiment if we have any exceptions
         RemoveExperimentInternal(experiment_name);
@@ -159,7 +162,15 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Environment::GetExperiment
 std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std::string& experiment_name, const bool full_update){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperimentInternal(experiment_name);
-    return experiment.GetProto(full_update);
+
+    auto proto = experiment.GetProto(full_update);
+
+    // Create copy of our control_message to send to aggregation server.
+    auto update_proto_control_message = std::unique_ptr<NodeManager::ControlMessage>(
+            new NodeManager::ControlMessage(proto->control_message()));
+    update_publisher_->PushMessage(std::move(update_proto_control_message));
+
+    return proto;
 }
 
 void Environment::ShutdownExperiment(const std::string& experiment_name){
