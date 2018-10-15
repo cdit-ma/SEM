@@ -84,6 +84,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.cpp
@@ -116,6 +117,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
@@ -232,12 +234,16 @@ if(WIN32)
     target_link_libraries(${PROJ_NAME} Qt5::WinMain)
 endif()
 
+
+target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../re_common/")
+target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../../re_common/")
+
 # Link against things
 target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} Qt5::Network)
 target_link_libraries(${PROJ_NAME} Qt5::Concurrent)
-target_link_libraries(${PROJ_NAME} zmq_environmentrequester)
+target_link_libraries(${PROJ_NAME} re_environment_controller_lib)
 
 # Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
