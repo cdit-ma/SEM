@@ -63,6 +63,9 @@ private:
     BaseDockWidget* dockwidget_Qos = 0;
     BaseDockWidget* dockwidget_Notification = 0;
 
+    BaseDockWidget* dockwidget_Charts = 0;
+
+
     //Right hand tools
     BaseDockWidget* dockwidget_Table = 0;
     BaseDockWidget* dockwidget_ViewManager = 0;

@@ -5,13 +5,13 @@
 
 /**
  * @brief PopupWidget::PopupWidget
+ * @param type
  * @param parent
  */
 PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(parent)
 {
-    setAttribute(Qt::WA_TranslucentBackground);
     setModal(false);
-
+    setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
     switch (type) {
@@ -23,36 +23,42 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
         setWindowFlags(windowFlags() | Qt::Tool);
         break;
     case TYPE::SPLASH:
-        setAttribute(Qt::WA_TranslucentBackground);
         setAttribute(Qt::WA_ShowWithoutActivating);
-        //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput | Qt::WindowDoesNotAcceptFocus);
         setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
-        //setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
-        
         break;
     case TYPE::POPUP:
         setWindowFlags(windowFlags() | Qt::Popup);
         break;
     }
     
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &PopupWidget::themeChanged);
     themeChanged();
 }
 
-void PopupWidget::adjustSize(){
+
+/**
+ * @brief PopupWidget::adjustSize
+ */
+void PopupWidget::adjustSize()
+{
     QWidget::adjustSize();
 }
 
 
-void PopupWidget::themeChanged(){
+/**
+ * @brief PopupWidget::themeChanged
+ */
+void PopupWidget::themeChanged()
+{
     auto theme = Theme::theme();
     background_color = theme->getBackgroundColor();
-    background_color.setAlphaF(0.85);
+    background_color.setAlphaF(opacity);
     border_color = theme->getTextColor();
-    border_color.setAlphaF(0.85);
+    border_color.setAlphaF(opacity);
     update();
 }
+
+
 /**
  * @brief PopupWidget::setWidget
  * @param widget
@@ -66,10 +72,29 @@ void PopupWidget::setWidget(QWidget* widget)
 }
 
 
-void PopupWidget::paintEvent(QPaintEvent* event){
+/**
+ * @brief PopupWidget::setBackgroundOpacity
+ * @param opactiy
+ */
+void PopupWidget::setBackgroundOpacity(qreal opactiy)
+{
+    this->opacity = opactiy;
+    background_color.setAlphaF(opactiy);
+    border_color.setAlphaF(opactiy);
+    update();
+}
+
+
+/**
+ * @brief PopupWidget::paintEvent
+ * @param event
+ */
+void PopupWidget::paintEvent(QPaintEvent* event)
+{
+    qreal penWidth = 1.0;
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(border_color);
+    painter.setPen(QPen(border_color, penWidth));
     painter.setBrush(background_color);
-    painter.drawRoundedRect(rect(), 4, 4);
+    painter.drawRoundedRect(rect().adjusted(penWidth, penWidth, -penWidth, -penWidth), 4, 4);
 }

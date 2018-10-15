@@ -59,6 +59,8 @@ public:
     ToolDockWidget* constructToolDockWidget(QString title, QWidget* parent);
     InvisibleDockWidget* constructInvisibleDockWidget(QString title, QWidget* parent);
 
+    void constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title = "");
+
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
     

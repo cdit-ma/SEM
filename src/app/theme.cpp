@@ -630,7 +630,11 @@ QString Theme::getTabbedWidgetStyleSheet()
            "QTabBar::tab:hover{ background:" % getHighlightColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
            "QTabBar, QTabWidget::tab-bar{ alignment: center; qproperty-drawBase: 0; border: 0px; }"
            "QTabWidget::pane, QTabBar::pane{ background:" % getBackgroundColorHex() % ";}"
+           //"QTabBar::close-button{ background: rgba(0,0,0,0); border: 0px solid " % getDisabledBackgroundColorHex() % "; image: url(:/Images/Icons/cross);}"
+           //"QTabBar::close-button:hover:!selected{ border-radius:" % getCornerRadius() % "; border-width: 1px; background:" % getHighlightColorHex() % ";}"
            ;
+    ;
+
 }
 
 QString Theme::getNodeViewStyleSheet(bool isActive)
@@ -814,7 +818,8 @@ QString Theme::getToolBarStyleSheet()
            "color:" % getTextColorHex(ColorRole::SELECTED) % ";"
            "}"
            "QToolButton[popupMode=\"2\"] {"
-           "padding-right: 15px;"
+           //"padding-right: 15px;"
+           "padding-right: 2px;"
            "color:" % getTextColorHex() % ";"
            "}"
            "QToolButton[popupMode=\"2\"]:hover {"
@@ -828,6 +833,26 @@ QString Theme::getToolBarStyleSheet()
            "border-top-right-radius: 10px;"
            "border-bottom-right-radius: 10px;"
            "width: 15px;"
+           "}";
+}
+
+QString Theme::getTabbedToolBarStyleSheet()
+{
+    return getToolBarStyleSheet() %
+           "QToolBar {"
+           "spacing: 2px;"
+           "padding: 0px;"
+           "}"
+           "QToolBar QToolButton {"
+           "border: 1px solid " % getAltBackgroundColorHex() % ";"
+           "border-radius:" % getCornerRadius() % ";"
+           "border-bottom-left-radius: 0px;"
+           "border-bottom-right-radius: 0px;"
+           //"color:" % getTextColorHex() % ";"
+           "}"
+           "QToolBar QToolButton::checked:!hover {"
+           "background:" % getActiveWidgetBorderColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
            "}";
 }
 
@@ -955,6 +980,46 @@ QString Theme::getLabelStyleSheet()
     return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
+<<<<<<< HEAD
+=======
+QString Theme::getTitleLabelStyleSheet()
+{
+    return "color: " % getTextColorHex() % ";";
+}
+
+QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
+{
+    QColor color = getAspectBackgroundColor(aspect).darker(110);
+    QString gradientColor1 = QColorToHex(color.lighter(275));
+    QString gradientColor2 = QColorToHex(color.darker(110));
+
+    return "QAbstractButton {"
+           "color:" % QColorToHex(black()) % ";"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "background:" % QColorToHex(color) % ";"
+           "}"
+           "QAbstractButton:hover {"
+           "color:" % QColorToHex(white()) % ";"
+           "border: 1px solid " % QColorToHex(white()) % ";"
+           "}"
+           "QAbstractButton:checked {"
+           "background:"
+           "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
+           "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
+           "}"
+           "QAbstractButton:disabled {"
+           "background:" % getDisabledBackgroundColorHex() % ";"
+                                                             "}";
+}
+
+QString Theme::getToolTipStyleSheet()
+{
+    return "QToolTip {"
+           "color: " % getTextColorHex(ColorRole::SELECTED) % ";"
+           "background: " % getTextColorHex() % ";"
+           "}";
+}
+>>>>>>> entity-chart
 
 void Theme::preloadImages()
 {   
@@ -1210,11 +1275,29 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
     setIconToggledImage("ToggleIcons", "slider", "Icons", "toggleOn", "Icons", "toggleOff");
 
-
     setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
     setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
+<<<<<<< HEAD
     setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
+=======
+
+    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "exclamation", "Icons", "clock", false);
+
+    // TODO - setup toggle icons for the visualisastion panel here
+    setIconToggledImage("ToggleIcons", "panelVisible", "Icons", "graphDark", "Icons", "graph");
+    setIconToggledImage("ToggleIcons", "playPause", "Icons", "pause", "Icons", "play");
+    setIconToggledImage("ToggleIcons", "gridToggle", "Icons", "gridOutlineStriked", "Icons", "gridOutline");
+    setIconToggledImage("ToggleIcons", "labelToggle", "Icons", "number0", "Icons", "number1");
+    setIconToggledImage("ToggleIcons", "snapToValueToggle", "Icons", "circleHalo", "Icons", "crosshair");
+    setIconToggledImage("ToggleIcons", "legendToggle", "Icons", "labelDark", "Icons", "label");
+    setIconToggledImage("ToggleIcons", "dataLabelToggle", "Icons", "radioButtonChecked", "Icons", "radioButtonUnchecked");
+
+    setIconToggledImage("ToggleIcons", "stateLegendToggle", "Icons", "circleHalo", "Icons", "circleHalo");
+    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
+    setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
+    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
+>>>>>>> entity-chart
 }
 
 void Theme::setupAliasIcons(){
@@ -1239,7 +1322,6 @@ void Theme::setIconAlias(const QString& prefix, const QString& alias, const QStr
         icon_alias_lookup[alias_rn] = icon_rn;
     }
 }
-
 
 void Theme::resetTheme(ThemePreset themePreset){
     //Solarized
@@ -1276,7 +1358,6 @@ void Theme::resetTheme(ThemePreset themePreset){
             emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
             emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
 
-
             emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, white());
             emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
             emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,255,10));
@@ -1288,10 +1369,10 @@ void Theme::resetTheme(ThemePreset themePreset){
         case ThemePreset::LIGHT_THEME:{
             QColor bgColor = QColor(170,170,170);
             emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
-            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(125));
             emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
             emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
-            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(108));
             emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
@@ -1370,6 +1451,13 @@ void Theme::resetTheme(ThemePreset themePreset){
 
 QFont Theme::getFont() const{
     return font;
+}
+
+QFont Theme::getSmallFont() const
+{
+    auto smallFont = font;
+    smallFont.setPointSizeF(font.pointSizeF() / 1.2);
+    return smallFont;
 }
 
 QFont Theme::getLargeFont() const{
@@ -1526,6 +1614,20 @@ bool Theme::tintIcon(QSize size)
     return size.width() > 0 && size.width() % 96 == 0;
 }
 
+<<<<<<< HEAD
+=======
+QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
+{
+    QColor resultingColor;
+    qreal color1Ratio = blendRatio;
+    qreal color2Ratio = 1 - blendRatio;
+    resultingColor.setBlueF(color1Ratio * color1.blueF() + color2Ratio * color2.blueF());
+    resultingColor.setRedF(color1Ratio * color1.redF() + color2Ratio * color2.redF());
+    resultingColor.setGreenF(color1Ratio * color1.greenF() + color2Ratio * color2.greenF());
+    return resultingColor;
+}
+
+>>>>>>> entity-chart
 QString Theme::QColorToHex(const QColor color)
 {
     return color.name(QColor::HexArgb);

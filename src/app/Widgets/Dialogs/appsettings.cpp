@@ -66,10 +66,11 @@ void AppSettings::settingChanged(SETTINGS key, QVariant data)
 void AppSettings::themeChanged()
 {
     Theme* theme = Theme::theme();
-    //tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() + "QTabBar::tab:top{ margin-top: 2px; }");
+
     tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() +
                              "QTabBar::tab:selected{ background:" % theme->getPressedColorHex() % "; color:" % theme->getTextColorHex(ColorRole::SELECTED) % ";}"
                              "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
+
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");

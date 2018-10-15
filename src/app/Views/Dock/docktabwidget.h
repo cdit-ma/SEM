@@ -13,15 +13,18 @@ class DockTabWidget : public QWidget
 
 public:
     DockTabWidget(ViewController* vc, QWidget * parent = 0);
+
+protected:
+    void refreshSize();
+    bool eventFilter(QObject *object, QEvent *event);
+
 private:
     void themeChanged();
     void setupLayout();
     void setupDocks();
     void dockActionTriggered(QAction* action);
-protected:
-    void refreshSize();
-    bool eventFilter(QObject *object, QEvent *event);
-private:
+
+
     ViewController* view_controller = 0;
 
     QMenu* add_part_menu = 0;
@@ -33,7 +36,6 @@ private:
     QAction* parts_action = 0;
     QAction* deploy_action = 0;
     QToolBar* toolbar = 0;
-    
     
     QStackedWidget* stack_widget = 0;
 };

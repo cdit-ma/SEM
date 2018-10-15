@@ -3,7 +3,8 @@
 
 int NotificationObject::id_counter_  = 0;
 
-NotificationObject::NotificationObject() : QObject(0){
+NotificationObject::NotificationObject() : QObject(0)
+{
     id_ = id_counter_ ++;
     updateModifiedTime();
     //Update the modified time any time any part of this notification gets updated

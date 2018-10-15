@@ -293,7 +293,8 @@ void BaseWindow::themeChanged()
                   "QMessageBox QPushButton {"
                   "padding: 5px;"
                   "}"
-                  "QToolTip{ background: white; }");
+                  % theme->getToolTipStyleSheet());
+                  //"QToolTip{ background: white; }");
 }
 
 

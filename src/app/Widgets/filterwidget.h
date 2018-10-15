@@ -9,13 +9,17 @@
 class FilterWidget : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit FilterWidget();
+
 signals:
     void filterChanged(QString filter);
+
 private:
     void themeChanged();
     void setupLayout();
+
 private:
     QLineEdit* line_edit = 0;
     QToolButton* icon_button = 0;

@@ -2,6 +2,10 @@
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
+<<<<<<< HEAD
+=======
+find_package(Qt5 COMPONENTS Widgets Network Charts REQUIRED)
+>>>>>>> entity-chart
 
 find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
 
@@ -91,7 +95,63 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
+<<<<<<< HEAD
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
+=======
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/invisibledockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/hoverpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechart.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/entitychart.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/entityaxis.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/entityset.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/notificationseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/lineseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/barseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/seriesmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+>>>>>>> entity-chart
 )
 
 if(WIN32)
@@ -157,9 +217,50 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
+<<<<<<< HEAD
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/loadmorewidget.h
+=======
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/hoverpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechart.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/entitychart.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/entityaxis.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/entityset.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycle.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/notificationseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/lineseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/barseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/seriesmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
+>>>>>>> entity-chart
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
@@ -234,6 +335,11 @@ endif()
 
 # Link against things
 target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
+<<<<<<< HEAD
+=======
+target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
+target_link_libraries(${PROJ_NAME} Qt5::Charts)
+>>>>>>> entity-chart
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} Qt5::Network)
 target_link_libraries(${PROJ_NAME} Qt5::Concurrent)

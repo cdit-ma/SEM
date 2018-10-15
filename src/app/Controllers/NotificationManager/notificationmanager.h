@@ -56,13 +56,14 @@ public slots:
     void hideToast();
     void toastLatestNotification();
     void deleteNotification(int ID);
+
 private slots:
     void displayToastNotification(QSharedPointer<NotificationObject> notification);
+
 private:
     void NotificationUpdated(QSharedPointer<NotificationObject> notification);
 
     static NotificationManager* managerSingleton;
-    
     
     QMap<int, QSharedPointer<NotificationObject>> notifications;
     

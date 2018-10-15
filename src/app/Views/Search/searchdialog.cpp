@@ -1,7 +1,8 @@
 #include "searchdialog.h"
 #include "../../theme.h"
-#include <QScrollBar>
 #include "../../../modelcontroller/entityfactory.h"
+
+#include <QScrollBar>
 
 #define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 300
@@ -24,12 +25,18 @@ SearchDialog::SearchDialog(QWidget *parent)
 }
 
 
-void SearchDialog::setQuery(QString query){
+/**
+ * @brief SearchDialog::setQuery
+ * @param query
+ */
+void SearchDialog::setQuery(QString query)
+{
     query_text = query;
-    if(query_label){
+    if (query_label) {
         query_label->setText("\"" + query_text + "\"");
     }
 }
+
 
 /**
  * @brief SearchDialog::searchResults
@@ -47,21 +54,27 @@ void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*>
     auto has_results = !results.isEmpty();
     
     info_label->setVisible(!has_results);
+<<<<<<< HEAD
     if(has_results){
         for(auto key : results.uniqueKeys()){
+=======
+    if (has_results) {
+        for (auto key : results.uniqueKeys()) {
+>>>>>>> entity-chart
             auto view_items = results.values(key);
-            for(auto item : view_items){
+            for (auto item : view_items) {
                 search_key_lookups.insertMulti(item, key);
             }
             data_filters->addOption(key, key + " (" + QString::number(view_items.count()) + ")", "Data", key);
         }
         //Update the All Button
         data_filters->setResetButtonText("All (" + QString::number(search_key_lookups.uniqueKeys().count()) + ")");
-    }else{
+    } else {
         data_filters->setResetButtonText("All");
     }
     filtersChanged();
 }
+
 
 /**
  * @brief SearchDialog::themeChanged
@@ -70,13 +83,12 @@ void SearchDialog::themeChanged()
 {
     auto theme = Theme::theme();
     
-    setStyleSheet(
-                    "SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
-                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
-                    "QLabel {color:" + theme->getTextColorHex() + ";} " + 
-                    theme->getToolBarStyleSheet() +
-                    theme->getSplitterStyleSheet()
-                );
+    setStyleSheet("SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
+                  "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
+                  "QLabel {color:" + theme->getTextColorHex() + ";} " +
+                  theme->getToolBarStyleSheet() +
+                  theme->getSplitterStyleSheet()
+                  );
 
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{font-size:10px;border-radius:0px;}");
 
@@ -88,7 +100,6 @@ void SearchDialog::themeChanged()
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
     refresh_action->setIcon(theme->getIcon("Icons", "zoomRefresh"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
-    
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
@@ -96,8 +107,6 @@ void SearchDialog::themeChanged()
     top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
 }
-
-     
 
 
 /**
@@ -111,7 +120,7 @@ void SearchDialog::filtersChanged()
     current_visible = 0;
     filtered_match_count = 0;
 
-    for(auto view_item : search_key_lookups.uniqueKeys()){
+    for (auto view_item : search_key_lookups.uniqueKeys()) {
         auto matched_keys = search_key_lookups.values(view_item).toSet();
         auto view_aspect = view_item->getViewAspect();
 
@@ -120,7 +129,7 @@ void SearchDialog::filtersChanged()
         auto got_matched_keys = checked_key_set.intersects(matched_keys);
         auto got_match = got_matched_aspect && got_matched_keys;
 
-        if(got_match){
+        if (got_match) {
             filtered_match_count ++;
         }
         
@@ -129,10 +138,10 @@ void SearchDialog::filtersChanged()
         //If we've got a match WE have to construct a search item, else if we don't need, we only need to hide the previously constructed items
         auto search_item = set_visible ? constructSearchItem(view_item) : getSearchItem(view_item);
         
-        if(search_item){
+        if (search_item) {
             //Show the item
             search_item->setVisible(set_visible);
-            if(set_visible){
+            if (set_visible) {
                 //Add All matching search keys
                 search_item->addMatchedKeys(matched_keys);
                 current_visible ++;
@@ -148,9 +157,10 @@ void SearchDialog::filtersChanged()
     auto all_showing = current_visible == filtered_match_count;
 
     //Update the text for the status_label
-    if(any_filtered){
+    if (any_filtered) {
         status_label->setText(QString::number(search_count - filtered_match_count) + "/" + QString::number(search_count) + " entities hidden by filters");
     } 
+
     result_status_widget->setVisible(any_filtered);
 
     load_more_button->setVisible(!all_showing);
@@ -169,7 +179,6 @@ void SearchDialog::searchItemSelected(int ID)
         if (search_items.contains(selected_id)) {
             SearchItemWidget* item = search_items.value(selected_id);
             item->setSelected(false);
-            
         }
         selected_id = ID;
     }
@@ -193,6 +202,7 @@ void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
     }
 }
 
+
 /**
  * @brief SearchDialog::setupLayout
  */
@@ -202,23 +212,23 @@ void SearchDialog::setupLayout()
     auto right_widget = new QWidget(this);
 
     {
-         //LEFT WIDGET
-         left_widget->setContentsMargins(5,5,1,5);
-         auto v_layout = new QVBoxLayout(left_widget);
-         v_layout->setMargin(0);
- 
-         filters_widget = new QWidget(this);
-         filters_widget->setContentsMargins(5,0,5,5);
-         filters_layout = new QVBoxLayout(filters_widget);
-         filters_layout->setAlignment(Qt::AlignTop);
-         filters_layout->setMargin(0);
-         filters_layout->setSpacing(0);
- 
-         filters_scroll = new QScrollArea(this);
-         filters_scroll->setWidget(filters_widget);
-         filters_scroll->setWidgetResizable(true);
- 
-         v_layout->addWidget(filters_scroll, 1);
+        //LEFT WIDGET
+        left_widget->setContentsMargins(5,5,1,5);
+        auto v_layout = new QVBoxLayout(left_widget);
+        v_layout->setMargin(0);
+
+        filters_widget = new QWidget(this);
+        filters_widget->setContentsMargins(5,0,5,5);
+        filters_layout = new QVBoxLayout(filters_widget);
+        filters_layout->setAlignment(Qt::AlignTop);
+        filters_layout->setMargin(0);
+        filters_layout->setSpacing(0);
+
+        filters_scroll = new QScrollArea(this);
+        filters_scroll->setWidget(filters_widget);
+        filters_scroll->setWidgetResizable(true);
+
+        v_layout->addWidget(filters_scroll, 1);
     }
 
     {
@@ -240,7 +250,7 @@ void SearchDialog::setupLayout()
         top_toolbar->addSeparator();
         center_action = top_toolbar->addAction("Center On Selection");
         popup_action = top_toolbar->addAction("Popup On Selection");
-    
+
 
         auto top_layout = new QHBoxLayout();
         {
@@ -276,12 +286,12 @@ void SearchDialog::setupLayout()
             load_more_button->setVisible(false);
             v2_layout->addWidget(load_more_button);
         }
-    
+
         results_scroll = new QScrollArea(this);
         results_scroll->setObjectName("RIGHTWIDGET");
         results_scroll->setWidget(results_widget);
         results_scroll->setWidgetResizable(true);
-            
+
         result_status_widget = new QWidget(this);
         {
             status_label = new QLabel(this);
@@ -337,7 +347,7 @@ void SearchDialog::setupFilters()
     aspect_filters = new OptionGroupBox("ASPECT", SortOrder::INSERTION, this);
     filters_layout->addWidget(aspect_filters);
 
-    for(auto view_aspect : EntityFactory::getViewAspects()){
+    for (auto view_aspect : EntityFactory::getViewAspects()) {
         auto node_kind = EntityFactory::getViewAspectKind(view_aspect);
         aspect_filters->addOption(QVariant::fromValue(view_aspect), getViewAspectName(view_aspect), "EntityIcons", EntityFactory::getNodeKindString(node_kind));
     }
@@ -359,7 +369,7 @@ void SearchDialog::setupFilters()
  */
 void SearchDialog::clearSearchItems()
 {   
-    for(auto i : search_items){
+    for (auto i : search_items) {
         i->clearMatchedKeys();
         i->hide();
     }
@@ -368,16 +378,25 @@ void SearchDialog::clearSearchItems()
     max_visible = 30;
 }
 
+
+/**
+ * @brief SearchDialog::scrollBarValueChanged
+ */
 void SearchDialog::scrollBarValueChanged()
 {
     auto v_scroll = results_scroll->verticalScrollBar();
-    if(v_scroll && v_scroll->value() > 0 && v_scroll->value() == v_scroll->maximum()){
+    if (v_scroll && v_scroll->value() > 0 && v_scroll->value() == v_scroll->maximum()) {
         loadNextResults();
     }
 }
 
-void SearchDialog::loadNextResults(){
-    if(current_visible < filtered_match_count){
+
+/**
+ * @brief SearchDialog::loadNextResults
+ */
+void SearchDialog::loadNextResults()
+{
+    if (current_visible < filtered_match_count) {
         //Load more!
         max_visible += 10;
         filtersChanged();
@@ -413,8 +432,14 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 }
 
 
-SearchItemWidget* SearchDialog::getSearchItem(ViewItem* item){
-    if(item){
+/**
+ * @brief SearchDialog::getSearchItem
+ * @param item
+ * @return
+ */
+SearchItemWidget* SearchDialog::getSearchItem(ViewItem* item)
+{
+    if (item) {
         return search_items.value(item->getID(), 0);
     }
     return 0;

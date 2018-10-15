@@ -43,9 +43,6 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     title_layout->addWidget(medea_label, 0, Qt::AlignCenter);
     title_layout->addWidget(medea_version_label, 0, Qt::AlignCenter);
 
-
-
-
     recent_project_label = new QToolButton(this);
     recent_project_label->setText("Recent Projects");
     recent_project_label->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);

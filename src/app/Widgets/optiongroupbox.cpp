@@ -64,6 +64,12 @@ void OptionGroupBox::setResetButtonVisible(bool visible)
     }
 }
 
+
+/**
+ * @brief OptionGroupBox::setOptionVisible
+ * @param key
+ * @param visible
+ */
 void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
 {
     auto option_button = actions_lookup.value(key, 0);
@@ -72,6 +78,12 @@ void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
     }
 }
 
+
+/**
+ * @brief OptionGroupBox::setOptionChecked
+ * @param key
+ * @param checked
+ */
 void OptionGroupBox::setOptionChecked(QVariant key, bool checked){
     auto option_button = actions_lookup.value(key, 0);
     if(option_button){
@@ -172,7 +184,6 @@ void OptionGroupBox::resetOptions()
     reset_action->setChecked(true);
     checkedKeys = actions_lookup.keys();
     updateTitleCount();
-    
 }
 
 
@@ -266,7 +277,7 @@ int OptionGroupBox::getOptionCount(){
 bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, QString icon_name, bool put_on_top)
 {
     if (key.isNull() || actions_lookup.count(key)) {
-        qWarning() << "OptionGroupBox::addOption - The key is null.";
+        qWarning("OptionGroupBox::addOption - The key is null.");
         return false;
     }
 

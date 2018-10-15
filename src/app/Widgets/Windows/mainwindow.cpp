@@ -389,6 +389,12 @@ void MainWindow::setupTools()
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
+    // TODO - Temporary widget where the charts dialog will go
+    /*if (!dockwidget_Charts) {
+        dockwidget_Charts = window_manager->constructToolDockWidget("Charts", this);
+        dockwidget_Charts->setWidget(new QWidget(this));
+    }*/
+
     if(!rightWindow){
         rightWindow = window_manager->constructInvisibleWindow("Right Tools", this);
         rightWindow->setDockNestingEnabled(true);
@@ -407,10 +413,10 @@ void MainWindow::setupTools()
  * @brief MedeaMainWindow::setupInnerWindow
  */
 void MainWindow::setupInnerWindow()
-{   
+{
     innerWindow = WindowManager::manager()->constructCentralWindow("Main Window", this);
+
     //Construct dockWidgets.
-    
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::INTERFACES), this);
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::BEHAVIOUR), this);
     auto dockwidget_Assemblies = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::ASSEMBLIES), this);
@@ -418,6 +424,7 @@ void MainWindow::setupInnerWindow()
     
     
 
+    //Set each NodeView with there contained aspects
     dockwidget_Interfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dockwidget_Behaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
     dockwidget_Assemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
@@ -468,6 +475,12 @@ void MainWindow::setupInnerWindow()
     dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget", this);
     dockwidget_Center->setWidget(innerWindow);
 
+
+    // TESTING INNER DOCK WIDGETS
+    WindowManager::manager()->constructInnerDockWidget(view_controller, dockwidget_Behaviour, "Inner Dock Widget");
+    dockwidget_Interfaces->req_Visible(dockwidget_Interfaces->getID(), false);
+    dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
+    dockwidget_Hardware->req_Visible(dockwidget_Hardware->getID(), false);
 }
 
 

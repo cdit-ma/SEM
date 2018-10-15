@@ -17,32 +17,32 @@ protected:
     BaseDockWidget(BaseDockType type, QWidget* parent = 0);
     ~BaseDockWidget();
 
-    
 public:
-    void setTitleIcon(QString path, QString alias);
     int getID() const;
     BaseDockType getBaseDockType() const;
-    Qt::DockWidgetArea getDockWidgetArea();
+
     void setDockWidgetArea(Qt::DockWidgetArea area);
+    Qt::DockWidgetArea getDockWidgetArea();
     void setSourceWindow(BaseWindow* window);
     BaseWindow* getSourceWindow();
     
-
     virtual void themeChanged();
+    virtual void setWidget(QWidget* widget);
     
-    QPair<QString, QString> getIcon();
     DockTitleBar* getTitleBar();
     void removeTitleBar();
 
-
     bool isProtected() const;
     void setProtected(bool protect);
-    virtual void setWidget(QWidget* widget);
     void setCurrentWindow(BaseWindow* window);
     BaseWindow* getCurrentWindow();
 
-    void setIcon(QPair<QString, QString> pair);
+    void setTitleIcon(QString path, QString alias);
+    void setIconVisible(bool visible);
+
     void setIcon(QString, QString);
+    void setIcon(QPair<QString, QString> pair);
+    QPair<QString, QString> getIcon();
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle() const;
 
@@ -51,7 +51,11 @@ public:
 
 
     void setFocusEnabled(bool enabled);
+<<<<<<< HEAD
     void setIconVisible(bool visible);
+=======
+    bool isFocusEnabled();
+>>>>>>> entity-chart
 
     void setCloseVisible(bool visible);
     void setHideVisible(bool visible);
@@ -60,6 +64,7 @@ public:
 
     void setMaximizeToggled(bool toggled);
     void close();
+
 signals:
     void iconChanged();
     void titleChanged();
@@ -68,12 +73,12 @@ signals:
     void req_Visible(int ID, bool visible);
     void req_PopOut(int ID);
     void req_Close(int ID);
+
 private slots:
     void title_Maximize(bool maximize);
     void title_Visible(bool visible);
     void title_PopOut(bool);
     void title_Close(bool);
-
 
     void _visibilityChanged(bool visible);
 
@@ -82,9 +87,16 @@ private slots:
 
 private:
     void closeOrHide();
+
     void setActionVisible(DockTitleBar::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBar::DOCK_ACTION action, bool toggled);
+<<<<<<< HEAD
+=======
+    void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
+
+>>>>>>> entity-chart
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
+    QAction* addAction(QString text, QString iconPath = "", QString iconName = "", Qt::Alignment a = Qt::AlignRight);
 
     QString title;
     DockTitleBar* titleBar = 0;

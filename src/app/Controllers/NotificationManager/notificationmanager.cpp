@@ -165,7 +165,22 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
     return list;
 }
 
-QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString title, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
+
+/**
+ * @brief NotificationManager::AddNotification
+ * @param title
+ * @param icon_path
+ * @param icon_name
+ * @param severity
+ * @param type
+ * @param category
+ * @param toast
+ * @param entity_id
+ * @param defer_update
+ * @return
+ */
+QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString title, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update)
+{
     auto notification = QSharedPointer<NotificationObject>(new NotificationObject());
     notification->setTitle(title);
     notification->setIcon(icon_path, icon_name);
@@ -253,8 +268,11 @@ void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject>
         }
     }
 }
+<<<<<<< HEAD
 
 void NotificationManager::ShowNotificationPanel(Notification::Severity severity){
     getPanel()->showSeveritySelection(severity);
     emit showNotificationPanel();
 }
+=======
+>>>>>>> entity-chart

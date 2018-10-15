@@ -85,12 +85,19 @@
         <file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
         <file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
         <file alias="Setter">Resources/EntityIcons/Setter.png</file>
+<<<<<<< HEAD
         <file alias="RequesterPort">Resources/EntityIcons/RequesterPort.png</file>
         <file alias="ReplierPort">Resources/EntityIcons/ReplierPort.png</file>
         <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
         <file alias="IfCondition">Resources/EntityIcons/IfCondition.png</file>
+=======
+        <file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
+        <file alias="VariadicParameter">Resources/EntityIcons/VariadicParameter.png</file>
+        <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
+        <file>Resources/Icons/graph.png</file>
+>>>>>>> entity-chart
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -376,7 +383,60 @@
         <file alias="zoom">Resources/Icons/zoom.png</file>
         <file alias="zoomIn">Resources/Icons/zoomIn.png</file>
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
+<<<<<<< HEAD
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+=======
+        <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
+        <file alias="jenkinsFlat">Resources/Icons/jenkinsFlat.png</file>
+        <file alias="personCircle">Resources/Icons/personCircle.png</file>
+        <file alias="fingerprint">Resources/Icons/fingerprint.png</file>
+        <file alias="arrowUp">Resources/Icons/arrowUp.png</file>
+        <file alias="arrowDown">Resources/Icons/arrowDown.png</file>
+        <file alias="thumbsUp">Resources/Icons/thumbsUp.png</file>
+        <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
+        <file alias="circleDark">Resources/Icons/circleDark.png</file>
+        <file alias="home">Resources/Icons/home.png</file>
+        <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
+        <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
+        <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
+        <file alias="arrowLineLeft">Resources/Icons/arrowLineLeft.png</file>
+        <file alias="arrowLineRight">Resources/Icons/arrowLineRight.png</file>
+        <file alias="chartMean">Resources/Icons/chartMean.png</file>
+        <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
+        <file alias="chartLambda">Resources/Icons/chartLambda.png</file>
+        <file alias="bed">Resources/Icons/bed.png</file>
+        <file alias="dice">Resources/Icons/dice.png</file>
+        <file alias="clockDark">Resources/Icons/clockDark.png</file>
+        <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
+        <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
+        <file alias="drop">Resources/Icons/drop.png</file>
+        <file alias="bookmark">Resources/Icons/bookmark.png</file>
+        <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
+        <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
+        <file alias="sliders">Resources/Icons/sliders.png</file>
+        <file alias="number0">Resources/Icons/number0.png</file>
+        <file alias="number1">Resources/Icons/number1.png</file>
+        <file alias="number2">Resources/Icons/number2.png</file>
+        <file alias="number3">Resources/Icons/number3.png</file>
+        <file alias="number4">Resources/Icons/number4.png</file>
+        <file alias="number5">Resources/Icons/number5.png</file>
+        <file alias="number6">Resources/Icons/number6.png</file>
+        <file alias="number7">Resources/Icons/number7.png</file>
+        <file alias="number8">Resources/Icons/number8.png</file>
+        <file alias="number9">Resources/Icons/number9.png</file>
+        <file alias="number9+">Resources/Icons/number9+.png</file>
+        <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
+        <file alias="filterList">Resources/Icons/filterList.png</file>
+        <file alias="running">Resources/Icons/running.png</file>
+        <file alias="graphDark">Resources/Icons/graphDark.png</file>
+        <file alias="play">Resources/Icons/play.png</file>
+        <file alias="pause">Resources/Icons/pause.png</file>
+        <file alias="radioButtonChecked">Resources/Icons/radio_button_checked_black.png</file>
+        <file alias="radioButtonUnchecked">Resources/Icons/radio_button_unchecked_black.png</file>
+        <file alias="labelDark">Resources/Icons/label_black.png</file>
+        <file alias="package">Resources/Icons/package.png</file>
+        <file alias="triangleRight">Resources/Icons/triangleRight.png</file>
+>>>>>>> entity-chart
     </qresource>
 </RCC>

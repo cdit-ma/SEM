@@ -61,8 +61,7 @@ signals:
 public slots:
     void reset(bool notify=true);
 
-    
-    private slots:
+private slots:
     void themeChanged();
     void optionToggled();
     

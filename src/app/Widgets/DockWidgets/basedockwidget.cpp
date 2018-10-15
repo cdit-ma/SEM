@@ -316,6 +316,16 @@ QAction *BaseDockWidget::getAction(DockTitleBar::DOCK_ACTION action)
     return a;
 }
 
+QAction* BaseDockWidget::addAction(QString text, QString iconPath, QString iconName, Qt::Alignment a)
+{
+    if (titleBar) {
+        QAction* action = new QAction(text);
+        titleBar->addToolAction(action, iconPath, iconName, a);
+        return action;
+    }
+    return 0;
+}
+
 bool BaseDockWidget::eventFilter(QObject *object, QEvent *event)
 {
     if(object == titleBar && event->type() == QEvent::MouseButtonPress) {

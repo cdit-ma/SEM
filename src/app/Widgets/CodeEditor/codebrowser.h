@@ -14,6 +14,7 @@ public slots:
     void showCode(QString fileName, QString content, bool editable);
 private slots:
     void closeTab(int tabID);
+
 private:
     void setupLayout();
     CodeEditor* getCodeEditor(QString fileName);

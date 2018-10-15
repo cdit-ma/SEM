@@ -13,11 +13,11 @@
 CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
     : QFrame(parent)
 {
-    groupTitle = title;
     groupTitleButton = 0;
     widgetsToolbar = 0;
 
     setupLayout();
+    setTitle(title);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
     
@@ -148,6 +148,9 @@ void CustomGroupBox::themeChanged()
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px 1px 1px 0px;"
                                         "border: none;"
+                                        //"border: 1px solid blue;"
+                                        //"margin: 0px;"
+                                        // "padding: 0px;"
                                         "color:" + theme->getTextColorHex() + ";"
                                         "background: rgba(0,0,0,0);"
                                         "}"
@@ -180,24 +183,23 @@ void CustomGroupBox::setupLayout()
     QFrame* leftTitleFrame = new QFrame(this);
     leftTitleFrame->setFrameShape(QFrame::HLine);
     leftTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
-    leftTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QFrame* rightTitleFrame = new QFrame(this);
     rightTitleFrame->setFrameShape(QFrame::HLine);
     rightTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
-    rightTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     topToolbar = new QToolBar(this);
     topToolbar->addWidget(groupTitleButton);
     //topToolbar->setLayoutDirection(Qt::RightToLeft);
+    topToolbar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
     QHBoxLayout* topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
-    topLayout->addWidget(leftTitleFrame);
-    //topLayout->addSpacerItem(new QSpacerItem(1,0));
-    topLayout->addWidget(topToolbar);
+    topLayout->addWidget(leftTitleFrame, 1);
     topLayout->addSpacerItem(new QSpacerItem(1,0));
-    topLayout->addWidget(rightTitleFrame);
+    topLayout->addWidget(topToolbar, 0);
+    topLayout->addSpacerItem(new QSpacerItem(1,0));
+    topLayout->addWidget(rightTitleFrame, 1);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);

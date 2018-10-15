@@ -557,6 +557,19 @@ void NodeView::minimap_Zoom(int delta)
     zoom(delta);
 }
 
+
+/**
+ * @brief NodeView::receiveMouseMove
+ * This function is used to pass mouse move events from the overlay splitter to this view.
+ * This is needed for the hover on graphics items to work.
+ * @param event
+ */
+void NodeView::receiveMouseMove(QMouseEvent *event)
+{
+    mouseMoveEvent(event);
+}
+
+
 void NodeView::centerItem(int ID)
 {
     EntityItem* item = getEntityItem(ID);
@@ -704,11 +717,36 @@ void NodeView::paintEvent(QPaintEvent *event){
     }
 }
 
+
+/**
+ * @brief NodeView::event
+ * Need to override this function in order to properly pass through events from the Panel.
+ * @param event
+ * @return
+ */
+bool NodeView::event(QEvent *event)
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        mousePressEvent((QMouseEvent*)event);
+    } else if (event->type() == QEvent::MouseMove) {
+        mouseMoveEvent((QMouseEvent*)event);
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        mouseReleaseEvent((QMouseEvent*)event);
+    } else if (event->type() == QEvent::Wheel) {
+        wheelEvent((QWheelEvent*)event);
+    } else if (event->type() == QEvent::Paint) {
+        // Not really sure why I have to call the functions above but not this one...
+        // Calling this prints out "Painter is not active."
+        //paintEvent((QPaintEvent*)event);
+    }
+    return QGraphicsView::event(event);
+}
+
+
 void NodeView::viewItem_LabelChanged(QString label)
 {
     auto text = label.toUpper();
     background_text.setText(text);
-
 
     auto fm = QFontMetrics(background_font);
     //Calculate the rectangle which contains the background test
@@ -1773,6 +1811,7 @@ void NodeView::drawBackground(QPainter *painter, const QRectF & r)
         painter->restore();
     }
 }
+
 
 void NodeView::resizeEvent(QResizeEvent *event)
 {

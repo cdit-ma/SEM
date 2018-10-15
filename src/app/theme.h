@@ -140,14 +140,22 @@ public:
     QString getMenuBarStyleSheet();
     QString getMenuStyleSheet(int icon_size = 32);
     QString getToolBarStyleSheet();
+    QString getTabbedToolBarStyleSheet();
     QString getAbstractItemViewStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getLineEditStyleSheet(QString widget_name="QLineEdit");
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+<<<<<<< HEAD
+=======
+    QString getTitleLabelStyleSheet();
+    QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
+    QString getToolTipStyleSheet();
+>>>>>>> entity-chart
 
     QFont getFont() const;
+    QFont getSmallFont() const;
     QFont getLargeFont() const;
 
 signals:

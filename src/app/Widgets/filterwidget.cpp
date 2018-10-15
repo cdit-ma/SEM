@@ -1,9 +1,16 @@
 #include "filterwidget.h"
-#include <QHBoxLayout>
 #include "../theme.h"
+
+#include <QHBoxLayout>
 #include <QDebug>
 
-FilterWidget::FilterWidget(){
+
+/**
+ * @brief FilterWidget::FilterWidget
+ */
+FilterWidget::FilterWidget()
+    : QWidget()
+{
     setupLayout();
     
     connect(line_edit, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
@@ -18,12 +25,22 @@ FilterWidget::FilterWidget(){
     themeChanged();
 }
 
-void FilterWidget::themeChanged(){
+
+/**
+ * @brief FilterWidget::themeChanged
+ */
+void FilterWidget::themeChanged()
+{
     auto theme = Theme::theme();
     line_edit->setStyleSheet(theme->getLineEditStyleSheet()  + "QLineEdit{border-radius: " + theme->getSharpCornerRadius() + ";}");
 }
 
-void FilterWidget::setupLayout(){
+
+/**
+ * @brief FilterWidget::setupLayout
+ */
+void FilterWidget::setupLayout()
+{
     auto layout = new QHBoxLayout(this);
     layout->setMargin(3);
 
@@ -39,11 +56,16 @@ void FilterWidget::setupLayout(){
 }
 
 
-
+/**
+ * @brief FilterWidget::eventFilter
+ * @param object
+ * @param event
+ * @return
+ */
 bool FilterWidget::eventFilter(QObject* object, QEvent* event)
 {
-    if (event->type() == QEvent::FocusIn){
-        if(object == line_edit){
+    if (event->type() == QEvent::FocusIn) {
+        if (object == line_edit) {
             QMetaObject::invokeMethod(line_edit, "selectAll", Qt::QueuedConnection);
         }
    }

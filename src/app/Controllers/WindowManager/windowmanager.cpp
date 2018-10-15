@@ -5,7 +5,7 @@
 #include <QBoxLayout>
 #include <QObject>
 #include <QApplication>
-
+#include <QSplitter>
 
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
@@ -22,6 +22,9 @@
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/ViewManager/dockreparenterpopup.h"
+
+#include "../../Widgets/Panel/overlaysplitter.h"
+#include "../../Widgets/Panel/panelwidget.h"
 
 #include "../../theme.h"
 
@@ -146,6 +149,43 @@ InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title, 
     auto dock = new InvisibleDockWidget(title, parent);
     addDockWidget(dock);
     return dock;
+}
+
+void WindowManager::constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title)
+{
+    if (parentDockWidget) {
+        QWidget* currentWidget = parentDockWidget->widget();
+        if (currentWidget) {
+            PanelWidget* panel = new PanelWidget(parentDockWidget);
+            panel->setViewController(vc);
+
+            OverlaySplitter* splitter = new OverlaySplitter(parentDockWidget);
+            splitter->setWidget(panel);
+
+            // need this connection for the view to get the hover events
+            if (parentDockWidget->getBaseDockType() == BaseDockType::DOCK) {
+                DefaultDockWidget* d = (DefaultDockWidget*) parentDockWidget;
+                if (d->getDefaultDockType() == DefaultDockType::VIEW) {
+                    ViewDockWidget* vd = (ViewDockWidget*) d;
+                    if (vd->getNodeView())
+                        connect(splitter, &OverlaySplitter::mouseEventReceived, vd->getNodeView(), &NodeView::receiveMouseMove);
+                }
+            }
+
+            auto layout = new QVBoxLayout(currentWidget);
+            layout->setMargin(0);
+            layout->addWidget(splitter, 1);
+
+            // add an action to toggle the inner dock widget's visibility
+            QAction* action = parentDockWidget->addAction("Show/Hide Panel", "ToggleIcons", "panelVisible", Qt::AlignCenter);
+            if (action) {
+                action->setCheckable(true);
+                action->setChecked(true);
+                connect(action, &QAction::triggered, panel, &PanelWidget::setVisible);
+                connect(panel, &PanelWidget::closeTriggered, [=](){ action->setChecked(false); });
+            }
+        }
+    }
 }
 
 void WindowManager::destructWindow(BaseWindow *window)

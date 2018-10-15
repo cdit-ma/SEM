@@ -24,7 +24,6 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
     connect(theme, &Theme::theme_Changed, this, &DockTabWidget::themeChanged);
     themeChanged();
     
-    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &DockTabWidget::refreshSize);   
     auto action_controller = vc->getActionController();
     addAction(action_controller->dock_addPart);
     addAction(action_controller->dock_deploy);
@@ -47,9 +46,11 @@ void DockTabWidget::themeChanged()
     auto icon_size = theme->getLargeIconSize();
     auto menu_style = new CustomMenuStyle(icon_size.width());
 
+    toolbar->setIconSize(icon_size);
     add_part_menu->setStyle(menu_style);
     deploy_menu->setStyle(menu_style);
 
+<<<<<<< HEAD
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
 
@@ -86,7 +87,22 @@ void DockTabWidget::themeChanged()
         "}"
     );
     toolbar->setIconSize(icon_size);
+=======
+    QString menuStyleSheet = "QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}";
+    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + menuStyleSheet + "QMenu::item{background:transparent;}");
+    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + menuStyleSheet); //QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+
+    parts_action->setIcon(theme->getIcon("ToggleIcons", "PartsDock"));
+    deploy_action->setIcon(theme->getIcon("ToggleIcons", "HardwareDock"));
+
+    setStyleSheet("QScrollArea {"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "background: rgba(0,0,0,0);"
+                  "}"
+                  + theme->getTabbedToolBarStyleSheet());
+>>>>>>> entity-chart
 }
+
 
 /**
  * @brief DockTabWidget::setupLayout
@@ -97,6 +113,7 @@ void DockTabWidget::setupLayout()
 
     toolbar = new QToolBar(this);
     toolbar->setStyleSheet("QToolBar{ spacing: 2px; padding: 2px; }");
+
     {
         auto button = new QToolButton(this);
         button->setToolButtonStyle(Qt::ToolButtonIconOnly);
@@ -119,7 +136,9 @@ void DockTabWidget::setupLayout()
         deploy_action->setChecked(false);
     }
 
-
+    // setup toggle icons for the parts and hardware dock
+    Theme::theme()->setIconToggledImage("ToggleIcons", "PartsDock", "Icons", "plus", "Icons", "plus");
+    Theme::theme()->setIconToggledImage("ToggleIcons", "HardwareDock", "Icons", "screen", "Icons", "screen");
 
     auto layout = new QVBoxLayout(this);
     
@@ -127,16 +146,19 @@ void DockTabWidget::setupLayout()
     layout->setSpacing(2);
     layout->addWidget(toolbar);
     layout->addWidget(stack_widget, 1);
-
-   
 }
 
 
-void DockTabWidget::dockActionTriggered(QAction* action){
+/**
+ * @brief DockTabWidget::dockActionTriggered
+ * @param action
+ */
+void DockTabWidget::dockActionTriggered(QAction* action)
+{
     auto current_menu = action == parts_action ? add_part_menu : deploy_menu;
     auto current_dock = action == parts_action ? parts_dock : deploy_dock;
     auto other = action == parts_action ? deploy_action : parts_action;
-    if(action && other){
+    if (action && other) {
         action->setChecked(true);
         other->setChecked(false);
         stack_widget->setCurrentWidget(current_dock);
@@ -146,6 +168,7 @@ void DockTabWidget::dockActionTriggered(QAction* action){
     }
 }
 
+
 /**
  * @brief DockTabWidget::setupDocks
  */
@@ -153,19 +176,14 @@ void DockTabWidget::setupDocks()
 {
     add_part_menu = view_controller->getContextMenu()->getAddMenu();
     add_part_menu->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    //add_part_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     add_part_menu->setFixedWidth(width());
 
     deploy_menu = view_controller->getContextMenu()->getDeployMenu();
     deploy_menu->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    //deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     deploy_menu->setFixedWidth(width());
-
 
     add_part_menu->setObjectName("TOP_LEVEL");
     deploy_menu->setObjectName("TOP_LEVEL");
-    
-
     
     //Deselect the currently highlight item
     connect(deploy_menu, &QMenu::aboutToHide, [=](){deploy_menu->setActiveAction(0);});
@@ -176,21 +194,16 @@ void DockTabWidget::setupDocks()
     connect(add_part_menu, &QMenu::aboutToHide, add_part_menu, &QMenu::show);
 
     parts_dock = new QScrollArea();
-    //parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     parts_dock->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     parts_dock->setWidgetResizable(true);
     parts_dock->setWidget(add_part_menu);
-    //parts_dock->setAlignment(Qt::AlignHCenter);
     
     deploy_dock = new QScrollArea();
     deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    //deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     deploy_dock->setWidgetResizable(true);
     deploy_dock->setWidget(deploy_menu);
-    //deploy_dock->setAlignment(Qt::AlignHCenter);
     
-
     stack_widget->addWidget(parts_dock);
     stack_widget->addWidget(deploy_dock);
 
@@ -203,6 +216,10 @@ void DockTabWidget::setupDocks()
     installEventFilter(this);
 }
 
+
+/**
+ * @brief DockTabWidget::refreshSize
+ */
 void DockTabWidget::refreshSize()
 {
     auto current_menu = stack_widget->currentWidget() == parts_dock ? add_part_menu : deploy_menu;
@@ -213,7 +230,7 @@ void DockTabWidget::refreshSize()
     auto width = current_menu->width();
     auto required_width = current_menu->sizeHint().width();
     
-    if(required_width > width){
+    if (required_width > width){
         //Add the margin in
         setMinimumWidth(required_width + 2);
     }
@@ -221,7 +238,14 @@ void DockTabWidget::refreshSize()
     current_menu->setFixedWidth(dock_width);
 }
 
-bool DockTabWidget::eventFilter(QObject *object, QEvent *event)
+
+/**
+ * @brief DockTabWidget::eventFilter
+ * @param object
+ * @param event
+ * @return
+ */
+bool DockTabWidget::eventFilter(QObject* object, QEvent* event)
 {
     if (object && event->type() == QEvent::Resize) {
         refreshSize();

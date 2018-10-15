@@ -16,7 +16,7 @@ NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidg
     : QFrame(parent)
 {
     if (!obj) {
-        qWarning() << "NotificationItem::NotificationItem - Notification object is null.";
+        qWarning("NotificationItem::NotificationItem - Notification object is null.");
         return;
     }
     

@@ -4,10 +4,12 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QAction>
-#include <QPixmap>
+//#include <QPixmap>
+
 class DockTitleBar : public QToolBar
 {
     Q_OBJECT
+
 public:
     enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE, DA_ICON};
 
@@ -15,35 +17,43 @@ public:
     ~DockTitleBar();
 
     void setActive(bool active);
-    QList<QAction*> getToolActions();
+    void setIcon(QString iconPath, QString iconName);
 
+    QAction* getAction(DOCK_ACTION action);
+    QList<QAction*> getToolActions();
+    void addToolAction(QAction* action, QString iconPath, QString iconName, Qt::Alignment alignment = Qt::AlignRight);
+
+<<<<<<< HEAD
     void setIcon(QString iconPath, QString iconName);
     //QPixmap getIcon();
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
+=======
+    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
+    QString getTitle();
+>>>>>>> entity-chart
 
 private slots:
     void themeChanged();
     void updateActiveStyle();
+
 private:
-    void updateIcon(QAction* action, QString iconPath, QString iconName);
-    void updateIcon(QLabel* action, QString iconPath, QString iconName);
+    void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
     void setupToolBar();
     bool isActive();
 
 private:
-    QLabel* titleLabel;
-    
-    bool _isActive;
+    QLabel* titleLabel = 0;
 
-    QList<QAction*> actions;
-    QPair<QString, QString> icon_path;
     QAction* closeAction;
     QAction* maximizeAction;
     QAction* popOutAction;
     QAction* protectAction;
     QAction* hideAction;
     QAction* iconAction;
+
+    QList<QAction*> toolActions;
+    bool _isActive;
 };
 #endif // DOCKTITLEBAR_H
