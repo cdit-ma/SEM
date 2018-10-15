@@ -1,4 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
+SET(PROJ_NAME MEDEA)
+PROJECT(${PROJ_NAME})
 
 #Set CMake Options
 set(CMAKE_CXX_STANDARD 11)
