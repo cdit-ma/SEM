@@ -14,6 +14,7 @@
 #include "edgekinds.h"
 #include "dataupdate.h"
 #include "viewcontrollerint.h"
+#undef ERROR
 class Entity;
 class Node;
 class Edge;

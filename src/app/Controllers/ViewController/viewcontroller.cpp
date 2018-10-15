@@ -22,12 +22,15 @@
 #include "../../Controllers/NotificationManager/notificationobject.h"
 
 
+
 #include "../../../modelcontroller/modelcontroller.h"
 #include "../../../modelcontroller/entityfactory.h"
 #include "../../../modelcontroller/version.h"
 
 #include "../../Utils/filehandler.h"
 
+
+#undef ERROR
 
 #include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
@@ -90,6 +93,7 @@ ViewController::ViewController(){
 
     connect(actionController->edit_search, &QAction::triggered, search_manager, &SearchManager::PopupSearch);
     connect(actionController->edit_goto, &QAction::triggered, search_manager, &SearchManager::PopupGoto);
+
     connect(search_manager, &SearchManager::GotoID, this, &ViewController::centerOnID);
 
     //connect(this, &ViewController::vc_editTableCell, this, &ViewController::EditDataValue);
@@ -101,6 +105,10 @@ ViewController::ViewController(){
     for(auto key : {SETTINGS::GENERAL_AUTOSAVE_DURATION}){
         SettingChanged(key, settings_controller->getSetting(key));
     }
+}
+
+void ViewController::QueryRunningExperiments(){
+    QtConcurrent::run(&proxy, &AggregationProxy::RequestRunningExperiments);
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){
