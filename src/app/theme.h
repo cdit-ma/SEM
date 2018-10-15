@@ -147,12 +147,10 @@ public:
     QString getLineEditStyleSheet(QString widget_name="QLineEdit");
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
-<<<<<<< HEAD
-=======
+
     QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
     QString getToolTipStyleSheet();
->>>>>>> entity-chart
 
     QFont getFont() const;
     QFont getSmallFont() const;

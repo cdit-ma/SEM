@@ -50,7 +50,6 @@ void DockTabWidget::themeChanged()
     add_part_menu->setStyle(menu_style);
     deploy_menu->setStyle(menu_style);
 
-<<<<<<< HEAD
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
 
@@ -87,20 +86,6 @@ void DockTabWidget::themeChanged()
         "}"
     );
     toolbar->setIconSize(icon_size);
-=======
-    QString menuStyleSheet = "QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}";
-    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + menuStyleSheet + "QMenu::item{background:transparent;}");
-    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + menuStyleSheet); //QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
-
-    parts_action->setIcon(theme->getIcon("ToggleIcons", "PartsDock"));
-    deploy_action->setIcon(theme->getIcon("ToggleIcons", "HardwareDock"));
-
-    setStyleSheet("QScrollArea {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background: rgba(0,0,0,0);"
-                  "}"
-                  + theme->getTabbedToolBarStyleSheet());
->>>>>>> entity-chart
 }
 
 

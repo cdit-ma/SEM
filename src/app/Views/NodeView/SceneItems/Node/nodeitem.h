@@ -158,15 +158,7 @@ signals:
     void req_addNodeMenu(QPointF scene_pos, int index = -1);
 
 public slots:
-<<<<<<< HEAD
     virtual void dataChanged(const QString& key_name, const QVariant& data);
-=======
-    virtual void dataChanged(QString keyName, QVariant data);
-    virtual void propertyChanged(QString propertyName, QVariant data);
-    virtual void dataRemoved(QString keyName);
-    virtual void childPosChanged();
-
->>>>>>> entity-chart
 private:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);

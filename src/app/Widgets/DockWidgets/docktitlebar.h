@@ -23,23 +23,15 @@ public:
     QList<QAction*> getToolActions();
     void addToolAction(QAction* action, QString iconPath, QString iconName, Qt::Alignment alignment = Qt::AlignRight);
 
-<<<<<<< HEAD
-    void setIcon(QString iconPath, QString iconName);
-    //QPixmap getIcon();
-    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
-    QString getTitle();
-    QAction* getAction(DOCK_ACTION action);
-=======
-    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
-    QString getTitle();
->>>>>>> entity-chart
 
+    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
+    QString getTitle();
 private slots:
     void themeChanged();
     void updateActiveStyle();
 
 private:
-    void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
+    void updateIcon(QAction* action, QString iconPath, QString iconName);
     void setupToolBar();
     bool isActive();
 

@@ -980,8 +980,6 @@ QString Theme::getLabelStyleSheet()
     return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
-<<<<<<< HEAD
-=======
 QString Theme::getTitleLabelStyleSheet()
 {
     return "color: " % getTextColorHex() % ";";
@@ -1019,7 +1017,6 @@ QString Theme::getToolTipStyleSheet()
            "background: " % getTextColorHex() % ";"
            "}";
 }
->>>>>>> entity-chart
 
 void Theme::preloadImages()
 {   
@@ -1278,11 +1275,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
     setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
-<<<<<<< HEAD
     setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
-=======
-
-    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "exclamation", "Icons", "clock", false);
 
     // TODO - setup toggle icons for the visualisastion panel here
     setIconToggledImage("ToggleIcons", "panelVisible", "Icons", "graphDark", "Icons", "graph");
@@ -1297,7 +1290,6 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
     setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
->>>>>>> entity-chart
 }
 
 void Theme::setupAliasIcons(){
@@ -1614,20 +1606,6 @@ bool Theme::tintIcon(QSize size)
     return size.width() > 0 && size.width() % 96 == 0;
 }
 
-<<<<<<< HEAD
-=======
-QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
-{
-    QColor resultingColor;
-    qreal color1Ratio = blendRatio;
-    qreal color2Ratio = 1 - blendRatio;
-    resultingColor.setBlueF(color1Ratio * color1.blueF() + color2Ratio * color2.blueF());
-    resultingColor.setRedF(color1Ratio * color1.redF() + color2Ratio * color2.redF());
-    resultingColor.setGreenF(color1Ratio * color1.greenF() + color2Ratio * color2.greenF());
-    return resultingColor;
-}
-
->>>>>>> entity-chart
 QString Theme::QColorToHex(const QColor color)
 {
     return color.name(QColor::HexArgb);

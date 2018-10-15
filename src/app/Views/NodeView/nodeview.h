@@ -83,7 +83,7 @@ public slots:
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
 
-<<<<<<< HEAD
+
     void zoomIn(){
         minimap_Zoom(1);
     }
@@ -92,9 +92,9 @@ public slots:
     }
     void AllFitToScreen(bool if_active);
     void FitToScreen();
-=======
+
     void receiveMouseMove(QMouseEvent* event);
->>>>>>> entity-chart
+
     
 private slots:
     

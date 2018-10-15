@@ -2,12 +2,7 @@
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
-<<<<<<< HEAD
-=======
-find_package(Qt5 COMPONENTS Widgets Network Charts REQUIRED)
->>>>>>> entity-chart
-
-find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network Charts Concurrent REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
@@ -95,9 +90,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
-<<<<<<< HEAD
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
-=======
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
@@ -118,7 +111,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
@@ -151,7 +143,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
->>>>>>> entity-chart
 )
 
 if(WIN32)
@@ -217,11 +208,9 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
-<<<<<<< HEAD
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/loadmorewidget.h
-=======
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
@@ -233,7 +222,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
@@ -260,7 +248,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
->>>>>>> entity-chart
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
@@ -335,11 +322,7 @@ endif()
 
 # Link against things
 target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
-<<<<<<< HEAD
-=======
-target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
 target_link_libraries(${PROJ_NAME} Qt5::Charts)
->>>>>>> entity-chart
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} Qt5::Network)
 target_link_libraries(${PROJ_NAME} Qt5::Concurrent)

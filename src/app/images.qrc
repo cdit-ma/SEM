@@ -85,19 +85,12 @@
         <file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
         <file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
         <file alias="Setter">Resources/EntityIcons/Setter.png</file>
-<<<<<<< HEAD
         <file alias="RequesterPort">Resources/EntityIcons/RequesterPort.png</file>
         <file alias="ReplierPort">Resources/EntityIcons/ReplierPort.png</file>
         <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
-        <file alias="IfCondition">Resources/EntityIcons/IfCondition.png</file>
-=======
-        <file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
-        <file alias="VariadicParameter">Resources/EntityIcons/VariadicParameter.png</file>
-        <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
         <file>Resources/Icons/graph.png</file>
->>>>>>> entity-chart
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -383,17 +376,15 @@
         <file alias="zoom">Resources/Icons/zoom.png</file>
         <file alias="zoomIn">Resources/Icons/zoomIn.png</file>
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
-<<<<<<< HEAD
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-=======
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
         <file alias="jenkinsFlat">Resources/Icons/jenkinsFlat.png</file>
         <file alias="personCircle">Resources/Icons/personCircle.png</file>
         <file alias="fingerprint">Resources/Icons/fingerprint.png</file>
         <file alias="arrowUp">Resources/Icons/arrowUp.png</file>
         <file alias="arrowDown">Resources/Icons/arrowDown.png</file>
-        <file alias="thumbsUp">Resources/Icons/thumbsUp.png</file>
+	<file alias="thumbUp">Resources/Icons/thumbUp.png</file>
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
         <file alias="home">Resources/Icons/home.png</file>
@@ -437,6 +428,5 @@
         <file alias="labelDark">Resources/Icons/label_black.png</file>
         <file alias="package">Resources/Icons/package.png</file>
         <file alias="triangleRight">Resources/Icons/triangleRight.png</file>
->>>>>>> entity-chart
     </qresource>
 </RCC>

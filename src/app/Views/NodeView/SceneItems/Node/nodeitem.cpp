@@ -230,7 +230,7 @@ void NodeItem::SortedChildrenDirty(){
 void NodeItem::removeChildNode(NodeItem* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
-    if(child_nodes.remove(nodeItem) > 0){
+    if(child_nodes.remove(nodeItem)){
         SortedChildrenDirty();
         //Unset child moving.
         nodeItem->unsetParent();

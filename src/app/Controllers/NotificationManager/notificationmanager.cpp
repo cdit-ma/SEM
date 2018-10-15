@@ -268,11 +268,7 @@ void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject>
         }
     }
 }
-<<<<<<< HEAD
-
 void NotificationManager::ShowNotificationPanel(Notification::Severity severity){
     getPanel()->showSeveritySelection(severity);
     emit showNotificationPanel();
 }
-=======
->>>>>>> entity-chart

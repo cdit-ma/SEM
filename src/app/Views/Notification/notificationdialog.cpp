@@ -75,18 +75,11 @@ QSet<QSharedPointer<NotificationObject> > NotificationDialog::getFilteredNotific
     
     //We only need to check selection when the SELECTED is exclusively selected.
     auto check_selection = checked_context_set.size() == 1 && checked_context_set.contains(Notification::Context::SELECTED);
-<<<<<<< HEAD
-
     QSet<QSharedPointer<NotificationObject> > selected_notifications;
     if(viewController && check_selection){
         for(auto view_item : viewController->getSelectionController()->getSelection()){
             selected_notifications += view_item->getNestedNotifications();
         }
-=======
-    QSet<int> selected_ids;
-    if (viewController && check_selection) {
-        selected_ids = viewController->getSelectionController()->getSelectionIDs().toSet();
->>>>>>> entity-chart
     }
 
     QSet<QSharedPointer<NotificationObject> > filtered;
@@ -538,14 +531,11 @@ void NotificationDialog::setupLayout()
     setupFilters();
 }
 
-<<<<<<< HEAD
 void NotificationDialog::showSeveritySelection(Notification::Severity severity){
     showSeverity(severity);
     context_filters->setOptionChecked(QVariant::fromValue(Notification::Context::SELECTED), true);
 }
 
-void NotificationDialog::showSeverity(Notification::Severity severity){
-=======
 
 /**
  * @brief NotificationDialog::showSeverity
@@ -553,7 +543,6 @@ void NotificationDialog::showSeverity(Notification::Severity severity){
  */
 void NotificationDialog::showSeverity(Notification::Severity severity)
 {
->>>>>>> entity-chart
     reset_filters_action->trigger();
     severity_filters->setOptionChecked(QVariant::fromValue(severity), true);
 }

@@ -46,24 +46,6 @@ void DockTitleBar::setActive(bool active)
 }
 
 
-<<<<<<< HEAD
-void DockTitleBar::setIcon(QString iconPath, QString iconName){
-    icon_path.first = iconPath;
-    icon_path.second = iconName;
-    updateIcon(iconAction, icon_path.first, icon_path.second);    
-}
-=======
-/**
- * @brief DockTitleBar::getToolActions
- * @return
- */
-QList<QAction*> DockTitleBar::getToolActions()
-{
-    return toolActions;
-}
-
->>>>>>> entity-chart
-
 /**
  * @brief DockTitleBar::setIcon
  * @param iconPath
@@ -129,16 +111,7 @@ QAction* DockTitleBar::getAction(DockTitleBar::DOCK_ACTION action)
     }
 }
 
-<<<<<<< HEAD
-void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName){
-    if(action){
-        action->setIcon(Theme::theme()->getIcon(iconPath, iconName));//, true));
-    }
-}
-void DockTitleBar::updateIcon(QLabel* action, QString iconPath, QString iconName){
-    if(action){
-        action->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(16,16), QIcon::Normal, QIcon::On));
-=======
+
 
 /**
  * @brief DockTitleBar::addToolAction
@@ -158,7 +131,6 @@ void DockTitleBar::addToolAction(QAction* action, QString iconPath, QString icon
             insertAction(maximizeAction, action);
         }
         updateIcon(action, iconPath, iconName);
->>>>>>> entity-chart
     }
 }
 
@@ -177,11 +149,13 @@ void DockTitleBar::themeChanged()
         QString path = action->property("iconPath").toString();
         QString name = action->property("iconName").toString();
         if (!path.isEmpty() && !name.isEmpty()) {
-            updateIcon(action, path, name, false);
+            updateIcon(action, path, name);
         }
     }
 }
-
+QList<QAction*> DockTitleBar::getToolActions(){
+    return toolActions;
+}
 
 /**
  * @brief DockTitleBar::updateActiveStyle
@@ -199,13 +173,11 @@ void DockTitleBar::updateActiveStyle()
  * @param iconName
  * @param newIcon
  */
-void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon)
+void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName)
 {
     if (action) {
-        if (newIcon) {
-            action->setProperty("iconPath", iconPath);
-            action->setProperty("iconName", iconName);
-        }
+        action->setProperty("iconPath", iconPath);
+        action->setProperty("iconName", iconName);
         action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
     }
 }

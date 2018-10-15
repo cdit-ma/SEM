@@ -54,13 +54,8 @@ void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*>
     auto has_results = !results.isEmpty();
     
     info_label->setVisible(!has_results);
-<<<<<<< HEAD
     if(has_results){
         for(auto key : results.uniqueKeys()){
-=======
-    if (has_results) {
-        for (auto key : results.uniqueKeys()) {
->>>>>>> entity-chart
             auto view_items = results.values(key);
             for (auto item : view_items) {
                 search_key_lookups.insertMulti(item, key);

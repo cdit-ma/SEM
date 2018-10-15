@@ -18,13 +18,7 @@ class SearchDialog : public QFrame
 public:
     explicit SearchDialog(QWidget *parent = 0);
 
-<<<<<<< HEAD
     void DisplaySearchResults(QString query, QHash<QString, ViewItem*> results);
-signals:
-=======
-    void DisplaySearchResults(QString query, QMap<QString, ViewItem*> results);
->>>>>>> entity-chart
-
 signals:
     void SearchQuery(QString query);
     void SearchPopup();
@@ -37,11 +31,6 @@ private slots:
     void filtersChanged();
 
     void searchItemSelected(int ID);
-<<<<<<< HEAD
-=======
-    void resetPanel();
-
->>>>>>> entity-chart
 public slots:
     void viewItemDestructed(int ID, ViewItem* item);
 

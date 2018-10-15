@@ -51,11 +51,6 @@ public:
 
 
     void setFocusEnabled(bool enabled);
-<<<<<<< HEAD
-    void setIconVisible(bool visible);
-=======
-    bool isFocusEnabled();
->>>>>>> entity-chart
 
     void setCloseVisible(bool visible);
     void setHideVisible(bool visible);
@@ -90,11 +85,8 @@ private:
 
     void setActionVisible(DockTitleBar::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBar::DOCK_ACTION action, bool toggled);
-<<<<<<< HEAD
-=======
     void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
 
->>>>>>> entity-chart
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
     QAction* addAction(QString text, QString iconPath = "", QString iconName = "", Qt::Alignment a = Qt::AlignRight);
 
