@@ -36,25 +36,36 @@ int Logger::GetUtilizationLogLevel(const UtilizationEvent& event){
     }
 }
 
-const std::string& Logger::GetUtilizationName(const UtilizationEvent& event){
-    static std::unordered_map<UtilizationEvent, std::string > lookup_({
-        {UtilizationEvent::SENT, "SENT"},
-        {UtilizationEvent::RECEIVED, "RECEIVED"},
-        {UtilizationEvent::STARTED_FUNC, "STARTED_FUNC"},
-        {UtilizationEvent::FINISHED_FUNC, "FINISHED_FUNC"},
-        {UtilizationEvent::IGNORED, "IGNORED"},
-        {UtilizationEvent::EXCEPTION, "EXCEPTION"}
-    });
-    return lookup_.at(event);
+const std::string Logger::GetUtilizationName(const UtilizationEvent& event){
+    switch(event){
+        case UtilizationEvent::SENT: return "SENT";
+        case UtilizationEvent::RECEIVED: return "RECEIVED";
+        case UtilizationEvent::STARTED_FUNC: return "STARTED_FUNC";
+        case UtilizationEvent::FINISHED_FUNC: return "FINISHED_FUNC";
+        case UtilizationEvent::IGNORED: return "IGNORED";
+        case UtilizationEvent::EXCEPTION: return "EXCEPTION";
+    }
+    return std::string();
 }
 
-const std::string& Logger::GetWorkloadName(const WorkloadEvent& event){
-    static std::unordered_map<WorkloadEvent, std::string > lookup_({
-        {WorkloadEvent::STARTED, "STARTED"},
-        {WorkloadEvent::FINISHED, "FINISHED"},
-        {WorkloadEvent::MESSAGE, "MESSAGE"},
-        {WorkloadEvent::WARNING, "WARNING"},
-        {WorkloadEvent::ERROR, "ERROR"}
-    });
-    return lookup_.at(event);
+const std::string Logger::GetWorkloadName(const WorkloadEvent& event){
+    switch(event){
+        case WorkloadEvent::STARTED: return "STARTED";
+        case WorkloadEvent::FINISHED: return "FINISHED";
+        case WorkloadEvent::MESSAGE: return "MESSAGE";
+        case WorkloadEvent::WARNING: return "WARNING";
+        case WorkloadEvent::ERROR: return "ERROR";
+    }
+    return std::string();
+}
+
+const std::string Logger::GetLifecycleName(const LifeCycleEvent& event){
+    switch(event){
+        case LifeCycleEvent::STARTED: return "STARTED";
+        case LifeCycleEvent::CONFIGURED: return "CONFIGURED";
+        case LifeCycleEvent::ACTIVATED: return "ACTIVATED";
+        case LifeCycleEvent::PASSIVATED: return "PASSIVATED";
+        case LifeCycleEvent::TERMINATED: return "TERMINATED";
+    }
+    return std::string();
 }

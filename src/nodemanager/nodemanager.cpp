@@ -20,6 +20,18 @@ void signal_handler(int sig)
     execution.Interrupt();
 }
 
+void GotValidVerbosity(int v){
+    if(v < 0 || v > 10){
+        throw std::invalid_argument("Verbosity " + std::to_string(v) + " invalid (Valid range 0 to 10)");
+    }
+}
+
+void GotValidDuration(int d){
+    if(!(d == -1 || d > 0)){
+        throw std::invalid_argument("Duration " + std::to_string(d) + " invalid (Valid values -1 or > 0)");
+    }
+}
+
 int main(int argc, char **argv){
     //Connect the SIGINT/SIGTERM signals to our handler.
 	signal(SIGINT, signal_handler);
@@ -36,16 +48,16 @@ int main(int argc, char **argv){
     std::string dll_path;
 
     boost::program_options::options_description options("Node manager options");
-    //Add shared arguments
-    options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "Node manager ip address.");
+    
+    //Add required arguments
+    options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "IP address for to identify this Node Manager.");
     options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name)->required(), "Name of experiment.");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
-    options.add_options()("log-verbosity,v", boost::program_options::value<int>(&log_verbosity), "Logging verbosity.");
     
     //Add optional arguments
-    options.add_options()("time,t", boost::program_options::value<int>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
+    options.add_options()("time,t", boost::program_options::value<int>(&execution_duration)->default_value(execution_duration)->notifier(&GotValidDuration), "Deployment Duration (In Seconds)");
+    options.add_options()("log-verbosity,v", boost::program_options::value<int>(&log_verbosity)->default_value(log_verbosity)->notifier(&GotValidVerbosity), "Logging verbosity [0-10]");
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path)->required(), "Model generated library path.");
-    
     options.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -55,8 +67,8 @@ int main(int argc, char **argv){
         //Parse Argument variables
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
         boost::program_options::notify(vm);
-    }catch(boost::program_options::error& e) {
-        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+    }catch(const std::exception& e) {
+        std::cerr << "Arg Error: " << e.what() << "\n" << std::endl;
         std::cout << options << std::endl;
         return 1;
     }

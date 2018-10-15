@@ -81,7 +81,7 @@ OpenCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) 
         WriteBuffer(new_buffer, data, blocking);
     } catch (const std::exception& e) {
         Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
-            std::string("Unable to create an OpenCL buffer from a vector:\n")+e.what());
+            std::string("Unable to create an OpenCL buffer from a vector: ") + e.what());
     }
     return new_buffer;
 }
@@ -89,14 +89,12 @@ OpenCLBuffer<T> OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) 
 template <typename T>
 void OpenCL_Worker::ReleaseBuffer(OpenCLBuffer<T>& buffer) {
     try {
-        //buffer.Release(*manager_);
         buffer.Untrack(*manager_);
         manager_->ReleaseBuffer(*this, buffer);
     } catch (const std::exception& e) {
         Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), 
-            std::string("Unable to release an OpenCL buffer:\n")+e.what());
+            std::string("Unable to release an OpenCL buffer: ") + e.what());
     }
-    //return manager_->ReleaseBuffer(*this, buffer);
 }
 
 template <typename T>

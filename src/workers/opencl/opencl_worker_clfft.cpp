@@ -124,7 +124,7 @@ bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
     err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer.GetBackingRef()()), NULL, NULL);
 
     if (err != CL_SUCCESS) {
-        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::ERROR, get_new_work_id(),
             "Failed to enqueue FFT transform with error message: "+OpenCLErrorName(err));
     }
 
@@ -132,7 +132,7 @@ bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
     err = dev->GetQueue().GetRef().finish();
 
     if (err != CL_SUCCESS) {
-        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::ERROR, get_new_work_id(),
             "An error occurred while waiting for enqueued FFT transform to finish: "+OpenCLErrorName(err));
     }
 
