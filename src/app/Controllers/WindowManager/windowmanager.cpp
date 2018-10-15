@@ -7,6 +7,8 @@
 #include <QApplication>
 #include <QSplitter>
 
+#define NOMINMAX
+
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
 #include "../../Widgets/Windows/mainwindow.h"
