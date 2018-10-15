@@ -18,6 +18,8 @@
 #include "../../../modelcontroller/dataupdate.h"
 #include "../../../modelcontroller/viewcontrollerint.h"
 #include "../JenkinsManager/jenkinsmanager.h"
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
+#undef ERROR
 #include <QTimer>
 
 enum class MODEL_SEVERITY;
@@ -77,6 +79,8 @@ public:
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
+    void QueryRunningExperiments();
+    
 
     ModelController* getModelController();
 
@@ -251,6 +255,8 @@ private:
 
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
+
+    AggregationProxy proxy;
 
     NodeViewItem* getNodeViewItem(int ID);
 
