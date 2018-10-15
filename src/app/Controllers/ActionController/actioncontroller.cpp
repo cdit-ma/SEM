@@ -128,6 +128,9 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateProjectWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
+        connect(model_queryRunningExperiments, &QAction::triggered, viewController, &ViewController::QueryRunningExperiments);
+
+        
 
         
         
@@ -779,6 +782,13 @@ void ActionController::setupActions()
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
+    
+
+    model_queryRunningExperiments = createRootAction("Model", "Query Running Experiment", "", "Icons", "shieldTick");
+    model_queryRunningExperiments->setToolTip("Query Running Experiments.");
+    model_queryRunningExperiments->setShortcutContext(Qt::ApplicationShortcut);
+    model_queryRunningExperiments->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+
     dock_addPart = createRootAction("Dock", "Open Add Part Dock", "", "Icons", "plus");
     dock_addPart->setToolTip("Open the add parts dock");
     dock_addPart->setShortcutContext(Qt::ApplicationShortcut);
@@ -1000,6 +1010,9 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_getCodeForComponent);
     menu_model->addAction(model_generateModelWorkspace);
     menu_model->addAction(model_executeLocalJob);
+    menu_model->addSeparator();
+    menu_model->addAction(model_queryRunningExperiments);
+    
 
     // Jenkins Menu
 

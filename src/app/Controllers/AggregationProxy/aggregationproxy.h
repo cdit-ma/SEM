@@ -10,6 +10,8 @@ class AggregationProxy : public QObject
     Q_OBJECT
 public:
     AggregationProxy();
+
+    void RequestRunningExperiments();
 private:
     EnvironmentManager::EnvironmentController controller_;
 };
