@@ -76,13 +76,13 @@ void* DllLoader::GetLibrary(const std::string& dll_path){
         #endif
 
         auto end = std::chrono::steady_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         //Check for errors
         const auto& error = GetLibraryError();
 
         if(library && error.empty()){
-            std::cout << "* Loaded DLL: '" << dll_path <<  "' In: " << ms.count() << " us" << std::endl;
+            std::cout << "* Loaded DLL: '" << dll_path <<  "' In: " << ms.count() << " ms" << std::endl;
             loaded_libraries_[dll_path] = library;
         }else{
             throw std::runtime_error( "DLL Error: Cannot load '" + dll_path + "' : " + error);

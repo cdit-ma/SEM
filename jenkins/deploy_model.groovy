@@ -5,6 +5,7 @@
 // -String parameter: EXECUTION_TIME
 // -String parameter: EXPERIMENT_NAME
 // -String parameter: ENVIRONMENT_MANAGER_ADDRESS
+// -String parameter: LOG_VERBOSITY
 //
 //Load shared pipeline utility library
 @Library('cditma-utils')
@@ -13,6 +14,12 @@ def utils = new Utils(this);
 
 final execution_time = "${EXECUTION_TIME}"
 final env_manager_addr = "${ENVIRONMENT_MANAGER_ADDRESS}"
+def log_verbosity = "5";
+try{
+    log_verbosity = "${LOG_VERBOSITY}"
+}catch(Exception ex){
+}
+
 final build_id = env.BUILD_ID
 final CLEANUP = false
 
@@ -202,6 +209,7 @@ for(n in execution_node_names){
                     args += " -a " + ip_addr
                     args += " -l ."
                     args += " -t " + execution_time
+                    args += " -v " + log_verbosity
 
                     node_executions["RE_" + node_name] = {
                         dir("lib"){

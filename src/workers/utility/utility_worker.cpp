@@ -34,11 +34,8 @@ void Utility_Worker::Log(const std::string str_format, int log_level, ...){
     va_start(args, log_level);
     const auto& message = get_arg_string(str_format, args);
     va_end(args);
-
     Worker::Log(GET_FUNC, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), message, log_level);
 }
-
-
 
 void Utility_Worker::USleep(int microseconds){
     auto id = get_new_work_id();

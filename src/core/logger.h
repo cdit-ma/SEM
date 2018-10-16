@@ -53,8 +53,9 @@ class Logger{
         static int GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_level = -1);
         static int GetUtilizationLogLevel(const UtilizationEvent& event);
         
-        static const std::string& GetUtilizationName(const UtilizationEvent& event);
-        static const std::string& GetWorkloadName(const WorkloadEvent& event);
+        static const std::string GetUtilizationName(const UtilizationEvent& event);
+        static const std::string GetWorkloadName(const WorkloadEvent& event);
+        static const std::string GetLifecycleName(const LifeCycleEvent& event);
     public:
         virtual void LogMessage(const Activatable& entity, const std::string& message) = 0;
         virtual void LogException(const Activatable& entity, const std::string& message) = 0;
