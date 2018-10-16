@@ -1003,6 +1003,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 break;
             };
             case NODE_KIND::CLASS_INSTANCE:{
+                bind_values[KeyName::Version] += KeyName::Version;
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
@@ -1018,6 +1019,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::WorkerID] += KeyName::WorkerID;
                     bind_values[KeyName::Operation] += KeyName::Operation;
+                    bind_values[KeyName::Version] += KeyName::Version;
                 }
                 bind_values[KeyName::Description] += KeyName::Description;
                 bind_values[KeyName::Class] += KeyName::Class;

@@ -123,6 +123,7 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">memoryCard</data>
                                     <data key="description">The buffer to be released</data>
+                                    <data key="is_generic_param_src">true</data>
                                     <data key="is_generic_param">true</data>
                                 </node>
                             </graph>
