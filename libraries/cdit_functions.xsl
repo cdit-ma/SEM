@@ -579,7 +579,8 @@
                                 'PublisherPortImpl' = $ancestor_kinds or
                                 'RequesterPortImpl' = $ancestor_kinds or
                                 'ReturnParameterGroupInstance' = $ancestor_kinds or
-                                'Setter' = $kind
+                                'Setter' = $kind or
+                                'BooleanExpression' = $kind
                                 ">
                     <xsl:value-of select="graphml:get_id($node)" />
                 </xsl:when>
@@ -1664,7 +1665,7 @@
             </xsl:when>
             <!-- Void type never has a name -->
             <xsl:when test="$kind = 'VoidType'" />
-            <xsl:when test="$kind = 'Setter'">
+            <xsl:when test="$kind = 'Setter' or $kind = 'BooleanExpression'">
                 <xsl:variable name="kind" select="lower-case(graphml:get_kind($entity))" />
                 <xsl:value-of select="cdit:get_variable_label($kind, $entity)" />
             </xsl:when>

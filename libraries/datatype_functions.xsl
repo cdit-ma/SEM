@@ -519,15 +519,6 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_idl_file">
-        <xsl:param name="aggregate" />
-        <xsl:param name="middleware" />
-
-        
-    </xsl:function>
-
-
-
     <xsl:function name="cdit:get_aggregate_base_h">
         <xsl:param name="aggregate" as="element()" />
 

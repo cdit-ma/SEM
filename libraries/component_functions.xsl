@@ -1382,7 +1382,8 @@
                 <xsl:value-of select="$statement" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="concat(o:t($tab), $statement, cpp:nl())" />
+                <xsl:variable name="variable_name" select="cdit:get_variable_name($node)" />
+                <xsl:value-of select="cpp:define_variable(cpp:auto(), $variable_name, $statement, cpp:nl(), $tab)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1733,6 +1734,9 @@
                     <xsl:value-of select="cdit:get_qualified_enum_member_type($node)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Setter'">
+                    <xsl:value-of select="cdit:get_variable_name($node)" />
+                </xsl:when>
+                <xsl:when test="$kind = 'BooleanExpression'">
                     <xsl:value-of select="cdit:get_variable_name($node)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'VectorInstance'">
