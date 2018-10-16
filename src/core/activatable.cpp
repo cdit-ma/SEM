@@ -94,7 +94,7 @@ bool Activatable::transition_state(Transition transition){
                 }
                 case Transition::TERMINATE:{
                     //Ignore this transition
-                    return true;
+                    return false;
                 }
                 default:
                     break;
@@ -135,7 +135,7 @@ bool Activatable::transition_state(Transition transition){
             switch(transition){
                 case Transition::PASSIVATE:{
                     //Ignore this transition
-                    return true;
+                    return false;
                 }
                 case Transition::TERMINATE:{
                     new_state = State::NOT_CONFIGURED;
