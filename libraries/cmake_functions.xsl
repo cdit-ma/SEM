@@ -284,6 +284,7 @@
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD', '11', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD_REQUIRED', 'ON', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_EXTENSIONS', 'OFF', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_POSITION_INDEPENDENT_CODE', 'ON', 0)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
