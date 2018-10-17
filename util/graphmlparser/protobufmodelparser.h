@@ -40,7 +40,6 @@ class ProtobufModelParser{
         // Graphml helper functions
         std::set<std::string> GetTerminalSourcesByEdgeKind(const std::string& node_id, const std::string& edge_kind, std::set<std::string> prev_id);
         std::string GetDeployedID(const std::string& id);
-        std::string GetDeployedHardwareID(const std::string& container_id);
         std::string GetDeployedContainerID(const std::string& component_id);
         std::string GetDefinitionId(const std::string& id);
         std::string GetAggregateId(const std::string& id);
@@ -78,7 +77,6 @@ class ProtobufModelParser{
         std::vector<std::string> definition_edge_ids_;
         std::vector<std::string> aggregate_edge_ids_;
         std::vector<std::string> hardware_cluster_ids_;
-        std::vector<std::string> component_assembly_ids_;
         std::vector<std::string> qos_edge_ids_;
         std::vector<std::string> logging_server_ids_;
         std::vector<std::string> logging_client_ids_;
@@ -101,7 +99,7 @@ class ProtobufModelParser{
         //attribute_instance id -> Value
         std::unordered_map<std::string, std::string> attribute_value_map_;
 
-        //port replicate id -> eventport proto
+        //port replicate id -> event port proto
         std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
         //external port id -> ExternalPort Proto
         std::unordered_map<std::string, NodeManager::ExternalPort*> external_port_id_map_;
@@ -113,14 +111,9 @@ class ProtobufModelParser{
 
         std::vector<std::string> hardware_node_ids_;
         std::vector<std::string> deployment_container_ids_;
-        std::vector<std::string> component_ids_;
-        std::vector<std::string> component_instance_ids_;
 
         std::vector<std::string> delegates_pubsub_ids_;
         std::vector<std::string> delegates_server_ids_;
-
-        //event port id -> fully qualified event port guid
-        std::unordered_map<std::string, std::string> port_guid_map_;
 
         //node id -> pointer to proto message for that node
         std::unordered_map<std::string, NodeManager::Container* > container_message_map_;
