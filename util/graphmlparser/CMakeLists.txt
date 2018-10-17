@@ -17,12 +17,14 @@ if(NOT PUGIXML_LIBRARIES)
 endif()
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/assembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.cpp
 )
 
 set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/assembly.h
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.h

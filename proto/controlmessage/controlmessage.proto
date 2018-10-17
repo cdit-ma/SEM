@@ -19,7 +19,38 @@ message ControlMessage{
     repeated Node nodes = 4;
     string experiment_id = 5;
     map<string, Attribute> attributes = 6;
-    repeated ExternalPort external_ports = 7;
+}
+
+
+message Experiment {
+    string name = 1;
+    repeated Cluster clusters = 2;
+    repeated ExternalPort external_ports = 3;
+}
+message Cluster {
+    Info info = 1;
+    repeated Node nodes = 2;
+    repeated Container containers = 3;
+    repeated Logger loggers = 4;
+}
+
+
+message Node{
+    Info info = 1;
+    string ip_address = 2;
+    repeated Container containers = 3;
+    repeated Logger loggers = 4;
+}
+
+message Container {
+    enum ContainerType {
+        GENERIC = 0;
+        DOCKER = 1;
+    }
+    Info info = 1;
+    ContainerType type = 2;
+    repeated Component components = 3;
+    repeated Logger loggers = 4;
 }
 
 enum Middleware{
@@ -84,7 +115,7 @@ message HardwareId{
 
 message RegisterExperimentRequest{
     RequestId id = 1;
-    ControlMessage control_message = 2;
+    Experiment experiment = 2;
 }
 
 message RegisterExperimentReply{
@@ -115,26 +146,6 @@ message Info{
     string id = 2;
     string type = 3;
     repeated string namespaces = 4;
-}
-
-message Node{
-    enum NodeType{
-        NO_NODE_TYPE = 0;
-        HARDWARE_NODE = 1;
-        HARDWARE_CLUSTER = 2;
-        DOCKER_CLUSTER = 3;
-        DOCKER_NODE = 4;
-        OPEN_CL = 5;
-        OPENSTACK = 6;
-    }
-    Info info = 1;
-    NodeType type = 2;
-    repeated Node nodes = 3;
-    repeated Component components = 4;
-    map<string, Attribute> attributes = 5;
-
-    repeated Logger loggers = 6;
-
 }
 
 message ExternalPort{
