@@ -520,7 +520,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cmake:comment(('Include required binary directories.'), 0)" />
             </xsl:if>
-            <xsl:variable name="aggregate_dir" select="o:join_paths((cmake:wrap_variable('TOP_BINARY_DIR'), 'datatypes', $middleware, cdit:get_namespace_type_path(.)))" />
+            <xsl:variable name="aggregate_dir" select="o:join_paths((cmake:wrap_variable('MODEL_BINARY_DIR'), 'datatypes', $middleware, cdit:get_namespace_type_path(.)))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PUBLIC', $aggregate_dir, 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
