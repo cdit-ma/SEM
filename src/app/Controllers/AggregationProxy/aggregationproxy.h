@@ -3,6 +3,7 @@
 #define MEDEA_AGGREGATIONPROXY_H
 
 #include <QObject>
+#include <QFuture>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
 class AggregationProxy : public QObject
@@ -18,6 +19,8 @@ signals:
     void resultsReady();
 
 private:
+    QFuture<std::unique_ptr<AggServer::PortLifecycleResponse>> getPortLifecycle(const AggServer::PortLifecycleRequest request);
+
     AggServer::Requester requester_;
 
 };
