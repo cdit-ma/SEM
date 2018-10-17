@@ -11,7 +11,6 @@ class PortLifeCycleSeries : public QObject
 
 public:
     explicit PortLifeCycleSeries(QObject* parent = 0);
-    explicit PortLifeCycleSeries(int ID, QObject* parent = 0);
 
     int getID();
 

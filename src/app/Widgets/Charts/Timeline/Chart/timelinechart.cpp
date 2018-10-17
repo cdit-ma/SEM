@@ -272,7 +272,7 @@ QPair<double, double> TimelineChart::getRange()
  */
 bool TimelineChart::isPanning()
 {
-    return dragMode == DRAG_MODE::PAN_MODE || dragMode == DRAG_MODE::RUBBERBAND_MODE;
+    return dragMode == DRAG_MODE::PAN || dragMode == DRAG_MODE::RUBBERBAND;
 }
 
 
@@ -428,12 +428,12 @@ bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
 void TimelineChart::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton) {
-        dragMode = PAN_MODE;
+        dragMode = PAN;
         panOrigin = event->pos();
         setCursor(Qt::ClosedHandCursor);
         // if the CTRL key is down, go into rubberband mode
         if (event->modifiers() & Qt::ControlModifier) {
-            dragMode = RUBBERBAND_MODE;
+            dragMode = RUBBERBAND;
             setCursor(Qt::CrossCursor);
         }
     }
@@ -447,7 +447,7 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
  */
 void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (dragMode == RUBBERBAND_MODE && !rubberBandRect.isNull()) {
+    if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
         double min = mapToRange(rubberBandRect.left());
         double max = mapToRange(rubberBandRect.right());
         // make sure that min < max
@@ -491,13 +491,13 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     hoverRectUpdated();
 
     switch (dragMode) {
-    case PAN_MODE: {
+    case PAN: {
         QPointF delta = cursorPoint - panOrigin;
         panOrigin = cursorPoint;
         emit panned(-delta.x(), 0);
         break;
     }
-    case RUBBERBAND_MODE:
+    case RUBBERBAND:
         rubberBandRect = QRectF(panOrigin.x(), 0, event->pos().x() - panOrigin.x(), height());
         break;
     default:
@@ -524,7 +524,7 @@ void TimelineChart::wheelEvent(QWheelEvent *event)
  */
 void TimelineChart::keyReleaseEvent(QKeyEvent *event)
 {
-    if (dragMode == RUBBERBAND_MODE) {
+    if (dragMode == RUBBERBAND) {
         if (event->key() == Qt::Key_Control) {
             clearDragMode();
         }
@@ -580,7 +580,7 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     painter.drawLine(axisY);
 
     switch (dragMode) {
-    case RUBBERBAND_MODE: {
+    case RUBBERBAND: {
         painter.setOpacity(0.25);
         painter.setPen(QPen(highlightColor.darker(), 2));
         painter.setBrush(highlightColor);
@@ -631,7 +631,7 @@ void TimelineChart::hoverRectUpdated()
  */
 void TimelineChart::clearDragMode()
 {
-    dragMode = NO_MODE;
+    dragMode = NONE;
     rubberBandRect = QRectF();
     setCursor(Qt::BlankCursor);
     update();

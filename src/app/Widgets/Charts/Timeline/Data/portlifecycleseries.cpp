@@ -13,12 +13,6 @@ PortLifeCycleSeries::PortLifeCycleSeries(QObject* parent)
     ID_ = series_ID++;
 }
 
-PortLifeCycleSeries::PortLifeCycleSeries(int ID, QObject *parent)
-    : QObject(parent)
-{
-    ID_ = ID;
-}
-
 
 /**
  * @brief PortLifeCycleSeries::getID

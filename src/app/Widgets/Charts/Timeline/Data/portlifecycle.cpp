@@ -13,7 +13,15 @@ PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObjec
     time_ = time;
 }
 
+
+/**
+ * @brief PortLifeCycle::PortLifeCycle
+ * @param type
+ * @param time
+ * @param parent
+ */
 PortLifeCycle::PortLifeCycle(LifeCycleType type, quint64 time, QObject *parent)
+    : QObject(parent)
 {
     Port testPort;
     testPort.ID = 0;

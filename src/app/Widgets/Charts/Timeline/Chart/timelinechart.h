@@ -14,13 +14,15 @@
 
 #include <QDebug>
 
+enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
+
 class EntityChart;
 class TimelineChart : public QWidget
 {
     Q_OBJECT
 
 public:
-    enum DRAG_MODE{NO_MODE, PAN_MODE, RUBBERBAND_MODE};
+    enum DRAG_MODE{NONE, PAN, RUBBERBAND};
 
     explicit TimelineChart(QWidget* parent = 0);
 
@@ -89,7 +91,7 @@ private:
     double axisWidth;
     double pointsWidth;
 
-    DRAG_MODE dragMode = NO_MODE;
+    DRAG_MODE dragMode = NONE;
     bool hovered = false;
 
     QToolBar* _toolbar;
