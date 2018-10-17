@@ -24,7 +24,7 @@
     <xsl:function name="proto:import" as="xs:string">
         <xsl:param name="proto_file" as="xs:string" />
         
-        <xsl:value-of select="concat('import ', o:wrap_dblquote($proto_file), ';', o:nl(1))" />
+        <xsl:value-of select="concat('import public ', o:wrap_dblquote($proto_file), ';', o:nl(1))" />
     </xsl:function>
 
     <!--
