@@ -441,7 +441,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             seriesChart->addSeries(stateSeries);
             filled = true;
         }
-         if (random % 5 == 0 || random % 3 == 0) {
+        if (random % 5 == 0 || random % 3 == 0) {
             MEDEA::NotificationSeries* notificationSeries = new MEDEA::NotificationSeries(item);
             for (QPointF point : samplePoints) {
                 int randomType = rand() % 4;
@@ -450,22 +450,22 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             seriesChart->addSeries(notificationSeries);
             filled = true;
         }
-         if (random % 3 == 0) {
-             MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
-             for (QPointF p : samplePoints) {
-                 int count = 1 + rand() % 5;
-                 int val = 0;
-                 QVector<double> data;
-                 for (int i = 0; i < count; i++) {
-                     double y = (double)(rand() % 200);
-                     data.insert(0, val + y);
-                     val += y;
-                 }
-                 barSeries->addData(p.x(), data);
-             }
-             seriesChart->addSeries(barSeries);
-             filled = true;
-         }
+        if (random % 3 == 0) {
+            MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
+            for (QPointF p : samplePoints) {
+                int count = 1 + rand() % 5;
+                int val = 0;
+                QVector<double> data;
+                for (int i = 0; i < count; i++) {
+                    double y = (double)(rand() % 200);
+                    data.insert(0, val + y);
+                    val += y;
+                }
+                barSeries->addData(p.x(), data);
+            }
+            seriesChart->addSeries(barSeries);
+            filled = true;
+        }
 
         if (!filled) {
             MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);

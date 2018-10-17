@@ -14,34 +14,14 @@ AggregationProxy::AggregationProxy() :
 
 void AggregationProxy::RequestRunningExperiments()
 {
-    /*auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+    auto notification = NotificationManager::manager()->AddNotification("Requested Events", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     try {
-        AggServer::PortLifecycleRequest request;
-        auto results = requester_.GetPortLifecycle(request);
-        qDebug() << "Request result size#: " << results.get()->events_size();
+        // TODO - Request EVENTS here
         notification->setSeverity(Notification::Severity::SUCCESS);
-
     } catch (const std::exception& ex) {
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
-    }*/
-
-    AggServer::PortLifecycleRequest request;
-    SendPortLifecycleRequest(request);
-}
-
-
-/**
- * @brief AggregationProxy::RequestRunningExperiments
- * @param fromTimeMS
- * @param toTimeMS
- */
-void AggregationProxy::RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS)
-{
-    AggServer::PortLifecycleRequest request;
-    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(fromTimeMS).release());
-    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(toTimeMS).release());
-    SendPortLifecycleRequest(request);
+    }
 }
 
 
@@ -77,34 +57,4 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 const QString AggregationProxy::getQString(const std::string &string)
 {
     return QString::fromUtf8(string.c_str());
-}
-
-
-/**
- * @brief AggregationProxy::SendPortLifecycleRequest
- * @param request
- */
-void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
-{
-    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
-    try {
-        auto start = QDateTime::currentMSecsSinceEpoch();
-        auto results = requester_.GetPortLifecycle(request);
-
-        qDebug() << "--------------------------------------------------------------------------------";
-        qDebug() << "Request result size#: " << results.get()->events_size();
-
-        // TODO - Do work here!
-
-        auto finish = QDateTime::currentMSecsSinceEpoch();
-        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
-        qDebug() << "--------------------------------------------------------------------------------";
-
-        notification->setSeverity(Notification::Severity::SUCCESS);
-
-    } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
-    }
 }
