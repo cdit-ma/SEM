@@ -90,21 +90,35 @@ TEST(MemoryWorker, NegativeAllocationSmall) {
     Memory_Worker worker(comp, "Worker");
 
     worker.Allocate(-1);
-
     // Allocation should not occur, therefore no memory should have been allocated
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorkerImpl, ZeroAllocation) {
-    Memory_Worker_Impl worker;
+TEST(MemoryWorker, ZeroAllocation) {
+    Component comp("Component");
+    Memory_Worker worker(comp, "Worker");
 
-    EXPECT_FALSE(worker.Allocate(0));
+    worker.Allocate(0);
+    EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorkerImpl, ZeroDeallocation) {
-    Memory_Worker_Impl worker;
+TEST(MemoryWorker, ZeroDeallocation) {
+    Component comp("Component");
+    Memory_Worker worker(comp, "Worker");
+    worker.Deallocate(0);
+    EXPECT_EQ(worker.GetAllocatedCount(), 0);
+}
 
-    EXPECT_FALSE(worker.Deallocate(0));
+TEST(MemoryWorker, ZeroDeallocationAfterAllocation) {
+    Component comp("Component");
+    Memory_Worker worker(comp, "Worker");
+
+    worker.Allocate(10);
+    EXPECT_EQ(worker.GetAllocatedCount(), 10);
+
+    worker.Deallocate(0);
+    EXPECT_EQ(worker.GetAllocatedCount(), 10);
+
 }
 
 TEST(MemoryWorker, NegativeAllocationLarge) {
@@ -112,8 +126,6 @@ TEST(MemoryWorker, NegativeAllocationLarge) {
     Memory_Worker worker(comp, "Worker");
 
     worker.Allocate(-100000);
-
-    // Allocation should not occur, therefore no memory should have been allocated
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
