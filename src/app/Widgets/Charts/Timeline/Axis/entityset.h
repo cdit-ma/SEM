@@ -1,16 +1,17 @@
 #ifndef ENTITYSET_H
 #define ENTITYSET_H
 
+
+
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QtCharts/QChart>
 
 #include "../../../../theme.h"
 #include "entityaxis.h"
 
-using namespace QtCharts;
+#include <QtCharts/QAbstractSeries>
 
 class EntitySet : public QWidget
 {
@@ -102,7 +103,7 @@ private:
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;
     QHash<int, EntitySet*> childrenHash;
-    QList<QAbstractSeries*> seriesList;
+    QList<QtCharts::QAbstractSeries*> seriesList;
 
 };
 

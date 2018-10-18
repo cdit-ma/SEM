@@ -1,21 +1,14 @@
 #include "panelwidget.h"
-//#include "../Charts/chartmanager.h"
-//#include "../Charts/chartview.h"
-#include "../../theme.h"
-#include "../../Controllers/WindowManager/windowmanager.h"
-#include "../../Controllers/ViewController/viewcontroller.h"
-#include "../Windows/mainwindow.h"
-#include "../DockWidgets/defaultdockwidget.h"
-#include "../optiongroupbox.h"
 
-#include "../Charts/Timeline/Chart/timelinechartview.h"
-#include "../Charts/Timeline/Axis/axiswidget.h"
-#include "../Charts/Series/dataseries.h"
+#ifdef _WIN32
+    #define NOMINMAX
+#endif //_WIN32
 
 #include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
 #include <QDateTime>
+
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSet>
@@ -29,6 +22,22 @@
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
+
+
+
+#include "../../theme.h"
+#include "../../Controllers/WindowManager/windowmanager.h"
+#include "../../Controllers/ViewController/viewcontroller.h"
+#include "../Windows/mainwindow.h"
+#include "../DockWidgets/defaultdockwidget.h"
+#include "../optiongroupbox.h"
+
+#include "../Charts/Timeline/Chart/timelinechartview.h"
+#include "../Charts/Timeline/Axis/axiswidget.h"
+#include "../Charts/Series/dataseries.h"
+
+
+
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100

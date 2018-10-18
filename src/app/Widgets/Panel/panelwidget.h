@@ -3,7 +3,6 @@
 
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
-#include <QtCharts/QCategoryAxis>
 #include <QFrame>
 #include <QToolBar>
 #include <QAction>
@@ -13,10 +12,12 @@
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 
-QT_CHARTS_BEGIN_NAMESPACE
-class QLineSeries;
-QT_CHARTS_END_NAMESPACE
-QT_CHARTS_USE_NAMESPACE
+namespace QtCharts{
+    class QLineSeries;
+    class QCategoryAxis;
+}
+
+using namespace QtCharts;
 
 class PanelWidget : public QFrame
 {
