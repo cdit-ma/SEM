@@ -27,10 +27,11 @@
 #include <set>
 #include <mutex>
 #include <unordered_map>
+#include <memory>
 
-namespace re_common{
-    class SystemInfo;
-    class SystemStatus;
+namespace SystemEvent{
+    class InfoEvent;
+    class StatusEvent;
 };
 
 class SystemInfo{
@@ -153,12 +154,11 @@ class SystemInfo{
 
 
     //Refresh
-    re_common::SystemStatus* GetSystemStatus(const int listener_id);
-    re_common::SystemInfo* GetSystemInfo(const int listener_id);
+    std::unique_ptr<SystemEvent::StatusEvent> GetSystemStatus(const int listener_id);
+    std::unique_ptr<SystemEvent::InfoEvent> GetSystemInfo(const int listener_id);
     void Update();
     int RegisterListener();
 private:
-    static double convert_timestamp(const std::chrono::milliseconds& timestamp);
     std::mutex mutex_;
     //don't send onetime info for any contained pids
     std::unordered_map<int, std::chrono::milliseconds> pid_updated_times_;

@@ -26,15 +26,15 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BIN
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 if(NOT DISABLE_MODEL_LOGGING)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler")
-    target_link_libraries(${PROJ_NAME} PUBLIC modelprotohandler)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/protohandlers/modelevent")
+    target_link_libraries(${PROJ_NAME} PUBLIC logan_protohandler_modelevent)
 else()
     target_compile_definitions(${PROJ_NAME} PUBLIC DISABLE_MODEL_HANDLER)
 endif()
 
 if(NOT DISABLE_HARDWARE_LOGGING)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hardwareprotohandler")
-    target_link_libraries(${PROJ_NAME} PUBLIC hardwareprotohandler)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/protohandlers/systemevent")
+    target_link_libraries(${PROJ_NAME} PUBLIC logan_protohandler_systemevent)
 else()
     target_compile_definitions(${PROJ_NAME} PUBLIC DISABLE_HARDWARE_HANDLER)
 endif()
@@ -45,7 +45,6 @@ endif()
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protoreceiver)
-target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_systemstatus)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
 
 # Add the Subdirectories

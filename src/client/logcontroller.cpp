@@ -30,7 +30,7 @@
 
 #include "sigarsysteminfo.h"
 
-#include <proto/systemstatus/systemstatus.pb.h>
+#include <proto/systemevent/systemevent.pb.h>
 #include <zmq/protowriter/cachedprotowriter.h>
 #include <zmq/protowriter/monitor.h>
 #include <google/protobuf/util/json_util.h>
@@ -56,7 +56,6 @@ std::string LogController::GetSystemInfoJson(){
 
     if(info){
         google::protobuf::util::MessageToJsonString(*info, &output, options);
-        delete info;
     }
 
     return output;

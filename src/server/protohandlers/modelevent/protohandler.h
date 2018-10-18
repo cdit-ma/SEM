@@ -18,29 +18,28 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LOGAN_SERVER_MODELPROTOHANDLER_H
-#define LOGAN_SERVER_MODELPROTOHANDLER_H
-
-#include "../protohandler.h"
+#ifndef LOGAN_SERVER_PROTOHANDLERS_MODELEVENT_H
+#define LOGAN_SERVER_PROTOHANDLERS_MODELEVENT_H
 
 #include <unordered_map>
 #include <set>
 #include <google/protobuf/message_lite.h>
 #include <memory>
 
-#include "../table.h"
+#include "../../protohandler.h"
+#include "../../table.h"
 
 class SQLiteDatabase;
-namespace re_common{
+
+namespace ModelEvent{
     class LifecycleEvent;
     class WorkloadEvent;
     class UtilizationEvent;
-}
 
-class ModelProtoHandler : public ProtoHandler{
+    class ProtoHandler : public ::ProtoHandler{
     public:
-        ModelProtoHandler(SQLiteDatabase& database);
-        ~ModelProtoHandler();
+        ProtoHandler(SQLiteDatabase& database);
+        ~ProtoHandler();
 
         void BindCallbacks(zmq::ProtoReceiver& receiver);
         
@@ -51,9 +50,9 @@ class ModelProtoHandler : public ProtoHandler{
         void CreateUtilizationTable();
 
         //Callback functions
-        void ProcessLifecycleEvent(const re_common::LifecycleEvent& message);
-        void ProcessWorkloadEvent(const re_common::WorkloadEvent& message);
-        void ProcessUtilizationEvent(const re_common::UtilizationEvent& message);
+        void ProcessLifecycleEvent(const ModelEvent::LifecycleEvent& message);
+        void ProcessWorkloadEvent(const ModelEvent::WorkloadEvent& message);
+        void ProcessUtilizationEvent(const ModelEvent::UtilizationEvent& message);
 
         Table& GetTable(const std::string& table_name);
         bool GotTable(const std::string& table_name);
@@ -63,6 +62,7 @@ class ModelProtoHandler : public ProtoHandler{
 
         std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
         std::set<std::string> registered_nodes_;
+    };
 };
 
-#endif //LOGAN_SERVER_MODELPROTOHANDLER_H
+#endif //LOGAN_SERVER_PROTOHANDLERS_MODELEVENT_H

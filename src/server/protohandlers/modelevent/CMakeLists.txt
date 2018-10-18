@@ -1,12 +1,12 @@
-set(PROJ_NAME modelprotohandler)
+set(PROJ_NAME logan_protohandler_modelevent)
 project (${PROJ_NAME})
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/protohandler.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/protohandler.h
     )
 
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})

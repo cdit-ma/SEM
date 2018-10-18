@@ -7,11 +7,11 @@
 #include <zmq/protoreceiver/protoreceiver.h>
 
 #ifndef DISABLE_HARDWARE_HANDLER
-#include "hardwareprotohandler/hardwareprotohandler.h"
+#include "protohandlers/systemevent/protohandler.h"
 #endif
 
 #ifndef DISABLE_MODEL_HANDLER
-#include "modelprotohandler/modelprotohandler.h"
+#include "protohandlers/modelevent/protohandler.h"
 #endif
 
 Server::Server(const std::string& database_path, const std::vector<std::string>& addresses){
@@ -28,11 +28,11 @@ Server::Server(const std::string& database_path, const std::vector<std::string>&
 
     //Add our proto handlers and start the server
     #ifndef DISABLE_HARDWARE_HANDLER
-    AddProtoHandler(std::unique_ptr<ProtoHandler>(new HardwareProtoHandler(*database_)));
+    AddProtoHandler(std::unique_ptr<ProtoHandler>(new SystemEvent::ProtoHandler(*database_)));
     #endif
 
     #ifndef DISABLE_MODEL_HANDLER
-    AddProtoHandler(std::unique_ptr<ProtoHandler>(new ModelProtoHandler(*database_)));
+    AddProtoHandler(std::unique_ptr<ProtoHandler>(new ModelEvent::ProtoHandler(*database_)));
     #endif
 }
 

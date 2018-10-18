@@ -19,16 +19,20 @@
  */
 
 #include "systeminfo.h"
-#include <proto/systemstatus/systemstatus.pb.h>
+#include <proto/systemevent/systemevent.pb.h>
+#include <google/protobuf/util/time_util.h>
 
 
-double SystemInfo::convert_timestamp(const std::chrono::milliseconds& timestamp){
-    return timestamp.count() / 1000.0;
+
+google::protobuf::Timestamp convert_timestamp(const std::chrono::milliseconds& timestamp){
+    using namespace google::protobuf::util;
+    return TimeUtil::MillisecondsToTimestamp(timestamp.count());
 }
 
 //Refresh
-re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
+std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int listener_id){
     std::lock_guard<std::mutex> lock(mutex_);
+    
 
     const auto& current_data_time = get_update_timestamp();
     std::chrono::milliseconds last_update_sent(0);
@@ -42,11 +46,11 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
         return nullptr;
     }
     
-    
-    auto system_status = new re_common::SystemStatus();
+    auto system_status = std::unique_ptr<SystemEvent::StatusEvent>(new SystemEvent::StatusEvent);
     
     system_status->set_hostname(get_hostname());
-    system_status->set_timestamp(convert_timestamp(current_data_time));
+    auto timestamp = convert_timestamp(current_data_time);
+    system_status->mutable_timestamp()->Swap(&timestamp);
     
 
     if(!listener_message_count_.count(listener_id)){
@@ -73,7 +77,7 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
             auto process_status = system_status->add_processes();
             process_status->set_pid(pid);
             process_status->set_name(get_process_name(pid));
-            process_status->set_state((re_common::ProcessStatus::State)get_process_state(pid));
+            process_status->set_state((SystemEvent::ProcessStatus::State)get_process_state(pid));
 
             //Only send the one time info if we haven't seen this message
             bool send_process_info = !(pid_lookups_.count(listener_id) && pid_lookups_.at(listener_id).count(pid));
@@ -123,13 +127,14 @@ re_common::SystemStatus* SystemInfo::GetSystemStatus(const int listener_id){
     return system_status;
 }
 
-re_common::SystemInfo* SystemInfo::GetSystemInfo(const int listener_id){
+std::unique_ptr<SystemEvent::InfoEvent> SystemInfo::GetSystemInfo(const int listener_id){
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto system_info = new re_common::SystemInfo();
+    auto system_info = std::unique_ptr<SystemEvent::InfoEvent>(new SystemEvent::InfoEvent);
     
     system_info->set_hostname(get_hostname());
-    system_info->set_timestamp(convert_timestamp(get_update_timestamp()));
+    auto timestamp = convert_timestamp(get_update_timestamp());
+    system_info->mutable_timestamp()->Swap(&timestamp);
 
     //OS info
     system_info->set_os_name(get_os_name());
@@ -151,7 +156,7 @@ re_common::SystemInfo* SystemInfo::GetSystemInfo(const int listener_id){
         auto file_system_info = system_info->add_file_system_info();    
         //send onetime info
         file_system_info->set_name(get_fs_name(i));
-        file_system_info->set_type((re_common::FileSystemInfo::Type)get_fs_type(i));
+        file_system_info->set_type((SystemEvent::FileSystemInfo::Type)get_fs_type(i));
         file_system_info->set_size(get_fs_size(i));
     }
 

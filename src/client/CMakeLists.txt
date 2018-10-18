@@ -35,7 +35,7 @@ target_include_directories(${LOGAN_CLIENT} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${LOGAN_CLIENT_LIB} PUBLIC ${SIGAR_INCLUDE_DIRS})
 
 # Link Libraries
-target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC re_common_proto_systemstatus)
+target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC re_common_proto_systemevent)
 target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC re_common_proto_control)
 target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC zmq_protowriter)
 target_link_libraries(${LOGAN_CLIENT_LIB} PRIVATE ${SIGAR_LIBRARIES})
