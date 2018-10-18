@@ -52,10 +52,10 @@ class ProtobufModelParser{
         void SetAttributePb(NodeManager::Attribute&, const std::string& type, const std::string& value);
         void FillProtobufAttributes(::google::protobuf::Map< ::std::string, ::NodeManager::Attribute >* attrs, const std::string& parent_id, const std::string& unique_id_suffix);
 
-        NodeManager::Port* ConstructPubSubPortPb(const std::string& port_id, const std::string& unique_id_suffix);
-        NodeManager::Port* ConstructReqRepPortPb(const std::string& port_id, const std::string& unique_id_suffix);
-        NodeManager::Port* ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix);
-        NodeManager::Worker* ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix);
+        std::unique_ptr<NodeManager::Port> ConstructPubSubPortPb(const std::string& port_id, const std::string& unique_id_suffix);
+        std::unique_ptr<NodeManager::Port> ConstructReqRepPortPb(const std::string& port_id, const std::string& unique_id_suffix);
+        std::unique_ptr<NodeManager::Port> ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix);
+        std::unique_ptr<NodeManager::Worker> ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix);
 
 
         // Protobuf converters

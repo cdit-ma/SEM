@@ -151,6 +151,9 @@ void ProtobufModelParser::GenerateChildAssemblies(Assembly& assembly, const std:
 void ProtobufModelParser::GenerateComponentReplications(Assembly& assembly, const std::vector<std::string>& component_children) {
     for(const auto& component_child_id : component_children){
         auto component = std::unique_ptr<ComponentReplication>(new ComponentReplication(component_child_id, &assembly));
+
+        //XXX: component_instances_ pushed back onto this vector can have their parent* invalidated if the top level node
+        // is deleted before component_instances_
         component_instances_.emplace_back(std::move(component));
     }
 }
@@ -277,7 +280,9 @@ void ProtobufModelParser::ParseHardwareItems(){
             node->set_ip_address(graphml_parser_->GetDataValue(hardware_id, "ip_address"));
             node_message_map_[hardware_id] = node;
         } else {
+            //TODO: Fix this for localhost node???
             std::cerr << "Could not find parent cluster of hardware node id: " << hardware_id << std::endl;
+            std::cerr << "Probably localhost node......" << std::endl;
         }
     }
 
@@ -424,17 +429,26 @@ std::string ProtobufModelParser::GetDeployedID(const std::string& id){
 
 void ProtobufModelParser::ParseLoggingClients(){
     for(const auto& client_id : logging_client_ids_){
-        //Get hardware node pb message that this logger is deployed to
+        //Get pb message that this logger is deployed to
 
-        for(const auto& hardware_id : deployed_entities_map_[client_id]){
-            NodeManager::Node* node_pb = nullptr;
-            if(node_message_map_.count(hardware_id)){
-                node_pb = node_message_map_.at(hardware_id);
-            }else{
+        for(const auto& deployed_id : deployed_entities_map_[client_id]){
+
+            NodeManager::Logger* logger_pb = nullptr;
+
+            // Check our message maps for the entity that we're deployed to
+            if(node_message_map_.count(deployed_id)){
+                logger_pb = node_message_map_.at(deployed_id)->add_loggers();
+            } else if(container_message_map_.count(deployed_id)){
+                logger_pb = container_message_map_.at(deployed_id)->add_loggers();
+            } else if(cluster_message_map_.count(deployed_id)){
+                logger_pb = cluster_message_map_.at(deployed_id)->add_loggers();
+            } else{
                 continue;
             }
 
-            auto logger_pb = node_pb->add_loggers();
+            if(!logger_pb){
+                continue;
+            }
 
             logger_pb->set_type(NodeManager::Logger::CLIENT);
             logger_pb->set_id(client_id);
@@ -465,16 +479,24 @@ void ProtobufModelParser::ParseLoggingClients(){
 
 void ProtobufModelParser::ParseLoggingServers(){
     for(const auto& server_id : logging_server_ids_){
-        //Get hardware node pb message that this logger is deployed to
-        auto hardware_id = GetDeployedID(server_id);
-        NodeManager::Node* node_pb = nullptr;
-        if(node_message_map_.count(hardware_id)){
-            node_pb = node_message_map_.at(hardware_id);
-        }else{
+        //Get pb message that this logger is deployed to
+        auto deployed_id = GetDeployedID(server_id);
+        NodeManager::Logger* logger_pb = nullptr;
+
+        // Check our message maps for the entity that we're deployed to
+        if(node_message_map_.count(deployed_id)){
+            logger_pb = node_message_map_.at(deployed_id)->add_loggers();
+        } else if(container_message_map_.count(deployed_id)){
+            logger_pb = container_message_map_.at(deployed_id)->add_loggers();
+        } else if(cluster_message_map_.count(deployed_id)){
+            logger_pb = cluster_message_map_.at(deployed_id)->add_loggers();
+        } else{
             continue;
         }
 
-        auto logger_pb = node_pb->add_loggers();
+        if(!logger_pb){
+            continue;
+        }
 
         logger_pb->set_type(NodeManager::Logger::SERVER);
         logger_pb->set_id(server_id);
@@ -519,6 +541,7 @@ void ProtobufModelParser::ParseComponents(){
             component_pb = container_pb->add_components();
         } else if(node_pb) {
             //TODO: Handle deployed directly to node case!
+            // Have to construct dummy container and deploy component -> container -> hardware node
             continue;
         }
 
@@ -540,16 +563,6 @@ void ProtobufModelParser::ParseComponents(){
 
         const auto& replication_indices = component_instance->GetReplicationIndices();
         const auto& location = component_instance->GetReplicationLocation();
-
-        for(const auto& index : replication_indices){
-            std::cout << index << " ";
-        }
-        std::cout << std::endl;
-
-        for(const auto& loc : location){
-            std::cout << loc << " ";
-        }
-        std::cout << std::endl;
 
         *(component_pb->mutable_replicate_indices()) = {replication_indices.begin(), replication_indices.end()};
         *(component_pb->mutable_location()) = {location.begin(), location.end()};
@@ -582,8 +595,8 @@ void ProtobufModelParser::ParseComponents(){
             auto port_pb = ConstructPubSubPortPb(port_id, unique_suffix);
             if(port_pb){
                 //Insert into the replicated port map
-                port_replicate_id_map_[port_pb->info().id()] = port_pb;
-                component_pb->mutable_ports()->AddAllocated(port_pb);
+                port_replicate_id_map_[port_pb->info().id()] = port_pb.get();
+                component_pb->mutable_ports()->AddAllocated(port_pb.release());
             }
         }
 
@@ -592,8 +605,8 @@ void ProtobufModelParser::ParseComponents(){
             auto port_pb = ConstructReqRepPortPb(port_id, unique_suffix);
             if(port_pb){
                 //Insert into the replicated port map
-                port_replicate_id_map_[port_pb->info().id()] = port_pb;
-                component_pb->mutable_ports()->AddAllocated(port_pb);
+                port_replicate_id_map_[port_pb->info().id()] = port_pb.get();
+                component_pb->mutable_ports()->AddAllocated(port_pb.release());
             }
         }
 
@@ -601,7 +614,7 @@ void ProtobufModelParser::ParseComponents(){
         for(const auto& periodic_id : periodic_ids){
             auto port_pb = ConstructPeriodicPb(periodic_id, unique_suffix);
             if(port_pb){
-                component_pb->mutable_ports()->AddAllocated(port_pb);
+                component_pb->mutable_ports()->AddAllocated(port_pb.release());
             }
         }
 
@@ -609,7 +622,7 @@ void ProtobufModelParser::ParseComponents(){
         for(const auto& class_instance_id : class_instance_ids){
             auto worker_pb = ConstructWorkerPb(class_instance_id, unique_suffix);
             if(worker_pb){
-                component_pb->mutable_workers()->AddAllocated(worker_pb);
+                component_pb->mutable_workers()->AddAllocated(worker_pb.release());
             }
         }
     }
@@ -794,7 +807,7 @@ void ProtobufModelParser::SetAttributePb(NodeManager::Attribute& attr_pb, const 
     }else if(type == "Float"){
         kind = NodeManager::Attribute::FLOAT;
     }else{
-        std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
+        std::cerr << "Unhandled Graphml Attribute Type: '" << type << "'" << std::endl;
         kind = NodeManager::Attribute::STRING;
     }
     attr_pb.set_kind(kind);
@@ -983,8 +996,8 @@ NodeManager::Middleware ProtobufModelParser::ParseMiddleware(const std::string& 
     return middleware;
 }
 
-NodeManager::Port* ProtobufModelParser::ConstructPubSubPortPb(const std::string& port_id, const std::string& unique_id_suffix){
-    auto port_pb = new NodeManager::Port();
+std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructPubSubPortPb(const std::string& port_id, const std::string& unique_id_suffix){
+    auto port_pb = std::unique_ptr<NodeManager::Port>(new NodeManager::Port());
     auto aggregate_id = GetAggregateId(GetDefinitionId(port_id));
             
     auto port_info_pb = port_pb->mutable_info();
@@ -1013,8 +1026,8 @@ NodeManager::Port* ProtobufModelParser::ConstructPubSubPortPb(const std::string&
 }
 
 
-NodeManager::Port* ProtobufModelParser::ConstructReqRepPortPb(const std::string& port_id, const std::string& unique_id_suffix){
-    auto port_pb = new NodeManager::Port();
+std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructReqRepPortPb(const std::string& port_id, const std::string& unique_id_suffix){
+    auto port_pb = std::unique_ptr<NodeManager::Port>(new NodeManager::Port());
     
     auto server_id = GetAggregateId(GetDefinitionId(port_id));
 
@@ -1044,8 +1057,8 @@ NodeManager::Port* ProtobufModelParser::ConstructReqRepPortPb(const std::string&
 }
 
 
-NodeManager::Port* ProtobufModelParser::ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix){
-    auto port_pb = new NodeManager::Port();
+std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix){
+    auto port_pb = std::unique_ptr<NodeManager::Port>(new NodeManager::Port());
     auto port_info_pb = port_pb->mutable_info();
     
     port_info_pb->set_id(port_id + unique_id_suffix);
@@ -1058,7 +1071,7 @@ NodeManager::Port* ProtobufModelParser::ConstructPeriodicPb(const std::string& p
 }
 
 
-NodeManager::Worker* ProtobufModelParser::ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix){
+std::unique_ptr<NodeManager::Worker> ProtobufModelParser::ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix){
     const auto& class_type = graphml_parser_->GetDataValue(worker_id, "type");
     
     //Ignore vector operations
@@ -1066,7 +1079,7 @@ NodeManager::Worker* ProtobufModelParser::ConstructWorkerPb(const std::string& w
         return nullptr;
     }
     
-    auto worker_pb = new NodeManager::Worker();
+    auto worker_pb = std::unique_ptr<NodeManager::Worker>(new NodeManager::Worker());
     auto worker_info_pb = worker_pb->mutable_info();
 
     worker_info_pb->set_id(worker_id + unique_id_suffix);

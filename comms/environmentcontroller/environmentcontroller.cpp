@@ -30,10 +30,9 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> EnvironmentManager::Enviro
     request.mutable_id()->set_experiment_name(experiment_name);
     
     try{
-        ProtobufModelParser parser(graphml_path, experiment_name);
-        auto control_message = parser.ControlMessage();
-        if(control_message){
-            request.set_allocated_control_message(control_message);
+        auto experiment = ProtobufModelParser::ParseModel(graphml_path, experiment_name);
+        if(experiment){
+            request.set_allocated_experiment(experiment.release());
         }
     }catch(const std::exception& ex){
         throw;
