@@ -35,7 +35,6 @@
 #include "../DockWidgets/defaultdockwidget.h"
 #include "../optiongroupbox.h"
 
-//#include "../Charts/Timeline/Chart/timelinechartview.h"
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
 
