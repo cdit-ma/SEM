@@ -11,7 +11,6 @@ AggregationProxy::AggregationProxy() :
 {
 }
 
-
 void AggregationProxy::RequestRunningExperiments()
 {
     auto notification = NotificationManager::manager()->AddNotification("Requested Events", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
@@ -26,6 +25,7 @@ void AggregationProxy::RequestRunningExperiments()
 
 
 /**
+<<<<<<< HEAD
  * @brief AggregationProxy::constructTimestampFromMS
  * @param milliseconds
  * @return

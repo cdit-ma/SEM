@@ -351,18 +351,6 @@ void EntityChart::pointsAdded(QList<QPointF> points)
 
 
 /**
- * @brief EntityChart::timelineChartRangeChanged
- * @param min
- * @param max
- */
-void EntityChart::timelineChartRangeChanged(double min, double max)
-{
-    _timelineRange = max - min;
-    update();
-}
-
-
-/**
  * @brief EntityChart::paintSeries
  * @param painter
  * @param kind

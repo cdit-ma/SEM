@@ -53,8 +53,6 @@ private slots:
     void rangeYChanged(double min, double max);
     void pointsAdded(QList<QPointF> points);
 
-    void timelineChartRangeChanged(double min, double max);
-
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintNotificationSeries(QPainter &painter);
@@ -78,7 +76,6 @@ private:
 
     double _pointWidth = 12;
     double _xScale = 1;
-    double _timelineRange = 0;
 
     double _displayedMin;
     double _displayedMax;

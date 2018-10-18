@@ -6,6 +6,8 @@
 
 #include "../../Controllers/AggregationProxy/aggregationproxy.h"
 
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
+
 #include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -230,12 +232,17 @@ void PanelWidget::testNewTimelineView()
     }
 }
 
-
 void PanelWidget::testLifecycleSeries()
 {
-    lifecycleView = new TimelineChartView(this);
-    defaultActiveAction = addTab("Lifecycle", lifecycleView);
+    //qRegisterMetaType<Qt::Alignment>("QList<PortLifecycleEvent*>&");
+
+    TimelineChartView* view = new TimelineChartView(this);
+    defaultActiveAction = addTab("Lifecycle", view);
     defaultActiveAction->trigger();
+
+    if (viewController) {
+        //connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, view, &TimelineChartView::receivedPortLifecycleResponse);
+    }
 }
 
 
