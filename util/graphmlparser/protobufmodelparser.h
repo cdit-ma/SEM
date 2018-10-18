@@ -9,11 +9,10 @@
 
 class ProtobufModelParser{
     public:
-        ProtobufModelParser(const std::string& filename, const std::string& experiment_id);
-
         static std::unique_ptr<NodeManager::Experiment> ParseModel(const std::string& filename, const std::string& experiment_id);
-        std::string GetDeploymentJSON();
+        static std::string GetDeploymentJSON(const NodeManager::Experiment& experiment);
     private:
+        ProtobufModelParser(const std::string& filename, const std::string& experiment_id);
         // Parser
         std::unique_ptr<GraphmlParserInt> graphml_parser_;
 
@@ -28,7 +27,6 @@ class ProtobufModelParser{
         void ParseLoggingServers();
         void ParseComponents();
         void Process();
-
 
         // Internal state helper functions
         void GenerateReplications(Assembly& parent);
@@ -57,7 +55,6 @@ class ProtobufModelParser{
         std::unique_ptr<NodeManager::Port> ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix);
         std::unique_ptr<NodeManager::Worker> ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix);
 
-
         // Protobuf converters
         NodeManager::Middleware ParseMiddleware(const std::string& middleware_str) const;
         NodeManager::Port::Kind GetPortKind(const std::string& kind) const;
@@ -68,67 +65,71 @@ class ProtobufModelParser{
         // Internal state members
         std::unique_ptr<Assembly> top_level_assembly_;
 
+        // Output message
         std::unique_ptr<NodeManager::Experiment> experiment_;
 
         std::string experiment_id_;
 
-        std::vector<std::string> deployment_edge_ids_;
+        // Entity id lists
+        std::vector<std::string> aggregate_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;
         std::vector<std::string> definition_edge_ids_;
-        std::vector<std::string> aggregate_edge_ids_;
-        std::vector<std::string> hardware_cluster_ids_;
+        std::vector<std::string> deployment_edge_ids_;
         std::vector<std::string> qos_edge_ids_;
-        std::vector<std::string> logging_server_ids_;
-        std::vector<std::string> logging_client_ids_;
 
-        //source/target id -> set of all edge id's attached to source/target
-        std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
-
-        //ComponentInstance id - > HardwareNode id
-        std::unordered_map<std::string, std::vector<std::string> > deployed_entities_map_;
-
-        //component instance id -> definition id
-        std::unordered_map<std::string, std::string> definition_ids_;
-
-        //
-        std::unordered_map<std::string, std::string> aggregate_ids_;
-
-        //
-        std::unordered_map<std::string, std::string> entity_qos_map_;
-
-        //attribute_instance id -> Value
-        std::unordered_map<std::string, std::string> attribute_value_map_;
-
-        //port replicate id -> event port proto
-        std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
-        //external port id -> ExternalPort Proto
-        std::unordered_map<std::string, NodeManager::ExternalPort*> external_port_id_map_;
-
-        //component id -> vector of that component's replications
-        std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
-
-        std::vector<std::unique_ptr<ComponentReplication> > component_instances_;
-
+        std::vector<std::string> hardware_cluster_ids_;
         std::vector<std::string> hardware_node_ids_;
         std::vector<std::string> deployment_container_ids_;
+        std::vector<std::string> logging_server_ids_;
+        std::vector<std::string> logging_client_ids_;
 
         std::vector<std::string> delegates_pubsub_ids_;
         std::vector<std::string> delegates_server_ids_;
 
-        //node id -> pointer to proto message for that node
-        std::unordered_map<std::string, NodeManager::Container* > container_message_map_;
-        std::unordered_map<std::string, NodeManager::Node* > node_message_map_;
-        std::unordered_map<std::string, NodeManager::Cluster*> cluster_message_map_;
+        // Source/target id -> set of all edge id's attached to source/target
+        std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
 
+        // Component instance id - > hardware node id
+        std::unordered_map<std::string, std::vector<std::string> > deployed_entities_map_;
+
+        // Component instance id -> component definition id
+        std::unordered_map<std::string, std::string> definition_ids_;
+
+        // Aggregate ->
+        std::unordered_map<std::string, std::string> aggregate_ids_;
+
+        // Port id -> QoS Profile id
+        std::unordered_map<std::string, std::string> entity_qos_map_;
+
+        // Attribute instance id -> attribute value
+        std::unordered_map<std::string, std::string> attribute_value_map_;
+
+        // Logging server id -> logging client ids
+        std::unordered_map<std::string, std::vector<std::string> > logging_server_client_map_;
+
+        // Owning vector of component replications
+        std::vector<std::unique_ptr<ComponentReplication> > component_instances_;
+
+        // Acceleration structures
+        // "experiment_" owns these messages
+        std::unordered_map<std::string, NodeManager::Cluster*> cluster_message_map_;
+        std::unordered_map<std::string, NodeManager::Node* > node_message_map_;
+        std::unordered_map<std::string, NodeManager::Container* > container_message_map_;
+        // Component id -> vector of that component's replications
+        std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
+        // Port replicate id -> event port proto
+        std::unordered_map<std::string, NodeManager::Port*> port_replicate_id_map_;
+        //external port id -> ExternalPort Proto
+        std::unordered_map<std::string, NodeManager::ExternalPort*> external_port_id_map_;
+
+        // Internal data structure used for calculating inter assembly port connections
         class AssemblyConnection{
             public:
                 std::string source_id;
                 std::string target_id;
                 bool inter_assembly = false;
         };
-
         std::unordered_map<std::string, std::vector<AssemblyConnection> > assembly_map_;
 
-        std::unordered_map<std::string, std::vector<std::string> > logging_server_client_map_;
 };
 #endif //PROTOBUFMODELPARSER_H

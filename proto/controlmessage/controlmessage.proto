@@ -21,7 +21,6 @@ message ControlMessage{
     map<string, Attribute> attributes = 6;
 }
 
-
 message Experiment {
     string name = 1;
     repeated Cluster clusters = 2;
@@ -33,7 +32,6 @@ message Cluster {
     repeated Container containers = 3;
     repeated Logger loggers = 4;
 }
-
 
 message Node{
     Info info = 1;
@@ -51,6 +49,8 @@ message Container {
     ContainerType type = 2;
     repeated Component components = 3;
     repeated Logger loggers = 4;
+    bool implicit = 5;
+    bool is_late_joiner = 6;
 }
 
 enum Middleware{

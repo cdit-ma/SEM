@@ -36,7 +36,7 @@ std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const
     std::vector<std::string> out;
 
     for(auto& n : search_node.select_nodes(search.c_str())){
-        out.push_back(n.node().attribute("id").value());
+        out.emplace_back(n.node().attribute("id").value());
     }
     return out;
 }
@@ -49,7 +49,7 @@ std::vector<std::string> GraphmlParser::FindImmediateChildren(const std::string&
         std::string search = "./graph/node/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
 
         for(auto& n : search_node.select_nodes(search.c_str())){
-            out.push_back(n.node().attribute("id").value());
+            out.emplace_back(n.node().attribute("id").value());
         }
     }
     return out;
@@ -59,14 +59,14 @@ std::vector<std::string> GraphmlParser::FindImmediateChildren(const std::string&
 std::vector<std::string> GraphmlParser::FindEdges(const std::string& kind){
     std::string search = ".//edge";
     
-    if(kind != ""){
+    if(!kind.empty()){
         search += "[data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']]";
     }
 
     std::vector<std::string> out;
 
     for(auto& n : doc.select_nodes(search.c_str())){
-        out.push_back(n.node().attribute("id").value());
+        out.emplace_back(n.node().attribute("id").value());
     }
     return out;
 }
@@ -142,10 +142,9 @@ std::string GraphmlParser::GetParentNode(const std::string& id){
     if(parent_id_lookup_.count(id)){
         return parent_id_lookup_[id];
     }else{
-        auto search_node = doc.document_element();
         std::string out;
         if(id_lookup_.count(id)){
-            search_node = id_lookup_[id];
+            auto search_node = id_lookup_[id];
             auto res = search_node.select_node("../..");
             out = res.node().attribute("id").value();
             parent_id_lookup_[id] = out;

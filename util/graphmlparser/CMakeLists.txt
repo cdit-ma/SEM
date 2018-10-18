@@ -18,17 +18,14 @@ endif()
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/assembly.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.cpp
 )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/assembly.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
 )
 
 add_library(${EXECUTION_PARSER_LIB} STATIC ${SOURCE} ${HEADERS})

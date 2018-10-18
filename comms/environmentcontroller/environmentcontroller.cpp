@@ -38,8 +38,6 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> EnvironmentManager::Enviro
         throw;
     }
 
-
-
     auto reply = requester_.SendRequest<RegisterExperimentRequest, RegisterExperimentReply>("RegisterExperiment", request, 5000);
     try{
         return std::move(reply.get());

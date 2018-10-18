@@ -7,31 +7,29 @@
 #include <google/protobuf/util/json_util.h>
 #include <proto/controlmessage/helper.h>
 
-
 #include "graphmlparser.h"
-
-ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
-    experiment_id_ = experiment_id;
-    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
-    PreProcess();
-    Process();
-}
-
 std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModel(const std::string& filename, const std::string& experiment_id){
     ProtobufModelParser parser(filename, experiment_id);
     return std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment(parser.GetExperiment()));
 }
 
 //Pretty json prints deployment protobuf experiment message
-std::string ProtobufModelParser::GetDeploymentJSON(){
+std::string ProtobufModelParser::GetDeploymentJSON(const NodeManager::Experiment& experiment){
 
     std::string output;
     google::protobuf::util::JsonPrintOptions options;
     options.add_whitespace = true;
     options.always_print_primitive_fields = false;
 
-    google::protobuf::util::MessageToJsonString(*experiment_, &output, options);
+    google::protobuf::util::MessageToJsonString(experiment, &output, options);
     return output;
+}
+
+ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
+    experiment_id_ = experiment_id;
+    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
+    PreProcess();
+    Process();
 }
 
 // Starting at a node, recurse through all edges originating from it (of a particular edge kind).
@@ -98,6 +96,7 @@ std::set<std::string> ProtobufModelParser::GetTerminalSourcesByEdgeKind(const st
     return source_ids;
 }
 
+// Get replication count of entity with supplied id
 unsigned int ProtobufModelParser::GetReplicationId(const std::string& id){
     unsigned int replication_count = 1;
     try{
@@ -159,6 +158,9 @@ void ProtobufModelParser::GenerateComponentReplications(Assembly& assembly, cons
 }
 
 void ProtobufModelParser::PreProcess(){
+    // Pre-condition check
+    assert(graphml_parser_);
+
     auto assembly_definitions = graphml_parser_->FindNodes("AssemblyDefinitions");
 
     if(assembly_definitions.size() != 1){
@@ -166,7 +168,7 @@ void ProtobufModelParser::PreProcess(){
         return;
     }
 
-    auto assembly_definition_id = assembly_definitions[0];
+    auto assembly_definition_id = assembly_definitions.front();
 
     //Get all ids
     hardware_node_ids_ = graphml_parser_->FindNodes("HardwareNode");
@@ -211,7 +213,6 @@ void ProtobufModelParser::PreProcess(){
         auto target_id = graphml_parser_->GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
     }
-
 
     std::vector<std::string> endpoint_ids;
 
@@ -267,6 +268,15 @@ void ProtobufModelParser::ParseHardwareItems(){
         auto cluster = experiment_->add_clusters();
         cluster->mutable_info()->set_id(cluster_id);
         cluster->mutable_info()->set_name(graphml_parser_->GetDataValue(cluster_id, "label"));
+
+        // Generate implicit container for the cluster
+        auto implicit_container = cluster->add_containers();
+        implicit_container->set_implicit(true);
+        implicit_container->mutable_info()->set_id(cluster_id + "_0");
+        implicit_container->mutable_info()->set_name(graphml_parser_->GetDataValue(cluster_id, "label"));
+        implicit_container->set_type(NodeManager::Container::GENERIC);
+
+        container_message_map_[cluster_id] = implicit_container;
         cluster_message_map_[cluster_id] = cluster;
     }
 
@@ -278,11 +288,18 @@ void ProtobufModelParser::ParseHardwareItems(){
             node->mutable_info()->set_id(hardware_id);
             node->mutable_info()->set_name(graphml_parser_->GetDataValue(hardware_id, "label"));
             node->set_ip_address(graphml_parser_->GetDataValue(hardware_id, "ip_address"));
+
+            // Generate implicit container for the hardware node
+            auto implicit_container = node->add_containers();
+            implicit_container->set_implicit(true);
+            implicit_container->mutable_info()->set_id(hardware_id + "_0");
+            implicit_container->mutable_info()->set_name(graphml_parser_->GetDataValue(hardware_id, "label"));
+            implicit_container->set_type(NodeManager::Container::GENERIC);
+
+            container_message_map_[hardware_id] = implicit_container;
             node_message_map_[hardware_id] = node;
         } else {
-            //TODO: Fix this for localhost node???
             std::cerr << "Could not find parent cluster of hardware node id: " << hardware_id << std::endl;
-            std::cerr << "Probably localhost node......" << std::endl;
         }
     }
 
@@ -305,6 +322,9 @@ void ProtobufModelParser::ParseHardwareItems(){
             } else {
                 container->set_type(NodeManager::Container::GENERIC);
             }
+
+            container->set_is_late_joiner(
+                    graphml_parser_->GetDataValue(deployment_container_id, "is_late_joiner") == "true");
             container_message_map_[deployment_container_id] = container;
         }
     }
@@ -436,16 +456,9 @@ void ProtobufModelParser::ParseLoggingClients(){
             NodeManager::Logger* logger_pb = nullptr;
 
             // Check our message maps for the entity that we're deployed to
-            if(node_message_map_.count(deployed_id)){
-                logger_pb = node_message_map_.at(deployed_id)->add_loggers();
-            } else if(container_message_map_.count(deployed_id)){
+            if(container_message_map_.count(deployed_id)){
                 logger_pb = container_message_map_.at(deployed_id)->add_loggers();
-            } else if(cluster_message_map_.count(deployed_id)){
-                logger_pb = cluster_message_map_.at(deployed_id)->add_loggers();
-            } else{
-                continue;
             }
-
             if(!logger_pb){
                 continue;
             }
@@ -484,16 +497,9 @@ void ProtobufModelParser::ParseLoggingServers(){
         NodeManager::Logger* logger_pb = nullptr;
 
         // Check our message maps for the entity that we're deployed to
-        if(node_message_map_.count(deployed_id)){
-            logger_pb = node_message_map_.at(deployed_id)->add_loggers();
-        } else if(container_message_map_.count(deployed_id)){
+        if(container_message_map_.count(deployed_id)){
             logger_pb = container_message_map_.at(deployed_id)->add_loggers();
-        } else if(cluster_message_map_.count(deployed_id)){
-            logger_pb = cluster_message_map_.at(deployed_id)->add_loggers();
-        } else{
-            continue;
         }
-
         if(!logger_pb){
             continue;
         }
@@ -526,23 +532,9 @@ void ProtobufModelParser::ParseComponents(){
             continue;
         }
 
-        NodeManager::Container* container_pb = nullptr;
-        if(container_message_map_.count(deployed_id)){
-            container_pb = container_message_map_.at(deployed_id);
-        }
-
-        NodeManager::Node* node_pb = nullptr;
-        if(node_message_map_.count(deployed_id)){
-            node_pb = node_message_map_.at(deployed_id);
-        }
-
         NodeManager::Component* component_pb = nullptr;
-        if(container_pb) {
-            component_pb = container_pb->add_components();
-        } else if(node_pb) {
-            //TODO: Handle deployed directly to node case!
-            // Have to construct dummy container and deploy component -> container -> hardware node
-            continue;
+        if(container_message_map_.count(deployed_id)){
+            component_pb = container_message_map_.at(deployed_id)->add_components();
         }
 
         if(!component_pb){
@@ -633,17 +625,12 @@ void ProtobufModelParser::Process(){
     assert(graphml_parser_);
 
     experiment_ = std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment());
-
     experiment_->set_name(experiment_id_);
 
-    //populate environment message's hardware fields. Fills local node_message_map_
     ParseHardwareItems();
     ParseExternalDelegates();
-
     ParseLoggingClients();
-
     ParseLoggingServers();
-
     ParseComponents();
 
     CalculateReplication();
@@ -1056,7 +1043,6 @@ std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructReqRepPortPb(co
     return port_pb;
 }
 
-
 std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructPeriodicPb(const std::string& port_id, const std::string& unique_id_suffix){
     auto port_pb = std::unique_ptr<NodeManager::Port>(new NodeManager::Port());
     auto port_info_pb = port_pb->mutable_info();
@@ -1069,7 +1055,6 @@ std::unique_ptr<NodeManager::Port> ProtobufModelParser::ConstructPeriodicPb(cons
     FillProtobufAttributes(port_pb->mutable_attributes(), port_id, unique_id_suffix);
     return port_pb;
 }
-
 
 std::unique_ptr<NodeManager::Worker> ProtobufModelParser::ConstructWorkerPb(const std::string& worker_id, const std::string& unique_id_suffix){
     const auto& class_type = graphml_parser_->GetDataValue(worker_id, "type");
