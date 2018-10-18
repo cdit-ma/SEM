@@ -59,12 +59,12 @@ ViewItem* EntityChart::getViewItem()
 }
 
 
-void EntityChart::addLifeCycleSeries(PortLifeCycleSeries* series)
+void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
 {
     if (!series || series == _lifeCycleSeries)
         return;
 
-    removeLifeCycleSeries(_lifeCycleSeries->getID());
+    //removeLifeCycleSeries(_lifeCycleSeries->getID());
     _lifeCycleSeries = series;
 }
 
@@ -325,11 +325,11 @@ void EntityChart::themeChanged()
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
 
-    _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
+    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
+    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
 
     /*
     _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
@@ -387,18 +387,6 @@ void EntityChart::pointsAdded(QList<QPointF> points)
 
 
 /**
- * @brief EntityChart::timelineChartRangeChanged
- * @param min
- * @param max
- */
-void EntityChart::timelineChartRangeChanged(double min, double max)
-{
-    _timelineRange = max - min;
-    update();
-}
-
-
-/**
  * @brief EntityChart::paintSeries
  * @param painter
  * @param kind
@@ -439,15 +427,20 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
  */
 void EntityChart::paintLifeCycleSeries(QPainter &painter)
 {
-    if (!_lifeCycleSeries)
+    if (!_lifeCycleSeries) {
+        qWarning("EntityChart::paintLifeCycleSeries - LifecycleSeries is null.");
         return;
+    }
 
     // bucket count
     double barWidth = 22; //BAR_WIDTH;
     double barCount = ceil((double)width() / barWidth);
     double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
 
-    QVector< QList<PortLifeCycle*> > buckets(barCount);
+    barTimeWidth = qMax(1.0, barTimeWidth);
+    //qDebug() << "barTimeWidth: " << barTimeWidth;
+
+    QVector< QList<PortLifecycleEvent*> > buckets(barCount);
     QList<quint64> bucket_endtimes;
 
     auto current_left = _displayedMin;
@@ -491,7 +484,7 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
     //painter.setPen(QPen(Qt::lightGray, 1));
 
     int y = rect().center().y() - barWidth / 2.0;
-    for (int i = 0; i < barCount; i ++) {
+    for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
             continue;
@@ -1093,7 +1086,6 @@ void EntityChart::rangeChanged()
 {
     mapPointsFromRange();
     return;
-    //double dataRange = _timelineRange;
     double dataRange = _dataMaxX - _dataMinX;
     double displayRange = _displayedMax - _displayedMin;
     if ((dataRange == 0) || (displayRange == 0)) {

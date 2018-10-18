@@ -3,7 +3,7 @@
 
 #include "../../Series/dataseries.h"
 #include "../Chart/timelinechart.h"
-#include "../Data/portlifecycleseries.h"
+#include "../Data/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -19,7 +19,7 @@ public:
 
     ViewItem* getViewItem();
 
-    void addLifeCycleSeries(PortLifeCycleSeries* series);
+    void addLifeCycleSeries(PortLifecycleEventSeries* series);
     void removeLifeCycleSeries(int ID);
 
     void addSeries(MEDEA::DataSeries* series);
@@ -57,8 +57,6 @@ private slots:
     void rangeYChanged(double min, double max);
     void pointsAdded(QList<QPointF> points);
 
-    void timelineChartRangeChanged(double min, double max);
-
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintLifeCycleSeries(QPainter& painter);
@@ -88,7 +86,6 @@ private:
 
     double _pointWidth = 12;
     double _xScale = 1;
-    double _timelineRange = 0;
 
     double _displayedMin;
     double _displayedMax;
@@ -150,8 +147,8 @@ private:
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
 
-    PortLifeCycleSeries* _lifeCycleSeries = 0;
-    QMap<LifeCycleType, QPixmap> _lifeCycleTypePixmaps;
+    PortLifecycleEventSeries* _lifeCycleSeries = 0;
+    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;

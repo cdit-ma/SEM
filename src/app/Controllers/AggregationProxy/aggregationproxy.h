@@ -3,8 +3,10 @@
 #define MEDEA_AGGREGATIONPROXY_H
 
 #include <QObject>
-#include <QFuture>
+
+#include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
+#include "../../../app/Widgets/Charts/Timeline/Data/portlifecycleevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -15,11 +17,15 @@ public:
 
     void RequestRunningExperiments();
 
+    const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
+
 signals:
-    void resultsReady();
+    void requestResponse(PortLifecycleEvent* event);
+    //void requestResponse(QList<PortLifecycleEvent*>& events);
 
 private:
-    QFuture<std::unique_ptr<AggServer::PortLifecycleResponse>> getPortLifecycle(const AggServer::PortLifecycleRequest request);
+    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
+    //Port::Kind getPortKind(const uint kind);
 
     AggServer::Requester requester_;
 

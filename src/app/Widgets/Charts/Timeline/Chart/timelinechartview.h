@@ -56,6 +56,9 @@ public slots:
 
     void UpdateChartHover();
 
+    //void receivedPortLifecycleResponse(QList<PortLifecycleEvent*> &events);
+    void receivedPortLifecycleResponse(PortLifecycleEvent* event);
+
 private:
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);

@@ -52,6 +52,7 @@ public:
 
     SelectionController* getSelectionController();
     ActionController* getActionController();
+    AggregationProxy& getAggregationProxy();
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 

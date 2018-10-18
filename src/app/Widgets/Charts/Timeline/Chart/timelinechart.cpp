@@ -140,6 +140,7 @@ void TimelineChart::setMin(double min)
             chart->setMin(min);
         }
         _displayMin = min;
+        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -156,6 +157,7 @@ void TimelineChart::setMax(double max)
             chart->setMax(max);
         }
         _displayMax = max;
+        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -172,6 +174,7 @@ void TimelineChart::setRange(double min, double max)
     }
     _displayMin = min;
     _displayMax = max;
+    emit changeDisplayedRange(_displayMin, _displayMax);
 }
 
 
@@ -267,6 +270,25 @@ QPair<double, double> TimelineChart::getRange()
 
 
 /**
+ * @brief TimelineChart::initialRangeSet
+ */
+void TimelineChart::initialRangeSet()
+{
+    rangeSet = true;
+}
+
+
+/**
+ * @brief TimelineChart::isRangeSet
+ * @return
+ */
+bool TimelineChart::isRangeSet()
+{
+    return rangeSet;
+}
+
+
+/**
  * @brief TimelineChart::isPanning
  * @return
  */
@@ -355,12 +377,8 @@ void TimelineChart::entityChartRangeChanged(double min, double max)
         _dataMax = max;
         update = true;
     }
+    // send a signal to update the axis' range to match the chart's range
     if (update) {
-        setRange(_dataMin, _dataMax);
-        for (EntityChart* chart : _entityCharts) {
-            chart->timelineChartRangeChanged(_dataMin, _dataMax);
-        }
-        // send a signal to update the axis' range to match the chart's range
         emit rangeChanged(_dataMin, _dataMax);
     }
 }

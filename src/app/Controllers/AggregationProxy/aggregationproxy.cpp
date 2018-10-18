@@ -3,14 +3,13 @@
 #include "../../Controllers/NotificationManager/notificationobject.h"
 
 #include <iostream>
-#include <QFutureWatcher>
 #include <QtConcurrent>
+
 
 AggregationProxy::AggregationProxy() :
     requester_("tcp://192.168.111.249:12345")
 {
 }
-
 
 void AggregationProxy::RequestRunningExperiments()
 {
@@ -26,30 +25,31 @@ void AggregationProxy::RequestRunningExperiments()
         request_type.add_component_names("");
         */
 
-        /*
-        auto futureResult = getPortLifecycle(request_type);
-        QFutureWatcher* watcher = new QFutureWatcher(this);
-        watcher->setFuture(futureResult);
-        //QFutureWatcher<std::unique_ptr<AggServer::PortLifecycleResponse> > watcher;
-        connect(watcher, &QFutureWatcher::finished, [=]()
-        {
-            qInfo("AggregationProxy::RequestRunningExperiments - Watched future is finished.");
-            emit resultsReady();
+        auto results = requester_.GetPortLifecycle(request_type);
+        qDebug() << "Result Size#: " << results.get()->events_size();
 
-            auto results = futureResult.results();
-            for (auto result : results) {
-                qInfo() << QString(result.DebugString().c_str());
-            }
-            notification->setSeverity(Notification::Severity::SUCCESS);
-        });*/
+        QList<PortLifecycleEvent*> events;
 
-        //QFuture<void> future = requester_.GetPortLifecycle(request_type);
-        //watcher->setFuture(future);;
+        for (auto item : results.get()->events()) {
+            // extract port info
+            auto port = item.port();
+            Port portStruct;
+            portStruct.path = QString::fromUtf8(port.path().c_str());
+            portStruct.name = QString::fromUtf8(port.name().c_str());
+            portStruct.middleware = QString::fromUtf8(port.middleware().c_str());
+            //portStruct.component_instance = port->component_instance();
 
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
 
-        auto result = requester_.GetPortLifecycle(request_type);
-        qCritical() << QString(result->DebugString().c_str());
-        notification->setSeverity(Notification::Severity::SUCCESS);
+            PortLifecycleEvent* event = new PortLifecycleEvent(portStruct, type, time.toMSecsSinceEpoch());
+            events.append(event);
+            emit requestResponse(event);
+
+            //qDebug() << "Event: type = " << AggServer::LifecycleType_Name(item.type()).c_str() << " date-time = " << time.toString("MMM d yyyy, hh:mm:ss:zz");
+        }
+
+        //emit requestResponse(events);
 
     } catch (const std::exception& ex) {
         notification->setSeverity(Notification::Severity::ERROR);
@@ -57,12 +57,48 @@ void AggregationProxy::RequestRunningExperiments()
     }
 }
 
-/*
-QFuture<std::unique_ptr<AggServer::PortLifecycleResponse> > AggregationProxy::getPortLifecycle(const AggServer::PortLifecycleRequest request)
+
+/**
+ * @brief AggregationProxy::getQDateTime
+ * @param time
+ * @return
+ */
+const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp &time)
 {
-    auto getLifecycleWorker = [=](const AggServer::PortLifecycleRequest request){
-        return requester_.GetPortLifecycle(request);
-    };
-    return QtConcurrent::run(getLifecycleWorker, request);
+    int64_t msFromSeconds = time.seconds() * 1E3;
+    int64_t msFromNanoSeconds = time.nanos() / 1E6;
+    return QDateTime::fromMSecsSinceEpoch(msFromSeconds + msFromNanoSeconds, Qt::UTC);
 }
-*/
+
+
+/**
+ * @brief AggregationProxy::getLifeCycleType
+ * @param type
+ * @return
+ */
+LifecycleType AggregationProxy::getLifeCycleType(const AggServer::LifecycleType type)
+{
+    switch (type) {
+    case AggServer::LifecycleType::CONFIGURE:
+        return LifecycleType::CONFIGURE;
+    case AggServer::LifecycleType::ACTIVATE:
+        return LifecycleType::ACTIVATE;
+    case AggServer::LifecycleType::PASSIVATE:
+        return LifecycleType::PASSIVATE;
+    case AggServer::LifecycleType::TERMINATE:
+        return LifecycleType::TERMINATE;
+    default:
+        return LifecycleType::NO_TYPE;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::getPortKind
+ * @param kind
+ * @return
+ */
+/*Port::Kind AggregationProxy::getPortKind(const uint kind)
+{
+
+}*/

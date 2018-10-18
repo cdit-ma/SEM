@@ -12,6 +12,8 @@
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
 
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
+
 #include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -206,13 +208,26 @@ void PanelWidget::testWidgets()
 
 void PanelWidget::testNewTimelineView()
 {
-    TimelineChartView* view2 = new TimelineChartView(this);
-    defaultActiveAction = addTab("Timeline", view2);
+    TimelineChartView* view = new TimelineChartView(this);
+    defaultActiveAction = addTab("Timeline", view);
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(viewController, &ViewController::vc_viewItemConstructed, view2, &TimelineChartView::viewItemConstructed);
-        connect(viewController, &ViewController::vc_viewItemDestructing, view2, &TimelineChartView::viewItemDestructed);
+        connect(viewController, &ViewController::vc_viewItemConstructed, view, &TimelineChartView::viewItemConstructed);
+        connect(viewController, &ViewController::vc_viewItemDestructing, view, &TimelineChartView::viewItemDestructed);
+    }
+}
+
+void PanelWidget::testLifecycleSeries()
+{
+    //qRegisterMetaType<Qt::Alignment>("QList<PortLifecycleEvent*>&");
+
+    TimelineChartView* view = new TimelineChartView(this);
+    defaultActiveAction = addTab("Lifecycle", view);
+    defaultActiveAction->trigger();
+
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, view, &TimelineChartView::receivedPortLifecycleResponse);
     }
 }
 
@@ -300,6 +315,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
+    testLifecycleSeries();
 }
 
 

@@ -42,6 +42,8 @@ public:
     const QList<EntityChart*>& getEntityCharts();
 
     QPair<double, double> getRange();
+    void initialRangeSet();
+    bool isRangeSet();
     bool isPanning();
 
     quint64 mapPixelToTime(double pixel_x);
@@ -93,6 +95,7 @@ private:
 
     DRAG_MODE dragMode = NONE;
     bool hovered = false;
+    bool rangeSet = false;
 
     QToolBar* _toolbar;
     QToolBar* t1;
