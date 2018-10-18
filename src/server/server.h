@@ -42,6 +42,7 @@ class Server{
         bool running_ = false;
         std::unique_ptr<SQLiteDatabase> database_;
         std::unique_ptr<zmq::ProtoReceiver> proto_receiver_;
+        
         std::vector< std::unique_ptr<ProtoHandler> > proto_handlers_;
 };
 

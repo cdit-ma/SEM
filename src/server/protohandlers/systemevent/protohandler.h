@@ -25,26 +25,28 @@
 #define NOMINMAX 1
 #endif //_WIN32
 
-
 #include <unordered_map>
+#include <memory>
 #include <set>
-#include <google/protobuf/message_lite.h>
 
+#include <zmq/protoreceiver/protoreceiver.h>
+#include <proto/systemevent/systemevent.pb.h>
+
+#include "../../sqlitedatabase.h"
 #include "../../protohandler.h"
+#include "../../tableinsert.h"
 #include "../../table.h"
 
-class SQLiteDatabase;
-namespace SystemEvent{
-    class StatusEvent;
-    class InfoEvent;
-    
+namespace SystemEvent{    
     class ProtoHandler : public ::ProtoHandler{
         public:
             ProtoHandler(SQLiteDatabase& database);
-            ~ProtoHandler();
-
             void BindCallbacks(zmq::ProtoReceiver& receiver);
         private:
+            Table& GetTable(const std::string& table_name);
+            bool GotTable(const std::string& table_name);
+            void QueueTableStatement(TableInsert& insert);
+
             //Table creation
             void CreateSystemStatusTable();
             void CreateSystemInfoTable();
@@ -60,9 +62,12 @@ namespace SystemEvent{
             void ProcessStatusEvent(const SystemEvent::StatusEvent& status);
             void ProcessInfoEvent(const SystemEvent::InfoEvent& info);
 
-            //Members
+            //Add/Bind columns functions
+            static void AddInfoColumns(Table& table);
+            static void BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id);
+
             SQLiteDatabase& database_;
-            std::unordered_map<std::string, Table*> table_map_;
+            std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
             std::set<std::string> registered_nodes_;
     };
 };

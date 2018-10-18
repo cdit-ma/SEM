@@ -23,12 +23,6 @@
 #include <functional>
 #include <chrono>
 
-#include "../../sqlitedatabase.h"
-#include "../../table.h"
-#include "../../tableinsert.h"
-
-#include <proto/modelevent/modelevent.pb.h>
-#include <zmq/protoreceiver/protoreceiver.h>
 #include <google/protobuf/util/time_util.h>
 
 //Types
@@ -45,8 +39,6 @@ const std::string LOGAN_TYPE = "type";
 const std::string LOGAN_MESSAGE = "message";
 const std::string LOGAN_EXPERIMENT_NAME = "experiment_name";
 
-
-
 //Common column names
 const std::string LOGAN_COMPONENT_NAME = "component_name";
 const std::string LOGAN_COMPONENT_ID = "component_id";
@@ -60,9 +52,7 @@ const std::string LOGAN_WORKER_NAME = "worker_name";
 const std::string LOGAN_WORKER_TYPE = "worker_type";
 const std::string LOGAN_WORKER_ID = "worker_id";
 const std::string LOGAN_LOG_LEVEL = "log_level";
-
 const std::string LOGAN_EVENT = "event";
-
 
 //Model Table names
 const std::string LOGAN_MODELEVENT_LIFECYCLE_TABLE = "ModelEvents_Lifecycle";
@@ -92,24 +82,27 @@ bool ModelEvent::ProtoHandler::GotTable(const std::string& table_name){
     try{
         GetTable(table_name);
         return true;
-    }catch(const std::exception& ex){
-    }
+    }catch(const std::exception& ex){}
     return false;
 }
 
-void AddInfoColumns(Table& table){
+void ModelEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
+    database_.QueueSqlStatement(insert.get_statement());
+}
+
+void ModelEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
 }
 
-void AddComponentColumns(Table& table){
+void ModelEvent::ProtoHandler::AddComponentColumns(Table& table){
     table.AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
 }
 
-void AddPortColumns(Table& table){
+void ModelEvent::ProtoHandler::AddPortColumns(Table& table){
     table.AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
@@ -117,11 +110,12 @@ void AddPortColumns(Table& table){
     table.AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
 }
 
-void AddWorkerColumns(Table& table){
+void ModelEvent::ProtoHandler::AddWorkerColumns(Table& table){
     table.AddColumn(LOGAN_WORKER_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_WORKER_ID, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_WORKER_TYPE, LOGAN_VARCHAR);
 }
+
 
 void ModelEvent::ProtoHandler::CreateLifecycleTable(){
     if(GotTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE)){
@@ -188,25 +182,25 @@ void ModelEvent::ProtoHandler::CreateUtilizationTable(){
     database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
-void BindInfoColumns(TableInsert& row, const ModelEvent::Info& info){
+void ModelEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const ModelEvent::Info& info){
     row.BindString(LOGAN_TIMEOFDAY, google::protobuf::util::TimeUtil::ToString(info.timestamp()));
     row.BindString(LOGAN_EXPERIMENT_NAME, info.experiment_name());
     row.BindString(LOGAN_HOSTNAME, info.hostname());
 }
 
-void BindComponentColumns(TableInsert& row, const ModelEvent::Component& component){
+void ModelEvent::ProtoHandler::BindComponentColumns(TableInsert& row, const ModelEvent::Component& component){
     row.BindString(LOGAN_COMPONENT_NAME, component.name());
     row.BindString(LOGAN_COMPONENT_ID, component.id());
     row.BindString(LOGAN_COMPONENT_TYPE, component.type());
 }
 
-void BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker){
+void ModelEvent::ProtoHandler::BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker){
     row.BindString(LOGAN_WORKER_NAME, worker.name());
     row.BindString(LOGAN_WORKER_ID, worker.id());
     row.BindString(LOGAN_WORKER_TYPE, worker.type());
 }
 
-void BindPortColumns(TableInsert& row, const ModelEvent::Port& port){
+void ModelEvent::ProtoHandler::BindPortColumns(TableInsert& row, const ModelEvent::Port& port){
     row.BindString(LOGAN_PORT_NAME, port.name());
     row.BindString(LOGAN_PORT_ID, port.id());
     row.BindString(LOGAN_PORT_TYPE, port.type());
@@ -277,8 +271,9 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
         row.BindString(LOGAN_TYPE, ModelEvent::UtilizationEvent::Type_Name(event.type()));
         row.BindString(LOGAN_MESSAGE, event.message());
 
-        database_.QueueSqlStatement(row.get_statement());
+        QueueTableStatement(row);
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessUtilizationEvent() Exception: " << ex.what() << std::endl;
     }
 }
+

@@ -42,7 +42,7 @@ int TableInsert::BindString(const std::string& field, const std::string& val){
     }
 }
 
-int TableInsert::BindInt(const std::string& field, const int& val){
+int TableInsert::BindInt(const std::string& field, const int64_t& val){
     auto id = table_->get_field_id(field);
     return sqlite3_bind_int(stmt_, id, val);
 }

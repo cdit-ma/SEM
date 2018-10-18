@@ -31,7 +31,7 @@ class TableInsert{
         TableInsert(Table* table);
 
         int BindString(const std::string& field, const std::string& val);
-        int BindInt(const std::string& field, const int& val);
+        int BindInt(const std::string& field, const int64_t& val);
         int BindDouble(const std::string& field, const double& val);
 
         sqlite3_stmt* get_statement();

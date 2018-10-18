@@ -23,12 +23,6 @@
 #include <functional>
 #include <chrono>
 
-#include "../../sqlitedatabase.h"
-#include "../../table.h"
-#include "../../tableinsert.h"
-
-#include <zmq/protoreceiver/protoreceiver.h>
-#include <proto/systemevent/systemevent.pb.h>
 #include <google/protobuf/util/time_util.h>
 
 //Type names
@@ -44,15 +38,28 @@ const std::string LOGAN_NAME = "name";
 const std::string LOGAN_TYPE = "type";
 
 //Hardware table names
-const std::string LOGAN_SYSTEM_STATUS_TABLE = "Hardware_SystemStatus";
-const std::string LOGAN_SYSTEM_INFO_TABLE = "Hardware_SystemInfo";
-const std::string LOGAN_CPU_TABLE = "Hardware_SystemCPUCoreStatus";
-const std::string LOGAN_FILE_SYSTEM_TABLE = "Hardware_FileSystemStatus";
-const std::string LOGAN_FILE_SYSTEM_INFO_TABLE = "Hardware_FileSystemInfo";
-const std::string LOGAN_INTERFACE_STATUS_TABLE = "Hardware_InterfaceStatus";
-const std::string LOGAN_INTERFACE_INFO_TABLE = "Hardware_InterfaceInfo";
-const std::string LOGAN_PROCESS_STATUS_TABLE = "Hardware_ProcessStatus";
-const std::string LOGAN_PROCESS_INFO_TABLE = "Hardware_ProcessInfo";
+const std::string LOGAN_CPU_TABLE = "HardwareStatus_CPU";
+const std::string LOGAN_FILE_SYSTEM_TABLE = "HardwareStatus_FileSystem";
+const std::string LOGAN_SYSTEM_STATUS_TABLE = "HardwareStatus_System";
+const std::string LOGAN_PROCESS_STATUS_TABLE = "HardwareStatus_Process";
+const std::string LOGAN_INTERFACE_STATUS_TABLE = "HardwareStatus_Interface";
+
+const std::string LOGAN_SYSTEM_INFO_TABLE = "HardwareInfo_System";
+const std::string LOGAN_PROCESS_INFO_TABLE = "HardwareInfo_Process";
+const std::string LOGAN_INTERFACE_INFO_TABLE = "HardwareInfo_Interface";
+const std::string LOGAN_FILE_SYSTEM_INFO_TABLE = "HardwareInfo_FileSystem";
+
+void SystemEvent::ProtoHandler::AddInfoColumns(Table& table){
+    table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
+}
+
+void SystemEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id){
+    row.BindString(LOGAN_TIMEOFDAY, time);
+    row.BindString(LOGAN_HOSTNAME, host_name);
+    row.BindInt(LOGAN_MESSAGE_ID, message_id);
+}
 
 SystemEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     ::ProtoHandler(),
@@ -70,345 +77,342 @@ SystemEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     CreateProcessInfoTable();
 }
 
+Table& SystemEvent::ProtoHandler::GetTable(const std::string& table_name){
+    return *(tables_.at(table_name));
+}
+
+bool SystemEvent::ProtoHandler::GotTable(const std::string& table_name){
+    try{
+        GetTable(table_name);
+        return true;
+    }catch(const std::exception& ex){}
+    return false;
+}
 
 void SystemEvent::ProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
     //Register call back functions and type with zmqreceiver
-    receiver.RegisterProtoCallback<SystemEvent::StatusEvent>(std::bind(&SystemEvent::ProtoHandler::ProcessStatusEvent, this, std::placeholders::_1));
-    receiver.RegisterProtoCallback<SystemEvent::InfoEvent>(std::bind(&SystemEvent::ProtoHandler::ProcessInfoEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<StatusEvent>(std::bind(&ProtoHandler::ProcessStatusEvent, this, std::placeholders::_1));
+    receiver.RegisterProtoCallback<InfoEvent>(std::bind(&ProtoHandler::ProcessInfoEvent, this, std::placeholders::_1));
 }
 
 void SystemEvent::ProtoHandler::CreateSystemStatusTable(){
-    if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
+    if(GotTable(LOGAN_SYSTEM_STATUS_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_SYSTEM_STATUS_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_SYSTEM_STATUS_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
-    t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
+    AddInfoColumns(table);
+    table.AddColumn("cpu_utilization", LOGAN_DECIMAL);
+    table.AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
+    table.Finalize();
 
-    table_map_[LOGAN_SYSTEM_STATUS_TABLE] = t;
-    t->Finalize();
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_SYSTEM_STATUS_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateSystemInfoTable(){
-    if(table_map_.count(LOGAN_SYSTEM_INFO_TABLE)){
+    if(GotTable(LOGAN_SYSTEM_INFO_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_SYSTEM_INFO_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_SYSTEM_INFO_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn("os_name", LOGAN_VARCHAR);
-    t->AddColumn("os_arch", LOGAN_VARCHAR);
-    t->AddColumn("os_description", LOGAN_VARCHAR);
-    t->AddColumn("os_version", LOGAN_VARCHAR);
-    t->AddColumn("os_vendor", LOGAN_VARCHAR);
-    t->AddColumn("os_vendor_name", LOGAN_VARCHAR);
-    t->AddColumn("cpu_model", LOGAN_VARCHAR);
-    t->AddColumn("cpu_vendor", LOGAN_VARCHAR);
-    t->AddColumn("cpu_frequency", LOGAN_INT);
-    t->AddColumn("physical_memory", LOGAN_INT);
-    t->Finalize();
+    AddInfoColumns(table);
+    //OS Info
+    table.AddColumn("os_name", LOGAN_VARCHAR);
+    table.AddColumn("os_arch", LOGAN_VARCHAR);
+    table.AddColumn("os_description", LOGAN_VARCHAR);
+    table.AddColumn("os_version", LOGAN_VARCHAR);
+    table.AddColumn("os_vendor", LOGAN_VARCHAR);
+    table.AddColumn("os_vendor_name", LOGAN_VARCHAR);
 
-    table_map_[LOGAN_SYSTEM_INFO_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    //CPU Info
+    table.AddColumn("cpu_model", LOGAN_VARCHAR);
+    table.AddColumn("cpu_vendor", LOGAN_VARCHAR);
+    table.AddColumn("cpu_frequency", LOGAN_INT);
+    table.AddColumn("physical_memory", LOGAN_INT);
+    table.Finalize();
+
+    tables_.emplace(std::make_pair(LOGAN_SYSTEM_INFO_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateCpuTable(){
-    if(table_map_.count(LOGAN_CPU_TABLE)){
+    if(GotTable(LOGAN_CPU_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_CPU_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_CPU_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn("core_id", LOGAN_INT);
-    t->AddColumn("core_utilization", LOGAN_DECIMAL);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn("core_id", LOGAN_INT);
+    table.AddColumn("core_utilization", LOGAN_DECIMAL);
+    table.Finalize();
 
-    table_map_[LOGAN_CPU_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_CPU_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateFileSystemTable(){
-    if(table_map_.count(LOGAN_FILE_SYSTEM_TABLE)){
+    if(GotTable(LOGAN_FILE_SYSTEM_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_FILE_SYSTEM_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_FILE_SYSTEM_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
-    t->AddColumn("utilization", LOGAN_DECIMAL);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
+    table.AddColumn("utilization", LOGAN_DECIMAL);
+    table.Finalize();
 
-    table_map_[LOGAN_FILE_SYSTEM_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_FILE_SYSTEM_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateFileSystemInfoTable(){
-    if(table_map_.count(LOGAN_FILE_SYSTEM_INFO_TABLE)){
+    if(GotTable(LOGAN_FILE_SYSTEM_INFO_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_FILE_SYSTEM_INFO_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_FILE_SYSTEM_INFO_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
-    t->AddColumn("size", LOGAN_INT);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    table.AddColumn("size", LOGAN_INT);
+    table.Finalize();
 
-    table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_FILE_SYSTEM_INFO_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateInterfaceTable(){
-    if(table_map_.count(LOGAN_INTERFACE_STATUS_TABLE)){
+    if(GotTable(LOGAN_INTERFACE_STATUS_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_INTERFACE_STATUS_TABLE));
+    auto& table = *table_ptr;
+    
+    AddInfoColumns(table);
+    table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
+    table.AddColumn("rx_packets", LOGAN_INT);
+    table.AddColumn("rx_bytes", LOGAN_INT);
+    table.AddColumn("tx_packets", LOGAN_INT);
+    table.AddColumn("tx_bytes", LOGAN_INT);
+    table.Finalize();
 
-    Table* t = new Table(database_, LOGAN_INTERFACE_STATUS_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
-    t->AddColumn("rx_packets", LOGAN_INT);
-    t->AddColumn("rx_bytes", LOGAN_INT);
-    t->AddColumn("tx_packets", LOGAN_INT);
-    t->AddColumn("tx_bytes", LOGAN_INT);
-    t->Finalize();
-
-    table_map_[LOGAN_INTERFACE_STATUS_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_INTERFACE_STATUS_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateInterfaceInfoTable(){
-    if(table_map_.count(LOGAN_INTERFACE_INFO_TABLE)){
+    if(GotTable(LOGAN_INTERFACE_INFO_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_INTERFACE_INFO_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_INTERFACE_INFO_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
-    t->AddColumn("description", LOGAN_VARCHAR);
-    t->AddColumn("ipv4_addr", LOGAN_VARCHAR);
-    t->AddColumn("ipv6_addr", LOGAN_VARCHAR);
-    t->AddColumn("mac_addr", LOGAN_VARCHAR);
-    t->AddColumn("speed", LOGAN_INT);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
+    table.AddColumn("description", LOGAN_VARCHAR);
+    table.AddColumn("ipv4_addr", LOGAN_VARCHAR);
+    table.AddColumn("ipv6_addr", LOGAN_VARCHAR);
+    table.AddColumn("mac_addr", LOGAN_VARCHAR);
+    table.AddColumn("speed", LOGAN_INT);
+    table.Finalize();
 
-    table_map_[LOGAN_INTERFACE_INFO_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_INTERFACE_INFO_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateProcessTable(){
-    if(table_map_.count(LOGAN_PROCESS_STATUS_TABLE)){
+    if(GotTable(LOGAN_PROCESS_STATUS_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_PROCESS_STATUS_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_PROCESS_STATUS_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn("pid", LOGAN_INT);
-    t->AddColumn("name", LOGAN_VARCHAR);
-    t->AddColumn("core_id", LOGAN_INT);
-    t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
-    t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
-    t->AddColumn("thread_count", LOGAN_INT);
-    t->AddColumn("disk_read", LOGAN_INT);
-    t->AddColumn("disk_written", LOGAN_INT);
-    t->AddColumn("disk_total", LOGAN_INT);
-    t->AddColumn("state", LOGAN_VARCHAR);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn("pid", LOGAN_INT);
+    table.AddColumn("name", LOGAN_VARCHAR);
+    table.AddColumn("core_id", LOGAN_INT);
+    table.AddColumn("cpu_utilization", LOGAN_DECIMAL);
+    table.AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
+    table.AddColumn("thread_count", LOGAN_INT);
+    table.AddColumn("disk_read", LOGAN_INT);
+    table.AddColumn("disk_written", LOGAN_INT);
+    table.AddColumn("disk_total", LOGAN_INT);
+    table.AddColumn("state", LOGAN_VARCHAR);
+    table.Finalize();
 
-    table_map_[LOGAN_PROCESS_STATUS_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_PROCESS_STATUS_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateProcessInfoTable(){
-    if(table_map_.count(LOGAN_PROCESS_INFO_TABLE)){
+    if(GotTable(LOGAN_PROCESS_INFO_TABLE)){
         return;
     }
+    auto table_ptr = std::unique_ptr<Table>(new Table(database_, LOGAN_PROCESS_INFO_TABLE));
+    auto& table = *table_ptr;
 
-    Table* t = new Table(database_, LOGAN_PROCESS_INFO_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn("pid", LOGAN_INT);
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
-    t->AddColumn("args", LOGAN_VARCHAR);
-    t->AddColumn("start_time", LOGAN_INT);
-    t->Finalize();
+    AddInfoColumns(table);
+    table.AddColumn("pid", LOGAN_INT);
+    table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
+    table.AddColumn("args", LOGAN_VARCHAR);
+    table.AddColumn("start_time", LOGAN_INT);
+    table.Finalize();
 
-    table_map_[LOGAN_PROCESS_INFO_TABLE] = t;
-    database_.QueueSqlStatement(t->get_table_construct_statement());
+    tables_.emplace(std::make_pair(LOGAN_PROCESS_INFO_TABLE, std::move(table_ptr)));
+    database_.QueueSqlStatement(table.get_table_construct_statement());
 }
 
+void SystemEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
+    database_.QueueSqlStatement(insert.get_statement());
+}
 
-void SystemEvent::ProtoHandler::ProcessStatusEvent(const SystemEvent::StatusEvent& status){
-    auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
-
-    std::string hostname = status.hostname();
-    int message_id = (int)(status.message_id());
-    
+void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
+    //Get the Globals
+    const auto& host_name = status.hostname();
+    const auto& message_id = status.message_id();
     const auto& timestamp = google::protobuf::util::TimeUtil::ToString(status.timestamp());
-
-
-    stmt.BindString(LOGAN_HOSTNAME, hostname);
-    stmt.BindInt(LOGAN_MESSAGE_ID, message_id);
-    stmt.BindString(LOGAN_TIMEOFDAY, timestamp);
-
-    stmt.BindDouble("cpu_utilization", status.cpu_utilization());
-    stmt.BindDouble("phys_mem_utilization", status.phys_mem_utilization());
-    database_.QueueSqlStatement(stmt.get_statement());
-
-
-    for(int i = 0; i < status.cpu_core_utilization_size(); i++){
-        auto cpustmt = table_map_[LOGAN_CPU_TABLE]->get_insert_statement();
-        cpustmt.BindString(LOGAN_HOSTNAME, hostname);
-        cpustmt.BindInt(LOGAN_MESSAGE_ID, message_id);
-        cpustmt.BindString(LOGAN_TIMEOFDAY, timestamp);
-
-        cpustmt.BindInt("core_id", i);
-        cpustmt.BindDouble("core_utilization", status.cpu_core_utilization(i));
-        database_.QueueSqlStatement(cpustmt.get_statement());
+    
+    {
+        auto row = GetTable(LOGAN_SYSTEM_STATUS_TABLE).get_insert_statement();
+        BindInfoColumns(row, timestamp, host_name, message_id);
+        row.BindDouble("cpu_utilization", status.cpu_utilization());
+        row.BindDouble("phys_mem_utilization", status.phys_mem_utilization());
+        QueueTableStatement(row);
     }
 
-    for(int i = 0; i < status.processes_size(); i++){
-        auto procstmt = table_map_[LOGAN_PROCESS_STATUS_TABLE]->get_insert_statement();
-        SystemEvent::ProcessStatus proc = status.processes(i);
+    for(size_t i = 0; i < status.cpu_core_utilization_size(); i++){
+        auto row = GetTable(LOGAN_CPU_TABLE).get_insert_statement();
+        BindInfoColumns(row, timestamp, host_name, message_id);
 
-        procstmt.BindString(LOGAN_HOSTNAME, hostname);
-        procstmt.BindInt(LOGAN_MESSAGE_ID, message_id);
-        procstmt.BindString(LOGAN_TIMEOFDAY, timestamp);
-
-        procstmt.BindInt("pid", proc.pid());
-        procstmt.BindString("name", proc.name());
-        procstmt.BindInt("core_id", proc.cpu_core_id());
-        procstmt.BindDouble("cpu_utilization", proc.cpu_utilization());
-        procstmt.BindDouble("phys_mem_utilization", proc.phys_mem_utilization());
-        procstmt.BindInt("thread_count", proc.thread_count());
-        procstmt.BindInt("disk_read", (int)(proc.disk_read()));
-        procstmt.BindInt("disk_written", (int)(proc.disk_written()));
-        procstmt.BindInt("disk_total", (int)(proc.disk_total()));
-        procstmt.BindString("state", SystemEvent::ProcessStatus::State_Name(proc.state()));
-        database_.QueueSqlStatement(procstmt.get_statement());
+        row.BindInt("core_id", i);
+        row.BindDouble("core_utilization", status.cpu_core_utilization(i));
+        QueueTableStatement(row);
     }
 
-    for(int i = 0; i < status.interfaces_size(); i++){
-        auto ifstatement = table_map_[LOGAN_INTERFACE_STATUS_TABLE]->get_insert_statement();
-        SystemEvent::InterfaceStatus ifstat = status.interfaces(i);
+    for(size_t i = 0; i < status.processes_size(); i++){
+        const auto& proc_pb = status.processes(i);
+        auto row = GetTable(LOGAN_PROCESS_STATUS_TABLE).get_insert_statement();
 
-        ifstatement.BindString(LOGAN_HOSTNAME, hostname);
-        ifstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
-        ifstatement.BindString(LOGAN_TIMEOFDAY, timestamp);
-        ifstatement.BindString(LOGAN_NAME, ifstat.name());
-        ifstatement.BindInt("rx_packets", (int)(ifstat.rx_packets()));
-        ifstatement.BindInt("rx_bytes", (int)(ifstat.rx_bytes()));
-        ifstatement.BindInt("tx_packets", (int)(ifstat.tx_packets()));
-        ifstatement.BindInt("tx_bytes", (int)(ifstat.tx_bytes()));
-        database_.QueueSqlStatement(ifstatement.get_statement());
+        BindInfoColumns(row, timestamp, host_name, message_id);
+        row.BindInt("pid", proc_pb.pid());
+        row.BindString("name", proc_pb.name());
+        row.BindInt("core_id", proc_pb.cpu_core_id());
+        row.BindDouble("cpu_utilization", proc_pb.cpu_utilization());
+        row.BindDouble("phys_mem_utilization", proc_pb.phys_mem_utilization());
+        row.BindInt("thread_count", proc_pb.thread_count());
+        row.BindInt("disk_read", proc_pb.disk_read());
+        row.BindInt("disk_written", proc_pb.disk_written());
+        row.BindInt("disk_total", proc_pb.disk_total());
+        row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
+        QueueTableStatement(row);
     }
 
-    for(int i = 0; i < status.file_systems_size(); i++){
-        auto fsstatement = table_map_[LOGAN_FILE_SYSTEM_TABLE]->get_insert_statement();
-        SystemEvent::FileSystemStatus fss = status.file_systems(i);
+    for(size_t i = 0; i < status.interfaces_size(); i++){
+        const auto& iface_pb = status.interfaces(i);
+        auto row = GetTable(LOGAN_INTERFACE_STATUS_TABLE).get_insert_statement();
 
-        fsstatement.BindString(LOGAN_HOSTNAME, hostname);
-        fsstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
-        fsstatement.BindString(LOGAN_TIMEOFDAY, timestamp);
-        fsstatement.BindString(LOGAN_NAME, fss.name());
-        fsstatement.BindDouble("utilization", fss.utilization());
-        database_.QueueSqlStatement(fsstatement.get_statement());
+        BindInfoColumns(row, timestamp, host_name, message_id);
+        row.BindString(LOGAN_NAME, iface_pb.name());
+        row.BindInt("rx_packets", iface_pb.rx_packets());
+        row.BindInt("rx_bytes", iface_pb.rx_bytes());
+        row.BindInt("tx_packets", iface_pb.tx_packets());
+        row.BindInt("tx_bytes", iface_pb.tx_bytes());
+        QueueTableStatement(row);
     }
 
-    for(int i = 0; i < status.process_info_size(); i++){
-        SystemEvent::ProcessInfo proc_info = status.process_info(i);
-        if(proc_info.pid() != 0){
-            auto proc_insert = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
-            proc_insert.BindString(LOGAN_HOSTNAME, hostname);
-            proc_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
-            proc_insert.BindString(LOGAN_TIMEOFDAY, timestamp);
-            proc_insert.BindInt("pid", proc_info.pid());
-            proc_insert.BindString(LOGAN_NAME, proc_info.name());
-            proc_insert.BindString("args", proc_info.args());
-            proc_insert.BindDouble("start_time", proc_info.start_time());
-            database_.QueueSqlStatement(proc_insert.get_statement());
+    for(size_t i = 0; i < status.file_systems_size(); i++){
+        const auto& fs_pb = status.file_systems(i);
+        auto row = GetTable(LOGAN_FILE_SYSTEM_TABLE).get_insert_statement();
+
+        BindInfoColumns(row, timestamp, host_name, message_id);
+        row.BindString(LOGAN_NAME, fs_pb.name());
+        row.BindDouble("utilization", fs_pb.utilization());
+        QueueTableStatement(row);
+    }
+
+    for(size_t i = 0; i < status.process_info_size(); i++){
+        const auto& proc_pb = status.process_info(i);
+        if(proc_pb.pid() > 0){
+            auto row = GetTable(LOGAN_PROCESS_INFO_TABLE).get_insert_statement();
+
+            BindInfoColumns(row, timestamp, host_name, message_id);
+            row.BindInt("pid", proc_pb.pid());
+            row.BindString(LOGAN_NAME, proc_pb.name());
+            row.BindString("args", proc_pb.args());
+            row.BindDouble("start_time", proc_pb.start_time());
+            QueueTableStatement(row);
         }
     }
 }
 
-void SystemEvent::ProtoHandler::ProcessInfoEvent(const SystemEvent::InfoEvent& info){
-    std::string hostname = info.hostname();
-    //Check if we have this node info already
-    if(registered_nodes_.find(hostname) != registered_nodes_.end()){
+void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
+    if(registered_nodes_.count(info.hostname())){
         return;
     }
 
-    int message_id = (int)(info.message_id());
+    //Get the Globals
+    const auto& host_name = info.hostname();
+    const auto& message_id = info.message_id();
     const auto& timestamp = google::protobuf::util::TimeUtil::ToString(info.timestamp());
 
-    auto infostmt = table_map_[LOGAN_SYSTEM_INFO_TABLE]->get_insert_statement();
-    infostmt.BindString(LOGAN_HOSTNAME, hostname);
-    infostmt.BindInt(LOGAN_MESSAGE_ID, message_id);
+    {
+        //Register the node
+        registered_nodes_.insert(host_name);
 
-    infostmt.BindString(LOGAN_TIMEOFDAY, timestamp);
+        auto row = GetTable(LOGAN_SYSTEM_INFO_TABLE).get_insert_statement();
+        BindInfoColumns(row, timestamp, host_name, message_id);
 
-    infostmt.BindString("os_name", info.os_name());
-    infostmt.BindString("os_arch", info.os_arch());
-    infostmt.BindString("os_description", info.os_description());
-    infostmt.BindString("os_version", info.os_version());
-    infostmt.BindString("os_vendor", info.os_vendor());
-    infostmt.BindString("os_vendor_name", info.os_vendor_name());
-    infostmt.BindString("cpu_model", info.cpu_model());
-    infostmt.BindString("cpu_vendor", info.cpu_vendor());
-    infostmt.BindInt("cpu_frequency", info.cpu_frequency());
-    infostmt.BindInt("physical_memory", info.physical_memory());
-    database_.QueueSqlStatement(infostmt.get_statement());
+        //Bind OS Info
+        row.BindString("os_name", info.os_name());
+        row.BindString("os_arch", info.os_arch());
+        row.BindString("os_description", info.os_description());
+        row.BindString("os_version", info.os_version());
+        row.BindString("os_vendor", info.os_vendor());
+        row.BindString("os_vendor_name", info.os_vendor_name());
 
-    for(int i = 0; i < info.file_system_info_size(); i++){
-        SystemEvent::FileSystemInfo fsi = info.file_system_info(i);
+        //Bind CPU Info
+        row.BindString("cpu_model", info.cpu_model());
+        row.BindString("cpu_vendor", info.cpu_vendor());
+        row.BindInt("cpu_frequency", info.cpu_frequency());
+        row.BindInt("physical_memory", info.physical_memory());
 
-        auto fsinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();
-        fsinfo.BindString(LOGAN_HOSTNAME, hostname);
-        fsinfo.BindInt(LOGAN_MESSAGE_ID, message_id);
-        fsinfo.BindString(LOGAN_TIMEOFDAY, timestamp);
-        fsinfo.BindString(LOGAN_NAME, fsi.name());
-        fsinfo.BindString(LOGAN_TYPE, SystemEvent::FileSystemInfo::Type_Name(fsi.type()));
-        fsinfo.BindInt("size", (int)(fsi.size()));
-        database_.QueueSqlStatement(fsinfo.get_statement());
+        QueueTableStatement(row);
     }
 
-    for(int i = 0; i < info.interface_info_size(); i++){
-        SystemEvent::InterfaceInfo if_info = info.interface_info(i);
+    for(size_t i = 0; i < info.file_system_info_size(); i++){
+        const auto& fs_pb = info.file_system_info(i);
 
-        auto if_insert = table_map_[LOGAN_INTERFACE_INFO_TABLE]->get_insert_statement();
+        auto row = GetTable(LOGAN_FILE_SYSTEM_INFO_TABLE).get_insert_statement();
+        BindInfoColumns(row, timestamp, host_name, message_id);
+        
+        row.BindString(LOGAN_NAME, fs_pb.name());
+        row.BindString(LOGAN_TYPE, FileSystemInfo::Type_Name(fs_pb.type()));
+        row.BindInt("size", fs_pb.size());
 
-        if_insert.BindString(LOGAN_HOSTNAME, hostname);
-        if_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
-        if_insert.BindString(LOGAN_TIMEOFDAY, timestamp);
+        QueueTableStatement(row);
+    }
 
-        if_insert.BindString(LOGAN_NAME, if_info.name());
-        if_insert.BindString("type", if_info.type());
-        if_insert.BindString("description", if_info.description());
-        if_insert.BindString("ipv4_addr", if_info.ipv4_addr());
-        if_insert.BindString("ipv6_addr", if_info.ipv6_addr());
-        if_insert.BindString("mac_addr", if_info.mac_addr());
-        if_insert.BindInt("speed", (int)(if_info.speed()));
+    for(size_t i = 0; i < info.interface_info_size(); i++){
+        const auto& iface_pb = info.interface_info(i);
 
-        database_.QueueSqlStatement(if_insert.get_statement());
+        auto row = GetTable(LOGAN_INTERFACE_INFO_TABLE).get_insert_statement();
+        BindInfoColumns(row, timestamp, host_name, message_id);
+
+        row.BindString(LOGAN_NAME, iface_pb.name());
+        row.BindString("type", iface_pb.type());
+        row.BindString("description", iface_pb.description());
+        row.BindString("ipv4_addr", iface_pb.ipv4_addr());
+        row.BindString("ipv6_addr", iface_pb.ipv6_addr());
+        row.BindString("mac_addr", iface_pb.mac_addr());
+        row.BindInt("speed", iface_pb.speed());
+
+        QueueTableStatement(row);
     }
 }
