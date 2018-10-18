@@ -90,8 +90,8 @@ class SigarSystemInfo: public SystemInfo{
         std::set<int> get_monitored_pids() const;
 
 
-        void monitor_processes(const std::string processName);
-        void ignore_processes(const std::string processName);
+        void monitor_processes(const std::string& processName);
+        void ignore_processes(const std::string& processName);
         void ignore_processes();
         std::vector<std::string> get_monitored_processes_names() const;
 
@@ -200,7 +200,7 @@ class SigarSystemInfo: public SystemInfo{
         bool force_process_name_check_ = false;
         int update_count_ = 0;
 
-        bool stringInString(const std::string haystack, const std::string needle) const;
+        bool stringInString(const std::string& haystack, const std::string& needle) const;
 
 };
 

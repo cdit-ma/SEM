@@ -125,8 +125,8 @@ class SystemInfo{
     virtual std::string get_process_arguments(const int pid) const = 0;
     virtual SystemInfo::ProcessState get_process_state(const int pid) const = 0;
 
-    virtual void monitor_processes(const std::string processName) = 0;
-    virtual void ignore_processes(const std::string processName) = 0;
+    virtual void monitor_processes(const std::string& processName) = 0;
+    virtual void ignore_processes(const std::string& processName) = 0;
     
     virtual void monitor_process(const int pid) = 0;
     virtual void ignore_process(const int pid) = 0;

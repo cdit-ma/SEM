@@ -767,7 +767,7 @@ std::set<int> SigarSystemInfo::get_monitored_pids() const{
 }
 
 
-void SigarSystemInfo::monitor_processes(const std::string processName){
+void SigarSystemInfo::monitor_processes(const std::string& processName){
     //If can't find
     if(std::find(tracked_process_names_.begin(), tracked_process_names_.end(), processName) == tracked_process_names_.end()){
         tracked_process_names_.push_back(processName);
@@ -775,7 +775,7 @@ void SigarSystemInfo::monitor_processes(const std::string processName){
     }
 }
 
-void SigarSystemInfo::ignore_processes(const std::string processName){
+void SigarSystemInfo::ignore_processes(const std::string& processName){
     //If can't find
     auto location = std::find(tracked_process_names_.begin(), tracked_process_names_.end(), processName);
     if(location != tracked_process_names_.end()){
@@ -799,7 +799,7 @@ std::chrono::milliseconds SigarSystemInfo::get_monitored_process_update_time(con
 }
  
 
-bool SigarSystemInfo::stringInString(const std::string haystack, const std::string needle) const{
+bool SigarSystemInfo::stringInString(const std::string& haystack, const std::string& needle) const{
     auto match = std::search(
         haystack.begin(), haystack.end(),
         needle.begin(), needle.end(),
