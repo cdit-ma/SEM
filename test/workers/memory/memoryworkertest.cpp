@@ -1,6 +1,7 @@
 
 #include <core/component.h>
 #include <workers/memory/memory_worker.h>
+#include <workers/memory/memory_worker_impl.h>
 
 #include "gtest/gtest.h"
 #include <limits>
@@ -92,6 +93,18 @@ TEST(MemoryWorker, NegativeAllocationSmall) {
 
     // Allocation should not occur, therefore no memory should have been allocated
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
+}
+
+TEST(MemoryWorkerImpl, ZeroAllocation) {
+    Memory_Worker_Impl worker;
+
+    EXPECT_FALSE(worker.Allocate(0));
+}
+
+TEST(MemoryWorkerImpl, ZeroDeallocation) {
+    Memory_Worker_Impl worker;
+
+    EXPECT_FALSE(worker.Deallocate(0));
 }
 
 TEST(MemoryWorker, NegativeAllocationLarge) {
