@@ -10,61 +10,49 @@ Memory_Worker::~Memory_Worker(){
 }
 
 void Memory_Worker::Allocate(int kilobytes){
+    const auto& func_name = std::string(GET_FUNC);
+    
     auto work_id = get_new_work_id();
-    auto fun = std::string(GET_FUNC);
-    auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
+    auto args = get_arg_string_variadic("kilobytes = %d", kilobytes);
 
-    //Log Before
-    Log(fun, Logger::WorkloadEvent::STARTED, work_id, args);
-
-    // Bounds check for negative sizes
-    if (kilobytes < 0) {
-        Log(fun, Logger::WorkloadEvent::WARNING, work_id, 
-            "Allocation Failed; attempting to deallocate with a negative number");
-    } else {
-        try {
-            //Do work
-            auto res = impl_->Allocate(kilobytes);
-            if(!res){
-                Log(fun, Logger::WorkloadEvent::ERROR, work_id, "Allocation Failed");
+    if(kilobytes > 0){
+        try{
+            Log(func_name, Logger::WorkloadEvent::STARTED, work_id, args);
+            
+            if(impl_->Allocate(kilobytes)){
+                Log(func_name, Logger::WorkloadEvent::FINISHED, work_id);
+            }else{
+                Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Allocation Failed");
             }
-        } catch (const std::exception& ex) {
-            Log(fun, Logger::WorkloadEvent::ERROR, work_id,
-                "Allocation failed with exception: "+std::string(ex.what()));
+        }catch(const std::exception& ex){
+            Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Allocation failed with exception: " + std::string(ex.what()));
         }
+    }else{
+        Log(func_name, Logger::WorkloadEvent::WARNING, work_id, "Allocation Failed; Attempting to allocate a non-positive number of KB.");
     }
-
-    //Log After
-    Log(fun, Logger::WorkloadEvent::FINISHED, work_id, args);
 }
 
 void Memory_Worker::Deallocate(int kilobytes){
+    const auto& func_name = std::string(GET_FUNC);
+    
     auto work_id = get_new_work_id();
-    auto fun = std::string(GET_FUNC);
-    auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
+    auto args = get_arg_string_variadic("kilobytes = %d", kilobytes);
 
-    //Log Before
-    Log(fun, Logger::WorkloadEvent::STARTED, work_id, args);
-
-    // Bounds check for negative sizes
-    if (kilobytes < 0) {
-        Log(fun, Logger::WorkloadEvent::WARNING, work_id,
-            "Deallocation Failed; attempting to deallocate with a negative number");
-    } else {
-        try {
-            //Do work
-            auto res = impl_->Deallocate(kilobytes);
-            if(!res){
-                Log(fun, Logger::WorkloadEvent::ERROR, work_id, "Deallocation Failed");
+    if(kilobytes > 0){
+        try{
+            Log(func_name, Logger::WorkloadEvent::STARTED, work_id, args);
+            
+            if(impl_->Deallocate(kilobytes)){
+                Log(func_name, Logger::WorkloadEvent::FINISHED, work_id);
+            }else{
+                Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Deallocation Failed");
             }
-        } catch (const std::exception& ex) {
-            Log(fun, Logger::WorkloadEvent::ERROR, work_id,
-                "Deallocation failed with exception: "+std::string(ex.what()));
+        }catch(const std::exception& ex){
+            Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Deallocation failed with exception: " + std::string(ex.what()));
         }
+    }else{
+        Log(func_name, Logger::WorkloadEvent::WARNING, work_id, "Deallocation Failed; Attempting to deallocate a non-positive number of KB.");
     }
-
-    //Log After
-    Log(fun, Logger::WorkloadEvent::FINISHED, work_id, args);
 }
 
 int Memory_Worker::GetAllocatedCount() const{

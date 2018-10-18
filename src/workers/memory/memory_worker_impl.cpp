@@ -13,26 +13,29 @@ Memory_Worker_Impl::~Memory_Worker_Impl(){
 bool Memory_Worker_Impl::Allocate(size_t kilobytes) {
     bool result = false;
     std::lock_guard<std::mutex> guard(lock_);
+    if(kilobytes > 0){
+        // although the complexity function is evaluated to a double, only use integer for allocating memory
+        while(kilobytes-- > 0){
+            char* allocation = 0;
+            allocation = new char[CUTS_MEMORY_ALLOC_SIZE];
 
-    // although the complexity function is evaluated to a double, only use integer for allocating memory
-    while(kilobytes-- > 0){
-        char* allocation = 0;
-        allocation = new char[CUTS_MEMORY_ALLOC_SIZE];
-
-        if(allocation){
-            memory_.push_back(allocation);
-        }
-        else {
-            result = false;
+            if(allocation){
+                memory_.push_back(allocation);
+            }
+            else {
+                result = false;
+            }
         }
     }
     return result;
 }
 
 bool Memory_Worker_Impl::Deallocate(size_t kilobytes) {
-    std::lock_guard<std::mutex> guard(lock_);
-
-    return _NonThreadSafeDeallocate(kilobytes);
+    if(kilobytes > 0){
+        std::lock_guard<std::mutex> guard(lock_);
+        return _NonThreadSafeDeallocate(kilobytes);
+    }
+    return false;
 }
 
 bool Memory_Worker_Impl::_NonThreadSafeDeallocate(size_t kilobytes) {
