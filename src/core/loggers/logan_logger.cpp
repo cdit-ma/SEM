@@ -5,30 +5,34 @@
 #include <core/ports/port.h>
 #include <core/component.h>
 #include <core/worker.h>
+#include <google/protobuf/util/time_util.h>
 
-void FillInfoPB(re_common::Info& info, Logan::Logger& logger){
+void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
-    info.set_timestamp(logger.GetCurrentTime().count() / 1000.0);
+
+    using namespace google::protobuf::util;
+    auto timestamp = TimeUtil::MillisecondsToTimestamp(logger.GetCurrentTime().count());
+    info.mutable_timestamp()->Swap(&timestamp);
 }
 
-void FillComponentPB(re_common::Component& c, const Component& component){
+void FillComponentPB(ModelEvent::Component& c, const Component& component){
     c.set_name(component.GetLocalisedName());
     c.set_id(component.get_id());
     c.set_type(component.get_type());
 }
 
-void FillWorkerPB(re_common::Worker& w, const Worker& worker){
+void FillWorkerPB(ModelEvent::Worker& w, const Worker& worker){
     w.set_name(worker.get_name());
     w.set_id(worker.get_id());
     w.set_type(worker.get_worker_name());
 }
 
-void FillPortPB(re_common::Port& p, const Port& port){
+void FillPortPB(ModelEvent::Port& p, const Port& port){
     p.set_name(port.get_name());
     p.set_id(port.get_id());
     p.set_type(port.get_type());
-    p.set_kind((re_common::Port::Kind)((int)port.get_kind()));
+    p.set_kind((ModelEvent::Port::Kind)((int)port.get_kind()));
     p.set_middleware(port.get_middleware());
 }
 
@@ -57,8 +61,8 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
 }
 
 void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, const std::string& message){
-    auto event_pb = std::unique_ptr<re_common::UtilizationEvent>(new re_common::UtilizationEvent());
-    event_pb->set_type(is_exception ? re_common::UtilizationEvent::EXCEPTION : re_common::UtilizationEvent::MESSAGE);
+    auto event_pb = std::unique_ptr<ModelEvent::UtilizationEvent>(new ModelEvent::UtilizationEvent());
+    event_pb->set_type(is_exception ? ModelEvent::UtilizationEvent::EXCEPTION : ModelEvent::UtilizationEvent::MESSAGE);
     if(message.size()){
         event_pb->set_message(message);
     }
@@ -92,8 +96,8 @@ void Logan::Logger::LogException(const Activatable& entity, const std::string& m
 }
 
 void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
-    auto event_pb = std::unique_ptr<re_common::WorkloadEvent>(new re_common::WorkloadEvent());
-    event_pb->set_event_type((re_common::WorkloadEvent::Type)(int)event);
+    auto event_pb = std::unique_ptr<ModelEvent::WorkloadEvent>(new ModelEvent::WorkloadEvent());
+    event_pb->set_event_type((ModelEvent::WorkloadEvent::Type)(int)event);
 
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
@@ -126,9 +130,9 @@ void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& func
 }
 
 void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger::LifeCycleEvent& event){
-    auto event_pb = std::unique_ptr<re_common::LifecycleEvent>(new re_common::LifecycleEvent());
+    auto event_pb = std::unique_ptr<ModelEvent::LifecycleEvent>(new ModelEvent::LifecycleEvent());
     
-    event_pb->set_type((re_common::LifecycleEvent::Type)(int)event);
+    event_pb->set_type((ModelEvent::LifecycleEvent::Type)(int)event);
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
     if(entity.get_class() == Activatable::Class::COMPONENT){
@@ -149,9 +153,9 @@ void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger:
 }
 
 void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const ::Logger::UtilizationEvent& event, const std::string& message_str){
-    auto event_pb = std::unique_ptr<re_common::UtilizationEvent>(new re_common::UtilizationEvent());
+    auto event_pb = std::unique_ptr<ModelEvent::UtilizationEvent>(new ModelEvent::UtilizationEvent());
     
-    event_pb->set_type((re_common::UtilizationEvent::Type)(int)event);
+    event_pb->set_type((ModelEvent::UtilizationEvent::Type)(int)event);
     
     FillInfoPB(*(event_pb->mutable_info()), *this);
     FillPortPB(*(event_pb->mutable_port()), port);
