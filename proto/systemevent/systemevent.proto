@@ -20,7 +20,8 @@
 
 syntax="proto3";
 
-package re_common;
+package SystemEvent;
+import "google/protobuf/timestamp.proto";
 
 message ProcessStatus{
 	uint32 pid = 1;
@@ -89,9 +90,10 @@ message InterfaceInfo{
 	uint64 speed = 7;
 }
 
-message SystemStatus{
+
+message StatusEvent{
 	string hostname = 1;
-	double timestamp = 2;
+	google.protobuf.Timestamp timestamp = 2;
 	int64 message_id = 3;
 
 	repeated double cpu_core_utilization = 4;
@@ -104,9 +106,9 @@ message SystemStatus{
 	repeated FileSystemStatus file_systems = 11;
 }
 
-message SystemInfo{
+message InfoEvent{
 	string hostname = 1;
-	double timestamp = 2;
+	google.protobuf.Timestamp timestamp = 2;
 	int64 message_id = 3;
 	//OS
 	string os_name = 4;

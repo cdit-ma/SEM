@@ -1,11 +1,11 @@
 #Set our project names
-set(PROJ_NAME re_common_proto_systemstatus)
+set(PROJ_NAME re_common_proto_systemevent)
 project(${PROJ_NAME})
 
 find_package(Protobuf REQUIRED)
 
 # Generate .proto file
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/systemstatus.proto)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/systemevent.proto)
 
 add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
