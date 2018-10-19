@@ -248,7 +248,7 @@ void SystemEvent::ProtoHandler::CreateProcessTable(){
     table.AddColumn("disk_written_kB", LOGAN_INT);
     table.AddColumn("disk_total_kB", LOGAN_INT);
 
-    table.AddColumn("cpu_time", LOGAN_VARCHAR);
+    table.AddColumn("cpu_time_ms", LOGAN_INT);
     table.AddColumn("state", LOGAN_VARCHAR);
     table.Finalize();
 
@@ -319,9 +319,8 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         row.BindInt("disk_read_kB", proc_pb.disk_read_kilobytes());
         row.BindInt("disk_written_kB", proc_pb.disk_written_kilobytes());
         row.BindInt("disk_total_kB", proc_pb.disk_total_kilobytes());
-
-        const auto& cpu_duration = google::protobuf::util::TimeUtil::ToString(proc_pb.cpu_time());
-        row.BindString("cpu_time", cpu_duration);
+        
+        row.BindInt("cpu_time_ms", proc_pb.cpu_time().nanos() / 10E6);
         row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
         QueueTableStatement(row);
     }

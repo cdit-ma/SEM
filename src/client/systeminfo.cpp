@@ -102,6 +102,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             //Set the status info
             process_status->set_cpu_core_id(get_monitored_process_cpu(pid));
             process_status->set_cpu_utilization(get_monitored_process_cpu_utilization(pid));
+            process_status->set_phys_mem_used_kb(get_monitored_process_phys_mem_used_kB(pid));
             process_status->set_phys_mem_utilization(get_monitored_process_phys_mem_utilization(pid));
             process_status->set_thread_count(get_monitored_process_thread_count(pid));
 

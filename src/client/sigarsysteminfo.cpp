@@ -817,11 +817,10 @@ bool SigarSystemInfo::update_processes(){
 
             //If we care about tracking this PID, get it's state cpu mem and disk
             if(get_info && tracked_pids_.count(pid)){
-                std::cerr << "UPDATING: " << pid << " '" << process.proc_name << "'" << std::endl;
-                std::cerr << "state: ";PrintError(sigar_proc_state_get(sigar_, pid, &process.state));
-                std::cerr << "cpu: ";PrintError(sigar_proc_cpu_get(sigar_, pid, &process.cpu));
-                std::cerr << "mem: ";PrintError(sigar_proc_mem_get(sigar_, pid, &process.mem));
-                std::cerr << "disk: ";PrintError(sigar_proc_disk_io_get(sigar_, pid, &process.disk));
+                sigar_proc_state_get(sigar_, pid, &process.state);
+                sigar_proc_cpu_get(sigar_, pid, &process.cpu);
+                sigar_proc_mem_get(sigar_, pid, &process.mem);
+                sigar_proc_disk_io_get(sigar_, pid, &process.disk);
                 process.lastUpdated_ = current_timestamp;
             }
         }catch(const std::exception& ex){
