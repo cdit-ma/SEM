@@ -103,7 +103,7 @@ LogController::~LogController(){
     Stop();
 }
 
-void LogController::GotNewConnection(int, std::string){
+void LogController::GotNewConnection(int a, std::string b){
     //Enqueue
     QueueOneTimeInfo();
 }
@@ -117,6 +117,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     State state = State::RUNNING;
     auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
     {
+        
         {
             //Attach monitor
             auto monitor = std::unique_ptr<zmq::Monitor>(new zmq::Monitor());
@@ -140,6 +141,8 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         if(state == State::S_ERROR){
             return;
         }
+
+        
         
         
         //Get the duration in milliseconds
@@ -177,6 +180,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
                         send_onetime_info_ = false;
                     }
                 }
+                std::cerr << system_.GetSystemInfo(listener_id_)->DebugString() << std::endl;
             }
 
             {

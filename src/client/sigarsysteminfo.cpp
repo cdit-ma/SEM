@@ -34,8 +34,8 @@ SystemInfo& SigarSystemInfo::GetSystemInfo(){
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
     update_timestamp();
-    UpdateData();
     onetime_update_sys_info();
+    UpdateData();
 }
 
 SigarSystemInfo::~SigarSystemInfo(){
@@ -207,13 +207,16 @@ std::chrono::milliseconds SigarSystemInfo::UpdateData(){
     auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - lastUpdate_);
 
     //don't update more than 10 times a second
-    if(difference.count() >= 100){
+    if(difference.count() >= 100 || update_count_ == 0){
         update_timestamp();
+        
         update_cpu();
         update_phys_mem(&phys_mem_);
         update_interfaces();
         update_processes();
         update_filesystems();
+
+        update_count_++;
     }
     return lastUpdate_;
 }
