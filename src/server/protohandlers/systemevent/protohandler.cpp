@@ -320,7 +320,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         row.BindInt("disk_written_kB", proc_pb.disk_written_kilobytes());
         row.BindInt("disk_total_kB", proc_pb.disk_total_kilobytes());
         
-        row.BindInt("cpu_time_ms", proc_pb.cpu_time().nanos() / 10E6);
+        row.BindInt("cpu_time_ms", google::protobuf::util::TimeUtil::DurationToMilliseconds(proc_pb.cpu_time()));
         row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
         QueueTableStatement(row);
     }
