@@ -28,6 +28,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <memory>
+#include <chrono>
 
 namespace SystemEvent{
     class InfoEvent;
@@ -80,9 +81,9 @@ class SystemInfo{
     virtual std::string get_fs_name(const int fs_index) const = 0;
     virtual SystemInfo::FileSystemType get_fs_type(const int fs_index) const = 0;
     
-    virtual int get_fs_size(const int fs_index) const = 0;
-    virtual int get_fs_free(const int fs_index) const = 0;
-    virtual int get_fs_used(const int fs_index) const = 0;
+    virtual uint64_t get_fs_size_kB(const int fs_index) const = 0;
+    virtual uint64_t get_fs_free_kB(const int fs_index) const = 0;
+    virtual uint64_t get_fs_used_kB(const int fs_index) const = 0;
     virtual double get_fs_utilization(const int fs_index) const = 0;
 
 
@@ -96,9 +97,10 @@ class SystemInfo{
     virtual std::string get_cpu_vendor() const = 0;
 
     //in MB 
-    virtual int get_phys_mem() const = 0;
-    virtual int get_phys_mem_reserved() const = 0;
-    virtual int get_phys_mem_free() const = 0;
+    virtual uint64_t get_phys_mem_kB() const = 0;
+    virtual uint64_t get_phys_mem_reserved_kB() const = 0;
+    virtual uint64_t get_phys_mem_free_kB() const = 0;
+
     virtual double get_phys_mem_utilization() const = 0;
 
 
@@ -135,21 +137,22 @@ class SystemInfo{
 
     virtual void ignore_processes() = 0;
     
-    virtual std::vector<std::string> get_monitored_processes_names() const = 0;
+    virtual const std::set<std::string>& get_monitored_processes_names() const = 0;
 
 
     virtual int get_monitored_process_cpu(const int pid) const = 0;
     virtual double get_monitored_process_cpu_utilization(const int pid) const = 0;
-    virtual int get_monitored_process_phys_mem_used(const int pid) const = 0;
+    virtual uint64_t get_monitored_process_phys_mem_used_kB(const int pid) const = 0;
     virtual double get_monitored_process_phys_mem_utilization(const int pid) const = 0;
     virtual int get_monitored_process_thread_count(const int pid) const = 0;
-    virtual time_t get_monitored_process_start_time(const int pid) const = 0;
-    virtual time_t get_monitored_process_total_time(const int pid) const = 0;
+
+    virtual std::chrono::milliseconds get_monitored_process_start_time(const int pid) const = 0;
+    virtual std::chrono::milliseconds get_monitored_process_cpu_time(const int pid) const = 0;
     virtual std::chrono::milliseconds get_monitored_process_update_time(const int pid) const = 0;
 
-    virtual long long get_monitored_process_disk_written(const int pid) const = 0;
-    virtual long long get_monitored_process_disk_read(const int pid) const = 0;
-    virtual long long get_monitored_process_disk_total(const int pid) const = 0;
+    virtual uint64_t get_monitored_process_disk_written_kB(const int pid) const = 0;
+    virtual uint64_t get_monitored_process_disk_read_kB(const int pid) const = 0;
+    virtual uint64_t get_monitored_process_disk_total_kB(const int pid) const = 0;
 
 
 

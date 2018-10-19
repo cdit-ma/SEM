@@ -130,8 +130,8 @@ void SystemEvent::ProtoHandler::CreateSystemInfoTable(){
     //CPU Info
     table.AddColumn("cpu_model", LOGAN_VARCHAR);
     table.AddColumn("cpu_vendor", LOGAN_VARCHAR);
-    table.AddColumn("cpu_frequency", LOGAN_INT);
-    table.AddColumn("physical_memory", LOGAN_INT);
+    table.AddColumn("cpu_frequency_hz", LOGAN_INT);
+    table.AddColumn("physical_memory_kB", LOGAN_INT);
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_SYSTEM_INFO_TABLE, std::move(table_ptr)));
@@ -180,7 +180,7 @@ void SystemEvent::ProtoHandler::CreateFileSystemInfoTable(){
     AddInfoColumns(table);
     table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
-    table.AddColumn("size", LOGAN_INT);
+    table.AddColumn("total_size_kB", LOGAN_INT);
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_FILE_SYSTEM_INFO_TABLE, std::move(table_ptr)));
@@ -238,12 +238,17 @@ void SystemEvent::ProtoHandler::CreateProcessTable(){
     table.AddColumn("pid", LOGAN_INT);
     table.AddColumn("name", LOGAN_VARCHAR);
     table.AddColumn("core_id", LOGAN_INT);
+
     table.AddColumn("cpu_utilization", LOGAN_DECIMAL);
     table.AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
     table.AddColumn("thread_count", LOGAN_INT);
-    table.AddColumn("disk_read", LOGAN_INT);
-    table.AddColumn("disk_written", LOGAN_INT);
-    table.AddColumn("disk_total", LOGAN_INT);
+
+    table.AddColumn("disk_read_kB", LOGAN_INT);
+    table.AddColumn("disk_written_kB", LOGAN_INT);
+    table.AddColumn("disk_total_kB", LOGAN_INT);
+    
+    table.AddColumn("cpu_time", LOGAN_VARCHAR);
+
     table.AddColumn("state", LOGAN_VARCHAR);
     table.Finalize();
 
@@ -304,12 +309,17 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         row.BindInt("pid", proc_pb.pid());
         row.BindString("name", proc_pb.name());
         row.BindInt("core_id", proc_pb.cpu_core_id());
+
         row.BindDouble("cpu_utilization", proc_pb.cpu_utilization());
         row.BindDouble("phys_mem_utilization", proc_pb.phys_mem_utilization());
         row.BindInt("thread_count", proc_pb.thread_count());
-        row.BindInt("disk_read", proc_pb.disk_read());
-        row.BindInt("disk_written", proc_pb.disk_written());
-        row.BindInt("disk_total", proc_pb.disk_total());
+
+        row.BindInt("disk_read_kB", proc_pb.disk_read_kilobytes());
+        row.BindInt("disk_written_kB", proc_pb.disk_written_kilobytes());
+        row.BindInt("disk_total_kB", proc_pb.disk_total_kilobytes());
+
+        const auto& cpu_duration = google::protobuf::util::TimeUtil::ToString(proc_pb.cpu_time());
+        row.BindString("cpu_time", cpu_duration);
         row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
         QueueTableStatement(row);
     }
@@ -346,7 +356,10 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
             row.BindInt("pid", proc_pb.pid());
             row.BindString(LOGAN_NAME, proc_pb.name());
             row.BindString("args", proc_pb.args());
-            row.BindDouble("start_time", proc_pb.start_time());
+
+            const auto& start_time = google::protobuf::util::TimeUtil::ToString(proc_pb.start_time());
+
+            row.BindString("start_time", start_time);
             QueueTableStatement(row);
         }
     }
@@ -380,8 +393,8 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         //Bind CPU Info
         row.BindString("cpu_model", info.cpu_model());
         row.BindString("cpu_vendor", info.cpu_vendor());
-        row.BindInt("cpu_frequency", info.cpu_frequency());
-        row.BindInt("physical_memory", info.physical_memory());
+        row.BindInt("cpu_frequency_hz", info.cpu_frequency_hz());
+        row.BindInt("physical_memory_kB", info.physical_memory_kilobytes());
 
         QueueTableStatement(row);
     }
@@ -394,7 +407,7 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         
         row.BindString(LOGAN_NAME, fs_pb.name());
         row.BindString(LOGAN_TYPE, FileSystemInfo::Type_Name(fs_pb.type()));
-        row.BindInt("size", fs_pb.size());
+        row.BindInt("total_size_kB", fs_pb.size_kilobytes());
 
         QueueTableStatement(row);
     }

@@ -29,6 +29,11 @@ google::protobuf::Timestamp convert_timestamp(const std::chrono::milliseconds& t
     return TimeUtil::MillisecondsToTimestamp(timestamp.count());
 }
 
+google::protobuf::Duration convert_duration(const std::chrono::milliseconds& timestamp){
+    using namespace google::protobuf::util;
+    return TimeUtil::MillisecondsToDuration(timestamp.count());
+}
+
 //Refresh
 std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int listener_id){
     std::lock_guard<std::mutex> lock(mutex_);
@@ -87,7 +92,9 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
                 process_info->set_pid(pid);
                 process_info->set_name(get_process_name(pid));
                 process_info->set_args(get_process_arguments(pid));
-                process_info->set_start_time(get_monitored_process_start_time(pid));
+
+                auto timestamp = convert_timestamp(get_monitored_process_start_time(pid));
+                process_info->mutable_start_time()->Swap(&timestamp);
             }
 
             //Set the status info
@@ -95,9 +102,10 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             process_status->set_cpu_utilization(get_monitored_process_cpu_utilization(pid));
             process_status->set_phys_mem_utilization(get_monitored_process_phys_mem_utilization(pid));
             process_status->set_thread_count(get_monitored_process_thread_count(pid));
-            process_status->set_disk_read(get_monitored_process_disk_read(pid));
-            process_status->set_disk_written(get_monitored_process_disk_written(pid));
-            process_status->set_disk_total(get_monitored_process_disk_total(pid));
+
+            process_status->set_disk_read_kilobytes(get_monitored_process_disk_read_kB(pid));
+            process_status->set_disk_written_kilobytes(get_monitored_process_disk_written_kB(pid));
+            process_status->set_disk_total_kilobytes(get_monitored_process_disk_total_kB(pid));
         }
     }
 
@@ -147,8 +155,8 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfo::GetSystemInfo(const int list
     //Hardware info
     system_info->set_cpu_model(get_cpu_model());
     system_info->set_cpu_vendor(get_cpu_vendor());
-    system_info->set_cpu_frequency(get_cpu_frequency());
-    system_info->set_physical_memory(get_phys_mem());
+    system_info->set_cpu_frequency_hz(get_cpu_frequency());
+    system_info->set_physical_memory_kilobytes(get_phys_mem_kB());
 
     //File systems info
     const auto fs_count = get_fs_count();
@@ -157,7 +165,7 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfo::GetSystemInfo(const int list
         //send onetime info
         file_system_info->set_name(get_fs_name(i));
         file_system_info->set_type((SystemEvent::FileSystemInfo::Type)get_fs_type(i));
-        file_system_info->set_size(get_fs_size(i));
+        file_system_info->set_size_kilobytes(get_fs_size_kB(i));
     }
 
     //Network interface info

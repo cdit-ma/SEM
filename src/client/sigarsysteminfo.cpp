@@ -52,9 +52,8 @@ bool SigarSystemInfo::open_sigar(){
 }
 
 bool SigarSystemInfo::close_sigar(){
-    for(auto itr = processes_.begin(); itr!=processes_.end(); itr++){
-        delete itr->second;
-    }
+    processes_.clear();
+
     if(sigar_close(sigar_) == SIGAR_OK){
         return true;
     }else{
@@ -120,20 +119,20 @@ double SigarSystemInfo::get_cpu_overall_utilization() const{
 }
 
 
-int SigarSystemInfo::get_phys_mem() const{
-    return (int)(phys_mem_.total / (1024 * 1024));
+uint64_t SigarSystemInfo::get_phys_mem_kB() const{
+    return phys_mem_.total / 1000;
 }
 
-int SigarSystemInfo::get_phys_mem_reserved() const{
-    return (int)(phys_mem_.actual_used / (1024 * 1024));
+uint64_t SigarSystemInfo::get_phys_mem_reserved_kB() const{
+    return phys_mem_.actual_used / 1000;
 }
 
-int SigarSystemInfo::get_phys_mem_free() const{
-    return (int)(phys_mem_.free / (1024 * 1024));
+uint64_t SigarSystemInfo::get_phys_mem_free_kB() const{
+    return phys_mem_.free / 1000;
 }
 
 double SigarSystemInfo::get_phys_mem_utilization() const{
-    return phys_mem_.used_percent/100;
+    return phys_mem_.used_percent / 100.0;
 }
 
 
@@ -504,24 +503,25 @@ SystemInfo::FileSystemType SigarSystemInfo::get_fs_type(const int fs_index) cons
     return SystemInfo::FileSystemType::UNKNOWN;
 }
         
-int SigarSystemInfo::get_fs_size(const int fs_index) const{
+uint64_t SigarSystemInfo::get_fs_size_kB(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return (int)(filesystems_[fs_index].usage.total / 1024);
+        return (filesystems_[fs_index].usage.total * 1000) / 1024;
     }
-    return -1;
-}
-int SigarSystemInfo::get_fs_free(const int fs_index) const{
-    if(fs_index < get_fs_count()){
-        return (int)(filesystems_[fs_index].usage.avail / 1024);
-    }
-    return -1;
+    return 0;
 }
 
-int SigarSystemInfo::get_fs_used(const int fs_index) const{
+uint64_t SigarSystemInfo::get_fs_free_kB(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return (int)(filesystems_[fs_index].usage.used / 1024);
+        return (filesystems_[fs_index].usage.avail * 1000) / 1024;
     }
-    return -1;
+    return 0;
+}
+
+uint64_t SigarSystemInfo::get_fs_used_kB(const int fs_index) const{
+    if(fs_index < get_fs_count()){
+        return (filesystems_[fs_index].usage.used * 1000) / 1024;
+    }
+    return 0;
 }
 
 double SigarSystemInfo::get_fs_utilization(const int fs_index) const{
@@ -538,41 +538,54 @@ double SigarSystemInfo::get_fs_utilization(const int fs_index) const{
 
 std::set<int> SigarSystemInfo::get_process_pids() const{
     std::set<int> out;
-    for(auto pid : processes_){
-        out.insert(pid.first);
+    for(const auto& pid : processes_){
+        out.emplace(pid.first);
     }
     return out;
 }
 
+SigarSystemInfo::Process& SigarSystemInfo::get_process(const int pid) const{
+    return *(processes_.at(pid));
+}
+bool SigarSystemInfo::got_process(const int pid) const{
+    return processes_.count(pid);
+}
+
 std::string SigarSystemInfo::get_process_name(const int pid) const{
-    if(processes_.count(pid)){
-        return std::string(processes_.at(pid)->exe.name);    
+    try{
+        return get_process(pid).exe.name;
+    }catch(const std::exception& ex){
+        return std::string();
     }
-    return std::string();
 }
 
 std::string SigarSystemInfo::get_process_arguments(const int pid) const{
-    if(processes_.count(pid)){
-        std::string out = "";
-    
-        sigar_proc_args_t args = processes_.at(pid)->args;
+    try{
+        auto& proc = get_process(pid);
+
+        std::string arg_str;
+
+        const auto& args = proc.args;
 
         for(size_t i = 0; i < args.number; i++){
-            std::string temp(args.data[i]);
-            if(i == args.number-1){
-                out = out + temp;
-            } else {
-                out = out + temp + " ";
+            arg_str += args.data[i];
+
+            if(i != args.number-1){
+                arg_str += " ";
             }
         }
-        return out;
+        return arg_str;
+        
+    }catch(const std::exception& ex){
+        return std::string();
     }
-    return std::string();
 }
 
 SystemInfo::ProcessState SigarSystemInfo::get_process_state(const int pid) const{
-    if(processes_.count(pid)){
-        switch(processes_.at(pid)->state.state){
+    try{
+        auto& proc = get_process(pid);
+
+        switch(proc.state.state){
             case SIGAR_PROC_STATE_IDLE:
                 return SystemInfo::ProcessState::IDLE;
             case SIGAR_PROC_STATE_RUN:
@@ -586,86 +599,136 @@ SystemInfo::ProcessState SigarSystemInfo::get_process_state(const int pid) const
             default:
                 break;  
         }
+    }catch(const std::exception& ex){
     }
     return SystemInfo::ProcessState::ERROR;
 }
 
 //get cpu index 'pid'' is currently running on
 int SigarSystemInfo::get_monitored_process_cpu(const int pid) const{
-    if(processes_.count(pid)){
-        return processes_.at(pid)->state.processor;    
+    try{
+        return get_process(pid).state.processor;
+    }catch(const std::exception& ex){
+        return -1;
     }
-    return -1;
 }
 
 double SigarSystemInfo::get_monitored_process_cpu_utilization(const int pid) const{
-    if(processes_.count(pid)){
-        return processes_.at(pid)->cpu.percent;
+    try{
+        return get_process(pid).cpu.percent;
+    }catch(const std::exception& ex){
+        return 0;
     }
-    return -1;
 }
 
-int SigarSystemInfo::get_monitored_process_phys_mem_used(const int pid) const{
-    if(processes_.count(pid)){
-        return (int)(processes_.at(pid)->mem.resident);
+uint64_t SigarSystemInfo::get_monitored_process_phys_mem_used_kB(const int pid) const{
+    try{
+        return get_process(pid).mem.resident / 1000;
+    }catch(const std::exception& ex){
+        return 0;
     }
-    return -1;
 }
 
 double SigarSystemInfo::get_monitored_process_phys_mem_utilization(const int pid) const{
-    if(processes_.count(pid)){
-        double mem = double(processes_.at(pid)->mem.resident) / 1024 / 1024;
-        double total = double(get_phys_mem());
-        if(total > 0){
-            return mem / total;
-        }
+    double proc_memory_kB = get_monitored_process_phys_mem_used_kB(pid);
+    double total_memory_kB = get_phys_mem_kB();
+
+    if(proc_memory_kB > 0 && total_memory_kB > 0){
+        return proc_memory_kB / total_memory_kB;
+    }else{
+        return 0;
     }
-    return -1;
 }
 
 int SigarSystemInfo::get_monitored_process_thread_count(const int pid) const{
+    try{
+        return get_process(pid).state.threads;
+    }catch(const std::exception& ex){
+        return 0;
+    }
+}
+
+std::chrono::milliseconds SigarSystemInfo::get_monitored_process_start_time(const int pid) const{
+    try{
+        return std::chrono::milliseconds(get_process(pid).cpu.start_time);
+    }catch(const std::exception& ex){
+        return std::chrono::milliseconds(0);
+    }
+}
+
+std::chrono::milliseconds SigarSystemInfo::get_monitored_process_cpu_time(const int pid) const{
+    try{
+        return std::chrono::milliseconds(get_process(pid).cpu.total);
+    }catch(const std::exception& ex){
+        return std::chrono::milliseconds(0);
+    }
+}
+
+std::chrono::milliseconds SigarSystemInfo::get_monitored_process_update_time(const int pid) const{
+    try{
+        return get_process(pid).lastUpdated_;
+    }catch(const std::exception& ex){
+        return std::chrono::milliseconds(-1);
+    }
+}
+
+
+uint64_t SigarSystemInfo::get_monitored_process_disk_written_kB(const int pid) const{
     if(processes_.count(pid)){
-        return (int)(processes_.at(pid)->state.threads);
+        return processes_.at(pid)->disk.bytes_written / 1000;
     }
-    return -1;
+    return 0;
 }
 
-time_t SigarSystemInfo::get_monitored_process_start_time(const int pid) const{
+uint64_t SigarSystemInfo::get_monitored_process_disk_read_kB(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->cpu.start_time/1000;
+        return processes_.at(pid)->disk.bytes_read / 1000;
     }
-    return -1;
+    return 0;
 }
 
-time_t SigarSystemInfo::get_monitored_process_total_time(const int pid) const{
+void PrintError(int e){
+    std::string error;
+    switch(e){
+        case SIGAR_OK:{
+            error = "SIGAR_OK";
+            break;
+        }
+        case SIGAR_START_ERROR:{
+            error = "SIGAR_START_ERROR";
+            break;
+        }
+        case SIGAR_ENOTIMPL:{
+            error = "SIGAR_ENOTIMPL";
+            break;
+        }
+        case SIGAR_OS_START_ERROR:{
+            error = "SIGAR_OS_START_ERROR";
+            break;
+        }
+        case SIGAR_ENOENT:{
+            error = "SIGAR_ENOENT";
+            break;
+        }
+        case SIGAR_EACCES:{
+            error = "SIGAR_EACCES";
+            break;
+        }
+        case SIGAR_ENXIO:{
+            error = "SIGAR_ENXIO";
+            break;
+        }
+    }
+    std::cerr << e << " " << error << std::endl;
+}
+
+uint64_t SigarSystemInfo::get_monitored_process_disk_total_kB(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->cpu.total;
+        return processes_.at(pid)->disk.bytes_total / 1000;
     }
-    return -1;
+    return 0;
 }
 
-
-long long SigarSystemInfo::get_monitored_process_disk_written(const int pid) const{
-    if(!processes_.count(pid)){
-        return -1;
-    }
-
-    return processes_.at(pid)->disk.bytes_written;
-}
-long long SigarSystemInfo::get_monitored_process_disk_read(const int pid) const{
-    if(!processes_.count(pid)){
-        return -1;
-    }
-
-    return processes_.at(pid)->disk.bytes_read;
-}
-long long SigarSystemInfo::get_monitored_process_disk_total(const int pid) const{
-    if(!processes_.count(pid)){
-        return -1;
-    }
-
-    return processes_.at(pid)->disk.bytes_total;
-}
 bool SigarSystemInfo::update_processes(){
 
     sigar_proc_list_t process_list = sigar_proc_list_t();
@@ -676,73 +739,86 @@ bool SigarSystemInfo::update_processes(){
 
     current_pids_.clear();
 
-    Process* process = 0;
-
     auto current_timestamp = get_update_timestamp();
     for(size_t i = 0; i < process_list.number; i++){
-        int pid = (int)(process_list.data[i]);
-        current_pids_.insert(pid);
+        const auto& pid = process_list.data[i];
+        const auto seen_pid = got_process(pid);
 
-        bool seenPIDBefore = processes_.count(pid) > 0;
-        bool get_info = !seenPIDBefore;
-        
-        if(seenPIDBefore){
-            process = processes_[pid];
+        if(!seen_pid){
+            //Construct a new process
+            auto proc_ptr = new Process();
+            auto& process = *proc_ptr;
+            
+            //Set things
+            process.pid = pid;
+            sigar_proc_exe_get(sigar_, pid, &(process.exe));
+            sigar_proc_args_get(sigar_, pid, &(process.args));
 
-            auto difference = std::chrono::duration_cast<std::chrono::seconds>(current_timestamp - process->lastUpdated_);
-            get_info = difference.count() >= 0.8;
-        }else{
-            process = new Process();
-        }
-        
-        std::string slash = "/";
-        //Cross Slash Detection.
-        #ifdef _WIN32
-            slash = "\\";
-        #endif
-        
-        if(!seenPIDBefore){
-            //we dont have any records of this process yet.
-            //Add process name and args to struct
-            sigar_proc_exe_get(sigar_, pid, &(process->exe));
-            sigar_proc_args_get(sigar_, pid, &(process->args));
-
+            std::string slash = "/";
+            //Cross Slash Detection.
+            #ifdef _WIN32
+                slash = "\\";
+            #endif
             //Trim the Path out of the name
-            std::string procName = std::string(process->exe.name);
-			procName = procName.substr(procName.find_last_of(slash) + 1, std::string::npos);
-            process->proc_name = procName;
+            const auto& exe_name = std::string(process.exe.name);
+			const auto& process_name = exe_name.substr(exe_name.find_last_of(slash) + 1, std::string::npos);
+            
+            process.proc_name = process_name;
+            processes_.insert(std::make_pair(pid, proc_ptr));
+        }
+        try{
+            auto& process = get_process(pid);
+            current_pids_.insert(pid);
+            
+            auto get_info = seen_pid == false;
 
-            //Check if this process name is in the list of things to track
-            for(std::string query: tracked_process_names_){
-                if(stringInString(process->proc_name, query)){
+            //Check if this item matches
+            if(!seen_pid || force_process_name_check_){
+                bool matched_process_names = false;
+                
+                //Check if this process name is in the list of things to track
+                for(const auto& query: tracked_process_names_){
+                    if(stringInString(process.proc_name, query)){
+                        matched_process_names = true;
+                        break;
+                    }
+                }
+
+                if(matched_process_names){
                     monitor_process(pid);
-                    break;
+                    get_info = true;
+                }else{
+                    ignore_process(pid);
                 }
             }
-        }
+        
+            if(seen_pid){
+                //Don't allow updates more than 1 second for processes
+                auto difference = std::chrono::duration_cast<std::chrono::seconds>(current_timestamp - process.lastUpdated_);
+                get_info = difference.count() >= 1;
+            }
 
-        //If we care about tracking this PID, get it's state cpu mem and disk
-        if(tracked_pids_.count(pid) && get_info){
-            sigar_proc_state_get(sigar_, pid, &process->state);
-            sigar_proc_cpu_get(sigar_, pid, &process->cpu);
-            sigar_proc_mem_get(sigar_, pid, &process->mem);
-            sigar_proc_disk_io_get(sigar_, pid, &process->disk);
-            process->lastUpdated_ = current_timestamp;
+            //If we care about tracking this PID, get it's state cpu mem and disk
+            if(get_info && tracked_pids_.count(pid)){
+                std::cerr << "UPDATING: " << pid << " '" << process.proc_name << "'" << std::endl;
+                std::cerr << "state: ";PrintError(sigar_proc_state_get(sigar_, pid, &process.state));
+                std::cerr << "cpu: ";PrintError(sigar_proc_cpu_get(sigar_, pid, &process.cpu));
+                std::cerr << "mem: ";PrintError(sigar_proc_mem_get(sigar_, pid, &process.mem));
+                std::cerr << "disk: ";PrintError(sigar_proc_disk_io_get(sigar_, pid, &process.disk));
+                process.lastUpdated_ = current_timestamp;
+            }
+        }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
         }
-        //Store the process in the map
-        processes_[pid] = process;
     }
 
+    //Purge deleted processess
     for(auto it = processes_.begin(); it != processes_.end();){
-        int pid = (*it).first;
+        const auto& pid = (*it).first;
         if(!current_pids_.count(pid)){
-            //Free up the memory
-            Process* p = (*it).second;
             it = processes_.erase(it);
-            
             //Remove the pid from the tracked list
             ignore_process(pid);
-            delete p;
         }else{
             it++;
         }
@@ -770,19 +846,17 @@ std::set<int> SigarSystemInfo::get_monitored_pids() const{
 }
 
 
-void SigarSystemInfo::monitor_processes(const std::string& processName){
-    //If can't find
-    if(std::find(tracked_process_names_.begin(), tracked_process_names_.end(), processName) == tracked_process_names_.end()){
-        tracked_process_names_.push_back(processName);
+void SigarSystemInfo::monitor_processes(const std::string& process_name){
+    if(!tracked_process_names_.count(process_name)){
+        tracked_process_names_.insert(process_name);
         force_process_name_check_ = true;
     }
 }
 
-void SigarSystemInfo::ignore_processes(const std::string& processName){
-    //If can't find
-    auto location = std::find(tracked_process_names_.begin(), tracked_process_names_.end(), processName);
-    if(location != tracked_process_names_.end()){
-        tracked_process_names_.erase(location);
+void SigarSystemInfo::ignore_processes(const std::string& process_name){
+    if(tracked_process_names_.count(process_name)){
+        tracked_process_names_.erase(process_name);
+        force_process_name_check_ = true;
     }
 }
 
@@ -790,16 +864,11 @@ void SigarSystemInfo::ignore_processes(){
     tracked_process_names_.clear();
 }
 
-std::vector<std::string> SigarSystemInfo::get_monitored_processes_names() const{
+const std::set<std::string>& SigarSystemInfo::get_monitored_processes_names() const{
     return tracked_process_names_;
 }
 
-std::chrono::milliseconds SigarSystemInfo::get_monitored_process_update_time(const int pid) const{
-    if(processes_.count(pid)){
-        return processes_.at(pid)->lastUpdated_;
-    }
-    return std::chrono::milliseconds(-1);
-}
+
  
 
 bool SigarSystemInfo::stringInString(const std::string& haystack, const std::string& needle) const{

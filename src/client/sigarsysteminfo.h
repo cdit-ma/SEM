@@ -57,9 +57,10 @@ class SigarSystemInfo: public SystemInfo{
         double get_cpu_overall_utilization() const;
 
         //in MB 
-        int get_phys_mem() const;
-        int get_phys_mem_reserved() const;
-        int get_phys_mem_free() const;
+        uint64_t get_phys_mem_kB() const;
+        uint64_t get_phys_mem_reserved_kB() const;
+        uint64_t get_phys_mem_free_kB() const;
+
         double get_phys_mem_utilization() const;
 
         int get_interface_count() const;
@@ -93,20 +94,21 @@ class SigarSystemInfo: public SystemInfo{
         void monitor_processes(const std::string& processName);
         void ignore_processes(const std::string& processName);
         void ignore_processes();
-        std::vector<std::string> get_monitored_processes_names() const;
+        const std::set<std::string>& get_monitored_processes_names() const;
 
         int get_monitored_process_cpu(const int pid) const;
         double get_monitored_process_cpu_utilization(const int pid) const;
-        int get_monitored_process_phys_mem_used(const int pid) const;
+        uint64_t get_monitored_process_phys_mem_used_kB(const int pid) const;
         double get_monitored_process_phys_mem_utilization(const int pid) const;
         int get_monitored_process_thread_count(const int pid) const;
-        time_t get_monitored_process_start_time(const int pid) const;
-        time_t get_monitored_process_total_time(const int pid) const;
+
+        std::chrono::milliseconds get_monitored_process_start_time(const int pid) const;
+        std::chrono::milliseconds get_monitored_process_cpu_time(const int pid) const;
         std::chrono::milliseconds get_monitored_process_update_time(const int pid) const;
 
-        long long get_monitored_process_disk_written(const int pid) const;
-        long long get_monitored_process_disk_read(const int pid) const;
-        long long get_monitored_process_disk_total(const int pid) const;
+        uint64_t get_monitored_process_disk_written_kB(const int pid) const;
+        uint64_t get_monitored_process_disk_read_kB(const int pid) const;
+        uint64_t get_monitored_process_disk_total_kB(const int pid) const;
 
         std::string get_os_arch() const;
         std::string get_os_description() const;
@@ -122,9 +124,10 @@ class SigarSystemInfo: public SystemInfo{
         SystemInfo::FileSystemType get_fs_type(const int fs_index) const;
         
         
-        int get_fs_size(const int fs_index) const;
-        int get_fs_free(const int fs_index) const;
-        int get_fs_used(const int fs_index) const;
+        uint64_t get_fs_size_kB(const int fs_index) const;
+        uint64_t get_fs_free_kB(const int fs_index) const;
+        uint64_t get_fs_used_kB(const int fs_index) const;
+
         double get_fs_utilization(const int fs_index) const;
 
 
@@ -146,6 +149,8 @@ class SigarSystemInfo: public SystemInfo{
         bool update_filesystems();
         bool onetime_update_sys_info();
         bool update_processes();
+
+        
 
         std::chrono::milliseconds get_current_time() const;
 
@@ -170,6 +175,7 @@ class SigarSystemInfo: public SystemInfo{
 
         struct Process{
             std::string proc_name;
+            int pid;
             sigar_proc_exe_t exe;
             sigar_proc_args_t args;
             sigar_proc_state_t state;
@@ -179,6 +185,9 @@ class SigarSystemInfo: public SystemInfo{
             
             std::chrono::milliseconds lastUpdated_;
         };
+
+        Process& get_process(const int pid) const;
+        bool got_process(const int pid) const;
 
         std::chrono::milliseconds lastUpdate_;
         
@@ -193,10 +202,10 @@ class SigarSystemInfo: public SystemInfo{
 
 
 
-        std::unordered_map<int, Process*> processes_;
+        std::unordered_map<int, std::unique_ptr<Process> > processes_;
         std::set<int> current_pids_;
         std::set<int> tracked_pids_;
-        std::vector<std::string> tracked_process_names_;
+        std::set<std::string> tracked_process_names_;
         bool force_process_name_check_ = false;
         int update_count_ = 0;
 
