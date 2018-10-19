@@ -781,7 +781,7 @@ bool SigarSystemInfo::update_processes(){
 			const auto& process_name = exe_name.substr(exe_name.find_last_of(slash) + 1, std::string::npos);
             
             process.proc_name = process_name;
-            processes_.insert(std::make_pair(pid, proc_ptr));
+            processes_.emplace(std::make_pair(pid, std::unique_ptr<Process>(proc_ptr)));
         }
         try{
             auto& process = get_process(pid);
