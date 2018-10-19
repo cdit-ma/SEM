@@ -103,6 +103,9 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             process_status->set_phys_mem_utilization(get_monitored_process_phys_mem_utilization(pid));
             process_status->set_thread_count(get_monitored_process_thread_count(pid));
 
+            auto duration = convert_duration(get_monitored_process_cpu_time(pid));
+            process_status->mutable_cpu_time()->Swap(&duration);
+
             process_status->set_disk_read_kilobytes(get_monitored_process_disk_read_kB(pid));
             process_status->set_disk_written_kilobytes(get_monitored_process_disk_written_kB(pid));
             process_status->set_disk_total_kilobytes(get_monitored_process_disk_total_kB(pid));

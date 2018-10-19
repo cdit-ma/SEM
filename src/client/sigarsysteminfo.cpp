@@ -658,6 +658,13 @@ std::chrono::milliseconds SigarSystemInfo::get_monitored_process_start_time(cons
 
 std::chrono::milliseconds SigarSystemInfo::get_monitored_process_cpu_time(const int pid) const{
     try{
+        auto& process = get_process(pid);
+        std::cerr << pid << std::endl;
+        std::cerr << "\tCPU start_time:" << process.cpu.start_time << std::endl;
+        std::cerr << "\tCPU user:" << process.cpu.user << std::endl;
+        std::cerr << "\tCPU sys:" << process.cpu.sys << std::endl;
+        std::cerr << "\tCPU total:" << process.cpu.total << std::endl;
+        std::cerr << "\tCPU percent:" << process.cpu.percent << std::endl;
         return std::chrono::milliseconds(get_process(pid).cpu.total);
     }catch(const std::exception& ex){
         return std::chrono::milliseconds(0);
