@@ -22,16 +22,20 @@ syntax="proto3";
 
 package SystemEvent;
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 message ProcessStatus{
 	uint32 pid = 1;
 	uint32 cpu_core_id = 2;
 	double cpu_utilization = 3;
 	double phys_mem_utilization = 4;
+
 	uint32 thread_count = 5;
-	uint64 disk_read = 6;
-	uint64 disk_written = 7;
-	uint64 disk_total = 8;
+	uint64 disk_read_kilobytes = 6;
+	uint64 disk_written_kilobytes = 7;
+	uint64 disk_total_kilobytes = 8;
+
+	google.protobuf.Duration cpu_time = 9;
 
 	enum State{
 		PROC_ERROR = 0;
@@ -50,7 +54,7 @@ message ProcessInfo{
 	uint32 pid = 1;
 	string name = 2;
 	string args = 3;
-	double start_time = 4;
+	google.protobuf.Timestamp start_time = 4;
 }
 
 message FileSystemStatus{
@@ -69,7 +73,7 @@ message FileSystemInfo{
 	}
 	string name = 1;
 	Type type = 2;
-	uint64 size = 3;
+	uint64 size_kilobytes = 3;
 }
 
 message InterfaceStatus{
@@ -121,10 +125,10 @@ message InfoEvent{
 	//CPU
 	string cpu_model = 10;
 	string cpu_vendor = 11;
-	int32 cpu_frequency = 12;
+	uint64 cpu_frequency_hz = 12;
 
 	//RAM
-	int32 physical_memory = 13;
+	uint64 physical_memory_kilobytes = 13;
 
 	repeated FileSystemInfo file_system_info = 14;
 	repeated InterfaceInfo interface_info = 15;
