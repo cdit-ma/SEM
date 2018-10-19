@@ -553,7 +553,23 @@ bool SigarSystemInfo::got_process(const int pid) const{
 
 std::string SigarSystemInfo::get_process_name(const int pid) const{
     try{
+        return get_process(pid).state.name;
+    }catch(const std::exception& ex){
+        return std::string();
+    }
+}
+
+std::string SigarSystemInfo::get_process_full_name(const int pid) const{
+    try{
         return get_process(pid).exe.name;
+    }catch(const std::exception& ex){
+        return std::string();
+    }
+}
+
+std::string SigarSystemInfo::get_process_cwd(const int pid) const{
+    try{
+        return get_process(pid).exe.cwd;
     }catch(const std::exception& ex){
         return std::string();
     }
@@ -659,34 +675,6 @@ std::chrono::milliseconds SigarSystemInfo::get_monitored_process_start_time(cons
 std::chrono::milliseconds SigarSystemInfo::get_monitored_process_cpu_time(const int pid) const{
     try{
         auto& process = get_process(pid);
-        std::cerr << pid << std::endl;
-        std::cerr << "\tCPU start_time:" << process.cpu.start_time << std::endl;
-        std::cerr << "\tCPU user:" << process.cpu.user << std::endl;
-        std::cerr << "\tCPU sys:" << process.cpu.sys << std::endl;
-        std::cerr << "\tCPU total:" << process.cpu.total << std::endl;
-        std::cerr << "\tCPU percent:" << process.cpu.percent << std::endl << std::endl;
-
-        std::cerr << "\tMEM size:" << process.mem.size << std::endl << std::endl;
-        
-        std::cerr << "\tDSK bytes_read:" << process.disk.bytes_read << std::endl;
-        std::cerr << "\tDSK bytes_written:" << process.disk.bytes_written << std::endl;
-        std::cerr << "\tDSK bytes_total:" << process.disk.bytes_total << std::endl << std::endl;
-
-        std::cerr << "\tEXE name:" << process.exe.name << std::endl;
-        std::cerr << "\tEXE cwd:" << process.exe.cwd << std::endl;
-        std::cerr << "\tEXE root:" << process.exe.root << std::endl << std::endl;
-
-        std::cerr << "\tSTATE name:" << process.state.name << std::endl;
-        std::cerr << "\tSTATE state:" << process.state.state << std::endl;
-        std::cerr << "\tSTATE name:" << process.state.name << std::endl;
-        std::cerr << "\tSTATE tty:" << process.state.tty << std::endl;
-        std::cerr << "\tSTATE priority:" << process.state.priority << std::endl;
-        std::cerr << "\tSTATE nice:" << process.state.nice << std::endl;
-        std::cerr << "\tSTATE processor:" << process.state.processor << std::endl;
-        std::cerr << "\tSTATE threads:" << process.state.threads << std::endl << std::endl;
-
-
-        
         return std::chrono::milliseconds(get_process(pid).cpu.total);
     }catch(const std::exception& ex){
         return std::chrono::milliseconds(0);

@@ -81,6 +81,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
         if(update_pid){
             auto process_status = system_status->add_processes();
             process_status->set_pid(pid);
+            
             process_status->set_name(get_process_name(pid));
             process_status->set_state((SystemEvent::ProcessStatus::State)get_process_state(pid));
 
@@ -90,7 +91,8 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             if(send_process_info){
                 auto process_info = system_status->add_process_info();
                 process_info->set_pid(pid);
-                process_info->set_name(get_process_name(pid));
+                process_info->set_cwd(get_process_cwd(pid));
+                process_info->set_name(get_process_full_name(pid));
                 process_info->set_args(get_process_arguments(pid));
 
                 auto timestamp = convert_timestamp(get_monitored_process_start_time(pid));

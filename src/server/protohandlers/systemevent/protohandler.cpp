@@ -240,15 +240,15 @@ void SystemEvent::ProtoHandler::CreateProcessTable(){
     table.AddColumn("core_id", LOGAN_INT);
 
     table.AddColumn("cpu_utilization", LOGAN_DECIMAL);
+    table.AddColumn("phys_mem_used_kB", LOGAN_INT);
     table.AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
     table.AddColumn("thread_count", LOGAN_INT);
 
     table.AddColumn("disk_read_kB", LOGAN_INT);
     table.AddColumn("disk_written_kB", LOGAN_INT);
     table.AddColumn("disk_total_kB", LOGAN_INT);
-    
-    table.AddColumn("cpu_time", LOGAN_VARCHAR);
 
+    table.AddColumn("cpu_time", LOGAN_VARCHAR);
     table.AddColumn("state", LOGAN_VARCHAR);
     table.Finalize();
 
@@ -265,6 +265,7 @@ void SystemEvent::ProtoHandler::CreateProcessInfoTable(){
 
     AddInfoColumns(table);
     table.AddColumn("pid", LOGAN_INT);
+    table.AddColumn("cwd", LOGAN_VARCHAR);
     table.AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     table.AddColumn("args", LOGAN_VARCHAR);
     table.AddColumn("start_time", LOGAN_INT);
@@ -311,6 +312,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         row.BindInt("core_id", proc_pb.cpu_core_id());
 
         row.BindDouble("cpu_utilization", proc_pb.cpu_utilization());
+        row.BindInt("phys_mem_used_kB", proc_pb.phys_mem_used_kb());
         row.BindDouble("phys_mem_utilization", proc_pb.phys_mem_utilization());
         row.BindInt("thread_count", proc_pb.thread_count());
 
@@ -354,6 +356,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
 
             BindInfoColumns(row, timestamp, host_name, message_id);
             row.BindInt("pid", proc_pb.pid());
+            row.BindString("cwd", proc_pb.cwd());
             row.BindString(LOGAN_NAME, proc_pb.name());
             row.BindString("args", proc_pb.args());
 

@@ -83,8 +83,11 @@ class SigarSystemInfo: public SystemInfo{
 
         std::set<int> get_process_pids() const;
         SystemInfo::ProcessState get_process_state(const int pid) const;
+
         std::string get_process_name(const int pid) const;
+        std::string get_process_full_name(const int pid) const;
         std::string get_process_arguments(const int pid) const;
+        std::string get_process_cwd(const int pid) const;
         
         void monitor_process(const int pid);
         void ignore_process(const int pid);
