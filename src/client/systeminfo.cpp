@@ -24,14 +24,14 @@
 
 
 
-google::protobuf::Timestamp convert_timestamp(const std::chrono::milliseconds& timestamp){
-    using namespace google::protobuf::util;
-    return TimeUtil::MillisecondsToTimestamp(timestamp.count());
+std::unique_ptr<google::protobuf::Timestamp> convert_timestamp(const std::chrono::milliseconds& timestamp){
+    using namespace google::protobuf;
+    return std::unique_ptr<Timestamp>(new Timestamp(util::TimeUtil::MillisecondsToTimestamp(timestamp.count())));
 }
 
-google::protobuf::Duration convert_duration(const std::chrono::milliseconds& timestamp){
-    using namespace google::protobuf::util;
-    return TimeUtil::MillisecondsToDuration(timestamp.count());
+std::unique_ptr<google::protobuf::Duration> convert_duration(const std::chrono::milliseconds& duration){
+    using namespace google::protobuf;
+    return std::unique_ptr<Duration>(new Duration(util::TimeUtil::MillisecondsToDuration(duration.count())));
 }
 
 //Refresh
@@ -54,8 +54,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
     auto system_status = std::unique_ptr<SystemEvent::StatusEvent>(new SystemEvent::StatusEvent);
     
     system_status->set_hostname(get_hostname());
-    auto timestamp = convert_timestamp(current_data_time);
-    system_status->mutable_timestamp()->Swap(&timestamp);
+    system_status->set_allocated_timestamp(convert_timestamp(current_data_time).release());
     
 
     if(!listener_message_count_.count(listener_id)){
@@ -94,9 +93,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
                 process_info->set_cwd(get_process_cwd(pid));
                 process_info->set_name(get_process_full_name(pid));
                 process_info->set_args(get_process_arguments(pid));
-
-                auto timestamp = convert_timestamp(get_monitored_process_start_time(pid));
-                process_info->mutable_start_time()->Swap(&timestamp);
+                process_info->set_allocated_start_time(convert_timestamp(get_monitored_process_start_time(pid)).release());
             }
 
             //Set the status info
@@ -105,10 +102,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             process_status->set_phys_mem_used_kb(get_monitored_process_phys_mem_used_kB(pid));
             process_status->set_phys_mem_utilization(get_monitored_process_phys_mem_utilization(pid));
             process_status->set_thread_count(get_monitored_process_thread_count(pid));
-
-            auto duration = convert_duration(get_monitored_process_cpu_time(pid));
-            process_status->mutable_cpu_time()->Swap(&duration);
-
+            process_status->set_allocated_cpu_time(convert_duration(get_monitored_process_cpu_time(pid)).release());
             process_status->set_disk_read_kilobytes(get_monitored_process_disk_read_kB(pid));
             process_status->set_disk_written_kilobytes(get_monitored_process_disk_written_kB(pid));
             process_status->set_disk_total_kilobytes(get_monitored_process_disk_total_kB(pid));
@@ -147,8 +141,8 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfo::GetSystemInfo(const int list
     auto system_info = std::unique_ptr<SystemEvent::InfoEvent>(new SystemEvent::InfoEvent);
     
     system_info->set_hostname(get_hostname());
-    auto timestamp = convert_timestamp(get_update_timestamp());
-    system_info->mutable_timestamp()->Swap(&timestamp);
+    system_info->set_allocated_timestamp(convert_timestamp(get_update_timestamp()).release());
+
 
     //OS info
     system_info->set_os_name(get_os_name());
