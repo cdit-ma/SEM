@@ -31,7 +31,7 @@ int Logger::GetUtilizationLogLevel(const UtilizationEvent& event){
         case UtilizationEvent::FINISHED_FUNC:
             return 7;
         case UtilizationEvent::IGNORED:
-            return 2;
+            return 6;
         case UtilizationEvent::EXCEPTION:
             return 1;
     }
