@@ -304,9 +304,9 @@
                 <xsl:value-of select="concat(cpp:invoke_function($vector_ref, cpp:dot(), 'resize', $set_value, $tab), cpp:nl())" />
             </xsl:when>
             <xsl:when test="$middleware = 'proto' and $vector_kind = 'AggregateInstance'">
-                <xsl:variable name="added_element" select="cpp:invoke_function($obj, cpp:arrow(), concat('add_', $variable_syntax), '', 0)" />
+                <xsl:variable name="mutable_vector" select="cpp:invoke_function($obj, cpp:arrow(), concat('mutable_', $variable_syntax), '', 0)" />
                 <!-- Vectors with Objects in it can use a mutable_swap function -->
-                <xsl:value-of select="concat(cpp:invoke_function($added_element, cpp:arrow(), 'Swap', $set_value, $tab), cpp:nl())" />
+                <xsl:value-of select="concat(cpp:invoke_function($mutable_vector, cpp:arrow(), 'AddAllocated', $set_value, $tab), cpp:nl())" />
             </xsl:when>
             <xsl:when test="$middleware = 'proto'">
                 <xsl:value-of select="concat(cpp:invoke_function($obj, cpp:arrow(), concat('add_', $variable_syntax), $set_value, $tab), cpp:nl())" />
@@ -360,7 +360,7 @@
                     <xsl:choose>
                         <xsl:when test="$node_kind = 'AggregateInstance'">
                             <!-- Protobuf uses swap for Instances -->
-                            <xsl:value-of select="concat(cpp:invoke_function('', '', concat('mutable_', $variable_syntax), '', 0), cpp:arrow(), 'Swap')" />
+                            <xsl:value-of select="concat('set_allocated_', $variable_syntax)" />
                         </xsl:when>
                         <xsl:when test="$node_kind = 'Member' or $node_kind = 'EnumInstance'">
                             <!-- Protobuf implementations use set via functions -->

@@ -1119,14 +1119,14 @@
         <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $aggregate_instance, $target_middleware, $value)" />
 
         
-        <xsl:value-of select="cpp:scope_start($tab)" />
-        <xsl:value-of select="cpp:comment(('Member', o:wrap_square(graphml:get_kind($aggregate_instance)), 'Type', o:wrap_angle(graphml:get_type($aggregate_instance))), $tab + 1)" />
-        <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 1)" />
-        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $translate_func, cpp:nl(), $tab + 1)" />
-
-        <xsl:value-of select="concat(o:t($tab + 1), $set_func, cpp:nl())" />
-        <xsl:value-of select="cpp:delete($temp_variable, $tab + 1)" />
-        <xsl:value-of select="cpp:scope_end($tab)" />
+        <xsl:value-of select="cpp:comment(('Member', o:wrap_square(graphml:get_kind($aggregate_instance)), 'Type', o:wrap_angle(graphml:get_type($aggregate_instance))), $tab)" />
+        <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab)" />
+        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $translate_func, cpp:nl(), $tab)" />
+        <xsl:value-of select="concat(o:t($tab), $set_func, cpp:nl())" />
+        <xsl:if test="$target_middleware != 'proto'">
+            <!-- Protobuf has allocated functions which 'own' the pointers -->
+            <xsl:value-of select="concat(o:t($tab), 'delete ', $temp_variable, cpp:nl())" />
+        </xsl:if>
     </xsl:function>
 
     <xsl:function name="cdit:translate_vector">
@@ -1229,7 +1229,10 @@
                 <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 3)" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 3)" />
                 <xsl:value-of select="$set_func" />
-                <xsl:value-of select="cpp:delete($temp_element_variable, $tab + 3)" />
+                <xsl:if test="$target_middleware != 'proto'">
+                    <!-- Protobuf has allocated functions which 'own' the pointers -->
+                    <xsl:value-of select="concat(o:t($tab + 3), 'delete ', $temp_element_variable, cpp:nl())" />
+                </xsl:if>
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'Member'">
                 <!-- Member aggregates require translation -->
