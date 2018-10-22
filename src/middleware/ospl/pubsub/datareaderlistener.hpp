@@ -21,7 +21,7 @@ namespace ospl{
                         //Translate and callback into the component for each valid message we receive
                         if(sample->info().valid()){
                             try{
-                                auto message = std::unique_ptr<BaseType>(::Base::Translator<BaseType, OsplType>::MiddlewareToBase(sample->data()));
+                                auto message = ::Base::Translator<BaseType, OsplType>::MiddlewareToBase(sample->data());
                                 if(message){
                                     port_->EnqueueMessage(std::move(message));
                                 }

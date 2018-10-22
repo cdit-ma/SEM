@@ -141,15 +141,8 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, BaseRequestType,
         try{
             //Translate the string to a base_reply_ptr
             auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
-            
             //Copy the message into a heap allocated object
-            BaseReplyType base_reply(*base_reply_ptr);
-            
-            //Clean up the memory from the base_reply_ptr
-            delete base_reply_ptr;
-
-            //Return the reply object
-            return base_reply;
+            return BaseReplyType(*base_reply_ptr);
         }catch(const std::exception& ex){
             std::string error_str = "Translating Reply Failed: ";
             throw std::runtime_error(error_str + ex.what());
@@ -230,15 +223,8 @@ BaseReplyType zmq::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pro
         try{
             //Translate the string to a base_reply_ptr
             auto base_reply_ptr = ::Proto::Translator<BaseReplyType, ProtoReplyType>::StringToBase(reply_str);
-            
             //Copy the message into a heap allocated object
-            BaseReplyType base_reply(*base_reply_ptr);
-            
-            //Clean up the memory from the base_reply_ptr
-            delete base_reply_ptr;
-
-            //Return the reply object
-            return base_reply;
+            return BaseReplyType(*base_reply_ptr);
         }catch(const std::exception& ex){
             std::string error_str = "Translating Reply Failed: ";
                 throw std::runtime_error(error_str + ex.what());

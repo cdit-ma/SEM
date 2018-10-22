@@ -86,7 +86,6 @@ void rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
                 if(m){
                     //De-reference the message and send
                     writer_.write(*m);
-                    delete m;
                     this->EventProcessed(message);
                     this->logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::SENT);
                     return;

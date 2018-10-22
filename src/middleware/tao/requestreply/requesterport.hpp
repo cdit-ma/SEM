@@ -186,12 +186,9 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, BaseRequestType, T
                 //Copy the message into a heap allocated object
                 BaseReplyType base_reply(*base_reply_ptr);
                 
-                //Clean up the memory from the base_reply_ptr
-                delete request_ptr;
-                delete base_reply_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
-                return base_reply;
+                return BaseReplyType(*base_reply_ptr);
             }catch(const std::exception& ex){
                 std::string error_str = "Translating Request Failed: ";
                 throw std::runtime_error(error_str + ex.what());
@@ -260,7 +257,6 @@ void tao::RequesterPort<void, void, BaseRequestType, TaoRequestType, TaoClientIm
             try{
                 auto request_ptr = Base::Translator<BaseRequestType, TaoRequestType>::BaseToMiddleware(message);
                 timeout_client->TAO_SERVER_FUNC_NAME(*request_ptr);
-                delete request_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
             }catch(const std::exception& ex){
@@ -331,15 +327,11 @@ BaseReplyType tao::RequesterPort<BaseReplyType, TaoReplyType, void, void, TaoCli
                 auto tao_reply = timeout_client->TAO_SERVER_FUNC_NAME();
                 auto base_reply_ptr = Base::Translator<BaseReplyType, TaoReplyType>::MiddlewareToBase(tao::GetReference(tao_reply));
                 tao::DeleteTaoObject(tao_reply);
-
-                //Copy the message into a heap allocated object
-                BaseReplyType base_reply(*base_reply_ptr);
                 
-                //Clean up the memory from the base_reply_ptr
-                delete base_reply_ptr;
                 CORBA::release(timeout_client);
                 CORBA::release(client);
-                return base_reply;
+                //Copy the message into a heap allocated object
+                return BaseReplyType(*base_reply_ptr);
             }catch(const std::exception& ex){
                 std::string error_str = "Translating Request Failed: ";
                 throw std::runtime_error(error_str + ex.what());

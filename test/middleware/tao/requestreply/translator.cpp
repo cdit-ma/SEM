@@ -4,8 +4,9 @@
 
 namespace Base {
 	template <>
-	::Basic* Translator<::Base::Basic, ::Basic>::BaseToMiddleware(const ::Base::Basic& value){
-		auto out = new ::Basic();
+	
+	std::unique_ptr<::Basic> Translator<::Base::Basic, ::Basic>::BaseToMiddleware(const ::Base::Basic& value){
+		auto out = std::unique_ptr<::Basic>(new ::Basic());
 		out->str_val = value.str_val.c_str();
 		out->guid_val = value.guid_val.c_str();
 		out->int_val = value.int_val;
@@ -13,8 +14,8 @@ namespace Base {
 	};
 
 	template <>
-	::Base::Basic* Translator<::Base::Basic, ::Basic>::MiddlewareToBase(const ::Basic& value){
-		auto out = new ::Base::Basic();
+	std::unique_ptr<::Base::Basic> Translator<::Base::Basic, ::Basic>::MiddlewareToBase(const ::Basic& value){
+		auto out = std::unique_ptr<::Base::Basic>(new ::Basic());
 		out->str_val = value.str_val;
 		out->guid_val = value.guid_val;
 		out->int_val = value.int_val;
