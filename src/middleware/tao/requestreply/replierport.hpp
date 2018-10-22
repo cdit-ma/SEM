@@ -122,7 +122,6 @@ namespace tao{
                 try{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     eventport.ProcessRequest(*base_message);
-                    delete base_message;
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Request Failed: ";
                     eventport.ProcessGeneralException(error_str + ex.what());
