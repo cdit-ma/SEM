@@ -246,17 +246,21 @@ message Logger{
     repeated string processes = 10;
 }
 
+message SlaveId{
+    string ip_address = 1;
+    string container_id = 2;
+}
 
 message SlaveStartupRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
 }
 
 message SlaveStartupReply{
-    Node configuration = 1;
+    Container configuration = 1;
 }
 
 message SlaveConfiguredRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
     bool success = 2;
     repeated string error_messages = 3;
 }
@@ -267,7 +271,7 @@ message SlaveConfiguredReply{
 
 
 message SlaveTerminatedRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
 }
 
 message SlaveTerminatedReply{
