@@ -450,6 +450,8 @@
         <xsl:value-of select="concat('const ', cpp:ref_var_def($type, $value))" />
     </xsl:function>
 
+    
+
     <!--
         Used to define a type as a pointer
         ie. ${type}* ${value}
@@ -459,6 +461,39 @@
         <xsl:param name="value" as="xs:string"/>
         <xsl:value-of select="o:join_list((concat($type, '*'), $value), ' ')" />
     </xsl:function>
+
+    <!--
+        Used to define a type as a pointer
+        ie. ${type}* ${value}
+    -->
+    <xsl:function name="cpp:unique_ptr">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:value-of select="concat('std::unique_ptr', o:wrap_angle($type))" />
+    </xsl:function>
+
+    <!--
+        Used to define a type as a pointer
+        ie. ${type}* ${value}
+    -->
+    <xsl:function name="cpp:unique_ptr_def">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:value-of select="o:join_list((cpp:unique_ptr($type), $value), ' ')" />
+    </xsl:function>
+
+    <!--
+        Constructs a new object of the provided type (Combines the list into namespace syntax)
+        ie. new namespace::class(${parameters})
+    -->
+    <xsl:function name="cpp:unique_ptr_object">
+        <xsl:param name="name_list" as="xs:string*" />
+        <xsl:param name="variable" as="xs:string" />
+
+        <xsl:variable name="type" select="cpp:combine_namespaces($name_list)" />
+        <xsl:value-of select="concat(cpp:unique_ptr($type), o:wrap_bracket($variable))" />
+    </xsl:function>
+
+    
 
     <!--
         Used to dereference a pointed object

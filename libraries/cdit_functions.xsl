@@ -259,6 +259,9 @@
                 <xsl:when test="$vector_kind = 'AggregateInstance' and $middleware != 'proto'">
                     <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
+                <xsl:when test="$vector_kind = 'AggregateInstance' and $middleware = 'proto'">
+                    <xsl:value-of select="concat($value, '.release()')" />
+                </xsl:when>
                 <xsl:when test="$vector_kind = 'Member' and $vector_type = 'String' and $middleware = 'tao'">
                     <xsl:value-of select="concat($value, '.c_str()')" />
                 </xsl:when>

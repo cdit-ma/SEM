@@ -50,13 +50,13 @@
 
         <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
         
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', $tab)" />
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:unique_ptr($middleware_type), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', $tab)" />
         <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, 'base', $middleware, $tab + 1)" />
         <xsl:value-of select="cpp:scope_end($tab)" />
         
         <xsl:value-of select="o:nl(1)" />
         
-        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', $tab)" />
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:unique_ptr($base_type), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', $tab)" />
         <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, $middleware, 'base', $tab + 1)" />
         <xsl:value-of select="cpp:scope_end($tab)" />
 
@@ -1108,7 +1108,7 @@
             <xsl:choose>
                 <xsl:when test="$target_middleware = 'proto'">
                     <!-- Protobuf has a swap function which takes a pointer -->
-                    <xsl:value-of select="$temp_variable" />
+                    <xsl:value-of select="concat($temp_variable, '.release()')" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="concat('*', $temp_variable)" />
@@ -1123,10 +1123,6 @@
         <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab)" />
         <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $translate_func, cpp:nl(), $tab)" />
         <xsl:value-of select="concat(o:t($tab), $set_func, cpp:nl())" />
-        <xsl:if test="$target_middleware != 'proto'">
-            <!-- Protobuf has allocated functions which 'own' the pointers -->
-            <xsl:value-of select="concat(o:t($tab), 'delete ', $temp_variable, cpp:nl())" />
-        </xsl:if>
     </xsl:function>
 
     <xsl:function name="cdit:translate_vector">
@@ -1229,10 +1225,6 @@
                 <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 3)" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 3)" />
                 <xsl:value-of select="$set_func" />
-                <xsl:if test="$target_middleware != 'proto'">
-                    <!-- Protobuf has allocated functions which 'own' the pointers -->
-                    <xsl:value-of select="concat(o:t($tab + 3), 'delete ', $temp_element_variable, cpp:nl())" />
-                </xsl:if>
             </xsl:when>
             <xsl:when test="$vector_child_kind = 'Member'">
                 <!-- Member aggregates require translation -->
@@ -1322,7 +1314,9 @@
         <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union') and cdit:middleware_handles_union($source_middleware)" />
         <xsl:variable name="target_type" select="cdit:get_aggregate_qualified_type($aggregate, $target_middleware)" />
 
-        <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
+
+            
+        <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:unique_ptr_object($target_type, cpp:new_object($target_type, '')), cpp:nl(), $tab)" />
 
 
         <xsl:variable name="get_descrim" select="concat('value.', cdit:get_middleware_union_descriminator_function($source_middleware), '()')" />
