@@ -172,14 +172,14 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
         if(node.GetLoganServerCount()){
             auto hardware_id = node.GetHardwareId();
             if(hardware_id){
-                reply->add_logan_servers()->Swap(hardware_id.get());
+                reply->mutable_logan_servers()->AddAllocated(hardware_id.release());
             }
         }
 
         if(node.GetDeployedComponentCount()){
             auto hardware_id = node.GetHardwareId();
             if(hardware_id){
-                reply->add_node_managers()->Swap(hardware_id.get());
+                reply->mutable_node_managers()->AddAllocated(hardware_id.release());
             }
         }
     }
