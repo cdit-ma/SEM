@@ -179,3 +179,11 @@ Logger &Container::GetLogger(const std::string &logger_id) {
     return *(loggers_.at(logger_id));
 }
 
+void Container::SetNodeManagerMaster() {
+    is_node_manager_master_ = true;
+}
+
+bool Container::IsNodeManagerMaster() const {
+    return is_node_manager_master_;
+}
+

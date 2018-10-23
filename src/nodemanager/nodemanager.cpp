@@ -92,7 +92,7 @@ int main(int argc, char **argv){
     Print::Logger::get_logger().SetLogLevel(log_verbosity);
 
     try{
-        auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address);
+        auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address, container_id);
         
         for(const auto& type : reply->types()){
             switch(type){

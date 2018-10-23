@@ -120,6 +120,16 @@ std::unique_ptr<NodeManager::HardwareId> Node::GetHardwareId() const{
     return hardware_id;
 }
 
+std::vector<std::unique_ptr<NodeManager::ContainerId> > Node::GetContainerIds() const {
+    std::vector<std::unique_ptr<NodeManager::ContainerId> > container_ids;
+    for(const auto& container : containers_) {
+        auto container_id = std::unique_ptr<NodeManager::ContainerId>(new NodeManager::ContainerId);
+        container_id->set_id(container.second->GetId());
+        container_ids.emplace_back(std::move(container_id));
+    }
+    return container_ids;
+}
+
 Experiment& Node::GetExperiment(){
     return experiment_;
 }
@@ -172,3 +182,11 @@ std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServer
     return std::vector<std::unique_ptr<NodeManager::Logger>>();
 }
 
+void Node::SetNodeManagerMaster() {
+
+    //Set our first container to be the experiment's master.
+    for(auto& container : containers_){
+        container.second->SetNodeManagerMaster();
+        break;
+    }
+}

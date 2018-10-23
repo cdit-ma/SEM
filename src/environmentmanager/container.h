@@ -41,6 +41,9 @@ public:
     std::string AssignOrbPort();
     void SetOrbPort(const std::string& orb_port);
 
+    void SetNodeManagerMaster();
+    bool IsNodeManagerMaster() const;
+
     void SetDirty();
     bool IsDirty();
 
@@ -56,10 +59,12 @@ private:
 
     std::string id_;
     std::string name_;
-    std::string type_; //??
+    std::string type_;
 
     std::string management_port_;
     std::string orb_port_;
+
+    bool is_node_manager_master_ = false;
 
     bool dirty_;
 

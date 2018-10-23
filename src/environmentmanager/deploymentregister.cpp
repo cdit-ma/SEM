@@ -6,6 +6,7 @@
 #include <zmq/zmqutils.hpp>
 #include <proto/controlmessage/helper.h>
 #include "node.h"
+#include "container.h"
 
 DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
@@ -81,6 +82,7 @@ void DeploymentRegister::Terminate(){
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::HandleNodeManagerRegistration(const NodeManager::NodeManagerRegistrationRequest& request){
     const auto& experiment_name = request.id().experiment_name();
     const auto& node_manager_ip_address = request.id().ip_address();
+    const auto& container_id = request.container_id();
 
     //Check if Experiment Exists
     if(!environment_->GotExperiment(experiment_name)){
@@ -91,7 +93,7 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
 
     auto& experiment = environment_->GetExperiment(experiment_name);
     auto& node = experiment.GetNode(node_manager_ip_address);
-    auto& container = node.GetContainer(conatiner_id);
+    auto& container = node.GetContainer(container_id);
     auto component_count = container.GetDeployedCount();
 
     auto reply = std::unique_ptr<NodeManager::NodeManagerRegistrationReply>(new NodeManager::NodeManagerRegistrationReply());

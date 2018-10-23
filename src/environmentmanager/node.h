@@ -25,10 +25,10 @@ class Node{
         std::string GetName() const;
         std::string GetIp() const;
 
-        bool IsNodeManagerMaster() const;
         void SetNodeManagerMaster();
 
         std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
+        std::vector<std::unique_ptr<NodeManager::ContainerId> > GetContainerIds() const;
 
         //Node, component, attribute and logger adders
         void AddContainer(const NodeManager::Container& component);
