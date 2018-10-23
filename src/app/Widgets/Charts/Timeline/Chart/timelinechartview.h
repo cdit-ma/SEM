@@ -18,7 +18,6 @@
 
 
 enum class VALUE_TYPE{DOUBLE, DATETIME};
-QString getDateTimeString(qint64 mSecsSinceEpoch);
 
 class AxisWidget;
 class TimelineChart;
@@ -70,7 +69,8 @@ private:
     HoverPopup* _hoverDisplay;
 
     QScrollArea* _scrollArea;
-    QWidget* _fillerWidget;
+    QWidget* _topfillerWidget;
+    QWidget* _bottomfillerWidget;
     QWidget* _hoverWidget;
 
     QToolBar* legendToolbar;
@@ -81,8 +81,8 @@ private:
     QColor hoverItemBackgroundColor;
     QString hoveredEntityLabel;
 
-    QHash<int, EntitySet*> itemEntitySets;
-    QHash<int, EntityChart*> itemChartWidgets;
+    QHash<int, EntitySet*> entitySets;
+    QHash<int, EntityChart*> entityCharts;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

@@ -239,10 +239,6 @@ void PanelWidget::testLifecycleSeries()
     TimelineChartView* view = new TimelineChartView(this);
     defaultActiveAction = addTab("Lifecycle", view);
     defaultActiveAction->trigger();
-
-    if (viewController) {
-        //connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, view, &TimelineChartView::receivedPortLifecycleResponse);
-    }
 }
 
 

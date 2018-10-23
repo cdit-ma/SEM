@@ -10,23 +10,22 @@ class PortLifecycleEventSeries : public QObject
     Q_OBJECT
 
 public:
-    explicit PortLifecycleEventSeries(QObject* parent = 0);
-
-    int getID();
+    explicit PortLifecycleEventSeries(QString path, QObject* parent = 0);
 
     void addPortEvent(PortLifecycleEvent* event);
     void addPortEvents(QList<PortLifecycleEvent*>& events);
 
     const QList<PortLifecycleEvent*>& getConstPortEvents();
 
-    QPair<quint64, quint64> getRange();
+    QString getPortPath();
+    QPair<qint64, qint64> getRange();
 
 private:
     QList<PortLifecycleEvent*> portEvents_;
 
-    int ID_;
-    quint64 minTime_;
-    quint64 maxTime_;
+    QString port_path;
+    qint64 minTime_mu;
+    qint64 maxTime_mu;
 
     static int series_ID;
 

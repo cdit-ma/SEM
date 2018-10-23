@@ -360,7 +360,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         startPoint += QPointF(rectWidth, 0);
 
         if (_valueType == VALUE_TYPE::DATETIME) {
-            QDate date = constructDateTime(value).date();
+            QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
             if (date != prevDate) {
                 textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
                 painter.drawText(textRect, date.toString("MMMM d"), QTextOption(_textAlignment));
@@ -481,7 +481,7 @@ QString AxisDisplay::getCovertedString(double value)
 {
     switch (_valueType) {
     case VALUE_TYPE::DATETIME:
-        return constructDateTime(value).toString("hh:mm:ss.zzz");
+        return QDateTime::fromMSecsSinceEpoch(value).toString("hh:mm:ss.zzz");
     default:
         return QString::number(value);
     }
@@ -496,20 +496,4 @@ QRectF AxisDisplay::getAdjustedRect()
 {
     double halfPenWidth = _penWidth / 2.0;
     return rect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
-}
-
-
-/**
- * @brief AxisDisplay::constructDateTime
- * @param mSecsSinceEpoch
- * @return
- */
-QDateTime AxisDisplay::constructDateTime(qint64 mSecsSinceEpoch)
-{
-    //return QDateTime::fromMSecsSinceEpoch(mSecsSinceEpoch, Qt::UTC);
-    ///*
-    QDateTime dateTime;
-    dateTime.setMSecsSinceEpoch(mSecsSinceEpoch);
-    return dateTime;
-    //*/
 }

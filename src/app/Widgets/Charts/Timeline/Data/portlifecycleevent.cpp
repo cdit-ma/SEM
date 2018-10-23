@@ -5,32 +5,10 @@
  * @brief PortLifecycleEvent::PortLifecycleEvent
  * @param parent
  */
-PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, quint64 time, QObject* parent)
+PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent)
     : QObject(parent)
 {
     port_ = port;
-    type_ = type;
-    time_ = time;
-}
-
-
-/**
- * @brief PortLifecycleEvent::PortLifecycleEvent
- * @param type
- * @param time
- * @param parent
- */
-PortLifecycleEvent::PortLifecycleEvent(LifecycleType type, quint64 time, QObject* parent)
-    : QObject(parent)
-{
-    Port testPort;
-    //testPort.ID = 0;
-    //testPort.kind = Port::Kind::PUBLISHER;
-    testPort.path = "path";
-    testPort.name = "testPort";
-    testPort.middleware = "middleware";
-
-    port_ = testPort;
     type_ = type;
     time_ = time;
 }
@@ -60,7 +38,17 @@ LifecycleType PortLifecycleEvent::getType()
  * @brief PortLifecycleEvent::getTime
  * @return
  */
-quint64 PortLifecycleEvent::getTime()
+qint64 PortLifecycleEvent::getTime()
 {
     return time_;
+}
+
+
+/**
+ * @brief PortLifecycleEvent::getPortPath
+ * @return
+ */
+const QString PortLifecycleEvent::getPortPath()
+{
+    return port_.path;
 }

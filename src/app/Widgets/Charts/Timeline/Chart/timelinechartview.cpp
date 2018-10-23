@@ -87,10 +87,19 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
 
+
     /*
      *  TOP (LEGEND) LAYOUT
      */
+    _topfillerWidget = new QWidget(this);
     legendToolbar = new QToolBar(this);
+
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->setMargin(0);
+    topLayout->setSpacing(0);
+    topLayout->addWidget(_topfillerWidget);
+    topLayout->addWidget(legendToolbar, 1, Qt::AlignCenter);
+
     legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     stateLegendAction = legendToolbar->addAction("Events");
     notificationLegendAction = legendToolbar->addAction("Messages");
@@ -148,15 +157,15 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     _scrollArea->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
 
-    _fillerWidget = new QWidget(this);
-
     /*
      * BOTTOM (TIME AXIS) LAYOUT
      */
+    _bottomfillerWidget = new QWidget(this);
+
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);
-    bottomLayout->addWidget(_fillerWidget);
+    bottomLayout->addWidget(_bottomfillerWidget);
     bottomLayout->addWidget(_dateTimeAxis, 1);
 
     /*
@@ -166,7 +175,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
-    mainLayout->addWidget(legendToolbar, 0, Qt::AlignCenter);
+    //mainLayout->addWidget(legendToolbar, 0, Qt::AlignCenter);
+    mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
     mainLayout->addWidget(_scrollArea, 1);
     mainLayout->addLayout(bottomLayout);
@@ -284,7 +294,8 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
-    _fillerWidget->setFixedWidth(size.width());
+    _topfillerWidget->setFixedWidth(size.width());
+    _bottomfillerWidget->setFixedWidth(size.width());
 }
 
 
@@ -395,14 +406,14 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     int itemID = item->getID();
 
     // check if we already have an entity set for the view item
-    if (itemEntitySets.contains(itemID))
-        return itemEntitySets.value(itemID);
+    if (entitySets.contains(itemID))
+        return entitySets.value(itemID);
 
     EntitySet* set = new EntitySet(itemLabel, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->setID(itemID);
     set->themeChanged(Theme::theme());
-    itemEntitySets[itemID] = set;
+    entitySets[itemID] = set;
 
     int barCount = 120000;
 
@@ -538,7 +549,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     seriesChart->setSeriesVisible(TIMELINE_SERIES_KIND::NOTIFICATION, notificationLegendAction->isChecked());
     seriesChart->setSeriesVisible(TIMELINE_SERIES_KIND::LINE, lineLegendAction->isChecked());
 
-    itemChartWidgets[itemID] = seriesChart;
+    entityCharts[itemID] = seriesChart;
     return set;
 }
 
@@ -549,12 +560,12 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
  */
 void TimelineChartView::removeEntitySet(int ID)
 {
-    if (itemEntitySets.contains(ID)) {
-        EntitySet* set = itemEntitySets.take(ID);
+    if (entitySets.contains(ID)) {
+        EntitySet* set = entitySets.take(ID);
         _entityAxis->removeEntity(set);
         set->deleteLater();
         // remove chart from the hash and layout
-        EntityChart* entityChart = itemChartWidgets.take(ID);
+        EntityChart* entityChart = entityCharts.take(ID);
         _timelineChart->removeEntityChart(entityChart);
         entityChart->deleteLater();
     }

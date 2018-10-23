@@ -166,7 +166,7 @@ void EntityChart::resizeEvent(QResizeEvent* event)
  */
 void EntityChart::paintEvent(QPaintEvent* event)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     QPainter painter(this);
     painter.setClipRegion(visibleRegion());
@@ -204,7 +204,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.drawLine(rect().topLeft(), rect().topRight());
     painter.drawLine(rect().bottomLeft(), rect().bottomRight());
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "Total Series Render Took: " << finish - start << "MS. - " << _viewItem->getData("label").toString();
 }
@@ -391,7 +391,7 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
  */
 void EntityChart::paintNotificationSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     MEDEA::DataSeries* series = _seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
     if (!series)
@@ -478,7 +478,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     }
     */
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "NotificationSeries Render Took: " << finish - start << "MS. Returned: " << points.count() ;
 }
@@ -490,7 +490,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
  */
 void EntityChart::paintStateSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     MEDEA::StateSeries* series = (MEDEA::StateSeries*)_seriesList.value(TIMELINE_SERIES_KIND::STATE, 0);
     if (!series)
@@ -672,7 +672,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
     }
     */
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "StateSeries Render Took: " << finish - start << "MS. Returned: " << lines.count() * 2;
 }
@@ -686,7 +686,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
 #include <iostream>
 void EntityChart::paintBarSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
     
     MEDEA::BarSeries* series = (MEDEA::BarSeries*)_seriesList.value(TIMELINE_SERIES_KIND::BAR, 0);
     if (!series)
@@ -783,7 +783,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
         }
     }
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "BarSeries Render Took: " << finish - start << "MS. Returned: " << data.count();
 }
@@ -973,7 +973,7 @@ bool EntityChart::pointHovered(const QRectF& hitRect)
  * @param kind
  * @return
  */
-QHash<qint64, QRectF>& EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
+QHash<qint64, QRectF> &EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
 {
     switch (kind) {
     case TIMELINE_SERIES_KIND::NOTIFICATION:

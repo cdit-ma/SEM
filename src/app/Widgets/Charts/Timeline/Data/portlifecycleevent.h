@@ -20,12 +20,11 @@ struct Port {
         REQUESTER,
         REPLIER
     };
-    //int ID;
-    QString path;
-    //ComponentInstance component_instance;
+    Kind kind;
     QString name;
-    //Kind kind;
+    QString path;
     QString middleware;
+    //ComponentInstance component_instance;
 };
 
 struct Component {
@@ -53,17 +52,19 @@ class PortLifecycleEvent : public QObject
     Q_OBJECT
 
 public:
-    explicit PortLifecycleEvent(Port port, LifecycleType type, quint64 time, QObject* parent = 0);
-    explicit PortLifecycleEvent(LifecycleType type, quint64 time, QObject* parent = 0);
+    // time should be in milliseconds since epoch
+    explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
 
     Port getPort();
     LifecycleType getType();
-    quint64 getTime();
+    qint64 getTime();
+
+    const QString getPortPath();
 
 private:
     Port port_;
     LifecycleType type_;
-    quint64 time_;
+    qint64 time_;
 
 };
 

@@ -25,7 +25,6 @@ void AggregationProxy::RequestRunningExperiments()
 
 
 /**
-<<<<<<< HEAD
  * @brief AggregationProxy::constructTimestampFromMS
  * @param milliseconds
  * @return
