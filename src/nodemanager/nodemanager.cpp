@@ -41,6 +41,7 @@ int main(int argc, char **argv){
     std::string environment_manager_endpoint;
     std::string experiment_name;
     std::string ip_address;
+    std::string container_id;
     int execution_duration = 60;
     int log_verbosity = 1;
 
@@ -51,6 +52,7 @@ int main(int argc, char **argv){
     
     //Add required arguments
     options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "IP address for to identify this Node Manager.");
+    options.add_options()("container-id,c", boost::program_options::value<std::string>(&container_id), "The name of the container for this Node Manager.");
     options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name)->required(), "Name of experiment.");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");
     
@@ -152,7 +154,7 @@ int main(int argc, char **argv){
 
     if(is_slave){
         try{
-            deployment_manager = std::unique_ptr<DeploymentManager>(new DeploymentManager(execution, experiment_name, ip_address, master_publisher_endpoint, master_registration_endpoint, dll_path, is_master));
+            deployment_manager = std::unique_ptr<DeploymentManager>(new DeploymentManager(execution, experiment_name, ip_address, container_id, master_publisher_endpoint, master_registration_endpoint, dll_path, is_master));
         }catch(const std::exception& ex){
             std::cerr << "* Failed to construct DeploymentManager: " << ex.what() << std::endl;
             return 1;

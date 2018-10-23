@@ -170,7 +170,7 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
         }
 
         for(auto& logger : logging_servers){
-            reply->add_logger()->Swap(logger.get());
+            reply->mutable_logger()->AddAllocated(logger.release());
         }
 
         return std::move(reply);

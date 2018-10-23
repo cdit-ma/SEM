@@ -13,6 +13,7 @@ DeploymentManager::DeploymentManager(
         Execution& execution,
         const std::string& experiment_name,
         const std::string& ip_address,
+        const std::string& container_id,
         const std::string& master_publisher_endpoint,
         const std::string& master_registration_endpoint,
         const std::string& library_path,
@@ -20,6 +21,7 @@ DeploymentManager::DeploymentManager(
         execution_(execution),
         experiment_name_(experiment_name),
         ip_address_(ip_address),
+        container_id_(container_id),
         library_path_(library_path),
         is_master_node_(is_master_node)
 {
@@ -46,6 +48,14 @@ DeploymentManager::DeploymentManager(
     }
 }
 
+std::unique_ptr<NodeManager::SlaveId> DeploymentManager::GetSlaveID() const{
+    using namespace NodeManager;
+    auto slave = std::unique_ptr<SlaveId>(new SlaveId());
+    slave->set_ip_address(ip_address_);
+    slave->set_container_id(container_id_);
+    return slave;
+}
+
 void DeploymentManager::RequestDeployment(){
     using namespace NodeManager;
 
@@ -54,7 +64,7 @@ void DeploymentManager::RequestDeployment(){
     {
         //Get Experiment From Node Manager Master
         SlaveStartupRequest request;
-        request.set_slave_ip(ip_address_);
+        request.set_allocated_id(GetSlaveID().release());
 
         // Retry three times
         int retry_count = 0;
@@ -81,10 +91,10 @@ void DeploymentManager::RequestDeployment(){
     //Tell Node Manager Master that We are Configured
     {
         SlaveConfiguredRequest request;
-        request.set_slave_ip(ip_address_);
+        request.set_allocated_id(GetSlaveID().release());
 
         try{
-            HandleNodeUpdate(startup_reply->configuration());
+            HandleContainerUpdate(startup_reply->configuration());
             request.set_success(true);
         }catch(const std::exception& ex){
             request.set_success(false);
@@ -100,29 +110,30 @@ void DeploymentManager::RequestDeployment(){
 
 void DeploymentManager::HandleExperimentUpdate(const NodeManager::ControlMessage& control_message){
     for(const auto& node : control_message.nodes()){
-        HandleNodeUpdate(node);
+        if(node.ip_address() == ip_address_){
+            for(const auto& container : node.containers()){
+                if(container.info().id() == container_id_){
+                    HandleContainerUpdate(container);
+                }
+            }
+        }
     }
 }
 
-void DeploymentManager::HandleNodeUpdate(const NodeManager::Node& node){
+void DeploymentManager::HandleContainerUpdate(const NodeManager::Container& container){
     std::lock_guard<std::mutex> lock(container_mutex_);
-    const auto& node_name = node.info().name();
+    const auto& id = container.info().id();
     
-    if(!deployment_containers_.count(node_name)){
-        auto deployment_container = std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_));
-        deployment_container->SetLibraryPath(library_path_);
-        deployment_containers_.emplace(node_name, std::move(deployment_container));
+    if(deployment_containers_.count(id)){
+        deployment_containers_.at(id)->Configure(container);
+    }else{
+        deployment_containers_.emplace(id, std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_, library_path_, container)));
     }
-
-    auto& deployment_container = *deployment_containers_.at(node_name);
-    deployment_container.Configure(node);
 }
 
 void DeploymentManager::InteruptControlQueue(){
     std::unique_lock<std::mutex> lock(queue_mutex_);
-    if(!terminate_){
-        terminate_ = true;
-    }
+    terminate_ = true;
     queue_condition_.notify_all();
 }
 
@@ -218,11 +229,11 @@ void DeploymentManager::ProcessControlQueue(){
     }
 
 
-    //Tell Node Manager Master that We are Configured
+    //Tell Node Manager Master that We are Terminated
     {
         using namespace NodeManager;
         SlaveTerminatedRequest request;
-        request.set_slave_ip(ip_address_);
+        request.set_allocated_id(GetSlaveID().release());
 
         auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
             ("SlaveTerminated", request, 1000);

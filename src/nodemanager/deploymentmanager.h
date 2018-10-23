@@ -26,6 +26,7 @@ class DeploymentManager{
             Execution& execution,
             const std::string& experiment_name,
             const std::string& ip_address,
+            const std::string& container_id,
             const std::string& master_publisher_endpoint,
             const std::string& master_registration_endpoint,
             const std::string& library_path,
@@ -35,12 +36,12 @@ class DeploymentManager{
         NodeManager::SlaveStartupResponse HandleSlaveStartup(const NodeManager::SlaveStartup startup);
         void HandleExperimentUpdate(const NodeManager::ControlMessage& control_message);
         void GotExperimentUpdate(const NodeManager::ControlMessage& control_message);
-        void HandleNodeUpdate(const NodeManager::Node& node);
+        void HandleContainerUpdate(const NodeManager::Container& container);
 
         void Terminate();
         void RequestDeployment();
     private:
-
+        std::unique_ptr<NodeManager::SlaveId> GetSlaveID() const;
         void ProcessControlQueue();
         void InteruptControlQueue();
 
@@ -48,6 +49,7 @@ class DeploymentManager{
         bool is_master_node_ = false;
         const std::string library_path_;
         const std::string ip_address_;
+        const std::string container_id_;
         const std::string experiment_name_;
         Execution& execution_;
         
