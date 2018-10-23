@@ -1,4 +1,5 @@
 #include "windowmanager.h"
+
 #include <QDebug>
 #include <QDialog>
 #include <QPushButton>
@@ -7,7 +8,7 @@
 #include <QApplication>
 #include <QSplitter>
 
-#define NOMINMAX
+
 
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
