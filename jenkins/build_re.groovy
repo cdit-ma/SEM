@@ -34,20 +34,19 @@ stage("Checkout"){
             checkout scm
             stash includes: "**", name: "source_code"
 
-            utils.runScript('git bundle create ' + GIT_ID + ' -- ../re.bundle')
-            utils.runScript('git-archive-all ../re.tar.gz')
+            utils.runScript('git bundle create re.bundle ' + GIT_ID)
+            utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
             if(fileExists("VERSION.md")){
                 RELEASE_DESCRIPTION = readFile("VERSION.md")
             }
+            final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
+            //Create rollout archive
+            utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
+            archiveArtifacts(ROLLOUT_FILE_NAME)
+            deleteDir()
         }
-
-        final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
-        //Create rollout archive
-        utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
-        archiveArtifacts(ROLLOUT_FILE_NAME)
-        deleteDir()
     }
 }
 
