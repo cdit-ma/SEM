@@ -45,7 +45,7 @@ stage("Checkout"){
             //Create rollout archive
             utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
             archiveArtifacts(ROLLOUT_FILE_NAME)
-            deleteDir()
+            //deleteDir()
         }
     }
 }
