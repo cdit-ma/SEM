@@ -34,7 +34,7 @@ stage("Checkout"){
             checkout scm
             stash includes: "**", name: "source_code"
 
-            utils.runScript('git bundle create re.bundle -all')
+            utils.runScript('git bundle create re.bundle --all')
             utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
@@ -45,7 +45,7 @@ stage("Checkout"){
             //Create rollout archive
             utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
             archiveArtifacts(ROLLOUT_FILE_NAME)
-            //deleteDir()
+            deleteDir()
         }
     }
 }
