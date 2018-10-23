@@ -202,6 +202,7 @@ Node& Port::GetNode() const{
     if(GotComponent()){
         return parent_->GetNode();
     }
+    throw std::runtime_error("Port doesn't have a Node.");
 }
 
 Experiment& Port::GetExperiment() const{

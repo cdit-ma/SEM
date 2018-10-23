@@ -214,5 +214,5 @@ NodeManager::Logger::Type Logger::TranslateInternalType(const Type type){
 }
 
 Node &Logger::GetNode() const {
-    parent_.GetNode();
+    return parent_.GetNode();
 }

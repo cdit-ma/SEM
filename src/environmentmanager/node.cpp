@@ -168,6 +168,7 @@ Logger &Node::GetLogger(const std::string &logger_id) const {
             return container.second->GetLogger(logger_id);
         }
     }
+    throw std::runtime_error("Got no logger with ID: '" + logger_id + "'");
 }
 
 int Node::GetLoganServerCount() const {
