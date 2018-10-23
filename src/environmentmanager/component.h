@@ -12,18 +12,19 @@ class Environment;
 class Node;
 class Port;
 class Attribute;
+class Container;
 class Worker;
 
 class Component{
     public:
-        Component(Environment& environment, Node& parent, const NodeManager::Component& component);
+        Component(Environment& environment, Container& parent, const NodeManager::Component& component);
         void AddAttribute();
 
         std::string GetId();
         std::string GetName();
 
         Port& GetPort(const std::string& port_id);
-        Node& GetNode();
+        Container& GetContainer() const;
         Environment& GetEnvironment() const;
 
         bool HasPort(const std::string& port_id);
@@ -34,7 +35,7 @@ class Component{
         std::unique_ptr<NodeManager::Component> GetProto(const bool full_update);
     private:
         Environment& environment_;
-        Node& node_;
+        Container& parent_;
         std::string id_;
         std::string name_;
         std::string type_;

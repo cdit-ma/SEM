@@ -196,7 +196,7 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 }
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
-    environment_->PopulateExperiment(request.control_message());
+    environment_->PopulateExperiment(request.experiment());
     auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
     return reply;
 }

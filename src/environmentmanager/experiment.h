@@ -45,11 +45,11 @@ class Experiment{
         const std::string& GetName() const;
 
         std::string GetManagerPort() const;
-        void SetManagerPort(const std::string& manager_Gport);
+        void SetManagerPort(const std::string& manager_port);
 
         
 
-        void AddExternalPorts(const NodeManager::ControlMessage& message);
+        void AddExternalPorts(const NodeManager::Experiment& message);
         void AddNode(const NodeManager::Node& node);
 
         Node& GetNode(const std::string& ip_address) const;
@@ -99,8 +99,6 @@ class Experiment{
     private:
         void SetMasterIp(const std::string& ip);
         ExternalPort& GetExternalPort(const std::string& external_port_internal_id);
-    
-        std::string GetNodeIpByName(const std::string& node_name);
 
         std::mutex mutex_;
 

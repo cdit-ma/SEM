@@ -31,9 +31,8 @@ class Environment{
         Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int portrange_min = 30000, int portrange_max = 50000);
         ~Environment();
 
-
-        Experiment& GetExperiment(const std::string experiment_name);
-        void PopulateExperiment(const NodeManager::ControlMessage& message);
+        Experiment& GetExperiment(const std::string& experiment_name);
+        void PopulateExperiment(const NodeManager::Experiment &message);
 
         std::unique_ptr<NodeManager::RegisterExperimentReply> GetExperimentDeploymentInfo(const std::string& experiment_name);
 
@@ -83,23 +82,20 @@ class Environment{
 
         std::string GetAmqpBrokerAddress();
         std::string GetTaoNamingServiceAddress();
-
-        static const NodeManager::Attribute& GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name);
     private:
         std::string GetExperimentHandlerPort(const std::string& experiment_name);
 
         void RemoveExperimentInternal(const std::string& experiment_name);
         void FinishConfigure(const std::string& experiment_name);
-        static void DeclusterExperiment(NodeManager::ControlMessage& message);
-        static void DeclusterNode(NodeManager::Node& message);
+        static void DeclusterExperiment(NodeManager::Experiment& message);
+        static void DeclusterCluster(NodeManager::Cluster& message);
         
         
-        void AddExternalPorts(const std::string& experiment_name, const NodeManager::ControlMessage& control_message);
         void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
         ExternalPort& GetExternalPort(const std::string& external_port_label);
-        Experiment& GetExperimentInternal(const std::string experiment_name);
-        void RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node);
+        Experiment& GetExperimentInternal(const std::string& experiment_name);
+        void AddNodes(const std::string& experiment_id, const NodeManager::Cluster& cluster);
 
         //Port range
         int PORT_RANGE_MIN;
@@ -108,13 +104,8 @@ class Environment{
         int MANAGER_PORT_RANGE_MIN;
         int MANAGER_PORT_RANGE_MAX;
 
-        std::string address_;
-
         std::string qpid_broker_address_;
         std::string tao_naming_service_address_;
-
-        //Returns management port for logan client to communicate with environment_manager
-        std::string AddLoganClientServer();
 
         void RegisterExperiment(const std::string& experiment_name);
 

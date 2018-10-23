@@ -16,10 +16,10 @@ Experiment::~Experiment(){
             const auto& port = external_port_pair.second;
             const auto& external_port_label = port->external_label;
 
-            if(port->consumer_ids.size() > 0){
+            if(!port->consumer_ids.empty()){
                 environment_.RemoveExternalConsumerPort(model_name_, external_port_label);
             }
-            if(port->producer_ids.size() > 0){
+            if(!port->producer_ids.empty()){
                 environment_.RemoveExternalProducerPort(model_name_, external_port_label);
             }
         }
@@ -94,7 +94,7 @@ void Experiment::SetMasterIp(const std::string& ip){
     master_ip_address_ = ip;
 }
 
-void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
+void Experiment::AddExternalPorts(const NodeManager::Experiment& message){
     for(const auto& external_port : message.external_ports()){
         if(!external_port.is_blackbox()){
             const auto& internal_id = external_port.info().id();
@@ -132,30 +132,28 @@ Node& Experiment::GetNode(const std::string& ip_address) const{
 }
 
 void Experiment::AddNode(const NodeManager::Node& node){
-    if(node.type() == NodeManager::Node::HARDWARE_NODE){
-        const auto& ip_address = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
+    const auto& ip_address = node.ip_address();
 
-        if(!node_map_.count(ip_address)){
-            auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-            if(internal_node->GetIp() != "OFFLINE"){
-                auto deploy_component_count = internal_node->GetDeployedComponentCount();
+    if(!node_map_.count(ip_address)){
+        auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
+        if(internal_node->GetIp() != "OFFLINE"){
+            auto deploy_component_count = internal_node->GetDeployedComponentCount();
 
-                if(deploy_component_count > 0){
-                    std::cout << "* Experiment[" << model_name_ << "] Node: " << internal_node->GetName();
-                    if(GetMasterIp().empty()){
-                        //Set the first node with components to be the master
-                        internal_node->SetNodeManagerMaster();
-                        SetMasterIp(ip_address);
-                        std::cout << " [RE_MASTER]";
-                    }
-                    std::cout << " Deploys: " << deploy_component_count << " Components" << std::endl;
+            if(deploy_component_count > 0){
+                std::cout << "* Experiment[" << model_name_ << "] Node: " << internal_node->GetName();
+                if(GetMasterIp().empty()){
+                    //Set the first node with components to be the master
+                    internal_node->SetNodeManagerMaster();
+                    SetMasterIp(ip_address);
+                    std::cout << " [RE_MASTER]";
                 }
-                node_map_.emplace(ip_address, std::move(internal_node));
+                std::cout << " Deploys: " << deploy_component_count << " Components" << std::endl;
             }
+            node_map_.emplace(ip_address, std::move(internal_node));
         }
-        else{
-            throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate node with ip address: '" + ip_address + "'");
-        }
+    }
+    else{
+        throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate node with ip address: '" + ip_address + "'");
     }
 }
 
@@ -249,7 +247,6 @@ Port& Experiment::GetPort(const std::string& id){
     }
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
-
 
 std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update){
     std::unique_ptr<NodeManager::EnvironmentMessage> environment_message;

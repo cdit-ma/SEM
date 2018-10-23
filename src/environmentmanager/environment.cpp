@@ -10,7 +10,6 @@ using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
-    address_ = address;
     qpid_broker_address_ = qpid_broker_address;
     tao_naming_service_address_ = tao_naming_service_address;
 
@@ -40,13 +39,13 @@ Environment::~Environment(){
 }
 
 
-void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
+void Environment::PopulateExperiment(const NodeManager::Experiment &const_experiment_message){
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     
     //Take a copy
-    auto control_message = const_control_message;
-    const auto& experiment_name = control_message.experiment_id();
+    auto experiment_message = const_experiment_message;
+    const auto& experiment_name = experiment_message.name();
 
     if(experiment_map_.count(experiment_name) > 0){
         throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
@@ -64,14 +63,14 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
         }
 
         //Handle Deployments etc
-        DeclusterExperiment(control_message);
+        DeclusterExperiment(experiment_message);
 
         //Handle the External Ports
-        experiment.AddExternalPorts(control_message);
+        experiment.AddExternalPorts(experiment_message);
         
         //Add all nodes
-        for(const auto& node : control_message.nodes()){
-            RecursiveAddNode(experiment_name, node);
+        for(const auto& cluster : experiment_message.clusters()){
+            AddNodes(experiment_name, cluster);
         }
         
         //Complete the Configuration
@@ -84,11 +83,10 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
 }
 
 
-void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node_pb){
-    for(const auto& node : node_pb.nodes()){
-        RecursiveAddNode(experiment_id, node);
+void Environment::AddNodes(const std::string& experiment_id, const NodeManager::Cluster& cluster){
+    for(const auto& node : cluster.nodes()){
+        AddNodeToExperiment(experiment_id, node);
     }
-    AddNodeToExperiment(experiment_id, node_pb);
 }
 
 std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,
@@ -127,18 +125,12 @@ void Environment::RegisterExperiment(const std::string& experiment_name){
     std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
 }
 
-std::string Environment::AddLoganClientServer(){
-    return GetManagerPort();
-}
-
-
-
-Experiment& Environment::GetExperiment(const std::string experiment_name){
+Experiment& Environment::GetExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return GetExperimentInternal(experiment_name);
 }
 
-Experiment& Environment::GetExperimentInternal(const std::string experiment_name){
+Experiment& Environment::GetExperimentInternal(const std::string& experiment_name){
     if(experiment_map_.count(experiment_name)){
         return *(experiment_map_.at(experiment_name));
     }
@@ -150,7 +142,6 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Environment::GetExperiment
     auto& experiment = GetExperimentInternal(experiment_name);
     return experiment.GetDeploymentInfo();
 }
-
 
 std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std::string& experiment_name, const bool full_update){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
@@ -184,79 +175,113 @@ void Environment::RemoveExperimentInternal(const std::string& experiment_name){
     }
 }
 
-
-void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
-    for(auto& node : *message.mutable_nodes()){
-        DeclusterNode(node);
+void Environment::DeclusterExperiment(NodeManager::Experiment& message){
+    for(auto& cluster : *message.mutable_clusters()){
+        DeclusterCluster(cluster);
     }
 }
 
-void Environment::DeclusterNode(NodeManager::Node& node){
+void Environment::DeclusterCluster(NodeManager::Cluster& cluster){
     //TODO: Look into a Smart Deployment Algorithm to spread load (RE-254)
-    if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
-        std::queue<NodeManager::Component> component_queue;
-        std::queue<NodeManager::Logger> logging_servers;
-        std::vector<NodeManager::Logger> logging_clients;
+    std::queue<NodeManager::Container> container_queue;
+    std::queue<NodeManager::Logger> logging_servers;
+    std::vector<NodeManager::Logger> logging_clients;
 
-        for(const auto& component : node.components()){
-            component_queue.emplace(component);
+    NodeManager::Container cluster_implicit_container;
+
+    for(const auto& container : cluster.containers()){
+        if(container.implicit()){
+            cluster_implicit_container = container;
         }
-        node.clear_components();
+        container_queue.emplace(container);
+    }
+    cluster.clear_containers();
 
-        for(const auto& logger : node.loggers()){
-            switch(logger.type()){
-                case NodeManager::Logger::SERVER:{
-                    logging_servers.emplace(logger);
-                    break;
-                }
-                case NodeManager::Logger::CLIENT:{
-                    logging_clients.emplace_back(logger);
-                    break;
-                }
-                default:
-                    break;
+    for(const auto& logger : cluster.loggers()){
+        switch(logger.type()){
+            case NodeManager::Logger::SERVER:{
+                logging_servers.emplace(logger);
+                break;
             }
+            case NodeManager::Logger::CLIENT:{
+                logging_clients.emplace_back(logger);
+                break;
+            }
+            default:
+                break;
         }
-        node.clear_loggers();
+    }
+    cluster.clear_loggers();
 
-        int child_node_count = node.nodes_size();
-        int counter = 0;
+    std::queue<NodeManager::Component> component_queue;
 
-        while(!component_queue.empty()){
-            //Calculate the index of the node to place each Component on
-            const int node_index = counter++ % child_node_count;
-            //Add a new Component and swap it with the element on the queue
-            auto component = node.mutable_nodes(node_index)->add_components();
-            //Copy the Component
-            *component = component_queue.front();
-            component_queue.pop();
-        }
+    for(const auto& component : cluster_implicit_container.components()){
+        component_queue.emplace(component);
+    }
 
-        counter = 0;
-
-        //put one logging server on a node
-        while(!logging_servers.empty()){
-            //Calculate the index of the node to place each Component on
-            const int node_index = counter++ % child_node_count;
-
-            auto server = node.mutable_nodes(node_index)->add_loggers();
-            //Copy the Server
-            *server = logging_servers.front();
-            logging_servers.pop();
-        }
-
-        //put a copy of all logging clients on all child nodes
-        for(auto& node_pb : *node.mutable_nodes()){
-            for(const auto& logger : logging_clients){
-                auto new_logger = node_pb.add_loggers();
-                //Copy the Logger
-                *new_logger = logger;
+    for(const auto& logger : cluster_implicit_container.loggers()){
+        switch(logger.type()){
+            case NodeManager::Logger::SERVER:{
+                logging_servers.emplace(logger);
+                break;
+            }
+            case NodeManager::Logger::CLIENT:{
+                logging_clients.emplace_back(logger);
+                break;
+            }
+            default:{
+                break;
             }
         }
     }
 
-    for(auto& node_pb : *node.mutable_nodes()){
-        DeclusterNode(node_pb);
+    int child_node_count = cluster.nodes_size();
+    int counter = 0;
+
+    while(!container_queue.empty()){
+        //Calculate the index of the node to place each Component on
+        const int node_index = counter++ % child_node_count;
+        //Add a new Component and swap it with the element on the queue
+        auto container = cluster.mutable_nodes(node_index)->add_containers();
+        //Copy the Component
+        *container = container_queue.front();
+        container_queue.pop();
+    }
+
+    counter = 0;
+
+    // Distribute components in a cluster's implicitly constructed container across node implicitly constructed containers
+    while(!component_queue.empty()){
+        const int node_index = counter++ % child_node_count;
+        auto node = cluster.mutable_nodes(node_index);
+
+        for(auto& container : *node->mutable_containers()){
+            if(container.implicit()){
+                auto component = container.add_components();
+                *component = component_queue.front();
+                component_queue.pop();
+            }
+        }
+    }
+
+    //put one logging server on a node
+    while(!logging_servers.empty()){
+        //Calculate the index of the node to place each Component on
+        const int node_index = counter++ % child_node_count;
+
+        auto server = cluster.mutable_nodes(node_index)->add_loggers();
+        //Copy the Server
+        *server = logging_servers.front();
+        logging_servers.pop();
+    }
+
+    //put a copy of all logging clients on all child nodes
+    for(auto& node_pb : *cluster.mutable_nodes()){
+        for(const auto& logger : logging_clients){
+            auto new_logger = node_pb.add_loggers();
+            //Copy the Logger
+            *new_logger = logger;
+        }
     }
 }
 
@@ -273,14 +298,10 @@ void Environment::AddNodeToExperiment(const std::string& experiment_name, const 
     }
 }
 
-
-
-
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     const auto& node_name = node.info().name();
     try{
-        const auto& ip = NodeManager::GetAttribute(node.attributes(), "ip_address").s(0);
-
+        const auto& ip = node.ip_address();
         std::lock_guard<std::mutex> lock(node_mutex_);
         if(!node_map_.count(ip)){
             auto port_tracker = std::unique_ptr<EnvironmentManager::PortTracker>(new EnvironmentManager::PortTracker(ip, available_ports_));
@@ -401,7 +422,7 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& experim
 }
 bool Environment::GotExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
-    return experiment_map_.count(experiment_name);
+    return experiment_map_.count(experiment_name) > 0;
 }
 
 bool Environment::ExperimentIsDirty(const std::string& experiment_name){
@@ -411,9 +432,6 @@ bool Environment::ExperimentIsDirty(const std::string& experiment_name){
     }
     return false;
 }
-
-
-
 
 std::string Environment::GetAmqpBrokerAddress(){
     return qpid_broker_address_;
@@ -489,15 +507,6 @@ void Environment::RemoveExternalProducerPort(const std::string& experiment_name,
         auto& consumer_experiment = GetExperimentInternal(consumer_experiment_name);
         consumer_experiment.UpdatePort(external_port_label);
     }
-}
-
-const NodeManager::Attribute& Environment::GetAttributeByName(const google::protobuf::RepeatedPtrField<NodeManager::Attribute>& attribute_list, const std::string& attribute_name){
-    for(const auto& attribute : attribute_list){
-        if(attribute.info().name() == attribute_name){
-            return attribute;
-        }
-    }
-    throw std::invalid_argument("No attribute found with name " + attribute_name);
 }
 
 std::vector<std::string> Environment::GetExperimentNames(){

@@ -13,6 +13,7 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/container.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
@@ -33,6 +34,7 @@ set(SOURCE
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/container.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
