@@ -6,9 +6,9 @@ import cditma.Utils
 
 def utils = new Utils(this);
 
-final GIT_BRANCH = env.JOB_BASE_NAME
-final FILE_NAME = "MEDEA-" + GIT_BRANCH
-
+final GIT_ID = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
+final FILE_NAME = "MEDEA-" + GIT_ID
+final Boolean BUILD_PACKAGE = env.TAG_NAME
 
 stage("Checkout"){
     node("master"){
@@ -82,6 +82,8 @@ stage("Build"){
     parallel step_build_test
 }
 
-stage("Package"){
-    parallel step_archive
+if(BUILD_PACKAGE){
+    stage("Package"){
+        parallel step_archive
+    }
 }
