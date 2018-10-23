@@ -20,18 +20,12 @@
 
 syntax="proto3";
 
-package re_common;
+package SystemEvent;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
 
 message ProcessStatus{
-	uint32 pid = 1;
-	uint32 cpu_core_id = 2;
-	double cpu_utilization = 3;
-	double phys_mem_utilization = 4;
-	uint32 thread_count = 5;
-	uint64 disk_read = 6;
-	uint64 disk_written = 7;
-	uint64 disk_total = 8;
-
 	enum State{
 		PROC_ERROR = 0;
 		PROC_RUNNING = 1;
@@ -41,15 +35,30 @@ message ProcessStatus{
 		PROC_ZOMBIE = 5;
 		PROC_DEAD = 6;
 	}
-	State state = 10;
-	string name = 11;
+
+	uint32 pid = 1;
+	string name = 2;
+
+	uint32 cpu_core_id = 3;
+	double cpu_utilization = 4;
+	double phys_mem_utilization = 5;
+	uint64 phys_mem_used_kB = 6;
+
+	uint32 thread_count = 7;
+	uint64 disk_read_kilobytes = 8;
+	uint64 disk_written_kilobytes = 9;
+	uint64 disk_total_kilobytes = 10;
+
+	google.protobuf.Duration cpu_time = 11;
+	State state = 12;
 }
 
 message ProcessInfo{
 	uint32 pid = 1;
-	string name = 2;
-	string args = 3;
-	double start_time = 4;
+	string cwd = 2;
+	string name = 3;
+	string args = 4;
+	google.protobuf.Timestamp start_time = 5;
 }
 
 message FileSystemStatus{
@@ -68,7 +77,7 @@ message FileSystemInfo{
 	}
 	string name = 1;
 	Type type = 2;
-	uint64 size = 3;
+	uint64 size_kilobytes = 3;
 }
 
 message InterfaceStatus{
@@ -89,9 +98,10 @@ message InterfaceInfo{
 	uint64 speed = 7;
 }
 
-message SystemStatus{
+
+message StatusEvent{
 	string hostname = 1;
-	double timestamp = 2;
+	google.protobuf.Timestamp timestamp = 2;
 	int64 message_id = 3;
 
 	repeated double cpu_core_utilization = 4;
@@ -104,9 +114,9 @@ message SystemStatus{
 	repeated FileSystemStatus file_systems = 11;
 }
 
-message SystemInfo{
+message InfoEvent{
 	string hostname = 1;
-	double timestamp = 2;
+	google.protobuf.Timestamp timestamp = 2;
 	int64 message_id = 3;
 	//OS
 	string os_name = 4;
@@ -119,10 +129,10 @@ message SystemInfo{
 	//CPU
 	string cpu_model = 10;
 	string cpu_vendor = 11;
-	int32 cpu_frequency = 12;
+	uint64 cpu_frequency_hz = 12;
 
 	//RAM
-	int32 physical_memory = 13;
+	uint64 physical_memory_kilobytes = 13;
 
 	repeated FileSystemInfo file_system_info = 14;
 	repeated InterfaceInfo interface_info = 15;

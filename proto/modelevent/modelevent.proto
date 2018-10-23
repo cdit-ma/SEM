@@ -20,11 +20,13 @@
 
 syntax="proto3";
 
-package re_common;
+import "google/protobuf/timestamp.proto";
+
+package ModelEvent;
 
 message Info{
     string hostname = 1;
-    double timestamp = 2;
+    google.protobuf.Timestamp timestamp = 2;
     uint64 uid = 3;
     string experiment_name = 4;
 }
