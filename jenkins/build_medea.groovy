@@ -1,14 +1,19 @@
-def PROJECT_NAME = 'test_medea'
+//This script requires the following Jenkins plugins:
+//-Pipeline: Utility Steps
+//Requires a Jenkins Credential with id: cditma-github-auth
 
+def PROJECT_NAME = 'build_medea'
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
-
 def utils = new Utils(this);
 
+final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
 final FILE_NAME = "MEDEA-" + GIT_ID
 final Boolean BUILD_PACKAGE = env.TAG_NAME
+
+def RELEASE_DESCRIPTION = FILE_NAME
 
 stage("Checkout"){
     node("master"){
@@ -20,6 +25,11 @@ stage("Checkout"){
         def git_tar_gz = FILE_NAME + '-src.tar.gz'
         dir(PROJECT_NAME){
             utils.runScript('git-archive-all ../' + git_tar_gz)
+
+            //Read the VERSION.MD
+            if(fileExists("VERSION.md")){
+                RELEASE_DESCRIPTION = readFile("VERSION.md")
+            }
         }
         archiveArtifacts(git_tar_gz)
     }
@@ -52,7 +62,6 @@ for(n in medea_nodes){
                 utils.runScript("cpack")
                 dir("installers"){
                     def globstr = ""
-                    
                     def os_name = utils.getNodeOSName(node_name)
 
                     if(os_name == "Linux"){
@@ -89,27 +98,32 @@ if(BUILD_PACKAGE){
 
     stage("Release"){
         node("master"){
-            withCredentials([usernamePassword(credentialsId: 'git-auth-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                print('GIT USER:${GIT_USERNAME}')
+            withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]) {
+                def release_name = "MEDEA " + GIT_ID
+                def git_args = " --user cdit-ma --repo MEDEA --tag " + GIT_ID
+
+                //Write a VERSION.md to be used as the Git Release Description
+                writeFile(file: "VERSION.md", text: RELEASE_DESCRIPTION)
+
+                def release_success = utils.runScript("github-release release" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
+                if(!release_success){
+                    //Try edit if release fails
+                    release_success = utils.runScript("github-release edit" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
+                }
+
+                if(release_success){
+                    dir("binaries"){
+                        unarchive mapping: ['*' : '.']
+                        for(def file : findFiles(glob: '*')){
+                            def file_path = file.name
+                            //Upload binaries, replacing if they exist
+                            utils.runScript("github-release upload" + git_args + " -R --file \"" + file_path + "\" --name \"" + file_path + "\"")
+                        }
+                    }
+                }else{
+                    error("GitHub Release failed to be created")
+                }
             }
         }
     }
 }
-/*
-
-    echo "Compressing artifacts into one file"
-zip -r artifacts.zip artifacts_folder
-
-echo "Exporting token and enterprise api to enable github-release tool"
-export GITHUB_TOKEN=$$$$$$$$$$$$
-export GITHUB_API=https://git.{your domain}.com/api/v3 # needed only for enterprise
-
-echo "Deleting release from github before creating new one"
-github-release delete --user ${GITHUB_ORGANIZATION} --repo ${GITHUB_REPO} --tag ${VERSION_NAME}
-
-echo "Creating a new release in github"
-github-release release --user ${GITHUB_ORGANIZATION} --repo ${GITHUB_REPO} --tag ${VERSION_NAME} --name "${VERSION_NAME}"
-
-echo "Uploading the artifacts into github"
-github-release upload --user ${GITHUB_ORGANIZATION} --repo ${GITHUB_REPO} --tag ${VERSION_NAME} --name "${PROJECT_NAME}-${VERSION_NAME}.zip" --file artifacts.zip
-}*/
