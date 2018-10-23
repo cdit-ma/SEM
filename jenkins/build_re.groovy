@@ -2,21 +2,52 @@ def PROJECT_NAME = 'test_re'
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
+import hudson.tasks.test.AbstractTestResultAction
 def utils = new Utils(this);
 
 // Override this to enable running of long tests
-def RUN_ALL_TESTS = false
-final branch_name = env.BRANCH_NAME
-if(branch_name.contains("PR-")){
-    RUN_ALL_TESTS = true
+final Boolean IS_TAG = env.TAG_NAME
+final GIT_CREDENTIAL_ID = "cditma-github-auth"
+final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
+//Run full tests on a Tag or a Pull Request
+final def RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
+def RELEASE_DESCRIPTION = "re-" + GIT_ID
+
+@NonCPS
+def get_test_status(){
+    //Thanks to https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
+    def status = "#Test Status\n"
+    AbstractTestResultAction testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+    if (testResultAction != null) {
+        def total = testResultAction.totalCount
+        def failed = testResultAction.failCount
+        def skipped = testResultAction.skipCount
+        def passed = total - failed - skipped
+        status += "Passed: ${passed}, Failed: ${failed} ${testResultAction.failureDiffString}, Skipped: ${skipped}"
+    }
+    return status
 }
 
-node("master"){
-    stage("Checkout"){
+stage("Checkout"){
+    node("master"){
         dir(PROJECT_NAME){
             checkout scm
             stash includes: "**", name: "source_code"
+
+            utils.runScript('git bundle create ../re.bundle ' + GIT_ID)
+            utils.runScript('git-archive-all ../re.tar.gz')
+            
+            //Read the VERSION.MD
+            if(fileExists("VERSION.md")){
+                RELEASE_DESCRIPTION = readFile("VERSION.md")
+            }
         }
+
+        final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
+        //Create rollout archive
+        utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
+        archiveArtifacts(ROLLOUT_FILE_NAME)
+        deleteDir()
     }
 }
 
@@ -104,11 +135,8 @@ stage("Build"){
 
 stage("Test"){
     parallel test_map
-}
 
-//Collate Results
-node("master"){
-    stage("Collate"){
+    node("master"){
         dir("test_cases"){
             deleteDir()
 
@@ -119,25 +147,60 @@ node("master"){
             }
 
             def globstr = "**.xml"
-            def test_results = findFiles glob: globstr
-            for (int i = 0; i < test_results.size(); i++){
-                def file_path = test_results[i].name
-                junit file_path
-            }
+            junit globstr
             
             //Test cases
             def test_archive = "test_results.zip"
             zip glob: globstr, zipFile: test_archive
             archiveArtifacts test_archive
         }
+    }
+}
 
-        if(FAILED){
-            print("Test Execution failed!")
-            print(FAILURE_LIST.size() + " Error(s)")
-            for(failure in FAILURE_LIST){
-                print("ERROR: " + failure)
+if(IS_TAG){
+    stage("Release"){
+        node("master"){
+            withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
+                def release_name = "re " + GIT_ID
+                def git_args = " --user cdit-ma --repo re --tag " + GIT_ID
+
+                //Write a VERSION.md to be used as the Git Release Description
+                writeFile(file: "VERSION.md", text: RELEASE_DESCRIPTION + "\n" + get_test_status())
+
+                def release_success = utils.runScript("github-release release" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
+                if(!release_success){
+                    //Try edit if release fails
+                    release_success = utils.runScript("github-release edit" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
+                }
+
+                if(release_success){
+                    dir("binaries"){
+                        unarchive mapping: ['*' : '.']
+                        for(def file : findFiles(glob: '*')){
+                            def file_path = file.name
+                            //Upload binaries, replacing if they exist
+                            utils.runScript("github-release upload" + git_args + " -R --file \"" + file_path + "\" --name \"" + file_path + "\"")
+                        }
+                    }
+                }else{
+                    error("GitHub Release failed to be created")
+                }
             }
-            error("Test Execution failed!")
         }
     }
 }
+
+//Collate Results
+node("master"){
+    if(FAILED){
+        print("Test Execution failed!")
+        print(FAILURE_LIST.size() + " Error(s)")
+        for(failure in FAILURE_LIST){
+            print("ERROR: " + failure)
+        }
+        error("Test Execution failed!")
+    }
+}
+
+
+
