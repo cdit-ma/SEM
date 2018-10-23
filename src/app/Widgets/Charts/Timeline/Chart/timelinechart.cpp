@@ -19,107 +19,11 @@ TimelineChart::TimelineChart(QWidget* parent)
     : QWidget(parent)
 {
     setMouseTracking(true);
-    setFocusPolicy(Qt::StrongFocus);
+    setFocusPolicy(Qt::WheelFocus);
 
     _layout = new QVBoxLayout(this);
     _layout->setMargin(0);
     _layout->setSpacing(0);
-
-    _toolbar = new QToolBar(this);
-    _toolbar->setWindowFlags(_toolbar->windowFlags() | Qt::Popup);
-    _showSetMinMenu = _toolbar->addAction("Set minimum time");
-    _showSetMaxMenu = _toolbar->addAction("Set maximum time");
-
-    ((QToolButton*)_toolbar->widgetForAction(_showSetMinMenu))->setPopupMode(QToolButton::InstantPopup);
-    ((QToolButton*)_toolbar->widgetForAction(_showSetMaxMenu))->setPopupMode(QToolButton::InstantPopup);
-
-    /*
-     * SET UP MENUS AND SPIN BOXES
-     */
-
-    h1 = new QSpinBox(this);
-    h1->setSuffix(" h");
-    h1->setRange(0, 23);
-    h2 = new QSpinBox(this);
-    h2->setSuffix(" h");
-    h2->setRange(0, 23);
-    m1 = new QSpinBox(this);
-    m1->setSuffix(" m");
-    h1->setRange(0, 59);
-    m2 = new QSpinBox(this);
-    m2->setSuffix(" m");
-    m2->setRange(0, 59);
-    s1 = new QSpinBox(this);
-    s1->setSuffix(" s");
-    s1->setRange(0, 59);
-    s2 = new QSpinBox(this);
-    s2->setSuffix(" s");
-    s2->setRange(0, 59);
-    ms1 = new QSpinBox(this);
-    ms1->setSuffix(" ms");
-    ms1->setRange(0, 999);
-    ms2 = new QSpinBox(this);
-    ms2->setSuffix(" ms");
-    ms2->setRange(0, 999);
-
-    /*
-    h1->setFocusProxy(this);
-    h1->setFocusPolicy(Qt::StrongFocus);
-    m1->setFocusProxy(this);
-    m1->setFocusPolicy(Qt::StrongFocus);
-
-    /*h1->setFocusPolicy(Qt::StrongFocus);
-    m1->setFocusPolicy(Qt::StrongFocus);
-    s1->setFocusPolicy(Qt::StrongFocus);
-    ms1->setFocusPolicy(Qt::StrongFocus);*/
-
-    _setMinButton = new QToolButton(this);
-    _setMinButton->setToolTip("Set time");
-    t1 = new QToolBar(this);
-    t1->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
-    t1->addWidget(_setMinButton);
-
-    _setMaxButton = new QToolButton(this);
-    _setMaxButton->setToolTip("Set time");
-    t2 = new QToolBar(this);
-    t2->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
-    t2->addWidget(_setMaxButton);
-
-    connect(_setMinButton, &QToolButton::clicked, this, &TimelineChart::setRangeTriggered);
-    connect(_setMaxButton, &QToolButton::clicked, this, &TimelineChart::setRangeTriggered);
-
-    QWidget* widget1 = new QWidget(this);
-    QHBoxLayout* layout1 = new QHBoxLayout(widget1);
-    layout1->setMargin(5);
-    layout1->setSpacing(5);
-    layout1->addWidget(h1);
-    layout1->addWidget(m1);
-    layout1->addWidget(s1);
-    layout1->addWidget(ms1);
-    layout1->addWidget(t1);
-
-    QWidget* widget2 = new QWidget(this);
-    QHBoxLayout* layout2 = new QHBoxLayout(widget2);
-    layout2->setMargin(5);
-    layout2->setSpacing(5);
-    layout2->addWidget(h2);
-    layout2->addWidget(m2);
-    layout2->addWidget(s2);
-    layout2->addWidget(ms2);
-    layout2->addWidget(t2);
-
-    QWidgetAction* minAction = new QWidgetAction(this);
-    minAction->setDefaultWidget(widget1);
-    QWidgetAction* maxAction = new QWidgetAction(this);
-    maxAction->setDefaultWidget(widget2);
-
-    _setMinMenu = new QMenu(this);
-    _setMinMenu->addAction(minAction);
-    _showSetMinMenu->setMenu(_setMinMenu);
-
-    _setMaxMenu = new QMenu(this);
-    _setMaxMenu->addAction(maxAction);
-    _showSetMaxMenu->setMenu(_setMaxMenu);
 
     hoverRect = QRectF(0, 0, HOVER_LINE_WIDTH, height());
 
@@ -213,13 +117,22 @@ void TimelineChart::addEntityChart(EntityChart* chart)
 }
 
 
+/**
+ * @brief TimelineChart::getHoverRect
+ * @return
+ */
 const QRectF& TimelineChart::getHoverRect()
 {
     return hoverRect;
 }
 
 
-quint64 TimelineChart::mapPixelToTime(double pixel_x)
+/**
+ * @brief TimelineChart::mapPixelToTime
+ * @param pixel_x
+ * @return
+ */
+qint64 TimelineChart::mapPixelToTime(double pixel_x)
 {
     auto offset = pixel_x / width();
     auto delta = _displayMax - _displayMin;
@@ -238,9 +151,10 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
         _entityCharts.append(chart);
         _layout->insertWidget(index, chart);
         chart->setPointWidth(pointsWidth);
-        chart->setRange(_displayMin, _displayMax);
+        //chart->setRange(_displayMin, _displayMax);
         chart->installEventFilter(this);
         entityChartRangeChanged(chart->getRangeX().first, chart->getRangeX().second);
+        chart->setRange(_displayMin, _displayMax);
         connect(chart, &EntityChart::dataRangeXChanged, this, &TimelineChart::entityChartRangeChanged);
     }
 }
@@ -317,31 +231,6 @@ void TimelineChart::themeChanged()
     axisLinePen = QPen(theme->getAltTextColor(), axisWidth);
     topLinePen = QPen(theme->getAltTextColor(), 2);
     hoverLinePen = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
-
-    _toolbar->setIconSize(theme->getLargeIconSize());
-    _toolbar->setStyleSheet(theme->getToolBarStyleSheet() +
-                           "QToolBar {"
-                           "background:" + theme->getBackgroundColorHex() + ";"
-                           "border-radius:" + theme->getSharpCornerRadius() + ";"
-                           "}"
-                           "QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}"
-                           + theme->getToolTipStyleSheet());
-
-    QString toolbarStyle = theme->getToolBarStyleSheet() +
-                           "QToolButton:!hover{"
-                           "border: 1px solid " + theme->getAltTextColorHex() + ";"
-                           "background:" + theme->getBackgroundColorHex() + ";}";
-    t1->setIconSize(theme->getIconSize());
-    t1->setStyleSheet(theme->getToolTipStyleSheet() + toolbarStyle);
-    t2->setIconSize(theme->getIconSize());
-    t2->setStyleSheet(theme->getToolTipStyleSheet() + toolbarStyle);
-
-    _setMinMenu->setStyleSheet(theme->getMenuStyleSheet() + theme->getLineEditStyleSheet("QSpinBox"));
-    _setMaxMenu->setStyleSheet(theme->getMenuStyleSheet() + theme->getLineEditStyleSheet("QSpinBox"));
-    _showSetMinMenu->setIcon(theme->getIcon("Icons", "arrowHeadLeft"));
-    _showSetMaxMenu->setIcon(theme->getIcon("Icons", "arrowHeadRight"));
-    _setMinButton->setIcon(theme->getIcon("Icons", "tick"));
-    _setMaxButton->setIcon(theme->getIcon("Icons", "tick"));
 }
 
 
@@ -381,43 +270,6 @@ void TimelineChart::entityChartRangeChanged(double min, double max)
     if (update) {
         emit rangeChanged(_dataMin, _dataMax);
     }
-}
-
-
-/**
- * @brief TimelineChart::setRangeTriggered
- * This is called when the toolbar was used to change the min/max dislayed range.
- */
-void TimelineChart::setRangeTriggered()
-{
-    QToolButton* button = qobject_cast<QToolButton*>(sender());
-    QDateTime dt;
-    _toolbar->hide();
-
-    if (button == _setMinButton) {
-        _setMinMenu->close();
-        dt.setMSecsSinceEpoch(_displayMin);
-        dt.setTime(QTime(h1->value(), m1->value(), s1->value(), ms1->value()));
-        double mSecs = dt.toMSecsSinceEpoch();
-        if (mSecs < _dataMin || mSecs > _displayMax) {
-            return;
-        }
-        _displayMin = mSecs;
-    } else if (button == _setMaxButton) {
-        _setMaxMenu->close();
-        dt.setMSecsSinceEpoch(_displayMax);
-        dt.setTime(QTime(h2->value(), m2->value(), s2->value(), ms2->value()));
-        double mSecs = dt.toMSecsSinceEpoch();
-        if (mSecs < _displayMin || mSecs > _dataMax) {
-            return;
-        }
-        _displayMax = mSecs;
-    }
-
-    for (EntityChart* chart : _entityCharts) {
-        chart->setRange(_displayMin, _displayMax);
-    }
-    emit changeDisplayedRange(_displayMin, _displayMax);
 }
 
 
@@ -489,11 +341,6 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 
     clearDragMode();
     QWidget::mouseReleaseEvent(event);
-
-    if (event->button() == Qt::RightButton) {
-        _toolbar->move(event->screenPos().toPoint());
-        _toolbar->show();
-    }
 }
 
 

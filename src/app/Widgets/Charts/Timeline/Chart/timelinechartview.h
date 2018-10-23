@@ -18,7 +18,6 @@
 
 
 enum class VALUE_TYPE{DOUBLE, DATETIME};
-QString getDateTimeString(quint64 mSecsSinceEpoch);
 
 class AxisWidget;
 class TimelineChart;
@@ -56,8 +55,9 @@ public slots:
 
     void UpdateChartHover();
 
-    //void receivedPortLifecycleResponse(QList<PortLifecycleEvent*> &events);
+    void clearPortLifecycleEvents();
     void receivedPortLifecycleResponse(PortLifecycleEvent* event);
+    void printResults();
 
 private:
     EntitySet* addEntitySet(ViewItem* item);
@@ -73,7 +73,8 @@ private:
     HoverPopup* _hoverDisplay;
 
     QScrollArea* _scrollArea;
-    QWidget* _fillerWidget;
+    QWidget* _topfillerWidget;
+    QWidget* _bottomfillerWidget;
     QWidget* _hoverWidget;
 
     QToolBar* legendToolbar;
@@ -84,8 +85,12 @@ private:
     QColor hoverItemBackgroundColor;
     QString hoveredEntityLabel;
 
-    QHash<int, EntitySet*> itemEntitySets;
-    QHash<int, EntityChart*> itemChartWidgets;
+    QHash<int, EntitySet*> entitySets;
+    QHash<int, EntityChart*> entityCharts;
+
+    QHash<QString, EntitySet*> entitySets_portLifecycle;
+    QHash<QString, EntityChart*> entityCharts_portLifecycle;
+    QHash<QString, PortLifecycleEventSeries*> portLifecycleSeries;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

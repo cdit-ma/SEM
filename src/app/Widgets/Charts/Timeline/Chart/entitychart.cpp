@@ -69,10 +69,9 @@ void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
 }
 
 
-void EntityChart::removeLifeCycleSeries(int ID)
+void EntityChart::removeLifeCycleSeries(QString path)
 {
-    if (_lifeCycleSeries && _lifeCycleSeries->getID() == ID) {
-        delete _lifeCycleSeries;
+    if (_lifeCycleSeries && _lifeCycleSeries->getPortPath() == path) {
         _lifeCycleSeries = 0;
     }
 }
@@ -185,7 +184,7 @@ void EntityChart::resizeEvent(QResizeEvent* event)
  */
 void EntityChart::paintEvent(QPaintEvent* event)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     QPainter painter(this);
     painter.setClipRegion(visibleRegion());
@@ -225,7 +224,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.drawLine(rect().topLeft(), rect().topRight());
     painter.drawLine(rect().bottomLeft(), rect().bottomRight());
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "Total Series Render Took: " << finish - start << "MS. - " << _viewItem->getData("label").toString();
 }
@@ -427,26 +426,27 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
  */
 void EntityChart::paintLifeCycleSeries(QPainter &painter)
 {
-    if (!_lifeCycleSeries) {
-        qWarning("EntityChart::paintLifeCycleSeries - LifecycleSeries is null.");
+    if (!_lifeCycleSeries)
         return;
-    }
 
-    // bucket count
-    double barWidth = 22; //BAR_WIDTH;
+    double barWidth = 22.0; //BAR_WIDTH;
     double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
 
-    barTimeWidth = qMax(1.0, barTimeWidth);
-    //qDebug() << "barTimeWidth: " << barTimeWidth;
+    // NOTE - barTimeWidth and bucket_endTimes have to be a double
+    // Otherwise if the time range is too small, barTimeWidth is rounded down to 0
+    // and bucket_endTimes will consist of the same times, and hence no bar will be drawn
+
+    //qDebug() << "SERIES - " << _lifeCycleSeries->getPortPath();
 
     QVector< QList<PortLifecycleEvent*> > buckets(barCount);
-    QList<quint64> bucket_endtimes;
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
 
-    auto current_left = _displayedMin;
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double current_left = _displayedMin;
     for (int i = 0; i < barCount; i++) {
-        bucket_endtimes.append(current_left + barTimeWidth);
-        current_left = bucket_endtimes.last();
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
     }
 
     const auto& events = _lifeCycleSeries->getConstPortEvents();
@@ -460,8 +460,8 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
     }
 
     auto current_bucket = 0;
-    auto current_bucket_ittr = bucket_endtimes.constBegin();
-    auto end_bucket_ittr = bucket_endtimes.constEnd();
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
 
     // put the data in the correct bucket
     for (;current != upper; current++) {
@@ -480,10 +480,8 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
     }
 
     QColor seriesColor = Qt::gray; // Qt::magenta;
-    //painter.setRenderHint(QPainter::Antialiasing, true);
-    //painter.setPen(QPen(Qt::lightGray, 1));
-
     int y = rect().center().y() - barWidth / 2.0;
+
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
@@ -513,7 +511,7 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
  */
 void EntityChart::paintNotificationSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     MEDEA::DataSeries* series = _seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
     if (!series)
@@ -534,7 +532,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     double bar_time_width = (_displayedMax - _displayedMin) / bar_count;
 
     QVector< QList<QPointF> > buckets(bar_count);
-    QList<quint64> bucket_endtimes;
+    QList<qint64> bucket_endtimes;
 
     auto current_time = _displayedMin;
     for (int i = 0; i < bar_count; i++) {
@@ -600,7 +598,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     }
     */
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "NotificationSeries Render Took: " << finish - start << "MS. Returned: " << points.count() ;
 }
@@ -612,7 +610,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
  */
 void EntityChart::paintStateSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     MEDEA::StateSeries* series = (MEDEA::StateSeries*)_seriesList.value(TIMELINE_SERIES_KIND::STATE, 0);
     if (!series)
@@ -625,7 +623,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
 
     // each bucket contains the number of events still running at that time
     QVector<int> buckets(barCount);
-    QList<quint64> bucketEndTimes;
+    QList<qint64> bucketEndTimes;
 
     auto currentTime = _displayedMin;
     for (int i = 0; i < barCount; i++) {
@@ -794,7 +792,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
     }
     */
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "StateSeries Render Took: " << finish - start << "MS. Returned: " << lines.count() * 2;
 }
@@ -808,7 +806,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
 #include <iostream>
 void EntityChart::paintBarSeries(QPainter &painter)
 {
-    auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto start = QDateTime::currentMSecsSinceEpoch();
     
     MEDEA::BarSeries* series = (MEDEA::BarSeries*)_seriesList.value(TIMELINE_SERIES_KIND::BAR, 0);
     if (!series)
@@ -827,7 +825,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
 
     // bar/bucket count
     QVector< QList<MEDEA::BarData*> > buckets(bar_count);
-    QList<quint64> bucket_endtimes;
+    QList<qint64> bucket_endtimes;
     
     auto current_left = _displayedMin;
     for (int i = 0; i < bar_count; i++) {
@@ -905,7 +903,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
         }
     }
 
-    auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "BarSeries Render Took: " << finish - start << "MS. Returned: " << data.count();
 }
@@ -1204,7 +1202,7 @@ bool EntityChart::pointHovered(const QRectF& hitRect)
  * @param kind
  * @return
  */
-QHash<quint64, QRectF>& EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
+QHash<qint64, QRectF> &EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
 {
     switch (kind) {
     case TIMELINE_SERIES_KIND::NOTIFICATION:

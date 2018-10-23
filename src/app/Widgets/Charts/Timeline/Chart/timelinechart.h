@@ -3,11 +3,6 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QToolBar>
-#include <QToolButton>
-#include <QSpinBox>
-#include <QAction>
-#include <QMenu>
 #include <QPen>
 #include <math.h>
 #include <float.h>
@@ -30,8 +25,6 @@ public:
     void setMax(double max);
     void setRange(double min, double max);
 
-    const QRectF& getHoverRect();
-
     void setAxisWidth(double width);
     void setPointsWidth(double width);
 
@@ -40,13 +33,15 @@ public:
     void removeEntityChart(EntityChart* chart);
 
     const QList<EntityChart*>& getEntityCharts();
+    const QRectF& getHoverRect();
 
     QPair<double, double> getRange();
+
     void initialRangeSet();
     bool isRangeSet();
     bool isPanning();
 
-    quint64 mapPixelToTime(double pixel_x);
+    qint64 mapPixelToTime(double pixel_x);
 
 signals:
     void zoomed(int delta);
@@ -60,9 +55,6 @@ public slots:
 
     void entityChartHovered(EntityChart* chart, bool hovered);
     void entityChartRangeChanged(double min, double max);
-
-private slots:
-    void setRangeTriggered();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -96,26 +88,6 @@ private:
     DRAG_MODE dragMode = NONE;
     bool hovered = false;
     bool rangeSet = false;
-
-    QToolBar* _toolbar;
-    QToolBar* t1;
-    QToolBar* t2;
-
-    QSpinBox* h1;
-    QSpinBox* h2;
-    QSpinBox* m1;
-    QSpinBox* m2;
-    QSpinBox* s1;
-    QSpinBox* s2;
-    QSpinBox* ms1;
-    QSpinBox* ms2;
-
-    QMenu* _setMinMenu;
-    QMenu* _setMaxMenu;
-    QAction* _showSetMinMenu;
-    QAction* _showSetMaxMenu;
-    QToolButton* _setMinButton;
-    QToolButton* _setMaxButton;
 
     QColor backgroundColor;
     QColor backgroundHighlightColor;

@@ -97,10 +97,19 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
 
+
     /*
      *  TOP (LEGEND) LAYOUT
      */
+    _topfillerWidget = new QWidget(this);
     legendToolbar = new QToolBar(this);
+
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->setMargin(0);
+    topLayout->setSpacing(0);
+    topLayout->addWidget(_topfillerWidget);
+    topLayout->addWidget(legendToolbar, 1, Qt::AlignCenter);
+
     legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     stateLegendAction = legendToolbar->addAction("Events");
     notificationLegendAction = legendToolbar->addAction("Messages");
@@ -158,15 +167,15 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     _scrollArea->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
 
-    _fillerWidget = new QWidget(this);
-
     /*
      * BOTTOM (TIME AXIS) LAYOUT
      */
+    _bottomfillerWidget = new QWidget(this);
+
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);
-    bottomLayout->addWidget(_fillerWidget);
+    bottomLayout->addWidget(_bottomfillerWidget);
     bottomLayout->addWidget(_dateTimeAxis, 1);
 
     /*
@@ -176,7 +185,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
-    mainLayout->addWidget(legendToolbar, 0, Qt::AlignCenter);
+    //mainLayout->addWidget(legendToolbar, 0, Qt::AlignCenter);
+    mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
     mainLayout->addWidget(_scrollArea, 1);
     mainLayout->addLayout(bottomLayout);
@@ -294,7 +304,8 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
-    _fillerWidget->setFixedWidth(size.width());
+    _topfillerWidget->setFixedWidth(size.width());
+    _bottomfillerWidget->setFixedWidth(size.width());
 }
 
 
@@ -405,14 +416,14 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     int itemID = item->getID();
 
     // check if we already have an entity set for the view item
-    if (itemEntitySets.contains(itemID))
-        return itemEntitySets.value(itemID);
+    if (entitySets.contains(itemID))
+        return entitySets.value(itemID);
 
     EntitySet* set = new EntitySet(itemLabel, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->setID(itemID);
     set->themeChanged(Theme::theme());
-    itemEntitySets[itemID] = set;
+    entitySets[itemID] = set;
 
     int barCount = 120000;
 
@@ -442,19 +453,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         int random = 1 + rand() % 30;
         bool filled = false;
         samplePoints = generateRandomNumbers(barCount);
-
-        // TESTING PORT LIFE CYCLE EVENTS
-        // By default, request random time-frame of events from all Ports for all ComponentInstances
-        if (itemLabel.startsWith("ComponentInstance")) {
-            PortLifecycleEventSeries* portEventsSeries = new PortLifecycleEventSeries(this);
-            int numPorts = samplePoints.count();
-            for (int i = 0; i < numPorts; i++) {
-                int type = 1 + rand() % 4;
-                PortLifecycleEvent* plc = new PortLifecycleEvent((LifecycleType)type, samplePoints.at(i).x(), this);
-                portEventsSeries->addPortEvent(plc);
-            }
-            seriesChart->addLifeCycleSeries(portEventsSeries);
-        } else {
 
         if (random % 2 == 0) {
             MEDEA::StateSeries* stateSeries = new MEDEA::StateSeries(item);
@@ -505,7 +503,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             }
             seriesChart->addSeries(barSeries);
         }
-        }
     }
 
     EntitySet* parentSet = addEntitySet(item->getParentItem());
@@ -543,7 +540,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     seriesChart->setSeriesVisible(TIMELINE_SERIES_KIND::NOTIFICATION, notificationLegendAction->isChecked());
     seriesChart->setSeriesVisible(TIMELINE_SERIES_KIND::LINE, lineLegendAction->isChecked());
 
-    itemChartWidgets[itemID] = seriesChart;
+    entityCharts[itemID] = seriesChart;
     return set;
 }
 
@@ -554,12 +551,12 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
  */
 void TimelineChartView::removeEntitySet(int ID)
 {
-    if (itemEntitySets.contains(ID)) {
-        EntitySet* set = itemEntitySets.take(ID);
+    if (entitySets.contains(ID)) {
+        EntitySet* set = entitySets.take(ID);
         _entityAxis->removeEntity(set);
         set->deleteLater();
         // remove chart from the hash and layout
-        EntityChart* entityChart = itemChartWidgets.take(ID);
+        EntityChart* entityChart = entityCharts.take(ID);
         _timelineChart->removeEntityChart(entityChart);
         entityChart->deleteLater();
     }
@@ -663,37 +660,31 @@ void TimelineChartView::UpdateChartHover(){
 
 
 /**
- * @brief TimelineChartView::receivedPortLifecycleResponse
- * @param events
+ * @brief TimelineChartView::clearPortLifecycleEvents
  */
-/*
-void TimelineChartView::receivedPortLifecycleResponse(QList<PortLifecycleEvent*>& events)
+void TimelineChartView::clearPortLifecycleEvents()
 {
-    // NOTE: Temporarily constructing a new chart and series for each event
+    /*for (auto itr = portLifecycleSeries.cbegin(); itr != portLifecycleSeries.cend();) {
+        itr = portLifecycleSeries.erase(itr);
+    }*/
 
-    for (auto event : events) {
+    // delete the series, axis item and chart widgets
+    for (auto path : portLifecycleSeries.keys()) {
+        auto entitySet = entitySets_portLifecycle.take(path);
+        auto entityChart = entityCharts_portLifecycle.take(path);
+        _entityAxis->removeEntity(entitySet);
+        _timelineChart->removeEntityChart(entityChart);
+        entityChart->removeLifeCycleSeries(path);
 
-        QString label = event->getPort().name;
-        EntitySet* set = new EntitySet(label, this);
-        set->setDepth(0);
-        set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-        set->themeChanged(Theme::theme());
-        _entityAxis->appendEntity(set);
-
-        EntityChart* chart = new EntityChart(0, this);
-        _timelineChart->addEntityChart(chart);
-
-        connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
-        connect(set, &EntitySet::hovered, [=] (bool hovered) {
-            _timelineChart->entityChartHovered(chart, hovered);
-        });
-
-        PortLifecycleEventSeries* series = new PortLifecycleEventSeries(this);
-        series->addPortEvent(event);
-        chart->addLifeCycleSeries(series);
+        entitySet->deleteLater();
+        entityChart->deleteLater();
+        portLifecycleSeries.value(path)->deleteLater();
     }
+
+    entitySets_portLifecycle.clear();
+    entityCharts_portLifecycle.clear();
+    portLifecycleSeries.clear();
 }
-*/
 
 
 /**
@@ -705,29 +696,46 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
     if (!event)
         return;
 
-    PortLifecycleEventSeries* series = new PortLifecycleEventSeries(this);
-    series->addPortEvent(event);
+    QString eventPath = event->getPortPath();
+    PortLifecycleEventSeries* series = 0;
 
-    //qDebug() << "series range: " << series->getRange().first << ", " << series->getRange().second;
+    if (portLifecycleSeries.contains(eventPath)) {
+        series = portLifecycleSeries.value(eventPath);
+        series->addPortEvent(event);
+        _timelineChart->entityChartRangeChanged(series->getRange().first, series->getRange().second);
+    } else {
+        series = new PortLifecycleEventSeries(eventPath, this);
+        portLifecycleSeries[eventPath] = series;
 
-    EntityChart* chart = new EntityChart(0, this);
-    chart->addLifeCycleSeries(series);
-    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
+        EntityChart* chart = new EntityChart(0, this);
+        entityCharts_portLifecycle[eventPath] = chart;
+        chart->addLifeCycleSeries(series);
+        connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
-    QString label = event->getPort().name;
-    EntitySet* set = new EntitySet(label, this);
-    set->setDepth(0);
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->entityChartHovered(chart, hovered);
-    });
+        QString label = event->getPort().path;
+        EntitySet* set = new EntitySet(label, this);
+        entitySets_portLifecycle[eventPath] = set;
+        set->setDepth(0);
+        set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+        set->themeChanged(Theme::theme());
+        connect(set, &EntitySet::hovered, [=] (bool hovered) {
+            _timelineChart->entityChartHovered(chart, hovered);
+        });
 
-    _entityAxis->appendEntity(set);
-    _timelineChart->addEntityChart(chart);
+        series->addPortEvent(event);
+        _entityAxis->appendEntity(set);
+        _timelineChart->addEntityChart(chart);
+        if (_timelineChart->isRangeSet()) {
+            double min = qMin(_timelineChart->getRange().first, series->getRange().first - 1.0);
+            double max = qMax(_timelineChart->getRange().second, series->getRange().second + 1.0);
+            _timelineChart->setRange(min, max);
+        }
+    }
+
+    //qDebug() << "Event at: " << QDateTime::fromMSecsSinceEpoch(event->getTime()).toString("MMM hh:mm:ss:zz");
 
     // set initial/update range - TODO:: Need to refactor how this works
-    if (_timelineChart->isRangeSet()) {
+    /*if (_timelineChart->isRangeSet()) {
         double min = qMin(_timelineChart->getRange().first, series->getRange().first - 1.0);
         double max = qMax(_timelineChart->getRange().second, series->getRange().second + 1.0);
         _timelineChart->setRange(min, max);
@@ -736,9 +744,24 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
         _dateTimeAxis->setDisplayedRange(series->getRange().first - 1, series->getRange().second + 1);
         _timelineChart->setRange(series->getRange().first - 1, series->getRange().second + 1);
         _timelineChart->initialRangeSet();
-    }
+    }*/
 
     //qDebug() << "event-time: " << QDateTime::fromMSecsSinceEpoch(event->getTime(), Qt::UTC).toString("hh:mm:ss:zz");
     //qDebug() << "chart range: " << chart->getRangeX().first << ", " << chart->getRangeX().second;
     //qDebug() << "timeline range: " << _timelineChart->getRange().first << ", " << _timelineChart->getRange().second;
+}
+
+
+void TimelineChartView::printResults()
+{
+    return;
+    for (auto series : portLifecycleSeries) {
+        qDebug()  << "Port: " << series->getPortPath() << " - " << series->getConstPortEvents().size();
+        for (auto event : series->getConstPortEvents()) {
+            qDebug() << "time: " << QDateTime::fromMSecsSinceEpoch(event->getTime()).toString("MMM d yyyy, hh:mm:ss:zzz");
+        }
+        qDebug() << "-------------------------------------";
+    }
+
+    qDebug() << "\n\n\n\n\n";
 }

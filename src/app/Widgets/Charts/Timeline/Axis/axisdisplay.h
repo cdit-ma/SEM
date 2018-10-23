@@ -62,8 +62,6 @@ private:
     QString getCovertedString(double value);
     QRectF getAdjustedRect();
 
-    QDateTime constructDateTime(quint64 mSecsSinceEpoch);
-
     AxisSlider* _slider = 0;
     Qt::Orientation _orientation;
     Qt::Alignment _textAlignment;

@@ -60,9 +60,6 @@ public slots:
     void handleTimeout();
     void playPauseToggled(bool checked);
 
-protected:
-    bool eventFilter(QObject* object, QEvent* event);
-
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
     void activateNewTab(QAction* previouslyActivatedTab);

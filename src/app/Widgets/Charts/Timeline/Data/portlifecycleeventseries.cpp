@@ -8,23 +8,13 @@ int PortLifecycleEventSeries::series_ID = 0;
  * @brief PortLifecycleEventSeries::PortLifecycleEventSeries
  * @param parent
  */
-PortLifecycleEventSeries::PortLifecycleEventSeries(QObject* parent)
+PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent)
     : QObject(parent)
 {
-    ID_ = series_ID++;
+    port_path = path;
 
-    minTime_ = QDateTime::currentMSecsSinceEpoch() + 1E6;
-    maxTime_ = 0;
-}
-
-
-/**
- * @brief PortLifecycleEventSeries::getID
- * @return
- */
-int PortLifecycleEventSeries::getID()
-{
-    return -1; //ID_;
+    minTime_mu = QDateTime::currentMSecsSinceEpoch() * 1E3;
+    maxTime_mu = 0;
 }
 
 
@@ -39,10 +29,10 @@ void PortLifecycleEventSeries::addPortEvent(PortLifecycleEvent* event)
 
         // update the range
         auto eventTime = event->getTime();
-        if (eventTime < minTime_)
-            minTime_ = eventTime;
-        if (eventTime > maxTime_)
-            maxTime_ = eventTime;
+        if (eventTime < minTime_mu)
+            minTime_mu = eventTime;
+        if (eventTime > maxTime_mu)
+            maxTime_mu = eventTime;
     }
 }
 
@@ -53,8 +43,6 @@ void PortLifecycleEventSeries::addPortEvent(PortLifecycleEvent* event)
  */
 void PortLifecycleEventSeries::addPortEvents(QList<PortLifecycleEvent*>& events)
 {
-    //portEvents_.append(events);
-
     for (auto event : events) {
         addPortEvent(event);
     }
@@ -72,11 +60,21 @@ const QList<PortLifecycleEvent*>& PortLifecycleEventSeries::getConstPortEvents()
 
 
 /**
+ * @brief PortLifecycleEventSeries::getPortPath
+ * @return
+ */
+QString PortLifecycleEventSeries::getPortPath()
+{
+    return port_path;
+}
+
+
+/**
  * @brief PortLifecycleEventSeries::getRange
  * @return
  */
-QPair<quint64, quint64> PortLifecycleEventSeries::getRange()
+QPair<qint64, qint64> PortLifecycleEventSeries::getRange()
 {
-    return {minTime_, maxTime_};
+    return {minTime_mu, maxTime_mu};
 }
 

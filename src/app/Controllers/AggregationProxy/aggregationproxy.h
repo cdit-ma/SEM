@@ -21,11 +21,12 @@ public:
 
 signals:
     void requestResponse(PortLifecycleEvent* event);
-    //void requestResponse(QList<PortLifecycleEvent*>& events);
+    void clearPreviousResults();
+    void printResults();
 
 private:
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
-    //Port::Kind getPortKind(const uint kind);
+    Port::Kind getPortKind(const AggServer::Port_Kind kind);
 
     AggServer::Requester requester_;
 

@@ -32,7 +32,7 @@ void MEDEA::BarSeries::addData(QDateTime timeStamp, QVector<double> data, QSize 
     addData(timeStamp.toMSecsSinceEpoch(), data, windowSize);
 }
 
-QString MEDEA::BarSeries::getHoveredDataInformation(quint64 start_time, quint64 end_time){
+QString MEDEA::BarSeries::getHoveredDataInformation(qint64 start_time, qint64 end_time){
     const auto& data = getConstData();
 
     auto current = data.lowerBound(start_time);
@@ -64,7 +64,7 @@ QString MEDEA::BarSeries::getHoveredDataInformation(quint64 start_time, quint64 
  * @param data
  * @param windowSize
  */
-void MEDEA::BarSeries::addData(quint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize)
+void MEDEA::BarSeries::addData(qint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize)
 {
     if (!data.isEmpty()) {
         auto data_value = new MEDEA::BarData(dateTimeMSecsSinceEpoch, data);
@@ -89,7 +89,7 @@ void MEDEA::BarSeries::addData(quint64 dateTimeMSecsSinceEpoch, QVector<double> 
  * @brief MEDEA::BarSeries::getData
  * @return
  */
-QMap<quint64, QVector<double> > MEDEA::BarSeries::getData()
+QMap<qint64, QVector<double> > MEDEA::BarSeries::getData()
 {
     return _dataMap;
 }
@@ -99,7 +99,7 @@ QMap<quint64, QVector<double> > MEDEA::BarSeries::getData()
  * @brief MEDEA::BarSeries::getConstData
  * @return
  */
-const QMap<quint64, QVector<double>>& MEDEA::BarSeries::getConstData(){
+const QMap<qint64, QVector<double>>& MEDEA::BarSeries::getConstData(){
     return _dataMap;
 }
 

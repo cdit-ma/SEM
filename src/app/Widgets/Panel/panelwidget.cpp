@@ -18,14 +18,16 @@
 #include <QVBoxLayout>
 #include <QTimer>
 #include <QDateTime>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+/*
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarSeries>
-#include <QtCharts/QSplineSeries>
-#include <QtCharts/QScatterSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QDateTimeAxis>
+*/
 
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -228,6 +230,8 @@ void PanelWidget::testLifecycleSeries()
 
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, view, &TimelineChartView::receivedPortLifecycleResponse);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, view, &TimelineChartView::clearPortLifecycleEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::printResults, view, &TimelineChartView::printResults);
     }
 }
 
@@ -568,24 +572,6 @@ void PanelWidget::playPauseToggled(bool checked)
         minDateTime.setMSecsSinceEpoch(QDateTime::currentMSecsSinceEpoch() - 5000);
         timer->start();
     }
-}
-
-
-bool PanelWidget::eventFilter(QObject *object, QEvent *event)
-{
-    /*
-    qDebug() << "OBJ: " << object;
-    if (object == categoryAxis) {
-        qDebug() << "CATEGORY AXIS CLICKED";
-        if (event->type() == QEvent::MouseButtonDblClick) {
-            qDebug() << "AXIS double clicked";
-            event->accept();
-            //return true;
-        }
-    }
-    */
-
-    return QFrame::eventFilter(object, event);
 }
 
 

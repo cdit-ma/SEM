@@ -20,7 +20,7 @@ public:
     ViewItem* getViewItem();
 
     void addLifeCycleSeries(PortLifecycleEventSeries* series);
-    void removeLifeCycleSeries(int ID);
+    void removeLifeCycleSeries(QString path);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
@@ -79,7 +79,7 @@ private:
     bool pointHovered(TIMELINE_SERIES_KIND kind, QPointF point, int index);
     bool pointHovered(const QRectF& hitRect);
 
-    QHash<quint64, QRectF>& getSeriesHitRects(TIMELINE_SERIES_KIND kind);
+    QHash<qint64, QRectF>& getSeriesHitRects(TIMELINE_SERIES_KIND kind);
 
     bool _containsYRange = false;
     bool _hovered = false;
@@ -133,11 +133,11 @@ private:
     QPen _hoverLinePen;
     QPen _highlightPen;
 
-    QHash<quint64, QRectF> _dataHitRects;
-    QHash<quint64, QRectF> _notificationHitRects;
-    QHash<quint64, QRectF> _stateHitRects;
-    QHash<quint64, QRectF> _lineHitRects;
-    QHash<quint64, QRectF> _barHitRects;
+    QHash<qint64, QRectF> _dataHitRects;
+    QHash<qint64, QRectF> _notificationHitRects;
+    QHash<qint64, QRectF> _stateHitRects;
+    QHash<qint64, QRectF> _lineHitRects;
+    QHash<qint64, QRectF> _barHitRects;
 
     /*
     struct Series{
@@ -156,7 +156,7 @@ private:
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _hoveredPoints;
 
-    QHash<TIMELINE_SERIES_KIND, QList<quint64>> hovered_timepoints_;
+    QHash<TIMELINE_SERIES_KIND, QList<qint64>> hovered_timepoints_;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;
 
     double _barWidth;

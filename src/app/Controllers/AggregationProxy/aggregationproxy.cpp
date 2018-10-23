@@ -25,31 +25,33 @@ void AggregationProxy::RequestRunningExperiments()
         request_type.add_component_names("");
         */
 
+        emit clearPreviousResults();
+
         auto results = requester_.GetPortLifecycle(request_type);
         qDebug() << "Result Size#: " << results.get()->events_size();
-
-        QList<PortLifecycleEvent*> events;
 
         for (auto item : results.get()->events()) {
             // extract port info
             auto port = item.port();
             Port portStruct;
-            portStruct.path = QString::fromUtf8(port.path().c_str());
+            portStruct.kind = getPortKind(port.kind());
             portStruct.name = QString::fromUtf8(port.name().c_str());
+            portStruct.path = QString::fromUtf8(port.path().c_str());
             portStruct.middleware = QString::fromUtf8(port.middleware().c_str());
             //portStruct.component_instance = port->component_instance();
 
             auto type = getLifeCycleType(item.type());
             auto time = getQDateTime(item.time());
 
-            PortLifecycleEvent* event = new PortLifecycleEvent(portStruct, type, time.toMSecsSinceEpoch());
-            events.append(event);
-            emit requestResponse(event);
+            //qDebug() << "date-time: " << time.toString("MMM d yyyy, hh:mm:ss:zz");
+            //qDebug() << "Event: type = " << AggServer::LifecycleType_Name(item.type()).c_str();
 
-            //qDebug() << "Event: type = " << AggServer::LifecycleType_Name(item.type()).c_str() << " date-time = " << time.toString("MMM d yyyy, hh:mm:ss:zz");
+            PortLifecycleEvent* event = new PortLifecycleEvent(portStruct, type, time.toMSecsSinceEpoch());
+            emit requestResponse(event);
         }
 
-        //emit requestResponse(events);
+        emit printResults();
+        notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
         notification->setSeverity(Notification::Severity::ERROR);
@@ -65,9 +67,14 @@ void AggregationProxy::RequestRunningExperiments()
  */
 const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp &time)
 {
+    int64_t mu = google::protobuf::util::TimeUtil::TimestampToMicroseconds(time);
+    return QDateTime::fromMSecsSinceEpoch(mu / 1E3, Qt::UTC);
+
+    /*
     int64_t msFromSeconds = time.seconds() * 1E3;
     int64_t msFromNanoSeconds = time.nanos() / 1E6;
     return QDateTime::fromMSecsSinceEpoch(msFromSeconds + msFromNanoSeconds, Qt::UTC);
+    */
 }
 
 
@@ -98,7 +105,20 @@ LifecycleType AggregationProxy::getLifeCycleType(const AggServer::LifecycleType 
  * @param kind
  * @return
  */
-/*Port::Kind AggregationProxy::getPortKind(const uint kind)
+Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
 {
-
-}*/
+    switch (kind) {
+    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+        return Port::Kind::PERIODIC;
+    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+        return Port::Kind::PUBLISHER;
+    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+        return Port::Kind::SUBSCRIBER;
+    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+        return Port::Kind::REQUESTER;
+    case AggServer::Port_Kind::Port_Kind_REPLIER:
+        return Port::Kind::REPLIER;
+    default:
+        return Port::Kind::NO_KIND;
+    }
+}
