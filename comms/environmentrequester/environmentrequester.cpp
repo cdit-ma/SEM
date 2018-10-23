@@ -6,12 +6,17 @@
 #include <iostream>
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
-EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address){
+EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint,
+        const std::string& experiment_name,
+        const std::string& node_ip_address,
+        const std::string& container_id)
+{
     const int retry_ms = 1000;
     NodeManager::NodeManagerRegistrationRequest request;
 
     request.mutable_id()->set_experiment_name(experiment_name);
     request.mutable_id()->set_ip_address(node_ip_address);
+    request.set_container_id(container_id);
 
 
     auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));

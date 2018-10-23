@@ -87,6 +87,7 @@ message LoganRegistrationReply{
 
 message NodeManagerRegistrationRequest{
     RequestId id = 1;
+    string container_id = 2;
 }
 
 message NodeManagerRegistrationReply{
@@ -102,15 +103,26 @@ message NodeManagerRegistrationReply{
 
 message NodeManagerDeregistrationRequest{
     RequestId id = 1;
+    string container_id = 2;
 }
 
 message NodeManagerDeregistrationReply{
 }
 
-
 message HardwareId{
     string host_name = 1;
     string ip_address = 2;
+}
+
+
+message ContainerId{
+    string id = 1;
+}
+
+message NodeDeployment{
+    HardwareId id = 1;
+    repeated ContainerId container_ids = 2;
+    bool has_logan_server = 3;
 }
 
 message RegisterExperimentRequest{
@@ -119,8 +131,7 @@ message RegisterExperimentRequest{
 }
 
 message RegisterExperimentReply{
-    repeated HardwareId node_managers = 1;
-    repeated HardwareId logan_servers = 2;
+    repeated NodeDeployment deployments = 1;
 }
 
 message EnvironmentMessage{
