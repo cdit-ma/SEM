@@ -75,7 +75,7 @@ std::unique_ptr<Port> Port::ConstructBlackboxPort(Experiment& parent, const Node
 
 Port::Port(Component& parent, const NodeManager::Port& port) :
     experiment_(parent.GetNode().GetExperiment()),
-    component_(&parent)
+    parent_(&parent)
 {
     id_ = port.info().id();
     name_ = port.info().name();
@@ -189,17 +189,19 @@ Port::BlackboxType Port::GetBlackboxType() const{
 
 Component& Port::GetComponent() const{
     if(GotComponent()){
-        return *(component_);
+        return *(parent_);
     }
     throw std::runtime_error("No Component");
 }
 
 bool Port::GotComponent() const{
-    return component_;
+    return parent_;
 }
 
 Node& Port::GetNode() const{
-    return GetComponent().GetNode();
+    if(GotComponent()){
+        return parent_->GetNode();
+    }
 }
 
 Experiment& Port::GetExperiment() const{

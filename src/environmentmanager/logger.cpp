@@ -127,7 +127,7 @@ std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
             case Type::Server:{
                 //Get the clients
                 for(const auto& client_id : GetConnectedClientIds()){
-                    for(const auto& logger : GetExperiment().GetLoggerClients(client_id)){
+                    for(const auto& logger : GetNode().GetExperiment().GetLoggerClients(client_id)){
                         logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
                     }
                 }

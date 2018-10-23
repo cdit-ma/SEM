@@ -45,14 +45,6 @@ int Node::GetContainerCount() const{
     return containers_.size();
 }
 
-bool Node::IsNodeManagerMaster() const{
-    return is_node_manager_master_;
-}
-
-void Node::SetNodeManagerMaster(){
-    is_node_manager_master_ = true;
-}
-
 void Node::AddContainer(const NodeManager::Container& container_pb){
     const auto& id = container_pb.info().id();
     auto container = std::unique_ptr<EnvironmentManager::Container>(new EnvironmentManager::Container(environment_, *this, container_pb));
@@ -138,9 +130,9 @@ bool Node::DeployedTo() const{
 
 int Node::GetDeployedCount() const{
     int temp = 0;
-    std::for_each(containers_.begin(), containers_.end(), [&temp](const EnvironmentManager::Container& container){
-        temp += container.GetDeployedCount();
-    });
+    for(const auto& container : containers_){
+        temp += container.second->GetDeployedCount();
+    }
     return temp;
 }
 
@@ -160,6 +152,13 @@ bool Node::HasLogger(const std::string& logger_id) const {
     }
     return false;
 }
+Logger &Node::GetLogger(const std::string &logger_id) const {
+    for(const auto& container : containers_){
+        if(container.second->HasLogger(logger_id)){
+            return container.second->GetLogger(logger_id);
+        }
+    }
+}
 
 int Node::GetLoganServerCount() const {
     int servers = 0;
@@ -168,3 +167,8 @@ int Node::GetLoganServerCount() const {
     }
     return servers;
 }
+
+std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServers() {
+    return std::vector<std::unique_ptr<NodeManager::Logger>>();
+}
+

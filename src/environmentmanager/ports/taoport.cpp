@@ -2,6 +2,7 @@
 #include "../environment.h"
 #include "../component.h"
 #include "../node.h"
+#include "../container.h"
 #include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
@@ -12,7 +13,7 @@ tao::Port::Port(Component& parent, const NodeManager::Port& port):
 
     //Assign port to this
     auto& node = GetNode();
-    const auto& orb_port = node.AssignOrbPort();
+    const auto& orb_port = GetComponent().GetContainer().AssignOrbPort();
 
     //Set Orb endpoint
     orb_endpoint_ = "iiop://" + node.GetIp() + ":" + orb_port;

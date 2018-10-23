@@ -58,6 +58,10 @@ Container& Component::GetContainer() const{
     return parent_;
 }
 
+Node& Component::GetNode() const {
+    return parent_.GetNode();
+}
+
 Environment& Component::GetEnvironment() const{
     return environment_;
 }

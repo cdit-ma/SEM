@@ -2,7 +2,10 @@
 #include "ports/port.h"
 #include "node.h"
 #include "component.h"
+#include "worker.h"
+#include "attribute.h"
 #include "logger.h"
+#include "environment.h"
 
 using namespace EnvironmentManager;
 
@@ -14,8 +17,26 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
     for(const auto& component : container.components()){
         AddComponent(component);
     }
+
+    // If we have deployed components, add a model logger to this container
+    if(!components_.empty()){
+        AddModelLogger();
+    }
+
+    // Add our explicitly defined loggers
     for(const auto& logger : container.loggers()){
         AddLogger(logger);
+    }
+}
+
+Container::~Container() {
+    // Free ports used for management and orb
+    if(GetDeployedCount() > 0) {
+        environment_.FreePort(GetNode().GetIp(), management_port_);
+
+        if(HasOrbPort()) {
+            environment_.FreePort(GetNode().GetIp(), orb_port_);
+        }
     }
 }
 
@@ -70,7 +91,30 @@ bool Container::IsDirty() {
 }
 
 std::unique_ptr<NodeManager::Container> Container::GetProto(const bool full_update) {
-    return std::unique_ptr<NodeManager::Container>();
+    std::unique_ptr<NodeManager::Container> container;
+
+    if(dirty_ || full_update){
+        container = std::unique_ptr<NodeManager::Container>(new NodeManager::Container());
+
+        container->mutable_info()->set_name(name_);
+        container->mutable_info()->set_id(id_);
+        container->mutable_info()->set_type(type_);
+
+        for(const auto& component : components_) {
+            auto component_pb = component.second->GetProto(full_update);
+            container->mutable_components()->AddAllocated(component_pb.release());
+        }
+
+        for(const auto& logger : loggers_) {
+            auto logger_pb = logger.second->GetProto(full_update);
+            container->mutable_loggers()->AddAllocated(logger_pb.release());
+        }
+
+        if(dirty_){
+            dirty_ = false;
+        }
+    }
+    return container;
 }
 
 void Container::AddComponent(const NodeManager::Component &component_pb) {
@@ -105,5 +149,33 @@ int Container::GetLoganServerCount() const {
         }
     }
     return temp;
+}
+
+bool Container::HasOrbPort() const {
+    return !orb_port_.empty();
+}
+
+std::string Container::GetOrbPort() const {
+    return orb_port_;
+}
+
+std::string Container::AssignOrbPort() {
+    if(!HasOrbPort()) {
+        orb_port_ = environment_.GetPort(GetNode().GetIp());
+    }
+    return orb_port_;
+}
+
+void Container::SetOrbPort(const std::string& orb_port) {
+    orb_port_ = orb_port;
+}
+
+void Container::AddModelLogger() {
+    auto id = "model_logger";
+    loggers_.emplace(id, std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Cached)));
+}
+
+Logger &Container::GetLogger(const std::string &logger_id) {
+    return *(loggers_.at(logger_id));
 }
 

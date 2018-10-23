@@ -1,6 +1,7 @@
 #include "experiment.h"
 #include "environment.h"
 #include "node.h"
+#include "container.h"
 #include "ports/port.h"
 #include <proto/controlmessage/helper.h>
 

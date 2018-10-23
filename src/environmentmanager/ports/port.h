@@ -86,7 +86,7 @@ class Port{
         
 
         Experiment& experiment_;
-        Component* component_ = 0;
+        Component* parent_ = 0;
 
         std::string id_;
         std::string name_;

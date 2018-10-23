@@ -12,6 +12,7 @@ class Environment;
 class Node;
 class Port;
 class Logger;
+class Container;
 
 struct ExternalPort{
     std::string external_label;

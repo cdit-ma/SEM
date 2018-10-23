@@ -91,15 +91,13 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
 
     auto& experiment = environment_->GetExperiment(experiment_name);
     auto& node = experiment.GetNode(node_manager_ip_address);
-    
-    auto component_count = node.GetDeployedComponentCount();
-    
+    auto& container = node.GetContainer(conatiner_id);
+    auto component_count = container.GetDeployedCount();
 
     auto reply = std::unique_ptr<NodeManager::NodeManagerRegistrationReply>(new NodeManager::NodeManagerRegistrationReply());
 
-
     if(component_count){
-        if(node.IsNodeManagerMaster()){
+        if(container.IsNodeManagerMaster()){
             //Check if Experiment Exists and isn't already running
             if(!environment_->IsExperimentConfigured(experiment_name)){
                 std::string error("Experiment: '" + experiment_name + "' isn't in configured state.");

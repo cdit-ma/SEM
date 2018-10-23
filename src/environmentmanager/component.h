@@ -25,6 +25,7 @@ class Component{
 
         Port& GetPort(const std::string& port_id);
         Container& GetContainer() const;
+        Node& GetNode() const;
         Environment& GetEnvironment() const;
 
         bool HasPort(const std::string& port_id);

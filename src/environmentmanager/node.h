@@ -54,7 +54,7 @@ class Node{
         int GetLoganServerCount() const;
         bool DeployedTo() const;
 
-
+        std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers();
 
             //protobuf getters
         std::unique_ptr<NodeManager::Node> GetProto(const bool full_update);
@@ -70,7 +70,6 @@ class Node{
         std::unordered_map<std::string, std::unique_ptr<Container> > containers_;
 
         bool dirty_;
-        bool is_node_manager_master_ = false;
 };
 };
 
