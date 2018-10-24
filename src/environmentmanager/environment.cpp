@@ -44,7 +44,6 @@ void Environment::PopulateExperiment(const NodeManager::Experiment &const_experi
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     
-    //Take a copy
     const auto& experiment_name = const_experiment_message.name();
 
     if(experiment_map_.count(experiment_name) > 0){
@@ -99,24 +98,23 @@ void Environment::DistributeContainerToImplicitNodeContainers(const std::string&
     // will end up deployed to nodes not necessarily belonging to that cluster
 
     for(const auto& component : container.components()){
-        auto& node = GetExperiment(experiment_id).GetLeastDeployedToNode();
-        node.AddComponentToImplicitContainer(component);
+        GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddComponentToImplicitContainer(component);
     }
 
     for(const auto& logger : container.loggers()){
         if(logger.type() == NodeManager::Logger::CLIENT){
             // Add client to all nodes implicit containers.
-            GetExperiment(experiment_id).AddLoggingClientToImplicitContainers(logger);
+            GetExperimentInternal(experiment_id).AddLoggingClientToImplicitContainers(logger);
         }
         if(logger.type() == NodeManager::Logger::SERVER){
             // Add server to the least deployed to node's implicit container
-            GetExperiment(experiment_id).GetLeastDeployedToNode().AddLoggingServerToImplicitContainer(logger);
+            GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddLoggingServerToImplicitContainer(logger);
         }
     }
 }
 
 void Environment::DeployContainer(const std::string& experiment_id, const NodeManager::Container& container){
-    GetExperiment(experiment_id).GetLeastDeployedToNode().AddContainer(container);
+    GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddContainer(container);
 }
 
 std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,

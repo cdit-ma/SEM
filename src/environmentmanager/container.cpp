@@ -130,7 +130,6 @@ void Container::AddComponent(const NodeManager::Component &component_pb) {
 void Container::AddLogger(const NodeManager::Logger &logger_pb) {
     const auto& id = logger_pb.id();
     loggers_.emplace(id, std::move(std::unique_ptr<Logger>(new Logger(environment_, *this, logger_pb))));
-
 }
 
 int Container::GetDeployedComponentCount() const {
