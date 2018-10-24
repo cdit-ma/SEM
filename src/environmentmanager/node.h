@@ -25,13 +25,18 @@ class Node{
         std::string GetName() const;
         std::string GetIp() const;
 
+
         void SetNodeManagerMaster();
 
         std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
         std::vector<std::unique_ptr<NodeManager::ContainerId> > GetContainerIds() const;
 
         //Node, component, attribute and logger adders
-        void AddContainer(const NodeManager::Container& component);
+        void AddContainer(const NodeManager::Container& container);
+
+        void AddComponentToImplicitContainer(const NodeManager::Component& component);
+        void AddLoggingClientToImplicitContainer(const NodeManager::Logger& logging_client);
+        void AddLoggingServerToImplicitContainer(const NodeManager::Logger& logging_server);
 
         //Update requirement management
         void SetDirty();
@@ -65,6 +70,8 @@ class Node{
         std::string id_;
         std::string name_;
         std::string ip_;
+
+        std::string implicit_container_id_;
 
         //Container id -> Container
         std::unordered_map<std::string, std::unique_ptr<Container> > containers_;

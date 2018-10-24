@@ -52,6 +52,7 @@ class Experiment{
 
         void AddExternalPorts(const NodeManager::Experiment& message);
         void AddNode(const NodeManager::Node& node);
+        void AddLoggingClientToImplicitContainers(const NodeManager::Logger& logging_client);
 
         Node& GetNode(const std::string& ip_address) const;
 
@@ -75,6 +76,7 @@ class Experiment{
 
         std::string GetPublicEventPortName(const std::string& public_port_local_id);
 
+        Node& GetLeastDeployedToNode();
         Port& GetPort(const std::string& id);
 
 

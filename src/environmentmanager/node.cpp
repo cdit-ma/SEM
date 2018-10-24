@@ -18,9 +18,7 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     id_ = node.info().id();
     ip_ = node.ip_address();
 
-    bool utilized = (node.loggers_size() + node.containers_size()) > 0;
-
-    if(ip_ == "OFFLINE" && utilized){
+    if(ip_ == "OFFLINE" && node.containers_size() > 0){
         throw std::invalid_argument("Experiment: '" + experiment_.GetName() + "' Has OFFLINE node '" + name_ + "' utilized.");
     }
 
@@ -47,6 +45,9 @@ int Node::GetContainerCount() const{
 
 void Node::AddContainer(const NodeManager::Container& container_pb){
     const auto& id = container_pb.info().id();
+    if(container_pb.implicit()){
+        implicit_container_id_ = id;
+    }
     auto container = std::unique_ptr<EnvironmentManager::Container>(new EnvironmentManager::Container(environment_, *this, container_pb));
     containers_.emplace(id, std::move(container));
 }
@@ -123,7 +124,7 @@ std::unique_ptr<NodeManager::HardwareId> Node::GetHardwareId() const{
 std::vector<std::unique_ptr<NodeManager::ContainerId> > Node::GetContainerIds() const {
     std::vector<std::unique_ptr<NodeManager::ContainerId> > container_ids;
     for(const auto& container : containers_) {
-        auto container_id = std::unique_ptr<NodeManager::ContainerId>(new NodeManager::ContainerId);
+        auto container_id = std::unique_ptr<NodeManager::ContainerId>(new NodeManager::ContainerId());
         container_id->set_id(container.second->GetId());
         container_ids.emplace_back(std::move(container_id));
     }
@@ -190,4 +191,16 @@ void Node::SetNodeManagerMaster() {
         container.second->SetNodeManagerMaster();
         break;
     }
+}
+
+void Node::AddComponentToImplicitContainer(const NodeManager::Component &component) {
+    containers_.at(implicit_container_id_)->AddComponent(component);
+}
+
+void Node::AddLoggingClientToImplicitContainer(const NodeManager::Logger &logging_client) {
+    containers_.at(implicit_container_id_)->AddLogger(logging_client);
+}
+
+void Node::AddLoggingServerToImplicitContainer(const NodeManager::Logger &logging_server) {
+    containers_.at(implicit_container_id_)->AddLogger(logging_server);
 }

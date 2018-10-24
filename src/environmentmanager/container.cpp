@@ -14,6 +14,10 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
         environment_(environment),
         parent_(parent)
 {
+
+    id_ = container.info().id();
+    name_ = container.info().name();
+
     for(const auto& component : container.components()){
         AddComponent(component);
     }

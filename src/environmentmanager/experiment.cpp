@@ -190,8 +190,6 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
     return reply;
 }
 
-
-
 std::string Experiment::GetMasterPublisherAddress(){
     if(master_publisher_port_.empty()){
         master_publisher_port_ = environment_.GetPort(master_ip_address_);
@@ -382,4 +380,21 @@ std::string Experiment::GetExternalPortInternalId(const std::string& external_po
         return external_id_to_internal_id_map_.at(external_port_label);
     }
     throw std::runtime_error("Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
+}
+
+Node& Experiment::GetLeastDeployedToNode() {
+    // Min element with lambda comparison func, will be prettier in 14/17 with 'auto' lambda arguments
+    using NodeMapPair = std::pair<const std::string, std::unique_ptr<Node> >;
+
+    return *(std::min_element(node_map_.cbegin(),
+            node_map_.cend(),
+            [](const NodeMapPair& p1, const NodeMapPair& p2){
+                return p1.second->GetDeployedComponentCount() < p2.second->GetDeployedComponentCount();
+    })->second);
+}
+
+void Experiment::AddLoggingClientToImplicitContainers(const NodeManager::Logger &logging_client) {
+    for(const auto& node : node_map_) {
+        node.second->AddLoggingClientToImplicitContainer(logging_client);
+    }
 }

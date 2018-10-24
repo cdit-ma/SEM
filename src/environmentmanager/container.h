@@ -32,6 +32,9 @@ public:
     Logger& GetLogger(const std::string& logger_id);
     Port& GetPort(const std::string& port_id);
 
+    void AddComponent(const NodeManager::Component& component_pb);
+    void AddLogger(const NodeManager::Logger& logger_pb);
+
     int GetDeployedCount() const;
     int GetDeployedComponentCount() const;
     int GetLoganServerCount() const;
@@ -50,8 +53,6 @@ public:
     std::unique_ptr<NodeManager::Container> GetProto(const bool full_update);
 
 private:
-    void AddComponent(const NodeManager::Component& component_pb);
-    void AddLogger(const NodeManager::Logger& logger_pb);
     void AddModelLogger();
 
     Environment& environment_;

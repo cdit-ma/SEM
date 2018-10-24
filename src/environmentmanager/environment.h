@@ -89,7 +89,8 @@ class Environment{
         void FinishConfigure(const std::string& experiment_name);
         static void DeclusterExperiment(NodeManager::Experiment& message);
         static void DeclusterCluster(NodeManager::Cluster& message);
-        
+        void DistributeContainerToImplicitNodeContainers(const std::string& experiment_id, const NodeManager::Container& container);
+        void DeployContainer(const std::string& experiment_id, const NodeManager::Container& container);
         
         void AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);

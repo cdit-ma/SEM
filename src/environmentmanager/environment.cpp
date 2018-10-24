@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 #include <proto/controlmessage/helper.h>
+#include "node.h"
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
@@ -44,8 +45,7 @@ void Environment::PopulateExperiment(const NodeManager::Experiment &const_experi
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
     
     //Take a copy
-    auto experiment_message = const_experiment_message;
-    const auto& experiment_name = experiment_message.name();
+    const auto& experiment_name = const_experiment_message.name();
 
     if(experiment_map_.count(experiment_name) > 0){
         throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
@@ -62,14 +62,11 @@ void Environment::PopulateExperiment(const NodeManager::Experiment &const_experi
             throw std::runtime_error("Experiment '" + experiment_name + "' has already been Configured once.");
         }
 
-        //Handle Deployments etc
-        DeclusterExperiment(experiment_message);
-
         //Handle the External Ports
-        experiment.AddExternalPorts(experiment_message);
+        experiment.AddExternalPorts(const_experiment_message);
         
         //Add all nodes
-        for(const auto& cluster : experiment_message.clusters()){
+        for(const auto& cluster : const_experiment_message.clusters()){
             AddNodes(experiment_name, cluster);
         }
         
@@ -87,6 +84,39 @@ void Environment::AddNodes(const std::string& experiment_id, const NodeManager::
     for(const auto& node : cluster.nodes()){
         AddNodeToExperiment(experiment_id, node);
     }
+
+    for(const auto& container : cluster.containers()) {
+        if(container.implicit()) {
+            DistributeContainerToImplicitNodeContainers(experiment_id, container);
+        } else {
+            DeployContainer(experiment_id, container);
+        }
+    }
+}
+
+void Environment::DistributeContainerToImplicitNodeContainers(const std::string& experiment_id, const NodeManager::Container& container){
+    // XXX: This is incorrect in the case of multiple clusters as containers deployed to a clusters implicit container
+    // will end up deployed to nodes not necessarily belonging to that cluster
+
+    for(const auto& component : container.components()){
+        auto& node = GetExperiment(experiment_id).GetLeastDeployedToNode();
+        node.AddComponentToImplicitContainer(component);
+    }
+
+    for(const auto& logger : container.loggers()){
+        if(logger.type() == NodeManager::Logger::CLIENT){
+            // Add client to all nodes implicit containers.
+            GetExperiment(experiment_id).AddLoggingClientToImplicitContainers(logger);
+        }
+        if(logger.type() == NodeManager::Logger::SERVER){
+            // Add server to the least deployed to node's implicit container
+            GetExperiment(experiment_id).GetLeastDeployedToNode().AddLoggingServerToImplicitContainer(logger);
+        }
+    }
+}
+
+void Environment::DeployContainer(const std::string& experiment_id, const NodeManager::Container& container){
+    GetExperiment(experiment_id).GetLeastDeployedToNode().AddContainer(container);
 }
 
 std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,
@@ -174,117 +204,6 @@ void Environment::RemoveExperimentInternal(const std::string& experiment_name){
         std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
 }
-
-void Environment::DeclusterExperiment(NodeManager::Experiment& message){
-    for(auto& cluster : *message.mutable_clusters()){
-        DeclusterCluster(cluster);
-    }
-}
-
-void Environment::DeclusterCluster(NodeManager::Cluster& cluster){
-    //TODO: Look into a Smart Deployment Algorithm to spread load (RE-254)
-    std::queue<NodeManager::Container> container_queue;
-    std::queue<NodeManager::Logger> logging_servers;
-    std::vector<NodeManager::Logger> logging_clients;
-
-    NodeManager::Container cluster_implicit_container;
-
-    for(const auto& container : cluster.containers()){
-        if(container.implicit()){
-            cluster_implicit_container = container;
-        }
-        container_queue.emplace(container);
-    }
-    cluster.clear_containers();
-
-    for(const auto& logger : cluster.loggers()){
-        switch(logger.type()){
-            case NodeManager::Logger::SERVER:{
-                logging_servers.emplace(logger);
-                break;
-            }
-            case NodeManager::Logger::CLIENT:{
-                logging_clients.emplace_back(logger);
-                break;
-            }
-            default:
-                break;
-        }
-    }
-    cluster.clear_loggers();
-
-    std::queue<NodeManager::Component> component_queue;
-
-    for(const auto& component : cluster_implicit_container.components()){
-        component_queue.emplace(component);
-    }
-
-    for(const auto& logger : cluster_implicit_container.loggers()){
-        switch(logger.type()){
-            case NodeManager::Logger::SERVER:{
-                logging_servers.emplace(logger);
-                break;
-            }
-            case NodeManager::Logger::CLIENT:{
-                logging_clients.emplace_back(logger);
-                break;
-            }
-            default:{
-                break;
-            }
-        }
-    }
-
-    int child_node_count = cluster.nodes_size();
-    int counter = 0;
-
-    while(!container_queue.empty()){
-        //Calculate the index of the node to place each Component on
-        const int node_index = counter++ % child_node_count;
-        //Add a new Component and swap it with the element on the queue
-        auto container = cluster.mutable_nodes(node_index)->add_containers();
-        //Copy the Component
-        *container = container_queue.front();
-        container_queue.pop();
-    }
-
-    counter = 0;
-
-    // Distribute components in a cluster's implicitly constructed container across node implicitly constructed containers
-    while(!component_queue.empty()){
-        const int node_index = counter++ % child_node_count;
-        auto node = cluster.mutable_nodes(node_index);
-
-        for(auto& container : *node->mutable_containers()){
-            if(container.implicit()){
-                auto component = container.add_components();
-                *component = component_queue.front();
-                component_queue.pop();
-            }
-        }
-    }
-
-    //put one logging server on a node
-    while(!logging_servers.empty()){
-        //Calculate the index of the node to place each Component on
-        const int node_index = counter++ % child_node_count;
-
-        auto server = cluster.mutable_nodes(node_index)->add_loggers();
-        //Copy the Server
-        *server = logging_servers.front();
-        logging_servers.pop();
-    }
-
-    //put a copy of all logging clients on all child nodes
-    for(auto& node_pb : *cluster.mutable_nodes()){
-        for(const auto& logger : logging_clients){
-            auto new_logger = node_pb.add_loggers();
-            //Copy the Logger
-            *new_logger = logger;
-        }
-    }
-}
-
 
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperimentInternal(experiment_name);
