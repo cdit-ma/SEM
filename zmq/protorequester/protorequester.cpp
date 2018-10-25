@@ -110,6 +110,8 @@ void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const s
 
                 auto proto_reply = proto_register_.ConstructProto(str_reply_typename, zmq_reply_data);
                 promise.set_value(std::move(proto_reply));
+
+                socket.disconnect(connect_address_.c_str());
                 return;
             }else{
                 //Received Error from the Replier
