@@ -84,47 +84,40 @@ void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const s
             throw;
         }
 
-        //Send the request
-        socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
-        socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
-        socket.send(String2Zmq(request_data));
-
-        int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout_ms);
-
-        if(events > 0){
-            zmq::message_t zmq_result;
-            socket.recv(&zmq_result);
-
-            //We are expecting an int32 as the result flag, so convert from void* to int*, then dereference
-            uint32_t result_code = *((uint32_t*)zmq_result.data());
-
-            if(result_code == 0){
-                //Success
-                zmq::message_t zmq_reply_typename;
-                zmq::message_t zmq_reply_data;
-
-                socket.recv(&zmq_reply_typename);
-                socket.recv(&zmq_reply_data);
-
-                const auto& str_reply_typename = Zmq2String(zmq_reply_typename);
-
-                auto proto_reply = proto_register_.ConstructProto(str_reply_typename, zmq_reply_data);
-                promise.set_value(std::move(proto_reply));
-
-                socket.disconnect(connect_address_.c_str());
-                return;
-            }else{
-                //Received Error from the Replier
-                zmq::message_t zmq_error_data;
-                socket.recv(&zmq_error_data);
-
-                //Receiving a string'd exception
-                const auto& str_exception_str = Zmq2String(zmq_error_data);
-                throw RMIException(str_exception_str);
+        int count = 0;
+        while(true){
+            count ++ ;
+            if(count %1000 == 0){
+                std::cerr << "COUNT: " << count << std::endl;
             }
-        }else{
-            //If we didn't receive any events, throw a timeout exception
-            throw TimeoutException("Request timed out");
+            //Send the request
+            socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
+            socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
+            socket.send(String2Zmq(request_data));
+
+            int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout_ms);
+
+            if(events > 0){
+                zmq::message_t zmq_result;
+                socket.recv(&zmq_result);
+
+                //We are expecting an int32 as the result flag, so convert from void* to int*, then dereference
+                uint32_t result_code = *((uint32_t*)zmq_result.data());
+
+                if(result_code == 0){
+                    //Success
+                    zmq::message_t zmq_reply_typename;
+                    zmq::message_t zmq_reply_data;
+
+                    socket.recv(&zmq_reply_typename);
+                    socket.recv(&zmq_reply_data);
+                }else{
+                    //Received Error from the Replier
+
+                    zmq::message_t zmq_error_data;
+                    socket.recv(&zmq_error_data);
+                }
+            }
         }
     }catch(...){
         //Catch all exceptions and pass them up the to the promise
