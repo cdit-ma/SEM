@@ -60,6 +60,8 @@ public slots:
     void printResults();
 
 private:
+    void constructChartForPortLifecycle(QString path, QString label);
+
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
 

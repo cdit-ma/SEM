@@ -18,6 +18,7 @@ public:
     void RequestRunningExperiments();
 
     const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
+    const QString getQString(const std::string &string);
 
 signals:
     void requestResponse(PortLifecycleEvent* event);

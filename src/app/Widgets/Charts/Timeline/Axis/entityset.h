@@ -22,23 +22,9 @@ public:
     explicit EntitySet(QString label = "", QWidget* parent = 0);
     ~EntitySet();
 
-    int getParentEntityID();
-    int getLastChildID();
     int getAllDepthChildrenCount();
 
-    EntitySet* getChildEntitySet(int ID);
-    QList<EntitySet*> getChildrenEntitySets();
-
     bool isExpanded();
-
-    void setID(int ID);
-    int getID();
-
-    void setPreviousID(int ID);
-    int getPreviousID();
-
-    void setNextID(int ID);
-    int getNextID();
 
     void setDepth(int depth);
     int getDepth();
@@ -83,9 +69,6 @@ private:
     int _depth;
     QString _label;
 
-    int _previousID = -1;
-    int _nextID = -1;
-
     int allDepthChildrenCount = 0;
     bool _isExpanded = false;
     bool _isVisible = true;
@@ -107,7 +90,7 @@ private:
 
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;
-    QHash<int, EntitySet*> childrenHash;
+    //QHash<int, EntitySet*> childrenHash;
     QList<QtCharts::QAbstractSeries*> seriesList;
 
 };

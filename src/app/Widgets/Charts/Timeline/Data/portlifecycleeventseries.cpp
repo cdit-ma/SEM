@@ -25,6 +25,10 @@ PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent
 void PortLifecycleEventSeries::addPortEvent(PortLifecycleEvent* event)
 {
     if (event) {
+
+        /*if (portEvents_.contains(event))
+            return;*/
+
         portEvents_.append(event);
 
         // update the range

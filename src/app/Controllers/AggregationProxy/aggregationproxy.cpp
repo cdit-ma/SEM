@@ -26,25 +26,46 @@ void AggregationProxy::RequestRunningExperiments()
         request_type.add_component_names("");
         */
 
+        auto start = QDateTime::currentMSecsSinceEpoch();
+
+        // clear previous results in the timeline chart
         emit clearPreviousResults();
 
         auto results = requester_.GetPortLifecycle(request_type);
-        qDebug() << "Result Size#: " << results.get()->events_size();
+        //qDebug() << "Result Size#: " << results.get()->events_size();
 
         for (auto item : results.get()->events()) {
-            // extract port info
             auto port = convertPort(item.port());
             auto type = getLifeCycleType(item.type());
             auto time = getQDateTime(item.time());
-
-            //qDebug() << "date-time: " << time.toString("MMM d yyyy, hh:mm:ss:zz");
-            //qDebug() << "Event: type = " << AggServer::LifecycleType_Name(item.type()).c_str();
 
             PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
             emit requestResponse(event);
         }
 
         //emit printResults();
+
+        auto finish = QDateTime::currentMSecsSinceEpoch();
+        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
+
+        /*
+        start = QDateTime::currentMSecsSinceEpoch();
+        results = requester_.GetPortLifecycle(request_type);
+        //qDebug() << "Result Size#: " << results.get()->events_size();
+
+        for (auto item : results.get()->events()) {
+            auto port = convertPort(item.port());
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
+
+            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            emit requestResponse(event);
+        }
+
+        finish = QDateTime::currentMSecsSinceEpoch();
+        qDebug() << "Construction of portlifecycle widgets and series WITHOUT clearing took: " << finish - start << " ms.";
+        */
+
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -63,12 +84,17 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 {
     int64_t mu = google::protobuf::util::TimeUtil::TimestampToMicroseconds(time);
     return QDateTime::fromMSecsSinceEpoch(mu / 1E3, Qt::UTC);
+}
 
-    /*
-    int64_t msFromSeconds = time.seconds() * 1E3;
-    int64_t msFromNanoSeconds = time.nanos() / 1E6;
-    return QDateTime::fromMSecsSinceEpoch(msFromSeconds + msFromNanoSeconds, Qt::UTC);
-    */
+
+/**
+ * @brief AggregationProxy::getQString
+ * @param string
+ * @return
+ */
+const QString AggregationProxy::getQString(const std::string &string)
+{
+    return QString::fromUtf8(string.c_str());
 }
 
 
@@ -80,24 +106,20 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 Port AggregationProxy::convertPort(const AggServer::Port port)
 {
     auto compInst = port.component_instance();
-    QString compName = QString::fromUtf8(compInst.component().name().c_str());
-    QString hostname = QString::fromUtf8(compInst.node().hostname().c_str());
-    QString ip = QString::fromUtf8(compInst.node().ip().c_str());
-
-    //Component comp = {QString::fromUtf8(compInst.component().name().c_str())};
-    //Node node = {hostname, ip};
+    auto comp = compInst.component();
+    auto node = compInst.node();
 
     ComponentInstance compInstStruct;
-    compInstStruct.name = QString::fromUtf8(compInst.name().c_str());
-    compInstStruct.path = QString::fromUtf8(compInst.path().c_str());
-    compInstStruct.component = Component{compName};
-    compInstStruct.node = Node{hostname, ip};
+    compInstStruct.name = getQString(compInst.name());
+    compInstStruct.path = getQString(compInst.path());
+    compInstStruct.component = Component{getQString(comp.name())};
+    compInstStruct.node = Node{getQString(node.hostname()), getQString(node.ip())};
 
     Port portStruct;
     portStruct.kind = getPortKind(port.kind());
-    portStruct.name = QString::fromUtf8(port.name().c_str());
-    portStruct.path = QString::fromUtf8(port.path().c_str());
-    portStruct.middleware = QString::fromUtf8(port.middleware().c_str());
+    portStruct.name = getQString(port.name());
+    portStruct.path = getQString(port.path());
+    portStruct.middleware = getQString(port.middleware());
     portStruct.component_instance = compInstStruct;
     return portStruct;
 }
