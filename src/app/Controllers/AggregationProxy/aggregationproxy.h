@@ -25,6 +25,7 @@ signals:
     void printResults();
 
 private:
+    Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
     Port::Kind getPortKind(const AggServer::Port_Kind kind);
 

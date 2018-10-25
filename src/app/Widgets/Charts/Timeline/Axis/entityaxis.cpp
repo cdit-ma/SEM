@@ -129,6 +129,11 @@ void EntityAxis::themeChanged()
     }
 }
 
+
+/**
+ * @brief EntityAxis::resizeEvent
+ * @param event
+ */
 void EntityAxis::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);

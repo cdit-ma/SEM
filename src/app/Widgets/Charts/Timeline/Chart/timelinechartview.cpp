@@ -41,15 +41,17 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart = new TimelineChart(this);
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
     _timelineChart->setPointsWidth(POINTS_WIDTH);
-    //_timelineChart->setRange(DBL_MAX, DBL_MIN);
-
-    // TODO: Remove this later - only used to test the lifecycle events
-    //_timelineChart->setRange(0.0, 5.0);
-    //_dateTimeAxis->setRange(0.0, 5.0);
-    //_dateTimeAxis->setDisplayedRange(0.0, 5.0);
 
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
-    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);    
+    connect(_timelineChart, &TimelineChart::entityChartHovered, [=] (EntityChart* chart, bool hovered) {
+        if (chart) {
+            QString path = entityCharts_portLifecycle.key(chart, "");
+            EntitySet* set = entitySets_portLifecycle.value(path, 0);
+            if (set)
+                set->setHovered(hovered);
+        }
+    });
 
     // connect the chart's pan and zoom signals to the datetime axis
     connect(_timelineChart, &TimelineChart::panned, [=](double dx, double dy) {
@@ -531,7 +533,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     connect(this, &TimelineChartView::toggleSeriesKind, seriesChart, &EntityChart::setSeriesVisible);
     connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->entityChartHovered(seriesChart, hovered);
+        _timelineChart->setEntityChartHovered(seriesChart, hovered);
     });
 
     // set the initial visibility states of the chart and each individual series in the chart
@@ -575,8 +577,11 @@ inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 }
 
 
-void TimelineChartView::UpdateChartHover(){
+void TimelineChartView::UpdateChartHover()
+{
     return;
+
+
     for(auto button : _hoverDisplayButtons.values()){
         button->setText("");
         button->hide();
@@ -608,7 +613,6 @@ void TimelineChartView::UpdateChartHover(){
             }
         }
     }
-
 
     _hoverDisplay->setVisible(show_hover);
     if (show_hover) {
@@ -719,7 +723,7 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
         set->setMinimumHeight(MIN_ENTITY_HEIGHT);
         set->themeChanged(Theme::theme());
         connect(set, &EntitySet::hovered, [=] (bool hovered) {
-            _timelineChart->entityChartHovered(chart, hovered);
+            _timelineChart->setEntityChartHovered(chart, hovered);
         });
 
         series->addPortEvent(event);
@@ -754,7 +758,6 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
 
 void TimelineChartView::printResults()
 {
-    return;
     for (auto series : portLifecycleSeries) {
         qDebug()  << "Port: " << series->getPortPath() << " - " << series->getConstPortEvents().size();
         for (auto event : series->getConstPortEvents()) {
@@ -762,6 +765,5 @@ void TimelineChartView::printResults()
         }
         qDebug() << "-------------------------------------";
     }
-
     qDebug() << "\n\n\n\n\n";
 }

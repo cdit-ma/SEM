@@ -49,6 +49,8 @@ public:
     void addChildEntitySet(EntitySet* child);
     void setParentEntitySet(EntitySet* parent);
 
+    void setHovered(bool hovered);
+
 signals:
     void childAdded();
     void childRemoved(EntitySet* child);
@@ -99,6 +101,9 @@ private:
     QPixmap unExpandablePixmap;
     QPixmap expandedPixmap;
     QPixmap contractedPixmap;
+
+    QString textColorStr;
+    QString highlighColorStr;
 
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;

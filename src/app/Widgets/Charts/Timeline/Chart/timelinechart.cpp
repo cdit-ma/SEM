@@ -39,7 +39,6 @@ TimelineChart::TimelineChart(QWidget* parent)
 void TimelineChart::setMin(double min)
 {
     if (min != _displayMin) {
-        QDateTime dt; dt.setMSecsSinceEpoch(min);
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
         }
@@ -56,7 +55,6 @@ void TimelineChart::setMin(double min)
 void TimelineChart::setMax(double max)
 {
     if (max != _displayMax) {
-        QDateTime dt; dt.setMSecsSinceEpoch(max);
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
         }
@@ -225,11 +223,10 @@ void TimelineChart::themeChanged()
     backgroundColor.setAlphaF(BACKGROUND_OPACITY);
     backgroundHighlightColor = theme->getActiveWidgetBorderColor();
     backgroundHighlightColor.setAlphaF(BACKGROUND_OPACITY * 2.0);
-    //backgroundHighlightColor = theme->getAltBackgroundColor();
 
     cursorPen = QPen(theme->getTextColor(), 8);
     axisLinePen = QPen(theme->getAltTextColor(), axisWidth);
-    topLinePen = QPen(theme->getAltTextColor(), 2);
+    topLinePen = QPen(theme->getAltTextColor(), 1.5);
     hoverLinePen = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
 }
 
@@ -239,13 +236,14 @@ void TimelineChart::themeChanged()
  * @param chart
  * @param hovered
  */
-void TimelineChart::entityChartHovered(EntityChart* chart, bool hovered)
+void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
 {
     if (chart) {
         hoveredChartRect = hovered ? chart->rect() : QRectF();
         hoveredChartRect.moveTo(chart->pos());
         chart->setHovered(hovered);
         update();
+        emit entityChartHovered(chart, hovered);
     }
 }
 
@@ -283,9 +281,9 @@ bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
 {
     EntityChart* chart = qobject_cast<EntityChart*>(watched);
     if (event->type() == QEvent::Enter) {
-        entityChartHovered(chart, true);
+        setEntityChartHovered(chart, true);
     } else if (event->type() == QEvent::Leave) {
-        entityChartHovered(chart, false);
+        setEntityChartHovered(chart, false);
     }
     return QWidget::eventFilter(watched, event);
 }
@@ -438,10 +436,16 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     QRect visibleRect = visibleRegion().boundingRect();
     painter.fillRect(visibleRect, backgroundColor);
 
-    visibleRect = visibleRect.adjusted(axisWidth / 2.0, topLinePen.widthF() / 2.0, 0, 0);
+    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
 
+    QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
+    painter.setPen(topLinePen);
+    painter.drawLine(topLine);
+
+    QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
     QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
     painter.setPen(axisLinePen);
+    painter.drawLine(axisX);
     painter.drawLine(axisY);
 
     switch (dragMode) {
@@ -515,6 +519,10 @@ double TimelineChart::mapToRange(double value)
 }
 
 
+/**
+ * @brief TimelineChart::getEntityCharts
+ * @return
+ */
 const QList<EntityChart*>& TimelineChart::getEntityCharts()
 {
     return _entityCharts;

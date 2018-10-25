@@ -11,6 +11,22 @@ enum class LifecycleType {
     TERMINATE
 };
 
+struct Node {
+    QString hostname;
+    QString ip;
+};
+
+struct Component {
+    QString nsme;
+};
+
+struct ComponentInstance {
+    QString name;
+    QString path;
+    Component component;
+    Node node;
+};
+
 struct Port {
     enum Kind {
         NO_KIND,
@@ -24,26 +40,7 @@ struct Port {
     QString name;
     QString path;
     QString middleware;
-    //ComponentInstance component_instance;
-};
-
-struct Component {
-    int ID;
-    QString nsme;
-};
-
-struct Node {
-    int ID;
-    QString hostname;
-    QString ip;
-};
-
-struct ComponentInstance {
-    int ID;
-    Component component;
-    Node node;
-    QString name;
-    QString path;
+    ComponentInstance component_instance;
 };
 
 

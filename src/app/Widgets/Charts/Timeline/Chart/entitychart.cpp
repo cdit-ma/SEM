@@ -325,10 +325,10 @@ void EntityChart::themeChanged()
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
 
     _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), theme->getMenuIconColor()));
     _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
     _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
 
     /*
     _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
@@ -1106,6 +1106,7 @@ void EntityChart::mapPointsFromRange(MEDEA::DataSeries* series, QList<QPointF> p
 {
     update();
     return;
+
     if (series) {
         TIMELINE_SERIES_KIND kind = series->getSeriesKind();
         if (points.isEmpty()) {

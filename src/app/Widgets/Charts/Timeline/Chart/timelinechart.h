@@ -48,12 +48,14 @@ signals:
     void panned(double dx, double dy);
     void changeDisplayedRange(double min, double max);
     void rangeChanged(double min, double max, bool updateDisplay = false);
+
+    void entityChartHovered(EntityChart* chart, bool hovered);
     void hoverLineUpdated(bool visible, QPointF pos);
 
 public slots:
     void themeChanged();
 
-    void entityChartHovered(EntityChart* chart, bool hovered);
+    void setEntityChartHovered(EntityChart* chart, bool hovered);
     void entityChartRangeChanged(double min, double max);
 
 protected:
