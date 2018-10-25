@@ -416,7 +416,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
 
     EntitySet* set = new EntitySet(itemLabel, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->setID(itemID);
+    //set->setID(itemID);
     set->themeChanged(Theme::theme());
     entitySets[itemID] = set;
 
