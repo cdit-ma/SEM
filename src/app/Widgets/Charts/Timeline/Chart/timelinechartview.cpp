@@ -43,7 +43,12 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setAxisYVisible(true);
 
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
-    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);    
+    connect(_timelineChart, &TimelineChart::entityChartHovered, [=] (EntityChart* chart, bool hovered) {
+        if (chart) {
+            // TODO - Connect to the event entity sets
+        }
+    });
 
     // connect the chart's pan and zoom signals to the datetime axis
     connect(_timelineChart, &TimelineChart::panned, [=](double dx, double dy) {
@@ -540,7 +545,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     connect(this, &TimelineChartView::toggleSeriesKind, seriesChart, &EntityChart::setSeriesVisible);
     connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->entityChartHovered(seriesChart, hovered);
+        _timelineChart->setEntityChartHovered(seriesChart, hovered);
     });
 
     // set the initial visibility states of the chart and each individual series in the chart
@@ -584,8 +589,11 @@ inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 }
 
 
-void TimelineChartView::UpdateChartHover(){
+void TimelineChartView::UpdateChartHover()
+{
     return;
+
+
     for(auto button : _hoverDisplayButtons.values()){
         button->setText("");
         button->hide();
@@ -617,7 +625,6 @@ void TimelineChartView::UpdateChartHover(){
             }
         }
     }
-
 
     _hoverDisplay->setVisible(show_hover);
     if (show_hover) {

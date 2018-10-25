@@ -448,6 +448,7 @@ void AxisDisplay::displayedMaxChanged(double max)
  */
 void AxisDisplay::rangeChanged()
 {
+    // update the vertical axes' width based on the new displayed range
     if (_orientation == Qt::Vertical) {
         double rectHeight = getAdjustedRect().height() / _tickCount;
         int tickY = getAdjustedRect().top();

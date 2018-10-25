@@ -90,6 +90,8 @@ private:
     QPushButton* _utilisationButton;
     QPushButton* _barButton;
 
+    EntitySet* prevHighlightedSet = 0;
+
 };
 
 #endif // TIMELINECHARTVIEW_H

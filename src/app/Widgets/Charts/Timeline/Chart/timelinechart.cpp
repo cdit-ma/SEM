@@ -528,3 +528,4 @@ double TimelineChart::mapToRange(double value)
     double ratio = value / width();
     return ratio * (_displayMax - _displayMin) + _displayMin;
 }
+
