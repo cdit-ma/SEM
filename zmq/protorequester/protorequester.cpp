@@ -71,57 +71,61 @@ zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
 }
 
 void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const std::string request_type_name, const std::string request_data, std::promise<std::unique_ptr<google::protobuf::MessageLite> > promise, const int timeout_ms){
-    int count = 0;
-    while(true){
-        count ++ ;
-        if(count %1000 == 0){
-            std::cerr << "COUNT: " << count << std::endl;
-        }
+    try{
+        auto socket = GetRequestSocket();
+
         try{
-            auto socket = GetRequestSocket();
-
-            try{
-                socket.connect(connect_address_.c_str());
-            }catch(const zmq::error_t& ex){
-                if(ex.num() != ETERM){
-                    throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
-                }
-                //Rethrow this exception
-                throw;
+            socket.connect(connect_address_.c_str());
+        }catch(const zmq::error_t& ex){
+            if(ex.num() != ETERM){
+                throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
             }
-
-            
-            //Send the request
-            socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
-            socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
-            socket.send(String2Zmq(request_data));
-
-            int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout_ms);
-
-            if(events > 0){
-                zmq::message_t zmq_result;
-                socket.recv(&zmq_result);
-
-                //We are expecting an int32 as the result flag, so convert from void* to int*, then dereference
-                uint32_t result_code = *((uint32_t*)zmq_result.data());
-
-                if(result_code == 0){
-                    //Success
-                    zmq::message_t zmq_reply_typename;
-                    zmq::message_t zmq_reply_data;
-
-                    socket.recv(&zmq_reply_typename);
-                    socket.recv(&zmq_reply_data);
-                }else{
-                    //Received Error from the Replier
-
-                    zmq::message_t zmq_error_data;
-                    socket.recv(&zmq_error_data);
-                }
-            }
-        }catch(...){
-            //Catch all exceptions and pass them up the to the promise
-            promise.set_exception(std::current_exception());
+            //Rethrow this exception
+            throw;
         }
+
+        //Send the request
+        socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
+        socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
+        socket.send(String2Zmq(request_data));
+
+        int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, timeout_ms);
+
+        if(events > 0){
+            zmq::message_t zmq_result;
+            socket.recv(&zmq_result);
+
+            //We are expecting an int32 as the result flag, so convert from void* to int*, then dereference
+            uint32_t result_code = *((uint32_t*)zmq_result.data());
+
+            if(result_code == 0){
+                //Success
+                zmq::message_t zmq_reply_typename;
+                zmq::message_t zmq_reply_data;
+
+                socket.recv(&zmq_reply_typename);
+                socket.recv(&zmq_reply_data);
+
+                const auto& str_reply_typename = Zmq2String(zmq_reply_typename);
+
+                auto proto_reply = proto_register_.ConstructProto(str_reply_typename, zmq_reply_data);
+                promise.set_value(std::move(proto_reply));
+                return;
+            }else{
+                //Received Error from the Replier
+                zmq::message_t zmq_error_data;
+                socket.recv(&zmq_error_data);
+
+                //Receiving a string'd exception
+                const auto& str_exception_str = Zmq2String(zmq_error_data);
+                throw RMIException(str_exception_str);
+            }
+        }else{
+            //If we didn't receive any events, throw a timeout exception
+            throw TimeoutException("Request timed out");
+        }
+    }catch(...){
+        //Catch all exceptions and pass them up the to the promise
+        promise.set_exception(std::current_exception());
     }
 }
