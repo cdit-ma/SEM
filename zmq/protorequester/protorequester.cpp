@@ -28,6 +28,7 @@ zmq::ProtoRequester::ProtoRequester(const std::string& connect_address):
 {
     assert(context_);
     assert(connect_address_.length() > 0);
+    std::lock_guard<std::mutex> future_lock(future_mutex_);
     requester_future_ = std::async(std::launch::async, &zmq::ProtoRequester::ProcessRequests, this);
 }
 
@@ -49,7 +50,6 @@ zmq::ProtoRequester::~ProtoRequester(){
             requester_future_.get();
         }
     }catch(const std::exception& ex){
-        
     }
 }
 

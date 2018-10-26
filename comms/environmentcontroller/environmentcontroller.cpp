@@ -20,7 +20,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> EnvironmentManager::Enviro
 
     RegisterExperimentRequest request;
     request.mutable_id()->set_experiment_name(experiment_name);
-    
+
     ProtobufModelParser parser(graphml_path, experiment_name);
     request.set_allocated_control_message(parser.ControlMessage());
 

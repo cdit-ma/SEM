@@ -59,14 +59,9 @@ namespace zmq{
                 const std::chrono::milliseconds timeout; 
                 std::promise<std::unique_ptr<google::protobuf::MessageLite>> promise;
             };
-        
 
-            
             const std::string connect_address_;
             ProtoRegister proto_register_;
-
-            
-
 
             std::mutex request_mutex_;
             std::condition_variable request_cv_;
@@ -76,9 +71,7 @@ namespace zmq{
 
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
-
-
-            std::list< std::unique_ptr<RequestStruct> > request_queue_;
+            std::list<std::unique_ptr<RequestStruct> > request_queue_;
     };
 };
 
