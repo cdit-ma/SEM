@@ -71,25 +71,26 @@ zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
 }
 
 void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const std::string request_type_name, const std::string request_data, std::promise<std::unique_ptr<google::protobuf::MessageLite> > promise, const int timeout_ms){
-    try{
-        auto socket = GetRequestSocket();
-
-        try{
-            socket.connect(connect_address_.c_str());
-        }catch(const zmq::error_t& ex){
-            if(ex.num() != ETERM){
-                throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
-            }
-            //Rethrow this exception
-            throw;
+    int count = 0;
+    while(true){
+        count ++ ;
+        if(count %1000 == 0){
+            std::cerr << "COUNT: " << count << std::endl;
         }
+        try{
+            auto socket = GetRequestSocket();
 
-        int count = 0;
-        while(true){
-            count ++ ;
-            if(count %1000 == 0){
-                std::cerr << "COUNT: " << count << std::endl;
+            try{
+                socket.connect(connect_address_.c_str());
+            }catch(const zmq::error_t& ex){
+                if(ex.num() != ETERM){
+                    throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
+                }
+                //Rethrow this exception
+                throw;
             }
+
+            
             //Send the request
             socket.send(String2Zmq(fn_signature), ZMQ_SNDMORE);
             socket.send(String2Zmq(request_type_name), ZMQ_SNDMORE);
@@ -118,9 +119,9 @@ void zmq::ProtoRequester::ProcessRequest(const std::string fn_signature, const s
                     socket.recv(&zmq_error_data);
                 }
             }
+        }catch(...){
+            //Catch all exceptions and pass them up the to the promise
+            promise.set_exception(std::current_exception());
         }
-    }catch(...){
-        //Catch all exceptions and pass them up the to the promise
-        promise.set_exception(std::current_exception());
     }
 }
