@@ -25,7 +25,7 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
-#include <vector>
+#include <list>
 #include <memory>
 #include <future>
 
@@ -46,17 +46,32 @@ namespace zmq{
             std::future<std::unique_ptr<ReplyType> > SendRequest(const std::string& function_name, const RequestType& request, const int timeout_ms);
         private:
             std::future<std::unique_ptr<google::protobuf::MessageLite> > SendRequest(const std::string& fn_signature, const google::protobuf::MessageLite& request_proto, const int timeout_ms);
-            void ProcessRequest(const std::string fn_signature, const std::string type_name, const std::string data, std::promise<std::unique_ptr<google::protobuf::MessageLite>> promise,  const int timeout_ms);
             zmq::socket_t GetRequestSocket();
         private:
             const std::string connect_address_;
             ProtoRegister proto_register_;
 
+            struct RequestStruct{
+                const std::string fn_signature;
+                const std::string type_name;
+                const std::string data;
+                const std::chrono::milliseconds timeout; 
+                std::promise<std::unique_ptr<google::protobuf::MessageLite>> promise;
+            };
+
+            void ProcessRequests();
+
+            std::mutex request_mutex_;
+            std::condition_variable request_cv_;
+
+            std::mutex future_mutex_;
+            std::future<void> requester_future_;
+
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
 
-            std::mutex future_mutex_;
-            std::vector<std::future<void> > futures_;
+
+            std::list< std::unique_ptr<RequestStruct> > request_queue_;
     };
 };
 
