@@ -67,10 +67,18 @@ zmq::ProtoRequester::SendRequest(const std::string& fn_signature, const google::
 zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
     std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
     if(context_){
-        zmq::socket_t socket(*context_, ZMQ_REQ);
-        //Setting the linger duration will mean that terminating the context won't wait on child sockets to be terminated
-        socket.setsockopt(ZMQ_LINGER, 0);
-        return std::move(socket);
+        try{
+            zmq::socket_t socket(*context_, ZMQ_REQ);
+            //Setting the linger duration will mean that terminating the context won't wait on child sockets to be terminated
+            socket.setsockopt(ZMQ_LINGER, 0);
+            socket.connect(connect_address_.c_str());
+            return std::move(socket);
+
+        }catch(const zmq::error_t& ex){
+            if(ex.num() != ETERM){
+                throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
+            }
+        }
     }
     throw std::runtime_error("Got Invalid Context");
 }
@@ -78,16 +86,7 @@ zmq::socket_t zmq::ProtoRequester::GetRequestSocket(){
 void zmq::ProtoRequester::ProcessRequests(){
     auto socket = GetRequestSocket();
 
-    try{
-        socket.connect(connect_address_.c_str());
-    }catch(const zmq::error_t& ex){
-        if(ex.num() != ETERM){
-            throw std::runtime_error("Failed to connect to address: '" + connect_address_ + "': " + ex.what());
-        }
-        //Rethrow this exception
-        throw;
-    }
-
+    
     while(true){
         std::unique_ptr<RequestStruct> request;
 
@@ -157,6 +156,7 @@ void zmq::ProtoRequester::ProcessRequests(){
         }catch(...){
             //Catch all exceptions and pass them up the to the promise
             request->promise.set_exception(std::current_exception());
+            socket = GetRequestSocket();
         }
     }
 }
