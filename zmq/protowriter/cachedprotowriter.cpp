@@ -181,16 +181,12 @@ void zmq::CachedProtoWriter::WriteQueue(){
             //Write all messages in queue
             while(!replace_queue.empty()){
                 const auto& topic = replace_queue.front().first;
-                auto message = std::move(replace_queue.front().second);
+                const auto& message = *(replace_queue.front().second);
                 
-                if(message){
-                    if(WriteDelimitedTo(topic, *message, &raw_output)){
-                        write_count ++;
-                    }else{
-                        std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
-                    }
+                if(WriteDelimitedTo(topic, message, &raw_output)){
+                    write_count ++;
                 }else{
-                    std::cerr << "zmq::CachedProtoWriter::WriteQueue(): got NULL message." << std::endl;
+                    std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
                 }
                 replace_queue.pop();
             }
