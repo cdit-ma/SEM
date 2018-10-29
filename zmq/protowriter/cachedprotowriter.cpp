@@ -150,6 +150,7 @@ void zmq::CachedProtoWriter::Terminate(){
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){
+    std::cerr << "zmq::CachedProtoWriter::WriteQueue()" << std::endl;
     while(true){
         std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> > > replace_queue;
         {
@@ -166,6 +167,8 @@ void zmq::CachedProtoWriter::WriteQueue(){
         }
         
         if(replace_queue.size()){
+            std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Got Queue: " << replace_queue.size() << std::endl;
+
             int filedesc = getWriteFileDesc(temp_file_path_.c_str());
             if(filedesc < 0){
                 std::cerr << "Failed to open temp file '" << temp_file_path_ << "' to write." << std::endl;
