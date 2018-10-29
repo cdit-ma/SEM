@@ -38,6 +38,7 @@ zmq::ProtoWriter::ProtoWriter(){
 
 zmq::ProtoWriter::~ProtoWriter(){
     Terminate();
+    std::cerr << "* zmq::ProtoWriter: Wrote"  << GetTxCount() << " messages." << std::endl;
 }
 
 void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
