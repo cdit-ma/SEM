@@ -68,6 +68,7 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
+    std::cerr << "CachedProtoWriter()()" << std::endl;
     Terminate();
 }
 
@@ -94,6 +95,7 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, std::unique_p
 }
 
 void zmq::CachedProtoWriter::Terminate(){
+    std::cerr << "CachedProtoWriter()::Terminate()" << std::endl;
     std::unique_lock<std::mutex> lock(mutex_);
     if(writer_future_.valid()){
         {
