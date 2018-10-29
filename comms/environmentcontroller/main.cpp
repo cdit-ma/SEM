@@ -15,6 +15,7 @@ int main(int argc, char** argv){
     desc.add_options()("shutdown-experiment,s", "Shutdown experiment <name>");
     desc.add_options()("add-experiment,a", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path.");
     desc.add_options()("list-experiments,l", "List running experiments.");
+    desc.add_options()("inspect-experiment,i", "Inspect an experiment");
     desc.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -64,7 +65,9 @@ int main(int argc, char** argv){
                 std::cout << std::endl;
             }
             std::cout << "]}" << std::endl;
-        }else{
+        } else if(vm.count("inspect-experiment") && vm.count("experiment-name")){
+            std::cout << controller.InspectExperiment(experiment_name) << std::endl;
+        } else{
             std::cout << desc << std::endl;
             return 1;
         }
