@@ -4,7 +4,7 @@
 namespace zmq{ class ProtoReceiver; }
 class ProtoHandler{
     public:
-        virtual ~ProtoHandler();
+        virtual ~ProtoHandler(){};
         virtual void BindCallbacks(zmq::ProtoReceiver& receiver) = 0;
 };
 
