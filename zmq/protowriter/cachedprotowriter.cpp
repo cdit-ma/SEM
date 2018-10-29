@@ -65,7 +65,7 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     std::cerr << temp_file_path_ << std::endl;
 
     //Start the writer thread
-    writer_future_ = std::async(&zmq::CachedProtoWriter::WriteQueue, this);
+    writer_future_ = std::async(std::launch::async, &zmq::CachedProtoWriter::WriteQueue, this);
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
