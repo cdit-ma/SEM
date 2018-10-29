@@ -153,9 +153,8 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
 
                 const auto& request_str = Zmq2String(zmq_request);
                 try{
-                    auto base_request_ptr = std::unique_ptr<BaseRequestType>(::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str));
+                    auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
                     auto base_reply = port.ProcessRequest(*base_request_ptr);
-
                     auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
                     zmq_response = String2Zmq(reply_str);
                 }catch(const std::exception& ex){
@@ -192,7 +191,7 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
 
                 const auto& request_str = Zmq2String(zmq_request);
                 try{
-                    auto base_request_ptr = std::unique_ptr<BaseRequestType>(::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str));
+                    auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
                     port.ProcessRequest(*base_request_ptr);
                 }catch(const std::exception& ex){
                     std::string error_str = "Translating Request Failed: ";

@@ -212,8 +212,8 @@ void DeploymentManager::ProcessControlQueue(){
                 default:
                     break;
             }
-            auto ms = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
-            std::cout << "* " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " us" << std::endl;
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+            std::cout << "* " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " ms" << std::endl;
         }
     }
 

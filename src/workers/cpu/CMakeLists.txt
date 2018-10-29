@@ -16,7 +16,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
     )
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Disable Optimizing
 if (UNIX)

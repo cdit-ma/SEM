@@ -29,6 +29,7 @@ endif()
 target_link_libraries(${PROJ_NAME} PRIVATE ${ZMQ_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_helper)
 target_link_libraries(${PROJ_NAME} PRIVATE lib_test_basic_proto)

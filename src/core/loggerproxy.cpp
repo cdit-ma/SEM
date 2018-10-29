@@ -1,9 +1,8 @@
 #include "loggerproxy.h"
-#include "loggerprinter.h"
 #include <algorithm>
 
 LoggerProxy::LoggerProxy(): Logger(){
-    AddLogger(LoggerPrinter::get_logger());
+
 }
 
 void LoggerProxy::AddLogger(Logger& logger){

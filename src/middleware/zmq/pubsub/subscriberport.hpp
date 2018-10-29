@@ -124,7 +124,7 @@ void zmq::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manage
                 socket->recv(&zmq_request);
                 const auto& request_str = Zmq2String(zmq_request);
                 try{
-                    auto basetype_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
+                    auto basetype_ptr = ::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str);
                     this->EnqueueMessage(std::move(basetype_ptr));
                 }catch(const std::exception& ex){
                     std::string error_str("Failed to translate subscribed message: ");

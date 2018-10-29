@@ -72,17 +72,17 @@ void* DllLoader::GetLibrary(const std::string& dll_path){
             library = LoadLibrary(dll_path.c_str());
         #else
             //Get a handle to the dynamically linked library
-            library = dlopen(dll_path.c_str(), RTLD_GLOBAL);
+            library = dlopen(dll_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
         #endif
 
         auto end = std::chrono::steady_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         //Check for errors
         const auto& error = GetLibraryError();
 
         if(library && error.empty()){
-            std::cout << "* Loaded DLL: '" << dll_path <<  "' In: " << ms.count() << " us" << std::endl;
+            std::cout << "* Loaded DLL: '" << dll_path <<  "' In: " << ms.count() << " ms" << std::endl;
             loaded_libraries_[dll_path] = library;
         }else{
             throw std::runtime_error( "DLL Error: Cannot load '" + dll_path + "' : " + error);

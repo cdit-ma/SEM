@@ -7,7 +7,7 @@ namespace Proto{
     template <class BaseType, class ProtoType>
     class Translator: public ::Base::Translator<BaseType, ProtoType>{
         public:
-            static BaseType* StringToBase(const std::string& message){
+            static std::unique_ptr<BaseType> StringToBase(const std::string& message){
                 ProtoType proto_obj;
                 proto_obj.ParseFromString(message);
                 return ::Base::Translator<BaseType, ProtoType>::MiddlewareToBase(proto_obj);
@@ -17,7 +17,6 @@ namespace Proto{
                 std::string str_value;
                 auto proto_obj = ::Base::Translator<BaseType, ProtoType>::BaseToMiddleware(message);
                 proto_obj->SerializeToString(&str_value);
-                delete proto_obj;
                 return str_value;
             };
     };

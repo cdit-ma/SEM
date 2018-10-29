@@ -11,7 +11,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_worker_impl.h
     )
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} re_core)

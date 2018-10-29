@@ -17,7 +17,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.h
     )
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${QPID_INCLUDE_DIRS})

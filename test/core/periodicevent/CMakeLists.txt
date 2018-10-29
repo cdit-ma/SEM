@@ -15,4 +15,5 @@ if(UNIX)
 endif(UNIX)
 
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)

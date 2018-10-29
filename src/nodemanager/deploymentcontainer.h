@@ -10,12 +10,12 @@
 #include <core/libcomponentexport.h>
 
 
-
+#include <core/loggers/logan_logger.h>
+#include <core/loggers/print_logger.h>
 
 #include "dllloader.h"
 #include "loganclient.h"
 
-class LoganLogger;
 namespace NodeManager{
     class Component;
     class Port;
@@ -49,6 +49,7 @@ class DeploymentContainer : public Activatable{
         void HandleTerminate();
         void HandleConfigure();
     private:
+        void SetLoggers(Activatable& entity);
         std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
@@ -95,7 +96,7 @@ class DeploymentContainer : public Activatable{
 
         DllLoader dll_loader;
 
-        std::unique_ptr<LoganLogger> logan_logger_;
+        std::unique_ptr<Logan::Logger> logan_logger_;
 
         const std::string experiment_name_;
 };

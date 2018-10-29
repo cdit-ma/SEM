@@ -10,7 +10,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/loganlogger.cpp
     )
 
 set(HEADERS
@@ -20,7 +19,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/loganlogger.h
     )
 
 # Pass Version info into cmakevars.h
@@ -38,6 +36,8 @@ target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SOURCE_PATH})
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE re_loggers)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreplier)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_protowriter)
@@ -46,6 +46,7 @@ target_link_libraries(${PROJ_NAME} PRIVATE logan_client_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_DATE_TIME_LIBRARY})
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_CHRONO_LIBRARY})
+
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} PRIVATE pthread)
