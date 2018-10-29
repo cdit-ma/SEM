@@ -5,33 +5,41 @@
 #include <algorithm>
 #include <vector>
 #include <proto/controlmessage/helper.h>
-
+#include <zmq/zmqutils.hpp>
 using namespace EnvironmentManager;
-Environment::Environment(const std::string& address, const std::string& qpid_broker_address, const std::string& tao_naming_service_address, int port_range_min, int port_range_max){
-    PORT_RANGE_MIN = port_range_min;
-    PORT_RANGE_MAX = port_range_max;
-    address_ = address;
-    qpid_broker_address_ = qpid_broker_address;
-    tao_naming_service_address_ = tao_naming_service_address;
+Environment::Environment(const std::string& ip_address,
+        const std::string& qpid_broker_address,
+        const std::string& tao_naming_service_address,
+        int port_range_min,
+        int port_range_max) :
+        ip_address_(ip_address),
+        qpid_broker_address_(qpid_broker_address),
+        tao_naming_service_address_(tao_naming_service_address),
+        port_range_min_(port_range_min),
+        manager_port_range_min_(port_range_min + 10000),
+        manager_port_range_max_(port_range_max + 10000)
 
-    MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
-    MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
-
+{
     //Ensure that ports arent allocated out of 16bit port max
-    assert(MANAGER_PORT_RANGE_MAX < 65535);
+    assert(manager_port_range_max_ < 65535);
 
     //Bail out if ranges are illegal
-    assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
-    assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
+    assert(port_range_min_ < port_range_max_);
+    assert(manager_port_range_min_ < manager_port_range_max_);
 
     //Populate range sets
-    for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
+    for(int i = port_range_min_; i <= port_range_max_; i++){
         available_ports_.push(i);
     }
 
-    for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
+    for(int i = manager_port_range_min_; i < manager_port_range_max_; i++){
         available_node_manager_ports_.push(i);
     }
+
+    update_publisher_port_ = GetManagerPort();
+    // TODO: Publish to update publisher when we have a new experiment or an update for an experiment.
+    update_publisher_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
+    update_publisher_->BindPublisherSocket(zmq::TCPify(ip_address_, update_publisher_port_));
 }
 
 Environment::~Environment(){
@@ -39,10 +47,10 @@ Environment::~Environment(){
     experiment_map_.clear();
 }
 
-
 void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_control_message){
-    std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     
     //Take a copy
     auto control_message = const_control_message;
@@ -76,13 +84,15 @@ void Environment::PopulateExperiment(const NodeManager::ControlMessage& const_co
         
         //Complete the Configuration
         experiment.SetConfigured();
+
+        // Take a unique_ptr copy of the configured control message and push to aggregation servers along our update_publisher channel.
+        update_publisher_->PushMessage(std::move(std::unique_ptr<NodeManager::ControlMessage>(new NodeManager::ControlMessage(control_message))));
     }catch(const std::exception& ex){
         //Remove the Experiment if we have any exceptions
         RemoveExperimentInternal(experiment_name);
         throw;
     }
 }
-
 
 void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeManager::Node& node_pb){
     for(const auto& node : node_pb.nodes()){
@@ -92,7 +102,6 @@ void Environment::RecursiveAddNode(const std::string& experiment_id, const NodeM
 }
 
 std::string Environment::GetDeploymentHandlerPort(const std::string& experiment_name,
-                                       const std::string& ip_address,
                                        DeploymentType deployment_type){
 
     switch(deployment_type){
@@ -131,9 +140,7 @@ std::string Environment::AddLoganClientServer(){
     return GetManagerPort();
 }
 
-
-
-Experiment& Environment::GetExperiment(const std::string experiment_name){
+Experiment& Environment::GetExperiment(const std::string& experiment_name){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return GetExperimentInternal(experiment_name);
 }
@@ -155,12 +162,21 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Environment::GetExperiment
 std::unique_ptr<NodeManager::EnvironmentMessage> Environment::GetProto(const std::string& experiment_name, const bool full_update){
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperimentInternal(experiment_name);
-    return experiment.GetProto(full_update);
+
+    auto proto = experiment.GetProto(full_update);
+
+    // Create copy of our control_message to send to aggregation server.
+    auto update_proto_control_message = std::unique_ptr<NodeManager::ControlMessage>(
+            new NodeManager::ControlMessage(proto->control_message()));
+    update_publisher_->PushMessage(std::move(update_proto_control_message));
+
+    return proto;
 }
 
 void Environment::ShutdownExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     auto& experiment = GetExperimentInternal(experiment_name);
     if(experiment.IsActive()){
@@ -171,8 +187,9 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){
-    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_);
-    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_);
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
     RemoveExperimentInternal(experiment_name);
 }
 
@@ -260,7 +277,6 @@ void Environment::DeclusterNode(NodeManager::Node& node){
     }
 }
 
-
 void Environment::AddNodeToExperiment(const std::string& experiment_name, const NodeManager::Node& node){
     auto& experiment = GetExperimentInternal(experiment_name);
     try{
@@ -272,9 +288,6 @@ void Environment::AddNodeToExperiment(const std::string& experiment_name, const 
         throw;
     }
 }
-
-
-
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     const auto& node_name = node.info().name();
@@ -376,10 +389,6 @@ bool Environment::IsExperimentActive(const std::string& experiment_name){
     return false;
 }
 
-void Environment::SetExperimentMasterIp(const std::string& experiment_name, const std::string& ip_address){
-
-}
-
 std::string Environment::GetMasterPublisherAddress(const std::string& experiment_name){
     try{
         std::lock_guard<std::mutex> lock(experiment_mutex_);
@@ -399,9 +408,9 @@ std::string Environment::GetMasterRegistrationAddress(const std::string& experim
     }
     return std::string();
 }
-bool Environment::GotExperiment(const std::string& experiment_name){
+bool Environment::GotExperiment(const std::string& experiment_name) const{
     std::lock_guard<std::mutex> lock(experiment_mutex_);
-    return experiment_map_.count(experiment_name);
+    return experiment_map_.count(experiment_name) > 0;
 }
 
 bool Environment::ExperimentIsDirty(const std::string& experiment_name){
@@ -411,9 +420,6 @@ bool Environment::ExperimentIsDirty(const std::string& experiment_name){
     }
     return false;
 }
-
-
-
 
 std::string Environment::GetAmqpBrokerAddress(){
     return qpid_broker_address_;
@@ -425,6 +431,7 @@ std::string Environment::GetTaoNamingServiceAddress(){
     }
     return tao_naming_service_address_;
 }
+
 Environment::ExternalPort& Environment::GetExternalPort(const std::string& external_port_label){
     if(external_eventport_map_.count(external_port_label)){
         return *external_eventport_map_[external_port_label];
@@ -500,11 +507,43 @@ const NodeManager::Attribute& Environment::GetAttributeByName(const google::prot
     throw std::invalid_argument("No attribute found with name " + attribute_name);
 }
 
-std::vector<std::string> Environment::GetExperimentNames(){
+std::vector<std::string> Environment::GetExperimentNames() const{
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     std::vector<std::string> experiment_names;
     for(const auto& key_pair : experiment_map_){
         experiment_names.emplace_back(key_pair.first);
     }
     return experiment_names;
+}
+
+std::vector<std::unique_ptr<NodeManager::ExternalPort> > Environment::GetExternalPorts() const{
+    std::lock_guard<std::mutex> lock(experiment_mutex_);
+    std::vector<std::unique_ptr<NodeManager::ExternalPort> > external_ports;
+
+    for(auto& experiment_pair : experiment_map_){
+        auto& experiment = experiment_pair.second;
+
+        for(auto& external_port : experiment->GetExternalPorts()){
+            auto port_message = std::unique_ptr<NodeManager::ExternalPort>(new NodeManager::ExternalPort());
+
+            port_message->mutable_info()->set_name(external_port.get().external_label);
+            port_message->mutable_info()->set_type(external_port.get().type);
+
+            port_message->set_middleware(Port::TranslateInternalMiddleware(external_port.get().middleware));
+
+            if(external_port.get().kind == Experiment::ExternalPort::Kind::PubSub){
+                port_message->set_kind(NodeManager::ExternalPort::PUBSUB);
+            }
+            if(external_port.get().kind == Experiment::ExternalPort::Kind::ReqRep){
+                port_message->set_kind(NodeManager::ExternalPort::SERVER);
+            }
+            external_ports.push_back(std::move(port_message));
+        }
+    }
+
+    return external_ports;
+}
+
+std::string Environment::GetUpdatePublisherPort() const{
+    return update_publisher_port_;
 }

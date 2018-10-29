@@ -35,7 +35,7 @@ Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node
     }
 
     //set logger port
-    if(components_.size()){
+    if(!components_.empty()){
         AddModelLogger();
     }
     
@@ -174,7 +174,7 @@ bool Node::IsDirty(){
 }
 
 bool Node::HasComponent(const std::string& component_id) const{
-    return components_.count(component_id);
+    return components_.count(component_id) > 0;
 }
 
 Component& Node::GetComponent(const std::string& component_id) const{

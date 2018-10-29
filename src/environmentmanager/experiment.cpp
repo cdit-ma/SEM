@@ -16,10 +16,10 @@ Experiment::~Experiment(){
             const auto& port = external_port_pair.second;
             const auto& external_port_label = port->external_label;
 
-            if(port->consumer_ids.size() > 0){
+            if(!port->consumer_ids.empty()){
                 environment_.RemoveExternalConsumerPort(model_name_, external_port_label);
             }
-            if(port->producer_ids.size() > 0){
+            if(!port->producer_ids.empty()){
                 environment_.RemoveExternalProducerPort(model_name_, external_port_label);
             }
         }
@@ -29,7 +29,7 @@ Experiment::~Experiment(){
 
         environment_.FreeManagerPort(manager_port_);
         
-        if(GetState() == ExperimentState::S_ACTIVE){
+        if(GetState() == ExperimentState::ACTIVE){
             environment_.FreePort(master_ip_address_, master_publisher_port_);
             environment_.FreePort(master_ip_address_, master_registration_port_);
         }
@@ -49,8 +49,8 @@ Environment& Experiment::GetEnvironment() const{
 
 void Experiment::SetConfigured(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::S_REGISTERED){
-        state_ = ExperimentState::S_CONFIGURED;
+    if(state_ == ExperimentState::REGISTERED){
+        state_ = ExperimentState::CONFIGURED;
     }else{
         throw std::runtime_error("Invalid state");
     }
@@ -58,27 +58,27 @@ void Experiment::SetConfigured(){
 
 void Experiment::SetActive(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::S_CONFIGURED){
-        state_ = ExperimentState::S_ACTIVE;
+    if(state_ == ExperimentState::CONFIGURED){
+        state_ = ExperimentState::ACTIVE;
     }else{
         throw std::runtime_error("Invalid state");
     }
 }
 
 
-bool Experiment::IsConfigured(){
+bool Experiment::IsConfigured() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_CONFIGURED;
+    return state_ == ExperimentState::CONFIGURED;
 }
 
-bool Experiment::IsRegistered(){
+bool Experiment::IsRegistered() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_REGISTERED;
+    return state_ == ExperimentState::REGISTERED;
 }
 
-bool Experiment::IsActive(){
+bool Experiment::IsActive() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_ACTIVE;
+    return state_ == ExperimentState::ACTIVE;
 }
 
 
@@ -99,11 +99,21 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
         if(!external_port.is_blackbox()){
             const auto& internal_id = external_port.info().id();
             if(!external_port_map_.count(internal_id)){
-                auto port = new ExternalPort();
+                auto port = std::unique_ptr<ExternalPort>(new ExternalPort());
                 port->internal_id = internal_id;
                 port->external_label = external_port.info().name();
-                external_port_map_.emplace(internal_id, std::unique_ptr<ExternalPort>(port));
-                external_id_to_internal_id_map_[port->external_label] = internal_id;
+                port->type = external_port.info().type();
+                port->middleware = Port::TranslateProtoMiddleware(external_port.middleware());
+
+                if(external_port.kind() == NodeManager::ExternalPort::PUBSUB){
+                    port->kind = ExternalPort::Kind::PubSub;
+                }
+                if(external_port.kind() == NodeManager::ExternalPort::SERVER){
+                    port->kind = ExternalPort::Kind::ReqRep;
+                }
+
+                external_port_map_.emplace(internal_id, std::move(port));
+                external_id_to_internal_id_map_[external_port.info().name()] = internal_id;
             }else{
                 throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate external port id: '" + internal_id + "'");
             }
@@ -118,7 +128,7 @@ void Experiment::AddExternalPorts(const NodeManager::ControlMessage& message){
     }
 }
 
-ExperimentState Experiment::GetState(){
+Experiment::ExperimentState Experiment::GetState() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return state_;
 }
@@ -185,8 +195,6 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
     }
     return reply;
 }
-
-
 
 std::string Experiment::GetMasterPublisherAddress(){
     if(master_publisher_port_.empty()){
@@ -292,7 +300,7 @@ std::vector<std::unique_ptr<NodeManager::Logger> > Experiment::GetAllocatedLogan
     return std::move(GetNode(ip_address).GetAllocatedLoganServers());
 }
 
-EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){
+Experiment::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){
     if(external_port_map_.count(external_port_internal_id)){
         return *external_port_map_.at(external_port_internal_id);
     }
@@ -379,4 +387,13 @@ std::string Experiment::GetExternalPortInternalId(const std::string& external_po
         return external_id_to_internal_id_map_.at(external_port_label);
     }
     throw std::runtime_error("Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
+}
+
+std::vector<std::reference_wrapper<Experiment::ExternalPort>> Experiment::GetExternalPorts() const{
+    std::vector<std::reference_wrapper<Experiment::ExternalPort> > external_ports;
+
+    for(auto& port_pair : external_port_map_){
+        external_ports.emplace_back(*(port_pair.second));
+    }
+    return external_ports;
 }

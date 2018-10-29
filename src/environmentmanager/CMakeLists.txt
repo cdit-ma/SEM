@@ -65,6 +65,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_control)
 target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_environmentcontrol)
 target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreplier)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_protowriter)
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 if(UNIX)

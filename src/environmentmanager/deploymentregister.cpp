@@ -9,14 +9,14 @@
 
 DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
-                                        int portrange_min, int portrange_max)
+                                        int port_range_min, int port_range_max)
                                         :
 execution_(execution),
 environment_manager_ip_address_(environment_manager_ip_address)
 {
 
-    assert(portrange_min < portrange_max);
-    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, portrange_min, portrange_max));
+    assert(port_range_min < port_range_max);
+    environment_ = std::unique_ptr<EnvironmentManager::Environment>(new EnvironmentManager::Environment(environment_manager_ip_address, qpid_broker_address, tao_naming_server_address, port_range_min, port_range_max));
 
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     replier_->Bind(zmq::TCPify(environment_manager_ip_address, registration_port));
@@ -44,6 +44,18 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+
+    // Aggregation server functions
+    replier_->RegisterProtoCallback<NodeManager::AggregationServerRegistrationRequest, NodeManager::AggregationServerRegistrationReply>(
+            "AggregationServerRegistration", [this](const NodeManager::AggregationServerRegistrationRequest& message) {
+                return DeploymentRegister::HandleAggregationServerRegistration(message);});
+
+    // Medea request functions
+    replier_->RegisterProtoCallback<NodeManager::MEDEAInterfaceRequest, NodeManager::MEDEAInterfaceReply>(
+            "MEDEAInterfaceRequest", [this](const NodeManager::MEDEAInterfaceRequest& message){
+                return DeploymentRegister::HandleMEDEAInterfaceRequest(message);});
+
+
     replier_->Start();
 
 
@@ -197,8 +209,35 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.control_message());
-    auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    return environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+}
+
+std::unique_ptr<NodeManager::AggregationServerRegistrationReply>
+        DeploymentRegister::HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request){
+    auto publisher_port = environment_->GetUpdatePublisherPort();
+    auto reply = std::unique_ptr<NodeManager::AggregationServerRegistrationReply>(
+            new NodeManager::AggregationServerRegistrationReply());
+    reply->set_publisher_endpoint(zmq::TCPify(environment_manager_ip_address_, publisher_port));
+
     return reply;
+
+}
+
+std::unique_ptr<NodeManager::MEDEAInterfaceReply>
+DeploymentRegister::HandleMEDEAInterfaceRequest(const NodeManager::MEDEAInterfaceRequest &message) {
+
+    auto reply_message = std::unique_ptr<NodeManager::MEDEAInterfaceReply>(new NodeManager::MEDEAInterfaceReply());
+
+    auto experiment_names = environment_->GetExperimentNames();
+    *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
+
+    auto external_ports = environment_->GetExternalPorts();
+
+    for(auto& external_port : external_ports){
+        reply_message->mutable_external_ports()->AddAllocated(external_port.release());
+    }
+
+    return reply_message;
 }
 
 void DeploymentRegister::CleanupTask(){
@@ -210,8 +249,10 @@ void DeploymentRegister::CleanupTask(){
            break;
         }
 
-        std::lock_guard<std::mutex> handler_lock(handler_mutex_);
-        handlers_.erase(
-                std::remove_if(handlers_.begin(), handlers_.end(), [](const std::unique_ptr<DeploymentHandler>& handler){return handler->IsRemovable();}), handlers_.end());
+        {
+            std::lock_guard<std::mutex> handler_lock(handler_mutex_);
+            handlers_.erase(
+                    std::remove_if(handlers_.begin(), handlers_.end(), [](const std::unique_ptr<DeploymentHandler>& handler){return handler->IsRemovable();}), handlers_.end());
+        }
     }
 }
