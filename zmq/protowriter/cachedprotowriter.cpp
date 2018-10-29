@@ -62,14 +62,12 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     temp_file_path_ = temp.string();
-    std::cerr << temp_file_path_ << std::endl;
-
+    
     //Start the writer thread
     writer_future_ = std::async(std::launch::async, &zmq::CachedProtoWriter::WriteQueue, this);
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
-    std::cerr << "CachedProtoWriter()()" << std::endl;
     Terminate();
 }
 
@@ -96,7 +94,6 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, std::unique_p
 }
 
 void zmq::CachedProtoWriter::Terminate(){
-    std::cerr << "CachedProtoWriter()::Terminate()" << std::endl;
     std::unique_lock<std::mutex> lock(mutex_);
     if(writer_future_.valid()){
         {
@@ -142,8 +139,6 @@ void zmq::CachedProtoWriter::Terminate(){
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
-    }else{
-        std::cerr << "NOT VALID FUTURE FRONDO" << std::endl;
     }
 
     //Terminate the base class
@@ -151,7 +146,6 @@ void zmq::CachedProtoWriter::Terminate(){
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){
-    std::cerr << "zmq::CachedProtoWriter::WriteQueue()" << std::endl;
     while(true){
         std::queue<std::pair<std::string, std::unique_ptr<google::protobuf::MessageLite> > > replace_queue;
         {
@@ -168,8 +162,6 @@ void zmq::CachedProtoWriter::WriteQueue(){
         }
         
         if(replace_queue.size()){
-            std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Got Queue: " << replace_queue.size() << std::endl;
-
             int filedesc = getWriteFileDesc(temp_file_path_.c_str());
             if(filedesc < 0){
                 std::cerr << "Failed to open temp file '" << temp_file_path_ << "' to write." << std::endl;
@@ -194,9 +186,6 @@ void zmq::CachedProtoWriter::WriteQueue(){
                 }
                 replace_queue.pop();
             }
-
-            std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Written: " << write_count << " '" << temp_file_path_ << "'" << std::endl;
-
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
             written_to_disk_count += write_count;
