@@ -158,7 +158,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Wait for notify
-            queue_lock_condition_.wait(lock, [this]{return writer_terminate_ || write_queue_.size();});
+            queue_lock_condition_.wait(lock, [this]{return writer_terminate_ || write_queue_.size() >= cache_count_});
             
             if(writer_terminate_){
                 return;
