@@ -133,7 +133,7 @@ void zmq::CachedProtoWriter::Terminate(){
         //Send the Messages still in the write queue
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
-            auto& message = write_queue_.front().second;
+            auto& message = zmq::ProtoWriter: Wroteite_queue_.front().second;
             zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop();
         }
@@ -190,6 +190,8 @@ void zmq::CachedProtoWriter::WriteQueue(){
                 }
                 replace_queue.pop();
             }
+
+            std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Written: " << write_count << " '" << temp_file_path_ << "'" << std::endl;
 
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
