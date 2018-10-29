@@ -45,6 +45,11 @@ environment_manager_ip_address_(environment_manager_ip_address)
     replier_->RegisterProtoCallback<EnvironmentControl::ListExperimentsRequest, EnvironmentControl::ListExperimentsReply>
                                   ("ListExperiments", 
                                   std::bind(&DeploymentRegister::HandleListExperiments, this, std::placeholders::_1));
+
+    replier_->RegisterProtoCallback<NodeManager::InspectExperimentRequest, NodeManager::InspectExperimentReply>
+            ("InspectExperiment",
+             std::bind(&DeploymentRegister::HandleInspectExperiment, this, std::placeholders::_1));
+
     replier_->Start();
 
 
@@ -198,6 +203,13 @@ std::unique_ptr<EnvironmentControl::ListExperimentsReply> DeploymentRegister::Ha
 std::unique_ptr<NodeManager::RegisterExperimentReply> DeploymentRegister::HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request){
     environment_->PopulateExperiment(request.experiment());
     auto reply = environment_->GetExperimentDeploymentInfo(request.id().experiment_name());
+    return reply;
+}
+
+// TODO: Fix this, invalidates the dirty flag on experiments.
+std::unique_ptr<NodeManager::InspectExperimentReply> DeploymentRegister::HandleInspectExperiment(const NodeManager::InspectExperimentRequest& request){
+    auto reply = std::unique_ptr<NodeManager::InspectExperimentReply>(new NodeManager::InspectExperimentReply());
+    reply->set_allocated_environment_message(environment_->GetProto(request.experiment_name(), true).release());
     return reply;
 }
 

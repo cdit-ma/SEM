@@ -36,8 +36,10 @@ class DeploymentRegister{
         std::unique_ptr<NodeManager::RegisterExperimentReply> HandleRegisterExperiment(const NodeManager::RegisterExperimentRequest& request);
         std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message);
         std::unique_ptr<EnvironmentControl::ListExperimentsReply> HandleListExperiments(const EnvironmentControl::ListExperimentsRequest& message);
+        std::unique_ptr<NodeManager::InspectExperimentReply> HandleInspectExperiment(const NodeManager::InspectExperimentRequest& request);
 
-        std::unique_ptr<zmq::ProtoReplier> replier_;
+
+            std::unique_ptr<zmq::ProtoReplier> replier_;
         std::unique_ptr<EnvironmentManager::Environment> environment_;
 
         std::string environment_manager_ip_address_;
