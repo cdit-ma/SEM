@@ -58,6 +58,7 @@ void Server::Start(){
 }
 
 Server::~Server(){
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     if(proto_receiver_){
         std::cout << "* Logged " << proto_receiver_->GetRxCount() << " messages." << std::endl;
     }
