@@ -68,7 +68,7 @@ ModelEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     CreateUtilizationTable();
 }
 
-void ModelEvent::ProtoHandler::~ProtoHandler(){
+ModelEvent::ProtoHandler::~ProtoHandler(){
     std::cerr << "ModelEvent::ProtoHandler: RECIEVED: " << count << "MESSAGES" << std::endl;
 };
 

@@ -41,6 +41,7 @@ namespace SystemEvent{
     class ProtoHandler : public ::ProtoHandler{
         public:
             ProtoHandler(SQLiteDatabase& database);
+            ~ProtoHandler();
             void BindCallbacks(zmq::ProtoReceiver& receiver);
         private:
             Table& GetTable(const std::string& table_name);

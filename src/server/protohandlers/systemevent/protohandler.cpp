@@ -55,7 +55,7 @@ void SystemEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
 }
 
-void SystemEvent::ProtoHandler::~ProtoHandler(){
+SystemEvent::ProtoHandler::~ProtoHandler(){
     std::cerr << "SystemEvent::ProtoHandler: RECIEVED: " << count << "MESSAGES" << std::endl;
 };
 
@@ -376,7 +376,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
 void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
     count ++;
     return;
-    
+
     if(registered_nodes_.count(info.hostname())){
         return;
     }
