@@ -133,7 +133,7 @@ void zmq::CachedProtoWriter::Terminate(){
         //Send the Messages still in the write queue
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
-            auto& message = zmq::ProtoWriter: Wroteite_queue_.front().second;
+            auto& message = write_queue_.front().second;
             zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop();
         }
