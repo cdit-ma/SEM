@@ -37,6 +37,7 @@ namespace ModelEvent{
     class ProtoHandler : public ::ProtoHandler{
     public:
         ProtoHandler(SQLiteDatabase& database);
+        ~ProtoHandler();
         void BindCallbacks(zmq::ProtoReceiver& receiver);
     private:
         Table& GetTable(const std::string& table_name);
@@ -65,6 +66,7 @@ namespace ModelEvent{
         static void BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker);
         static void BindPortColumns(TableInsert& row, const ModelEvent::Port& port);
 
+        int count = 0;
         SQLiteDatabase& database_;
         std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
     };

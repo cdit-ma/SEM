@@ -66,6 +66,7 @@ namespace SystemEvent{
             static void AddInfoColumns(Table& table);
             static void BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id);
 
+            int count = 0;
             SQLiteDatabase& database_;
             std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
             std::set<std::string> registered_nodes_;

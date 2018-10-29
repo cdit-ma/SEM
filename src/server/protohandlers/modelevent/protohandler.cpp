@@ -68,6 +68,10 @@ ModelEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     CreateUtilizationTable();
 }
 
+void ModelEvent::ProtoHandler::~ProtoHandler(){
+    std::cerr << "ModelEvent::ProtoHandler: RECIEVED: " << count << "MESSAGES" << std::endl;
+};
+
 void ModelEvent::ProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
     receiver.RegisterProtoCallback<ModelEvent::LifecycleEvent>(std::bind(&ModelEvent::ProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
     receiver.RegisterProtoCallback<ModelEvent::WorkloadEvent>(std::bind(&ModelEvent::ProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
@@ -209,6 +213,8 @@ void ModelEvent::ProtoHandler::BindPortColumns(TableInsert& row, const ModelEven
 }
 
 void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::LifecycleEvent& event){
+    count ++;
+    return;
     try{
         auto row = GetTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE).get_insert_statement();
         if(event.has_info())
@@ -230,6 +236,8 @@ void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::Lifecycle
 
 
 void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEvent& event){
+    count ++;
+    return;
     try{
         auto row = GetTable(LOGAN_MODELEVENT_WORKLOAD_TABLE).get_insert_statement();
         if(event.has_info())
@@ -255,6 +263,8 @@ void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEv
 }
 
 void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::UtilizationEvent& event){
+    count ++;
+    return;
     try{
         auto row = GetTable(LOGAN_MODELEVENT_UTILIZATION_TABLE).get_insert_statement();
         if(event.has_info())

@@ -55,6 +55,10 @@ void SystemEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
 }
 
+void SystemEvent::ProtoHandler::~ProtoHandler(){
+    std::cerr << "SystemEvent::ProtoHandler: RECIEVED: " << count << "MESSAGES" << std::endl;
+};
+
 void SystemEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id){
     row.BindString(LOGAN_TIMEOFDAY, time);
     row.BindString(LOGAN_HOSTNAME, host_name);
@@ -280,6 +284,8 @@ void SystemEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
 }
 
 void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
+    count ++;
+    return;
     //Get the Globals
     const auto& host_name = status.hostname();
     const auto& message_id = status.message_id();
@@ -368,6 +374,9 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
 }
 
 void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
+    count ++;
+    return;
+    
     if(registered_nodes_.count(info.hostname())){
         return;
     }
