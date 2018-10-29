@@ -141,6 +141,8 @@ void zmq::CachedProtoWriter::Terminate(){
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
+    }else{
+        std::cerr << "NOT VALID FUTURE FRONDO" << std::endl;
     }
 
     //Terminate the base class
