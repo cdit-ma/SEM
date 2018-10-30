@@ -1,6 +1,7 @@
 #include "portlifecycleeventseries.h"
 
 #include <QDateTime>
+#include <QDebug>
 
 int PortLifecycleEventSeries::series_ID = 0;
 
@@ -31,6 +32,12 @@ void PortLifecycleEventSeries::addPortEvent(PortLifecycleEvent* event)
 
         portEvents_.append(event);
 
+        /*
+        if (port_path == "top_level_assembly.1/") {
+            qDebug() << "EVENTS#: " << portEvents_.count();
+        }
+        */
+
         // update the range
         auto eventTime = event->getTime();
         if (eventTime < minTime_mu)
@@ -50,6 +57,15 @@ void PortLifecycleEventSeries::addPortEvents(QList<PortLifecycleEvent*>& events)
     for (auto event : events) {
         addPortEvent(event);
     }
+}
+
+
+/**
+ * @brief PortLifecycleEventSeries::clear
+ */
+void PortLifecycleEventSeries::clear()
+{
+    portEvents_.clear();
 }
 
 

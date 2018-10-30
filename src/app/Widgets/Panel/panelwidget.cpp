@@ -41,8 +41,6 @@
 #include "../Charts/Series/dataseries.h"
 
 
-
-
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
 
@@ -232,12 +230,11 @@ void PanelWidget::testNewTimelineView()
     }
 }
 
+
 void PanelWidget::testLifecycleSeries()
 {
-    //qRegisterMetaType<Qt::Alignment>("QList<PortLifecycleEvent*>&");
-
-    TimelineChartView* view = new TimelineChartView(this);
-    defaultActiveAction = addTab("Lifecycle", view);
+    lifecycleView = new TimelineChartView(this);
+    defaultActiveAction = addTab("Lifecycle", lifecycleView);
     defaultActiveAction->trigger();
 }
 
