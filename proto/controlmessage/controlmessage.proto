@@ -73,7 +73,7 @@ message AggregationServerRegistrationRequest{
 }
 
 message AggregationServerRegistrationReply{
-    string heartbeat_endpoint = 1;
+    string publisher_endpoint = 1;
 }
 
 message LoganRegistrationRequest{
