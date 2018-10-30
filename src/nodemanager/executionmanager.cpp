@@ -294,10 +294,10 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         }catch(const std::exception& ex){
         }
     }
-
     try{
         std::cout << "--------[Removing Deployment]--------" << std::endl;
         requester_->RemoveDeployment();
+        
     }catch(const std::exception& ex){
         std::cerr << "* Removing Deployment Exception: " << ex.what() << std::endl;
     }

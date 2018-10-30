@@ -216,9 +216,8 @@ void DeploymentManager::ProcessControlQueue(){
             std::cout << "* " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " ms" << std::endl;
         }
     }
-
-
-    //Tell Node Manager Master that We are Configured
+    
+    //Tell Node Manager Master that We are Dead
     {
         using namespace NodeManager;
         SlaveTerminatedRequest request;

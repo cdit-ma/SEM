@@ -195,9 +195,9 @@ void Environment::RemoveExperiment(const std::string& experiment_name){
 
 void Environment::RemoveExperimentInternal(const std::string& experiment_name){
     if(experiment_map_.count(experiment_name)){
-        std::cout << "* Experiment Deregistering: " << experiment_name << std::endl;
+        std::cerr << "* Experiment Deregistering: '" << experiment_name << "'" << std::endl;
         experiment_map_.erase(experiment_name);
-        std::cout << "* Current registered experiments: " << experiment_map_.size() << std::endl;
+        std::cerr << "* Current registered experiments: " << experiment_map_.size() << std::endl;
     }
 }
 

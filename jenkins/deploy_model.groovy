@@ -76,7 +76,7 @@ node(builder_nodes[0]){
             
             def re_gen_path = '${RE_PATH}/re_gen/'
             def saxon_call = 'java -jar ' + re_gen_path + '/saxon.jar -xsl:' + re_gen_path
-            def file_parameter = ' -s:' + MODEL_FILE
+            def file_parameter = ' -s:"' + MODEL_FILE + '"'
             
             def run_generation = saxon_call + '/generate_project.xsl' + file_parameter
             def run_validation = saxon_call + '/generate_validation.xsl' + file_parameter + ' write_file=true'
@@ -153,7 +153,7 @@ stage("Add Experiment"){
 
             unstash "model"
             def controller_path = '${RE_PATH}/bin/re_environment_controller '
-            def args = ' -n ' + experiment_name + ' -e ' + env_manager_addr + ' -a ' + MODEL_FILE
+            def args = ' -n "' + experiment_name + '" -e ' + env_manager_addr + ' -a ' + MODEL_FILE
             def json_file = "experiment_config.json"
             def command = controller_path + args + ' > ' + json_file
 
@@ -269,7 +269,7 @@ if(FAILED){
         stage("Purging Registered Experiment"){
             node("master"){
                 def controller_path = '${RE_PATH}/bin/re_environment_controller '
-                def args = ' -n ' + experiment_name + ' -e ' + env_manager_addr + ' -s '
+                def args = ' -n "' + experiment_name + '" -e ' + env_manager_addr + ' -s '
                 def command = controller_path + args
                 utils.runScript(command)
             }

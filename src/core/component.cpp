@@ -32,7 +32,7 @@ void Component::HandleActivate(){
     }
     BehaviourContainer::HandleActivate();
 
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
+    
 }
 
 void Component::HandleConfigure(){
