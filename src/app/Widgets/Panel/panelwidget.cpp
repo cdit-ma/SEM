@@ -35,7 +35,7 @@
 #include "../DockWidgets/defaultdockwidget.h"
 #include "../optiongroupbox.h"
 
-#include "../Charts/Timeline/Chart/timelinechartview.h"
+//#include "../Charts/Timeline/Chart/timelinechartview.h"
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
 
@@ -168,6 +168,7 @@ void PanelWidget::testDataSeries()
     ds->addPoints(points);
 }
 
+
 void PanelWidget::testWidgets()
 {
     QWidget* w = new QWidget(this);
@@ -216,6 +217,7 @@ void PanelWidget::testWidgets()
     addTab("AxisW", w3);
 }
 
+
 void PanelWidget::testNewTimelineView()
 {
     TimelineChartView* view = new TimelineChartView(this);
@@ -228,18 +230,17 @@ void PanelWidget::testNewTimelineView()
     }
 }
 
+
 void PanelWidget::testLifecycleSeries()
 {
-    //qRegisterMetaType<Qt::Alignment>("QList<PortLifecycleEvent*>&");
-
-    TimelineChartView* view = new TimelineChartView(this);
-    defaultActiveAction = addTab("Lifecycle", view);
+    lifecycleView = new TimelineChartView(this);
+    defaultActiveAction = addTab("Lifecycle", lifecycleView);
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, view, &TimelineChartView::receivedPortLifecycleResponse);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, view, &TimelineChartView::clearPortLifecycleEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::printResults, view, &TimelineChartView::printResults);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, lifecycleView, &TimelineChartView::receivedPortLifecycleResponse);
+        //connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
+        //connect(&viewController->getAggregationProxy(), &AggregationProxy::printResults, lifecycleView, &TimelineChartView::printResults);
     }
 }
 
@@ -368,6 +369,9 @@ void PanelWidget::themeChanged()
     popOutAction->setIcon(theme->getIcon("Icons", "arrowLineLeft"));
     minimiseAction->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
+
+    requestDataAction->setIcon(theme->getIcon("Icons", "reload"));
+    refreshDataAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     for (auto action : tabBar->actions()) {
         QString path = action->property("iconPath").toString();
@@ -542,6 +546,20 @@ void PanelWidget::popOutActiveTab()
 
 
 /**
+ * @brief PanelWidget::requestData
+ * @param clearWidgets
+ */
+void PanelWidget::requestData(bool clearWidgets)
+{
+    if (viewController && lifecycleView) {
+        // clear previous results in the timeline chart
+        lifecycleView->clearPortLifecycleEvents(clearWidgets);
+        QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
+    }
+}
+
+
+/**
  * @brief PanelWidget::handleTimeout
  */
 void PanelWidget::handleTimeout()
@@ -656,6 +674,16 @@ void PanelWidget::setupLayout()
         playPauseAction->setCheckable(true);
         playPauseAction->setChecked(false);
     }
+
+    requestDataAction = titleBar->addAction("Request/Reload Data");
+    connect(requestDataAction, &QAction::triggered, [=]() {
+        requestData(true);
+    });
+    refreshDataAction = titleBar->addAction("Refresh Data");
+    connect(refreshDataAction, &QAction::triggered, [=]() {
+        requestData(false);
+    });
+    titleBar->addSeparator();
 
     popOutActiveTabAction = titleBar->addAction("Popout Tab");
     snapShotAction = titleBar->addAction("Take Chart Snapshot");

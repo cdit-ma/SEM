@@ -665,29 +665,34 @@ void TimelineChartView::UpdateChartHover()
 
 /**
  * @brief TimelineChartView::clearPortLifecycleEvents
+ * @param clearWidgets
  */
-void TimelineChartView::clearPortLifecycleEvents()
+void TimelineChartView::clearPortLifecycleEvents(bool clearWidgets)
 {
     /*for (auto itr = portLifecycleSeries.cbegin(); itr != portLifecycleSeries.cend();) {
         itr = portLifecycleSeries.erase(itr);
     }*/
 
-    // delete the series, axis item and chart widgets
-    for (auto path : portLifecycleSeries.keys()) {
-        auto entitySet = entitySets_portLifecycle.take(path);
-        auto entityChart = entityCharts_portLifecycle.take(path);
-        _entityAxis->removeEntity(entitySet);
-        _timelineChart->removeEntityChart(entityChart);
-        entityChart->removeLifeCycleSeries(path);
-
-        entitySet->deleteLater();
-        entityChart->deleteLater();
-        portLifecycleSeries.value(path)->deleteLater();
+    if (clearWidgets) {
+        // delete the series, axis item and chart widgets
+        //_timelineChart->setVisible(false);
+        for (auto path : portLifecycleSeries.keys()) {
+            auto entitySet = entitySets_portLifecycle.take(path);
+            auto entityChart = entityCharts_portLifecycle.take(path);
+            _entityAxis->removeEntity(entitySet);
+            _timelineChart->removeEntityChart(entityChart);
+            entitySet->deleteLater();
+            entityChart->deleteLater();
+            portLifecycleSeries.value(path)->deleteLater();
+        }
+        entitySets_portLifecycle.clear();
+        entityCharts_portLifecycle.clear();
+        portLifecycleSeries.clear();
+    } else {
+        for (auto series : portLifecycleSeries.values()) {
+            series->clear();
+        }
     }
-
-    entitySets_portLifecycle.clear();
-    entityCharts_portLifecycle.clear();
-    portLifecycleSeries.clear();
 }
 
 
@@ -710,6 +715,9 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
         _timelineChart->entityChartRangeChanged(series->getRange().first, series->getRange().second);
 
     } else {
+
+        /*if (!_timelineChart->isVisible())
+            _timelineChart->setVisible(true);*/
 
         constructChartForPortLifecycle(eventPath, event->getPort().name);
         auto chart = entityCharts_portLifecycle[eventPath];

@@ -13,12 +13,13 @@ AggregationProxy::AggregationProxy() :
 
 void AggregationProxy::RequestRunningExperiments()
 {
+
     auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
         // setup request
         AggServer::PortLifecycleRequest request_type;
-        request_type.add_component_instance_paths("top_level_assembly.1/");
+        //request_type.add_component_instance_paths("top_level_assembly.1/");
         /*
         request_type.add_time_interval();
         request_type.add_port_paths("poop");
@@ -27,12 +28,11 @@ void AggregationProxy::RequestRunningExperiments()
         */
 
         auto start = QDateTime::currentMSecsSinceEpoch();
-
-        // clear previous results in the timeline chart
-        emit clearPreviousResults();
-
         auto results = requester_.GetPortLifecycle(request_type);
-        //qDebug() << "Result Size#: " << results.get()->events_size();
+
+        qDebug() << "--------------------------------------------------------------------------------";
+        qDebug() << "Requested PortLifecycleEvents . . . ";
+        qDebug() << "Result Size#: " << results.get()->events_size();
 
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
@@ -42,29 +42,10 @@ void AggregationProxy::RequestRunningExperiments()
             PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
             emit requestResponse(event);
         }
-
-        //emit printResults();
 
         auto finish = QDateTime::currentMSecsSinceEpoch();
         qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
-
-        /*
-        start = QDateTime::currentMSecsSinceEpoch();
-        results = requester_.GetPortLifecycle(request_type);
-        //qDebug() << "Result Size#: " << results.get()->events_size();
-
-        for (auto item : results.get()->events()) {
-            auto port = convertPort(item.port());
-            auto type = getLifeCycleType(item.type());
-            auto time = getQDateTime(item.time());
-
-            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            emit requestResponse(event);
-        }
-
-        finish = QDateTime::currentMSecsSinceEpoch();
-        qDebug() << "Construction of portlifecycle widgets and series WITHOUT clearing took: " << finish - start << " ms.";
-        */
+        qDebug() << "--------------------------------------------------------------------------------";
 
         notification->setSeverity(Notification::Severity::SUCCESS);
 

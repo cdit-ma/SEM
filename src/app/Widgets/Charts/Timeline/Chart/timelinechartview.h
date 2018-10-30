@@ -55,7 +55,7 @@ public slots:
 
     void UpdateChartHover();
 
-    void clearPortLifecycleEvents();
+    void clearPortLifecycleEvents(bool clearWidgets = false);
     void receivedPortLifecycleResponse(PortLifecycleEvent* event);
     void printResults();
 

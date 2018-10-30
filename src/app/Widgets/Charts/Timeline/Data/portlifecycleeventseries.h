@@ -14,6 +14,7 @@ public:
 
     void addPortEvent(PortLifecycleEvent* event);
     void addPortEvents(QList<PortLifecycleEvent*>& events);
+    void clear();
 
     const QList<PortLifecycleEvent*>& getConstPortEvents();
 

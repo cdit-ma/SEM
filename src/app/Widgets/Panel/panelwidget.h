@@ -11,6 +11,7 @@
 #include <QDateTime>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
+#include "../Charts/Timeline/Chart/timelinechartview.h"
 
 namespace QtCharts{
     class QLineSeries;
@@ -58,6 +59,8 @@ public slots:
     void popOutPanel();
     void popOutActiveTab();
 
+    void requestData(bool clearWidgets);
+
     void handleTimeout();
     void playPauseToggled(bool checked);
 
@@ -80,6 +83,10 @@ private:
     QAction* snapShotAction = 0;
     QAction* popOutActiveTabAction = 0;
     QAction* playPauseAction = 0;
+
+    QAction* requestDataAction = 0;
+    QAction* refreshDataAction = 0;
+    TimelineChartView* lifecycleView = 0;
 
     QAction* tabsMenuAction = 0;
     QMenu* tabsMenu = 0;

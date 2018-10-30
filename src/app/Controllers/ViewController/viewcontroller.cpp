@@ -262,7 +262,7 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-AggregationProxy &ViewController::getAggregationProxy()
+AggregationProxy& ViewController::getAggregationProxy()
 {
     return proxy;
 }
