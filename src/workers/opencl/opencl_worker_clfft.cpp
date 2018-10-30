@@ -2,30 +2,30 @@
 #include "openclutilities.h"
 #include <clFFT.h>
 
-bool OpenCL_Worker::InitFFT() {
+bool OpenCL_Worker::InitFFT(int work_id) {
 	clfftStatus err;
     fftSetupData = new clfftSetupData();
 	err = clfftInitSetupData(fftSetupData);
     if (err != clfftStatus::CLFFT_SUCCESS) {
-        Log(std::string(GET_FUNC), Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(std::string(GET_FUNC), Logger::WorkloadEvent::ERROR, work_id,
             "Unable to successfully initialise clFFT setup data");
         return false;
     }
     err = clfftSetup(fftSetupData);
     delete fftSetupData;
     if (err != clfftStatus::CLFFT_SUCCESS) {
-        Log(std::string(GET_FUNC), Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(std::string(GET_FUNC), Logger::WorkloadEvent::ERROR, work_id,
             "Unable to successfully set up the clFFT library");
         return false;
     }
     return true;
 }
 
-bool OpenCL_Worker::CleanupFFT() {
+bool OpenCL_Worker::CleanupFFT(int work_id) {
 	clfftStatus err;
 	err = clfftTeardown();
     if (err != clfftStatus::CLFFT_SUCCESS) {
-		Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(), "Could not successfully tear down clFFT library");
+		Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id, "Could not successfully tear down clFFT library");
         return false;
     }
     return true;
@@ -34,8 +34,12 @@ bool OpenCL_Worker::CleanupFFT() {
 
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
 
+	auto work_id = get_new_work_id();
+
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning FFT with vector data");
+
     if (!is_valid_) {
-		Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), "Unable to perform FFT calculations, worker is invalid");
+		Log(__func__, Logger::WorkloadEvent::ERROR, work_id, "Unable to perform FFT calculations, worker is invalid");
 		return false;
 	}
 
@@ -46,20 +50,29 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     /* Prepare OpenCL memory objects and place data inside them. */
     OpenCLBuffer<float> buffer = manager_->CreateBuffer(*this, data, *dev, true);
 
-    auto success = FFT(buffer, allocated_dev_index);
+    auto success = FFT(buffer, allocated_dev_index, work_id);
 
     /* Fetch results of calculations. */
     data = buffer.ReadData(*this, *dev, true);
 
     load_balancer_->ReleaseDevice(allocated_dev_index);
 
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
+
     return success;
 }
 
 
-bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
+bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id, int work_id) {
 
-	auto work_id = get_new_work_id();
+    // If we haven't already been given a work_id by a calling function then generate one
+    bool is_base_worker_call = false;
+    if (work_id == -1) {
+        is_base_worker_call = true;
+        Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning FFT with buffered data");
+        work_id = get_new_work_id();
+    }
+
     if (!is_valid_) {
 		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid");
 		return false;
@@ -141,6 +154,10 @@ bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
 
     if(did_request_device){
         load_balancer_->ReleaseDevice(device_id);
+    }
+
+    if (is_base_worker_call) {
+        Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
     }
 
     return true;
