@@ -25,6 +25,7 @@
 #include <memory>
 #include <set>
 
+#include <mutex>
 #include <zmq/protoreceiver/protoreceiver.h>
 #include <proto/modelevent/modelevent.pb.h>
 
@@ -66,7 +67,8 @@ namespace ModelEvent{
         static void BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker);
         static void BindPortColumns(TableInsert& row, const ModelEvent::Port& port);
 
-        int count = 0;
+        std::mutex mutex_;
+        uint64_t rx_count_ = 0;
         SQLiteDatabase& database_;
         std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
     };

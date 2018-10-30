@@ -56,7 +56,8 @@ void SystemEvent::ProtoHandler::AddInfoColumns(Table& table){
 }
 
 SystemEvent::ProtoHandler::~ProtoHandler(){
-    std::cerr << "SystemEvent::ProtoHandler: RECIEVED: " << count << "MESSAGES" << std::endl;
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::cout << "* SystemEvent::ProtoHandler: Processed: " << rx_count_ << " Messages" << std::endl;
 };
 
 void SystemEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id){
@@ -284,8 +285,11 @@ void SystemEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
 }
 
 void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
-    count ++;
-    return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        rx_count_ ++;
+    }
+
     //Get the Globals
     const auto& host_name = status.hostname();
     const auto& message_id = status.message_id();
@@ -374,8 +378,10 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
 }
 
 void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
-    count ++;
-    return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        rx_count_ ++;
+    }
 
     if(registered_nodes_.count(info.hostname())){
         return;

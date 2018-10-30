@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <memory>
 #include <set>
+#include <mutex>
 
 #include <zmq/protoreceiver/protoreceiver.h>
 #include <proto/systemevent/systemevent.pb.h>
@@ -67,7 +68,9 @@ namespace SystemEvent{
             static void AddInfoColumns(Table& table);
             static void BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id);
 
-            int count = 0;
+            std::mutex mutex_;
+            uint64_t rx_count_ = 0;
+
             SQLiteDatabase& database_;
             std::unordered_map<std::string, std::unique_ptr<Table> > tables_;
             std::set<std::string> registered_nodes_;

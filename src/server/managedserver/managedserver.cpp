@@ -54,7 +54,6 @@ void ManagedServer::DelayedTerminate(){
 void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
     switch(message.type()){
         case NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER:{
-            std::cerr << "Shutdown Managed Server at: " << std::chrono::steady_clock::now().time_since_epoch().count() << " IN MS"  << std::endl;
             Terminate();
             break;
         }
