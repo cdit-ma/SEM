@@ -206,6 +206,7 @@ bool Node::HasMasterEligibleContainer() const{
             return true;
         }
     }
+    return false;
 }
 
 Container& Node::GetMasterEligibleContainer() const{
@@ -218,6 +219,14 @@ Container& Node::GetMasterEligibleContainer() const{
 }
 
 std::string Node::GetMessage() const {
-
     return std::string("Node: " + GetName() + " Deploys: " + std::to_string(GetDeployedComponentCount()) + " Components");
+}
+
+bool Node::HasNodeManagerMaster() const {
+    for(const auto& container_pair : containers_){
+        if(container_pair.second->IsNodeManagerMaster()){
+            return true;
+        }
+    }
+    return false;
 }

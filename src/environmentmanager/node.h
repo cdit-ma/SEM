@@ -38,6 +38,8 @@ class Node{
         bool HasMasterEligibleContainer() const;
         Container& GetMasterEligibleContainer() const;
 
+        bool HasNodeManagerMaster() const;
+
         std::string GetMessage() const;
 
         //Update requirement management

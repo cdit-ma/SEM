@@ -53,6 +53,8 @@ class Experiment{
         bool IsConfigured() const;
         bool IsActive() const;
 
+        void CheckValidity() const;
+
         const std::string& GetName() const;
 
         void ConfigureMaster();

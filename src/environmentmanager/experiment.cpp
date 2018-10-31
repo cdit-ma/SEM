@@ -55,7 +55,7 @@ void Experiment::SetConfigured() {
     if (state_ == ExperimentState::REGISTERED) {
         state_ = ExperimentState::CONFIGURED;
     } else {
-        throw std::runtime_error("Invalid state");
+        throw std::runtime_error("Invalid state transition (REGISTERED -> ![CONFIGURED]");
     }
 }
 
@@ -64,7 +64,7 @@ void Experiment::SetActive() {
     if (state_ == ExperimentState::CONFIGURED) {
         state_ = ExperimentState::ACTIVE;
     } else {
-        throw std::runtime_error("Invalid state");
+        throw std::runtime_error("Invalid state transition (CONFIGURED -> ![ACTIVE]");
     }
 }
 
@@ -84,6 +84,47 @@ bool Experiment::IsActive() const {
     return state_ == ExperimentState::ACTIVE;
 }
 
+void Experiment::CheckValidity() const {
+    //Experiment validity checks
+
+    //Check that we actually have components deployed in this experiment
+    auto component_count = 0;
+    for(const auto& node_pair : node_map_){
+        component_count += node_pair.second->GetDeployedComponentCount();
+    }
+    if(component_count == 0){
+        throw std::invalid_argument("Experiment: '" + model_name_ +"' deploys no components.");
+    }
+
+    //Check that we have a master container assigned
+    auto has_node_manager_master = false;
+    for(const auto& node_pair : node_map_){
+        if(node_pair.second->HasNodeManagerMaster()){
+            has_node_manager_master = true;
+            break;
+        }
+    }
+    if(!has_node_manager_master) {
+        throw std::runtime_error("Experiment: '" + model_name_ +"' has no container set as node manager master.");
+    }
+
+    //Check that we have the information required to set up communication with the node manager master
+    if(master_ip_address_.empty()){
+        throw std::runtime_error("Experiment: '" + model_name_ +"' has no master ip address.");
+    }
+    if(manager_port_.empty()){
+        throw std::runtime_error("Experiment: '" + model_name_ +"' has no master manager port.");
+    }
+
+    //Check that we have ports assigned for the node manager master to communicate with node manager slaves
+    if(master_publisher_port_.empty()){
+        throw std::runtime_error("Experiment: '" + model_name_ +"' has no master publisher port.");
+    }
+    if(master_registration_port_.empty()){
+        throw std::runtime_error("Experiment: '" + model_name_ +"' has no master registration port.");
+    }
+
+}
 
 std::string Experiment::GetManagerPort() const {
     return manager_port_;
@@ -99,6 +140,8 @@ void Experiment::ConfigureMaster() {
         if (node.second->HasMasterEligibleContainer()) {
             node.second->GetMasterEligibleContainer().SetNodeManagerMaster();
             SetMasterIp(node.second->GetIp());
+            GetMasterPublisherAddress();
+            GetMasterRegistrationAddress();
         }
     }
 }

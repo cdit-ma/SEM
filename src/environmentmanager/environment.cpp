@@ -82,6 +82,9 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
 
         experiment.ConfigureMaster();
 
+        //Check for empty experiment
+        experiment.CheckValidity();
+
         //Complete the Configuration
         experiment.SetConfigured();
 
