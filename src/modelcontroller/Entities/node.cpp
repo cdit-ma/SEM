@@ -994,16 +994,23 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 bind_labels = false;
                 break;
             }
+            case NODE_KIND::MEMBER_INSTANCE:
             case NODE_KIND::AGGREGATE_INSTANCE:
             case NODE_KIND::VECTOR_INSTANCE:
             case NODE_KIND::ENUM_INSTANCE:{
                 if(instance_parent_kind == NODE_KIND::AGGREGATE){
                     bind_labels = false;
                 }
+                if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
+                    bind_values[KeyName::Description] += KeyName::Description;
+                    required_instance_keys.insert(KeyName::Description);
+                }
                 break;
             };
             case NODE_KIND::CLASS_INSTANCE:{
                 bind_values[KeyName::Version] += KeyName::Version;
+                required_instance_keys.insert(KeyName::Version);
+
                 if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
@@ -1026,6 +1033,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 bind_values[KeyName::IsVariadic] += KeyName::IsVariadic;
                 bind_values[KeyName::Label] += KeyName::Label;
                 required_instance_keys.insert(KeyName::IsVariadic);
+                required_instance_keys.insert(KeyName::Description);
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
@@ -1036,6 +1044,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 
                 
                 required_instance_keys.insert(KeyName::IsVariadic);
+                required_instance_keys.insert(KeyName::Description);
                 break;
             }
             default:
