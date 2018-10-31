@@ -47,6 +47,8 @@ public:
     void SetNodeManagerMaster();
     bool IsNodeManagerMaster() const;
 
+    bool IsLateJoiner() const;
+
     void SetDirty();
     bool IsDirty();
 
@@ -68,6 +70,8 @@ private:
     bool is_node_manager_master_ = false;
 
     bool dirty_;
+
+    bool late_joiner_;
 
     std::unordered_map<std::string, std::unique_ptr<Component> > components_;
     std::unordered_map<std::string, std::unique_ptr<Logger> > loggers_;

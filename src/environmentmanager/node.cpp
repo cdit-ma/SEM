@@ -100,10 +100,14 @@ std::unique_ptr<NodeManager::Node> Node::GetProto(const bool full_update){
         node->mutable_info()->set_name(name_);
         node->mutable_info()->set_id(id_);
 
+        node->set_ip_address(ip_);
+
         for(const auto& container : containers_){
-            auto container_pb = container.second->GetProto(full_update);
-            if(container_pb){
-                node->mutable_containers()->AddAllocated(container_pb.release());
+            if(container.second->GetDeployedComponentCount()){
+                auto container_pb = container.second->GetProto(full_update);
+                if(container_pb){
+                    node->mutable_containers()->AddAllocated(container_pb.release());
+                }
             }
         }
 
@@ -184,15 +188,6 @@ std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServer
     return std::vector<std::unique_ptr<NodeManager::Logger>>();
 }
 
-void Node::SetNodeManagerMaster() {
-
-    //Set our first container to be the experiment's master.
-    for(auto& container : containers_){
-        container.second->SetNodeManagerMaster();
-        break;
-    }
-}
-
 void Node::AddComponentToImplicitContainer(const NodeManager::Component &component) {
     containers_.at(implicit_container_id_)->AddComponent(component);
 }
@@ -203,4 +198,26 @@ void Node::AddLoggingClientToImplicitContainer(const NodeManager::Logger &loggin
 
 void Node::AddLoggingServerToImplicitContainer(const NodeManager::Logger &logging_server) {
     containers_.at(implicit_container_id_)->AddLogger(logging_server);
+}
+
+bool Node::HasMasterEligibleContainer() const{
+    for(const auto& container : containers_){
+        if(container.second->GetDeployedComponentCount() && !container.second->IsLateJoiner()){
+            return true;
+        }
+    }
+}
+
+Container& Node::GetMasterEligibleContainer() const{
+    for(const auto& container : containers_){
+        if(container.second->GetDeployedComponentCount() && !container.second->IsLateJoiner()){
+            return *(container.second);
+        }
+    }
+    throw std::invalid_argument("No eligible container found");
+}
+
+std::string Node::GetMessage() const {
+
+    return std::string("Node: " + GetName() + " Deploys: " + std::to_string(GetDeployedComponentCount()) + " Components");
 }

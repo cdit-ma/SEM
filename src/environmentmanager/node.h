@@ -25,9 +25,6 @@ class Node{
         std::string GetName() const;
         std::string GetIp() const;
 
-
-        void SetNodeManagerMaster();
-
         std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
         std::vector<std::unique_ptr<NodeManager::ContainerId> > GetContainerIds() const;
 
@@ -37,6 +34,11 @@ class Node{
         void AddComponentToImplicitContainer(const NodeManager::Component& component);
         void AddLoggingClientToImplicitContainer(const NodeManager::Logger& logging_client);
         void AddLoggingServerToImplicitContainer(const NodeManager::Logger& logging_server);
+
+        bool HasMasterEligibleContainer() const;
+        Container& GetMasterEligibleContainer() const;
+
+        std::string GetMessage() const;
 
         //Update requirement management
         void SetDirty();

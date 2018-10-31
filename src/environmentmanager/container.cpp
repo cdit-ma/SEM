@@ -18,6 +18,8 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
     id_ = container.info().id();
     name_ = container.info().name();
 
+    late_joiner_ = container.is_late_joiner();
+
     for(const auto& component : container.components()){
         AddComponent(component);
     }
@@ -190,3 +192,6 @@ bool Container::IsNodeManagerMaster() const {
     return is_node_manager_master_;
 }
 
+bool Container::IsLateJoiner() const {
+    return late_joiner_;
+}

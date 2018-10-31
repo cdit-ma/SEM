@@ -6,7 +6,7 @@
 
 using namespace EnvironmentManager;
 
-zmq::Port::Port(Component& parent, const NodeManager::Port& port) :
+EnvironmentManager::zmq::Port::Port(Component& parent, const NodeManager::Port& port) :
     ::EnvironmentManager::Port(parent, port){
 
     if(kind_ == EnvironmentManager::Port::Kind::Publisher || kind_ == EnvironmentManager::Port::Kind::Replier){
@@ -16,7 +16,7 @@ zmq::Port::Port(Component& parent, const NodeManager::Port& port) :
     producer_endpoint_ = "tcp://" + ip_ + ":" + producer_port_;
 }
 
-zmq::Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
+EnvironmentManager::zmq::Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
     ::EnvironmentManager::Port(parent, port){
     if(GetBlackboxType() == BlackboxType::PubSub){
         producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "publisher_address").s(0);
@@ -26,7 +26,7 @@ zmq::Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::Ext
     }
 }
 
-zmq::Port::~Port(){
+EnvironmentManager::zmq::Port::~Port(){
     if(!IsBlackbox()){
         if(kind_ == Kind::Publisher || kind_ == Kind::Replier){
             GetEnvironment().FreePort(ip_,  GetProducerPort());
@@ -34,15 +34,15 @@ zmq::Port::~Port(){
     }
 }
 
-std::string zmq::Port::GetProducerPort() const{
+std::string EnvironmentManager::zmq::Port::GetProducerPort() const{
     return producer_port_;
 }
 
-std::string zmq::Port::GetProducerEndpoint() const{
+std::string EnvironmentManager::zmq::Port::GetProducerEndpoint() const{
     return producer_endpoint_;
 }
 
-void zmq::Port::FillPortPb(NodeManager::Port& port_pb){
+void EnvironmentManager::zmq::Port::FillPortPb(NodeManager::Port& port_pb){
     const auto& port_kind = GetKind();
     
     auto attrs = port_pb.mutable_attributes();

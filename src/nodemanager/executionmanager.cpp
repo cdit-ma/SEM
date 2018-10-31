@@ -88,13 +88,12 @@ void ExecutionManager::RequestDeployment(){
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     //Construct a set of slaves to wait
-    //XXX: Probably need to handle multiple NodeManager Slaves on each IP, will need more checks for uniquity
     for(const auto& node : control_message_->nodes()){
         for(const auto& container : node.containers()){
             const auto& slave_key = GetSlaveKey(node.ip_address(), container.info().id());
 
             auto insert = slave_states_.emplace(slave_key, SlaveState::OFFLINE);
-            if(insert.second == false){
+            if(!insert.second){
                 throw std::runtime_error("Got duplicate slaves in ControlMessage with IP: '" + slave_key + "'");
             }
         }
@@ -177,6 +176,7 @@ std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveSta
                         SetSlaveState(slave_key, SlaveState::REGISTERED);
                     }
                 }
+
             }
         }
     }else{

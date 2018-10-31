@@ -4,6 +4,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <proto/controlmessage/controlmessage.pb.h>
+#include "ports/port.h"
 #include "uniquequeue.hpp"
 
 
@@ -14,41 +15,51 @@ class Port;
 class Logger;
 class Container;
 
-struct ExternalPort{
-    std::string external_label;
-    std::string internal_id;
-    
-    std::set<std::string> producer_ids;
-    std::set<std::string> consumer_ids;
-};
-
-enum class ExperimentState{
-    S_REGISTERED,
-    S_CONFIGURED,
-    S_ACTIVE
-};
-
-
 class Experiment{
     public:
+
+        struct ExternalPort{
+            enum class Kind{
+                PubSub,
+                ReqRep
+            };
+
+            std::string external_label;
+            std::string internal_id;
+
+            std::string type;
+
+            Port::Middleware middleware;
+            Kind kind;
+
+            std::set<std::string> producer_ids;
+            std::set<std::string> consumer_ids;
+        };
+
+        enum class ExperimentState{
+            REGISTERED,
+            CONFIGURED,
+            ACTIVE
+        };
         Experiment(Environment& environment, std::string name);
         ~Experiment();
         
-        ExperimentState GetState();
+        ExperimentState GetState() const;
 
-        bool IsConfigured();
         void SetConfigured();
-
-        bool IsRegistered();
-        bool IsActive();
         void SetActive();
+
+        bool IsRegistered() const;
+        bool IsConfigured() const;
+        bool IsActive() const;
 
         const std::string& GetName() const;
 
+        void ConfigureMaster();
+        std::string GetMessage() const;
+
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_port);
-
-        
 
         void AddExternalPorts(const NodeManager::Experiment& message);
         void AddNode(const NodeManager::Node& node);
@@ -57,7 +68,6 @@ class Experiment{
         Node& GetNode(const std::string& ip_address) const;
 
         void Shutdown();
-
 
         bool HasDeploymentOn(const std::string& node_name) const;
 
@@ -71,7 +81,6 @@ class Experiment{
         std::string GetMasterRegistrationAddress();
         const std::string& GetMasterIp() const;
 
-
         std::string GetOrbEndpoint(const std::string& port_id);
 
         std::string GetPublicEventPortName(const std::string& public_port_local_id);
@@ -79,10 +88,8 @@ class Experiment{
         Node& GetLeastDeployedToNode();
         Port& GetPort(const std::string& id);
 
-
         bool IsDirty() const;
         void SetDirty();
-
 
         void UpdatePort(const std::string& external_port_label);
 
@@ -99,11 +106,13 @@ class Experiment{
         void AddExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
         void RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
         void RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id);
+
+        std::vector< std::reference_wrapper<ExternalPort> > GetExternalPorts() const;
     private:
         void SetMasterIp(const std::string& ip);
         ExternalPort& GetExternalPort(const std::string& external_port_internal_id);
 
-        std::mutex mutex_;
+        mutable std::mutex mutex_;
 
         Environment& environment_;
 
@@ -129,9 +138,7 @@ class Experiment{
         //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
-        uint64_t time_added_;
-
-        ExperimentState state_ = ExperimentState::S_REGISTERED;
+        ExperimentState state_ = ExperimentState::REGISTERED;
 
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to

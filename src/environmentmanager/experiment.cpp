@@ -4,23 +4,25 @@
 #include "container.h"
 #include "ports/port.h"
 #include <proto/controlmessage/helper.h>
+#include <algorithm>
+#include <numeric>
 
 using namespace EnvironmentManager;
 
-Experiment::Experiment(Environment& environment, const std::string name) : environment_(environment){
+Experiment::Experiment(Environment &environment, const std::string name) : environment_(environment) {
     model_name_ = name;
 }
 
-Experiment::~Experiment(){
-    try{
-        for(const auto& external_port_pair : external_port_map_){
-            const auto& port = external_port_pair.second;
-            const auto& external_port_label = port->external_label;
+Experiment::~Experiment() {
+    try {
+        for (const auto &external_port_pair : external_port_map_) {
+            const auto &port = external_port_pair.second;
+            const auto &external_port_label = port->external_label;
 
-            if(!port->consumer_ids.empty()){
+            if (!port->consumer_ids.empty()) {
                 environment_.RemoveExternalConsumerPort(model_name_, external_port_label);
             }
-            if(!port->producer_ids.empty()){
+            if (!port->producer_ids.empty()) {
                 environment_.RemoveExternalProducerPort(model_name_, external_port_label);
             }
         }
@@ -29,158 +31,166 @@ Experiment::~Experiment(){
         node_map_.clear();
 
         environment_.FreeManagerPort(manager_port_);
-        
-        if(GetState() == ExperimentState::S_ACTIVE){
+
+        if (GetState() == ExperimentState::ACTIVE) {
             environment_.FreePort(master_ip_address_, master_publisher_port_);
             environment_.FreePort(master_ip_address_, master_registration_port_);
         }
     }
-    catch(...){
+    catch (...) {
         std::cerr << "Could not delete deployment :" << model_name_ << std::endl;
     }
 }
 
-const std::string& Experiment::GetName() const{
+const std::string &Experiment::GetName() const {
     return model_name_;
 }
 
-Environment& Experiment::GetEnvironment() const{
+Environment &Experiment::GetEnvironment() const {
     return environment_;
 }
 
-void Experiment::SetConfigured(){
+void Experiment::SetConfigured() {
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::S_REGISTERED){
-        state_ = ExperimentState::S_CONFIGURED;
-    }else{
+    if (state_ == ExperimentState::REGISTERED) {
+        state_ = ExperimentState::CONFIGURED;
+    } else {
         throw std::runtime_error("Invalid state");
     }
 }
 
-void Experiment::SetActive(){
+void Experiment::SetActive() {
     std::unique_lock<std::mutex> lock(mutex_);
-    if(state_ == ExperimentState::S_CONFIGURED){
-        state_ = ExperimentState::S_ACTIVE;
-    }else{
+    if (state_ == ExperimentState::CONFIGURED) {
+        state_ = ExperimentState::ACTIVE;
+    } else {
         throw std::runtime_error("Invalid state");
     }
 }
 
 
-bool Experiment::IsConfigured(){
+bool Experiment::IsConfigured() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_CONFIGURED;
+    return state_ == ExperimentState::CONFIGURED;
 }
 
-bool Experiment::IsRegistered(){
+bool Experiment::IsRegistered() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_REGISTERED;
+    return state_ == ExperimentState::REGISTERED;
 }
 
-bool Experiment::IsActive(){
+bool Experiment::IsActive() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::S_ACTIVE;
+    return state_ == ExperimentState::ACTIVE;
 }
 
 
-std::string Experiment::GetManagerPort() const{
+std::string Experiment::GetManagerPort() const {
     return manager_port_;
 }
 
-void Experiment::SetManagerPort(const std::string& manager_port){
+void Experiment::SetManagerPort(const std::string &manager_port) {
     manager_port_ = manager_port;
 }
 
-void Experiment::SetMasterIp(const std::string& ip){
+void Experiment::ConfigureMaster() {
+    //Set up our master container. This will be the container that manages stand-up of all child/slave containers
+    for (const auto &node : node_map_) {
+        if (node.second->HasMasterEligibleContainer()) {
+            node.second->GetMasterEligibleContainer().SetNodeManagerMaster();
+            SetMasterIp(node.second->GetIp());
+        }
+    }
+}
+
+void Experiment::SetMasterIp(const std::string &ip) {
     master_ip_address_ = ip;
 }
 
-void Experiment::AddExternalPorts(const NodeManager::Experiment& message){
-    for(const auto& external_port : message.external_ports()){
-        if(!external_port.is_blackbox()){
-            const auto& internal_id = external_port.info().id();
-            if(!external_port_map_.count(internal_id)){
-                auto port = new ExternalPort();
+void Experiment::AddExternalPorts(const NodeManager::Experiment &message) {
+    for (const auto &external_port : message.external_ports()) {
+        if (!external_port.is_blackbox()) {
+            const auto &internal_id = external_port.info().id();
+            if (!external_port_map_.count(internal_id)) {
+                auto port = std::unique_ptr<ExternalPort>(new ExternalPort());
                 port->internal_id = internal_id;
                 port->external_label = external_port.info().name();
-                external_port_map_.emplace(internal_id, std::unique_ptr<ExternalPort>(port));
-                external_id_to_internal_id_map_[port->external_label] = internal_id;
-            }else{
-                throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate external port id: '" + internal_id + "'");
+                port->type = external_port.info().type();
+                port->middleware = Port::TranslateProtoMiddleware(external_port.middleware());
+
+                if (external_port.kind() == NodeManager::ExternalPort::PUBSUB) {
+                    port->kind = ExternalPort::Kind::PubSub;
+                }
+                if (external_port.kind() == NodeManager::ExternalPort::SERVER) {
+                    port->kind = ExternalPort::Kind::ReqRep;
+                }
+
+                external_port_map_.emplace(internal_id, std::move(port));
+                external_id_to_internal_id_map_[external_port.info().name()] = internal_id;
+            } else {
+                throw std::invalid_argument(
+                        "Experiment: '" + model_name_ + "' Got duplicate external port id: '" + internal_id + "'");
             }
-        }
-        else{
-            const auto& internal_id = external_port.info().id();
+        } else {
+            const auto &internal_id = external_port.info().id();
             auto port = Port::ConstructBlackboxPort(*this, external_port);
-            if(port){
+            if (port) {
                 blackbox_port_map_.emplace(internal_id, std::move(port));
             }
         }
     }
 }
 
-ExperimentState Experiment::GetState(){
+Experiment::ExperimentState Experiment::GetState() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return state_;
 }
 
-Node& Experiment::GetNode(const std::string& ip_address) const{
-    try{
+Node &Experiment::GetNode(const std::string &ip_address) const {
+    try {
         return *(node_map_.at(ip_address));
-    }catch(const std::exception&){
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' does not have registered node with IP: '" + ip_address + "'");
+    } catch (const std::exception &) {
+        throw std::invalid_argument(
+                "Experiment: '" + model_name_ + "' does not have registered node with IP: '" + ip_address + "'");
     }
 }
 
-void Experiment::AddNode(const NodeManager::Node& node){
-    const auto& ip_address = node.ip_address();
+void Experiment::AddNode(const NodeManager::Node &node) {
+    const auto &ip_address = node.ip_address();
 
-    if(!node_map_.count(ip_address)){
-        auto internal_node = std::unique_ptr<EnvironmentManager::Node>(new EnvironmentManager::Node(environment_, *this, node));
-        if(internal_node->GetIp() != "OFFLINE"){
-            auto deploy_component_count = internal_node->GetDeployedComponentCount();
-
-            if(deploy_component_count > 0){
-                std::cout << "* Experiment[" << model_name_ << "] Node: " << internal_node->GetName();
-                if(GetMasterIp().empty()){
-                    //Set the first node with components to be the master
-                    internal_node->SetNodeManagerMaster();
-                    SetMasterIp(ip_address);
-                    std::cout << " [RE_MASTER]";
-                }
-                std::cout << " Deploys: " << deploy_component_count << " Components" << std::endl;
-            }
-            node_map_.emplace(ip_address, std::move(internal_node));
-        }
-    }
-    else{
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' Got duplicate node with ip address: '" + ip_address + "'");
+    if (!node_map_.count(ip_address)) {
+        auto internal_node = std::unique_ptr<EnvironmentManager::Node>(
+                new EnvironmentManager::Node(environment_, *this, node));
+        node_map_.emplace(ip_address, std::move(internal_node));
+    } else {
+        throw std::invalid_argument(
+                "Experiment: '" + model_name_ + "' Got duplicate node with ip address: '" + ip_address + "'");
     }
 }
 
-bool Experiment::HasDeploymentOn(const std::string& ip_address) const {
+bool Experiment::HasDeploymentOn(const std::string &ip_address) const {
     return GetNode(ip_address).GetDeployedCount() > 0;
 }
 
-std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentInfo(){
+std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentInfo() {
     auto reply = std::unique_ptr<NodeManager::RegisterExperimentReply>(new NodeManager::RegisterExperimentReply());
 
-    for(const auto& node_pair : node_map_){
-        auto& node = (*node_pair.second);
+    for (const auto &node_pair : node_map_) {
+        auto &node = (*node_pair.second);
 
         auto node_deployment = std::unique_ptr<NodeManager::NodeDeployment>(new NodeManager::NodeDeployment);
 
-        if(node.GetDeployedComponentCount()){
+        if (node.GetDeployedComponentCount()) {
             auto hardware_id = node.GetHardwareId();
             auto container_ids = node.GetContainerIds();
 
             node_deployment->set_allocated_id(hardware_id.release());
-            for(auto& container_id : container_ids){
+            for (auto &container_id : container_ids) {
                 node_deployment->mutable_container_ids()->AddAllocated(container_id.release());
             }
         }
 
-        if(node.GetLoganServerCount()){
+        if (node.GetLoganServerCount()) {
             auto hardware_id = node.GetHardwareId();
             node_deployment->set_allocated_id(hardware_id.release());
         }
@@ -190,84 +200,84 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
     return reply;
 }
 
-std::string Experiment::GetMasterPublisherAddress(){
-    if(master_publisher_port_.empty()){
+std::string Experiment::GetMasterPublisherAddress() {
+    if (master_publisher_port_.empty()) {
         master_publisher_port_ = environment_.GetPort(master_ip_address_);
     }
     return "tcp://" + master_ip_address_ + ":" + master_publisher_port_;
 }
 
-const std::string& Experiment::GetMasterIp() const{
+const std::string &Experiment::GetMasterIp() const {
     return master_ip_address_;
 }
 
-std::string Experiment::GetMasterRegistrationAddress(){
-    if(master_registration_port_.empty()){
+std::string Experiment::GetMasterRegistrationAddress() {
+    if (master_registration_port_.empty()) {
         master_registration_port_ = environment_.GetPort(master_ip_address_);
     }
     return "tcp://" + master_ip_address_ + ":" + master_registration_port_;
 }
 
-bool Experiment::IsDirty() const{
+bool Experiment::IsDirty() const {
     return dirty_;
 }
 
-void Experiment::SetDirty(){
+void Experiment::SetDirty() {
     dirty_ = true;
 }
 
-void Experiment::Shutdown(){
-    if(!shutdown_){
+void Experiment::Shutdown() {
+    if (!shutdown_) {
         shutdown_ = true;
         SetDirty();
     }
 }
 
-void Experiment::UpdatePort(const std::string& external_port_label){
+void Experiment::UpdatePort(const std::string &external_port_label) {
     //Only Update configured/Active ports
-    if(IsConfigured() || IsActive()){
-        if(external_id_to_internal_id_map_.count(external_port_label)){
-            const auto& internal_id = external_id_to_internal_id_map_.at(external_port_label);
+    if (IsConfigured() || IsActive()) {
+        if (external_id_to_internal_id_map_.count(external_port_label)) {
+            const auto &internal_id = external_id_to_internal_id_map_.at(external_port_label);
 
-            const auto& external_port = GetExternalPort(internal_id);
+            const auto &external_port = GetExternalPort(internal_id);
 
-            for(const auto& port_id : external_port.consumer_ids){
+            for (const auto &port_id : external_port.consumer_ids) {
                 GetPort(port_id).SetDirty();
             }
         }
     }
 }
 
-Port& Experiment::GetPort(const std::string& id){
-    for(const auto& node_pair : node_map_){
-        if(node_pair.second->HasPort(id)){
+Port &Experiment::GetPort(const std::string &id) {
+    for (const auto &node_pair : node_map_) {
+        if (node_pair.second->HasPort(id)) {
             return node_pair.second->GetPort(id);
         }
     }
-    for(const auto& port_pair : blackbox_port_map_){
-        if(port_pair.first == id){
+    for (const auto &port_pair : blackbox_port_map_) {
+        if (port_pair.first == id) {
             return *port_pair.second;
         }
     }
     throw std::out_of_range("Experiment::GetPort: <" + id + "> OUT OF RANGE");
 }
 
-std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update){
+std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool full_update) {
     std::unique_ptr<NodeManager::EnvironmentMessage> environment_message;
 
-    if(dirty_ || full_update){
+    if (dirty_ || full_update) {
         environment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
 
-        if(!shutdown_){
+        if (!shutdown_) {
             environment_message->set_type(NodeManager::EnvironmentMessage::CONFIGURE_EXPERIMENT);
             auto control_message = environment_message->mutable_control_message();
             control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
 
             control_message->set_experiment_id(model_name_);
-            for(auto& node_pair : node_map_){
-                if(node_pair.second->DeployedTo()){
+            for (auto &node_pair : node_map_) {
+                if (node_pair.second->DeployedTo()) {
                     auto node_pb = node_pair.second->GetProto(full_update);
-                    if(node_pb){
+                    if (node_pb) {
                         control_message->mutable_nodes()->AddAllocated(node_pb.release());
                     }
                 }
@@ -277,93 +287,100 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
             NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
             NodeManager::SetStringAttribute(attrs, "master_publisher_endpoint", GetMasterPublisherAddress());
             NodeManager::SetStringAttribute(attrs, "master_registration_endpoint", GetMasterRegistrationAddress());
-        }else{
+        } else {
             //Terminate the experiment
             environment_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_EXPERIMENT);
+            auto control_message = environment_message->mutable_control_message();
+            control_message->set_experiment_id(model_name_);
         }
 
-        if(dirty_){
+        if (dirty_) {
             dirty_ = false;
         }
     }
     return environment_message;
 }
 
-std::vector<std::unique_ptr<NodeManager::Logger> > Experiment::GetAllocatedLoganServers(const std::string& ip_address){
+std::vector<std::unique_ptr<NodeManager::Logger> > Experiment::GetAllocatedLoganServers(const std::string &ip_address) {
     return std::move(GetNode(ip_address).GetAllocatedLoganServers());
 }
 
-EnvironmentManager::ExternalPort& Experiment::GetExternalPort(const std::string& external_port_internal_id){
-    if(external_port_map_.count(external_port_internal_id)){
+Experiment::ExternalPort &Experiment::GetExternalPort(const std::string &external_port_internal_id) {
+    if (external_port_map_.count(external_port_internal_id)) {
         return *external_port_map_.at(external_port_internal_id);
-    }
-    else{
-        throw std::invalid_argument("Experiment: '" + model_name_ + "' doesn't have external port id: '" + external_port_internal_id + "'");
+    } else {
+        throw std::invalid_argument(
+                "Experiment: '" + model_name_ + "' doesn't have external port id: '" + external_port_internal_id + "'");
     }
 }
 
-void Experiment::AddExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    try{
-        auto& external_port = GetExternalPort(external_port_internal_id);
+void
+Experiment::AddExternalConsumerPort(const std::string &external_port_internal_id, const std::string &internal_port_id) {
+    try {
+        auto &external_port = GetExternalPort(external_port_internal_id);
         environment_.AddExternalConsumerPort(model_name_, external_port.external_label);
         external_port.consumer_ids.insert(internal_port_id);
     }
-    catch(const std::exception&){
+    catch (const std::exception &) {
     }
 }
 
-void Experiment::AddExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    try{
-        auto& external_port = GetExternalPort(external_port_internal_id);
+void
+Experiment::AddExternalProducerPort(const std::string &external_port_internal_id, const std::string &internal_port_id) {
+    try {
+        auto &external_port = GetExternalPort(external_port_internal_id);
         environment_.AddExternalProducerPort(model_name_, external_port.external_label);
         external_port.producer_ids.insert(internal_port_id);
     }
-    catch(const std::exception&){
+    catch (const std::exception &) {
     }
 }
 
-void Experiment::RemoveExternalConsumerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    try{
-        auto& external_port = GetExternalPort(external_port_internal_id);
+void Experiment::RemoveExternalConsumerPort(const std::string &external_port_internal_id,
+                                            const std::string &internal_port_id) {
+    try {
+        auto &external_port = GetExternalPort(external_port_internal_id);
         environment_.RemoveExternalConsumerPort(model_name_, external_port.external_label);
         external_port.consumer_ids.erase(internal_port_id);
     }
-    catch(const std::exception&){
+    catch (const std::exception &) {
     }
 }
 
-void Experiment::RemoveExternalProducerPort(const std::string& external_port_internal_id, const std::string& internal_port_id){
-    try{
-        auto& external_port = GetExternalPort(external_port_internal_id);
+void Experiment::RemoveExternalProducerPort(const std::string &external_port_internal_id,
+                                            const std::string &internal_port_id) {
+    try {
+        auto &external_port = GetExternalPort(external_port_internal_id);
         environment_.RemoveExternalProducerPort(model_name_, external_port.external_label);
         external_port.producer_ids.erase(internal_port_id);
     }
-    catch(const std::exception&){
+    catch (const std::exception &) {
     }
 }
 
-std::vector< std::reference_wrapper<Port> > Experiment::GetExternalProducerPorts(const std::string& external_port_label){
-    std::vector< std::reference_wrapper<Port> > producer_ports;
-    
-    try{
-        const auto& internal_port_id = GetExternalPortInternalId(external_port_label);
-        
-        const auto& external_port = GetExternalPort(internal_port_id);
-        for(const auto& port_id : external_port.producer_ids){
+std::vector<std::reference_wrapper<Port> >
+Experiment::GetExternalProducerPorts(const std::string &external_port_label) {
+    std::vector<std::reference_wrapper<Port> > producer_ports;
+
+    try {
+        const auto &internal_port_id = GetExternalPortInternalId(external_port_label);
+
+        const auto &external_port = GetExternalPort(internal_port_id);
+        for (const auto &port_id : external_port.producer_ids) {
             producer_ports.emplace_back(GetPort(port_id));
         }
-    }catch(const std::runtime_error&){
+    } catch (const std::runtime_error &) {
     }
-    
+
     return producer_ports;
 }
 
-std::vector< std::reference_wrapper<Logger> > Experiment::GetLoggerClients(const std::string& logger_id){
-    std::vector< std::reference_wrapper<Logger> > loggers;
-    
-    for(auto& node_pair : node_map_){
-        auto& node = node_pair.second;
-        if(node->HasLogger(logger_id)){
+std::vector<std::reference_wrapper<Logger> > Experiment::GetLoggerClients(const std::string &logger_id) {
+    std::vector<std::reference_wrapper<Logger> > loggers;
+
+    for (auto &node_pair : node_map_) {
+        auto &node = node_pair.second;
+        if (node->HasLogger(logger_id)) {
             loggers.emplace_back(node->GetLogger(logger_id));
         }
     }
@@ -371,30 +388,56 @@ std::vector< std::reference_wrapper<Logger> > Experiment::GetLoggerClients(const
     return loggers;
 }
 
-std::string Experiment::GetExternalPortLabel(const std::string& internal_port_id){
-    auto& external_port = GetExternalPort(internal_port_id);
+std::string Experiment::GetExternalPortLabel(const std::string &internal_port_id) {
+    auto &external_port = GetExternalPort(internal_port_id);
     return external_port.external_label;
 }
-std::string Experiment::GetExternalPortInternalId(const std::string& external_port_label){
-    if(external_id_to_internal_id_map_.count(external_port_label)){
+
+std::string Experiment::GetExternalPortInternalId(const std::string &external_port_label) {
+    if (external_id_to_internal_id_map_.count(external_port_label)) {
         return external_id_to_internal_id_map_.at(external_port_label);
     }
-    throw std::runtime_error("Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
+    throw std::runtime_error(
+            "Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
 }
 
-Node& Experiment::GetLeastDeployedToNode() {
+Node &Experiment::GetLeastDeployedToNode() {
     // Min element with lambda comparison func, will be prettier in 14/17 with 'auto' lambda arguments
     using NodeMapPair = std::pair<const std::string, std::unique_ptr<Node> >;
 
-    return *(std::min_element(node_map_.cbegin(),
-            node_map_.cend(),
-            [](const NodeMapPair& p1, const NodeMapPair& p2){
-                return p1.second->GetDeployedComponentCount() < p2.second->GetDeployedComponentCount();
-    })->second);
+    return *(std::min_element(node_map_.cbegin(), node_map_.cend(),
+                              [](const NodeMapPair &p1, const NodeMapPair &p2) {
+                                  return p1.second->GetDeployedComponentCount() <
+                                         p2.second->GetDeployedComponentCount();
+                              })->second);
 }
 
 void Experiment::AddLoggingClientToImplicitContainers(const NodeManager::Logger &logging_client) {
-    for(const auto& node : node_map_) {
+    for (const auto &node : node_map_) {
         node.second->AddLoggingClientToImplicitContainer(logging_client);
     }
+}
+
+std::vector<std::reference_wrapper<Experiment::ExternalPort>> Experiment::GetExternalPorts() const {
+    std::vector<std::reference_wrapper<Experiment::ExternalPort> > external_ports;
+
+    for (auto &port_pair : external_port_map_) {
+        external_ports.emplace_back(*(port_pair.second));
+    }
+    return external_ports;
+}
+
+std::string Experiment::GetMessage() const {
+    using NodeMapPair = std::pair<const std::string, std::unique_ptr<Node> >;
+
+    std::stringstream message_stream;
+    std::string experiment_name = "* Experiment[" + model_name_ + "] ";
+
+    for(const auto& node : node_map_){
+        if(node.second->GetDeployedComponentCount() > 0){
+            message_stream << experiment_name << node.second->GetMessage() << "\n";
+        }
+    }
+
+    return message_stream.str();
 }

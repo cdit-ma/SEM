@@ -335,7 +335,7 @@ NodeManager::Middleware Port::TranslateInternalMiddleware(const Port::Middleware
 const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const{
     std::vector<std::reference_wrapper<Port> > ports;
 
-    for(auto port_id : GetInternalConnectedPortIds()){
+    for(auto& port_id : GetInternalConnectedPortIds()){
         try{
             auto& port = GetExperiment().GetPort(port_id);
             ports.emplace_back(port);
@@ -344,7 +344,7 @@ const std::vector<std::reference_wrapper<Port> > Port::GetConnectedPorts() const
         }
     }
 
-    for(auto port_id : GetExternalConnectedPortIds()){
+    for(auto& port_id : GetExternalConnectedPortIds()){
         try{
             //Get the Port,
             auto& port = GetExperiment().GetPort(port_id);
