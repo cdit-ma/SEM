@@ -107,6 +107,10 @@ void bit_reverse(float2* src, float2* dst, size_t num_elements) {
  * [r,i,r,i,r,i,...]
  **/
 bool OpenCL_Worker::FFT(std::vector<float> &data) {
+	auto work_id = get_new_work_id();
+
+	Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning FFT with vector data");
+
 	cl_int status = 0;
 
 	// Altera implementation requires exactly N complex numbers
@@ -188,17 +192,19 @@ bool OpenCL_Worker::FFT(std::vector<float> &data) {
     aocl_utils::alignedFree(h_outData);
     h_inData = NULL;
     h_outData = NULL;
+	
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
 
 	return true;
 }
 
-bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id) {
-	Log(std::string(__func__), ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+bool OpenCL_Worker::FFT(OpenCLBuffer<float>& buffer, int device_id, int work_id) {
+	Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id,
         "Unable to run buffered FFT on FPGA, consider using the vector input version instead");
     return false;
 }
 
-bool OpenCL_Worker::InitFFT() {
+bool OpenCL_Worker::InitFFT(int work_id) {
     cl_int status;
 
 	// Loop through all of the devices available to the worker for initialisation
@@ -221,7 +227,7 @@ bool OpenCL_Worker::InitFFT() {
 		if (kernels_found < 2) {
 			bool did_read_binary = device.LoadKernelsFromBinary(*this, "fft1d.aocx");
 			if (!did_read_binary) {
-				Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+				Log(__func__, Logger::WorkloadEvent::ERROR, work_id,
 						"Unable to load kernels from fft1d.aocx binary");
 				return false;
 			}
@@ -245,7 +251,7 @@ bool OpenCL_Worker::InitFFT() {
 }
 
 // Free the resources allocated during initialization
-bool OpenCL_Worker::CleanupFFT() {
+bool OpenCL_Worker::CleanupFFT(int work_id) {
 
 	/*if(fetch_queue) 
 		delete fetch_queue;*/

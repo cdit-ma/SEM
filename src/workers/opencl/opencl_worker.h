@@ -34,20 +34,20 @@ public:
 
     // Bespoke algorithms
     bool RunParallel(int num_threads, long long ops_per_thread);
-    bool MatrixMult(const OpenCLBuffer<float>& matA, const OpenCLBuffer<float>& matB, OpenCLBuffer<float>& matC, OpenCLDevice& device);
+    bool MatrixMult(const OpenCLBuffer<float>& matA, const OpenCLBuffer<float>& matB, OpenCLBuffer<float>& matC, OpenCLDevice& device, int work_id=-1);
     bool MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC);
-    bool KmeansCluster(const OpenCLBuffer<float>& points, OpenCLBuffer<float>& centroids, OpenCLBuffer<int>& point_classifications, int iterations);
+    bool KmeansCluster(const OpenCLBuffer<float>& points, OpenCLBuffer<float>& centroids, OpenCLBuffer<int>& point_classifications, int iterations, int work_id=-1);
     bool KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations);
 
     // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
     bool FFT(std::vector<float> &data);
-    bool FFT(OpenCLBuffer<float> &data, int device_id=-1);
+    bool FFT(OpenCLBuffer<float> &data, int device_id=-1, int work_id=-1);
 
 
 
 protected:
-    bool InitFFT();
-    bool CleanupFFT();
+    bool InitFFT(int work_id);
+    bool CleanupFFT(int work_id);
 private:
     // Can throw if source file doesn't exist, contains no kernels or doesn't contain the specified kernel
     OpenCLKernel& GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file);

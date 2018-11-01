@@ -341,6 +341,7 @@ void DeploymentContainer::HandleTerminate(){
     components_.clear();
     logan_clients_.clear();
 
+
     if(logan_logger_){
         logan_logger_.reset();
     }

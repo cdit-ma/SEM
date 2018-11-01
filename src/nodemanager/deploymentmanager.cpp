@@ -228,7 +228,6 @@ void DeploymentManager::ProcessControlQueue(){
         }
     }
 
-
     //Tell Node Manager Master that We are Terminated
     {
         using namespace NodeManager;
