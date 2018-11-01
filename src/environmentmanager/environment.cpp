@@ -80,18 +80,16 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
             AddNodes(experiment_name, cluster);
         }
 
+        //Configure our master settings and check experiment validity
         experiment.ConfigureMaster();
-
-        //Check for empty experiment
         experiment.CheckValidity();
 
         //Complete the Configuration
         experiment.SetConfigured();
-
-
-        std::cout << experiment.GetMessage();
         std::cout << "* Registration complete" << std::endl;
 
+        //Send our experiment's configuration to anything interested in updates
+        update_publisher_->PushMessage(experiment.GetProto(true));
 
     }catch(const std::exception& ex){
         //Remove the Experiment if we have any exceptions

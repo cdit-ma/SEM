@@ -236,6 +236,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
         if (node.GetLoganServerCount()) {
             auto hardware_id = node.GetHardwareId();
             node_deployment->set_allocated_id(hardware_id.release());
+            node_deployment->set_has_logan_server(true);
         }
 
         reply->mutable_deployments()->AddAllocated(node_deployment.release());
