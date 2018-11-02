@@ -66,7 +66,8 @@ SQLiteDatabase::~SQLiteDatabase(){
 }
 
 sqlite3_stmt* SQLiteDatabase::GetSqlStatement(const std::string& query){
-    sqlite3_stmt* statement = 0;
+    sqlite3_stmt* statement;
+
     int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
     if(result == SQLITE_OK){
         return statement;
@@ -131,7 +132,7 @@ void SQLiteDatabase::ProcessQueue(){
             //Swap our queues, and release our lock
             sql_queue_.swap(sQueue);
         }
-        
+
         if(!sQueue.empty()){
             int result = sqlite3_exec(database_, BEGIN_TRANSACTION.c_str(), NULL, NULL, NULL);
             auto transaction_count = 0;
