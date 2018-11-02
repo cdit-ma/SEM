@@ -112,8 +112,10 @@ void zmq::CachedProtoWriter::Terminate(){
             std::unique_lock<std::mutex> lock(queue_mutex_);
             if(written_to_disk_count){
                 auto messages = ReadMessagesFromFile(temp_file_path_);
+                auto temp_size_kb = boost::filesystem::file_size(temp_file_path_) / 1024;
+
                 if(messages.size() == written_to_disk_count){
-                    std::cout << "* zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
+                    std::cout << "* zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "' Size: " << temp_size_kb << "kb" << std::endl;
                 }else{
                     std::cerr << "* zmq::CachedProtoWriter: Could only read " << messages.size() << "/" << written_to_disk_count  << "messages in cache file '" << temp_file_path_ << "'" << std::endl;
                 }
