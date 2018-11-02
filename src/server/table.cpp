@@ -97,11 +97,7 @@ sqlite3_stmt* Table::get_table_construct_statement(){
 }
 
 sqlite3_stmt* Table::get_table_insert_statement(){
-    auto s = GetSqlStatement(table_insert_);
-    if(!s){
-        std::cout << "NULL TABLE: " << table_insert_ << std::endl;
-    }
-    return s;
+    return GetSqlStatement(table_insert_);
 }
 
 sqlite3_stmt* Table::GetSqlStatement(const std::string& query){
