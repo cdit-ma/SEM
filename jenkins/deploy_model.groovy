@@ -141,12 +141,12 @@ stage("Compiling C++"){
     parallel builder_map
 }
 
-
 def requires_shutdown = false
 
 //Run the environment controller on master
-def node_manager_node_names = []
+def node_containers = [:]
 def logan_server_node_names = []
+
 stage("Add Experiment"){
     node("master"){
         dir(UNIQUE_ID){
@@ -166,19 +166,27 @@ stage("Add Experiment"){
             def parsed_json = readJSON file: json_file
 
             print("Running re_node_manager on:")
-            for(def node : parsed_json["nodeManagers"]){
-                print("** " + node["hostName"])
-                node_manager_node_names += node["hostName"]
-            }
-            print("Running logan_server on:")
-            for(def node : parsed_json["loganServers"]){
-                print("** " + node["hostName"])
-                logan_server_node_names += node["hostName"]
-            }
+            for(def deployment : parsed_json["deployments"]){
+                def deployment_host_name = deployment["id"]["hostName"]
+                print("** " + deployment_host_name)
+                def container_id_list = []
 
+                for(def container_id : deployment["contianerIds"]){
+                    print("*** " + container_id["id"])
+                    container_id_list += container_id["id"]
+                }
+                node_containers[deployment_host_name] = container_id_list
+
+                if(deployment["hasLoganServer"]){
+                    print("*** LoganServer")
+                    logan_server_node_names += deployment_host_name
+                }
+            }
         }
     }
 }
+
+def node_manager_node_names = node_manager_node_names.keySet()
 
 def execution_node_names = (node_manager_node_names + logan_server_node_names).unique(false)
 
@@ -192,28 +200,35 @@ for(n in execution_node_names){
             if(!ip_addr){
                 error("Runtime Node: " + node_name + " doesn't have an IP_ADDRESS env var.")
             }
+
+            def container_ids = node_containers[node_name]
             def run_node_manager = node_manager_node_names.contains(node_name)
             def run_logan_server = logan_server_node_names.contains(node_name)
 
             def node_executions = [:]
-            dir(build_id){
-                if(run_node_manager){
-                    dir("lib"){
-                        //Unstash the required libraries for this node.
-                        //Have to run in the lib directory due to dll linker paths
-                        unstash "code_" + utils.getNodeOSVersion(node_name)
-                    
-                    }
+
+            if(run_node_manager){
+                dir("lib"){
+                    //Unstash the required libraries for this node.
+                    //Have to run in the lib directory due to dll linker paths
+                    unstash "code_" + utils.getNodeOSVersion(node_name)
+                
+                }
+            }
+
+            for(def container_id : container_ids){
+                dir(build_id){
                     def args = ' -n "' + experiment_name + '"'
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
                     args += " -l ."
                     args += " -t " + execution_time
+                    args += " -c " + container_id
                     if(log_verbosity){
                         args += " -v " + log_verbosity
                     }
 
-                    node_executions["RE_" + node_name] = {
+                    node_executions["RE_" + node_name + "_" + container_id] = {
                         dir("lib"){
                             //Run re_node_manager
                             if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
@@ -223,32 +238,32 @@ for(n in execution_node_names){
                         }
                     }
                 }
+            }
 
-                if(run_logan_server){
-                    def args = ' -n "' + experiment_name + '"'
-                    args += " -e " + env_manager_addr
-                    args += " -a " + ip_addr
+            if(run_logan_server){
+                def args = ' -n "' + experiment_name + '"'
+                args += " -e " + env_manager_addr
+                args += " -a " + ip_addr
 
 
-                    node_executions["LOGAN_" + node_name] = {
-                        //Run Logan
-                        if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
-                            FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
-                            FAILED = true
-                        }
+                node_executions["LOGAN_" + node_name] = {
+                    //Run Logan
+                    if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
+                        FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
+                        FAILED = true
                     }
                 }
+            }
 
-                parallel(node_executions)
-                    
-                //Archive any sql databases produced
-                if(findFiles(glob: '**/*.sql').size() > 0){
-                    archiveArtifacts artifacts: '**/*.sql'
-                }
-                //Delete the Dir
-                if(CLEANUP){
-                    deleteDir()
-                }
+            parallel(node_executions)
+
+            //Archive any sql databases produced
+            if(findFiles(glob: '**/*.sql').size() > 0){
+                archiveArtifacts artifacts: '**/*.sql'
+            }
+            //Delete the Dir
+            if(CLEANUP){
+                deleteDir()
             }
         }
     }

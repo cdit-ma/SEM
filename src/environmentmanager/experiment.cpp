@@ -221,6 +221,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
     for (const auto &node_pair : node_map_) {
         auto &node = (*node_pair.second);
 
+        bool should_add = false;
         auto node_deployment = std::unique_ptr<NodeManager::NodeDeployment>(new NodeManager::NodeDeployment);
 
         if (node.GetDeployedComponentCount()) {
@@ -231,15 +232,19 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
             for (auto &container_id : container_ids) {
                 node_deployment->mutable_container_ids()->AddAllocated(container_id.release());
             }
+            should_add = true;
         }
 
         if (node.GetLoganServerCount()) {
             auto hardware_id = node.GetHardwareId();
             node_deployment->set_allocated_id(hardware_id.release());
             node_deployment->set_has_logan_server(true);
+            should_add = true;
         }
 
-        reply->mutable_deployments()->AddAllocated(node_deployment.release());
+        if(should_add) {
+            reply->mutable_deployments()->AddAllocated(node_deployment.release());
+        }
     }
     return reply;
 }
