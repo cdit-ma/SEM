@@ -26,15 +26,23 @@
 #include "table.h"
 #include "sqlitedatabase.h"
 
-TableInsert::TableInsert(Table* table){
-    table_ = table;
-    stmt_ = table_->get_table_insert_statement();
+TableInsert::TableInsert(Table& table):
+table_(table)
+{
+    stmt_ = table_.get_table_insert_statement();
 }
 
+TableInsert::~TableInsert(){
+    table_.free_table_insert_statement(stmt_);
+    stmt_ = 0;
+}
+
+
 int TableInsert::BindString(const std::string& field, const std::string& val){
-    auto id = table_->get_field_id(field);
+    auto id = table_.get_field_id(field);
     
     if(val.size()){
+        //const auto& current_data = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, id));
         //SQLITE_TRANSIENT = Copy straight away
         return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
     }else{
@@ -43,7 +51,7 @@ int TableInsert::BindString(const std::string& field, const std::string& val){
 }
 
 int TableInsert::BindInt(const std::string& field, const int64_t& val){
-    auto id = table_->get_field_id(field);
+    auto id = table_.get_field_id(field);
     return sqlite3_bind_int(stmt_, id, val);
 }
 
@@ -53,10 +61,10 @@ int TableInsert::BindDouble(const std::string& field, const double& val){
         //avoid NULL in database
         dbl_var = 0.0;
     }
-    auto id = table_->get_field_id(field);
+    auto id = table_.get_field_id(field);
     return sqlite3_bind_double(stmt_, id, dbl_var);
 }
 
-sqlite3_stmt* TableInsert::get_statement(){
-    return stmt_;
+sqlite3_stmt& TableInsert::get_statement(){
+    return *stmt_;
 }

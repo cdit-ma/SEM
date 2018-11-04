@@ -91,9 +91,6 @@ bool ModelEvent::ProtoHandler::GotTable(const std::string& table_name){
     return false;
 }
 
-void ModelEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
-    database_.QueueSqlStatement(insert.get_statement());
-}
 
 void ModelEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
@@ -139,7 +136,7 @@ void ModelEvent::ProtoHandler::CreateLifecycleTable(){
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_LIFECYCLE_TABLE, std::move(table_ptr)));
 
     //Queue the insert
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::CreateWorkloadTable(){
@@ -165,7 +162,7 @@ void ModelEvent::ProtoHandler::CreateWorkloadTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_WORKLOAD_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::CreateUtilizationTable(){
@@ -184,7 +181,7 @@ void ModelEvent::ProtoHandler::CreateUtilizationTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_UTILIZATION_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const ModelEvent::Info& info){
@@ -221,6 +218,7 @@ void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::Lifecycle
 
     try{
         auto row = GetTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -231,8 +229,7 @@ void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::Lifecycle
             BindPortColumns(row, event.port());
 
         row.BindString(LOGAN_EVENT, ModelEvent::LifecycleEvent::Type_Name(event.type()));
-        
-        database_.QueueSqlStatement(row.get_statement());
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessLifecycleEvent() Exception: " << ex.what() << std::endl;
     }
@@ -246,6 +243,7 @@ void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEv
     }
     try{
         auto row = GetTable(LOGAN_MODELEVENT_WORKLOAD_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -262,7 +260,7 @@ void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEv
         row.BindString("function_name", event.function_name());
         row.BindString("args", event.args());
 
-        database_.QueueSqlStatement(row.get_statement());
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessWorkloadEvent() Exception: " << ex.what() << std::endl;
     }
@@ -275,6 +273,7 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
     }
     try{
         auto row = GetTable(LOGAN_MODELEVENT_UTILIZATION_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -289,7 +288,7 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
         row.BindString(LOGAN_TYPE, ModelEvent::UtilizationEvent::Type_Name(event.type()));
         row.BindString(LOGAN_MESSAGE, event.message());
 
-        QueueTableStatement(row);
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessUtilizationEvent() Exception: " << ex.what() << std::endl;
     }

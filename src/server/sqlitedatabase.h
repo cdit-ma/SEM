@@ -37,16 +37,20 @@ class SQLiteDatabase{
         ~SQLiteDatabase();
         
         sqlite3_stmt* GetSqlStatement(const std::string& query);
-        void QueueSqlStatement(sqlite3_stmt * statement);
-        void Flush(bool blocking = false);
+        //void QueueSqlStatement(sqlite3_stmt * statement);
+        void ExecuteSqlStatement(sqlite3_stmt& statement, bool flush = false);
+        void Flush();
     private:
+        void Flush_();
         sqlite3* database_ = 0;
         void ProcessQueue();
 
         std::future<void> writer_future;
 
-        std::queue<sqlite3_stmt*> sql_queue_;
         std::mutex queue_mutex_;
+        size_t transaction_count_ = 0;
+        std::queue<sqlite3_stmt*> sql_queue_;
+
         std::condition_variable queue_lock_condition_;
         std::mutex flush_mutex_;
         std::condition_variable flush_lock_condition_;

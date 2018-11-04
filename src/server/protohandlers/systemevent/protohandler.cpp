@@ -113,7 +113,7 @@ void SystemEvent::ProtoHandler::CreateSystemStatusTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_SYSTEM_STATUS_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateSystemInfoTable(){
@@ -140,7 +140,7 @@ void SystemEvent::ProtoHandler::CreateSystemInfoTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_SYSTEM_INFO_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateCpuTable(){
@@ -156,7 +156,7 @@ void SystemEvent::ProtoHandler::CreateCpuTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_CPU_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateFileSystemTable(){
@@ -172,7 +172,7 @@ void SystemEvent::ProtoHandler::CreateFileSystemTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_FILE_SYSTEM_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateFileSystemInfoTable(){
@@ -189,7 +189,7 @@ void SystemEvent::ProtoHandler::CreateFileSystemInfoTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_FILE_SYSTEM_INFO_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateInterfaceTable(){
@@ -208,7 +208,7 @@ void SystemEvent::ProtoHandler::CreateInterfaceTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_INTERFACE_STATUS_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateInterfaceInfoTable(){
@@ -229,7 +229,7 @@ void SystemEvent::ProtoHandler::CreateInterfaceInfoTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_INTERFACE_INFO_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateProcessTable(){
@@ -258,7 +258,7 @@ void SystemEvent::ProtoHandler::CreateProcessTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_PROCESS_STATUS_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::CreateProcessInfoTable(){
@@ -277,11 +277,7 @@ void SystemEvent::ProtoHandler::CreateProcessInfoTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_PROCESS_INFO_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
-}
-
-void SystemEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
-    database_.QueueSqlStatement(insert.get_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
@@ -297,19 +293,21 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
     
     {
         auto row = GetTable(LOGAN_SYSTEM_STATUS_TABLE).get_insert_statement();
+
         BindInfoColumns(row, timestamp, host_name, message_id);
         row.BindDouble("cpu_utilization", status.cpu_utilization());
         row.BindDouble("phys_mem_utilization", status.phys_mem_utilization());
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < status.cpu_core_utilization_size(); i++){
         auto row = GetTable(LOGAN_CPU_TABLE).get_insert_statement();
+
         BindInfoColumns(row, timestamp, host_name, message_id);
 
         row.BindInt("core_id", i);
         row.BindDouble("core_utilization", status.cpu_core_utilization(i));
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < status.processes_size(); i++){
@@ -332,7 +330,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         
         row.BindInt("cpu_time_ms", google::protobuf::util::TimeUtil::DurationToMilliseconds(proc_pb.cpu_time()));
         row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < status.interfaces_size(); i++){
@@ -345,7 +343,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         row.BindInt("rx_bytes", iface_pb.rx_bytes());
         row.BindInt("tx_packets", iface_pb.tx_packets());
         row.BindInt("tx_bytes", iface_pb.tx_bytes());
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < status.file_systems_size(); i++){
@@ -355,7 +353,7 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         BindInfoColumns(row, timestamp, host_name, message_id);
         row.BindString(LOGAN_NAME, fs_pb.name());
         row.BindDouble("utilization", fs_pb.utilization());
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < status.process_info_size(); i++){
@@ -372,9 +370,13 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
             const auto& start_time = google::protobuf::util::TimeUtil::ToString(proc_pb.start_time());
 
             row.BindString("start_time", start_time);
-            QueueTableStatement(row);
+            ExecuteTableStatement(row);
         }
     }
+}
+
+void SystemEvent::ProtoHandler::ExecuteTableStatement(TableInsert& row){
+    database_.ExecuteSqlStatement(row.get_statement());
 }
 
 void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
@@ -397,6 +399,7 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         registered_nodes_.insert(host_name);
 
         auto row = GetTable(LOGAN_SYSTEM_INFO_TABLE).get_insert_statement();
+
         BindInfoColumns(row, timestamp, host_name, message_id);
 
         //Bind OS Info
@@ -413,20 +416,21 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         row.BindInt("cpu_frequency_hz", info.cpu_frequency_hz());
         row.BindInt("physical_memory_kB", info.physical_memory_kilobytes());
 
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < info.file_system_info_size(); i++){
         const auto& fs_pb = info.file_system_info(i);
 
         auto row = GetTable(LOGAN_FILE_SYSTEM_INFO_TABLE).get_insert_statement();
+
         BindInfoColumns(row, timestamp, host_name, message_id);
         
         row.BindString(LOGAN_NAME, fs_pb.name());
         row.BindString(LOGAN_TYPE, FileSystemInfo::Type_Name(fs_pb.type()));
         row.BindInt("total_size_kB", fs_pb.size_kilobytes());
 
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 
     for(size_t i = 0; i < info.interface_info_size(); i++){
@@ -443,6 +447,6 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         row.BindString("mac_addr", iface_pb.mac_addr());
         row.BindInt("speed", iface_pb.speed());
 
-        QueueTableStatement(row);
+        ExecuteTableStatement(row);
     }
 }

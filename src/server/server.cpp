@@ -50,7 +50,7 @@ void Server::Start(){
     std::lock_guard<std::mutex> lock(mutex_);
     
     if(!running_){
-        database_->Flush(true);
+        database_->Flush();
         std::cout << "* Constructed tables" << std::endl;
         proto_receiver_->Start();
         running_ = true;

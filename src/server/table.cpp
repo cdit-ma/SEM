@@ -21,6 +21,7 @@
 #include "table.h"
 
 #include "tableinsert.h"
+#include "sqlite3.h"
 
 #define CREATE_TABLE_PREFIX "CREATE TABLE IF NOT EXISTS"
 #define INSERT_TABLE_PREFIX "INSERT INTO"
@@ -36,6 +37,15 @@ Table::Table(SQLiteDatabase& database, const std::string& name):
 Table::~Table(){
     for(const auto& i : columns_){
         delete i;
+    }
+
+    sqlite3_finalize(table_construct_);
+
+    std::lock_guard<std::mutex> lock(insert_mutex_);
+    
+    while(insert_pool_.size()){
+        sqlite3_finalize(insert_pool_.front());
+        insert_pool_.pop();
     }
 }
 
@@ -56,7 +66,7 @@ bool Table::AddColumn(const std::string& name, const std::string& type){
 
 TableInsert Table::get_insert_statement(){
     //Prepare an object which allows setting and bind of values.
-    return TableInsert(this);
+    return TableInsert(*this);
 }
 
 int Table::get_field_id(const std::string& field){
@@ -88,16 +98,13 @@ void Table::ConstructTableStatement(){
     }
 }
 
-sqlite3_stmt* Table::get_table_construct_statement(){
-    size_ = columns_.size();
-    if(table_create_.empty()){
+sqlite3_stmt& Table::get_table_construct_statement(){
+    if(!table_construct_){
+        size_ = columns_.size();
         ConstructTableStatement();
+        table_construct_ = GetSqlStatement(table_create_);
     }
-    return GetSqlStatement(table_create_);
-}
-
-sqlite3_stmt* Table::get_table_insert_statement(){
-    return GetSqlStatement(table_insert_);
+    return *table_construct_;
 }
 
 sqlite3_stmt* Table::GetSqlStatement(const std::string& query){
@@ -128,4 +135,23 @@ void Table::Finalize(){
         table_insert_ = top_ss.str() + bottom_ss.str();
         }
     }
+}
+
+void Table::free_table_insert_statement(sqlite3_stmt* stmt){
+    std::lock_guard<std::mutex> lock(insert_mutex_);
+    insert_pool_.emplace(stmt);
+}
+
+sqlite3_stmt* Table::get_table_insert_statement(){
+    sqlite3_stmt* stmt = 0;
+    std::lock_guard<std::mutex> lock(insert_mutex_);
+
+    if(!insert_pool_.size()){
+        stmt = GetSqlStatement(table_insert_);
+    }else{
+        stmt = insert_pool_.front();
+        insert_pool_.pop();
+    }
+
+    return stmt;
 }
