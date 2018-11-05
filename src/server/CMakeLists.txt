@@ -20,7 +20,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.h
     )
 
-#set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 

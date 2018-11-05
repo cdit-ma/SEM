@@ -146,7 +146,6 @@ sqlite3_stmt* Table::get_table_insert_statement(){
     std::lock_guard<std::mutex> lock(insert_mutex_);
 
     if(insert_pool_.size() == 0){
-        std::cerr << "TABLE INSTERT: " << table_insert_ << std::endl;
         stmt = GetSqlStatement(table_insert_);
     }else{
         stmt = insert_pool_.front();
