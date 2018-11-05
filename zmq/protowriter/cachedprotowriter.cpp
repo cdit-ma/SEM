@@ -140,7 +140,7 @@ void zmq::CachedProtoWriter::Terminate(){
             auto& message = write_queue_.front().second;
             zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop();
-            if(send_count++ % 1000 == 0){
+            if(send_count++ % 500 == 0){
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
