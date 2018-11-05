@@ -32,28 +32,35 @@ void MEDEA::BarSeries::addData(QDateTime timeStamp, QVector<double> data, QSize 
     addData(timeStamp.toMSecsSinceEpoch(), data, windowSize);
 }
 
-QString MEDEA::BarSeries::getHoveredDataInformation(quint64 start_time, quint64 end_time){
-    const auto& data = getConstData();
 
+/**
+ * @brief MEDEA::BarSeries::getHoveredDataInformation
+ * @param start_time
+ * @param end_time
+ * @return 
+ */
+QString MEDEA::BarSeries::getHoveredDataInformation(quint64 start_time, quint64 end_time)
+{
+    const auto& data = getConstData();
     auto current = data.lowerBound(start_time);
     auto upper = data.upperBound(end_time);
 
     QString text;
     QTextStream stream(&text);
 
-
-    for(;current != upper; current++){
+    for (;current != upper; current++) {
         const auto& current_x = current.key();
         const auto& y_array = current.value();
 
         QDateTime dt; dt.setMSecsSinceEpoch(current_x);
         stream << dt.toString("MMMM d, hh:mm:ss:zzz") << "\n";
 
-        for(const auto& val : y_array){
+        for (const auto& val : y_array) {
             stream << val << " ";
         }
         stream << "\n";
     }
+    
     return text;
 }
 
