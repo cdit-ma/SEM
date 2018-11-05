@@ -87,10 +87,10 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
         if(result != SQLITE_OK){
             std::cerr << "SQLite failed to reset statement" << std::endl;
         }
-        //result = sqlite3_clear_bindings(&statement);
-        //if(result != SQLITE_OK){
-            //std::cerr << "SQLite failed to clear bindings on statement" << std::endl;
-        //}
+        result = sqlite3_clear_bindings(&statement);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to clear bindings on statement" << std::endl;
+        }
         transaction_count_ ++;
     }
 
