@@ -45,11 +45,6 @@ int TableInsert::BindString(const std::string& field, const std::string& val){
     const auto& id = GetFieldIndex(field);
     
     if(val.size()){
-        const auto& a = sqlite3_column_text(stmt_, id);
-        if(a){
-            std::cerr << "FIELD: " << field << " Value: '"  << sqlite3_column_text(stmt_, id) << "'" << std::endl;
-        }
-        //const auto& current_data = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, id));
         //SQLITE_TRANSIENT = Copy straight away
         return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
     }else{

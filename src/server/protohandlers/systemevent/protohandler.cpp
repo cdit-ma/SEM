@@ -26,28 +26,30 @@
 #include <google/protobuf/util/time_util.h>
 
 //Type names
-const std::string LOGAN_DECIMAL = "DECIMAL";
-const std::string LOGAN_VARCHAR = "VARCHAR";
-const std::string LOGAN_INT = "INTEGER";
+#define LOGAN_DECIMAL "DECIMAL"
+#define LOGAN_VARCHAR "VARCHAR"
+#define LOGAN_INT "INTEGER"
 
 //Common column names
-const std::string LOGAN_TIMEOFDAY = "timeofday";
-const std::string LOGAN_HOSTNAME = "hostname";
-const std::string LOGAN_MESSAGE_ID = "id";
-const std::string LOGAN_NAME = "name";
-const std::string LOGAN_TYPE = "type";
+#define LOGAN_TIMEOFDAY "timeofday"
+#define LOGAN_HOSTNAME "hostname"
+#define LOGAN_MESSAGE_ID "id"
+#define LOGAN_NAME "name"
+#define LOGAN_TYPE "type"
 
 //Hardware table names
-const std::string LOGAN_CPU_TABLE = "HardwareStatus_CPU";
-const std::string LOGAN_FILE_SYSTEM_TABLE = "HardwareStatus_FileSystem";
-const std::string LOGAN_SYSTEM_STATUS_TABLE = "HardwareStatus_System";
-const std::string LOGAN_PROCESS_STATUS_TABLE = "HardwareStatus_Process";
-const std::string LOGAN_INTERFACE_STATUS_TABLE = "HardwareStatus_Interface";
+#define LOGAN_CPU_TABLE "HardwareStatus_CPU"
+#define LOGAN_FILE_SYSTEM_TABLE "HardwareStatus_FileSystem"
+#define LOGAN_SYSTEM_STATUS_TABLE "HardwareStatus_System"
+#define LOGAN_PROCESS_STATUS_TABLE "HardwareStatus_Process"
+#define LOGAN_INTERFACE_STATUS_TABLE "HardwareStatus_Interface"
 
-const std::string LOGAN_SYSTEM_INFO_TABLE = "HardwareInfo_System";
-const std::string LOGAN_PROCESS_INFO_TABLE = "HardwareInfo_Process";
-const std::string LOGAN_INTERFACE_INFO_TABLE = "HardwareInfo_Interface";
-const std::string LOGAN_FILE_SYSTEM_INFO_TABLE = "HardwareInfo_FileSystem";
+#define LOGAN_SYSTEM_INFO_TABLE "HardwareInfo_System"
+#define LOGAN_PROCESS_INFO_TABLE "HardwareInfo_Process"
+#define LOGAN_INTERFACE_INFO_TABLE "HardwareInfo_Interface"
+#define LOGAN_FILE_SYSTEM_INFO_TABLE "HardwareInfo_FileSystem"
+
+#define LOGAN_COL_INS(X) ":" X
 
 void SystemEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
@@ -61,9 +63,9 @@ SystemEvent::ProtoHandler::~ProtoHandler(){
 };
 
 void SystemEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const std::string& time, const std::string& host_name, const int64_t message_id){
-    row.BindString(LOGAN_TIMEOFDAY, time);
-    row.BindString(LOGAN_HOSTNAME, host_name);
-    row.BindInt(LOGAN_MESSAGE_ID, message_id);
+    row.BindString(LOGAN_COL_INS(LOGAN_TIMEOFDAY), time);
+    row.BindString(LOGAN_COL_INS(LOGAN_HOSTNAME), host_name);
+    row.BindInt(LOGAN_COL_INS(LOGAN_MESSAGE_ID), message_id);
 }
 
 SystemEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
@@ -295,8 +297,8 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         auto row = GetTable(LOGAN_SYSTEM_STATUS_TABLE).get_insert_statement();
 
         BindInfoColumns(row, timestamp, host_name, message_id);
-        row.BindDouble("cpu_utilization", status.cpu_utilization());
-        row.BindDouble("phys_mem_utilization", status.phys_mem_utilization());
+        row.BindDouble(LOGAN_COL_INS("cpu_utilization"), status.cpu_utilization());
+        row.BindDouble(LOGAN_COL_INS("phys_mem_utilization"), status.phys_mem_utilization());
         ExecuteTableStatement(row);
     }
 
@@ -305,8 +307,8 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
 
         BindInfoColumns(row, timestamp, host_name, message_id);
 
-        row.BindInt("core_id", i);
-        row.BindDouble("core_utilization", status.cpu_core_utilization(i));
+        row.BindInt(LOGAN_COL_INS("core_id"), i);
+        row.BindDouble(LOGAN_COL_INS("core_utilization"), status.cpu_core_utilization(i));
         ExecuteTableStatement(row);
     }
 
@@ -315,21 +317,21 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         auto row = GetTable(LOGAN_PROCESS_STATUS_TABLE).get_insert_statement();
 
         BindInfoColumns(row, timestamp, host_name, message_id);
-        row.BindInt("pid", proc_pb.pid());
-        row.BindString("name", proc_pb.name());
-        row.BindInt("core_id", proc_pb.cpu_core_id());
+        row.BindInt(LOGAN_COL_INS("pid"), proc_pb.pid());
+        row.BindString(LOGAN_COL_INS("name"), proc_pb.name());
+        row.BindInt(LOGAN_COL_INS("core_id"), proc_pb.cpu_core_id());
 
-        row.BindDouble("cpu_utilization", proc_pb.cpu_utilization());
-        row.BindInt("phys_mem_used_kB", proc_pb.phys_mem_used_kb());
-        row.BindDouble("phys_mem_utilization", proc_pb.phys_mem_utilization());
-        row.BindInt("thread_count", proc_pb.thread_count());
+        row.BindDouble(LOGAN_COL_INS("cpu_utilization"), proc_pb.cpu_utilization());
+        row.BindInt(LOGAN_COL_INS("phys_mem_used_kB"), proc_pb.phys_mem_used_kb());
+        row.BindDouble(LOGAN_COL_INS("phys_mem_utilization"), proc_pb.phys_mem_utilization());
+        row.BindInt(LOGAN_COL_INS("thread_count"), proc_pb.thread_count());
 
-        row.BindInt("disk_read_kB", proc_pb.disk_read_kilobytes());
-        row.BindInt("disk_written_kB", proc_pb.disk_written_kilobytes());
-        row.BindInt("disk_total_kB", proc_pb.disk_total_kilobytes());
+        row.BindInt(LOGAN_COL_INS("disk_read_kB"), proc_pb.disk_read_kilobytes());
+        row.BindInt(LOGAN_COL_INS("disk_written_kB"), proc_pb.disk_written_kilobytes());
+        row.BindInt(LOGAN_COL_INS("disk_total_kB"), proc_pb.disk_total_kilobytes());
         
-        row.BindInt("cpu_time_ms", google::protobuf::util::TimeUtil::DurationToMilliseconds(proc_pb.cpu_time()));
-        row.BindString("state", ProcessStatus::State_Name(proc_pb.state()));
+        row.BindInt(LOGAN_COL_INS("cpu_time_ms"), google::protobuf::util::TimeUtil::DurationToMilliseconds(proc_pb.cpu_time()));
+        row.BindString(LOGAN_COL_INS("state"), ProcessStatus::State_Name(proc_pb.state()));
         ExecuteTableStatement(row);
     }
 
@@ -338,11 +340,11 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         auto row = GetTable(LOGAN_INTERFACE_STATUS_TABLE).get_insert_statement();
 
         BindInfoColumns(row, timestamp, host_name, message_id);
-        row.BindString(LOGAN_NAME, iface_pb.name());
-        row.BindInt("rx_packets", iface_pb.rx_packets());
-        row.BindInt("rx_bytes", iface_pb.rx_bytes());
-        row.BindInt("tx_packets", iface_pb.tx_packets());
-        row.BindInt("tx_bytes", iface_pb.tx_bytes());
+        row.BindString(LOGAN_COL_INS(LOGAN_NAME), iface_pb.name());
+        row.BindInt(LOGAN_COL_INS("rx_packets"), iface_pb.rx_packets());
+        row.BindInt(LOGAN_COL_INS("rx_bytes"), iface_pb.rx_bytes());
+        row.BindInt(LOGAN_COL_INS("tx_packets"), iface_pb.tx_packets());
+        row.BindInt(LOGAN_COL_INS("tx_bytes"), iface_pb.tx_bytes());
         ExecuteTableStatement(row);
     }
 
@@ -351,8 +353,8 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
         auto row = GetTable(LOGAN_FILE_SYSTEM_TABLE).get_insert_statement();
 
         BindInfoColumns(row, timestamp, host_name, message_id);
-        row.BindString(LOGAN_NAME, fs_pb.name());
-        row.BindDouble("utilization", fs_pb.utilization());
+        row.BindString(LOGAN_COL_INS(LOGAN_NAME), fs_pb.name());
+        row.BindDouble(LOGAN_COL_INS("utilization"), fs_pb.utilization());
         ExecuteTableStatement(row);
     }
 
@@ -362,14 +364,14 @@ void SystemEvent::ProtoHandler::ProcessStatusEvent(const StatusEvent& status){
             auto row = GetTable(LOGAN_PROCESS_INFO_TABLE).get_insert_statement();
 
             BindInfoColumns(row, timestamp, host_name, message_id);
-            row.BindInt("pid", proc_pb.pid());
-            row.BindString("cwd", proc_pb.cwd());
-            row.BindString(LOGAN_NAME, proc_pb.name());
-            row.BindString("args", proc_pb.args());
+            row.BindInt(LOGAN_COL_INS("pid"), proc_pb.pid());
+            row.BindString(LOGAN_COL_INS("cwd"), proc_pb.cwd());
+            row.BindString(LOGAN_COL_INS(LOGAN_NAME), proc_pb.name());
+            row.BindString(LOGAN_COL_INS("args"), proc_pb.args());
 
             const auto& start_time = google::protobuf::util::TimeUtil::ToString(proc_pb.start_time());
 
-            row.BindString("start_time", start_time);
+            row.BindString(LOGAN_COL_INS("start_time"), start_time);
             ExecuteTableStatement(row);
         }
     }
@@ -403,18 +405,18 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         BindInfoColumns(row, timestamp, host_name, message_id);
 
         //Bind OS Info
-        row.BindString("os_name", info.os_name());
-        row.BindString("os_arch", info.os_arch());
-        row.BindString("os_description", info.os_description());
-        row.BindString("os_version", info.os_version());
-        row.BindString("os_vendor", info.os_vendor());
-        row.BindString("os_vendor_name", info.os_vendor_name());
+        row.BindString(LOGAN_COL_INS("os_name"), info.os_name());
+        row.BindString(LOGAN_COL_INS("os_arch"), info.os_arch());
+        row.BindString(LOGAN_COL_INS("os_description"), info.os_description());
+        row.BindString(LOGAN_COL_INS("os_version"), info.os_version());
+        row.BindString(LOGAN_COL_INS("os_vendor"), info.os_vendor());
+        row.BindString(LOGAN_COL_INS("os_vendor_name"), info.os_vendor_name());
 
         //Bind CPU Info
-        row.BindString("cpu_model", info.cpu_model());
-        row.BindString("cpu_vendor", info.cpu_vendor());
-        row.BindInt("cpu_frequency_hz", info.cpu_frequency_hz());
-        row.BindInt("physical_memory_kB", info.physical_memory_kilobytes());
+        row.BindString(LOGAN_COL_INS("cpu_model"), info.cpu_model());
+        row.BindString(LOGAN_COL_INS("cpu_vendor"), info.cpu_vendor());
+        row.BindInt(LOGAN_COL_INS("cpu_frequency_hz"), info.cpu_frequency_hz());
+        row.BindInt(LOGAN_COL_INS("physical_memory_kB"), info.physical_memory_kilobytes());
 
         ExecuteTableStatement(row);
     }
@@ -426,9 +428,9 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
 
         BindInfoColumns(row, timestamp, host_name, message_id);
         
-        row.BindString(LOGAN_NAME, fs_pb.name());
-        row.BindString(LOGAN_TYPE, FileSystemInfo::Type_Name(fs_pb.type()));
-        row.BindInt("total_size_kB", fs_pb.size_kilobytes());
+        row.BindString(LOGAN_COL_INS(LOGAN_NAME), fs_pb.name());
+        row.BindString(LOGAN_COL_INS(LOGAN_TYPE), FileSystemInfo::Type_Name(fs_pb.type()));
+        row.BindInt(LOGAN_COL_INS("total_size_kB"), fs_pb.size_kilobytes());
 
         ExecuteTableStatement(row);
     }
@@ -439,13 +441,13 @@ void SystemEvent::ProtoHandler::ProcessInfoEvent(const InfoEvent& info){
         auto row = GetTable(LOGAN_INTERFACE_INFO_TABLE).get_insert_statement();
         BindInfoColumns(row, timestamp, host_name, message_id);
 
-        row.BindString(LOGAN_NAME, iface_pb.name());
-        row.BindString("type", iface_pb.type());
-        row.BindString("description", iface_pb.description());
-        row.BindString("ipv4_addr", iface_pb.ipv4_addr());
-        row.BindString("ipv6_addr", iface_pb.ipv6_addr());
-        row.BindString("mac_addr", iface_pb.mac_addr());
-        row.BindInt("speed", iface_pb.speed());
+        row.BindString(LOGAN_COL_INS(LOGAN_NAME), iface_pb.name());
+        row.BindString(LOGAN_COL_INS("type"), iface_pb.type());
+        row.BindString(LOGAN_COL_INS("description"), iface_pb.description());
+        row.BindString(LOGAN_COL_INS("ipv4_addr"), iface_pb.ipv4_addr());
+        row.BindString(LOGAN_COL_INS("ipv6_addr"), iface_pb.ipv6_addr());
+        row.BindString(LOGAN_COL_INS("mac_addr"), iface_pb.mac_addr());
+        row.BindInt(LOGAN_COL_INS("speed"), iface_pb.speed());
 
         ExecuteTableStatement(row);
     }

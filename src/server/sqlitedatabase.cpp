@@ -58,7 +58,7 @@ SQLiteDatabase::~SQLiteDatabase(){
 sqlite3_stmt* SQLiteDatabase::GetSqlStatement(const std::string& query){
     sqlite3_stmt* statement;
 
-    int result = sqlite3_prepare_v3(database_, query.c_str(), -1, 0, &statement, NULL);
+    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
     if(result == SQLITE_OK){
         return statement;
     }
@@ -72,24 +72,25 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
     if(transaction_count_ == 0){
         auto result = sqlite3_exec(database_, BEGIN_TRANSACTION.c_str(), NULL, NULL, NULL);
         if(result != SQLITE_OK){
-            std::cerr << "SQLite failed to Step" << std::endl;
+            std::cerr << "SQLite failed to BEGIN_TRANSACTION" << std::endl;
         }
     }
 
     {
         auto result = sqlite3_step(&statement);
-        if(result != SQLITE_OK){
+        if(result != SQLITE_DONE){
             std::cerr << "SQLite failed to step statement" << std::endl;
+            std::cerr << sqlite3_sql(&statement) << std::endl;
         }
 
         result = sqlite3_reset(&statement);
         if(result != SQLITE_OK){
             std::cerr << "SQLite failed to reset statement" << std::endl;
         }
-        result = sqlite3_clear_bindings(&statement);
-        if(result != SQLITE_OK){
-            std::cerr << "SQLite failed to clear bindings on statement" << std::endl;
-        }
+        //result = sqlite3_clear_bindings(&statement);
+        //if(result != SQLITE_OK){
+            //std::cerr << "SQLite failed to clear bindings on statement" << std::endl;
+        //}
         transaction_count_ ++;
     }
 

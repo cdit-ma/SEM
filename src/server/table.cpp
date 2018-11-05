@@ -131,6 +131,7 @@ void Table::Finalize(){
         top_ss << ") ";
         bottom_ss << ");";
         table_insert_ = top_ss.str() + bottom_ss.str();
+        
         }
     }
 }
@@ -144,7 +145,8 @@ sqlite3_stmt* Table::get_table_insert_statement(){
     sqlite3_stmt* stmt = 0;
     std::lock_guard<std::mutex> lock(insert_mutex_);
 
-    if(!insert_pool_.size()){
+    if(insert_pool_.size() == 0){
+        std::cerr << "TABLE INSTERT: " << table_insert_ << std::endl;
         stmt = GetSqlStatement(table_insert_);
     }else{
         stmt = insert_pool_.front();
