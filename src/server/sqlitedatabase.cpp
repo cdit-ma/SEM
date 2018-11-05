@@ -99,18 +99,20 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
     }
 }
 
-void SQLiteDatabase::Flush(){
+size_t SQLiteDatabase::Flush(){
     //Gain the mutex and flush
     std::unique_lock<std::mutex> lock(mutex_);
-    Flush_();
+    return Flush_();
 }
 
-void SQLiteDatabase::Flush_(){
-    if(transaction_count_){
+size_t SQLiteDatabase::Flush_(){
+    size_t flush_count = transaction_count_;
+    if(flush_count){
         auto result = sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
         if(result != SQLITE_OK){
             std::cerr << "SQLite failed to END_TRANSACTION" << std::endl;
         }
         transaction_count_ = 0;
     }
+    return flush_count;
 }

@@ -39,9 +39,9 @@ class SQLiteDatabase{
         sqlite3_stmt* GetSqlStatement(const std::string& query);
         //void QueueSqlStatement(sqlite3_stmt * statement);
         void ExecuteSqlStatement(sqlite3_stmt& statement, bool flush = false);
-        void Flush();
+        size_t Flush();
     private:
-        void Flush_();
+        size_t Flush_();
         sqlite3* database_ = 0;
         
         std::mutex mutex_;

@@ -35,8 +35,8 @@ Server::Server(const std::string& database_path, const std::vector<std::string>&
     AddProtoHandler(std::unique_ptr<ProtoHandler>(new ModelEvent::ProtoHandler(*database_)));
     #endif
 
-    database_->Flush();
-    std::cout << "* Constructed tables" << std::endl;
+    auto statement_size = database_->Flush();
+    std::cout << "* Constructed " << statement_size << " tables" << std::endl;
     proto_receiver_->Start();
 }
 

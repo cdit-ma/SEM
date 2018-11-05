@@ -42,7 +42,6 @@ Table::~Table(){
     sqlite3_finalize(table_construct_);
 
     std::lock_guard<std::mutex> lock(insert_mutex_);
-    
     while(insert_pool_.size()){
         sqlite3_finalize(insert_pool_.front());
         insert_pool_.pop();
@@ -120,7 +119,6 @@ void Table::Finalize(){
 
         for(auto i = 1; i < columns_.size(); i++){
             top_ss << columns_[i]->column_name_;
-            //bottom_ss << "?" << std::to_string(i);
             bottom_ss << ":" << columns_[i]->column_name_;
             if(i + 1 != columns_.size()){
                 top_ss << ", ";
