@@ -45,10 +45,11 @@ SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
 }
 
 SQLiteDatabase::~SQLiteDatabase(){
-    //Gain the lock so we can notify and set our terminate flag.
     std::unique_lock<std::mutex> lock(mutex_);
+    //Flush any messages still in the queue
+    Flush_();
+
     int result = sqlite3_close(database_);
-    
     if(result != SQLITE_OK){
         std::cerr << "SQLite failed to close database" << std::endl;
     }
@@ -57,12 +58,11 @@ SQLiteDatabase::~SQLiteDatabase(){
 sqlite3_stmt* SQLiteDatabase::GetSqlStatement(const std::string& query){
     sqlite3_stmt* statement;
 
-    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
+    int result = sqlite3_prepare_v3(database_, query.c_str(), -1, 0, &statement, NULL);
     if(result == SQLITE_OK){
         return statement;
-    }else{
-        return 0;
     }
+    return nullptr;
 }
 
 void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
@@ -71,11 +71,25 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
 
     if(transaction_count_ == 0){
         auto result = sqlite3_exec(database_, BEGIN_TRANSACTION.c_str(), NULL, NULL, NULL);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to Step" << std::endl;
+        }
     }
 
     {
         auto result = sqlite3_step(&statement);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to step statement" << std::endl;
+        }
+
         result = sqlite3_reset(&statement);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to reset statement" << std::endl;
+        }
+        result = sqlite3_clear_bindings(&statement);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to clear bindings on statement" << std::endl;
+        }
         transaction_count_ ++;
     }
 
@@ -92,7 +106,10 @@ void SQLiteDatabase::Flush(){
 
 void SQLiteDatabase::Flush_(){
     if(transaction_count_){
-        sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
+        auto result = sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
+        if(result != SQLITE_OK){
+            std::cerr << "SQLite failed to END_TRANSACTION" << std::endl;
+        }
         transaction_count_ = 0;
     }
 }
