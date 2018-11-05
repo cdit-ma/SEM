@@ -9,8 +9,6 @@ execution_(execution),
 experiment_name_(experiment_name),
 ip_address_(ip_address)
 {
-    execution_.AddTerminateCallback(std::bind(&ManagedServer::Terminate, this));
-
     std::unique_ptr<NodeManager::LoganRegistrationReply> logan_info;
     try{
         logan_info = EnvironmentRequest::TryRegisterLoganServer(environment_manager_endpoint, experiment_name_, ip_address_);
@@ -35,29 +33,25 @@ ip_address_(ip_address)
 
     //Construct a heartbeater
     requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(logan_info->heartbeat_endpoint(), std::bind(&ManagedServer::HandleExperimentUpdate, this, std::placeholders::_1)));
-    requester_->SetTimeoutCallback(std::bind(&ManagedServer::DelayedTerminate, this));
+    requester_->SetTimeoutCallback(std::bind(&ManagedServer::InteruptExecution, this));
 }
 
-void ManagedServer::Terminate(){
+ManagedServer::~ManagedServer(){
     auto start = std::chrono::steady_clock::now();
     servers_.clear();
+    requester_.reset();
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "Termination took: " << ms.count() << " ms" << std::endl;
-    execution_.Interrupt();
-    if(requester_){
-        requester_.reset();
-    }
 }
-void ManagedServer::DelayedTerminate(){
-    std::this_thread::sleep_for(std::chrono::seconds(20));
-    Terminate();
+
+void ManagedServer::InteruptExecution(){
+    execution_.Interrupt();
 }
 
 void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
     switch(message.type()){
         case NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER:{
-            Terminate();
+            InteruptExecution();
             break;
         }
         default:{
