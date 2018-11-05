@@ -35,11 +35,9 @@ class Server{
         Server(const std::string& database_path, const std::vector<std::string>& addresses);
         ~Server();
         SQLiteDatabase& GetDatabase();
-        void Start();
         void AddProtoHandler(std::unique_ptr<ProtoHandler> proto_handler);
     private:
         std::mutex mutex_;
-        bool running_ = false;
         std::unique_ptr<SQLiteDatabase> database_;
         std::unique_ptr<zmq::ProtoReceiver> proto_receiver_;
         

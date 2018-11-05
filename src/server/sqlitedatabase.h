@@ -43,19 +43,9 @@ class SQLiteDatabase{
     private:
         void Flush_();
         sqlite3* database_ = 0;
-        void ProcessQueue();
-
-        std::future<void> writer_future;
-
-        std::mutex queue_mutex_;
+        
+        std::mutex mutex_;
         size_t transaction_count_ = 0;
         std::queue<sqlite3_stmt*> sql_queue_;
-
-        std::condition_variable queue_lock_condition_;
-        std::mutex flush_mutex_;
-        std::condition_variable flush_lock_condition_;
-        bool terminate_ = false;
-        bool flush_ = false;
-        bool blocking_flushed_ = false;
 };
 #endif //SQLITEDATABASE_H

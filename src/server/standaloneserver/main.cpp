@@ -88,7 +88,6 @@ int main(int ac, char** av)
     {
         //Construct a Server to interface between our ZMQ messaging infrastructure and SQLite
         Server server(database_path, client_addresses);
-        server.Start();
 
         std::cout << "* Started Logging." << std::endl;
         std::unique_lock<std::mutex> lock(mutex_);

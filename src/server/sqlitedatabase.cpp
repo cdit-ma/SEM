@@ -46,7 +46,7 @@ SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
 
 SQLiteDatabase::~SQLiteDatabase(){
     //Gain the lock so we can notify and set our terminate flag.
-    std::unique_lock<std::mutex> lock(queue_mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
     int result = sqlite3_close(database_);
     
     if(result != SQLITE_OK){
@@ -67,7 +67,7 @@ sqlite3_stmt* SQLiteDatabase::GetSqlStatement(const std::string& query){
 
 void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
     //Gain the conditional lock
-    std::unique_lock<std::mutex> lock(queue_mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
 
     if(transaction_count_ == 0){
         auto result = sqlite3_exec(database_, BEGIN_TRANSACTION.c_str(), NULL, NULL, NULL);
@@ -85,61 +85,14 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
 }
 
 void SQLiteDatabase::Flush(){
-    //Gain the conditional lock
-    std::unique_lock<std::mutex> lock(queue_mutex_);
+    //Gain the mutex and flush
+    std::unique_lock<std::mutex> lock(mutex_);
     Flush_();
 }
 
 void SQLiteDatabase::Flush_(){
-    auto result = sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
-    
     if(transaction_count_){
-        auto result = sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
+        sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
         transaction_count_ = 0;
-    }
-}
-
-void SQLiteDatabase::ProcessQueue(){
-    while(true){
-        bool force_flush = false;
-        bool terminate = false;
-        std::queue<sqlite3_stmt*> sQueue;
-        {
-            //Wait for condition, if we don't have any SQL Statements.
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            queue_lock_condition_.wait(lock, [this]{return sql_queue_.size() > SQL_BATCH_SIZE || terminate_ || flush_;});
-            
-            terminate = terminate_;
-            force_flush = terminate || flush_;
-            //Unset the flush value
-            flush_ = false;
-            
-            //Swap our queues, and release our lock
-            sql_queue_.swap(sQueue);
-        }
-
-        if(!sQueue.empty()){
-            int result = sqlite3_exec(database_, BEGIN_TRANSACTION.c_str(), NULL, NULL, NULL);
-            auto transaction_count = 0;
-
-            while(!sQueue.empty()){
-                auto statement = sQueue.front();
-                sqlite3_step(statement);
-                sqlite3_finalize(statement);
-                sQueue.pop();
-            }
-            result = sqlite3_exec(database_, END_TRANSACTION.c_str(), NULL, NULL, NULL);
-        }
-
-        //Notify the Flush Function
-        if(force_flush){
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            blocking_flushed_ = true;
-            flush_lock_condition_.notify_all();
-        }
-
-        if(terminate){
-            break;
-        }
     }
 }

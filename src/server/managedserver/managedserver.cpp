@@ -26,7 +26,6 @@ ip_address_(ip_address)
                 client_list.push_back(address);
             }
             servers_.push_back(std::move(std::unique_ptr<Server>(new Server(logger.db_file_name(), client_list))));
-            servers_.back()->Start();
         }
     }
 
@@ -40,7 +39,11 @@ ip_address_(ip_address)
 }
 
 void ManagedServer::Terminate(){
+    auto start = std::chrono::steady_clock::now();
     servers_.clear();
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Termination took: " << ms.count() << " ms" << std::endl;
     execution_.Interrupt();
     if(requester_){
         requester_.reset();
