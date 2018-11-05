@@ -70,14 +70,11 @@ TableInsert Table::get_insert_statement(){
 }
 
 int Table::get_field_id(const std::string& field){
-    int field_id = -1;
-    for(auto i = 1; i < columns_.size(); i++){
-        if(columns_[i]->column_name_ == field){
-            field_id = columns_[i]->column_number_;
-            break;
-        }
+    try{
+        return column_lookup_.at(field);
+    }catch(const std::exception& ex){
+        return -1;
     }
-    return field_id;
 }
 
 void Table::ConstructTableStatement(){
