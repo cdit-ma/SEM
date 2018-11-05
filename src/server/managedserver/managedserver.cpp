@@ -42,6 +42,7 @@ ManagedServer::~ManagedServer(){
     requester_.reset();
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cerr << "Termination: " << ms.count() << std::endl;
 }
 
 void ManagedServer::InteruptExecution(){
