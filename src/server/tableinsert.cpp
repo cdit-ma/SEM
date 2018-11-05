@@ -37,9 +37,12 @@ TableInsert::~TableInsert(){
     stmt_ = 0;
 }
 
+int TableInsert::GetFieldIndex(const std::string& field){
+    return sqlite3_bind_parameter_index(stmt_, field.c_str());
+}
 
 int TableInsert::BindString(const std::string& field, const std::string& val){
-    auto id = table_.get_field_id(field);
+    const auto& id = GetFieldIndex(field);
     
     if(val.size()){
         //const auto& current_data = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, id));
@@ -51,7 +54,7 @@ int TableInsert::BindString(const std::string& field, const std::string& val){
 }
 
 int TableInsert::BindInt(const std::string& field, const int64_t& val){
-    auto id = table_.get_field_id(field);
+    const auto& id = GetFieldIndex(field);
     return sqlite3_bind_int(stmt_, id, val);
 }
 
@@ -61,7 +64,7 @@ int TableInsert::BindDouble(const std::string& field, const double& val){
         //avoid NULL in database
         dbl_var = 0.0;
     }
-    auto id = table_.get_field_id(field);
+    const auto& id = GetFieldIndex(field);
     return sqlite3_bind_double(stmt_, id, dbl_var);
 }
 

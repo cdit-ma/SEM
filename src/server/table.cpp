@@ -120,7 +120,8 @@ void Table::Finalize(){
 
         for(auto i = 1; i < columns_.size(); i++){
             top_ss << columns_[i]->column_name_;
-            bottom_ss << "?" << std::to_string(i);
+            //bottom_ss << "?" << std::to_string(i);
+            bottom_ss << ":" << columns_[i]->column_name_;
             if(i + 1 != columns_.size()){
                 top_ss << ", ";
                 bottom_ss << ", ";
