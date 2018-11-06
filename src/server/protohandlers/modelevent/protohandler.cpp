@@ -26,38 +26,40 @@
 #include <google/protobuf/util/time_util.h>
 
 //Types
-const std::string LOGAN_DECIMAL = "DECIMAL";
-const std::string LOGAN_VARCHAR = "VARCHAR";
-const std::string LOGAN_INT = "INTEGER";
+#define LOGAN_DECIMAL "DECIMAL"
+#define LOGAN_VARCHAR "VARCHAR"
+#define LOGAN_INT "INTEGER"
 
 //Common column names
-const std::string LOGAN_TIMEOFDAY = "timeofday";
-const std::string LOGAN_HOSTNAME = "hostname";
-const std::string LOGAN_MESSAGE_ID = "id";
-const std::string LOGAN_NAME = "name";
-const std::string LOGAN_TYPE = "type";
-const std::string LOGAN_MESSAGE = "message";
-const std::string LOGAN_EXPERIMENT_NAME = "experiment_name";
+#define LOGAN_TIMEOFDAY "timeofday"
+#define LOGAN_HOSTNAME "hostname"
+#define LOGAN_MESSAGE_ID "id"
+#define LOGAN_NAME "name"
+#define LOGAN_TYPE "type"
+#define LOGAN_MESSAGE "message"
+#define LOGAN_EXPERIMENT_NAME "experiment_name"
 
 //Common column names
-const std::string LOGAN_COMPONENT_NAME = "component_name";
-const std::string LOGAN_COMPONENT_ID = "component_id";
-const std::string LOGAN_COMPONENT_TYPE = "component_type";
-const std::string LOGAN_PORT_NAME = "port_name";
-const std::string LOGAN_PORT_ID = "port_id";
-const std::string LOGAN_PORT_KIND = "port_kind";
-const std::string LOGAN_PORT_TYPE = "port_type";
-const std::string LOGAN_PORT_MIDDLEWARE = "port_middleware";
-const std::string LOGAN_WORKER_NAME = "worker_name";
-const std::string LOGAN_WORKER_TYPE = "worker_type";
-const std::string LOGAN_WORKER_ID = "worker_id";
-const std::string LOGAN_LOG_LEVEL = "log_level";
-const std::string LOGAN_EVENT = "event";
+#define LOGAN_COMPONENT_NAME "component_name"
+#define LOGAN_COMPONENT_ID "component_id"
+#define LOGAN_COMPONENT_TYPE "component_type"
+#define LOGAN_PORT_NAME "port_name"
+#define LOGAN_PORT_ID "port_id"
+#define LOGAN_PORT_KIND "port_kind"
+#define LOGAN_PORT_TYPE "port_type"
+#define LOGAN_PORT_MIDDLEWARE "port_middleware"
+#define LOGAN_WORKER_NAME "worker_name"
+#define LOGAN_WORKER_TYPE "worker_type"
+#define LOGAN_WORKER_ID "worker_id"
+#define LOGAN_LOG_LEVEL "log_level"
+#define LOGAN_EVENT "event"
 
 //Model Table names
-const std::string LOGAN_MODELEVENT_LIFECYCLE_TABLE = "ModelEvents_Lifecycle";
-const std::string LOGAN_MODELEVENT_WORKLOAD_TABLE = "ModelEvents_Workload";
-const std::string LOGAN_MODELEVENT_UTILIZATION_TABLE = "ModelEvents_Utilization";
+#define LOGAN_MODELEVENT_LIFECYCLE_TABLE "ModelEvents_Lifecycle"
+#define LOGAN_MODELEVENT_WORKLOAD_TABLE "ModelEvents_Workload"
+#define LOGAN_MODELEVENT_UTILIZATION_TABLE "ModelEvents_Utilization"
+
+#define LOGAN_COL_INS(X) ":" X
 
 ModelEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     ::ProtoHandler(),
@@ -91,9 +93,6 @@ bool ModelEvent::ProtoHandler::GotTable(const std::string& table_name){
     return false;
 }
 
-void ModelEvent::ProtoHandler::QueueTableStatement(TableInsert& insert){
-    database_.QueueSqlStatement(insert.get_statement());
-}
 
 void ModelEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
@@ -139,7 +138,7 @@ void ModelEvent::ProtoHandler::CreateLifecycleTable(){
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_LIFECYCLE_TABLE, std::move(table_ptr)));
 
     //Queue the insert
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::CreateWorkloadTable(){
@@ -165,7 +164,7 @@ void ModelEvent::ProtoHandler::CreateWorkloadTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_WORKLOAD_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::CreateUtilizationTable(){
@@ -184,33 +183,33 @@ void ModelEvent::ProtoHandler::CreateUtilizationTable(){
     table.Finalize();
 
     tables_.emplace(std::make_pair(LOGAN_MODELEVENT_UTILIZATION_TABLE, std::move(table_ptr)));
-    database_.QueueSqlStatement(table.get_table_construct_statement());
+    database_.ExecuteSqlStatement(table.get_table_construct_statement());
 }
 
 void ModelEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const ModelEvent::Info& info){
-    row.BindString(LOGAN_TIMEOFDAY, google::protobuf::util::TimeUtil::ToString(info.timestamp()));
-    row.BindString(LOGAN_EXPERIMENT_NAME, info.experiment_name());
-    row.BindString(LOGAN_HOSTNAME, info.hostname());
+    row.BindString(LOGAN_COL_INS(LOGAN_TIMEOFDAY), google::protobuf::util::TimeUtil::ToString(info.timestamp()));
+    row.BindString(LOGAN_COL_INS(LOGAN_EXPERIMENT_NAME), info.experiment_name());
+    row.BindString(LOGAN_COL_INS(LOGAN_HOSTNAME), info.hostname());
 }
 
 void ModelEvent::ProtoHandler::BindComponentColumns(TableInsert& row, const ModelEvent::Component& component){
-    row.BindString(LOGAN_COMPONENT_NAME, component.name());
-    row.BindString(LOGAN_COMPONENT_ID, component.id());
-    row.BindString(LOGAN_COMPONENT_TYPE, component.type());
+    row.BindString(LOGAN_COL_INS(LOGAN_COMPONENT_NAME), component.name());
+    row.BindString(LOGAN_COL_INS(LOGAN_COMPONENT_ID), component.id());
+    row.BindString(LOGAN_COL_INS(LOGAN_COMPONENT_TYPE), component.type());
 }
 
 void ModelEvent::ProtoHandler::BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker){
-    row.BindString(LOGAN_WORKER_NAME, worker.name());
-    row.BindString(LOGAN_WORKER_ID, worker.id());
-    row.BindString(LOGAN_WORKER_TYPE, worker.type());
+    row.BindString(LOGAN_COL_INS(LOGAN_WORKER_NAME), worker.name());
+    row.BindString(LOGAN_COL_INS(LOGAN_WORKER_ID), worker.id());
+    row.BindString(LOGAN_COL_INS(LOGAN_WORKER_TYPE), worker.type());
 }
 
 void ModelEvent::ProtoHandler::BindPortColumns(TableInsert& row, const ModelEvent::Port& port){
-    row.BindString(LOGAN_PORT_NAME, port.name());
-    row.BindString(LOGAN_PORT_ID, port.id());
-    row.BindString(LOGAN_PORT_TYPE, port.type());
-    row.BindString(LOGAN_PORT_KIND, ModelEvent::Port::Kind_Name(port.kind()));
-    row.BindString(LOGAN_PORT_MIDDLEWARE, port.middleware());
+    row.BindString(LOGAN_COL_INS(LOGAN_PORT_NAME), port.name());
+    row.BindString(LOGAN_COL_INS(LOGAN_PORT_ID), port.id());
+    row.BindString(LOGAN_COL_INS(LOGAN_PORT_TYPE), port.type());
+    row.BindString(LOGAN_COL_INS(LOGAN_PORT_KIND), ModelEvent::Port::Kind_Name(port.kind()));
+    row.BindString(LOGAN_COL_INS(LOGAN_PORT_MIDDLEWARE), port.middleware());
 }
 
 void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::LifecycleEvent& event){
@@ -221,6 +220,7 @@ void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::Lifecycle
 
     try{
         auto row = GetTable(LOGAN_MODELEVENT_LIFECYCLE_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -230,9 +230,8 @@ void ModelEvent::ProtoHandler::ProcessLifecycleEvent(const ModelEvent::Lifecycle
         if(event.has_port())
             BindPortColumns(row, event.port());
 
-        row.BindString(LOGAN_EVENT, ModelEvent::LifecycleEvent::Type_Name(event.type()));
-        
-        database_.QueueSqlStatement(row.get_statement());
+        row.BindString(LOGAN_COL_INS(LOGAN_EVENT), ModelEvent::LifecycleEvent::Type_Name(event.type()));
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessLifecycleEvent() Exception: " << ex.what() << std::endl;
     }
@@ -246,6 +245,7 @@ void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEv
     }
     try{
         auto row = GetTable(LOGAN_MODELEVENT_WORKLOAD_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -255,14 +255,14 @@ void ModelEvent::ProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEv
         if(event.has_worker())
             BindWorkerColumns(row, event.worker());
 
-        row.BindString(LOGAN_TYPE, ModelEvent::WorkloadEvent::Type_Name(event.event_type()));
-        row.BindInt(LOGAN_LOG_LEVEL, event.log_level());
-        row.BindInt("workload_id", event.workload_id());
+        row.BindString(LOGAN_COL_INS(LOGAN_TYPE), ModelEvent::WorkloadEvent::Type_Name(event.event_type()));
+        row.BindInt(LOGAN_COL_INS(LOGAN_LOG_LEVEL), event.log_level());
+        row.BindInt(LOGAN_COL_INS("workload_id"), event.workload_id());
 
-        row.BindString("function_name", event.function_name());
-        row.BindString("args", event.args());
+        row.BindString(LOGAN_COL_INS("function_name"), event.function_name());
+        row.BindString(LOGAN_COL_INS("args"), event.args());
 
-        database_.QueueSqlStatement(row.get_statement());
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessWorkloadEvent() Exception: " << ex.what() << std::endl;
     }
@@ -275,6 +275,7 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
     }
     try{
         auto row = GetTable(LOGAN_MODELEVENT_UTILIZATION_TABLE).get_insert_statement();
+
         if(event.has_info())
             BindInfoColumns(row, event.info());
         
@@ -285,11 +286,11 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
             BindPortColumns(row, event.port());
 
         
-        row.BindInt("port_event_id", event.port_event_id());
-        row.BindString(LOGAN_TYPE, ModelEvent::UtilizationEvent::Type_Name(event.type()));
-        row.BindString(LOGAN_MESSAGE, event.message());
+        row.BindInt(LOGAN_COL_INS("port_event_id"), event.port_event_id());
+        row.BindString(LOGAN_COL_INS(LOGAN_TYPE), ModelEvent::UtilizationEvent::Type_Name(event.type()));
+        row.BindString(LOGAN_COL_INS(LOGAN_MESSAGE), event.message());
 
-        QueueTableStatement(row);
+        database_.ExecuteSqlStatement(row.get_statement());
     }catch(const std::exception& ex){
         std::cerr << "* ModelProtoHander::ProcessUtilizationEvent() Exception: " << ex.what() << std::endl;
     }

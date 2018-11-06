@@ -18,9 +18,11 @@ class ManagedServer{
         };
 
         ManagedServer(Execution& exectution, const std::string& experiment_name, const std::string& ip_address, const std::string& environment_manager_endpoint);
-        void Terminate();
-        void DelayedTerminate();
+        ~ManagedServer();
+
     private:
+        void InteruptExecution();
+        
         void HandleExperimentUpdate(NodeManager::EnvironmentMessage& message);
         std::unique_ptr<EnvironmentRequest::HeartbeatRequester> requester_;
 

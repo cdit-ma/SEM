@@ -47,7 +47,8 @@ namespace SystemEvent{
         private:
             Table& GetTable(const std::string& table_name);
             bool GotTable(const std::string& table_name);
-            void QueueTableStatement(TableInsert& insert);
+
+            void ExecuteTableStatement(TableInsert& row);
 
             //Table creation
             void CreateSystemStatusTable();

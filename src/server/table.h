@@ -42,6 +42,7 @@ struct TableColumn{
 };
 
 class Table{
+    friend TableInsert;
     public:
         Table(SQLiteDatabase& database, const std::string& name);
         ~Table();
@@ -49,10 +50,12 @@ class Table{
         TableInsert get_insert_statement();
 
         int get_field_id(const std::string& field);
-        sqlite3_stmt* get_table_construct_statement();
-        sqlite3_stmt* get_table_insert_statement();
+        sqlite3_stmt& get_table_construct_statement();
 
         void Finalize();
+    protected:
+        void free_table_insert_statement(sqlite3_stmt* stmnt);
+        sqlite3_stmt* get_table_insert_statement();
     private:
         SQLiteDatabase& database_;
 
@@ -68,5 +71,11 @@ class Table{
         
         void ConstructTableStatement();
         sqlite3_stmt* GetSqlStatement(const std::string& query);
+
+        std::mutex insert_mutex_;
+        std::queue<sqlite3_stmt*> insert_pool_;
+
+        
+        sqlite3_stmt* table_construct_ = 0;
 };
 #endif //LOGAN_TABLE_H
