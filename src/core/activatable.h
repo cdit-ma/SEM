@@ -7,6 +7,7 @@
 #include <condition_variable>
 
 #include "attribute.h"
+#include <boost/thread.hpp>
 
 #include <core/loggerproxy.h>
 
@@ -49,7 +50,7 @@ public:
         std::string get_id() const;
         std::string get_type() const;
 
-        bool is_running();
+        bool process_event();
         LoggerProxy& logger() const;
 
         Activatable::State get_state();
@@ -80,12 +81,15 @@ public:
         std::mutex attributes_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Attribute> > attributes_;
 
+        //boost::shared_mutex state_mutex_;
         std::mutex state_mutex_;
-        std::condition_variable state_condition_;
         Activatable::State state_ = Activatable::State::NOT_CONFIGURED;
         
+        //boost::shared_mutex transition_mutex_;
         std::mutex transition_mutex_;
         Activatable::Transition transition_ = Activatable::Transition::NO_TRANSITION;
+
+        std::mutex transitioning_mutex_;
 };
 
 #endif //ACTIVATABLE_H

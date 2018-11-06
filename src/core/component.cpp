@@ -31,8 +31,6 @@ void Component::HandleActivate(){
         }
     }
     BehaviourContainer::HandleActivate();
-
-    
 }
 
 void Component::HandleConfigure(){

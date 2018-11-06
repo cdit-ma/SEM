@@ -79,7 +79,7 @@ void ospl::SubscriberPort<BaseType, OsplType>::HandleConfigure(){
     auto reader = GetReader();
     auto future = std::async(std::launch::async, &ospl::SubscriberPort<BaseType, OsplType>::Loop, this, std::ref(*thread_manager_), std::move(reader));
     thread_manager_->SetFuture(std::move(future));
-    if(!thread_manager_->Configure()){
+    if(!thread_manager_->WaitForConfigured()){
         throw std::runtime_error("ospl Subscriber Port: '" + this->get_name() + "': setup failed!");
     }
     ::SubscriberPort<BaseType>::HandleConfigure();

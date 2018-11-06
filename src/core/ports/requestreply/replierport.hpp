@@ -55,7 +55,7 @@ ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component
 template <class BaseReplyType, class BaseRequestType>
 BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRequestType& base_request){
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
         logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn(base_request);
@@ -77,7 +77,7 @@ ReplierPort<void, BaseRequestType>::ReplierPort(std::weak_ptr<Component> compone
 template <class BaseRequestType>
 void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& base_request){
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
         logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         callback_wrapper_.callback_fn(base_request);
@@ -101,7 +101,7 @@ template <class BaseReplyType>
 BaseReplyType ReplierPort<BaseReplyType, void>::ProcessRequest(){
     BaseMessage base_request;
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
         logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
         auto base_reply = callback_wrapper_.callback_fn();

@@ -68,7 +68,7 @@ void qpid::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
     //Log the recieving
     this->EventRecieved(message);
 
-    if(this->is_running()){
+    if(this->process_event()){
         qpid::messaging::Sender sender = 0;
         {
             std::lock_guard<std::mutex> lock(mutex_);

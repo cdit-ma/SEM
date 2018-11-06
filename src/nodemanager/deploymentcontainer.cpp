@@ -150,12 +150,16 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         //Handle the ports
         for(const auto& port_pb : component_pb.ports()){
             auto port = GetConfiguredPort(component, port_pb);
-            if(port->get_state() != Activatable::State::NOT_CONFIGURED){
-                //Terminate and reactivate?
-                std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
-                port->Terminate();
-                port->Configure();
-                port->Activate();
+            try{
+                if(port->get_state() != Activatable::State::NOT_CONFIGURED){
+                    //Terminate and reactivate?
+                    std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
+                    port->Terminate();
+                    port->Configure();
+                    port->Activate();
+                }
+            }catch(const std::exception& ex){
+                std::cerr << "* Reconfiguring Port Failed: " << port->get_name() << " " << ex.what() << std::endl;
             }
         }
 
@@ -367,8 +371,14 @@ void DeploymentContainer::HandleConfigure(){
     }
     
     for(auto& result : results){
-        if(!result.get()){
-            throw std::runtime_error("DeploymentContainer failed to Configure Component");
+        try{
+            if(result.valid()){
+                if(!result.get()){
+                    throw std::runtime_error("DeploymentContainer failed to Configure Component");
+                }
+            }
+        }catch(const std::exception& ex){
+            throw;
         }
     }
 }

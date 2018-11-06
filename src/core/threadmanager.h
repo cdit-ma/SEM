@@ -15,15 +15,14 @@ class ThreadManager{
         ~ThreadManager();
         void SetThread(std::unique_ptr<std::thread> thread);
         void SetFuture(std::future<void> async_future);
-        bool Configure();
+        
         bool Activate();
         bool Terminate();
-
+        
         void SetTerminate();
 
-        bool isKillable();
-
         bool WaitForActivated();
+        bool WaitForConfigured();
     public:
         //TODO: Maybe should add access control
         void Thread_Configured();
@@ -32,6 +31,11 @@ class ThreadManager{
         bool Thread_WaitForActivate();
         void Thread_WaitForTerminate();
     private:
+        void SetState(State state);
+        bool SetTransition(Transition transition);
+        bool WaitForState(State state);
+        bool WaitForTransition(Transition transition);
+
         std::unique_ptr<std::thread> thread_;
         std::future<void> future_;
 

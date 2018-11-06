@@ -59,9 +59,10 @@ void PeriodicPort::HandleConfigure(){
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
     if(!thread_manager_){
         thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
+
         auto future = std::async(std::launch::async, &PeriodicPort::TickLoop, this);
         thread_manager_->SetFuture(std::move(future));
-        thread_manager_->Configure();
+        thread_manager_->WaitForConfigured();
     }else{
         throw std::runtime_error("PeriodicPort has an active ThreadManager");
     }
@@ -133,6 +134,7 @@ void PeriodicPort::TickLoop(){
             this->EnqueueMessage(std::move(base_type_ptr));
         }
     }
+    
     thread_manager_->Thread_Terminated();
 }
 

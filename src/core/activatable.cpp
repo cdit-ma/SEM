@@ -81,10 +81,12 @@ bool Activatable::Configure(){
 
 
 bool Activatable::transition_state(Transition transition){
-    std::unique_lock<std::mutex> lock(transition_mutex_);
+    //Stop concurrent transitions occuring
+    std::lock_guard<std::mutex> transitioning_lock(transitioning_mutex_);
+
     //get the current state
-    State current_state = get_state();
-    State new_state = current_state;
+    auto current_state = get_state();
+    auto new_state = current_state;
     switch(current_state){
         case State::NOT_CONFIGURED:{
             switch(transition){
@@ -148,17 +150,13 @@ bool Activatable::transition_state(Transition transition){
         }
     }
 
-
-
-
     if(new_state != current_state){
-        //Notify
         {
-            //Notify things blocking
-            std::unique_lock<std::mutex> lock(state_mutex_);
+            //If the state should change, we should set our transition
+            std::lock_guard<std::mutex> transition_lock(transition_mutex_);
             transition_ = transition;
-            state_condition_.notify_all();
         }
+
         bool transitioned = true;
         try{
             switch(transition){
@@ -186,20 +184,18 @@ bool Activatable::transition_state(Transition transition){
             std::cerr << "Exception:" << e.what() << std::endl;
             transitioned = false;
         }
-        
 
+        std::lock_guard<std::mutex> transition_lock(transition_mutex_);
         //If transitioned, move the state, otherwise fail
         if(transitioned){
-            //Change state
-            std::unique_lock<std::mutex> lock(state_mutex_);
+            std::lock_guard<std::mutex> state_lock(state_mutex_);
             state_ = new_state;
-            transition_ = Activatable::Transition::NO_TRANSITION;
-            state_condition_.notify_all();
-            return true;
         }else{
             logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
-            return false;
         }
+        //Reset the transition?
+        transition_ = Activatable::Transition::NO_TRANSITION;
+        return transitioned;
     }else{
         logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
     }
@@ -207,7 +203,7 @@ bool Activatable::transition_state(Transition transition){
 }
 
 Activatable::State Activatable::get_state(){
-    std::unique_lock<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> state_lock(state_mutex_);
     return state_;
 }
 
@@ -215,8 +211,15 @@ LoggerProxy& Activatable::logger() const{
     return *logger_;
 };
 
-bool Activatable::is_running(){
-   return get_state() == Activatable::State::RUNNING; 
+bool Activatable::process_event(){
+    std::unique_lock<std::mutex> state_lock(state_mutex_);//, std::try_to_lock);
+    if(state_ == Activatable::State::RUNNING){
+        std::unique_lock<std::mutex> transition_lock(transition_mutex_, std::try_to_lock);
+        if(transition_lock.owns_lock()){
+            return transition_ == Transition::NO_TRANSITION;
+        }
+    }
+    return false;
 }
 
 

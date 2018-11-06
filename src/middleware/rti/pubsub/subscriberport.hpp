@@ -77,7 +77,7 @@ void rti::SubscriberPort<BaseType, RtiType>::HandleConfigure(){
     auto reader = GetReader();
     auto future = std::async(std::launch::async, &rti::SubscriberPort<BaseType, RtiType>::Loop, this, std::ref(*thread_manager_), std::move(reader));
     thread_manager_->SetFuture(std::move(future));
-    if(!thread_manager_->Configure()){
+    if(!thread_manager_->WaitForConfigured()){
         throw std::runtime_error("rti Subscriber Port: '" + this->get_name() + "': setup failed!");
     }
     ::SubscriberPort<BaseType>::HandleConfigure();
