@@ -9,9 +9,6 @@ def utils = new Utils(this);
 final Boolean IS_TAG = env.TAG_NAME
 final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
-
-final JOB_BASE_NAME = env.JOB_BASE_NAME
-
 //Run full tests on a Tag or a Pull Request
 final def RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
@@ -37,13 +34,7 @@ stage("Checkout"){
             checkout scm
             stash includes: "**", name: "source_code"
 
-            def bundle_script = 'git bundle create re.bundle '
-            if(IS_TAG){
-                bundle_script += '--all'
-            } else {
-                bundle_script += 'origin/' + JOB_BASE_NAME
-            }
-            utils.runScript(bundle_script)
+            utils.runScript('git bundle create re.bundle origin/' + GIT_ID)
             utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
@@ -54,7 +45,7 @@ stage("Checkout"){
             //Create rollout archive
             utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
             archiveArtifacts(ROLLOUT_FILE_NAME)
-            //deleteDir()
+            deleteDir()
         }
     }
 }
