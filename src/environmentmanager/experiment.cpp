@@ -142,6 +142,7 @@ void Experiment::ConfigureMaster() {
             SetMasterIp(node.second->GetIp());
             GetMasterPublisherAddress();
             GetMasterRegistrationAddress();
+            break;
         }
     }
 }
@@ -226,7 +227,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
 
         if (node.GetDeployedComponentCount()) {
             auto hardware_id = node.GetHardwareId();
-            auto container_ids = node.GetContainerIds();
+            auto container_ids = node.GetComponentContainerIds();
 
             node_deployment->set_allocated_id(hardware_id.release());
             for (auto &container_id : container_ids) {

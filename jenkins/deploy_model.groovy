@@ -171,7 +171,7 @@ stage("Add Experiment"){
                 print("** " + deployment_host_name)
                 def container_id_list = []
 
-                for(def container_id : deployment["contianerIds"]){
+                for(def container_id : deployment["containerIds"]){
                     print("*** " + container_id["id"])
                     container_id_list += container_id["id"]
                 }
@@ -186,7 +186,7 @@ stage("Add Experiment"){
     }
 }
 
-def node_manager_node_names = node_manager_node_names.keySet()
+def node_manager_node_names = node_containers.keySet()
 
 def execution_node_names = (node_manager_node_names + logan_server_node_names).unique(false)
 
@@ -201,23 +201,22 @@ for(n in execution_node_names){
                 error("Runtime Node: " + node_name + " doesn't have an IP_ADDRESS env var.")
             }
 
-            def container_ids = node_containers[node_name]
-            def run_node_manager = node_manager_node_names.contains(node_name)
-            def run_logan_server = logan_server_node_names.contains(node_name)
+            dir(build_id){
+                def container_ids = node_containers[node_name]
+                def run_node_manager = node_manager_node_names.contains(node_name)
+                def run_logan_server = logan_server_node_names.contains(node_name)
 
-            def node_executions = [:]
+                def node_executions = [:]
 
-            if(run_node_manager){
-                dir("lib"){
-                    //Unstash the required libraries for this node.
-                    //Have to run in the lib directory due to dll linker paths
-                    unstash "code_" + utils.getNodeOSVersion(node_name)
-                
+                if(run_node_manager){
+                    dir("lib"){
+                        //Unstash the required libraries for this node.
+                        //Have to run in the lib directory due to dll linker paths
+                        unstash "code_" + utils.getNodeOSVersion(node_name)
+                    }
                 }
-            }
 
-            for(def container_id : container_ids){
-                dir(build_id){
+                for(def container_id : container_ids){
                     def args = ' -n "' + experiment_name + '"'
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
@@ -228,6 +227,7 @@ for(n in execution_node_names){
                         args += " -v " + log_verbosity
                     }
 
+                    // Add execution for each container running on this node
                     node_executions["RE_" + node_name + "_" + container_id] = {
                         dir("lib"){
                             //Run re_node_manager
@@ -238,32 +238,32 @@ for(n in execution_node_names){
                         }
                     }
                 }
-            }
 
-            if(run_logan_server){
-                def args = ' -n "' + experiment_name + '"'
-                args += " -e " + env_manager_addr
-                args += " -a " + ip_addr
+                // Run a logan server on the node if specified.
+                if(run_logan_server){
+                    def args = ' -n "' + experiment_name + '"'
+                    args += " -e " + env_manager_addr
+                    args += " -a " + ip_addr
 
-
-                node_executions["LOGAN_" + node_name] = {
-                    //Run Logan
-                    if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
-                        FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
-                        FAILED = true
+                    node_executions["LOGAN_" + node_name] = {
+                        //Run Logan
+                        if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
+                            FAILURE_LIST << ("logan_managedserver failed on node: " + node_name)
+                            FAILED = true
+                        }
                     }
                 }
-            }
 
-            parallel(node_executions)
+                parallel(node_executions)
 
-            //Archive any sql databases produced
-            if(findFiles(glob: '**/*.sql').size() > 0){
-                archiveArtifacts artifacts: '**/*.sql'
-            }
-            //Delete the Dir
-            if(CLEANUP){
-                deleteDir()
+                //Archive any sql databases produced
+                if(findFiles(glob: '**/*.sql').size() > 0){
+                    archiveArtifacts artifacts: '**/*.sql'
+                }
+                //Delete the Dir
+                if(CLEANUP){
+                    deleteDir()
+                }
             }
         }
     }

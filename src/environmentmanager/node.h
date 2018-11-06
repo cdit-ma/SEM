@@ -26,7 +26,7 @@ class Node{
         std::string GetIp() const;
 
         std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
-        std::vector<std::unique_ptr<NodeManager::ContainerId> > GetContainerIds() const;
+        std::vector<std::unique_ptr<NodeManager::ContainerId> > GetComponentContainerIds() const;
 
         //Node, component, attribute and logger adders
         void AddContainer(const NodeManager::Container& container);

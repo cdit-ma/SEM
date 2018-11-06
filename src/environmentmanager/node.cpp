@@ -125,10 +125,10 @@ std::unique_ptr<NodeManager::HardwareId> Node::GetHardwareId() const{
     return hardware_id;
 }
 
-std::vector<std::unique_ptr<NodeManager::ContainerId> > Node::GetContainerIds() const {
+std::vector<std::unique_ptr<NodeManager::ContainerId> > Node::GetComponentContainerIds() const {
     std::vector<std::unique_ptr<NodeManager::ContainerId> > container_ids;
     for(const auto& container : containers_) {
-        if(container.second->GetDeployedCount() > 0){
+        if(container.second->GetDeployedComponentCount() > 0){
             auto container_id = std::unique_ptr<NodeManager::ContainerId>(new NodeManager::ContainerId());
             container_id->set_id(container.second->GetId());
             container_ids.emplace_back(std::move(container_id));
