@@ -803,12 +803,15 @@
     
     <!-- Test that all nodes are deployed -->
     <xsl:function name="cdit:test_deployment">
-        <xsl:param name="component_instances" as="element(gml:node)*"/>
+        <xsl:param name="entities" as="element(gml:node)*"/>
         
         <xsl:variable name="results">
-            <xsl:for-each select="$component_instances">
+            <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="graphml:get_id(.)" />
                 <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
+
+                <xsl:variable name="is_component" select="$kind='ComponentInstance'" />
 
                 <xsl:variable name="deployed_nodes" select="graphml:get_targets(., 'Edge_Deployment')" />
                 
@@ -821,15 +824,18 @@
                 </xsl:variable>
 
                 <xsl:variable name="is_directly_deployed" select="count($deployed_nodes) > 0" />
-                <xsl:variable name="is_indirectly_deployed" select="count($parent_deployed_nodes) > 0" />
+                <xsl:variable name="is_indirectly_deployed" select="$is_component and count($parent_deployed_nodes) > 0" />
                  
                 <xsl:variable name="is_deployed" select="$is_directly_deployed or $is_indirectly_deployed" />
-                
-                <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(('ComponentInstance', o:wrap_quote($label), 'is not deployed'), ' '), true(), 2)"/> 
 
-                <xsl:if test="count($deployed_nodes) = 1 and count($parent_deployed_nodes) = 1">
-                    <xsl:variable name="same_node" select="$deployed_nodes[1] = $parent_deployed_nodes[1]" />
-                    <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(('ComponentInstance', o:wrap_quote($label), 'deployed to a different HardwareNode than one if its ancestor ComponentAssembly entities'), ' '), true(), 2)"/> 
+                
+                <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(($kind, o:wrap_quote($label), 'is not deployed'), ' '), true(), 2)"/> 
+
+                <xsl:if test="$is_component">
+                    <xsl:if test="count($deployed_nodes) = 1 and count($parent_deployed_nodes) = 1">
+                        <xsl:variable name="same_node" select="$deployed_nodes[1] = $parent_deployed_nodes[1]" />
+                        <xsl:value-of select="cdit:output_result($id, $is_deployed, o:join_list(($kind, o:wrap_quote($label), 'deployed to a different HardwareNode than one if its ancestor ComponentAssembly entities'), ' '), true(), 2)"/> 
+                    </xsl:if>
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>
@@ -956,6 +962,8 @@
 
         <xsl:variable name="component_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
         <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('PublisherPortInstance', 'SubscriberPortInstance'))" />
+        <xsl:variable name="deployment_containers" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'DeploymentContainer')" />
+
         
         <xsl:variable name="ospl_aggregates" as="element()*" >
             <xsl:for-each select="$eventport_instances">
@@ -973,7 +981,7 @@
         <xsl:value-of select="cdit:test_assembly_connections($component_instances)" />
         <xsl:value-of select="cdit:test_unique_topic_names($model)" />
         <xsl:value-of select="cdit:test_eventport_delegates($model)" />
-        <xsl:value-of select="cdit:test_deployment($component_instances)" />
+        <xsl:value-of select="cdit:test_deployment(($component_instances, $deployment_containers))" />
     </xsl:function>
 
 
