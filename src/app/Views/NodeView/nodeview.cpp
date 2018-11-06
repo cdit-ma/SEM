@@ -14,6 +14,7 @@
 #include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 #include "SceneItems/Node/membernodeitem.h"
+#include "SceneItems/Node/deploymentcontainernodeitem.h"
 
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
@@ -774,6 +775,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("database");
                 node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
                 break;
+                case NODE_KIND::DEPLOYMENT_CONTAINER:
+                    node_item = new DeploymentContainerNodeItem(item, parentNode);
+                    break;
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);

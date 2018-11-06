@@ -41,6 +41,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/membernodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
@@ -132,6 +133,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h

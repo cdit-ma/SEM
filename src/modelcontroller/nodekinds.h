@@ -69,6 +69,7 @@ enum class NODE_KIND
         HARDWARE_NODE,
         OPENCL_PLATFORM,
         OPENCL_DEVICE,
+        DEPLOYMENT_CONTAINER,
         CLASS,
         CLASS_INSTANCE,
         FUNCTION,

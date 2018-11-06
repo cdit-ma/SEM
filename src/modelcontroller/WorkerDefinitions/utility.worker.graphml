@@ -74,7 +74,7 @@
                     <data key="label">Log</data>
                     <data key="operation">Log</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">book</data>
+                    <data key="icon">speechBubbleFilled</data>
                     <data key="description">Logs a message to the database.</data>
                     <data key="is_variadic">true</data>
                     <graph id="utilityworker::log:">

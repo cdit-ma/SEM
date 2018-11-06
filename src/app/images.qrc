@@ -91,6 +91,7 @@
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
         <file alias="IfCondition">Resources/EntityIcons/IfCondition.png</file>
+        <file alias="DeploymentContainer">Resources/EntityIcons/DeploymentContainer.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -187,6 +188,8 @@
         <file alias="cloudCircle">Resources/Icons/cloudCircle.png</file>
         <file alias="compass">Resources/Icons/compass.png</file>
         <file alias="connect">Resources/Icons/connect.png</file>
+        <file alias="connectTo">Resources/Icons/connectTo.png</file>
+        <file alias="connectFrom">Resources/Icons/connectFrom.png</file>
         <file alias="connectFork">Resources/Icons/connectFork.png</file>
         <file alias="connectStriked">Resources/Icons/connectStriked.png</file>
         <file alias="copy">Resources/Icons/copy.png</file>
@@ -378,5 +381,6 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+        <file alias="docker">Resources/Icons/docker.png</file>
     </qresource>
 </RCC>
