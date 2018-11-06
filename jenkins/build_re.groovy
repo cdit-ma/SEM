@@ -34,7 +34,8 @@ stage("Checkout"){
             checkout scm
             stash includes: "**", name: "source_code"
 
-            utils.runScript('git bundle create re.bundle origin/' + GIT_ID)
+            print("this is the new script")
+            utils.runScript('git bundle create re.bundle --all')
             utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
