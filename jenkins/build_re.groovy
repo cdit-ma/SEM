@@ -41,7 +41,7 @@ stage("Checkout"){
             if(IS_TAG){
                 bundle_script += '--all'
             } else {
-                bundle_script += JOB_BASE_NAME
+                bundle_script += 'origin/' + JOB_BASE_NAME
             }
             utils.runScript(bundle_script)
             utils.runScript('git-archive-all re.tar.gz')
