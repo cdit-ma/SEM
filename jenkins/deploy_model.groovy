@@ -165,23 +165,25 @@ stage("Add Experiment"){
             requires_shutdown = true
             def parsed_json = readJSON file: json_file
 
-            print("Running re_node_manager on:")
+
+            def deployment_message = "Running re_node_manager on:\n"
             for(def deployment : parsed_json["deployments"]){
                 def deployment_host_name = deployment["id"]["hostName"]
-                print("** " + deployment_host_name)
+                deployment_message += "* " + deployment_host_name + "\n"
                 def container_id_list = []
 
                 for(def container_id : deployment["containerIds"]){
-                    print("*** " + container_id["id"])
+                    deployment_message += "** " + container_id["id"] + "\n"
                     container_id_list += container_id["id"]
                 }
                 node_containers[deployment_host_name] = container_id_list
 
                 if(deployment["hasLoganServer"]){
-                    print("*** LoganServer")
+                    deployment_message += "** LoganServer" + "\n"
                     logan_server_node_names += deployment_host_name
                 }
             }
+            print(deployment_message)
         }
     }
 }
