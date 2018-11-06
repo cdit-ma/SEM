@@ -9,6 +9,9 @@ def utils = new Utils(this);
 final Boolean IS_TAG = env.TAG_NAME
 final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
+
+final JOB_BASE_NAME = env.JOB_BASE_NAME
+
 //Run full tests on a Tag or a Pull Request
 final def RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
@@ -38,7 +41,7 @@ stage("Checkout"){
             if(IS_TAG){
                 bundle_script += '--all'
             } else {
-                bundle_script += GIT_ID
+                bundle_script += JOB_BASE_NAME
             }
             utils.runScript(bundle_script)
             utils.runScript('git-archive-all re.tar.gz')
