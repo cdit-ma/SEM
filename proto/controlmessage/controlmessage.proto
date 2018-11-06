@@ -37,7 +37,6 @@ message Node{
     Info info = 1;
     string ip_address = 2;
     repeated Container containers = 3;
-    repeated Logger loggers = 4;
 }
 
 message Container {
