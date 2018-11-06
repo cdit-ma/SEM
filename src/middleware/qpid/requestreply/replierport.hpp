@@ -80,7 +80,7 @@ void qpid::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequ
 
     auto future = std::async(std::launch::async, qpid::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), std::ref(*port_helper_), topic_name_->String());
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 }
 

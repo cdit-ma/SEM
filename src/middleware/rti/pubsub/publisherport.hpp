@@ -78,7 +78,7 @@ void rti::PublisherPort<BaseType, RtiType>::Send(const BaseType& message){
     //Log the recieving
     this->EventRecieved(message);
 
-    if(this->is_running()){
+    if(this->process_event()){
         //std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
             try{

@@ -63,7 +63,7 @@ void qpid::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
     thread_manager_ =  std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, &qpid::SubscriberPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_), std::ref(*port_helper_), topic_name_->String());
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::SubscriberPort<BaseType>::HandleConfigure();
 };
 

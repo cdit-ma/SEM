@@ -178,7 +178,7 @@ void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server), orb_endpoint_->String(), current_naming_service_name_, server_name_->StringList(), server_kind_->String());
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 };
 

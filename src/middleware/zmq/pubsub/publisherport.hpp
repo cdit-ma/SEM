@@ -51,6 +51,8 @@ zmq::PublisherPort<BaseType, ProtoType>::PublisherPort(std::weak_ptr<Component> 
 
 template <class BaseType, class ProtoType>
 zmq::socket_t& zmq::PublisherPort<BaseType, ProtoType>::GetSocket(){
+    std::unique_lock<std::mutex> lock(socket_mutex_);
+
     const auto& thread_id = std::this_thread::get_id();
     auto add_socket = sockets_.count(thread_id) == 0;
     
@@ -68,6 +70,8 @@ zmq::socket_t& zmq::PublisherPort<BaseType, ProtoType>::GetSocket(){
         sockets_[thread_id] = std::move(socket);
     }
     auto& socket = *sockets_[thread_id];
+    lock.unlock();
+
     if(add_socket){
         //Sleep
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -110,7 +114,7 @@ void zmq::PublisherPort<BaseType, ProtoType>::HandleConfigure(){
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, &zmq::PublisherPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_), std::move(xsub_socket), std::move(xpub_socket));
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::PublisherPort<BaseType>::HandleConfigure();
 };
 
@@ -135,7 +139,6 @@ template <class BaseType, class ProtoType>
 void zmq::PublisherPort<BaseType, ProtoType>::HandleTerminate(){
     InterruptLoop();
     std::lock_guard<std::mutex> lock(mutex_);
-    
     thread_manager_.reset();
     ::PublisherPort<BaseType>::HandleTerminate();
 };
@@ -145,11 +148,10 @@ template <class BaseType, class ProtoType>
 void zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
     //Log the recieving
     this->EventRecieved(message);
-
-    if(this->is_running()){
-        std::unique_lock<std::mutex> lock(socket_mutex_);
-        auto& socket = GetSocket();
+    
+    if(this->process_event()){
         try{
+            auto& socket = GetSocket();
             //Translate the base_request object into a string
             const auto& request_str = ::Proto::Translator<BaseType, ProtoType>::BaseToString(message);
             socket.send(String2Zmq(request_str));
@@ -161,6 +163,7 @@ void zmq::PublisherPort<BaseType, ProtoType>::Send(const BaseType& message){
             this->ProcessMessageException(message, error_str + ex.what());
         }
     }
+    
     this->EventIgnored(message);
 };
 

@@ -93,7 +93,7 @@ void zmq::ReplierPort<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoReque
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRequestType>::Loop, std::ref(*thread_manager_), std::ref(*this), std::move(socket));
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 }
 
