@@ -68,7 +68,6 @@ void Experiment::SetActive() {
     }
 }
 
-
 bool Experiment::IsConfigured() const {
     std::unique_lock<std::mutex> lock(mutex_);
     return state_ == ExperimentState::CONFIGURED;
