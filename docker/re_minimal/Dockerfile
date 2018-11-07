@@ -27,7 +27,6 @@ RUN wget https://github.com/zeromq/libzmq/releases/download/v4.2.0/zeromq-4.2.0.
         cmake -G Ninja .. > /dev/null 2>&1  && \
         cd / && \
         cmake --build /opt/zeromq-4.2.0/build --target install > /dev/null 2>&1 && \
-        make install > /dev/null 2>&1 && \
         rm -rf /opt/zeromq* && \
         wget https://raw.githubusercontent.com/zeromq/cppzmq/master/zmq.hpp -q -P /usr/local/include/
 
@@ -54,8 +53,8 @@ RUN wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.g
 #Install sigar
 RUN wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q -P /opt/ && \
         tar xf /opt/sigar-1.6.4B.tar.gz -C /opt/ && \
-        mkdir /opt/sigar/build && \
-        cd /opt/sigar/build && \
+        mkdir /opt/sigar-sigar-1.6.4B/build && \
+        cd /opt/sigar-sigar-1.6.4B/build && \
         cmake -G Ninja .. > /dev/null 2>&1 && \
         cmake --build . --target install > /dev/null 2>&1 && \
         cd / && \
