@@ -113,9 +113,7 @@ void Environment::AddNodes(const std::string& experiment_id, const NodeManager::
 }
 
 void Environment::DistributeContainerToImplicitNodeContainers(const std::string& experiment_id, const NodeManager::Container& container){
-    // TODO: This is incorrect in the case of multiple clusters as containers deployed to a clusters implicit container
     // will end up deployed to nodes not necessarily belonging to that cluster
-
     for(const auto& component : container.components()){
         GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddComponentToImplicitContainer(component);
     }
