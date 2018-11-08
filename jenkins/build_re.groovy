@@ -36,6 +36,7 @@ stage("Checkout"){
             //Get the SHA
             final COMMIT_SHA = utils.runScript('git rev-parse HEAD', false)
             //Checkout into master
+            utils.runScript('git branch master')
             utils.runScript('git checkout master')
             //point master at the SHA of this branch/tag
             utils.runScript('git reset --hard ' + COMMIT_SHA)
