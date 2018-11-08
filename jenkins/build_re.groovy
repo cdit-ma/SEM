@@ -33,12 +33,12 @@ stage("Checkout"){
         dir(PROJECT_NAME){
             checkout scm
             stash includes: "**", name: "source_code"
-            
-            final COMMIT_SHA = utils.runScript('git rev-parse HEAD')
+            //Get the SHA
+            final COMMIT_SHA = utils.runScript('git rev-parse HEAD', false)
             //Checkout into develop
             utils.runScript('git checkout develop')
             //point develop at the SHA of this branch/tag
-            utils.runScript('git reset --hard ' + COMMIT_SHA, false)
+            utils.runScript('git reset --hard ' + COMMIT_SHA)
 
             utils.runScript('git bundle create re.bundle --all')
             utils.runScript('git-archive-all re.tar.gz')
