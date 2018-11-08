@@ -38,8 +38,10 @@ public:
     int GetDeployedCount() const;
     int GetDeployedComponentCount() const;
     int GetLoganServerCount() const;
+    std::vector<std::string> GetLoganServerIds() const;
 
-    bool HasOrbPort() const;
+
+            bool HasOrbPort() const;
     std::string GetOrbPort() const;
     std::string AssignOrbPort();
     void SetOrbPort(const std::string& orb_port);
