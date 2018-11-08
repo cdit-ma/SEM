@@ -43,7 +43,6 @@ void TimelineChart::setMin(double min)
             chart->setMin(min);
         }
         _displayMin = min;
-        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -59,7 +58,6 @@ void TimelineChart::setMax(double max)
             chart->setMax(max);
         }
         _displayMax = max;
-        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -76,7 +74,6 @@ void TimelineChart::setRange(double min, double max)
     }
     _displayMin = min;
     _displayMax = max;
-    emit changeDisplayedRange(_displayMin, _displayMax);
 }
 
 

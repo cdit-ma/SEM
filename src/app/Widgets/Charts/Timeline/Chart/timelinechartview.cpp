@@ -62,7 +62,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         _dateTimeAxis->setDisplayedRange(min, max);
     });
 
-
     /*
      * HOVER LAYOUT
      */
@@ -91,7 +90,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
-
 
     /*
      *  TOP (LEGEND) LAYOUT
@@ -671,5 +669,4 @@ void TimelineChartView::UpdateChartHover()
         posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
         _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
     }*/
-
 }

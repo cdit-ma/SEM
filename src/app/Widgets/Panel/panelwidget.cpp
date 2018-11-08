@@ -561,7 +561,6 @@ void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
     // pass the new ranges to the chart view
 
     // send a request with the new time range
-
 }
 
 
@@ -680,6 +679,8 @@ void PanelWidget::setupLayout()
         playPauseAction->setCheckable(true);
         playPauseAction->setChecked(false);
     }
+
+
 
     requestDataAction = titleBar->addAction("Request/Reload Data");
     connect(requestDataAction, &QAction::triggered, [=]() {
