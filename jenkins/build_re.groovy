@@ -35,7 +35,7 @@ stage("Checkout"){
             stash includes: "**", name: "source_code"
 
             print("this is the new script")
-            utils.runScript('git bundle create re.bundle --all')
+            utils.runScript('git bundle create re.bundle --all --branches --tags')
             utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
