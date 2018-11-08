@@ -51,7 +51,7 @@ stage("Checkout"){
             //Create rollout archive
             utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
             archiveArtifacts(ROLLOUT_FILE_NAME)
-            deleteDir()
+            //deleteDir()
         }
     }
 }
@@ -137,6 +137,7 @@ for(n in builder_nodes){
 stage("Build"){
     parallel builder_map
 }
+return;
 
 stage("Test"){
     parallel test_map
