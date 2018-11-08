@@ -38,7 +38,7 @@ stage("Checkout"){
             //Checkout into develop
             utils.runScript('git checkout develop')
             //point develop at the SHA of this branch/tag
-            utils.runScript('git reset --hard ' + COMMIT_SHA)
+            utils.runScript('git reset --hard ' + COMMIT_SHA, false)
 
             utils.runScript('git bundle create re.bundle --all')
             utils.runScript('git-archive-all re.tar.gz')
