@@ -9,6 +9,7 @@ def utils = new Utils(this);
 final Boolean IS_TAG = env.TAG_NAME
 final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
+final COMMIT_SHA = env.GIT_COMMIT
 //Run full tests on a Tag or a Pull Request
 final def RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
@@ -33,9 +34,13 @@ stage("Checkout"){
         dir(PROJECT_NAME){
             checkout scm
             stash includes: "**", name: "source_code"
-
-            print("this is the new script")
-            utils.runScript('git bundle create re.bundle --all --branches --tags')
+            
+            //Checkout into develop
+            utils.runScript('git checkout develop')
+            //point develop at the SHA of this branch/tag
+            utils.runScript('git reset --hard ' + COMMIT_SHA)
+            
+            utils.runScript('git bundle create re.bundle --all')
             utils.runScript('git-archive-all re.tar.gz')
             
             //Read the VERSION.MD
