@@ -21,6 +21,7 @@ public:
     const QString getQString(const std::string &string);
 
 signals:
+    void receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time);
     void requestResponse(PortLifecycleEvent* event);
     void clearPreviousResults();
     void printResults();

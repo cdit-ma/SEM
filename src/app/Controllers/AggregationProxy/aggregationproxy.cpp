@@ -39,6 +39,9 @@ void AggregationProxy::RequestRunningExperiments()
             auto type = getLifeCycleType(item.type());
             auto time = getQDateTime(item.time());
 
+            emit receivedPortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            continue;
+
             PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
             emit requestResponse(event);
         }

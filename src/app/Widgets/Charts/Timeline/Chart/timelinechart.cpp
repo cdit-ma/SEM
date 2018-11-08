@@ -43,7 +43,6 @@ void TimelineChart::setMin(double min)
             chart->setMin(min);
         }
         _displayMin = min;
-        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -59,7 +58,6 @@ void TimelineChart::setMax(double max)
             chart->setMax(max);
         }
         _displayMax = max;
-        emit changeDisplayedRange(_displayMin, _displayMax);
     }
 }
 
@@ -76,7 +74,6 @@ void TimelineChart::setRange(double min, double max)
     }
     _displayMin = min;
     _displayMax = max;
-    emit changeDisplayedRange(_displayMin, _displayMax);
 }
 
 
@@ -149,11 +146,8 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
         _entityCharts.append(chart);
         _layout->insertWidget(index, chart);
         chart->setPointWidth(pointsWidth);
-        //chart->setRange(_displayMin, _displayMax);
         chart->installEventFilter(this);
-        entityChartRangeChanged(chart->getRangeX().first, chart->getRangeX().second);
         chart->setRange(_displayMin, _displayMax);
-        connect(chart, &EntityChart::dataRangeXChanged, this, &TimelineChart::entityChartRangeChanged);
     }
 }
 
@@ -249,29 +243,6 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
 
 
 /**
- * @brief TimelineChart::entityChartRangeChanged
- * @param min
- * @param max
- */
-void TimelineChart::entityChartRangeChanged(double min, double max)
-{
-    bool update = false;
-    if (min < _dataMin) {
-        _dataMin = min;
-        update = true;
-    }
-    if (max > _dataMax) {
-        _dataMax = max;
-        update = true;
-    }
-    // send a signal to update the axis' range to match the chart's range
-    if (update) {
-        emit rangeChanged(_dataMin, _dataMax);
-    }
-}
-
-
-/**
  * @brief TimelineChart::eventFilter
  * @param watched
  * @param event
@@ -332,10 +303,13 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
         }
         _displayMin = min;
         _displayMax = max;
+
+        // send a signal to update the axis' range
         emit changeDisplayedRange(min, max);
     }
 
-    emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
+    // this is only here to demo that the hover axis dislay's position can be set manually
+    //emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
 
     clearDragMode();
     QWidget::mouseReleaseEvent(event);

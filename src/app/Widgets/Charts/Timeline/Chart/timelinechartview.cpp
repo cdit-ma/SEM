@@ -64,11 +64,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     connect(_timelineChart, &TimelineChart::changeDisplayedRange, [=](double min, double max) {
         _dateTimeAxis->setDisplayedRange(min, max);
     });
-    connect(_timelineChart, &TimelineChart::rangeChanged, [=](double min, double max) {
+    /*connect(_timelineChart, &TimelineChart::rangeChanged, [=](double min, double max) {
         _dateTimeAxis->setRange(min, max);
         // TODO - remove this later
         _dateTimeAxis->setDisplayedRange(min, max);
-    });
+    });*/
 
     /*
      * HOVER LAYOUT
@@ -98,7 +98,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
-
 
     /*
      *  TOP (LEGEND) LAYOUT
@@ -528,6 +527,26 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         seriesChart->setSeriesVisible(kind, action->isChecked());
     }
 
+    // update this timeline chart's range
+    auto timelineRange = _timelineChart->getRange();
+    auto chartRange = seriesChart->getRangeX();
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setRange(chartRange.first, chartRange.second);
+        _timelineChart->initialRangeSet();
+    } else {
+        if (chartRange.first < timelineRange.first) {
+            _timelineChart->setMin(chartRange.first);
+        }
+        if (chartRange.second > timelineRange.second) {
+            _timelineChart->setMax(chartRange.second);
+        }
+    }
+    // if the timeline chart's range was chaged, update the date/time axis' range
+    if (timelineRange != _timelineChart->getRange()) {
+        _dateTimeAxis->setRange(timelineRange.first, timelineRange.second);
+        _dateTimeAxis->setDisplayedRange(timelineRange.first, timelineRange.second);
+    }
+
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesHovered, seriesChart, &EntityChart::seriesHovered);
     connect(this, &TimelineChartView::toggleSeriesKind, seriesChart, &EntityChart::setSeriesVisible);
@@ -659,7 +678,68 @@ void TimelineChartView::UpdateChartHover()
         posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
         _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
     }*/
+}
 
+
+/**
+ * @brief TimelineChartView::requestedData
+ * @param from
+ * @param to
+ */
+void TimelineChartView::requestedData(qint64 from, qint64 to)
+{
+    // update the timeline chart's and the date/time axis' range
+    _timelineChart->setRange(from, to);
+    _dateTimeAxis->setRange(from, to);
+    _dateTimeAxis->setDisplayedRange(from, to);
+}
+
+
+/**
+ * @brief TimelineChartView::receivedData
+ * @param from
+ * @param to
+ */
+void TimelineChartView::receivedData(qint64 from, qint64 to)
+{
+    if ((from == lastRequestedFromTime) && (to == lastRequestedToTime)) {
+        // (1) - if the time frame is the same as the previous one, check if there are any new data
+
+    } else if ((from > lastRequestedToTime) || (to < lastRequestedFromTime)) {
+        // (2) - if it's a completely different time frame, clear the old displayed data
+
+    } else {
+        // (3) - if the time frame overlaps, do (1) for the overlapped time
+
+    }
+    lastRequestedFromTime = from;
+    lastRequestedToTime = to;
+}
+
+
+/**
+ * @brief TimelineChartView::clearPortLifecycleWidgets
+ */
+void TimelineChartView::clearPortLifecycleWidgets()
+{
+    /*
+     * NOTE:: Only clear the widgets when:
+     * New project is triggered or the project is closed
+     * The user unchecks everything in the entity axis
+     */
+    // delete the series, axis item and chart widgets
+    for (auto path : portLifecycleSeries.keys()) {
+        auto entitySet = entitySets_portLifecycle.take(path);
+        auto entityChart = entityCharts_portLifecycle.take(path);
+        _entityAxis->removeEntity(entitySet);
+        _timelineChart->removeEntityChart(entityChart);
+        entitySet->deleteLater();
+        entityChart->deleteLater();
+        portLifecycleSeries.value(path)->deleteLater();
+    }
+    entitySets_portLifecycle.clear();
+    entityCharts_portLifecycle.clear();
+    portLifecycleSeries.clear();
 }
 
 
@@ -667,32 +747,64 @@ void TimelineChartView::UpdateChartHover()
  * @brief TimelineChartView::clearPortLifecycleEvents
  * @param clearWidgets
  */
-void TimelineChartView::clearPortLifecycleEvents(bool clearWidgets)
+void TimelineChartView::clearPortLifecycleEvents()
 {
-    /*for (auto itr = portLifecycleSeries.cbegin(); itr != portLifecycleSeries.cend();) {
-        itr = portLifecycleSeries.erase(itr);
-    }*/
-
-    if (clearWidgets) {
-        // delete the series, axis item and chart widgets
-        //_timelineChart->setVisible(false);
-        for (auto path : portLifecycleSeries.keys()) {
-            auto entitySet = entitySets_portLifecycle.take(path);
-            auto entityChart = entityCharts_portLifecycle.take(path);
-            _entityAxis->removeEntity(entitySet);
-            _timelineChart->removeEntityChart(entityChart);
-            entitySet->deleteLater();
-            entityChart->deleteLater();
-            portLifecycleSeries.value(path)->deleteLater();
-        }
-        entitySets_portLifecycle.clear();
-        entityCharts_portLifecycle.clear();
-        portLifecycleSeries.clear();
-    } else {
-        for (auto series : portLifecycleSeries.values()) {
-            series->clear();
-        }
+    for (auto series : portLifecycleSeries.values()) {
+        series->clear();
     }
+}
+
+
+/**
+ * @brief TimelineChartView::receivedPortLifecycleEvent
+ * @param port
+ * @param type
+ * @param time
+ */
+void TimelineChartView::receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time)
+{
+    QString portPath = port.path;
+    QString compInstPath = port.component_instance.path;
+
+    /*
+    if (portLifecycleSeries.contains(portPath)) {
+
+        auto series = portLifecycleSeries.value(portPath);
+        series->addPortEvent(event);
+        _timelineChart->entityChartRangeChanged(series->getRange().first, series->getRange().second);
+
+    } else {
+
+        constructChartForPortLifecycle(portPath, event->getPort().name);
+        auto chart = entityCharts_portLifecycle[portPath];
+        auto set = entitySets_portLifecycle[portPath];
+        auto series = portLifecycleSeries[portPath];
+
+        series->addPortEvent(event);
+
+        // get/setup parent
+        auto parentSet = entitySets_portLifecycle.value(compInstPath, 0);
+        if (!parentSet) {
+            constructChartForPortLifecycle(compInstPath, event->getPort().component_instance.name);
+            parentSet = entitySets_portLifecycle[compInstPath];
+            auto parentChart = entityCharts_portLifecycle[compInstPath];
+            _timelineChart->addEntityChart(parentChart);
+            _entityAxis->appendEntity(parentSet);
+        }
+
+        // add child to parent
+        parentSet->addChildEntitySet(set);
+        chart->setVisible(parentSet->isExpanded());
+
+        // add widgets to axis and timeline
+        int index = _entityAxis->insertEntity(parentSet, set);
+        _timelineChart->insertEntityChart(index, chart);
+    }
+
+    PortLifecycleEventSeries* parentSeries = portLifecycleSeries.value(compInstPath, 0);
+    if (parentSeries)
+        parentSeries->addPortEvent(event);
+        */
 }
 
 
@@ -712,12 +824,9 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
 
         auto series = portLifecycleSeries.value(eventPath);
         series->addPortEvent(event);
-        _timelineChart->entityChartRangeChanged(series->getRange().first, series->getRange().second);
+        //_timelineChart->entityChartRangeChanged(series->getRange().first, series->getRange().second);
 
     } else {
-
-        /*if (!_timelineChart->isVisible())
-            _timelineChart->setVisible(true);*/
 
         constructChartForPortLifecycle(eventPath, event->getPort().name);
         auto chart = entityCharts_portLifecycle[eventPath];

@@ -113,7 +113,8 @@ QAction* PanelWidget::addTab(QString title, QWidget* widget, QString iconPath, Q
 
         if (iconPath.isEmpty() || iconName.isEmpty()) {
             iconPath = "Icons";
-            iconName = "circleHalo";
+            iconName = "dotsInCircle";
+            //iconName = "circleHalo";
         }
 
         // TODO - Setup icons that ignore toggle state colouring
@@ -547,15 +548,30 @@ void PanelWidget::popOutActiveTab()
 
 /**
  * @brief PanelWidget::requestData
- * @param clearWidgets
+ * @param clear
  */
-void PanelWidget::requestData(bool clearWidgets)
+void PanelWidget::requestData(bool clear)
 {
     if (viewController && lifecycleView) {
         // clear previous results in the timeline chart
-        lifecycleView->clearPortLifecycleEvents(clearWidgets);
+        if (clear)
+            lifecycleView->clearPortLifecycleEvents();
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
+}
+
+
+/**
+ * @brief PanelWidget::timeRangeChanged
+ * @param from
+ * @param to
+ */
+void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
+{
+    // pass the new ranges to the chart view
+
+
+    // send a request with the new time range
 }
 
 
@@ -675,6 +691,8 @@ void PanelWidget::setupLayout()
         playPauseAction->setChecked(false);
     }
 
+
+
     requestDataAction = titleBar->addAction("Request/Reload Data");
     connect(requestDataAction, &QAction::triggered, [=]() {
         requestData(true);
@@ -685,8 +703,8 @@ void PanelWidget::setupLayout()
     });
     titleBar->addSeparator();
 
-    popOutActiveTabAction = titleBar->addAction("Popout Tab");
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
+    popOutActiveTabAction = titleBar->addAction("Popout Tab");
 
     tabsMenu = new QMenu(this);
     connect(tabsMenu, &QMenu::triggered, this, &PanelWidget::tabMenuTriggered);
@@ -706,6 +724,9 @@ void PanelWidget::setupLayout()
         popOutAction = titleBar->addAction("Show Panel Dialog");
         closeAction = titleBar->addAction("Close");
     }
+
+    // TODO: Not using this action currently - hide for now
+    popOutAction->setVisible(false);
 
     tabStack = new QStackedWidget(this);
 

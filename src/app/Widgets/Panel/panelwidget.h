@@ -59,7 +59,8 @@ public slots:
     void popOutPanel();
     void popOutActiveTab();
 
-    void requestData(bool clearWidgets);
+    void requestData(bool clear);
+    void timeRangeChanged(qint64 from, qint64 to);
 
     void handleTimeout();
     void playPauseToggled(bool checked);

@@ -1049,7 +1049,7 @@ double EntityChart::getPointWidth(TIMELINE_SERIES_KIND kind)
 void EntityChart::setMin(double min)
 {
     _displayedMin = min;
-    rangeChanged();
+    update();
 }
 
 
@@ -1060,7 +1060,7 @@ void EntityChart::setMin(double min)
 void EntityChart::setMax(double max)
 {
     _displayedMax = max;
-    rangeChanged();
+    update();
 }
 
 
@@ -1073,7 +1073,7 @@ void EntityChart::setRange(double min, double max)
 {
     _displayedMin = min;
     _displayedMax = max;
-    rangeChanged();
+    update();
 }
 
 
@@ -1082,8 +1082,9 @@ void EntityChart::setRange(double min, double max)
  */
 void EntityChart::rangeChanged()
 {
-    mapPointsFromRange();
-    return;
+    update();
+
+    /*
     double dataRange = _dataMaxX - _dataMinX;
     double displayRange = _displayedMax - _displayedMin;
     if ((dataRange == 0) || (displayRange == 0)) {
@@ -1092,6 +1093,7 @@ void EntityChart::rangeChanged()
         _xScale = displayRange / dataRange;
     }
     mapPointsFromRange();
+    */
 }
 
 

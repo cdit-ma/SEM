@@ -21,6 +21,8 @@ public:
 
     explicit TimelineChart(QWidget* parent = 0);
 
+    // NOTE: The timeline chart doesn't know anything about the data range
+    // These functions all relate to the displayed range
     void setMin(double min);
     void setMax(double max);
     void setRange(double min, double max);
@@ -47,7 +49,6 @@ signals:
     void zoomed(int delta);
     void panned(double dx, double dy);
     void changeDisplayedRange(double min, double max);
-    void rangeChanged(double min, double max, bool updateDisplay = false);
 
     void entityChartHovered(EntityChart* chart, bool hovered);
     void hoverLineUpdated(bool visible, QPointF pos);
@@ -56,7 +57,6 @@ public slots:
     void themeChanged();
 
     void setEntityChartHovered(EntityChart* chart, bool hovered);
-    void entityChartRangeChanged(double min, double max);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -79,8 +79,6 @@ private:
     void clearDragMode();
     double mapToRange(double value);
 
-    double _dataMin = DBL_MAX;
-    double _dataMax = DBL_MIN;
     double _displayMin;
     double _displayMax;
 

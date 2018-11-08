@@ -65,7 +65,12 @@ void PortLifecycleEventSeries::addPortEvents(QList<PortLifecycleEvent*>& events)
  */
 void PortLifecycleEventSeries::clear()
 {
-    portEvents_.clear();
+    auto i = portEvents_.begin();
+    while (i != portEvents_.end()) {
+        (*i)->deleteLater();
+        i = portEvents_.erase(i);
+    }
+    //portEvents_.clear();
 }
 
 

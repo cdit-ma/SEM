@@ -55,7 +55,12 @@ public slots:
 
     void UpdateChartHover();
 
-    void clearPortLifecycleEvents(bool clearWidgets = false);
+    void requestedData(qint64 from, qint64 to);
+    void receivedData(qint64 from, qint64 to);
+
+    void clearPortLifecycleWidgets();
+    void clearPortLifecycleEvents();
+    void receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time);
     void receivedPortLifecycleResponse(PortLifecycleEvent* event);
     void printResults();
 
@@ -89,6 +94,10 @@ private:
 
     QHash<int, EntitySet*> entitySets;
     QHash<int, EntityChart*> entityCharts;
+
+    qint64 lastRequestedFromTime;
+    qint64 lastRequestedToTime;
+    qint64 lastDataUpdatedTime;
 
     QHash<QString, EntitySet*> entitySets_portLifecycle;
     QHash<QString, EntityChart*> entityCharts_portLifecycle;
