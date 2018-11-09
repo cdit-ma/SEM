@@ -68,8 +68,8 @@ Environment& Component::GetEnvironment() const{
 
 
 void Component::SetDirty(){
-    parent_.SetDirty();
     dirty_ = true;
+    parent_.SetDirty();
 }
 
 bool Component::IsDirty(){

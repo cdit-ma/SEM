@@ -89,11 +89,13 @@ Port &Container::GetPort(const std::string &port_id) {
 }
 
 void Container::SetDirty() {
+    dirty_ = true;
+    parent_.SetDirty();
 
 }
 
 bool Container::IsDirty() {
-    return false;
+    return dirty_;
 }
 
 std::unique_ptr<NodeManager::Container> Container::GetProto(const bool full_update) {
@@ -108,12 +110,16 @@ std::unique_ptr<NodeManager::Container> Container::GetProto(const bool full_upda
 
         for(const auto& component : components_) {
             auto component_pb = component.second->GetProto(full_update);
-            container->mutable_components()->AddAllocated(component_pb.release());
+            if(component_pb){
+                container->mutable_components()->AddAllocated(component_pb.release());
+            }
         }
 
         for(const auto& logger : loggers_) {
             auto logger_pb = logger.second->GetProto(full_update);
-            container->mutable_loggers()->AddAllocated(logger_pb.release());
+            if(logger_pb){
+                container->mutable_loggers()->AddAllocated(logger_pb.release());
+            }
         }
 
         if(dirty_){
@@ -194,4 +200,14 @@ bool Container::IsNodeManagerMaster() const {
 
 bool Container::IsLateJoiner() const {
     return late_joiner_;
+}
+
+std::vector<std::string> Container::GetLoganServerIds() const {
+    std::vector<std::string> server_ids;
+    for(const auto& logger : loggers_){
+        if(logger.second->GetType() == Logger::Type::Server){
+            server_ids.emplace_back(logger.second->GetId());
+        }
+    }
+    return server_ids;
 }
