@@ -55,14 +55,17 @@ namespace zmq{
             void ProcessMessage(const zmq::message_t& proto_type, const zmq::message_t& proto_data);
 
             void ProtoConverter();
-            void ZmqReceiver();
+            void ZmqReceiver(zmq::socket_t inproc_socket, zmq::socket_t message_socket);
 
             //RecieverThread helper functions
             bool Connect_(const std::string& address);
             bool Filter_(const std::string& topic_filter);
         private:
+            zmq::socket_t GetInprocSocket();
             ProtoRegister proto_register_;
             
+            const std::string inproc_address_;
+
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
             std::set<std::string> addresses_;
