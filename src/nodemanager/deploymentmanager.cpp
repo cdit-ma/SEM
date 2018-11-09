@@ -35,7 +35,6 @@ DeploymentManager::DeploymentManager(
     proto_receiever_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotExperimentUpdate, this, std::placeholders::_1));
     proto_receiever_->Connect(master_publisher_endpoint);
     proto_receiever_->Filter("*");
-    proto_receiever_->Start();
 
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
