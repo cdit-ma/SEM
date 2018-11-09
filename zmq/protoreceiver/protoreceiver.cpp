@@ -23,77 +23,22 @@
 #include "../zmqutils.hpp"
 
 zmq::ProtoReceiver::ProtoReceiver():
-inproc_address_("inproc://util_socket")
+inproc_address_("inproc://ProtoReceiver")
 {
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     
-    const auto&& inproc_socket = zmq::socket_t(*context_, ZMQ_SUB);
+    auto inproc_socket =  std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REP));
     try{
-        inproc_socket.bind(inproc_address_.c_str());
-        inproc_socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+        inproc_socket->bind(inproc_address_.c_str());
     }catch(const zmq::error_t& ex){
         throw std::runtime_error("zmq::ProtoReceiver: Failed to bind inproc address for util socket");
     }
 
-    zmq_receiver_ = std::async(std::launch::async, &zmq::ProtoReceiver::ZmqReceiver, this, inproc_socket);
+    zmq_receiver_ = std::async(std::launch::async, &zmq::ProtoReceiver::ZmqReceiver, this, std::move(inproc_socket));
     proto_converter_ = std::async(std::launch::async, &zmq::ProtoReceiver::ProtoConverter, this);
 }
 
 zmq::ProtoReceiver::~ProtoReceiver(){
-    Terminate();
-}
-
-zmq::socket_t zmq::ProtoReceiver::GetSubSocket(){
-    std::lock_guard<std::mutex> lock(zmq_mutex_);
-    return zmq::socket_t(*context_, ZMQ_SUB);
-}
-
-zmq::socket_t zmq::ProtoReceiver::GetInprocSocket(){
-    try{
-        const auto&& inproc_socket = GetSubSocket();
-        inproc_socket.connect(inproc_address_.c_str());
-        return inproc_socket;
-    }catch(const zmq::error_t& ex){
-        throw std::runtime_error("zmq::ProtoReceiver: Failed to bind inproc address for util socket");
-    }
-}
-
-void zmq::ProtoReceiver::Start(){
-
-}
-
-void zmq::ProtoReceiver::SetBatchMode(size_t batch_size){
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    batch_size_ = batch_size;
-}
-
-void zmq::ProtoReceiver::Filter(const std::string& filter){
-    auto socket = GetInprocSocket();
-    socket.send(String2Zmq("filter"), ZMQ_SNDMORE);
-    socket.send(String2Zmq(filter));
-}
-
-void zmq::ProtoReceiver::Unfilter(const std::string& filter){
-    auto socket = GetInprocSocket();
-    socket.send(String2Zmq("unfilter"), ZMQ_SNDMORE);
-    socket.send(String2Zmq(filter));
-}
-
-void zmq::ProtoReceiver::Connect(const std::string& address){
-    auto socket = GetInprocSocket();
-    socket.send(String2Zmq("connect"), ZMQ_SNDMORE);
-    socket.send(String2Zmq(address));
-}
-
-void zmq::ProtoReceiver::Disconnect(const std::string& address){
-    auto socket = GetInprocSocket();
-    socket.send(String2Zmq("disconnect"), ZMQ_SNDMORE);
-    socket.send(String2Zmq(address));
-}
-
-void zmq::ProtoReceiver::Terminate(){
-    std::lock_guard<std::mutex> lock(future_mutex_);
-
     if(zmq_receiver_.valid()){
         {
             //Destroy the context
@@ -101,8 +46,11 @@ void zmq::ProtoReceiver::Terminate(){
             context_.reset();
         }
 
-        //Wait for the zmq receiver to finish
-        zmq_receiver_.wait();
+        try{
+            zmq_receiver_.get();
+        }catch(const std::exception& ex){
+            std::cerr << "zmq::ProtoReceiver:ZmqAsync: " << ex.what() << std::endl;
+        }
     }
 
     if(proto_converter_.valid()){
@@ -113,21 +61,139 @@ void zmq::ProtoReceiver::Terminate(){
             queue_lock_condition_.notify_all();
         }
 
-        //Wait for the proto converter to finish
-        proto_converter_.wait();
+        try{
+            proto_converter_.get();
+        }catch(const std::exception& ex){
+            std::cerr << "zmq::ProtoReceiver:ProtoAsync: " << ex.what() << std::endl;
+        }
     }
 }
 
+std::unique_ptr<zmq::socket_t> zmq::ProtoReceiver::GetSubSocket(){
+    std::lock_guard<std::mutex> lock(zmq_mutex_);
+    auto socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_SUB));
+    socket->setsockopt(ZMQ_LINGER, 0);
+    return socket;
+}
 
-void zmq::ProtoReceiver::ZmqReceiver(zmq::socket_t inproc_socket){
+
+std::unique_ptr<zmq::socket_t> zmq::ProtoReceiver::GetInprocSocket(){
+    try{
+        std::lock_guard<std::mutex> lock(zmq_mutex_);
+        auto socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
+        socket->setsockopt(ZMQ_LINGER, 0);
+        socket->connect(inproc_address_.c_str());
+        return socket;
+    }catch(const zmq::error_t& ex){
+        throw std::runtime_error("zmq::ProtoReceiver: Failed to bind inproc address for util socket");
+    }
+}
+
+void zmq::ProtoReceiver::SetBatchMode(size_t batch_size){
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    batch_size_ = batch_size;
+}
+
+void zmq::ProtoReceiver::SendInprocMessage(const std::string& function, const std::string& args){
+    auto socket = GetInprocSocket();
+    socket->send(String2Zmq(function), ZMQ_SNDMORE);
+    socket->send(String2Zmq(args));
+    auto events = zmq::poll({{*socket, 0, ZMQ_POLLIN, 0}}, 100);
+    if(!events){
+        throw std::runtime_error("zmq::ProtoReceiver(): Sending inproc message has timed out. Something is very wrong");
+    }
+}
+
+void zmq::ProtoReceiver::Filter(const std::string& filter){
+    SendInprocMessage("filter", filter);
+}
+
+void zmq::ProtoReceiver::Unfilter(const std::string& filter){
+    SendInprocMessage("unfilter", filter);
+}
+
+void zmq::ProtoReceiver::Connect(const std::string& address){
+    SendInprocMessage("connect", address);
+}
+
+void zmq::ProtoReceiver::Disconnect(const std::string& address){
+    SendInprocMessage("disconnect", address);
+}
+
+
+void zmq::ProtoReceiver::ZmqReceiver(std::unique_ptr<zmq::socket_t> inproc_socket){
     auto message_socket = GetSubSocket();
-
+    
     zmq::pollitem_t poll_items[] = {
-        {inproc_socket, 0, ZMQ_POLLIN, 0},
-        {message_socket, 0, ZMQ_POLLIN, 0}
+        {*inproc_socket, 0, ZMQ_POLLIN, 0},
+        {*message_socket, 0, ZMQ_POLLIN, 0}
     };
-
+    
     while(true){
+        try{
+            //Wait for events
+            zmq::poll(&poll_items[0], 2, -1);
+
+            if(poll_items[0].revents & ZMQ_POLLIN) {
+                zmq::message_t function;
+                zmq::message_t args;
+                inproc_socket->recv(&function);
+                inproc_socket->recv(&args);
+
+                const auto& function_str = Zmq2String(function);
+                const auto& args_str = Zmq2String(args);
+                
+                try{
+                    if(function_str == "connect"){
+                        message_socket->connect(args_str.c_str());
+                    }else if(function_str == "disconnect"){
+                        message_socket->disconnect(args_str.c_str());
+                    }else if(function_str == "filter"){
+                        message_socket->setsockopt(ZMQ_SUBSCRIBE, args_str.c_str(), args_str.size());
+                    }else if(function_str == "unfilter"){
+                        message_socket->setsockopt(ZMQ_UNSUBSCRIBE, args_str.c_str(), args_str.size());
+                    }else{
+                        throw std::runtime_error("Got Invalid Function: '" + function_str + "'");
+                    }
+                }catch(const zmq::error_t& ex){
+                    if(ex.num() != ETERM){
+                        std::cerr << "zmq::ProtoReplier: Handling Function '" + function_str + "' with Args: '" + args_str + "' threw error: '" + ex.what() << std::endl;
+                    }
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                inproc_socket->send(zmq::message_t());
+                continue;
+            }
+
+            if (poll_items[1].revents & ZMQ_POLLIN) {
+                zmq::message_t topic;
+                std::pair<zmq::message_t, zmq::message_t> message_pair;
+
+                //Wait for Topic, Type and Data
+                message_socket->recv(&topic);
+                message_socket->recv(&(message_pair.first));
+                message_socket->recv(&(message_pair.second));
+
+                bool notify = false;
+                {
+                    std::lock_guard<std::mutex> lock(queue_mutex_);
+                    rx_message_queue_.emplace(std::move(message_pair));
+                    notify = rx_message_queue_.size() > batch_size_;
+                }
+
+                if(notify){
+                    //Notify the ProtoConverter
+                    queue_lock_condition_.notify_all();
+                }
+            }
+        }catch(const zmq::error_t& ex){
+            if(ex.num() != ETERM){
+                throw;
+            }else{
+                break;
+            }
+        }
+    }
 }
 
 void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite& message_default_instance, std::function<void(const google::protobuf::MessageLite&)> callback_function){
