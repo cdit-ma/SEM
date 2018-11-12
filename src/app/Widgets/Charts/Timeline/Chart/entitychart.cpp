@@ -180,6 +180,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
     }
     paintSeries(painter, _hoveredSeriesKind);
 
+    qreal penWidth = _gridPen.widthF();
+
     // display the y-range and send the series points that were hovered over
     if (_hovered) {
         if (_containsYRange) {
@@ -196,11 +198,12 @@ void EntityChart::paintEvent(QPaintEvent* event)
             painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
             painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
         }
+        penWidth *= 4.0;
         emit dataHovered(_hoveredPoints);
     }
 
     // draw horizontal grid lines
-    painter.setPen(_gridPen);
+    painter.setPen(QPen(_gridPen.color(), penWidth));
     painter.drawLine(rect().topLeft(), rect().topRight());
     painter.drawLine(rect().bottomLeft(), rect().bottomRight());
 

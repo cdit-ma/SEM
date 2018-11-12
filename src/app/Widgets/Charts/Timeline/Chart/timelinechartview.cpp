@@ -146,12 +146,24 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     /*
      * MID (SCROLL AREA) LAYOUT
      */
+
+    /*axisToolbar = new QToolBar(this);
+    axisToolbar->setOrientation(Qt::Vertical);
+
+    QWidget* stretchWidget = new QWidget(this);
+    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    allEntitiesAction = axisToolbar->addAction("Available Entities");
+    selectedEntityAction = axisToolbar->addAction("Selected Entity");
+    axisToolbar->addWidget(stretchWidget);*/
+
     QWidget* mainWidget = new QWidget(this);
     QHBoxLayout* scrollLayout = new QHBoxLayout(mainWidget);
     scrollLayout->setMargin(0);
     scrollLayout->setSpacing(0);
     scrollLayout->addWidget(_timelineChart, 1);
     scrollLayout->addWidget(_entityAxis);
+    //scrollLayout->addWidget(axisToolbar);
 
     _scrollArea = new QScrollArea(this);
     _scrollArea->setWidget(mainWidget);
@@ -280,6 +292,16 @@ void TimelineChartView::themeChanged()
     notificationLegendAction->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
     lineLegendAction->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
 
+    /*axisToolbar->setFixedWidth(theme->getLargeIconSize().width());
+    axisToolbar->setStyleSheet(theme->getToolTipStyleSheet() +
+                                 theme->getToolBarStyleSheet() +
+                                 "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
+                                 "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
+                                 "QToolButton:!hover{ background: rgba(0,0,0,0); }");
+
+    allEntitiesAction->setIcon(theme->getIcon("Icons", "list"));
+    selectedEntityAction->setIcon(theme->getIcon("Icons", "crosshair"));*/
+
     _eventsButton->setIcon(theme->getIcon("ToggleIcons", "stateLegendToggle"));
     _messagesButton->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
     _utilisationButton->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
@@ -297,8 +319,8 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
-    _topfillerWidget->setFixedWidth(size.width());
-    _bottomfillerWidget->setFixedWidth(size.width());
+    _topfillerWidget->setFixedWidth(size.width()); // + axisToolbar->width());
+    _bottomfillerWidget->setFixedWidth(size.width()); // + axisToolbar->width());
 }
 
 
@@ -520,23 +542,23 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
 
     // update this timeline chart's range
-       auto timelineRange = _timelineChart->getRange();
-       auto chartRange = seriesChart->getRangeX();
-       if (!_timelineChart->isRangeSet()) {
-           _timelineChart->setRange(chartRange.first, chartRange.second);
-           _timelineChart->initialRangeSet();
-       } else {
-           if (chartRange.first < timelineRange.first) {
-               _timelineChart->setMin(chartRange.first);
-           }
-           if (chartRange.second > timelineRange.second) {
-               _timelineChart->setMax(chartRange.second);
-           }
-       }
-       // if the timeline chart's range was changed, update the date/time axis' range
-       if (timelineRange != _timelineChart->getRange()) {
-           _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
-       }
+    auto timelineRange = _timelineChart->getRange();
+    auto chartRange = seriesChart->getRangeX();
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setRange(chartRange.first, chartRange.second);
+        _timelineChart->initialRangeSet();
+    } else {
+        if (chartRange.first < timelineRange.first) {
+            _timelineChart->setMin(chartRange.first);
+        }
+        if (chartRange.second > timelineRange.second) {
+            _timelineChart->setMax(chartRange.second);
+        }
+    }
+    // if the timeline chart's range was changed, update the date/time axis' range
+    if (timelineRange != _timelineChart->getRange()) {
+        _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+    }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesHovered, seriesChart, &EntityChart::seriesHovered);

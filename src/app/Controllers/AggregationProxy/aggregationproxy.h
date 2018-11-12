@@ -15,6 +15,7 @@ public:
     AggregationProxy();
 
     void RequestRunningExperiments();
+    void RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
