@@ -6,6 +6,9 @@ ninjabuild
 lib
 bin
 .sql
+.idea
+cmake-build-release
+cmake-build-debug
 
 scripts/configure.bat
 build.bat

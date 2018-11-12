@@ -47,9 +47,15 @@ final MODEL_FILE = UNIQUE_ID + ".graphml"
 def builder_nodes = []
 def nodes = nodesByLabel("re")
 
+def docker_nodes = nodesByLabel("docker_runtime")
+
 //Get the builder nodes
 for(node_name in nodesByLabel("builder")){
     builder_nodes += node_name
+}
+
+if(docker_nodes.size() != 0){
+    builder_nodes += docker_nodes[0]
 }
 
 if(builder_nodes.size() == 0){
@@ -111,26 +117,56 @@ for(n in builder_nodes){
     def node_name = n;
     //Define the Builder instructions
     builder_map[node_name] = {
-        node(node_name){
-            //Cache dir is the experiment_name
-            def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-            dir(UNIQUE_ID){
-                //Unstash the generated code
-                unstash 'codegen'
-                dir("lib"){
-                    //Clear any cached binaries
-                    deleteDir()
-                }
-                dir("build"){
-                    if(!utils.buildProject("Ninja", "", false)){
-                        error("CMake failed on Builder Node: " + node_name)
+        if(docker_nodes.contains(node_name)){
+            node(node_name){
+                //Cache dir is the experiment_name
+                docker.image("192.168.111.98:5000/re_minimal").inside() {
+                    def stash_name = "code_" + utils.getNodeOSVersion(node_name)
+                    print(stash_name)
+                    dir(UNIQUE_ID){
+                        //Unstash the generated code
+                        unstash 'codegen'
+                        dir("lib"){
+                            //Clear any cached binaries
+                            deleteDir()
+                        }
+                        dir("build"){
+                            if(!utils.buildProject("Ninja", "", false)){
+                                error("CMake failed on Builder Node: " + node_name)
+                            }
+                        }
+                        dir("lib"){
+                        sh "ls -lah"
+
+                            //Stash all built libraries
+                            stash includes: '**', name: stash_name
+                        }
+                        deleteDir()
                     }
                 }
-                dir("lib"){
-                    //Stash all built libraries
-                    stash includes: '**', name: stash_name
+            }
+        } else {
+            node(node_name){
+                //Cache dir is the experiment_name
+                def stash_name = "code_" + utils.getNodeOSVersion(node_name)
+                dir(UNIQUE_ID){
+                    //Unstash the generated code
+                    unstash 'codegen'
+                    dir("lib"){
+                        //Clear any cached binaries
+                        deleteDir()
+                    }
+                    dir("build"){
+                        if(!utils.buildProject("Ninja", "", false)){
+                            error("CMake failed on Builder Node: " + node_name)
+                        }
+                    }
+                    dir("lib"){
+                        //Stash all built libraries
+                        stash includes: '**', name: stash_name
+                    }
+                    deleteDir()
                 }
-                deleteDir()
             }
         }
     }
@@ -146,6 +182,7 @@ def requires_shutdown = false
 //Run the environment controller on master
 def node_containers = [:]
 def logan_server_node_names = []
+def container_docker_flags = [:]
 
 stage("Add Experiment"){
     node("master"){
@@ -175,6 +212,7 @@ stage("Add Experiment"){
                 for(def container_id : deployment["containerIds"]){
                     deployment_message += "** " + container_id["id"] + "\n"
                     container_id_list += container_id["id"]
+                    container_docker_flags[container_id] += container_id["isDocker"]
                 }
                 node_containers[deployment_host_name] = container_id_list
 
@@ -219,6 +257,7 @@ for(n in execution_node_names){
                 }
 
                 for(def container_id : container_ids){
+                    def is_docker = container_docker_flags[container_id]
                     def args = ' -n "' + experiment_name + '"'
                     args += " -e " + env_manager_addr
                     args += " -a " + ip_addr
@@ -231,11 +270,23 @@ for(n in execution_node_names){
 
                     // Add execution for each container running on this node
                     node_executions["RE_" + node_name + "_" + container_id] = {
-                        dir("lib"){
-                            //Run re_node_manager
-                            if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
-                                FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
-                                FAILED = true
+                        if(is_docker){
+                            docker.image("192.168.111.98:5000/re_minimal").inside() {
+                                dir("lib"){
+                                    //Run re_node_manager
+                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                        FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
+                                        FAILED = true
+                                    }
+                                }
+                            }
+                        } else {
+                            dir("lib"){
+                                //Run re_node_manager
+                                if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                    FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
+                                    FAILED = true
+                                }
                             }
                         }
                     }

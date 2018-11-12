@@ -18,6 +18,20 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
     id_ = container.info().id();
     name_ = container.info().name();
 
+    switch(container.type()) {
+        case NodeManager::Container::GENERIC: {
+            container_type_ = Type::Generic;
+            break;
+        }
+        case NodeManager::Container::DOCKER: {
+            container_type_ = Type::Docker;
+            break;
+        }
+        default: {
+            container_type_ = Type::Generic;
+        }
+    }
+
     late_joiner_ = container.is_late_joiner();
 
     for(const auto& component : container.components()){
@@ -79,6 +93,10 @@ bool Container::HasPort(const std::string &port_id) {
     return false;
 }
 
+bool Container::IsDocker() const {
+    return container_type_ == Type::Docker;
+}
+
 Port &Container::GetPort(const std::string &port_id) {
     for (const auto &component : components_) {
         if (component.second->HasPort(port_id)) {
@@ -107,6 +125,13 @@ std::unique_ptr<NodeManager::Container> Container::GetProto(const bool full_upda
         container->mutable_info()->set_name(name_);
         container->mutable_info()->set_id(id_);
         container->mutable_info()->set_type(type_);
+
+        if(container_type_ == Type::Generic) {
+            container->set_type(NodeManager::Container::GENERIC);
+        }
+        if(container_type_ == Type::Docker) {
+            container->set_type(NodeManager::Container::DOCKER);
+        }
 
         for(const auto& component : components_) {
             auto component_pb = component.second->GetProto(full_update);
