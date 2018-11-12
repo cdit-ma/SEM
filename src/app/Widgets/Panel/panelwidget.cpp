@@ -569,9 +569,10 @@ void PanelWidget::requestData(bool clear)
 void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
 {
     // pass the new ranges to the chart view
-
+    lifecycleView->requestedData(from, to);
 
     // send a request with the new time range
+
 }
 
 

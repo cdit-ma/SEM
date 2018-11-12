@@ -16,9 +16,11 @@ public:
     AggregationProxy();
 
     void RequestRunningExperiments();
+    void RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS);
 
-    const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
-    const QString getQString(const std::string &string);
+    static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
+    static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
+    static const QString getQString(const std::string &string);
 
 signals:
     void receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time);
@@ -26,7 +28,9 @@ signals:
     void clearPreviousResults();
     void printResults();
 
-private:
+private:    
+    void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
+
     Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
     Port::Kind getPortKind(const AggServer::Port_Kind kind);

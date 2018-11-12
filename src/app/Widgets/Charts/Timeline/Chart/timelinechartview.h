@@ -89,6 +89,10 @@ private:
     QAction* notificationLegendAction;
     QAction* lineLegendAction;
 
+    QToolBar* axisToolbar;
+    QAction* allEntitiesAction;
+    QAction* selectedEntityAction;
+
     QColor hoverItemBackgroundColor;
     QString hoveredEntityLabel;
 

@@ -11,51 +11,37 @@ AggregationProxy::AggregationProxy() :
 {
 }
 
+
 void AggregationProxy::RequestRunningExperiments()
 {
+    AggServer::PortLifecycleRequest request;
+    SendPortLifecycleRequest(request);
+}
 
-    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
-    try {
-        // setup request
-        AggServer::PortLifecycleRequest request_type;
-        //request_type.add_component_instance_paths("top_level_assembly.1/");
-        /*
-        request_type.add_time_interval();
-        request_type.add_port_paths("poop");
-        request_type.add_component_instance_paths("");
-        request_type.add_component_names("");
-        */
+/**
+ * @brief AggregationProxy::RequestRunningExperiments
+ * @param fromTimeMS
+ * @param toTimeMS
+ */
+void AggregationProxy::RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS)
+{
+    AggServer::PortLifecycleRequest request;
+    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(fromTimeMS).release());
+    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(toTimeMS).release());
+    SendPortLifecycleRequest(request);
+}
 
-        auto start = QDateTime::currentMSecsSinceEpoch();
-        auto results = requester_.GetPortLifecycle(request_type);
 
-        qDebug() << "--------------------------------------------------------------------------------";
-        qDebug() << "Requested PortLifecycleEvents . . . ";
-        qDebug() << "Result Size#: " << results.get()->events_size();
-
-        for (auto item : results.get()->events()) {
-            auto port = convertPort(item.port());
-            auto type = getLifeCycleType(item.type());
-            auto time = getQDateTime(item.time());
-
-            emit receivedPortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            continue;
-
-            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            emit requestResponse(event);
-        }
-
-        auto finish = QDateTime::currentMSecsSinceEpoch();
-        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
-        qDebug() << "--------------------------------------------------------------------------------";
-
-        notification->setSeverity(Notification::Severity::SUCCESS);
-
-    } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
-    }
+/**
+ * @brief AggregationProxy::constructTimestampFromMS
+ * @param milliseconds
+ * @return
+ */
+std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::constructTimestampFromMS(qint64 milliseconds)
+{
+    google::protobuf::Timestamp timestamp = google::protobuf::util::TimeUtil::MillisecondsToTimestamp(milliseconds);
+    return std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp(timestamp));
 }
 
 
@@ -79,6 +65,49 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 const QString AggregationProxy::getQString(const std::string &string)
 {
     return QString::fromUtf8(string.c_str());
+}
+
+
+/**
+ * @brief AggregationProxy::SendPortLifecycleRequest
+ * @param request
+ */
+void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+        auto start = QDateTime::currentMSecsSinceEpoch();
+        auto results = requester_.GetPortLifecycle(request);
+
+        qDebug() << "--------------------------------------------------------------------------------";
+        qDebug() << "Requested PortLifecycleEvents . . . ";
+        qDebug() << "Result Size#: " << results.get()->events_size();
+
+        emit clearPreviousResults();
+
+        for (auto item : results.get()->events()) {
+            auto port = convertPort(item.port());
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
+
+            //emit receivedPortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            //continue;
+
+            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            emit requestResponse(event);
+        }
+
+        auto finish = QDateTime::currentMSecsSinceEpoch();
+        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
 }
 
 

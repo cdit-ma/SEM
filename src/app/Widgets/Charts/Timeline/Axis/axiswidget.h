@@ -25,7 +25,7 @@ public:
     void setMin(double min);
     void setMax(double max);
 
-    void setRange(double min, double max);
+    void setRange(double min, double max, bool updateDisplay = false);
     QPair<double, double> getRange();
 
     void zoom(double factor);

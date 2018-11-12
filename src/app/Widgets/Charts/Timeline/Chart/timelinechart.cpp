@@ -304,7 +304,7 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
         _displayMin = min;
         _displayMax = max;
 
-        // send a signal to update the axis' range
+        // send a signal to update the axis' displayed range
         emit changeDisplayedRange(min, max);
     }
 
