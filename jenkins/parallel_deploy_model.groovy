@@ -59,32 +59,39 @@ node("master"){
 
             currentBuild.displayName = "#" + build_id + " - " + EXPERIMENT_PREFIX + " [" + experiment_count + "]"
 
+            def model_executions = [:]
+
             def index = 0
             for(def file : model_files){
                 def i = index++;
                 def file_path = file.name
                 def file_name = utils.trimExtension(file_path)
                 def experiment_name = EXPERIMENT_PREFIX + "-" + i + "-" + file_name
-                //For some reason files can only be constructed from the Master Node and relative to WORKSPACE
-                def model = new File("${WORKSPACE}/" + workspace_dir + "/" + file_path)
                 
-                def result = build(job: DOWNSTREAM_JOB_NAME, quietPeriod: 0, wait: true, propagate: false,
-                    parameters: [
-                        string(name: 'EXECUTION_TIME', value: EXPERIMENT_TIME),
-                        string(name: 'EXPERIMENT_NAME', value: experiment_name),
-                        string(name: 'LOG_VERBOSITY', value: LOG_VERBOSITY),
-                        new FileParameterValue("model", model, file_path)
-                    ])
+                model_executions[EXPERIMENT_PREFIX + "_" + i + "_" + file_name] = {
+                    //For some reason files can only be constructed from the Master Node and relative to WORKSPACE
+                    def model = new File("${WORKSPACE}/" + workspace_dir + "/" + file_path)
                 
-                def downstream_build_id = "" + result.getNumber()
-                copyArtifacts(projectName: DOWNSTREAM_JOB_NAME, selector: specific(downstream_build_id), target: 'artifacts/' + downstream_build_id)
-                
-                if(result.getResult() == "SUCCESS"){
-                    success_count ++;
-                }else{
-                    print("Experiment #" + index + " with file: ''" + file_path + "' Failed!'")
+                    def result = build(job: DOWNSTREAM_JOB_NAME, quietPeriod: 0, wait: true, propagate: false,
+                        parameters: [
+                            string(name: 'EXECUTION_TIME', value: EXPERIMENT_TIME),
+                            string(name: 'EXPERIMENT_NAME', value: experiment_name),
+                            string(name: 'LOG_VERBOSITY', value: LOG_VERBOSITY),
+                            new FileParameterValue("model", model, file_path)
+                        ])
+
+                    def downstream_build_id = "" + result.getNumber()
+                    copyArtifacts(projectName: DOWNSTREAM_JOB_NAME, selector: specific(downstream_build_id), target: 'artifacts/' + downstream_build_id)
+                    
+                    if(result.getResult() == "SUCCESS"){
+                        success_count ++;
+                    }else{
+                        print("Experiment #" + index + " with file: ''" + file_path + "' Failed!'")
+                    }
                 }
             }
+
+            parallel(model_executions)
 
             dir('artifacts'){
                 archiveArtifacts artifacts: '**/*'
