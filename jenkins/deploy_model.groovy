@@ -47,6 +47,9 @@ final MODEL_FILE = UNIQUE_ID + ".graphml"
 def builder_nodes = []
 def nodes = nodesByLabel("re")
 
+def docker_image_repository = "192.168.111.98:5000"
+def docker_image_name = "re_full"
+
 def docker_nodes = nodesByLabel("docker_runtime")
 
 //Get the builder nodes
@@ -120,7 +123,7 @@ for(n in builder_nodes){
         if(docker_nodes.contains(node_name)){
             node(node_name){
                 //Cache dir is the experiment_name
-                docker.image("192.168.111.98:5000/re_minimal").inside() {
+                docker.image(docker_image_repository + "/" + docker_image_name).inside() {
                     def stash_name = "code_" + utils.getNodeOSVersion(node_name)
                     print(stash_name)
                     dir(UNIQUE_ID){
@@ -183,7 +186,7 @@ def logan_server_node_names = []
 def container_docker_flags = [:]
 
 stage("Add Experiment"){
-    node("mitch-pc"){
+    node("master"){
         dir(UNIQUE_ID){
 
             unstash "model"
@@ -269,7 +272,7 @@ for(n in execution_node_names){
                     // Add execution for each container running on this node
                     node_executions["RE_" + node_name + "_" + container_id] = {
                         if(is_docker){
-                            docker.image("192.168.111.98:5000/re_minimal").inside("--network host") {
+                            docker.image(docker_image_repository + "/" + docker_image_name).inside("--network host") {
                                 dir("lib"){
                                     //Run re_node_manager
                                     if(utils.runScript("/re/bin/re_node_manager" + args) != 0){
