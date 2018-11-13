@@ -133,8 +133,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseriesevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/baseseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.cpp
@@ -240,8 +240,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycle.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/portlifecycleseriesevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Data/baseseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.h
