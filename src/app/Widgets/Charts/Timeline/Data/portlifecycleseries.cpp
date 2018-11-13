@@ -8,16 +8,18 @@ int PortLifeCycleSeries::series_ID = 0;
  * @param parent
  */
 PortLifeCycleSeries::PortLifeCycleSeries(QObject* parent)
-    : QObject(parent)
+    : BaseSeries(parent)
 {
     ID_ = series_ID++;
 }
 
+/*
 PortLifeCycleSeries::PortLifeCycleSeries(int ID, QObject *parent)
     : QObject(parent)
 {
     ID_ = ID;
 }
+*/
 
 
 /**
