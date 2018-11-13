@@ -136,8 +136,6 @@ for(n in builder_nodes){
                             }
                         }
                         dir("lib"){
-                        sh "ls -lah"
-
                             //Stash all built libraries
                             stash includes: '**', name: stash_name
                         }
@@ -185,7 +183,7 @@ def logan_server_node_names = []
 def container_docker_flags = [:]
 
 stage("Add Experiment"){
-    node("master"){
+    node("mitch-pc"){
         dir(UNIQUE_ID){
 
             unstash "model"
@@ -202,7 +200,6 @@ stage("Add Experiment"){
             requires_shutdown = true
             def parsed_json = readJSON file: json_file
 
-
             def deployment_message = "Running re_node_manager on:\n"
             for(def deployment : parsed_json["deployments"]){
                 def deployment_host_name = deployment["id"]["hostName"]
@@ -212,7 +209,9 @@ stage("Add Experiment"){
                 for(def container_id : deployment["containerIds"]){
                     deployment_message += "** " + container_id["id"] + "\n"
                     container_id_list += container_id["id"]
-                    container_docker_flags[container_id] += container_id["isDocker"]
+                    container_docker_flags[container_id["id"]] = container_id["isDocker"]
+                    print(container_id["isDocker"])
+                    print(container_docker_flags[container_id["id"]])
                 }
                 node_containers[deployment_host_name] = container_id_list
 
@@ -229,7 +228,6 @@ stage("Add Experiment"){
 def node_manager_node_names = node_containers.keySet()
 
 def execution_node_names = (node_manager_node_names + logan_server_node_names).unique(false)
-
 //Produce the execution map
 for(n in execution_node_names){
     def node_name = n;
@@ -271,10 +269,10 @@ for(n in execution_node_names){
                     // Add execution for each container running on this node
                     node_executions["RE_" + node_name + "_" + container_id] = {
                         if(is_docker){
-                            docker.image("192.168.111.98:5000/re_minimal").inside() {
+                            docker.image("192.168.111.98:5000/re_minimal").inside("--network host") {
                                 dir("lib"){
                                     //Run re_node_manager
-                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager" + args) != 0){
+                                    if(utils.runScript("/re/bin/re_node_manager" + args) != 0){
                                         FAILURE_LIST << ("re_node_manager failed on node: " + node_name)
                                         FAILED = true
                                     }
