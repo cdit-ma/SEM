@@ -3,7 +3,7 @@
 // -CopyArtifacts
 
 //Requires following parameters in jenkins job:
-// -String parameter: MODEL_ARCHIVE
+// -String parameter: MODELS_ARCHIVE
 // -String parameter: EXECUTION_TIME
 // -String parameter: EXPERIMENT_PREFIX
 // -String parameter: LOG_VERBOSITY
