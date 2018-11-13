@@ -439,7 +439,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
 
         // TESTING PORT LIFE CYCLE EVENTS
         // By default, request random time-frame of events from all Ports for all ComponentInstances
-        if (itemLabel.startsWith("ComponentInstance")) {
+        /*if (itemLabel.startsWith("ComponentInstance")) {
             PortLifeCycleSeries* portEventsSeries = new PortLifeCycleSeries(itemID, this);
             int numPorts = samplePoints.count();
             for (int i = 0; i < numPorts; i++) {
@@ -448,7 +448,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
                 portEventsSeries->addPortEvent(plc);
             }
             seriesChart->addLifeCycleSeries(portEventsSeries);
-        } else {
+        } else {*/
 
         if (random % 2 == 0) {
             MEDEA::StateSeries* stateSeries = new MEDEA::StateSeries(item);
@@ -499,7 +499,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             }
             seriesChart->addSeries(barSeries);
         }
-        }
+        //}
     }
 
     EntitySet* parentSet = addEntitySet(item->getParentItem());

@@ -1,17 +1,17 @@
 #ifndef PORTLIFECYCLESERIES_H
 #define PORTLIFECYCLESERIES_H
 
+#include "baseseries.h"
 #include "portlifecycle.h"
 
-#include <QObject>
 
-class PortLifeCycleSeries : public QObject
+class PortLifeCycleSeries : public BaseSeries
 {
     Q_OBJECT
 
 public:
     explicit PortLifeCycleSeries(QObject* parent = 0);
-    explicit PortLifeCycleSeries(int ID, QObject* parent = 0);
+    //explicit PortLifeCycleSeries(int ID, QObject* parent = 0);
 
     int getID();
 

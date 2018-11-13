@@ -1,12 +1,13 @@
-#include "dataseries.h"
+#include "baseseries.h"
 
 #include <QDateTime>
 
+
 /**
- * @brief MEDEA::DataSeries::DataSeries
+ * @brief BaseSeries::BaseSeries
  * @param parent
  */
-MEDEA::DataSeries::DataSeries(QObject* parent)
+BaseSeries::BaseSeries(QObject* parent)
     : QObject(parent)
 {
 
@@ -14,12 +15,12 @@ MEDEA::DataSeries::DataSeries(QObject* parent)
 
 
 /**
- * @brief MEDEA::DataSeries::getHoveredDataString
+ * @brief BaseSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS
  * @return
  */
-QString MEDEA::DataSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
+QString BaseSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
 {
     return "Hovered range: " +
             QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString("hh:mm:ss:zz") +
