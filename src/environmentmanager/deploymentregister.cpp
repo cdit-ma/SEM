@@ -200,7 +200,14 @@ std::unique_ptr<NodeManager::LoganRegistrationReply> DeploymentRegister::HandleL
 
 std::unique_ptr<EnvironmentControl::ShutdownExperimentReply> DeploymentRegister::HandleShutdownExperiment(const EnvironmentControl::ShutdownExperimentRequest& message){
     auto reply_message = std::unique_ptr<EnvironmentControl::ShutdownExperimentReply>(new EnvironmentControl::ShutdownExperimentReply());
-    environment_->ShutdownExperiment(message.experiment_name());
+
+    if(message.is_regex()){
+        auto experiment_names = environment_->ShutdownExperimentRegex(message.experiment_name());
+        *reply_message->mutable_experiment_names() = {experiment_names.begin(), experiment_names.end()};
+    }else{
+        environment_->ShutdownExperiment(message.experiment_name());
+        reply_message->add_experiment_names(message.experiment_name());
+    }
     return reply_message;
 }
 
