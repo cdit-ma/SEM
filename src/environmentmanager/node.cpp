@@ -188,7 +188,16 @@ int Node::GetLoganServerCount() const {
 }
 
 std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServers() {
-    return std::vector<std::unique_ptr<NodeManager::Logger>>();
+    std::vector<std::unique_ptr<NodeManager::Logger> > logan_servers;
+
+    for(const auto& container_pair : containers_) {
+        if(container_pair.second->GetLoganServerCount() > 0){
+            for(const auto& server_id : container_pair.second->GetLoganServerIds()){
+                logan_servers.emplace_back(container_pair.second->GetLogger(server_id).GetProto(true));
+            }
+        }
+    }
+    return logan_servers;
 }
 
 void Node::AddComponentToImplicitContainer(const NodeManager::Component &component) {

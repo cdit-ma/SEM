@@ -226,3 +226,13 @@ bool Container::IsNodeManagerMaster() const {
 bool Container::IsLateJoiner() const {
     return late_joiner_;
 }
+
+std::vector<std::string> Container::GetLoganServerIds() const {
+    std::vector<std::string> server_ids;
+    for(const auto& logger : loggers_){
+        if(logger.second->GetType() == Logger::Type::Server){
+            server_ids.emplace_back(logger.second->GetId());
+        }
+    }
+    return server_ids;
+}
