@@ -189,6 +189,7 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
     using namespace NodeManager;
     std::unique_ptr<SlaveConfiguredReply> reply;
     const auto& slave_key = GetSlaveKey(request.id());
+    std::cerr << "Slave Configured: " << slave_key << std::endl;
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     if(GetSlaveState(slave_key) == SlaveState::REGISTERED){
@@ -214,6 +215,9 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
 std::unique_ptr<NodeManager::SlaveTerminatedReply> ExecutionManager::HandleSlaveTerminated(const NodeManager::SlaveTerminatedRequest& request){
     using namespace NodeManager;
     const auto& slave_key = GetSlaveKey(request.id());
+
+    std::cerr << "Slave Terminating: " << slave_key << std::endl;
+
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     auto reply = std::unique_ptr<SlaveTerminatedReply>(new SlaveTerminatedReply());
     SetSlaveState(slave_key, SlaveState::TERMINATED);
@@ -302,14 +306,19 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     if(slave_deregistration_future.valid()){
         try{
-            slave_deregistration_future.get();
+            auto status = slave_deregistration_future.wait_for(std::chrono::seconds(30));
+            
+            if(status != std::future_status::ready){
+                std::cerr << "Waiting for slave registration took longer than 30 seconds." << std::end;
+            }
         }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
         }
     }
+    
     try{
         std::cout << "--------[Removing Deployment]--------" << std::endl;
         requester_->RemoveDeployment();
-        
     }catch(const std::exception& ex){
         std::cerr << "* Removing Deployment Exception: " << ex.what() << std::endl;
     }

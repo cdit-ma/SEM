@@ -232,12 +232,14 @@ void DeploymentManager::ProcessControlQueue(){
         using namespace NodeManager;
         SlaveTerminatedRequest request;
         request.set_allocated_id(GetSlaveID().release());
-
-        auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
-            ("SlaveTerminated", request, 1000);
-
-        
-        reply_future.get();
+        try{
+            auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
+                ("SlaveTerminated", request, 5000);
+            reply_future.get();
+        }catch(const std::exception& ex){
+            std::cerr << "* Sending SlaveTerminatedRequest Failed!: " << ex.what() << std::endl;
+            throw;
+        }
     }
 
     if(!is_master_node_){
