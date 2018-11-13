@@ -1,11 +1,11 @@
 #ifndef PORTLIFECYCLEEVENTSERIES_H
 #define PORTLIFECYCLEEVENTSERIES_H
 
+#include "baseseries.h"
 #include "portlifecycleevent.h"
 
-#include <QObject>
 
-class PortLifecycleEventSeries : public QObject
+class PortLifecycleEventSeries : public BaseSeries
 {
     Q_OBJECT
 
