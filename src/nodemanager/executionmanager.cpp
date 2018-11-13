@@ -309,13 +309,13 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
             auto status = slave_deregistration_future.wait_for(std::chrono::seconds(30));
             
             if(status != std::future_status::ready){
-                std::cerr << "Waiting for slave registration took longer than 30 seconds." << std::end;
+                std::cerr << "* Slave deregistration took longer than 30 seconds, Shutting down." << std::endl;
             }
         }catch(const std::exception& ex){
             std::cerr << ex.what() << std::endl;
         }
     }
-    
+
     try{
         std::cout << "--------[Removing Deployment]--------" << std::endl;
         requester_->RemoveDeployment();
