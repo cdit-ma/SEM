@@ -24,7 +24,7 @@ public:
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
 
-    const QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
     
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
@@ -138,7 +138,7 @@ private:
     */
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
-    QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
+    QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _hoveredPoints;

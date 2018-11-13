@@ -611,9 +611,24 @@ inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 
 void TimelineChartView::UpdateChartHover()
 {
-    return;
+    const auto& hover_rect = _timelineChart->getHoverRect();
+    auto from = _timelineChart->mapPixelToTime(hover_rect.left());
+    auto to = _timelineChart->mapPixelToTime(hover_rect.right());
 
+    for (auto entity_chart : _timelineChart->getEntityCharts()) {
+        if (entity_chart->isHovered()) {
+            const auto& series = entity_chart->getSeries();
+            for (auto data_series : series) {
+                if (data_series) {
+                    qDebug() << data_series->getHoveredDataString(from, to);
+                } else {
+                    qWarning("TimelineChartView::UpdateChartHover - Got NULL series somehow.");
+                }
+            }
+        }
+    }
 
+    /*
     for(auto button : _hoverDisplayButtons.values()){
         button->setText("");
         button->hide();
@@ -635,7 +650,7 @@ void TimelineChartView::UpdateChartHover()
 
             for(;current != end; current++){
                 const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataInformation(min, max);
+                auto text = current.value()->getHoveredDataString(min, max);
                 QPushButton* button = _hoverDisplayButtons.value(kind);
                 button->setText(button->text() + text);
                 if(button->text().size()){
@@ -655,7 +670,7 @@ void TimelineChartView::UpdateChartHover()
         int topHeight = legendToolbar->height() + SPACING * 2;
         int posX = mapTo(this, cursor().pos()).x();
         int posY = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*/
+        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*
         _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
         //_hoverDisplay->move(rect().center());
     }
