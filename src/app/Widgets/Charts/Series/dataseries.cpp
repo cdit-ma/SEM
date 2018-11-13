@@ -5,8 +5,8 @@
 #include <math.h>
 #include <float.h>
 
-int MEDEA::DataSeries::series_ID = 0;
 
+int MEDEA::DataSeries::series_ID = 0;
 
 /**
  * @brief MEDEA::DataSeries::DataSeries
@@ -14,7 +14,7 @@ int MEDEA::DataSeries::series_ID = 0;
  * @param kind
  */
 MEDEA::DataSeries::DataSeries(ViewItem* item, TIMELINE_SERIES_KIND kind)
-    : QObject(item)
+    : BaseSeries(item)
 {
     _viewItem = item;
     _ID = series_ID++;
@@ -123,6 +123,11 @@ void MEDEA::DataSeries::addPoints(QList<QPointF> points)
     if (yChanged)
         emit rangeYChanged(_minY, _maxY);
 }
+
+/*QString MEDEA::DataSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
+{
+    return "MEDEA::DataSeries::getHoveredDataString()";
+}*/
 
 
 /**

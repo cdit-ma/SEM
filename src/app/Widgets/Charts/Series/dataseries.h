@@ -4,30 +4,28 @@
 #include <QObject>
 #include <QDateTime>
 #include <QPointF>
+
+#include "../Timeline/Data/baseseries.h"
 #include "../../../Controllers/ViewController/viewitem.h"
 
 enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};
 
 namespace MEDEA {
 
-class DataSeries : public QObject
+class DataSeries : public BaseSeries //public QObject
 {
     Q_OBJECT
 
 protected:
-    //explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
+    explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
     ~DataSeries();
 
     void addPoint(QPointF point);
     //void addPoints(QList<QPointF> points);
 
 public:
-    explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
+    //explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
     void addPoints(QList<QPointF> points);
-
-    virtual QString getHoveredDataInformation(qint64 start_time, qint64 end_time){
-        return QString();
-    }
 
     int getID();
     QString getLabel();

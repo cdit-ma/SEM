@@ -165,8 +165,8 @@ void PanelWidget::testDataSeries()
     points.append(QPointF(8, 6));
     points.append(QPointF(10, 8));
 
-    MEDEA::DataSeries* ds = new MEDEA::DataSeries();
-    ds->addPoints(points);
+    //MEDEA::DataSeries* ds = new MEDEA::DataSeries();
+    //ds->addPoints(points);
 }
 
 

@@ -40,12 +40,6 @@ EntityChart::EntityChart(ViewItem* item, QWidget* parent)
     themeChanged();
 
     _seriesKindVisible[TIMELINE_SERIES_KIND::LINE] = true;
-
-    // insert keys in paint order
-    _seriesList.insert(TIMELINE_SERIES_KIND::STATE, 0);
-    _seriesList.insert(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
-    _seriesList.insert(TIMELINE_SERIES_KIND::LINE, 0);
-    _seriesList.insert(TIMELINE_SERIES_KIND::BAR, 0);
 }
 
 
@@ -109,8 +103,7 @@ void EntityChart::addSeries(MEDEA::DataSeries* series)
  */
 void EntityChart::removeSeries(TIMELINE_SERIES_KIND seriesKind)
 {
-    //_seriesList.remove(seriesKind);
-    _seriesList[seriesKind] = 0;
+    _seriesList.remove(seriesKind);
     _mappedPoints.remove(seriesKind);
     _containsYRange = !_seriesList.value(TIMELINE_SERIES_KIND::LINE, 0) || !_seriesList.value(TIMELINE_SERIES_KIND::BAR, 0);
     getSeriesHitRects(seriesKind).clear();
@@ -184,6 +177,8 @@ void EntityChart::resizeEvent(QResizeEvent* event)
  */
 void EntityChart::paintEvent(QPaintEvent* event)
 {
+    const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
+
     auto start = QDateTime::currentMSecsSinceEpoch();
 
     QPainter painter(this);
@@ -191,8 +186,9 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
 
-    for (TIMELINE_SERIES_KIND kind : _seriesList.keys()) {
-        if (kind != _hoveredSeriesKind) {
+
+    for(const auto& kind : paintOrder){
+            if (kind != _hoveredSeriesKind) {
             paintSeries(painter, kind);
         }
     }
@@ -1235,6 +1231,12 @@ inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
     return ::qHash(static_cast<uint>(key), seed);
 }
 
-const QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& EntityChart::getSeries(){
+
+/**
+ * @brief EntityChart::getSeries
+ * @return
+ */
+const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& EntityChart::getSeries()
+{
     return _seriesList;
 }
