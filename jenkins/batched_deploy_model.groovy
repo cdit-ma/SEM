@@ -3,7 +3,7 @@
 // -CopyArtifacts
 
 //Requires following parameters in jenkins job:
-// -String parameter: MODEL_ARCHIVE
+// -String parameter: MODELS_ARCHIVE
 // -String parameter: EXECUTION_TIME
 // -String parameter: EXPERIMENT_PREFIX
 // -String parameter: LOG_VERBOSITY
@@ -26,10 +26,10 @@ node("master"){
     final workspace_dir = build_id + "-models"
 
     stage('Extracting Experiments'){
-        //Unstash the archive
-        unstashParam "MODELS_ARCHIVE", ARCHIVE
-        
         dir(workspace_dir){
+            //Unstash the archive
+            unstashParam "MODELS_ARCHIVE", ARCHIVE
+        
             def extract_command = ""
 
             if(ORIGINAL_FILE.endsWith(".zip")){
@@ -45,7 +45,7 @@ node("master"){
             }
 
             //Extract archive
-            if(utils.runScript(extract_command + " ../" + ARCHIVE) != 0){
+            if(utils.runScript(extract_command + " " + ARCHIVE) != 0){
                 error('Extract archive failed')
             }
         }

@@ -10,7 +10,7 @@ final Boolean IS_TAG = env.TAG_NAME
 final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
 //Run full tests on a Tag or a Pull Request
-final def RUN_ALL_TESTS = false//IS_TAG || GIT_ID.contains("PR-")
+final def RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
 
 @NonCPS
@@ -56,7 +56,6 @@ stage("Checkout"){
         }
     }
 }
-return;
 
 def FAILED = false
 def FAILURE_LIST = []
