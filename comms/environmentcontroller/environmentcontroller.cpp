@@ -8,12 +8,15 @@ EnvironmentManager::EnvironmentController::EnvironmentController(const std::stri
 {
 }
 
-void EnvironmentManager::EnvironmentController::ShutdownExperiment(const std::string& experiment_name){
+std::vector<std::string> EnvironmentManager::EnvironmentController::ShutdownExperiment(const std::string& experiment_name, bool is_regex){
     using namespace EnvironmentControl;
     ShutdownExperimentRequest request;
     request.set_experiment_name(experiment_name);
+    request.set_is_regex(is_regex);
     auto reply = requester_.SendRequest<ShutdownExperimentRequest, ShutdownExperimentReply>("ShutdownExperiment", request, 100);
-    reply.get();
+    auto experiment_pb = reply.get();
+    const auto& experiment_names = experiment_pb->experiment_names();
+    return {experiment_names.begin(), experiment_names.end()};
 }
 
 std::unique_ptr<NodeManager::RegisterExperimentReply> EnvironmentManager::EnvironmentController::AddExperiment(const std::string& experiment_name, const std::string& graphml_path){
@@ -27,6 +30,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> EnvironmentManager::Enviro
             request.set_allocated_experiment(experiment.release());
         }
     }catch(const std::exception& ex){
+        std::cerr << ex.what() << std::endl;
         throw;
     }
 
