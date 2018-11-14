@@ -216,7 +216,12 @@ const QRectF& TimelineChart::getHoverRect()
 }
 
 
-quint64 TimelineChart::mapPixelToTime(double pixel_x)
+/**
+ * @brief TimelineChart::mapPixelToTime
+ * @param pixel_x
+ * @return
+ */
+qint64 TimelineChart::mapPixelToTime(double pixel_x)
 {
     auto offset = pixel_x / width();
     auto delta = _displayMax - _displayMin;
@@ -487,7 +492,9 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     cursorPoint = mapFromGlobal(cursor().pos());
-    hoverRect.moveCenter(QPointF(cursorPoint.x(), 0));
+    hoverRect.moveCenter(cursorPoint);
+    //hoverRect.moveCenter(QPointF(cursor().pos().x(), 0));
+    //hoverRect.moveCenter(cursor().pos());
     hoverRectUpdated();
 
     switch (dragMode) {
@@ -621,7 +628,7 @@ void TimelineChart::hoverRectUpdated()
         }
     }
 
-    emit hoverLineUpdated(hoverRect.isValid(), hoverRect.center());
+    emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
     update();
 }
 

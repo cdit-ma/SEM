@@ -1,11 +1,11 @@
-#include "portlifecycle.h"
+#include "portlifecycleevent.h"
 
 
 /**
  * @brief PortLifeCycle::PortLifeCycle
  * @param parent
  */
-PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObject* parent)
+PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, qint64 time, QObject* parent)
     : QObject(parent)
 {
     port_ = port;
@@ -13,7 +13,7 @@ PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObjec
     time_ = time;
 }
 
-PortLifeCycle::PortLifeCycle(LifeCycleType type, quint64 time, QObject *parent)
+PortLifeCycle::PortLifeCycle(LifeCycleType type, qint64 time, QObject *parent)
 {
     Port testPort;
     testPort.ID = 0;
@@ -52,7 +52,7 @@ LifeCycleType PortLifeCycle::getType()
  * @brief PortLifeCycle::getTime
  * @return
  */
-quint64 PortLifeCycle::getTime()
+qint64 PortLifeCycle::getTime()
 {
     return time_;
 }

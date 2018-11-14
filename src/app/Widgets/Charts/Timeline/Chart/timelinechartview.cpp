@@ -42,6 +42,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
     _timelineChart->setPointsWidth(POINTS_WIDTH);
 
+    connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::updateChartHoverDisplay);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
 
@@ -383,86 +384,62 @@ void TimelineChartView::entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QLi
 /**
  * @brief TimelineChartView::udpateChartHoverDisplay
  */
-void TimelineChartView::udpateChartHoverDisplay()
+void TimelineChartView::updateChartHoverDisplay()
 {
     _hoverDisplay->hide();
 
     if (_timelineChart->isPanning())
         return;
 
-    /*
-    if (points.isEmpty())
-        return;
+    const auto& hoverRect = _timelineChart->getHoverRect();
+    //auto mapped = _timelineChart->mapTo(this, hoverRect.center().toPoint());
+    //qDebug() << "hover global: " << mapToGlobal(mapped).x();
 
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
+    auto fromTime = _timelineChart->mapPixelToTime(hoverRect.left());
+    auto toTime = _timelineChart->mapPixelToTime(hoverRect.right());
+    qDebug() << "---------------------------------------------------";
+    auto  centerTime = _timelineChart->mapPixelToTime(hoverRect.center().x());
+    qDebug() << "center: " << QDateTime::fromMSecsSinceEpoch(centerTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(fromTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(toTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "---";
 
-    if (showDisplay) {
-        _hoverDisplay->setVisible(showDisplay);
-        _hoverDisplay->adjustSize();
+    QHash<TIMELINE_SERIES_KIND, QString> hoveredData;
 
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }
-    
-    for(auto button : _hoverDisplayButtons.values()){
-        button->setText("");
-        button->hide();
-    }
-    
-    bool show_hover = false;
-    const auto& hover_rect = _timelineChart->getHoverRect();
-
-    auto min = _timelineChart->mapPixelToTime(hover_rect.left());
-    auto max = _timelineChart->mapPixelToTime(hover_rect.right());
- 
-    for(auto entity_chart : _timelineChart->getEntityCharts()){
-        //QString text;
-        //QTextStream stream(&text);
-        if(entity_chart->isHovered()){
-            const auto& series = entity_chart->getSeries();
-            auto current = series.begin();
-            auto end = series.end();
-
-            for(;current != end; current++){
-                const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataInformation(min, max);
-                QPushButton* button = _hoverDisplayButtons.value(kind);
-                button->setText(button->text() + text);
-                if(button->text().size()){
-                    button->setVisible(true);
-                    show_hover = true;
+    for (auto entityChart : _timelineChart->getEntityCharts()) {
+        if (entityChart->isHovered()) {
+            const auto& series = entityChart->getSeries();
+            for (auto dataSeries : series) {
+                if (dataSeries) {
+                    auto hoveredInfo = dataSeries->getHoveredDataString(fromTime, toTime);
+                    if (!hoveredInfo.isEmpty()) {
+                        hoveredData[dataSeries->getSeriesKind()] += hoveredInfo + "\n";
+                    }
+                } else {
+                    qWarning("TimelineChartView::UpdateChartHover - Got NULL series somehow.");
                 }
             }
         }
-    } 
-
-    _hoverDisplay->setVisible(show_hover);
-    if (show_hover) {
-        _hoverDisplay->adjustSize();
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
     }
-    */
+
+    for (auto kind : _hoverDisplayButtons.keys()) {
+        auto button = _hoverDisplayButtons.value(kind, 0);
+        if (button) {
+            bool hasData = hoveredData.contains(kind);
+            button->setVisible(hasData);
+            if (hasData) {
+                auto data = hoveredData.value(kind);
+                button->setText(data.trimmed());
+            }
+        }
+    }
+
+    _hoverDisplay->setVisible(!hoveredData.isEmpty());
+    if (_hoverDisplay->isVisible()) {
+        _hoverDisplay->adjustSize();
+        //_hoverDisplay->move(geometry().center());
+        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));
+    }
 }
 
 
@@ -681,7 +658,7 @@ void TimelineChartView::UpdateChartHover(){
 
             for(;current != end; current++){
                 const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataInformation(min, max);
+                auto text = ""; //current.value()->getHoveredDataInformation(min, max);
                 QPushButton* button = _hoverDisplayButtons.value(kind);
                 button->setText(button->text() + text);
                 if(button->text().size()){

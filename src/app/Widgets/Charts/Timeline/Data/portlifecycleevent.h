@@ -52,17 +52,17 @@ class PortLifeCycle : public QObject
     Q_OBJECT
 
 public:
-    explicit PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObject* parent = 0);
-    explicit PortLifeCycle(LifeCycleType type, quint64 time, QObject* parent = 0);
+    explicit PortLifeCycle(Port port, LifeCycleType type, qint64 time, QObject* parent = 0);
+    explicit PortLifeCycle(LifeCycleType type, qint64 time, QObject* parent = 0);
 
     Port getPort();
     LifeCycleType getType();
-    quint64 getTime();
+    qint64 getTime();
 
 private:
     Port port_;
     LifeCycleType type_;
-    quint64 time_;
+    qint64 time_;
 
 };
 

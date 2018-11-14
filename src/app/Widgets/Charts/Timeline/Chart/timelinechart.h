@@ -42,14 +42,14 @@ public:
     QPair<double, double> getRange();
     bool isPanning();
 
-    quint64 mapPixelToTime(double pixel_x);
+    qint64 mapPixelToTime(double pixel_x);
 
 signals:
     void zoomed(int delta);
     void panned(double dx, double dy);
     void changeDisplayedRange(double min, double max);
     void rangeChanged(double min, double max, bool updateDisplay = false);
-    void hoverLineUpdated(bool visible, QPointF pos);
+    void hoverLineUpdated(bool visible, QPointF globalPos);
 
 public slots:
     void themeChanged();

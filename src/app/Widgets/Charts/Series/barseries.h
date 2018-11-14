@@ -12,14 +12,14 @@ namespace MEDEA {
 
 class BarData{
 public:
-    BarData(quint64 time, const QVector<double>& values) {
+    BarData(qint64 time, const QVector<double>& values) {
         time_ = time;
         setData(values);
     }
     void setData(const QVector<double>& values) {
         data_ = values;
     }
-    quint64 getTime() {
+    qint64 getTime() {
         return time_;
     }
     const QVector<double>& getData() const {
@@ -35,7 +35,7 @@ public:
         return data_.constFirst();
     }
 private:
-    quint64 time_;
+    qint64 time_;
     QVector<double> data_;
 };
 
@@ -50,15 +50,15 @@ public:
     ~BarSeries();
 
     void addData(QDateTime dateTime, QVector<double> data, QSize windowSize = QSize());
-    void addData(quint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize = QSize());
+    void addData(qint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize = QSize());
 
-    QMap<quint64, QVector<double>> getData();
-    
-    QString getHoveredDataInformation(quint64 start_time, quint64 end_time);
+    QMap<qint64, QVector<double>> getData();
 
-    const QMap<quint64, QVector<double>>& getConstData();
+    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS);
 
-    const QMap<quint64, BarData*>& getConstData2() {
+    const QMap<qint64, QVector<double>>& getConstData();
+
+    const QMap<qint64, BarData*>& getConstData2() {
         return data_map_;
     }
 
@@ -68,8 +68,8 @@ signals:
 
 private:
     // need to use a map to preserve the insertion order of the data
-    QMap<quint64, QVector<double>> _dataMap;
-    QMap<quint64, BarData*> data_map_;
+    QMap<qint64, QVector<double>> _dataMap;
+    QMap<qint64, BarData*> data_map_;
 
 };
 

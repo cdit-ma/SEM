@@ -22,6 +22,7 @@ BaseSeries::BaseSeries(QObject* parent)
  */
 QString BaseSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
 {
+    return "HELLO"; //QString();
     return "Hovered range: " +
             QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString("hh:mm:ss:zz") +
             ", " +

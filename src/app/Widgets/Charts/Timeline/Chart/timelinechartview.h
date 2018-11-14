@@ -18,7 +18,7 @@
 
 
 enum class VALUE_TYPE{DOUBLE, DATETIME};
-QString getDateTimeString(quint64 mSecsSinceEpoch);
+QString getDateTimeString(qint64 mSecsSinceEpoch);
 
 class AxisWidget;
 class TimelineChart;
@@ -54,7 +54,7 @@ public slots:
 
     void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
     
-    void udpateChartHoverDisplay();
+    void updateChartHoverDisplay();
     
     void UpdateChartHover();
 

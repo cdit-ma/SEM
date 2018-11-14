@@ -34,44 +34,12 @@ void MEDEA::BarSeries::addData(QDateTime timeStamp, QVector<double> data, QSize 
 
 
 /**
- * @brief MEDEA::BarSeries::getHoveredDataInformation
- * @param start_time
- * @param end_time
- * @return 
- */
-QString MEDEA::BarSeries::getHoveredDataInformation(quint64 start_time, quint64 end_time)
-{
-    const auto& data = getConstData();
-    auto current = data.lowerBound(start_time);
-    auto upper = data.upperBound(end_time);
-
-    QString text;
-    QTextStream stream(&text);
-
-    for (;current != upper; current++) {
-        const auto& current_x = current.key();
-        const auto& y_array = current.value();
-
-        QDateTime dt; dt.setMSecsSinceEpoch(current_x);
-        stream << dt.toString("MMMM d, hh:mm:ss:zzz") << "\n";
-
-        for (const auto& val : y_array) {
-            stream << val << " ";
-        }
-        stream << "\n";
-    }
-    
-    return text;
-}
-
-
-/**
  * @brief MEDEA::BarSeries::addData
  * @param dateTimeMSecsSinceEpoch
  * @param data
  * @param windowSize
  */
-void MEDEA::BarSeries::addData(quint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize)
+void MEDEA::BarSeries::addData(qint64 dateTimeMSecsSinceEpoch, QVector<double> data, QSize windowSize)
 {
     if (!data.isEmpty()) {
         auto data_value = new MEDEA::BarData(dateTimeMSecsSinceEpoch, data);
@@ -96,9 +64,43 @@ void MEDEA::BarSeries::addData(quint64 dateTimeMSecsSinceEpoch, QVector<double> 
  * @brief MEDEA::BarSeries::getData
  * @return
  */
-QMap<quint64, QVector<double> > MEDEA::BarSeries::getData()
+QMap<qint64, QVector<double> > MEDEA::BarSeries::getData()
 {
     return _dataMap;
+}
+
+
+/**
+ * @brief MEDEA::BarSeries::getHoveredDataString
+ * @param fromTimeMS
+ * @param toTimeMS
+ * @return
+ */
+QString MEDEA::BarSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
+{
+    const auto& data = getConstData2();
+    auto current = data.lowerBound(fromTimeMS);
+    auto upper = data.upperBound(toTimeMS);
+
+    //qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString("MMMM d, hh:mm:ss:zzz");
+    //qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(toTimeMS).toString("MMMM d, hh:mm:ss:zzz");
+
+    int count = std::distance(current, upper);
+    if (count > 1) {
+        return QString::number(count);
+    }
+
+    QString text;
+    QTextStream stream(&text);
+
+    for (;current != upper; current++) {
+        //const auto& barData = current.value();
+        //stream << barData->getMax() << " "; //\n";
+        //stream << current.key() << "\n";
+        stream << QDateTime::fromMSecsSinceEpoch(current.key()).toString("MMMM d, hh:mm:ss:zzz") << "\n";
+    }
+
+    return text.trimmed();
 }
 
 
@@ -106,7 +108,8 @@ QMap<quint64, QVector<double> > MEDEA::BarSeries::getData()
  * @brief MEDEA::BarSeries::getConstData
  * @return
  */
-const QMap<quint64, QVector<double>>& MEDEA::BarSeries::getConstData(){
+const QMap<qint64, QVector<double>>& MEDEA::BarSeries::getConstData()
+{
     return _dataMap;
 }
 

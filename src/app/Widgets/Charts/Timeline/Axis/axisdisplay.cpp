@@ -171,15 +171,19 @@ QPair<double, double> AxisDisplay::getDisplayedRange()
 /**
  * @brief AxisDisplay::hoverLineUpdated
  * @param visible
- * @param pos
+ * @param globalPos
  */
-void AxisDisplay::hoverLineUpdated(bool visible, QPointF pos)
+void AxisDisplay::hoverLineUpdated(bool visible, QPointF globalPos)
 {
     _displayHoverValue = visible;
     if (visible) {
+        //qDebug() << "line global: " << globalPos.x();
+        QPointF pos = mapFromGlobal(globalPos.toPoint());
         if (_orientation == Qt::Horizontal) {
             _hoveredPos = pos.x();
             _hoveredValue = (_hoveredPos / width()) * _displayedRange + _displayedMin;
+            //qDebug() << "line val: " << ((qint64)_hoveredValue);
+            //qDebug() << "---";
         } else {
             _hoveredPos = pos.y();
             _hoveredValue = (1.0 - (_hoveredPos / height())) * _displayedRange + _displayedMin;
@@ -504,7 +508,7 @@ QRectF AxisDisplay::getAdjustedRect()
  * @param mSecsSinceEpoch
  * @return
  */
-QDateTime AxisDisplay::constructDateTime(quint64 mSecsSinceEpoch)
+QDateTime AxisDisplay::constructDateTime(qint64 mSecsSinceEpoch)
 {
     QDateTime dateTime;
     dateTime.setMSecsSinceEpoch(mSecsSinceEpoch);
