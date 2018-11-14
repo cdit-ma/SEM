@@ -13,24 +13,27 @@
 import cditma.Utils
 def utils = new Utils(this);
 
+final CLEANUP = true
+final ARCHIVE = 'models.archive'
+final DOWNSTREAM_JOB_NAME = 'deploy_model'
+final JOB_NAME = "${JOB_NAME}"
+final ORIGINAL_FILE = "${MODELS_ARCHIVE}"
+final EXPERIMENT_TIME = "${EXECUTION_TIME}"
+final EXPERIMENT_PREFIX = "${EXPERIMENT_PREFIX}"
+final LOG_VERBOSITY = "${LOG_VERBOSITY}"
+final build_id = env.BUILD_ID
+final workspace_dir = build_id + "-models"
+
+node("re"){
+    //Unstash the archive
+    unstashParam "MODELS_ARCHIVE", ARCHIVE
+    stash includes: ARCHIVE, name: 'models'
+}
+
 node("master"){
-    final CLEANUP = true
-    final ARCHIVE = 'models.archive'
-    final DOWNSTREAM_JOB_NAME = 'deploy_model'
-    final JOB_NAME = "${JOB_NAME}"
-    final ORIGINAL_FILE = "${MODELS_ARCHIVE}"
-    final EXPERIMENT_TIME = "${EXECUTION_TIME}"
-    final EXPERIMENT_PREFIX = "${EXPERIMENT_PREFIX}"
-    final LOG_VERBOSITY = "${LOG_VERBOSITY}"
-    final build_id = env.BUILD_ID
-    final workspace_dir = build_id + "-models"
-
     stage('Extracting Experiments'){
-        //Unstash the archive
-        unstashParam "MODELS_ARCHIVE", ARCHIVE
-
         dir(workspace_dir){
-            sleep(1)
+            unstash 'models'
 
             def extract_command = ""
 
@@ -47,7 +50,7 @@ node("master"){
             }
 
             //Extract archive
-            if(utils.runScript(extract_command + " ../" + ARCHIVE) != 0){
+            if(utils.runScript(extract_command + " " + ARCHIVE) != 0){
                 error('Extract archive failed')
             }
         }
