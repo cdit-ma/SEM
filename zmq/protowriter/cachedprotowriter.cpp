@@ -125,7 +125,7 @@ void zmq::CachedProtoWriter::Terminate(){
                     auto& s = messages.front();
                     if(s){
                         zmq::ProtoWriter::PushString(s->topic, s->type, s->data);
-                        if(send_count++ % 1000 == 0){
+                        if(send_count++ % 100 == 0){
                             std::this_thread::sleep_for(std::chrono::milliseconds(1));
                         }
                     }
@@ -140,15 +140,18 @@ void zmq::CachedProtoWriter::Terminate(){
             auto& message = write_queue_.front().second;
             zmq::ProtoWriter::PushMessage(topic, std::move(message));
             write_queue_.pop_front();
-            if(send_count++ % 500 == 0){
+
+            if(send_count++ % 100 == 0){
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
+            }   
         }
 
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
     }
+    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     //Terminate the base class
     zmq::ProtoWriter::Terminate();
