@@ -26,9 +26,10 @@ node("master"){
     final workspace_dir = build_id + "-models"
 
     stage('Extracting Experiments'){
+        //Unstash the archive
+        unstashParam "MODELS_ARCHIVE", ARCHIVE
+
         dir(workspace_dir){
-            //Unstash the archive
-            unstashParam "MODELS_ARCHIVE", ARCHIVE
         
             def extract_command = ""
 
@@ -45,7 +46,7 @@ node("master"){
             }
 
             //Extract archive
-            if(utils.runScript(extract_command + " " + ARCHIVE) != 0){
+            if(utils.runScript(extract_command + " ../" + ARCHIVE) != 0){
                 error('Extract archive failed')
             }
         }
