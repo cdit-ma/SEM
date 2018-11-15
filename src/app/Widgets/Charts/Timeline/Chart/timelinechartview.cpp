@@ -795,8 +795,8 @@ void TimelineChartView::clearPortLifecycleEvents()
  */
 void TimelineChartView::receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time)
 {
-    QString portPath = port.path;
-    QString compInstPath = port.component_instance.path;
+    //QString portPath = port.path;
+    //QString compInstPath = port.component_instance.path;
 
     /*
     if (portLifecycleSeries.contains(portPath)) {
@@ -846,6 +846,7 @@ void TimelineChartView::receivedPortLifecycleEvent(Port port, LifecycleType type
  */
 void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
 {
+    /*
     if (!event)
         return;
 
@@ -889,6 +890,7 @@ void TimelineChartView::receivedPortLifecycleResponse(PortLifecycleEvent* event)
     PortLifecycleEventSeries* parentSeries = portLifecycleSeries.value(parentPath, 0);
     if (parentSeries)
         parentSeries->addPortEvent(event);
+        */
 }
 
 

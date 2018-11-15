@@ -118,22 +118,12 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
  */
 Port AggregationProxy::convertPort(const AggServer::Port port)
 {
-    auto compInst = port.component_instance();
-    auto comp = compInst.component();
-    auto node = compInst.node();
-
-    ComponentInstance compInstStruct;
-    compInstStruct.name = getQString(compInst.name());
-    compInstStruct.path = getQString(compInst.path());
-    compInstStruct.component = Component{getQString(comp.name())};
-    compInstStruct.node = Node{getQString(node.hostname()), getQString(node.ip())};
-
     Port portStruct;
     portStruct.kind = getPortKind(port.kind());
     portStruct.name = getQString(port.name());
     portStruct.path = getQString(port.path());
     portStruct.middleware = getQString(port.middleware());
-    portStruct.component_instance = compInstStruct;
+    portStruct.graphml_id = getQString(port.graphml_id());
     return portStruct;
 }
 
