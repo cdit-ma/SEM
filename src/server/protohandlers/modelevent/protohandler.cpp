@@ -38,6 +38,8 @@
 #define LOGAN_TYPE "type"
 #define LOGAN_MESSAGE "message"
 #define LOGAN_EXPERIMENT_NAME "experiment_name"
+#define LOGAN_CONTAINER_ID "container_id"
+#define LOGAN_CONTAINER_NAME "container_name"
 
 //Common column names
 #define LOGAN_COMPONENT_NAME "component_name"
@@ -98,6 +100,8 @@ void ModelEvent::ProtoHandler::AddInfoColumns(Table& table){
     table.AddColumn(LOGAN_TIMEOFDAY, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_EXPERIMENT_NAME, LOGAN_VARCHAR);
     table.AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_CONTAINER_ID, LOGAN_VARCHAR);
+    table.AddColumn(LOGAN_CONTAINER_NAME, LOGAN_VARCHAR);
 }
 
 void ModelEvent::ProtoHandler::AddComponentColumns(Table& table){
@@ -190,6 +194,8 @@ void ModelEvent::ProtoHandler::BindInfoColumns(TableInsert& row, const ModelEven
     row.BindString(LOGAN_COL_INS(LOGAN_TIMEOFDAY), google::protobuf::util::TimeUtil::ToString(info.timestamp()));
     row.BindString(LOGAN_COL_INS(LOGAN_EXPERIMENT_NAME), info.experiment_name());
     row.BindString(LOGAN_COL_INS(LOGAN_HOSTNAME), info.hostname());
+    row.BindString(LOGAN_COL_INS(LOGAN_CONTAINER_ID), info.container_id());
+    row.BindString(LOGAN_COL_INS(LOGAN_CONTAINER_NAME), info.container_name());
 }
 
 void ModelEvent::ProtoHandler::BindComponentColumns(TableInsert& row, const ModelEvent::Component& component){
