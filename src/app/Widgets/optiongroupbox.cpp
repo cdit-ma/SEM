@@ -142,12 +142,14 @@ void OptionGroupBox::removeOptions()
     show();
 }
 
-
-void OptionGroupBox::reset(bool notify){
+void OptionGroupBox::resetChecked(bool notify){
     resetOptions();
     if(notify){
         emit checkedOptionsChanged();
     }
+}
+void OptionGroupBox::reset(){
+    resetChecked(true);
 }
 
 /**

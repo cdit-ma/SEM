@@ -148,8 +148,8 @@ void NotificationDialog::updateNotificationsVisibility(){
 
 void NotificationDialog::updateLabels(){
      //Show the No Notification label
-     info_label->setVisible(total_notifications == 0);
-     
+    info_label->setVisible(total_notifications == 0);
+
     //Check if there are notifications which are hidden by the filters
     auto any_filtered = total_notifications > current_matched_notifications;
     //Check if all the matched filter results are being shown
@@ -197,6 +197,8 @@ void NotificationDialog::themeChanged()
 
     top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
+    left_toolbar->setIconSize(theme->getIconSize());
+    
 }
 
 void NotificationDialog::popupEntity(){
@@ -369,6 +371,12 @@ void NotificationDialog::setupLayout()
         filters_scroll->setWidgetResizable(true);
 
         v_layout->addWidget(filters_scroll, 1);
+
+        left_toolbar = new QToolBar(this);
+        left_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        reset_filters_action = left_toolbar->addAction("Reset Filters");
+
+        v_layout->addWidget(left_toolbar, 0, Qt::AlignRight);
     }
 
     {
@@ -455,7 +463,10 @@ void NotificationDialog::setupLayout()
 
             bottom_toolbar = new QToolBar(this);
             bottom_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
-            reset_filters_action = bottom_toolbar->addAction("Reset Filters");
+
+            
+
+            bottom_toolbar->addAction(reset_filters_action);
 
             notifications_status_widget = new QWidget(this);
             notifications_status_widget->hide();
