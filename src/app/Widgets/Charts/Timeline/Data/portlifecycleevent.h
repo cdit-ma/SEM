@@ -11,6 +11,7 @@ enum class LifecycleType {
     TERMINATE
 };
 
+/*
 struct Node {
     QString hostname;
     QString ip;
@@ -26,6 +27,7 @@ struct ComponentInstance {
     Component component;
     Node node;
 };
+*/
 
 struct Port {
     enum Kind {
@@ -40,7 +42,7 @@ struct Port {
     QString name;
     QString path;
     QString middleware;
-    ComponentInstance component_instance;
+    QString graphml_id;
 };
 
 

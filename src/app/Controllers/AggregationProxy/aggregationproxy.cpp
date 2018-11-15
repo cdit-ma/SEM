@@ -58,4 +58,3 @@ const QString AggregationProxy::getQString(const std::string &string)
 {
     return QString::fromUtf8(string.c_str());
 }
-
