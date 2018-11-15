@@ -25,10 +25,11 @@ import "google/protobuf/timestamp.proto";
 package ModelEvent;
 
 message Info{
-    string hostname = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    uint64 uid = 3;
-    string experiment_name = 4;
+    google.protobuf.Timestamp timestamp = 1;
+    string hostname = 2;
+    string experiment_name = 3;
+    string container_name = 4;
+    string container_id = 5;
 }
 
 message Component{
