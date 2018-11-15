@@ -9,6 +9,11 @@ class Component;
 
 enum class ThreadState{WAITING, STARTED, ACTIVE, TERMINATED};
 
+class CallbackException : public std::runtime_error{
+    public:
+        CallbackException(const std::string& what_arg) : std::runtime_error(std::string("Callback Exception: ") + what_arg){};
+};
+
 //Interface for a standard Port
 class Port : public Activatable
 {
