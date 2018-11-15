@@ -30,7 +30,7 @@ typedef std::function<ComponentCConstructor> ComponentConstructor;
 
 class DeploymentContainer : public Activatable{
     public:
-        DeploymentContainer(const std::string& experiment_name, const std::string& library_path, const NodeManager::Container& container);
+        DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path, const NodeManager::Container& container);
         ~DeploymentContainer();
         void Configure(const NodeManager::Container& container);
         
@@ -98,5 +98,6 @@ class DeploymentContainer : public Activatable{
 
         const std::string library_path_;
         const std::string experiment_name_;
+        const std::string host_name_;
 };
 #endif //CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H

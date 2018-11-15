@@ -23,9 +23,10 @@ std::string to_lower(std::string str){
     return str;
 }
 
-DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& library_path, const NodeManager::Container& container):
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
     experiment_name_(experiment_name),
-    library_path_(library_path)
+    library_path_(library_path),
+    host_name_(host_name)
 {
     Configure(container);
 }
@@ -64,7 +65,7 @@ void DeploymentContainer::Configure(const NodeManager::Container& container){
                 case NodeManager::Logger::MODEL:{
                     //Setup logan logger
                     if(!logan_logger_){
-                        logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, container.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
+                        logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                     }
                     break;
                 }

@@ -171,6 +171,7 @@ std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveSta
                     if(request.id().container_id() == container.info().id()){
                         //Give them there right container
                         reply = std::unique_ptr<SlaveStartupReply>(new SlaveStartupReply());
+                        reply->set_host_name(node.info().name());
                         reply->set_allocated_configuration(new Container(container));
                         //Set the slave state as Registered
                         SetSlaveState(slave_key, SlaveState::REGISTERED);

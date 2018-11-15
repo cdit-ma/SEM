@@ -93,7 +93,7 @@ void DeploymentManager::RequestDeployment(){
         request.set_allocated_id(GetSlaveID().release());
 
         try{
-            HandleContainerUpdate(startup_reply->configuration());
+            HandleContainerUpdate(startup_reply->host_name(), startup_reply->configuration());
             request.set_success(true);
         }catch(const std::exception& ex){
             request.set_success(false);
@@ -112,21 +112,21 @@ void DeploymentManager::HandleExperimentUpdate(const NodeManager::ControlMessage
         if(node.ip_address() == ip_address_){
             for(const auto& container : node.containers()){
                 if(container.info().id() == container_id_){
-                    HandleContainerUpdate(container);
+                    HandleContainerUpdate(node.info().name(), container);
                 }
             }
         }
     }
 }
 
-void DeploymentManager::HandleContainerUpdate(const NodeManager::Container& container){
+void DeploymentManager::HandleContainerUpdate(const std::string& host_name, const NodeManager::Container& container){
     std::lock_guard<std::mutex> lock(container_mutex_);
     const auto& id = container.info().id();
     
     if(deployment_containers_.count(id)){
         deployment_containers_.at(id)->Configure(container);
     }else{
-        deployment_containers_.emplace(id, std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_, library_path_, container)));
+        deployment_containers_.emplace(id, std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_, host_name, library_path_, container)));
     }
 }
 
