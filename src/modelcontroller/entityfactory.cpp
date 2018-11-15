@@ -174,6 +174,7 @@
 #include "Entities/Edges/definitionedge.h"
 #include "Entities/Edges/deploymentedge.h"
 #include "Entities/Edges/qosedge.h"
+#include "Entities/DeploymentDefinitions/deploymentcontainer.h"
 
 EntityFactory* EntityFactory::global_factory = 0;
 
@@ -414,6 +415,7 @@ entity_lock_(QReadWriteLock::Recursive)
     ComponentAssembly::RegisterWithEntityFactory(registry_broker);
     HardwareNode::RegisterWithEntityFactory(registry_broker);
     HardwareCluster::RegisterWithEntityFactory(registry_broker);
+    MEDEA::DeploymentContainer::RegisterWithEntityFactory(registry_broker);
     SubscriberPortDelegate::RegisterWithEntityFactory(registry_broker);
     PublisherPortDelegate::RegisterWithEntityFactory(registry_broker);
     LoggingProfile::RegisterWithEntityFactory(registry_broker);

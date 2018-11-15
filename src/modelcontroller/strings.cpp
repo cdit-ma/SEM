@@ -27,6 +27,7 @@ const QString KeyName::Type = "type";
 const QString KeyName::UUID = "uuid";
 const QString KeyName::Value = "value";
 const QString KeyName::Worker = "worker";
+const QString KeyName::Version = "version";
 const QString KeyName::WorkerID = "workerID";
 const QString KeyName::X = "x";
 const QString KeyName::Y = "y";

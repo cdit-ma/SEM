@@ -125,7 +125,7 @@ void JobMonitor::stackedWidgetChanged(int index){
         auto key = monitors.key(monitor);
         running_jobs_box->setOptionChecked(key, true);
     }else{
-        running_jobs_box->reset(false);
+        running_jobs_box->resetChecked(false);
     }
 }
 

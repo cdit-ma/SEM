@@ -3,7 +3,7 @@
 
 #include "../../Series/dataseries.h"
 #include "../Chart/timelinechart.h"
-#include "../Data/portlifecycleseries.h"
+#include "../Data/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>

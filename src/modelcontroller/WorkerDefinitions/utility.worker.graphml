@@ -23,7 +23,7 @@
     <graph id="G">
         <node id="utilityworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.2</data>
             <data key="worker">Utility_Worker</data>
             <data key="label">Utility Worker</data>
             <data key="description">A Worker that provides utility functions for use in workload.</data>
@@ -74,7 +74,7 @@
                     <data key="label">Log</data>
                     <data key="operation">Log</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">book</data>
+                    <data key="icon">speechBubbleFilled</data>
                     <data key="description">Logs a message to the database.</data>
                     <data key="is_variadic">true</data>
                     <graph id="utilityworker::log:">
@@ -89,14 +89,15 @@
                                     <data key="icon">format</data>
                                     <data key="description">Message to Log.</data>
                                 </node>
-                                <node id="utilityworker::log::in::print">
+                                <node id="utilityworker::log::in::verbosity">
                                     <data key="kind">Member</data>
-                                    <data key="label">Print</data>
-                                    <data key="inner_type">Boolean</data>
+                                    <data key="label">Verbosity</data>
+                                    <data key="inner_type">Integer</data>
                                     <data key="value">true</data>
                                     <data key="icon_prefix">Icons</data>
-                                    <data key="icon">printer</data>
-                                    <data key="description">Print the message to standard output.</data>
+                                    <data key="icon">exclamationInBubble</data>
+                                    <data key="value">5</data>
+                                    <data key="description">The verbosity of this message (1-10).</data>
                                 </node>
                             </graph>
                         </node>

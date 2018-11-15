@@ -21,6 +21,7 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
     setAcceptsNodeKind(NODE_KIND::LOGGINGPROFILE);
     setAcceptsNodeKind(NODE_KIND::LOGGINGSERVER);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_NODE);
+    setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_CONTAINER);
 
     if(is_temp){
         //Break out early for temporary entities
