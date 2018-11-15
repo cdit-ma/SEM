@@ -53,13 +53,14 @@ public:
     void setResetButtonVisible(bool visible);
     void setResetButtonIcon(QString path, QString name);
     void setResetButtonText(QString text);
+    void resetChecked(bool notify);
 
 signals:
     void checkedOptionsChanged();
     void resetPressed();
 
 public slots:
-    void reset(bool notify=true);
+    void reset();
 
 private slots:
     void themeChanged();

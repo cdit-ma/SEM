@@ -1,8 +1,7 @@
 #include "portlifecycleevent.h"
 
-
 /**
- * @brief PortLifecycleEvent::PortLifecycleEvent
+ * @brief PortLifeCycleEvent::PortLifeCycleEvent
  * @param parent
  */
 PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent)
@@ -41,14 +40,4 @@ LifecycleType PortLifecycleEvent::getType()
 qint64 PortLifecycleEvent::getTime()
 {
     return time_;
-}
-
-
-/**
- * @brief PortLifecycleEvent::getPortPath
- * @return
- */
-const QString PortLifecycleEvent::getPortPath()
-{
-    return port_.path;
 }

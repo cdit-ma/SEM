@@ -111,7 +111,8 @@ private:
 
     struct DeployTitles{
         QAction* disconnect_title = 0;
-        QAction* connect_title = 0;
+        QAction* connect_to_title = 0;
+        QAction* connect_from_title = 0;
     };
 
     QHash<QMenu*, QWidgetAction*> load_more_actions_;

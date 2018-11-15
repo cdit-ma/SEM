@@ -69,6 +69,8 @@ private:
 
     QToolBar* top_toolbar = 0;
     QToolBar* bottom_toolbar = 0;
+    QToolBar* left_toolbar = 0;
+
 
     QToolButton* load_more_button = 0;
     QAction* center_action = 0;

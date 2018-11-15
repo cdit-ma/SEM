@@ -202,14 +202,15 @@ for(slave in jenkins.slaves){
     OUTPUT += Data('uuid', node_uuid, 6);
     OUTPUT += Data('is_online', is_online, 6);
     OUTPUT += Data('readOnly', true, 6);
-    OUTPUT += Data('os', system_properties.get("os.name", ""), 6);
-    OUTPUT += Data('architecture', system_properties.get("os.arch", ""), 6);
-    OUTPUT += Data('os_version', system_properties.get("os.version", ""), 6);
     OUTPUT += Data('root_path', slave.getRootPath(), 6);
     OUTPUT += Data('index', index++, 6);
     OUTPUT += Data('load_time', LOAD_TIME, 6);
 
     if(is_online){
+        OUTPUT += Data('os', system_properties.get("os.name"), 6);
+        OUTPUT += Data('architecture', system_properties.get("os.arch"), 6);
+        OUTPUT += Data('os_version', system_properties.get("os.version"), 6);
+
         def opencl_json = GetOpenCLDevices(slave)
         if(opencl_json){
             OUTPUT += Graph(6);

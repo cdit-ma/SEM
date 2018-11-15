@@ -30,6 +30,7 @@ namespace KeyName{
     extern const QString Type;
     extern const QString UUID;
     extern const QString Value;
+    extern const QString Version;
     extern const QString Worker;
     extern const QString WorkerID;
     extern const QString X;

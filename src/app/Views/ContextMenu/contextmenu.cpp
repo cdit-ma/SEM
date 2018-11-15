@@ -92,6 +92,12 @@ void ClearMenu(QMenu* menu){
     }
 }
 
+QAction* ConstructDisabledAction(const QString& str, QObject* obj){
+    auto action = new QAction(str, obj);
+    action->setEnabled(false);
+    return action;
+}
+
 void ContextMenu::invalidate_menus(){
     for(auto menu : valid_menus){
         menu->setProperty("load_count", 10);
@@ -141,14 +147,16 @@ void ContextMenu::themeChanged(){
         }
     }
 
-    QIcon connect_icon;
+    QIcon connect_to_icon;
+    QIcon connect_from_icon;
     QIcon disconnect_icon;
-    disconnect_icon.addPixmap(theme->getImage("Icons", "connectStriked", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    connect_icon.addPixmap(theme->getImage("Icons", "connect", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-
+    disconnect_icon.addPixmap(theme->getImage("Icons", "connectStriked", QSize(), theme->getTextColor()));
+    connect_to_icon.addPixmap(theme->getImage("Icons", "connectTo", QSize(), theme->getTextColor()));
+    connect_from_icon.addPixmap(theme->getImage("Icons", "connectFrom", QSize(), theme->getTextColor()));
 
     for(auto title_action : title_actions.values()){
-        title_action->connect_title->setIcon(connect_icon);
+        title_action->connect_to_title->setIcon(connect_to_icon);
+        title_action->connect_from_title->setIcon(connect_from_icon);
         title_action->disconnect_title->setIcon(disconnect_icon);
     }
 
@@ -206,12 +214,21 @@ void ContextMenu::update_edge_menu(QMenu* parent_menu, QMenu* menu, QList<ViewIt
         
         if(show_connect){
             //Add the connect title
-            menu->addAction(titles->connect_title);
+            if(connect_source_items.size()){
+                menu->addAction(titles->connect_from_title);
+            }
             
             //Temporarily set the menu action kind so that any action we are to it will know to add
             menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
             menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
             construct_view_item_menus(menu, connect_source_items, false, false);
+
+            if(connect_target_items.size()){
+                if(connect_source_items.size()){
+                    menu->addSeparator();
+                }
+                menu->addAction(titles->connect_to_title);
+            }
             menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
             construct_view_item_menus(menu, connect_target_items, false, false);
 
@@ -863,31 +880,21 @@ void ContextMenu::setupMenus(){
     deploy_menu->addAction(construct_menu_search(deploy_menu));
 
     {
-                auto disconnect_action = new QAction("DISCONNECT", this);
-                disconnect_action->setEnabled(false);
-                auto connect_action = new QAction("CONNECT", this);
-                connect_action->setEnabled(false);
+            auto menu_titles = new DeployTitles;
+            menu_titles->connect_to_title =  ConstructDisabledAction("CONNECT TO", this);
+            menu_titles->connect_from_title =  ConstructDisabledAction("CONNECT FROM", this);
+            menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
+            title_actions[dock_deploy_menu] = menu_titles;
+    }
 
 
-                auto menu_titles = new DeployTitles;
-                menu_titles->connect_title =  connect_action;
-                menu_titles->disconnect_title = disconnect_action;
-                title_actions[dock_deploy_menu] = menu_titles;
-        }
-
-
-{
-                auto disconnect_action = new QAction("DISCONNECT", this);
-                disconnect_action->setEnabled(false);
-                auto connect_action = new QAction("CONNECT", this);
-                connect_action->setEnabled(false);
-
-
-                auto menu_titles = new DeployTitles;
-                menu_titles->connect_title =  connect_action;
-                menu_titles->disconnect_title = disconnect_action;
-                title_actions[deploy_menu] = menu_titles;
-            }
+    {
+        auto menu_titles = new DeployTitles;
+        menu_titles->connect_to_title =  ConstructDisabledAction("CONNECT TO", this);
+        menu_titles->connect_from_title =  ConstructDisabledAction("CONNECT FROM", this);
+        menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
+        title_actions[deploy_menu] = menu_titles;
+    }
     
     //Get the list of adoptable node kind items
     for(auto node_view_item : view_controller->getNodeKindItems()){
@@ -952,15 +959,10 @@ void ContextMenu::setupMenus(){
             add_edge_kind_src_menu->setProperty("remove_source", true);
 
             {
-                auto disconnect_action = new QAction("DISCONNECT", this);
-                disconnect_action->setEnabled(false);
-                auto connect_action = new QAction("CONNECT", this);
-                connect_action->setEnabled(false);
-
-
                 auto menu_titles = new DeployTitles;
-                menu_titles->connect_title =  connect_action;
-                menu_titles->disconnect_title = disconnect_action;
+                menu_titles->connect_to_title =  ConstructDisabledAction("CONNECT TO", this);
+                menu_titles->connect_from_title =  ConstructDisabledAction("CONNECT FROM", this);
+                menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
                 title_actions[add_edge_kind_src_menu] = menu_titles;
             }
 
@@ -976,15 +978,10 @@ void ContextMenu::setupMenus(){
             add_edge_kind_dst_menu->setProperty("remove_target", true);
 
             {
-                auto disconnect_action = new QAction("DISCONNECT", this);
-                disconnect_action->setEnabled(false);
-                auto connect_action = new QAction("CONNECT", this);
-                connect_action->setEnabled(false);
-
-
                 auto menu_titles = new DeployTitles;
-                menu_titles->connect_title =  connect_action;
-                menu_titles->disconnect_title = disconnect_action;
+                menu_titles->connect_to_title =  ConstructDisabledAction("CONNECT TO", this);
+                menu_titles->connect_from_title =  ConstructDisabledAction("CONNECT FROM", this);
+                menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
                 title_actions[add_edge_kind_dst_menu] = menu_titles;
             }
 
