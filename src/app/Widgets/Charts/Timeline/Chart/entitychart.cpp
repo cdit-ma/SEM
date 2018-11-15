@@ -12,8 +12,8 @@
 #define POINT_BORDER 2.0
 #define HIGHLIGHT_PEN_WIDTH POINT_BORDER + 1.0
 
-#define BAR_WIDTH 5.0
-//#define BAR_WIDTH 2.0
+//#define BAR_WIDTH 5.0
+#define BAR_WIDTH 1.0
 #define PRINT_RENDER_TIMES false
 
 /**
