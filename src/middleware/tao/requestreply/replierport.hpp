@@ -102,10 +102,11 @@ namespace tao{
                     auto base_result = eventport.ProcessRequest(*base_message);
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
                     return delayedTaoCast(tao_result_ptr);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply/Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what());
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
@@ -122,10 +123,11 @@ namespace tao{
                 try{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     eventport.ProcessRequest(*base_message);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what());
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
@@ -143,10 +145,11 @@ namespace tao{
                     auto base_result = eventport.ProcessRequest();
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
                     return delayedTaoCast(tao_result_ptr);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what());
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
