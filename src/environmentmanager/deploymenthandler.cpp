@@ -16,7 +16,7 @@ experiment_id_(experiment_id)
 {
     std::lock_guard<std::mutex> lock(replier_mutex_);
     replier_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
-    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_ip_address_, deployment_type_);
+    const auto& assigned_port = environment_.GetDeploymentHandlerPort(experiment_id_, deployment_type_);
     const auto& bind_address = zmq::TCPify(environment_manager_ip_address_, assigned_port);
 
     try{
@@ -28,8 +28,6 @@ experiment_id_(experiment_id)
         port_promise.set_exception(std::make_exception_ptr(error));
         throw error;
     }
-
-    
 
     //Register the callbacks
     replier_->RegisterProtoCallback<NodeManager::EnvironmentMessage, NodeManager::EnvironmentMessage>
@@ -58,9 +56,9 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
     std::future<void> replier_future;
     {
         std::vector<std::chrono::milliseconds> timeouts;
-        timeouts.push_back(std::chrono::milliseconds(2000));
-        timeouts.push_back(std::chrono::milliseconds(4000));
-        timeouts.push_back(std::chrono::milliseconds(8000));
+        timeouts.emplace_back(2000);
+        timeouts.emplace_back(4000);
+        timeouts.emplace_back(8000);
 
         std::lock_guard<std::mutex> lock(replier_mutex_);
         replier_future = replier_->Start(timeouts);
@@ -78,6 +76,7 @@ void DeploymentHandler::HeartbeatLoop() noexcept{
 }
 
 void DeploymentHandler::RemoveDeployment(){
+    std::lock_guard<std::mutex> lock(remove_mutex_);
     if(!removed_flag_){
         if(deployment_type_ == EnvironmentManager::Environment::DeploymentType::EXECUTION_MASTER){
             environment_.RemoveExperiment(experiment_id_);
@@ -134,4 +133,9 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExp
         throw std::runtime_error("Experiment: '" + experiment_id_ + "' already active");
     }
     return reply_message;
+}
+
+bool DeploymentHandler::IsRemovable() const{
+    std::lock_guard<std::mutex> lock(remove_mutex_);
+    return removed_flag_;
 }

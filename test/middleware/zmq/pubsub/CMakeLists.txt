@@ -5,9 +5,6 @@ project(${PROJ_NAME})
 # Find package ZMQ
 find_package(ZMQ)
 
-#Find protobuf
-find_package(Protobuf REQUIRED)
-
 if(NOT ZMQ_FOUND)
 	message(STATUS "Cannot find ZMQ cannot build project ${PROJ_NAME}")
 	return()
@@ -20,22 +17,19 @@ SET(SOURCE
 
 add_executable(${PROJ_NAME} ${SOURCE})
 
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-if(MSVC)
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
-elseif(UNIX)
-    target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
 endif()
 
-target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PRIVATE ${ZMQ_LIBRARIES})
 
-target_link_libraries(${PROJ_NAME} re_core)
-target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${PROJ_NAME} zmq_helper)
-target_link_libraries(${PROJ_NAME} lib_test_basic_proto)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE gtest)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_helper)
+target_link_libraries(${PROJ_NAME} PRIVATE lib_test_basic_proto)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)

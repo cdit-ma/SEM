@@ -4,16 +4,8 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
-
-/*void LogOpenCLError(std::string message, cl_int errorCode) {
-	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
-}*/
-
-/*void LogOpenCLError(std::string message) {
-	std::cerr << "OpenCL error: " << message << std::endl;
-}*/
-
-
+#include <core/worker.h>
+#include <core/logger.h>
 
 std::string OpenCLErrorName(int opencl_error_code) {
 	static const std::vector<std::string> clErrorNames({
@@ -118,7 +110,6 @@ std::string SanitisePathString(const std::string& str) {
 
 	std::remove_copy_if(str.begin(), str.end(),
 						std::back_inserter(result),
-						//std::not1(std::ptr_fun(isValidChar)) );
 						std::not1(std::function<bool(char)>(isValidChar)) );
 
 	return result;
@@ -129,7 +120,6 @@ static_assert(false, "No Kernel filepath defined!");
 #endif
 
 std::string GetSourcePath(std::string filename) {
-	//std::string source_file_path(__FILE__);
 	std::string source_file_path(KERNEL_FILEPATH);
 	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
 	return source_dir + filename;
@@ -145,24 +135,11 @@ cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filena
 		std::ifstream source_file;
 		source_file.open(filename);
 		if (!source_file.is_open()) {
-			/*LogOpenCLError(worker,
-				__func__,
-				"Failed to open file when reading source files: " + filename);
-			break;*/
 			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading source files: " + filename);
 		}
 
 		std::stringstream source_stream;
 		source_stream << source_file.rdbuf();
-
-		//size_t str_len = source_stream.str().size();
-		/*char* source_string = new char[str_len];
-		//strncpy(source_string, source_stream.str().c_str(), str_len);
-		size_t len = source_stream.str().copy(source_string, str_len, 0);
-		source_string[len] = '\0';
-
-		auto new_source = std::pair<const char*, size_t>(source_string, str_len);
-		source_list.push_back(new_source);*/
 		
 		source_list.push_back(source_stream.str());
 	}
@@ -184,21 +161,13 @@ cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenam
 		std::ifstream binary_file;
 		binary_file.open(filename, std::ios::binary);
 		if (!binary_file.is_open()) {
-			/*LogOpenCLError(worker,
-				__func__,
-				"Failed to open file when reading binary files: " + filename);
-			break;*/
-            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
-            //std::cerr << "FAILED TO OPEN BINARY" << std::endl;
 			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading binary files: " + filename);
 		}
 
 		binary_file.unsetf(std::ios::skipws);
 
-		//std::stringstream source_stream;
 		binary_list.emplace_back();
 		std::vector<unsigned char>& binary_data = binary_list.back();
-		//binary_data << binary_file.rdbuf();
 		binary_file.seekg(0,binary_file.end);
 		size_t filesize = binary_file.tellg();
 		binary_file.seekg(0, binary_file.beg);
@@ -207,17 +176,6 @@ cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenam
 
 		binary_data.insert(binary_data.begin(), std::istream_iterator<unsigned char>(binary_file),
 			std::istream_iterator<unsigned char>());
-
-		//size_t str_len = source_stream.str().size();
-		/*char* source_string = new char[str_len];
-		//strncpy(source_string, source_stream.str().c_str(), str_len);
-		size_t len = source_stream.str().copy(source_string, str_len, 0);
-		source_string[len] = '\0';
-
-		auto new_source = std::pair<const char*, size_t>(source_string, str_len);
-		source_list.push_back(new_source);*/
-		
-		//source_list.push_back(source_stream.str());
 	}
 	
 	return binary_list;
@@ -234,9 +192,9 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		ModelLogger::WorkloadEvent::MESSAGE,
+		Logger::WorkloadEvent::ERROR,
 		-1,		// Need to expose something like get_current_work_id() 
 		message);
 }
@@ -249,9 +207,21 @@ void LogOpenCLError(const Worker& worker,
 	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-	ModelLogger::get_model_logger().LogWorkerEvent(worker,
+	worker.logger().LogWorkerEvent(worker,
 		function_signature,
-		ModelLogger::WorkloadEvent::MESSAGE,
-		-1,		// Need to expose something like get_current_work_id() 
-		error_message);
+		Logger::WorkloadEvent::ERROR,
+		-1,
+		error_message, -1);
 }
+
+void LogOpenCLMessage(const Worker& worker,
+	std::string function_signature,
+	std::string message)
+{		
+	worker.logger().LogWorkerEvent(worker,
+		function_signature,
+		Logger::WorkloadEvent::MESSAGE,
+		-1,
+		message, -1);
+}
+

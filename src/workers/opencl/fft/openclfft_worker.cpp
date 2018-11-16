@@ -41,7 +41,7 @@ bool OpenCLFFTWorker::HandleConfigure() {
 
     manager_ = OpenCLManager::GetReferenceByPlatformID(*this, platform_id);
     if (manager_ == NULL) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to obtain a reference to an OpenCLManager");
         return false;
     }
@@ -50,7 +50,7 @@ bool OpenCLFFTWorker::HandleConfigure() {
     std::vector<unsigned int> device_ids;
 
     if (device_id < -1 || device_id >= device_list.size()) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "'device_id' provided by attribute is out of bounds: " + std::to_string(device_id));
         return false;
     }
@@ -87,7 +87,7 @@ void OpenCLFFTWorker::CleanupCLFFT() {
 bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
 	auto work_id = get_new_work_id();
     if (!is_valid_) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid!");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT calculations, worker is invalid!");
 		return false;
 	}
 
@@ -100,14 +100,14 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
 
 	// Check that prime decomposition only uses 2, 3 and 5 as clFFT doesnt support other prime numbers
 	if (N==0) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Passed an array of length 0");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Passed an array of length 0");
 		return false;
 	}
 	while (N%2 == 0) N = N/2;
 	while (N%3 == 0) N = N/3;
 	while (N%5 == 0) N = N/5;
 	if (N > 1) {
-		Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Number of samples must be a mix of powers of 2, 3 and 5");
+		Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, "Unable to perform FFT: Number of samples must be a mix of powers of 2, 3 and 5");
 		return false;
 	}
 	N = data.size();
@@ -133,7 +133,7 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
         /* Prepare OpenCL memory objects and place data inside them. */
-        OCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
+        OpenCLBuffer<float>* buffer = manager_->CreateBuffer(*this, data, dev, true);
         //cl::Buffer bufX(*context, CL_MEM_READ_WRITE, N * pointSize);
         //err = queues[gpuNum]->enqueueWriteBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
 
@@ -155,7 +155,7 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
     return true;
 }
 
-void OpenCLFFTWorker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args) {
+void OpenCLFFTWorker::Log(std::string function_name, Logger::WorkloadEvent event, int work_id, std::string args) {
     Worker::Log("OpenCLFFTWorker::"+function_name, event, work_id, args);
     std::cerr << "OpenCLFFTWorker::" << function_name << ", " << args << std::endl;
 }

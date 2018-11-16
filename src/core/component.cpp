@@ -6,12 +6,12 @@
 #include <future>
 #include <sstream>
 
-#include "modellogger.h"
 #include "ports/port.h"
 #include "worker.h"
 
-Component::Component(const std::string& component_name){
-    set_name(component_name);
+Component::Component(const std::string& component_name):
+    BehaviourContainer(Class::COMPONENT, component_name){
+
 }
 
 Component::~Component(){
@@ -31,7 +31,6 @@ void Component::HandleActivate(){
         }
     }
     BehaviourContainer::HandleActivate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
 }
 
 void Component::HandleConfigure(){
@@ -57,7 +56,7 @@ void Component::HandlePassivate(){
     }
 
     BehaviourContainer::HandlePassivate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
 }
 
 void Component::HandleTerminate(){
@@ -69,7 +68,7 @@ void Component::HandleTerminate(){
         }
     }
     BehaviourContainer::HandleTerminate();
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
 }
 
 void Component::SetLocation(const std::vector<std::string>& location){
@@ -80,13 +79,12 @@ void Component::SetReplicationIndices(const std::vector<int>& indices){
     replication_indices_ = indices;
 }
 
-std::string Component::GetLocalisedName(){
+std::string Component::GetLocalisedName() const{
     std::ostringstream s_stream;
 
     auto location_count = component_location_.size();
     auto indices_count = replication_indices_.size();
 
-    s_stream << logger().get_experiment_name() << "/";
     if(location_count == indices_count){
         for(int i = 0; i < location_count; i++){
             s_stream << component_location_[i] << "[" << replication_indices_[i] << "]/";
@@ -195,5 +193,14 @@ bool Component::RemoveCallback(const std::string& port_name){
     return false;
 }
 
+const std::string& Component::GetExperimentName() const{
+    return experiment_name_;
+}
 
-
+void Component::SetExperimentName(const std::string& experiment_name){
+    if(experiment_name_.empty()){
+        experiment_name_ = experiment_name;
+    }else{
+        logger().LogMessage(*this, "Component: " + get_name() + " has already had it's experiment name set! '" + experiment_name_ + "'");
+    }
+}

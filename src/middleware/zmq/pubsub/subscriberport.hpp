@@ -65,7 +65,7 @@ void zmq::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, &zmq::SubscriberPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_), std::move(socket));
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::SubscriberPort<BaseType>::HandleConfigure();
 }
 
@@ -124,16 +124,16 @@ void zmq::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manage
                 socket->recv(&zmq_request);
                 const auto& request_str = Zmq2String(zmq_request);
                 try{
-                    auto basetype_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
+                    auto basetype_ptr = ::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str);
                     this->EnqueueMessage(std::move(basetype_ptr));
                 }catch(const std::exception& ex){
                     std::string error_str("Failed to translate subscribed message: ");
-                    this->ProcessGeneralException(error_str + ex.what(), true);
+                    this->ProcessGeneralException(error_str + ex.what());
                 }
             }
         }catch(const zmq::error_t& ex){
             if(ex.num() != ETERM){
-                this->ProcessGeneralException(ex.what(), true);
+                this->ProcessGeneralException(ex.what());
             }
         }
     }

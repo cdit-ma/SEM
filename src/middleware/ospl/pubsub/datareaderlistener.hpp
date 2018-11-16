@@ -21,18 +21,18 @@ namespace ospl{
                         //Translate and callback into the component for each valid message we receive
                         if(sample->info().valid()){
                             try{
-                                auto message = std::unique_ptr<BaseType>(::Base::Translator<BaseType, OsplType>::MiddlewareToBase(sample->data()));
+                                auto message = ::Base::Translator<BaseType, OsplType>::MiddlewareToBase(sample->data());
                                 if(message){
                                     port_->EnqueueMessage(std::move(message));
                                 }
                             }catch(const std::exception& ex){
                                 std::string error_str("Failed to translate subscribed message: ");
-                                port_->ProcessGeneralException(error_str + ex.what(), true);
+                                port_->ProcessGeneralException(error_str + ex.what());
                             }
                         }
                     }
                 }catch(const std::exception& ex){
-                    Log(Severity::ERROR_).Context(port_).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
+                    port_->ProcessGeneralException(std::string("Unable to process samples") + ex.what());
                 }
             };
         private:

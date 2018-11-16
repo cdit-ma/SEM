@@ -63,7 +63,7 @@ void qpid::SubscriberPort<BaseType, ProtoType>::HandleConfigure(){
     thread_manager_ =  std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, &qpid::SubscriberPort<BaseType, ProtoType>::Loop, this, std::ref(*thread_manager_), std::ref(*port_helper_), topic_name_->String());
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::SubscriberPort<BaseType>::HandleConfigure();
 };
 
@@ -129,15 +129,15 @@ void qpid::SubscriberPort<BaseType, ProtoType>::Loop(ThreadManager& thread_manag
                     const auto& request_str = request.getContent();
 
                     try{
-                        auto basetype_ptr = std::unique_ptr<BaseType>(::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str));
+                        auto basetype_ptr = ::Proto::Translator<BaseType, ProtoType>::StringToBase(request_str);
                         this->EnqueueMessage(std::move(basetype_ptr));
                     }catch(const std::exception& ex){
                         std::string error_str("Failed to translate subscribed message: ");;
-                        this->ProcessGeneralException(error_str + ex.what(), true);
+                        this->ProcessGeneralException(error_str + ex.what());
                     }
                 }
             }catch(const std::exception& ex){
-                this->ProcessGeneralException(ex.what(), true);
+                this->ProcessGeneralException(ex.what());
             }
         }
     }

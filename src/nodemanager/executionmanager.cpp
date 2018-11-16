@@ -1,7 +1,7 @@
 #include "executionmanager.h"
-
 #include <chrono>
 #include <proto/controlmessage/helper.h>
+#include <iostream>
 
 ExecutionManager::ExecutionManager(
                             Execution& execution,
@@ -79,31 +79,35 @@ void ExecutionManager::Terminate(){
 
 void ExecutionManager::RequestDeployment(){
     using namespace NodeManager;
-    try{
-        //Request the Experiment Info
-        auto environment_message = requester_->GetExperimentInfo();
+    //Request the Experiment Info
+    auto environment_message = requester_->GetExperimentInfo();
 
-        //Take a copy of the control message
-        std::lock_guard<std::mutex> lock(control_message_mutex_);
-        control_message_ = std::unique_ptr<ControlMessage>(new ControlMessage(environment_message->control_message()));
+    //Take a copy of the control message
+    std::lock_guard<std::mutex> lock(control_message_mutex_);
+    control_message_ = std::unique_ptr<ControlMessage>(new ControlMessage(environment_message->control_message()));
 
-        std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
-        //Construct a set of slaves to wait
-        //XXX: Probably need to handle multiple NodeManager Slaves on each IP, will need more checks for uniquity
-        for(auto& node : control_message_->nodes()){
-            const auto& node_ip_address = GetAttribute(node.attributes(), "ip_address").s(0);
-            auto insert = slave_states_.emplace(node_ip_address, SlaveState::OFFLINE);
-            if(insert.second == false){
-                throw std::runtime_error("Got duplicate Node in ControlMessage with IP: '" + node_ip_address + "'");
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+    //Construct a set of slaves to wait
+    for(const auto& node : control_message_->nodes()){
+        for(const auto& container : node.containers()){
+            const auto& slave_key = GetSlaveKey(node.ip_address(), container.info().id());
+
+            auto insert = slave_states_.emplace(slave_key, SlaveState::OFFLINE);
+            if(!insert.second){
+                throw std::runtime_error("Got duplicate slaves in ControlMessage with IP: '" + slave_key + "'");
             }
         }
-    }catch(const std::exception& ex){
-        throw;
     }
 }
 
-ExecutionManager::SlaveState ExecutionManager::GetSlaveState(const std::string& ip_address){
-    return slave_states_.at(ip_address);
+ExecutionManager::SlaveState ExecutionManager::GetSlaveState(const std::string& slave_key){
+    if(slave_states_.count(slave_key)){
+        return slave_states_.at(slave_key);
+    }else if(late_joiner_slave_states_.count(slave_key)){
+        return late_joiner_slave_states_.at(slave_key);
+    }else{
+        throw std::runtime_error("Slave with Key: '" + slave_key + "' not in experiment");
+    }
 }
 
 void ExecutionManager::SetSlaveState(const std::string& ip_address, SlaveState state){
@@ -143,68 +147,81 @@ void ExecutionManager::HandleSlaveStateChange(){
     }
 }
 
+
+const std::string ExecutionManager::GetSlaveKey(const std::string& ip, const std::string& container_id){
+    return ip + "_" + container_id;
+}
+
+const std::string ExecutionManager::GetSlaveKey(const NodeManager::SlaveId& slave){
+    return GetSlaveKey(slave.ip_address(), slave.container_id());
+}
+
 std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveStartup(const NodeManager::SlaveStartupRequest& request){
     using namespace NodeManager;
     std::unique_ptr<SlaveStartupReply> reply;
-    const auto& slave_ip_address = request.slave_ip();
-    
-    std::lock_guard<std::mutex> lock(control_message_mutex_);
-    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
-    for(auto& node : control_message_->nodes()){
-        const auto& node_ip_address = GetAttribute(node.attributes(), "ip_address").s(0);
+    const auto& slave_key = GetSlaveKey(request.id());
 
-        //XXX: Probably need to handle multiple NodeManager Slaves on each IP, will need more checks for uniquity
-        if(slave_ip_address == node_ip_address){
-            if(GetSlaveState(slave_ip_address) == SlaveState::OFFLINE){
-                reply = std::unique_ptr<SlaveStartupReply>(new SlaveStartupReply());
-                auto node_copy = Node(node);
-                reply->mutable_configuration()->Swap(&node_copy);
-                break;
-            }else{
-                throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in correct state");
+    std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+    if(GetSlaveState(slave_key) == SlaveState::OFFLINE){
+        std::lock_guard<std::mutex> control_lock(control_message_mutex_);
+
+        for(const auto& node : control_message_->nodes()){
+            if(request.id().ip_address() == node.ip_address()){
+                for(const auto& container : node.containers()){
+                    if(request.id().container_id() == container.info().id()){
+                        //Give them there right container
+                        reply = std::unique_ptr<SlaveStartupReply>(new SlaveStartupReply());
+                        reply->set_host_name(node.info().name());
+                        reply->set_allocated_configuration(new Container(container));
+                        //Set the slave state as Registered
+                        SetSlaveState(slave_key, SlaveState::REGISTERED);
+                    }
+                }
+
             }
         }
+    }else{
+        throw std::runtime_error("Slave with Key: '" + slave_key + "' not in correct state");
     }
-
-    if(!reply){
-        throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in experiment");
-    }
-
     return reply;
 }
 
 std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlaveConfigured(const NodeManager::SlaveConfiguredRequest& request){
     using namespace NodeManager;
-    const auto& slave_ip_address = request.slave_ip();
+    std::unique_ptr<SlaveConfiguredReply> reply;
+    const auto& slave_key = GetSlaveKey(request.id());
+    std::cerr << "Slave Configured: " << slave_key << std::endl;
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
-    if(GetSlaveState(slave_ip_address) == SlaveState::OFFLINE){
-        auto reply = std::unique_ptr<SlaveConfiguredReply>(new SlaveConfiguredReply());
+    if(GetSlaveState(slave_key) == SlaveState::REGISTERED){
+        reply = std::unique_ptr<SlaveConfiguredReply>(new SlaveConfiguredReply());
         auto slave_state = SlaveState::CONFIGURED;
         if(request.success()){
-            std::cout << "* Slave: " << slave_ip_address << " Online" << std::endl;
+            std::cout << "* Slave: " << slave_key << " Online" << std::endl;
         }else{
-            std::cerr << "* Slave: " << slave_ip_address << " Error!" << std::endl;
+            std::cerr << "* Slave: " << slave_key << " Error!" << std::endl;
             for(const auto& error_str : request.error_messages()){
-                std::cerr << "* [" << slave_ip_address << "]: " << error_str << std::endl;
+                std::cerr << "* [" << slave_key << "]: " << error_str << std::endl;
             }
             slave_state = SlaveState::ERROR_;
         }
-        //Change state
-        SetSlaveState(slave_ip_address, slave_state);
-        return reply;
+        //Set the slave state as Configured or Error'd
+        SetSlaveState(slave_key, slave_state);
     }else{
-        throw std::runtime_error("Slave with IP: '" + slave_ip_address + "' not in correct state");
+        throw std::runtime_error("Slave with IP: '" + slave_key + "' not in correct state");
     }
+    return reply;
 }
 
 std::unique_ptr<NodeManager::SlaveTerminatedReply> ExecutionManager::HandleSlaveTerminated(const NodeManager::SlaveTerminatedRequest& request){
     using namespace NodeManager;
-    const auto& slave_ip_address = request.slave_ip();
+    const auto& slave_key = GetSlaveKey(request.id());
+
+    std::cerr << "Slave Terminating: " << slave_key << std::endl;
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     auto reply = std::unique_ptr<SlaveTerminatedReply>(new SlaveTerminatedReply());
-    SetSlaveState(slave_ip_address, SlaveState::TERMINATED);
+    SetSlaveState(slave_key, SlaveState::TERMINATED);
     return reply;
 }
 
@@ -229,6 +246,7 @@ void ExecutionManager::HandleExperimentUpdate(const NodeManager::EnvironmentMess
         case EnvironmentMessage::SHUTDOWN_EXPERIMENT:{
             execution_.Interrupt();  
             break;
+
         }
         default:{
             throw std::runtime_error("Unhandle EnvironmentMessage Type: " + EnvironmentMessage_Type_Name(type));
@@ -289,8 +307,13 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     if(slave_deregistration_future.valid()){
         try{
-            slave_deregistration_future.get();
+            auto status = slave_deregistration_future.wait_for(std::chrono::seconds(30));
+            
+            if(status != std::future_status::ready){
+                std::cerr << "* Slave deregistration took longer than 30 seconds, Shutting down." << std::endl;
+            }
         }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
         }
     }
 

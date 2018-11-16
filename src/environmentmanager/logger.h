@@ -11,6 +11,7 @@ namespace EnvironmentManager{
 class Environment;
 class Experiment;
 class Node;
+class Container;
 class Logger{
     public:
         enum class Type{
@@ -24,8 +25,8 @@ class Logger{
             Live = 1,
             Cached = 2,
         };
-        Logger(Environment& environment, Node& parent, const NodeManager::Logger& logger);
-        Logger(Environment& environment, Node& parent, Type type, Mode mode);
+        Logger(Environment& environment, Container& parent, const NodeManager::Logger& logger);
+        Logger(Environment& environment, Container& parent, Type type, Mode mode);
         ~Logger();
 
 
@@ -62,7 +63,7 @@ class Logger{
 
         std::unique_ptr<NodeManager::Logger> GetProto(const bool full_update);
     private:
-        Node& node_;
+        Container& parent_;
         Environment& environment_;
         std::string id_;
         Type type_;

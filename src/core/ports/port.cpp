@@ -1,8 +1,8 @@
 #include "port.h"
 #include "../component.h"
-#include "../modellogger.h"
 
-Port::Port(std::weak_ptr<Component> component, const std::string& port_name, const Port::Kind& port_kind, const std::string& port_middleware)
+Port::Port(std::weak_ptr<Component> component, const std::string& port_name, const Port::Kind& port_kind, const std::string& port_middleware):
+Activatable(Class::PORT)
 {
     component_ = component;
     set_name(port_name);
@@ -52,27 +52,27 @@ void Port::EventProcessed(const BaseMessage& message){
 
 void Port::EventIgnored(const BaseMessage& message){
     std::lock_guard<std::mutex> lock(mutex_);
-    logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
+    logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::IGNORED);
     ignored_count_ ++;
 }
 
-void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str, bool print){
-    logger().LogPortExceptionEvent(*this, message, error_str, print);
+void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str){
+    logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::EXCEPTION, error_str);
 }
-void Port::ProcessGeneralException(const std::string& error_str, bool print){
-    logger().LogPortExceptionEvent(*this, error_str, print);
+void Port::ProcessGeneralException(const std::string& error_str){
+    logger().LogException(*this, error_str);
 }
 
 void Port::HandleConfigure(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::CONFIGURED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::CONFIGURED);
 }
 
 void Port::HandleActivate(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
 }
 void Port::HandlePassivate(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
 }
 void Port::HandleTerminate(){
-    logger().LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::TERMINATED);
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
 }

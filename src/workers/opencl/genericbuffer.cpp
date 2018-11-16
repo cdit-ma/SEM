@@ -4,50 +4,30 @@
 #include "openclutilities.h"
 #include "openclmanager.h"
 
-/*GenericBuffer::GenericBuffer(int id) : id_(id) {
-    id_ = OpenCLManager::BufferAttorney::GetNewBufferID(manager)
-}*/
 
 GenericBuffer::GenericBuffer(const Worker& worker, OpenCLManager& manager, size_t size) :
     manager_(manager), size_(size), worker_reference_(worker) {
 
     if (size ==0) {
-        LogError(worker_reference_,
-            __func__,
-            "Warning: Unable to create a buffer of length 0");
-        valid_ = false;
-        return;
+        throw std::invalid_argument("Unable to create an OpenCL buffer of length 0");
     }
 
-    id_ = OpenCLManager::BufferAttorney::GetNewBufferID(worker, manager, *this);
-    if (id_ == OpenCLManager::invalid_buffer_id_) {
-        LogError(worker_reference_,
-			std::string(__func__),
-			"Failed to obtain tracking ID for buffer from OpenCLManager");
-        valid_ = false;
-        return;
-    }
-    
     cl_int err;
 
     buffer_ = std::unique_ptr<cl::Buffer>(new cl::Buffer(manager_.GetContext(), CL_MEM_READ_WRITE, size_, NULL, &err));
     if (err != CL_SUCCESS) {
-		LogError(worker_reference_,
-			std::string(__func__),
-			"Failed to create a buffer",
-            err);
-        valid_ = false;
-		return;
+        throw OpenCLException("Unable to create an OpenCL buffer", err);
 	}
 
     valid_ = true;
 }
 
-GenericBuffer::~GenericBuffer() {
-    if (valid_) {
-        valid_ = false;
-        //OpenCLManager::BufferAttorney::ReleaseBufferID(manager_, *this);
+void GenericBuffer::Release() {
+    if (!valid_) {
+        throw std::runtime_error("Trying to release an invalid openCL buffer");
     }
+    valid_ = false;
+    buffer_.reset();
 }
 
 
@@ -57,10 +37,6 @@ bool GenericBuffer::is_valid() const{
 
 size_t GenericBuffer::GetSize() const {
     return size_;
-}
-
-int GenericBuffer::GetID() const {
-    return id_;
 }
 
 const Worker& GenericBuffer::GetInitialWorker() const {
@@ -85,12 +61,10 @@ bool GenericBuffer::ReadData(const Worker& worker, void* dest, size_t size, cons
     if (size == 0) {
         LogError(worker,
             __func__,
-            "Trying to read data of length 0  to buffer");
+            "Trying to read data of length 0 to buffer");
         return false;
     }
 
-    // NEEDS TO HAVE LENGTH INITIALISED FIRST
-    //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
     err = device.GetQueue().GetRef().enqueueReadBuffer(GetBackingRef(), blocking, 0, size, dest);
     if(err != CL_SUCCESS){
         LogError(worker,
@@ -120,7 +94,6 @@ bool GenericBuffer::WriteData(const Worker& worker, const void* source, size_t s
         return false;
     }
 
-    //err = cl::copy(manager_->GetQueues().at(0), data.begin(), data.end(), buffer_);
     err = device.GetQueue().GetRef().enqueueWriteBuffer(GetBackingRef(), blocking, 0, size, source);
     if(err != CL_SUCCESS){
         LogError(worker,

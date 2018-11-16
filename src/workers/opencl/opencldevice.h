@@ -11,7 +11,6 @@
 #include "openclkernel.hpp"
 #include "openclqueue.h"
 
-//class OpenCLKernel;
 class OpenCLManager;
 
 namespace cl {
@@ -27,13 +26,11 @@ public:
 
     const cl::Device& GetRef() const;
     std::string GetName() const;
-    // cl::CommandQueue& GetQueue() const;
     OpenCLQueue& GetQueue() const;
 
     bool LoadKernelsFromSource(const Worker& worker, const std::vector<std::string>& filenames);
     bool LoadKernelsFromBinary(const Worker& worker, const std::string& filename);
     const std::vector<std::reference_wrapper<OpenCLKernel> > GetKernels();
-    //OpenCLKernel& GetKernel(const std::string& kernel_name) const;
 
 private:
     virtual void LogError(const Worker& worker, std::string function_name, std::string error_message, int cl_error_code);

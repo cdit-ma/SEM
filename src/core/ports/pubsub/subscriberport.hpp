@@ -10,7 +10,6 @@
 #include "../../threadmanager.h"
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Interface for a standard templated SubscriberPort
@@ -71,13 +70,12 @@ void SubscriberPort<BaseType>::SetMaxQueueSize(int max_queue_size){
 
 template <class BaseType>
 void SubscriberPort<BaseType>::InterruptLoop(){
-    std::lock_guard<std::mutex> lock(thread_manager_mutex_);
-    if(thread_manager_){
-        //Wake up the threads sleep
+    //Wake up the threads sleep
+    {
         std::lock_guard<std::mutex> lock(queue_mutex_);
         terminate_ = true;
-        queue_condition_.notify_all();
     }
+    queue_condition_.notify_all();
 }
 
 
@@ -88,7 +86,7 @@ void SubscriberPort<BaseType>::HandleConfigure(){
         thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
         auto future = std::async(std::launch::async, &SubscriberPort<BaseType>::ProcessLoop, this);
         thread_manager_->SetFuture(std::move(future));
-        thread_manager_->Configure();
+        thread_manager_->WaitForConfigured();
     }else{
         throw std::runtime_error("SubscriberPort has an active ThreadManager");
     }
@@ -127,13 +125,15 @@ void SubscriberPort<BaseType>::HandleTerminate(){
 template <class BaseType>
 void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
     //Only process the message if we are running and we have a callback, and we aren't meant to ignore
-    process_message &= is_running() && callback_wrapper_.callback_fn;
-
-    if(process_message){
-        //Call into the function and log
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::STARTED_FUNC);
-        callback_wrapper_.callback_fn(message);
-        logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::FINISHED_FUNC);
+    if(process_message && process_event() && callback_wrapper_.callback_fn){
+        try{
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::STARTED_FUNC);
+            callback_wrapper_.callback_fn(message);
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::FINISHED_FUNC);
+        }catch(const std::exception& ex){
+            CallbackException exception(ex.what());
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::EXCEPTION, exception.what());
+        }
         EventProcessed(message);
     }else{
         EventIgnored(message);
@@ -171,14 +171,14 @@ void SubscriberPort<BaseType>::ProcessLoop(){
                 }
             }
 
+            
             while(!queue.empty()){
                 auto message = std::move(queue.front());
                 queue.pop();
 
                 //If the component is Passivated, this will return false instantaneously
                 rx(*message);
-                
-                
+
                 std::lock_guard<std::mutex> lock(queue_mutex_);
                 //Decrement our count of how many messages are currently being processed
                 processing_count_ --;
@@ -196,10 +196,10 @@ void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message)
         
         std::lock_guard<std::mutex> lock(queue_mutex_);
         //Sum the total number of messages we are processing
-        auto queue_size = message_queue_.size() + processing_count_;
+        int queue_size = message_queue_.size() + processing_count_;
 
         //We should enqueue the message, if we are running, and we have room in our queue size (Or we don't care about queue size)
-        bool enqueue_message = is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);
+        bool enqueue_message = process_event() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);
 
         if(enqueue_message){
             message_queue_.push(std::move(message));

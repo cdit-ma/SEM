@@ -25,23 +25,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 	
     std::lock_guard<std::mutex> guard(reference_list_mutex_);
 
-	// If we haven't initialized the length of the reference list yet do so now
-	//if (reference_map_.empty()) {
-		/*cl_int errCode = cl::Platform::get(&platform_list_);
-		if (errCode != CL_SUCCESS) {
-			LogError(worker,
-					std::string(__func__),
-					"Failed to retrieve the list of OpenCL platforms",
-					errCode);
-			return NULL;
-		}*/
-		GetPlatforms(worker);
-		//reference_list_.resize(platform_list_.size());
-	//}
+	GetPlatforms(worker);
 
 	// Check that the specified platform index isn't out of bounds
 	if (platform_id >= platform_list_.size() || platform_id < 0) {
-	//if (!reference_map_.count(platform_id)) 
 		LogError(worker,
 			std::string(__func__),
 			"platform_id is out of bounds (" + std::to_string(platform_id) + ")");
@@ -61,12 +48,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int
 		}
 
 		reference_map_.emplace(platform_id,  std::move(std::unique_ptr<OpenCLManager>(new_manager)));
-		//reference_list_.at(platform_id).swap(std::move(std::unique_ptr<OpenCLManager>(new_manager)));// = std::move();
 	}
 
 	// Return the relevant reference
 	return reference_map_.at(platform_id).get();
-	//return reference_list_[platform_id].get();
 
 }
 
@@ -75,11 +60,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
     std::lock_guard<std::mutex> guard(reference_list_mutex_);
 	cl_int err;
 
-	// If we haven't initialized the length of the reference list yet do so now
-	//if (reference_list_.empty()) {
-		GetPlatforms(worker);
-		//reference_list_.resize(platform_list_.size(), NULL);
-	//}
+	GetPlatforms(worker);
 
 	// Find the index of the platform with the requested name
 	unsigned int platform_id = 0;
@@ -113,12 +94,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatformName(const Worker& worker, s
 		}
 
 		reference_map_.emplace(platform_id, std::move(std::unique_ptr<OpenCLManager>(new_manager)));
-		//reference_list_.at(platform_id).swap(std::unique_ptr<OpenCLManager>(new_manager));
 	}
 
 	// Return the relevant reference
 	return reference_map_.at(platform_id).get();
-	//return reference_list_[platform_id].get();
 
 }
 
@@ -219,27 +198,23 @@ OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : pl
 }
 
 OpenCLManager::~OpenCLManager() {
-	if (buffer_store_.empty()) {
-		return;
+	size_t leaked_memory = 0;
+	size_t num_unfreed_buffers = buffer_store_.size();
+	for (auto& unfreed_buffer_pair : buffer_store_) {
+		leaked_memory += unfreed_buffer_pair.second;
 	}
-	
-	Log(Severity::WARNING)
-		.Class("OpenCLManager")
-		.Func(__func__)
-		.Msg("OpenCLManager was deleted before all associated buffers had been released");
+
+	if (!buffer_store_.empty()) {
+		std::cout << "OpenCLManager was destroyed before all buffers were released, "
+				+std::to_string(leaked_memory)+" bytes automatically freed across "
+				+std::to_string(num_unfreed_buffers)+" buffers" << std::endl;
+	}
+
+	buffer_store_.clear();
 
 #ifdef BUILD_TEST
 	std::cerr << buffer_store_.size() << " buffers haven't been deallocated after OpenCL testing has finished" << std::endl;	
 #endif
-
-	/*
-	for (auto& unfreed_buffer_pair : buffer_store_) {
-#ifdef BUILD_TEST
-		std::cerr << "deleting buffer at mem location " << unfreed_buffer_pair.second << std::endl;
-#endif
-		delete unfreed_buffer_pair.second;
-	}
-	*/
 }
 
 // TODO: Handle the !valid_ case
@@ -290,10 +265,8 @@ bool OpenCLManager::IsFPGA() const {
 /************************************************************************/
 
 
-int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
+int OpenCLManager::TrackBuffer(const Worker& worker, const OpenCLBufferBase& buffer){
     std::lock_guard<std::mutex> guard(opencl_buffer_mutex_);
-	auto success = false;
-	//auto worker = buffer->GetInitialWorker();
 	
 	//try to retrieve a new buffer ID
 	auto buffer_id  = buffer_id_count_++;
@@ -301,11 +274,9 @@ int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 		buffer_id = buffer_id_count_++;
 	}
 
-	//TODO: See Dan for how to C++11 mutex good bruh
 	if (!buffer_store_.count(buffer_id)){
     	std::lock_guard<std::mutex> guard(opencl_resource_mutex_);
-		buffer_store_.insert(std::make_pair(buffer_id, std::unique_ptr<GenericBuffer>(buffer)));
-		success = true;
+		buffer_store_.insert(std::make_pair(buffer_id, buffer.GetByteSize()));
 	} else {
 		LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));
 		buffer_id = invalid_buffer_id_;
@@ -341,9 +312,8 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
                 "Note: Failed to load binary for device "+dev_name+", will attempt to compile kernels on demand at runtime");
             did_all_succeed = false;
         } else {
-			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
 			for (OpenCLKernel& kernel : device->GetKernels()) {
-				std::cout << " - " << kernel.GetName() << std::endl;
+				LogMessage(worker, GET_FUNC, "Found Precompiled kernel: '" + kernel.GetName() + "'");
 			}
 		}
     }
@@ -369,4 +339,13 @@ void OpenCLManager::LogError(const Worker& worker,
 	LogOpenCLError(worker,
 		"OpenCLManager::" + function_name,
 		error_message);
+}
+
+void OpenCLManager::LogMessage(const Worker& worker,
+							std::string function_name,
+							std::string message)
+{
+	LogOpenCLMessage(worker,
+		"OpenCLManager::" + function_name,
+		message);
 }

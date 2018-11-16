@@ -1,13 +1,7 @@
-set(RE_NODE_MANAGER re_node_manager)
-set(RE_NODE_MANAGER_LIB ${RE_NODE_MANAGER}_lib)
-
-set(PROJ_NAME ${RE_NODE_MANAGER})
+set(PROJ_NAME "re_node_manager")
 project(${PROJ_NAME})
 
-#Link against boost dynamically
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(Protobuf REQUIRED)
-find_package(ZMQ REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
@@ -15,6 +9,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
     )
 
 set(HEADERS
@@ -23,57 +18,37 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
     )
 
-#Pass Version info into cmakevars.h
+# Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-add_library(${RE_NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
+add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
-add_executable(${RE_NODE_MANAGER} "${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp")
+# Compile Definitions
+target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
 
-# Remove the need for _lib extensions
-#set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MANAGER})
+# Include Directories
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SOURCE_PATH})
 
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${LOGAN_SOURCE_DIR})
-
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_COMMON_SOURCE_DIR})
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_COMMON_BINARY_DIR})
-
-target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
+# Link Libraries
+target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE re_loggers)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreceiver)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreplier)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_protowriter)
+target_link_libraries(${PROJ_NAME} PRIVATE zmq_environmentrequester)
+target_link_libraries(${PROJ_NAME} PRIVATE logan_client_lib)
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_DATE_TIME_LIBRARY})
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_CHRONO_LIBRARY})
 
 
-if (MSVC)
-    # Windows requires protobuf in DLLs
-    target_compile_definitions(${RE_NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
-    target_compile_definitions(${RE_NODE_MANAGER_LIB} PRIVATE -DPROTOBUF_USE_DLLS)
-elseif(UNIX)
-	target_link_libraries(${RE_NODE_MANAGER_LIB} pthread)
-    target_link_libraries(${RE_NODE_MANAGER_LIB} dl)
-endif(MSVC)
-
-#Link against required libraries
-target_link_libraries(${RE_NODE_MANAGER_LIB} ${ZMQ_LIBRARIES})
-target_link_libraries(${RE_NODE_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_core)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protoreceiver)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
-target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_environment_manager_lib)
-target_link_libraries(${RE_NODE_MANAGER_LIB} logan_client_lib)
-
-target_link_libraries(${RE_NODE_MANAGER} zmq_environmentrequester)
-
-target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
-target_link_libraries(${RE_NODE_MANAGER} ${RE_NODE_MANAGER_LIB})
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
+    target_link_libraries(${PROJ_NAME} PRIVATE dl)
+endif(UNIX)

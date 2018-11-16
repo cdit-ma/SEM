@@ -102,10 +102,11 @@ namespace tao{
                     auto base_result = eventport.ProcessRequest(*base_message);
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
                     return delayedTaoCast(tao_result_ptr);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply/Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
@@ -122,11 +123,11 @@ namespace tao{
                 try{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     eventport.ProcessRequest(*base_message);
-                    delete base_message;
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Request Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
@@ -144,10 +145,11 @@ namespace tao{
                     auto base_result = eventport.ProcessRequest();
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
                     return delayedTaoCast(tao_result_ptr);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply Failed: ";
-                    eventport.ProcessGeneralException(error_str + ex.what(), true);
-                    throw std::runtime_error(error_str + ex.what());
+                    eventport.ProcessGeneralException(ex.what());
+                    throw;
                 }
             };
         private:
@@ -179,7 +181,7 @@ void tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestTy
     thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
     auto future = std::async(std::launch::async, tao::RequestHandler<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, TaoServerInt>::Loop, std::ref(*thread_manager_), std::move(server), orb_endpoint_->String(), current_naming_service_name_, server_name_->StringList(), server_kind_->String());
     thread_manager_->SetFuture(std::move(future));
-    thread_manager_->Configure();
+    thread_manager_->WaitForConfigured();
     ::ReplierPort<BaseReplyType, BaseRequestType>::HandleConfigure();
 };
 

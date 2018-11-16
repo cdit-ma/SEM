@@ -61,6 +61,11 @@ class Port{
         Experiment& GetExperiment() const;
         Environment& GetEnvironment() const;
 
+        static Kind TranslateProtoKind(const NodeManager::Port::Kind kind);
+        static NodeManager::Port::Kind TranslateInternalKind(const Port::Kind middleware);
+        static NodeManager::Middleware TranslateInternalMiddleware(const Port::Middleware middleware);
+        static Middleware TranslateProtoMiddleware(const NodeManager::Middleware middleware);
+
     protected:
         Port(Component& parent, const NodeManager::Port& port);
         Port(Experiment& parent, const NodeManager::ExternalPort& port);
@@ -68,7 +73,7 @@ class Port{
         const std::set<std::string>& GetInternalConnectedPortIds() const;;
         const std::set<std::string>& GetExternalConnectedPortIds() const;
         void FillTopicPb(NodeManager::Port& port_pb);
-        
+        virtual void FillPortPb(::NodeManager::Port& port_pb) = 0;
     private:
         void SetType(const std::string& type);
 
@@ -77,15 +82,11 @@ class Port{
 
         void AddAttribute(const NodeManager::Attribute& attribute);
 
-        static Kind TranslateProtoKind(const NodeManager::Port::Kind kind);
-        static NodeManager::Port::Kind TranslateInternalKind(const Port::Kind middleware);
-        static NodeManager::Middleware TranslateInternalMiddleware(const Port::Middleware middleware);
-        static Middleware TranslateProtoMiddleware(const NodeManager::Middleware middleware);
 
-        virtual void FillPortPb(NodeManager::Port& port_pb) = 0;
+        
 
         Experiment& experiment_;
-        Component* component_ = 0;
+        Component* parent_ = 0;
 
         std::string id_;
         std::string name_;

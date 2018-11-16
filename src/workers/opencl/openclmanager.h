@@ -6,10 +6,10 @@
 #include <map>
 #include <mutex>
 
-#include <core/modellogger.h>
+#include <core/logger.h>
 #include <core/worker.h>
 
-#include "oclbuffer.hpp"
+#include "openclbuffer.hpp"
 #include "opencldevice.h"
 
 class OpenCLKernel;
@@ -24,13 +24,7 @@ namespace cl {
 
 class OpenCLManager {
 	public:
-		//OpenCLManager(OpenCLManager&& other) = default;
-		//OpenCLManager& operator=(OpenCLManager&& other) = default;
-		//OpenCLManager(const OpenCLManager& other) = delete;
-		//OpenCLManager& operator=(const OpenCLManager& other) = delete;
-		//OpenCLManager(OpenCLManager&& other) = delete;
-		//OpenCLManager& operator=(OpenCLManager&& other) = delete;
-		~OpenCLManager();// = default;
+		~OpenCLManager();
 
 		/**
 		* Returns the OpenCLManager responsible for managing a given OpenCL platform,
@@ -59,12 +53,12 @@ class OpenCLManager {
 		const std::vector<OpenCLKernel> CreateKernels(const Worker& worker, const std::vector<std::string>& filenames);
 		
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(const Worker& worker, size_t buffer_size);
+		OpenCLBuffer<T> CreateBuffer(const Worker& worker, size_t buffer_size);
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking=true);
+		OpenCLBuffer<T> CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking=true);
 
 		template <typename T>
-		void ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer);
+		void ReleaseBuffer(const Worker& worker, OpenCLBuffer<T>& buffer);
 		
 		bool IsValid() const;
         bool IsFPGA() const;
@@ -72,11 +66,11 @@ class OpenCLManager {
 		class BufferAttorney {
 			BufferAttorney() = delete;
 		private:
-			friend class GenericBuffer;
-			static int GetNewBufferID(const Worker& worker, OpenCLManager& manager, GenericBuffer& buffer) {
-				return manager.TrackBuffer(worker, &buffer);
+			friend class OpenCLBufferBase;
+			static int GetNewBufferID(const Worker& worker, OpenCLManager& manager, OpenCLBufferBase& buffer) {
+				return manager.TrackBuffer(worker, buffer);
 			}
-			static void ReleaseBufferID(OpenCLManager& manager, GenericBuffer& buffer) {
+			static void ReleaseBufferID(OpenCLManager& manager, OpenCLBufferBase& buffer) {
 				manager.UntrackBuffer(buffer.GetID());
 			}
 		};
@@ -85,9 +79,8 @@ class OpenCLManager {
 
 	private:
 		OpenCLManager(const Worker& worker, cl::Platform &platform);
-		//~OpenCLManager() {};
 
-		int TrackBuffer(const Worker& worker, GenericBuffer* buffer);
+		int TrackBuffer(const Worker& worker, const OpenCLBufferBase& buffer);
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
 
@@ -100,6 +93,9 @@ class OpenCLManager {
 		static void LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message);
+		static void LogMessage(const Worker& worker,
+							std::string function_name,
+							std::string message);
 
 		// A separate OpenCLManager is maintained for each OpenCL platform
 		static std::unordered_map<unsigned int, std::unique_ptr<OpenCLManager> > reference_map_;
@@ -112,12 +108,10 @@ class OpenCLManager {
 		std::unique_ptr<cl::Context> context_;
 		std::vector<std::unique_ptr<OpenCLDevice> > device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
-		//cl::Program* program_;
-		//std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
 		std::mutex opencl_resource_mutex_;
 
-		std::map<int, std::unique_ptr<GenericBuffer> > buffer_store_;
+		std::map<int, size_t> buffer_store_;
 		std::mutex opencl_buffer_mutex_;
 		int buffer_id_count_ = -1;
 
@@ -126,25 +120,19 @@ class OpenCLManager {
 
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
-	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(worker, *this, /*buffer_id_count_++,*/ buffer_size);
-	return buffer;//TrackBuffer<T>(buffer);
+OpenCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
+	return OpenCLBuffer<T>(worker, *this, buffer_size);
 }
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
-	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(worker, *this, data, device, blocking);
-	return buffer;
+OpenCLBuffer<T> OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
+	return OpenCLBuffer<T>(worker, *this, data, device, blocking);
 }
 
 
 template <typename T>
-void OpenCLManager::ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer) {
-	//delete buffer;
-	//buffer_store_.erase(buffer->GetID());
-	UntrackBuffer(buffer->GetID());
+void OpenCLManager::ReleaseBuffer(const Worker& worker, OpenCLBuffer<T>& buffer) {
+	buffer.Release(*this);
 }
 
 #endif // OPENCL_MANAGER_H

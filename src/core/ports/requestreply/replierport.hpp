@@ -2,7 +2,6 @@
 #define BASE_PORT_REPLIER_HPP
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 
 //Generic templated ReplierPort
@@ -56,13 +55,20 @@ ReplierPort<BaseReplyType, BaseRequestType>::ReplierPort(std::weak_ptr<Component
 template <class BaseReplyType, class BaseRequestType>
 BaseReplyType ReplierPort<BaseReplyType, BaseRequestType>::ProcessRequest(BaseRequestType& base_request){
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
-        auto base_reply = callback_wrapper_.callback_fn(base_request);
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request);
-        return base_reply;
+        try{
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
+            auto base_reply = callback_wrapper_.callback_fn(base_request);
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
+            EventProcessed(base_request);
+            return base_reply;
+        }catch(const std::exception& ex){
+            CallbackException exception(ex.what());
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::EXCEPTION, exception.what());
+            EventProcessed(base_request);
+            throw exception;
+        }
     }
     EventIgnored(base_request);
     return BaseReplyType();
@@ -78,13 +84,20 @@ ReplierPort<void, BaseRequestType>::ReplierPort(std::weak_ptr<Component> compone
 template <class BaseRequestType>
 void ReplierPort<void, BaseRequestType>::ProcessRequest(BaseRequestType& base_request){
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
-        callback_wrapper_.callback_fn(base_request);
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request);
-        return;
+        try{
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
+            callback_wrapper_.callback_fn(base_request);
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
+            EventProcessed(base_request);
+            return;
+        }catch(const std::exception& ex){
+            CallbackException exception(ex.what());
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::EXCEPTION, exception.what());
+            EventProcessed(base_request);
+            throw exception;
+        }
     }
     EventIgnored(base_request);
 };
@@ -102,13 +115,20 @@ template <class BaseReplyType>
 BaseReplyType ReplierPort<BaseReplyType, void>::ProcessRequest(){
     BaseMessage base_request;
     EventRecieved(base_request);
-    auto process_message = is_running() && callback_wrapper_.callback_fn;
+    auto process_message = process_event() && callback_wrapper_.callback_fn;
     if(process_message){
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::STARTED_FUNC);
-        auto base_reply = callback_wrapper_.callback_fn();
-        logger().LogComponentEvent(*this, base_request, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        EventProcessed(base_request);
-        return base_reply;
+        try{
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::STARTED_FUNC);
+            auto base_reply = callback_wrapper_.callback_fn();
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::FINISHED_FUNC);
+            EventProcessed(base_request);
+            return base_reply;
+        }catch(const std::exception& ex){
+            CallbackException exception(ex.what());
+            logger().LogPortUtilizationEvent(*this, base_request, Logger::UtilizationEvent::EXCEPTION, exception.what());
+            EventProcessed(base_request);
+            throw exception;
+        }
     }
     EventIgnored(base_request);
     return BaseReplyType();

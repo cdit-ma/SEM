@@ -18,9 +18,10 @@ class ExecutionManager{
     public:
         enum class SlaveState{
             OFFLINE = 0,
-            CONFIGURED = 1,
-            TERMINATED = 2,
-            ERROR_ = 3
+            REGISTERED = 1,
+            CONFIGURED = 2,
+            TERMINATED = 3,
+            ERROR_ = 4
         };
 
         ExecutionManager(Execution& execution,
@@ -31,6 +32,10 @@ class ExecutionManager{
                             const std::string& master_heartbeat_endpoint);
         ~ExecutionManager();
     private:
+        static const std::string GetSlaveKey(const std::string& ip, const std::string& container_id);
+        static const std::string GetSlaveKey(const NodeManager::SlaveId& slave);
+
+        bool IsSlaveNeeded(const std::string& slave_key);
         void RequestDeployment();
         void Terminate();
         std::unique_ptr<NodeManager::SlaveStartupReply> HandleSlaveStartup(const NodeManager::SlaveStartupRequest& request);
@@ -65,6 +70,7 @@ class ExecutionManager{
 
         std::mutex slave_state_mutex_;
         std::unordered_map<std::string, SlaveState> slave_states_;
+        std::unordered_map<std::string, SlaveState> late_joiner_slave_states_;
         bool execution_valid_ = false;
 
         std::mutex control_message_mutex_;

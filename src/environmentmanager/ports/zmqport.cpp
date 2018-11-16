@@ -1,11 +1,12 @@
 #include "zmqport.h"
 #include "../environment.h"
 #include "../node.h"
+#include "../component.h"
 #include <proto/controlmessage/helper.h>
 
-using namespace EnvironmentManager::zmq;
+using namespace EnvironmentManager;
 
-Port::Port(Component& parent, const NodeManager::Port& port) :
+EnvironmentManager::zmq::Port::Port(Component& parent, const NodeManager::Port& port) :
     ::EnvironmentManager::Port(parent, port){
 
     if(kind_ == EnvironmentManager::Port::Kind::Publisher || kind_ == EnvironmentManager::Port::Kind::Replier){
@@ -15,7 +16,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
     producer_endpoint_ = "tcp://" + ip_ + ":" + producer_port_;
 }
 
-Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
+EnvironmentManager::zmq::Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::ExternalPort& port) :
     ::EnvironmentManager::Port(parent, port){
     if(GetBlackboxType() == BlackboxType::PubSub){
         producer_endpoint_ = NodeManager::GetAttribute(port.attributes(), "publisher_address").s(0);
@@ -25,7 +26,7 @@ Port::Port(::EnvironmentManager::Experiment& parent, const NodeManager::External
     }
 }
 
-Port::~Port(){
+EnvironmentManager::zmq::Port::~Port(){
     if(!IsBlackbox()){
         if(kind_ == Kind::Publisher || kind_ == Kind::Replier){
             GetEnvironment().FreePort(ip_,  GetProducerPort());
@@ -33,15 +34,15 @@ Port::~Port(){
     }
 }
 
-std::string Port::GetProducerPort() const{
+std::string EnvironmentManager::zmq::Port::GetProducerPort() const{
     return producer_port_;
 }
 
-std::string Port::GetProducerEndpoint() const{
+std::string EnvironmentManager::zmq::Port::GetProducerEndpoint() const{
     return producer_endpoint_;
 }
 
-void Port::FillPortPb(NodeManager::Port& port_pb){
+void EnvironmentManager::zmq::Port::FillPortPb(NodeManager::Port& port_pb){
     const auto& port_kind = GetKind();
     
     auto attrs = port_pb.mutable_attributes();

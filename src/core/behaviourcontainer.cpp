@@ -4,7 +4,8 @@
 #include <future>
 #include <iostream>
 
-BehaviourContainer::BehaviourContainer(const std::string& inst_name){
+BehaviourContainer::BehaviourContainer(Class c, const std::string& inst_name)
+:Activatable(c){
     set_name(inst_name);
 }
 

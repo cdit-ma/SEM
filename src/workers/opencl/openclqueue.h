@@ -2,7 +2,6 @@
 #define OPENCLQUEUE_H
 
 #include <memory>
-//#include "opencldevice.h"
 class OpenCLManager;
 class OpenCLDevice;
 

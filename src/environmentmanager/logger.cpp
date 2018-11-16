@@ -1,12 +1,13 @@
 #include "logger.h"
 #include "environment.h"
 #include "experiment.h"
+#include "container.h"
 #include "node.h"
 
 using namespace EnvironmentManager;
 
-Logger::Logger(Environment& environment, Node& parent, const NodeManager::Logger& logger) : 
-                node_(parent), environment_(environment){
+Logger::Logger(Environment& environment, Container& parent, const NodeManager::Logger& logger) :
+                parent_(parent), environment_(environment){
     id_ = logger.id();
 
     type_ = TranslateProtoType(logger.type());
@@ -31,8 +32,8 @@ Logger::Logger(Environment& environment, Node& parent, const NodeManager::Logger
 }
 
 //Model Logger Constructor
-Logger::Logger(Environment& environment, Node& parent, EnvironmentManager::Logger::Type type, EnvironmentManager::Logger::Mode mode): 
-                node_(parent), environment_(environment){
+Logger::Logger(Environment& environment, Container& parent, EnvironmentManager::Logger::Type type, EnvironmentManager::Logger::Mode mode):
+                parent_(parent), environment_(environment){
     type_ = type;
     mode_ = mode;
 
@@ -53,14 +54,6 @@ std::string Logger::GetId() const{
 
 Logger::Type Logger::GetType() const{
     return type_;
-}
-
-Node& Logger::GetNode() const{
-    return node_;
-}
-
-Experiment& Logger::GetExperiment() const{
-    return node_.GetExperiment();
 }
 
 void Logger::SetPublisherPort(const std::string& publisher_port){
@@ -111,7 +104,7 @@ std::string Logger::GetDbFileName() const{
 
 void Logger::SetDirty(){
     if(!dirty_){
-        node_.SetDirty();
+        parent_.SetDirty();
         dirty_ = true;
     }
 }
@@ -134,7 +127,7 @@ std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
             case Type::Server:{
                 //Get the clients
                 for(const auto& client_id : GetConnectedClientIds()){
-                    for(const auto& logger : GetExperiment().GetLoggerClients(client_id)){
+                    for(const auto& logger : GetNode().GetExperiment().GetLoggerClients(client_id)){
                         logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
                     }
                 }
@@ -218,4 +211,8 @@ NodeManager::Logger::Type Logger::TranslateInternalType(const Type type){
         return map_.at(type);
     }
     return NodeManager::Logger::NONE;
+}
+
+Node &Logger::GetNode() const {
+    return parent_.GetNode();
 }

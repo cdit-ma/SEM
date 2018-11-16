@@ -1,8 +1,6 @@
 #ifndef BASEMESSAGE_H
 #define BASEMESSAGE_H
 
-
-
 class BaseMessage{
     public:
         BaseMessage();

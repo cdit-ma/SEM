@@ -10,7 +10,8 @@
 #include <core/libcomponentexport.h>
 
 
-
+#include <core/loggers/logan_logger.h>
+#include <core/loggers/print_logger.h>
 
 #include "dllloader.h"
 #include "loganclient.h"
@@ -19,7 +20,7 @@ namespace NodeManager{
     class Component;
     class Port;
     class Worker;
-    class Node;
+    class Container;
     class Info;
     class Logger;
 };
@@ -29,9 +30,10 @@ typedef std::function<ComponentCConstructor> ComponentConstructor;
 
 class DeploymentContainer : public Activatable{
     public:
-        DeploymentContainer(const std::string& experiment_name);
+        DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path, const NodeManager::Container& container);
         ~DeploymentContainer();
-        bool Configure(const NodeManager::Node& message);
+        void Configure(const NodeManager::Container& container);
+        
         std::weak_ptr<Component> AddComponent(std::unique_ptr<Component> component, const std::string& name);
         std::weak_ptr<Component> GetComponent(const std::string& name);
         std::shared_ptr<Component> RemoveComponent(const std::string& name);
@@ -40,14 +42,13 @@ class DeploymentContainer : public Activatable{
         std::weak_ptr<LoganClient> AddLoganClient(std::unique_ptr<LoganClient> component, const std::string& id);
         std::weak_ptr<LoganClient> GetLoganClient(const std::string& id);
         std::shared_ptr<LoganClient> RemoveLoganClient(const std::string& id);
-
-        void SetLibraryPath(const std::string library_path);
     protected:
         void HandleActivate();
         void HandlePassivate();
         void HandleTerminate();
         void HandleConfigure();
     private:
+        void SetLoggers(Activatable& entity);
         std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
@@ -78,7 +79,6 @@ class DeploymentContainer : public Activatable{
         std::string get_port_library_name(const std::string& port_type, const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
         std::string get_component_library_name(const std::string& component_type, const std::string& namespace_name);
 
-        std::string library_path_;
 
         //Middleware -> construct functions
         std::unordered_map<std::string, PortConstructor> publisher_port_constructors_;
@@ -94,6 +94,10 @@ class DeploymentContainer : public Activatable{
 
         DllLoader dll_loader;
 
+        std::unique_ptr<Logan::Logger> logan_logger_;
+
+        const std::string library_path_;
         const std::string experiment_name_;
+        const std::string host_name_;
 };
 #endif //CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H

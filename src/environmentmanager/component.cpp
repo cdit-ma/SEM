@@ -3,12 +3,13 @@
 #include "ports/port.h"
 #include "attribute.h"
 #include "worker.h"
+#include "container.h"
 #include <proto/controlmessage/helper.h>
 
 using namespace EnvironmentManager;
 
-Component::Component(Environment& environment, Node& parent, const NodeManager::Component& component) : 
-                        environment_(environment), node_(parent){
+Component::Component(Environment& environment, Container& parent, const NodeManager::Component& component) :
+                        environment_(environment), parent_(parent){
     id_ = component.info().id();
     name_ = component.info().name();
     type_ = component.info().type();
@@ -18,8 +19,8 @@ Component::Component(Environment& environment, Node& parent, const NodeManager::
         namespaces_.emplace_back(ns);
     }
 
-    for(const auto& parent: component.location()){
-        parent_stack_.push_back(parent);
+    for(const auto& location: component.location()){
+        parent_stack_.push_back(location);
     }
 
     for(const auto& index: component.replicate_indices()){
@@ -53,8 +54,12 @@ std::string Component::GetId(){
 std::string Component::GetName(){
     return name_;
 };
-Node& Component::GetNode(){
-    return node_;
+Container& Component::GetContainer() const{
+    return parent_;
+}
+
+Node& Component::GetNode() const {
+    return parent_.GetNode();
 }
 
 Environment& Component::GetEnvironment() const{
@@ -63,8 +68,8 @@ Environment& Component::GetEnvironment() const{
 
 
 void Component::SetDirty(){
-    node_.SetDirty();
     dirty_ = true;
+    parent_.SetDirty();
 }
 
 bool Component::IsDirty(){
@@ -72,7 +77,7 @@ bool Component::IsDirty(){
 }
 
 bool Component::HasPort(const std::string& port_id){
-    return ports_.count(port_id);
+    return ports_.count(port_id) > 0;
 }
 
 Port& Component::GetPort(const std::string& port_id){

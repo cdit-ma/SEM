@@ -31,6 +31,7 @@ void PubSub::Basic::Stable::RunTest(::PublisherPort<Base::Basic>& pub_port, ::Su
     int future_count = 10;
     int future_send = 100;
     int send_count = future_count * future_send;
+    sleep_ms(send_count / 10);
 
     std::list<std::future<void>> futures;
 

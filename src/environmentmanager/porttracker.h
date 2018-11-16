@@ -16,7 +16,7 @@ class PortTracker{
     public:
         PortTracker(const std::string& ip_address, unique_queue<int> port_set){
             ip_ = ip_address;
-            available_ports_ = port_set;
+            available_ports_ = {port_set};
         }
         std::string GetPort(){
             std::unique_lock<std::mutex> lock(port_mutex_);
@@ -31,7 +31,7 @@ class PortTracker{
         };
 
         void FreePort(const std::string& port){
-            if(port.size()){
+            if(!port.empty()){
                 std::unique_lock<std::mutex> lock(port_mutex_);
                 int port_number;
                 try{

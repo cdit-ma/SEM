@@ -17,12 +17,14 @@ class DeploymentHandler{
     public:
         
         DeploymentHandler(EnvironmentManager::Environment& env,
-                        const std::string& ip_addr,
+                        const std::string& environment_manager_ip_address,
                         EnvironmentManager::Environment::DeploymentType deployment_type,
                         const std::string& deployment_ip_address,
                         std::promise<std::string> port_promise,
                         const std::string& experiment_id);
-        
+
+
+        bool IsRemovable() const;
         ~DeploymentHandler();
     private:
         //Req/rep loops
@@ -35,15 +37,17 @@ class DeploymentHandler{
 
 
         std::future<void> heartbeat_future_;
-        const EnvironmentManager::Environment::DeploymentType deployment_type_;
         EnvironmentManager::Environment& environment_;
-        
         const std::string environment_manager_ip_address_;
+        const EnvironmentManager::Environment::DeploymentType deployment_type_;
         const std::string deployment_ip_address_;
         const std::string experiment_id_;
 
         std::mutex replier_mutex_;
         std::unique_ptr<zmq::ProtoReplier> replier_;
+
+
+        mutable std::mutex remove_mutex_;
 
         bool removed_flag_ = false;
 };

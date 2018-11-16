@@ -2,10 +2,10 @@
 
 #include <core/translate.h>
 #include <core/worker.h>
-#include <core/modellogger.h>
 #include <core/ports/periodicport.h>
 
 #include <proto/controlmessage/controlmessage.pb.h>
+
 
 #include <iostream>
 #include <algorithm>
@@ -23,18 +23,16 @@ std::string to_lower(std::string str){
     return str;
 }
 
-DeploymentContainer::DeploymentContainer(const std::string& experiment_name):
-    experiment_name_(experiment_name)    
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+    experiment_name_(experiment_name),
+    library_path_(library_path),
+    host_name_(host_name)
 {
-    set_name("Deployment Container");
+    Configure(container);
 }
 
 DeploymentContainer::~DeploymentContainer(){
     Terminate();
-}
-
-void DeploymentContainer::SetLibraryPath(const std::string library_path){
-    library_path_ = library_path;
 }
 
 std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<Component> weak_component, const std::string& port_name){
@@ -51,21 +49,23 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<C
     return nullptr;
 }
 
-bool DeploymentContainer::Configure(const NodeManager::Node& node){
+void DeploymentContainer::Configure(const NodeManager::Container& container){
     try{
-        set_name(node.info().name());
-        set_id(node.info().id());
+        //Set once off information
+        set_name(container.info().name());
+        set_id(container.info().id());
         
         //Try and configure all components
-        for(const auto& logger_pb : node.loggers()){
+        for(const auto& logger_pb : container.loggers()){
             switch(logger_pb.type()){
                 case NodeManager::Logger::CLIENT:{
                     GetConfiguredLoganClient(logger_pb);
                     break;
                 }
                 case NodeManager::Logger::MODEL:{
-                    if(!ModelLogger::is_logger_setup()){
-                        ModelLogger::setup_model_logger(experiment_name_, node.info().name(), logger_pb.publisher_address(), logger_pb.publisher_port(), (ModelLogger::Mode)logger_pb.mode());
+                    //Setup logan logger
+                    if(!logan_logger_){
+                        logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                     }
                     break;
                 }
@@ -74,22 +74,26 @@ bool DeploymentContainer::Configure(const NodeManager::Node& node){
             }
         }
         
-        //Try and configure all components
-        for(const auto& component_pb : node.components()){
-            GetConfiguredComponent(component_pb);
+        for(const auto& component : container.components()){
+            GetConfiguredComponent(component);
         }
 
-
         std::cout << "* Configured Slave as: " << get_name() << std::endl;
-        return Activatable::Configure();
+        Activatable::Configure();
     }catch(const std::runtime_error& e){
         //Teardown The Components we may have constructed
-        for(const auto& component_pb : node.components()){
-            RemoveComponent(component_pb.info().id());
+        for(const auto& component : container.components()){
+            RemoveComponent(component.info().id());
         }
         throw e;
     }
-    return false;
+}
+
+void DeploymentContainer::SetLoggers(Activatable& entity){
+    if(logan_logger_){
+        entity.logger().AddLogger(*logan_logger_);
+    }
+    entity.logger().AddLogger(Print::Logger::get_logger());
 }
 
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
@@ -101,6 +105,11 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
         auto worker = component->GetWorker(worker_name).lock();
 
         if(worker){
+            SetLoggers(*worker);
+
+            //Attach the ID
+            worker->set_id(worker_info_pb.id());
+
             //Handle the attributes
             for(const auto& attr : worker_pb.attributes()){
                 SetAttributeFromPb(*worker, attr.second);
@@ -123,10 +132,12 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         
         //Set the once off information
         if(component){
+            SetLoggers(*component);
             const auto& location = component_pb.location();
             const auto& replicate_indices = component_pb.replicate_indices();
             component->SetLocation({location.begin(), location.end()});
             component->SetReplicationIndices({replicate_indices.begin(), replicate_indices.end()});
+            component->SetExperimentName(experiment_name_);
         }
     }
 
@@ -140,12 +151,16 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         //Handle the ports
         for(const auto& port_pb : component_pb.ports()){
             auto port = GetConfiguredPort(component, port_pb);
-            if(port->get_state() != Activatable::State::NOT_CONFIGURED){
-                //Terminate and reactivate?
-                std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
-                port->Terminate();
-                port->Configure();
-                port->Activate();
+            try{
+                if(port->get_state() != Activatable::State::NOT_CONFIGURED){
+                    //Terminate and reactivate?
+                    std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
+                    port->Terminate();
+                    port->Configure();
+                    port->Activate();
+                }
+            }catch(const std::exception& ex){
+                std::cerr << "* Reconfiguring Port Failed: " << port->get_name() << " " << ex.what() << std::endl;
             }
         }
 
@@ -182,11 +197,9 @@ std::shared_ptr<LoganClient> DeploymentContainer::GetConfiguredLoganClient(const
         }else{
             throw std::runtime_error("Cannot Construct Logan Client: " + logger_pb.id());
         }
-
         return logan_container;
     }
     return nullptr;
-
 }
 
 std::shared_ptr<LoganClient> DeploymentContainer::ConstructLoganClient(const std::string& id){
@@ -270,6 +283,8 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
             }
 
             if(port){
+                SetLoggers(*port);
+
                 //Set the ID/TYPE Once
                 port->set_id(port_info_pb.id());
                 port->set_type(port_info_pb.type());
@@ -330,6 +345,11 @@ void DeploymentContainer::HandleTerminate(){
     
     components_.clear();
     logan_clients_.clear();
+
+
+    if(logan_logger_){
+        logan_logger_.reset();
+    }
 }
 
 void DeploymentContainer::HandleConfigure(){
@@ -352,8 +372,14 @@ void DeploymentContainer::HandleConfigure(){
     }
     
     for(auto& result : results){
-        if(!result.get()){
-            throw std::runtime_error("DeploymentContainer failed to Configure Component");
+        try{
+            if(result.valid()){
+                if(!result.get()){
+                    throw std::runtime_error("DeploymentContainer failed to Configure Component");
+                }
+            }
+        }catch(const std::exception& ex){
+            throw;
         }
     }
 }

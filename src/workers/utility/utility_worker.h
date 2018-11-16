@@ -5,13 +5,12 @@
 #include <core/worker.h>
 
 class Utility_Worker_Impl;
-
-class Utility_Worker: public Worker{
+class Utility_Worker : public Worker{
     public:
         Utility_Worker(const BehaviourContainer& component, const std::string& inst_name);
         ~Utility_Worker();
 
-        void Log(const std::string format_str, bool print, ...);
+        void Log(const std::string format_str, int log_level, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         
         std::string GetTimeOfDayString();
@@ -27,7 +26,7 @@ class Utility_Worker: public Worker{
         double RandomExponentialReal(double lambda);
         std::string GenerateUUID();
     private:
-        Utility_Worker_Impl* impl_ = 0;
+        std::unique_ptr<Utility_Worker_Impl> impl_;
 };
 
 #endif  //WORKERS_UTILITY_UTILITYWORKER_H

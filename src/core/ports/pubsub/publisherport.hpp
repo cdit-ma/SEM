@@ -2,7 +2,6 @@
 #define BASE_PORT_PUBLISHER_HPP
 
 #include "../port.h"
-#include "../../modellogger.h"
 #include "../../component.h"
 #include "../translator.h"
 

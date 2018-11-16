@@ -78,7 +78,7 @@ void ospl::PublisherPort<BaseType, OsplType>::Send(const BaseType& message){
     //Log the recieving
     this->EventRecieved(message);
 
-    if(this->is_running()){
+    if(this->process_event()){
         //std::lock_guard<std::mutex> lock(writer_mutex_);
         if(writer_ != dds::core::null){
             try{
@@ -86,14 +86,13 @@ void ospl::PublisherPort<BaseType, OsplType>::Send(const BaseType& message){
                 if(m){
                     //De-reference the message and send
                     writer_.write(*m);
-                    delete m;
                     this->EventProcessed(message);
-                    this->logger().LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+                    this->logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::SENT);
                     return;
                 }
             }catch(const std::exception& ex){
                 std::string error_str("Failed to Translate Message to publish: ");
-                this->ProcessMessageException(message, error_str + ex.what(), true);
+                this->ProcessMessageException(message, error_str + ex.what());
             }
         }
     }

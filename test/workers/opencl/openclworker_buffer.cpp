@@ -36,22 +36,24 @@ typedef BufferFixture<double> DoubleFixture;
 
 template <typename T>
 void BufferTest(OpenCL_Worker& worker_, const BufferParam<T> bf){
-    //Create buffer
-    OCLBuffer<T>* buffer = worker_.CreateBuffer(bf.data, true);
-    //Check for construct
-    ASSERT_NE(buffer, nullptr);
-    //Check for valid buffer
-    auto is_valid = buffer->is_valid();
+    // Create buffer
+    OpenCLBuffer<T> buffer;
+    buffer = worker_.CreateBuffer(bf.data, true);
+    
+    // Check for valid buffer
+    auto is_valid = buffer.IsValid();
     ASSERT_EQ(is_valid, bf.expect_valid);
+    ASSERT_EQ(worker_.IsBufferValid(buffer), bf.expect_valid);
 
     if(is_valid){
-        //Check the buffers values
-        auto read_buffer = worker_.ReadBuffer(*buffer, true);
+        // Check the buffers values
+        auto read_buffer = worker_.ReadBuffer(buffer, true);
         ASSERT_EQ(read_buffer, bf.data);
     }
     
-    //Release the buffer
+    // Release the buffer
     worker_.ReleaseBuffer(buffer);
+    ASSERT_FALSE(worker_.IsBufferValid(buffer));
 }
 
 

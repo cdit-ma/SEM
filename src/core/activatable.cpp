@@ -1,5 +1,4 @@
 #include "activatable.h"
-#include "modellogger.h"
 #include <iostream>
 #include <typeinfo>
 
@@ -31,8 +30,17 @@ const std::string Activatable::ToString(const Activatable::State& state){
     }
 };
 
+Activatable::Activatable(Class c){
+    class_ = c;
+    logger_ = std::unique_ptr<LoggerProxy>(new LoggerProxy);
+}
+
 std::string Activatable::get_name() const{
     return name_;
+}
+
+Activatable::Class Activatable::get_class() const{
+    return class_;
 }
 
 void Activatable::set_name(std::string name){
@@ -73,16 +81,22 @@ bool Activatable::Configure(){
 
 
 bool Activatable::transition_state(Transition transition){
-    std::unique_lock<std::mutex> lock(transition_mutex_);
+    //Stop concurrent transitions occuring
+    std::lock_guard<std::mutex> transitioning_lock(transitioning_mutex_);
+
     //get the current state
-    State current_state = get_state();
-    State new_state = current_state;
+    auto current_state = get_state();
+    auto new_state = current_state;
     switch(current_state){
         case State::NOT_CONFIGURED:{
             switch(transition){
                 case Transition::CONFIGURE:{
                     new_state = State::CONFIGURED;
                     break;
+                }
+                case Transition::TERMINATE:{
+                    //Ignore this transition
+                    return false;
                 }
                 default:
                     break;
@@ -121,6 +135,10 @@ bool Activatable::transition_state(Transition transition){
         }
         case State::NOT_RUNNING:{
             switch(transition){
+                case Transition::PASSIVATE:{
+                    //Ignore this transition
+                    return false;
+                }
                 case Transition::TERMINATE:{
                     new_state = State::NOT_CONFIGURED;
                     break;
@@ -132,17 +150,13 @@ bool Activatable::transition_state(Transition transition){
         }
     }
 
-
-
-
     if(new_state != current_state){
-        //Notify
         {
-            //Notify things blocking
-            std::unique_lock<std::mutex> lock(state_mutex_);
+            //If the state should change, we should set our transition
+            std::lock_guard<std::mutex> transition_lock(transition_mutex_);
             transition_ = transition;
-            state_condition_.notify_all();
         }
+
         bool transitioned = true;
         try{
             switch(transition){
@@ -170,37 +184,42 @@ bool Activatable::transition_state(Transition transition){
             std::cerr << "Exception:" << e.what() << std::endl;
             transitioned = false;
         }
-        
 
+        std::lock_guard<std::mutex> transition_lock(transition_mutex_);
         //If transitioned, move the state, otherwise fail
         if(transitioned){
-            //Change state
-            std::unique_lock<std::mutex> lock(state_mutex_);
+            std::lock_guard<std::mutex> state_lock(state_mutex_);
             state_ = new_state;
-            transition_ = Activatable::Transition::NO_TRANSITION;
-            state_condition_.notify_all();
-            return true;
         }else{
-            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg(get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
-            return false;
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
         }
+        //Reset the transition?
+        transition_ = Activatable::Transition::NO_TRANSITION;
+        return transitioned;
     }else{
-        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg(get_name() + " :Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
+        logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
     }
     return false;
 }
 
 Activatable::State Activatable::get_state(){
-    std::unique_lock<std::mutex> lock(state_mutex_);
+    std::lock_guard<std::mutex> state_lock(state_mutex_);
     return state_;
 }
 
-ModelLogger& Activatable::logger(){
-    return ModelLogger::get_model_logger();
+LoggerProxy& Activatable::logger() const{
+    return *logger_;
 };
 
-bool Activatable::is_running(){
-   return get_state() == Activatable::State::RUNNING; 
+bool Activatable::process_event(){
+    std::unique_lock<std::mutex> state_lock(state_mutex_);//, std::try_to_lock);
+    if(state_ == Activatable::State::RUNNING){
+        std::unique_lock<std::mutex> transition_lock(transition_mutex_, std::try_to_lock);
+        if(transition_lock.owns_lock()){
+            return transition_ == Transition::NO_TRANSITION;
+        }
+    }
+    return false;
 }
 
 
@@ -212,10 +231,10 @@ std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> at
             attributes_[name] = std::move(attribute);
             return attributes_[name];
         }else{
-            Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Already got an Attribute with name '" + name + "'");
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attribute with name: '" + name + "'");
         }
     }else{
-        Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Cannot attach a null Attribute");
+        logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot attach a NULL attribute");
     }
     return std::weak_ptr<Attribute>();
 }
@@ -225,7 +244,7 @@ std::weak_ptr<Attribute> Activatable::ConstructAttribute(const ATTRIBUTE_TYPE ty
     auto attribute_sp = GetAttribute(name).lock();
     if(attribute_sp){
         if(attribute_sp->get_type() != type){
-            Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Already got an Attribute with name '" + name + "' with a differing type");
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Already got an attached Attribute with name '" + name + "' with a differing type");
             attribute_sp.reset();
         }
     }else{

@@ -6,6 +6,10 @@
 
 #include <exception>
 
+const int OPENCL_WORKER_ERROR = 5;
+const int OPENCL_WORKER_WARN = 7;
+const int OPENCL_WORKER_MESSAGE = 8;
+
 OpenCL_Worker::OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name)
     : Worker(bc, __func__, inst_name) {
 
@@ -20,12 +24,10 @@ OpenCL_Worker::OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name
     }
 }
 
-/*OpenCL_Worker::~OpenCL_Worker() {
-    CleanupFFT();
-    delete load_balancer_;
-}*/
-
 void OpenCL_Worker::HandleConfigure() {
+
+    auto work_id = get_new_work_id();
+
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();
@@ -50,7 +52,7 @@ void OpenCL_Worker::HandleConfigure() {
     }
 
     if (device_id == -1) {
-        for (int i=0; i<device_list.size(); i++) {
+        for (int i=0; i<(int)device_list.size(); i++) {
             devices_.emplace_back(std::ref(*device_list.at(i)));
             device_ids.push_back(i);
         }
@@ -61,7 +63,7 @@ void OpenCL_Worker::HandleConfigure() {
 
     load_balancer_ = new OpenCLLoadBalancer(device_ids);
 
-    InitFFT();
+    InitFFT(work_id);
 
     is_valid_ = true;
 
@@ -69,7 +71,8 @@ void OpenCL_Worker::HandleConfigure() {
 }
 
 void OpenCL_Worker::HandleTerminate() {
-    if (!CleanupFFT()) {
+    auto work_id = get_new_work_id();
+    if (!CleanupFFT(work_id)) {
         throw std::runtime_error("Cannot clean up FFT");
     }
     delete load_balancer_;
@@ -80,8 +83,12 @@ bool OpenCL_Worker::IsValid() const {
 }
 
 bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
-    bool success = false;
+    auto work_id = get_new_work_id();
 
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id,
+            "Executing RunParallel with Threads: " + std::to_string(num_threads) + " each executing Ops: " + std::to_string(ops_per_thread));
+    
+    bool success = false;
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
@@ -97,27 +104,35 @@ bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
 
         success = true;
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to execute RunParallel kernel: \n"+std::string(e.what()));
+        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id, 
+            "Failed to execute RunParallel kernel: " + std::string(e.what()));
+        return false;
     }
 
     load_balancer_->ReleaseDevice(device_id);
-    
+
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
+
     return success;
 }
 
 bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC) {
+    auto work_id = get_new_work_id();
+
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning MatrixMult with vector data");
+
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
-    OCLBuffer<float>* bufferA = NULL;
-    OCLBuffer<float>* bufferB = NULL;
-    OCLBuffer<float>* result_buffer = NULL;
+    // Copy vector data across to OpenCLBuffers
+    OpenCLBuffer<float> bufferA;
+    OpenCLBuffer<float> bufferB;
+    OpenCLBuffer<float> result_buffer;
 
     try {
         bufferA = manager_->CreateBuffer<float>(*this, matA, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, 
             "Failed to create buffer for Matrix A in MatrixMult: \n"+std::string(e.what()));
         return false;
     }
@@ -125,35 +140,52 @@ bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector
     try {
         bufferB = manager_->CreateBuffer<float>(*this, matB, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, 
             "Failed to create buffer for Matrix B in MatrixMult: \n"+std::string(e.what()));
-        manager_->ReleaseBuffer(*this, bufferA);
         return false;
     }
     
     try {
         result_buffer = manager_->CreateBuffer<float>(*this, matC, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, 
             "Failed to create buffer for result matrix in MatrixMult: \n"+std::string(e.what()));
-        manager_->ReleaseBuffer(*this, bufferA);
-        manager_->ReleaseBuffer(*this, bufferB);
         return false;
     }
 
-    bool success = MatrixMult(*bufferA, *bufferB, *result_buffer, *device);
-    matC = result_buffer->ReadData(*this, *device, true);
+    // Call the buffered MatrixMult implementation
+    bool success = MatrixMult(bufferA, bufferB, result_buffer, *device, work_id);
 
-    manager_->ReleaseBuffer(*this, bufferA);
-    manager_->ReleaseBuffer(*this, bufferB);
-    manager_->ReleaseBuffer(*this, result_buffer);
+    // Read back the result into a vector
+    try {
+        matC = result_buffer.ReadData(*this, *device, true);
+    } catch (const std::exception& e) {
+        Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, 
+            "Failed to read from buffer into result matrix during MatrixMult: \n"+std::string(e.what()));
+            return false;
+    }
 
     load_balancer_->ReleaseDevice(device_id);
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
 
     return success;
 }
 
-bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC, OpenCLDevice& device) {
+bool OpenCL_Worker::MatrixMult(
+        const OpenCLBuffer<float>& matA,
+        const OpenCLBuffer<float>& matB,
+        OpenCLBuffer<float>& matC,
+        OpenCLDevice& device,
+        int work_id) {
+
+    // If we haven't already been given a work_id by a calling function then generate one
+    bool is_base_worker_call = false;
+    if (work_id == -1) {
+        is_base_worker_call = true;
+        Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning MatrixMult with buffered data");
+        work_id = get_new_work_id();
+    }
+
     cl_uint lenA = (cl_uint)matA.GetNumElements();
     cl_uint lenB = (cl_uint)matB.GetNumElements();
     cl_uint lenC = (cl_uint)matC.GetNumElements();
@@ -161,11 +193,11 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
     // Determine the dimensions of the matrices from the lengths of the data
     if (lenA == 0 || lenB == 0 || lenC == 0) {
         if (lenA + lenB + lenC == 0) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::MESSAGE, work_id, 
                 "OpenCL_Worker::MatrixMult(): warning: performing multiplication on empty matrices");
             return false;
         } else {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Error during matrix multiplication; sizes of matrices don't match (one had length of 0), "
                 "skipping calculation");
             return false;
@@ -173,11 +205,11 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
     }
 
     cl_ulong Ksquared = ((cl_ulong)lenA*(cl_ulong)lenB)/lenC;
-    cl_uint K = (cl_uint)sqrt((/*long*/ double)Ksquared);
+    cl_uint K = (cl_uint)sqrt((double)Ksquared);
     cl_uint M = lenA/K;
     cl_uint N = lenB/K;
     if ((cl_ulong)K*K != Ksquared || (cl_ulong)M*K != lenA || (cl_ulong)N*K != lenB) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Error during matrix multiplication; sizes of matrices don't match, skipping calculation");
         return false;
     }
@@ -208,7 +240,7 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
         try {
             matrix_kernel.SetArgs(matA, matB, matC, M, K, N, block_data_size, block_data_size);
         } catch (const OpenCLException& ocle) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Failed to set args for MatrixMult:\n"+std::string(ocle.what()));
                 return false;
         }
@@ -218,75 +250,98 @@ bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<flo
                 cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length),
                 std::move(kernel_lock));
         } catch (const OpenCLException& ocle) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Failed to successfully run MatrixMult kernel"+std::string(ocle.what()));
                 return false;
         }
     }
 
+    if (is_base_worker_call) {
+        Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
+    }
+
     return true;
 }
 
 
-bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations) {
+bool OpenCL_Worker::KmeansCluster(
+        const std::vector<float>& points,
+        std::vector<float>& centroids,
+        std::vector<int>& point_classifications,
+        int iterations) {
+    auto work_id = get_new_work_id();
+    
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning KMeans with vector data");
+
     if (manager_->IsFPGA()) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id,
                 "KMeans implementation not provided for FPGA platforms");
         return false;
     }
 
-    OCLBuffer<float>* point_buffer;
-    OCLBuffer<float>* centroid_buffer;
-    OCLBuffer<int>* classification_buffer;
+    auto device_id = load_balancer_->RequestDevice();
+    auto& device = manager_->GetDevices(*this)[device_id];
+
+    // Create OpenCLBuffers from the vector data
+    OpenCLBuffer<float> point_buffer;
+    OpenCLBuffer<float> centroid_buffer;
+    OpenCLBuffer<int> classification_buffer;
 
     try {
-        point_buffer = CreateBuffer(points);
+        point_buffer = manager_->CreateBuffer(*this, points, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to create buffer for points in KMeans: \n"+std::string(e.what()));
         return false;
     }
 
     try {
-        centroid_buffer = CreateBuffer(centroids);
+        centroid_buffer = manager_->CreateBuffer(*this, centroids, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to create buffer for point classifications in KMeans: \n"+std::string(e.what()));
-        manager_->ReleaseBuffer(*this, point_buffer);
         return false;
     }
 
     try {
-        classification_buffer = CreateBuffer(point_classifications);
+        classification_buffer = manager_->CreateBuffer(*this, point_classifications, *device);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to create buffer for point classifications in KMeans: \n"+std::string(e.what()));
-        manager_->ReleaseBuffer(*this, point_buffer);
-        manager_->ReleaseBuffer(*this, centroid_buffer);
         return false;
     }
 
-    bool success = KmeansCluster(*point_buffer, *centroid_buffer, *classification_buffer, iterations);
+    // Call the actual KMeans implementation using the now buffered data
+    bool success = KmeansCluster(point_buffer, centroid_buffer, classification_buffer, iterations, work_id);
     if (!success) {
-        ReleaseBuffer(point_buffer);
-        ReleaseBuffer(centroid_buffer);
-        ReleaseBuffer(classification_buffer);
         return false;
     }
 
-    centroids = ReadBuffer(*centroid_buffer);
-    point_classifications = ReadBuffer(*classification_buffer, true);
-    ReleaseBuffer(point_buffer);
-    ReleaseBuffer(centroid_buffer);
-    ReleaseBuffer(classification_buffer);
+    centroids = ReadBuffer(centroid_buffer);
+    point_classifications = ReadBuffer(classification_buffer, true);
+
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
+
     return true;
 }
 
-bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
+bool OpenCL_Worker::KmeansCluster(
+        const OpenCLBuffer<float>& points,
+        OpenCLBuffer<float>& centroids,
+        OpenCLBuffer<int>& point_classifications,
+        int iterations,
+        int work_id) {
+    
+    // If we haven't already been given a work_id by a calling function then generate one
+    bool is_base_worker_call = false;
+    if (work_id == -1) {
+        is_base_worker_call = true;
+        Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Beginning KMeans with buffered data");
+        work_id = get_new_work_id();
+    }
     
     auto device_id = load_balancer_->RequestDevice();
-    const auto& device = manager_->GetDevices(*this)[device_id];
-    //auto& device = manager_->GetDevices(*this)[device_id];
+    const auto& device = manager_->GetDevices(*this)[device_id];    
 
     std::string filename = GetSourcePath("kmeans.cl");
     auto& cluster_classify_kernel = GetKernel(*device, "classifyPoints", filename);
@@ -296,7 +351,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     cl_uint num_points = (cl_uint) points.GetNumElements() / (sizeof(cl_float4) / sizeof(float));
     cl_uint num_classes = (cl_uint) point_classifications.GetNumElements();
     if (num_points != num_classes) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Attempting to run K-means cluster algorithm, but the point and classification vector lengths don't match");
         return false;
     }
@@ -307,7 +362,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     try {
         cluster_classify_kernel.SetArgs(points, point_classifications, centroids, num_centroids);
     } catch (const OpenCLException& ocle) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to set args for cluster classify kernel, skipping:\n"+std::string(ocle.what()));
         return false;
     }
@@ -328,13 +383,13 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     cl::LocalSpaceArg local_center_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_float4));
     cl::LocalSpaceArg local_count_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_uint));
 
-    OCLBuffer<float>* work_group_center_buffer;
-    OCLBuffer<cl_uint>* work_group_count_buffer;
+    OpenCLBuffer<float> work_group_center_buffer;
+    OpenCLBuffer<cl_uint> work_group_count_buffer;
 
     try {
         work_group_center_buffer = manager_->CreateBuffer<float>(*this, num_centroids*num_compute_units*4);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to create buffer for work_group_center_buffer in KMeans: \n"+std::string(e.what()));
         return false;
     }
@@ -342,21 +397,18 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     try {
         work_group_count_buffer = manager_->CreateBuffer<cl_uint>(*this, num_centroids*num_compute_units);
     } catch (const std::exception& e) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to create buffer for work_group_center_buffer in KMeans: \n"+std::string(e.what()));
-        manager_->ReleaseBuffer(*this, work_group_center_buffer);
         return false;
     }
 
     std::unique_lock<std::mutex> adjust_kernel_lock(cluster_adjust_kernel.AcquireLock());
     try {
         cluster_adjust_kernel.SetArgs(points, point_classifications, num_points, centroids, num_centroids,
-            local_center_buffer, local_count_buffer, *work_group_center_buffer, *work_group_count_buffer);
+            local_center_buffer, local_count_buffer, work_group_center_buffer, work_group_count_buffer);
     } catch (const OpenCLException& ocle) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+        Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
             "Failed to set args for cluster adjust kernel, skipping:\n"+std::string(ocle.what()));
-        ReleaseBuffer(work_group_center_buffer);
-        ReleaseBuffer(work_group_count_buffer);
         return false;
     }
     
@@ -365,10 +417,8 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         try {
             cluster_classify_kernel.Run(*device, true, cl::NullRange, global_classify_threads, cl::NullRange);
         } catch (const OpenCLException& ocle) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Failed to execute K-means classification kernel:\n"+std::string(ocle.what()));
-            ReleaseBuffer(work_group_center_buffer);
-            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
 
@@ -376,21 +426,17 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         try {
             cluster_adjust_kernel.Run(*device, true, cl::NullRange, adjust_global_range, adjust_local_range);
         } catch (const OpenCLException& ocle) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Failed to execute K-means center adjustment kernel:\n"+std::string(ocle.what()));
-            ReleaseBuffer(work_group_center_buffer);
-            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
 
         //Read back the per-work-group result from the adjust kernel
-        auto wg_center_vec = work_group_center_buffer->ReadData(*this, *device, true);
-        auto wg_count_vec = work_group_count_buffer->ReadData(*this, *device, true);
+        auto wg_center_vec = work_group_center_buffer.ReadData(*this, *device, true);
+        auto wg_count_vec = work_group_count_buffer.ReadData(*this, *device, true);
         if (wg_center_vec.size() != wg_count_vec.size()*4) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            Log(__func__, Logger::WorkloadEvent::ERROR, work_id, 
                 "Error reading back adjusted centroids aggregated per workgroup; center and count vector size mismatch");
-            ReleaseBuffer(work_group_center_buffer);
-            ReleaseBuffer(work_group_count_buffer);
             return false;
         }
          
@@ -399,7 +445,7 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
         float center_accumulator[4] = {0,0,0,0};
         cl_uint count_accumulator = 0;
         unsigned int centers_processed = 0;
-        for (int i=0; i<wg_count_vec.size(); i+=1) {
+        for (unsigned int i=0; i<wg_count_vec.size(); i+=1) {
             center_accumulator[0] += wg_center_vec[i*4+0];
             center_accumulator[1] += wg_center_vec[i*4+1];
             center_accumulator[2] += wg_center_vec[i*4+2];
@@ -435,58 +481,32 @@ bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<floa
     classify_kernel_lock.unlock();
     adjust_kernel_lock.unlock();
 
-    ReleaseBuffer(work_group_center_buffer);
-    ReleaseBuffer(work_group_count_buffer);
-
     load_balancer_->ReleaseDevice(device_id);
+
+    if (is_base_worker_call) {
+        Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
+    }
 
     return true;
 }
 
-void OpenCL_Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args) {
-    Worker::Log("OpenCL_Worker::"+function_name, event, work_id, args);
-    std::cerr << "OpenCL_Worker::" << function_name << ", " << args << std::endl;
-}
-/*
-OpenCLKernel* OpenCL_Worker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
-    std::vector<std::string> filenames;
-    filenames.push_back(source_file);
-
-    auto kernel_vec = manager_->CreateKernels(*this, filenames);
-    if (kernel_vec.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-        "Unable to find any kernels in "+source_file);
-        return NULL;
-    }
-    
-    bool found_kernel = false;
-    for (auto& kernel : kernel_vec) {
-        if (kernel.GetName() == kernel_name) {
-            found_kernel = true;
-            return new OpenCLKernel(kernel);
-        }
-    }
-
-    Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-        "Unable to find a kernel called "+kernel_name+" in "+source_file);
-    return NULL;
-}*/
-
 OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file) {
+    // First check list list of already compiled kernels
     for (OpenCLKernel& kernel : device.GetKernels()) {
         if (kernel.GetName() == kernel_name) {
             return kernel;
         }
     }
 
+    // If none were found then attempt to freshly load from source code
     std::vector<std::string> filenames;
     filenames.push_back(source_file);
     device.LoadKernelsFromSource(*this, filenames);
 
     auto kernel_vec = device.GetKernels();
     if (kernel_vec.size() == 0) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-        "Unable to find any kernels in "+source_file);
+        /*Log(__func__, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        "Unable to find any kernels in "+source_file);*/
         throw std::invalid_argument("No kernels in file "+source_file);
     }
     
@@ -496,7 +516,7 @@ OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& 
         }
     }
 
-    Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-        "Unable to find a kernel called "+kernel_name+" in "+source_file);
+    /*Log(__func__, Logger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        "Unable to find a kernel called "+kernel_name+" in "+source_file);*/
     throw std::invalid_argument("Unable to find kernel with name "+kernel_name+" in file "+source_file);
 }

@@ -9,9 +9,15 @@ class Component;
 
 enum class ThreadState{WAITING, STARTED, ACTIVE, TERMINATED};
 
+class CallbackException : public std::runtime_error{
+    public:
+        CallbackException(const std::string& what_arg) : std::runtime_error(std::string("Callback Exception: ") + what_arg){};
+};
+
 //Interface for a standard Port
 class Port : public Activatable
 {
+    
     public:
         enum class Kind{
             NONE = 0,
@@ -40,8 +46,8 @@ class Port : public Activatable
         void EventRecieved(const BaseMessage& message);
         void EventProcessed(const BaseMessage& message);
         void EventIgnored(const BaseMessage& message);
-        void ProcessMessageException(const BaseMessage& message, const std::string& error_str, bool print);
-        void ProcessGeneralException(const std::string& error_str, bool print);
+        void ProcessMessageException(const BaseMessage& message, const std::string& error_str);
+        void ProcessGeneralException(const std::string& error_str);
         
         void SetKind(const Port::Kind& port_kind);
     private:
