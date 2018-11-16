@@ -1,7 +1,7 @@
 #include "portlifecycleevent.h"
 
 /**
- * @brief PortLifeCycleEvent::PortLifeCycleEvent
+ * @brief PortLifecycleEvent::PortLifecycleEvent
  * @param parent
  */
 PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent)

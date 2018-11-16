@@ -1,11 +1,11 @@
 #ifndef PORTLIFECYCLEEVENTSERIES_H
 #define PORTLIFECYCLEEVENTSERIES_H
 
-#include "baseseries.h"
+#include "eventseries.h"
 #include "portlifecycleevent.h"
 
 
-class PortLifecycleEventSeries : public BaseSeries
+class PortLifecycleEventSeries : public MEDEA::EventSeries
 {
     Q_OBJECT
 

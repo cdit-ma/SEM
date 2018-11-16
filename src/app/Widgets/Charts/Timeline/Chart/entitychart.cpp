@@ -329,11 +329,11 @@ void EntityChart::themeChanged()
     _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
 
     /*
-    _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::CONFIGURE, theme->getImage("Icons", "circleInfo", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::ACTIVATE, theme->getImage("Icons", "clock", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::PASSIVATE, theme->getImage("Icons", "circleMinus", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "circleInfo", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clock", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinus", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
     */
 }
 
@@ -1203,7 +1203,7 @@ bool EntityChart::pointHovered(const QRectF& hitRect)
  * @param kind
  * @return
  */
-QHash<qint64, QRectF> &EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
+QHash<qint64, QRectF>& EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
 {
     switch (kind) {
     case TIMELINE_SERIES_KIND::NOTIFICATION:

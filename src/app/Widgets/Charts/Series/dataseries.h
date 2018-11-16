@@ -5,14 +5,14 @@
 #include <QDateTime>
 #include <QPointF>
 
-#include "../Timeline/Data/baseseries.h"
+#include "../Timeline/Data/eventseries.h"
 #include "../../../Controllers/ViewController/viewitem.h"
 
 enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};
 
 namespace MEDEA {
 
-class DataSeries : public BaseSeries //public QObject
+class DataSeries : public MEDEA::EventSeries
 {
     Q_OBJECT
 
