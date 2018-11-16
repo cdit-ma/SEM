@@ -2,10 +2,10 @@
 
 
 /**
- * @brief PortLifeCycle::PortLifeCycle
+ * @brief PortLifecycleEvent::PortLifecycleEvent
  * @param parent
  */
-PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObject* parent)
+PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent)
     : QObject(parent)
 {
     port_ = port;
@@ -13,7 +13,7 @@ PortLifeCycle::PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObjec
     time_ = time;
 }
 
-PortLifeCycle::PortLifeCycle(LifeCycleType type, quint64 time, QObject *parent)
+PortLifecycleEvent::PortLifecycleEvent(LifecycleType type, qint64 time, QObject *parent)
 {
     Port testPort;
     testPort.ID = 0;
@@ -29,30 +29,30 @@ PortLifeCycle::PortLifeCycle(LifeCycleType type, quint64 time, QObject *parent)
 
 
 /**
- * @brief PortLifeCycle::getPort
+ * @brief PortLifecycleEvent::getPort
  * @return
  */
-Port PortLifeCycle::getPort()
+Port PortLifecycleEvent::getPort()
 {
     return port_;
 }
 
 
 /**
- * @brief PortLifeCycle::getType
+ * @brief PortLifecycleEvent::getType
  * @return
  */
-LifeCycleType PortLifeCycle::getType()
+LifecycleType PortLifecycleEvent::getType()
 {
     return type_;
 }
 
 
 /**
- * @brief PortLifeCycle::getTime
+ * @brief PortLifecycleEvent::getTime
  * @return
  */
-quint64 PortLifeCycle::getTime()
+qint64 PortLifecycleEvent::getTime()
 {
     return time_;
 }

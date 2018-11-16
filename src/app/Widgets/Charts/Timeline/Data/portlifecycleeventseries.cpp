@@ -1,62 +1,54 @@
 #include "portlifecycleeventseries.h"
 
 
-int PortLifeCycleSeries::series_ID = 0;
+int PortLifecycleEventSeries::series_ID = 0;
 
 /**
- * @brief PortLifeCycleSeries::PortLifeCycleSeries
+ * @brief PortLifecycleEventSeries::PortLifecycleEventSeries
  * @param parent
  */
-PortLifeCycleSeries::PortLifeCycleSeries(QObject* parent)
+PortLifecycleEventSeries::PortLifecycleEventSeries(QObject* parent)
     : BaseSeries(parent)
 {
     ID_ = series_ID++;
 }
 
-/*
-PortLifeCycleSeries::PortLifeCycleSeries(int ID, QObject *parent)
-    : QObject(parent)
-{
-    ID_ = ID;
-}
-*/
-
 
 /**
- * @brief PortLifeCycleSeries::getID
+ * @brief PortLifecycleEventSeries::getID
  * @return
  */
-int PortLifeCycleSeries::getID()
+int PortLifecycleEventSeries::getID()
 {
     return -1; //ID_;
 }
 
 
 /**
- * @brief PortLifeCycleSeries::addPortEvent
+ * @brief PortLifecycleEventSeries::addPortEvent
  * @param event
  */
-void PortLifeCycleSeries::addPortEvent(PortLifeCycle* event)
+void PortLifecycleEventSeries::addPortEvent(PortLifecycleEvent* event)
 {
     portEvents_.append(event);
 }
 
 
 /**
- * @brief PortLifeCycleSeries::addPortEvents
+ * @brief PortLifecycleEventSeries::addPortEvents
  * @param events
  */
-void PortLifeCycleSeries::addPortEvents(QList<PortLifeCycle*> events)
+void PortLifecycleEventSeries::addPortEvents(QList<PortLifecycleEvent*> events)
 {
     portEvents_.append(events);
 }
 
 
 /**
- * @brief PortLifeCycleSeries::getConstPortEvents
+ * @brief PortLifecycleEventSeries::getConstPortEvents
  * @return
  */
-const QList<PortLifeCycle*> &PortLifeCycleSeries::getConstPortEvents()
+const QList<PortLifecycleEvent*> &PortLifecycleEventSeries::getConstPortEvents()
 {
     return portEvents_;
 }

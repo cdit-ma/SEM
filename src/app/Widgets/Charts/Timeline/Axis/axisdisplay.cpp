@@ -504,7 +504,7 @@ QRectF AxisDisplay::getAdjustedRect()
  * @param mSecsSinceEpoch
  * @return
  */
-QDateTime AxisDisplay::constructDateTime(quint64 mSecsSinceEpoch)
+QDateTime AxisDisplay::constructDateTime(qint64 mSecsSinceEpoch)
 {
     QDateTime dateTime;
     dateTime.setMSecsSinceEpoch(mSecsSinceEpoch);

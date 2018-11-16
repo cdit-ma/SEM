@@ -59,7 +59,7 @@ ViewItem* EntityChart::getViewItem()
 }
 
 
-void EntityChart::addLifeCycleSeries(PortLifeCycleSeries* series)
+void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
 {
     if (!series || series == _lifeCycleSeries)
         return;
@@ -325,18 +325,18 @@ void EntityChart::themeChanged()
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
 
-    _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
+    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
+    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
 
     /*
-    _lifeCycleTypePixmaps.insert(LifeCycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::CONFIGURE, theme->getImage("Icons", "circleInfo", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::ACTIVATE, theme->getImage("Icons", "clock", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::PASSIVATE, theme->getImage("Icons", "circleMinus", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifeCycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "circleInfo", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clock", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinus", QSize(), theme->getMenuIconColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
     */
 }
 
@@ -447,8 +447,8 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
     double barCount = ceil((double)width() / barWidth);
     double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
 
-    QVector< QList<PortLifeCycle*> > buckets(barCount);
-    QList<quint64> bucket_endtimes;
+    QVector< QList<PortLifecycleEvent*> > buckets(barCount);
+    QList<qint64> bucket_endtimes;
 
     auto current_left = _displayedMin;
     for (int i = 0; i < barCount; i++) {
@@ -541,7 +541,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     double bar_time_width = (_displayedMax - _displayedMin) / bar_count;
 
     QVector< QList<QPointF> > buckets(bar_count);
-    QList<quint64> bucket_endtimes;
+    QList<qint64> bucket_endtimes;
 
     auto current_time = _displayedMin;
     for (int i = 0; i < bar_count; i++) {
@@ -632,7 +632,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
 
     // each bucket contains the number of events still running at that time
     QVector<int> buckets(barCount);
-    QList<quint64> bucketEndTimes;
+    QList<qint64> bucketEndTimes;
 
     auto currentTime = _displayedMin;
     for (int i = 0; i < barCount; i++) {
@@ -834,7 +834,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
 
     // bar/bucket count
     QVector< QList<MEDEA::BarData*> > buckets(bar_count);
-    QList<quint64> bucket_endtimes;
+    QList<qint64> bucket_endtimes;
     
     auto current_left = _displayedMin;
     for (int i = 0; i < bar_count; i++) {
@@ -1212,7 +1212,7 @@ bool EntityChart::pointHovered(const QRectF& hitRect)
  * @param kind
  * @return
  */
-QHash<quint64, QRectF>& EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
+QHash<qint64, QRectF>& EntityChart::getSeriesHitRects(TIMELINE_SERIES_KIND kind)
 {
     switch (kind) {
     case TIMELINE_SERIES_KIND::NOTIFICATION:

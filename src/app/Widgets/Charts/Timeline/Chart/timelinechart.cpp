@@ -216,7 +216,7 @@ const QRectF& TimelineChart::getHoverRect()
 }
 
 
-quint64 TimelineChart::mapPixelToTime(double pixel_x)
+qint64 TimelineChart::mapPixelToTime(double pixel_x)
 {
     auto offset = pixel_x / width();
     auto delta = _displayMax - _displayMin;

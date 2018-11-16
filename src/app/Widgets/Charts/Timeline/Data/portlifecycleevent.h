@@ -1,9 +1,9 @@
-#ifndef PORTLIFECYCLE_H
-#define PORTLIFECYCLE_H
+#ifndef PORTLIFECYCLEEVENT_H
+#define PORTLIFECYCLEEVENT_H
 
 #include <QObject>
 
-enum class LifeCycleType {
+enum class LifecycleType {
     NO_TYPE,
     CONFIGURE,
     ACTIVATE,
@@ -47,23 +47,23 @@ struct ComponentInstance {
 };
 
 
-class PortLifeCycle : public QObject
+class PortLifecycleEvent : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit PortLifeCycle(Port port, LifeCycleType type, quint64 time, QObject* parent = 0);
-    explicit PortLifeCycle(LifeCycleType type, quint64 time, QObject* parent = 0);
+    explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
+    explicit PortLifecycleEvent(LifecycleType type, qint64 time, QObject* parent = 0);
 
     Port getPort();
-    LifeCycleType getType();
-    quint64 getTime();
+    LifecycleType getType();
+    qint64 getTime();
 
 private:
     Port port_;
-    LifeCycleType type_;
-    quint64 time_;
+    LifecycleType type_;
+    qint64 time_;
 
 };
 
-#endif // PORTLIFECYCLE_H
+#endif // PORTLIFECYCLEEVENT_H

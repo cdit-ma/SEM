@@ -440,11 +440,11 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         // TESTING PORT LIFE CYCLE EVENTS
         // By default, request random time-frame of events from all Ports for all ComponentInstances
         /*if (itemLabel.startsWith("ComponentInstance")) {
-            PortLifeCycleSeries* portEventsSeries = new PortLifeCycleSeries(itemID, this);
+            PortLifecycleEventSeries* portEventsSeries = new PortLifecycleEventSeries(itemID, this);
             int numPorts = samplePoints.count();
             for (int i = 0; i < numPorts; i++) {
                 int type = 1 + rand() % 4;
-                PortLifeCycle* plc = new PortLifeCycle((LifeCycleType)type, samplePoints.at(i).x(), this);
+                PortLifeCycle* plc = new PortLifeCycle((LifecycleType)type, samplePoints.at(i).x(), this);
                 portEventsSeries->addPortEvent(plc);
             }
             seriesChart->addLifeCycleSeries(portEventsSeries);

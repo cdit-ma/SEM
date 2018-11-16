@@ -42,7 +42,7 @@ public:
     QPair<double, double> getRange();
     bool isPanning();
 
-    quint64 mapPixelToTime(double pixel_x);
+    qint64 mapPixelToTime(double pixel_x);
 
 signals:
     void zoomed(int delta);
