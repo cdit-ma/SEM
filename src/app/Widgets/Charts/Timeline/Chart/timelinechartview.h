@@ -60,11 +60,11 @@ public slots:
 
     void clearPortLifecycleWidgets();
     void clearPortLifecycleEvents();
-    void receivedPortLifecycleEvent(Port port, LifecycleType type, qint64 time);
-    void receivedPortLifecycleResponse(PortLifecycleEvent* event);
+    void receivedPortLifecycleEvent(PortLifecycleEvent* event);
     void printResults();
 
 private:
+    //void constructChartForPortLifecycle(int ID, QString label);
     void constructChartForPortLifecycle(QString path, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
@@ -103,9 +103,16 @@ private:
     qint64 lastRequestedToTime;
     qint64 lastDataUpdatedTime;
 
+    // port lifecycle events
     QHash<QString, EntitySet*> entitySets_portLifecycle;
     QHash<QString, EntityChart*> entityCharts_portLifecycle;
     QHash<QString, PortLifecycleEventSeries*> portLifecycleSeries;
+
+    /*
+    QHash<int, EntitySet*> entitySets_portLifecycle2;
+    QHash<int, EntityChart*> entityCharts_portLifecycle2;
+    QHash<int, PortLifecycleEventSeries*> portLifecycleSeries2;
+    */
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

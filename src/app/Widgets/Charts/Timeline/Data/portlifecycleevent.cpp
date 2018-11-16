@@ -41,3 +41,23 @@ qint64 PortLifecycleEvent::getTime()
 {
     return time_;
 }
+
+
+/**
+ * @brief PortLifecycleEvent::getPortGraphmlID
+ * @return
+ */
+const QString PortLifecycleEvent::getPortGraphmlID()
+{
+    return port_.graphml_id;
+}
+
+
+/**
+ * @brief PortLifecycleEvent::getPortPath
+ * @return
+ */
+const QString PortLifecycleEvent::getPortPath()
+{
+    return port_.path;
+}

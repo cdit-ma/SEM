@@ -91,11 +91,8 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
             auto type = getLifeCycleType(item.type());
             auto time = getQDateTime(item.time());
 
-            //emit receivedPortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            //continue;
-
             PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            emit requestResponse(event);
+            emit receivedPortLifecycleEvent(event);
         }
 
         auto finish = QDateTime::currentMSecsSinceEpoch();

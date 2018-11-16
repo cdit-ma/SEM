@@ -58,6 +58,7 @@ public:
     LifecycleType getType();
     qint64 getTime();
 
+    const QString getPortGraphmlID();
     const QString getPortPath();
 
 private:

@@ -239,7 +239,7 @@ void PanelWidget::testLifecycleSeries()
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::requestResponse, lifecycleView, &TimelineChartView::receivedPortLifecycleResponse);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedPortLifecycleEvent);
         //connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
         //connect(&viewController->getAggregationProxy(), &AggregationProxy::printResults, lifecycleView, &TimelineChartView::printResults);
     }
@@ -699,9 +699,10 @@ void PanelWidget::setupLayout()
         requestData(true);
     });
     refreshDataAction = titleBar->addAction("Refresh Data");
-    connect(refreshDataAction, &QAction::triggered, [=]() {
+    /*connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
-    });
+    });*/
+    refreshDataAction->setVisible(false);
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");

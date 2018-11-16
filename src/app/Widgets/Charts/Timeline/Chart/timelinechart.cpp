@@ -113,29 +113,6 @@ void TimelineChart::addEntityChart(EntityChart* chart)
 
 
 /**
- * @brief TimelineChart::getHoverRect
- * @return
- */
-const QRectF& TimelineChart::getHoverRect()
-{
-    return hoverRect;
-}
-
-
-/**
- * @brief TimelineChart::mapPixelToTime
- * @param pixel_x
- * @return
- */
-qint64 TimelineChart::mapPixelToTime(double pixel_x)
-{
-    auto offset = pixel_x / width();
-    auto delta = _displayMax - _displayMin;
-    return _displayMin + (delta * offset);
-}
-
-
-/**
  * @brief TimelineChart::insertEntityChart
  * @param index
  * @param chart
@@ -162,6 +139,26 @@ void TimelineChart::removeEntityChart(EntityChart* chart)
         _layout->removeWidget(chart);
         _entityCharts.removeAll(chart);
     }
+}
+
+
+/**
+ * @brief TimelineChart::getEntityCharts
+ * @return
+ */
+const QList<EntityChart*>& TimelineChart::getEntityCharts()
+{
+    return _entityCharts;
+}
+
+
+/**
+ * @brief TimelineChart::getHoverRect
+ * @return
+ */
+const QRectF& TimelineChart::getHoverRect()
+{
+    return hoverRect;
 }
 
 
@@ -201,6 +198,19 @@ bool TimelineChart::isRangeSet()
 bool TimelineChart::isPanning()
 {
     return dragMode == DRAG_MODE::PAN || dragMode == DRAG_MODE::RUBBERBAND;
+}
+
+
+/**
+ * @brief TimelineChart::mapPixelToTime
+ * @param pixel_x
+ * @return
+ */
+qint64 TimelineChart::mapPixelToTime(double pixel_x)
+{
+    auto offset = pixel_x / width();
+    auto delta = _displayMax - _displayMin;
+    return _displayMin + (delta * offset);
 }
 
 
@@ -490,14 +500,4 @@ double TimelineChart::mapToRange(double value)
 {
     double ratio = value / width();
     return ratio * (_displayMax - _displayMin) + _displayMin;
-}
-
-
-/**
- * @brief TimelineChart::getEntityCharts
- * @return
- */
-const QList<EntityChart*>& TimelineChart::getEntityCharts()
-{
-    return _entityCharts;
 }
