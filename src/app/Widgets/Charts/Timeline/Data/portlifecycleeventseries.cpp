@@ -8,7 +8,7 @@ int PortLifecycleEventSeries::series_ID = 0;
  * @param parent
  */
 PortLifecycleEventSeries::PortLifecycleEventSeries(QObject* parent)
-    : BaseSeries(parent)
+    : MEDEA::EventSeries(parent)
 {
     ID_ = series_ID++;
 }

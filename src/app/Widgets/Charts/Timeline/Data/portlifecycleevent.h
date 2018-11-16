@@ -53,7 +53,6 @@ class PortLifecycleEvent : public QObject
 
 public:
     explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
-    explicit PortLifecycleEvent(LifecycleType type, qint64 time, QObject* parent = 0);
 
     Port getPort();
     LifecycleType getType();

@@ -13,20 +13,6 @@ PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 tim
     time_ = time;
 }
 
-PortLifecycleEvent::PortLifecycleEvent(LifecycleType type, qint64 time, QObject *parent)
-{
-    Port testPort;
-    testPort.ID = 0;
-    testPort.kind = Port::Kind::PUBLISHER;
-    testPort.path = "path";
-    testPort.name = "testPort";
-    testPort.middleware = "middleware";
-
-    port_ = testPort;
-    type_ = type;
-    time_ = time;
-}
-
 
 /**
  * @brief PortLifecycleEvent::getPort
