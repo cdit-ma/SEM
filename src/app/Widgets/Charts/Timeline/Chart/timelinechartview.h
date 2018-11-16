@@ -56,6 +56,7 @@ public slots:
     void UpdateChartHover();
 
 private:
+    //void constructChartForPortLifecycle(int ID, QString label);
     void constructChartForPortLifecycle(QString path, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
