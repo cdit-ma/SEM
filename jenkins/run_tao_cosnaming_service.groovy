@@ -10,7 +10,7 @@ pipeline{
     }
 
     stages{
-        stage("Terminate Experiment"){
+        stage("Run TAO Naming Service"){
             steps{
                 node(params.node_name){
                     script{

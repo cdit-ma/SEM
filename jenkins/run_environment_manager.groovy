@@ -7,8 +7,8 @@ pipeline{
     parameters{
         string(name: 'ip_address', defaultValue: "${env.ENVIRONMENT_MANAGER_IP_ADDRESS}", description: 'The IP address of the interface the Environment Manager should use')
         string(name: 'port', defaultValue: '20000', description: 'The port that the Environment Manager should use')
-        string(name: 'tao_ns_endpoint', defaultValue: '', description: 'The qualified endpoint of the TAO Naming Server that the Environment Manager should use')
-        string(name: 'qpid_broker_endpoint', defaultValue: '', description: 'The qualified endpoint of the QPiD Broker that the Environment Manager should use')
+        string(name: 'tao_ns_endpoint', defaultValue: '', description: 'The qualified endpoint of the TAO naming service that the Environment Manager should use')
+        string(name: 'qpid_broker_endpoint', defaultValue: '', description: 'The qualified endpoint of the QPiD broker that the Environment Manager should use')
     }
 
     stages{

@@ -22,3 +22,33 @@ stage("Run QPID Broker"){
         }
     }
 }
+
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
+
+pipeline{
+    agent none
+    parameters{
+        string(name: 'node_name', defaultValue: 'master', description: 'The name of the node to run the QPiD broker on.')
+        string(name: 'port', defaultValue: '5672', description: 'The port that the QPiD broker should use.')
+        string(name: 'broker_args', defaultValue: '', description: 'The arguments to pass to QPID.')
+    }
+
+    stages{
+        stage("Run QPID Broker"){
+            steps{
+                node(params.node_name){
+                    script{
+                        def endpoint = "tcp://${env.IP_ADDRESS}:${params.port}"
+                        print("QPID Broker Endpoint: ${endpoint}")
+
+                        if(utils.runScript("${QPID_ROOT}/sbin/qpidd -p ${params.port} ${params.broker_args}") != 0){
+                            error('Running QPID broker failed.')
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
