@@ -6,15 +6,17 @@ def builder_map = [:]
 def execution_map = [:]
 final json_file = 'experiment_config.json'
 
-def RunRegenXSL(String transform, String file_path, String args=""){
-    def utils = new cditma.Utils(this);
-    def re_gen_path = '${RE_PATH}/re_gen/'
-    return utils.runScript("java -jar ${re_gen_path}/saxon.jar -xsl:${re_gen_path}/${transform} -s:${file_path} ${args}") == 0
-}
-
-def ReEnvironmentController(String args="", String post_args=""){
-    def utils = new cditma.Utils(this);
-    return utils.runScript("${RE_PATH}/bin/re_environment_controller ${args} ${post_args}") == 0
+def terminateExperiment(){
+    node('re') {
+        script{
+            def args = "-s "
+            args += "-n \"${params.experiment_name}\" "
+            args += "-e ${params.environment_manager_address} "
+            if(utils.runReEnvironmentController(args)){
+                echo "Experiment: ${params.experiment_name} Removed"
+            }
+        }
+    }
 }
 
 pipeline{
@@ -30,16 +32,19 @@ pipeline{
     stages{
         stage("Add Experiment"){
             steps{
-                node("mitch-pc"){
+                node("re"){
                     unstashParam 'model', 'model.graphml'
                     //Stash and Archive the model file
                     stash includes: 'model.graphml', name: 'model'
                     archiveArtifacts 'model.graphml'
                 
                     script{
-                        def args = " -n \"${params.experiment_name}\" -e ${params.environment_manager_address} -a model.graphml"
+                        def args = "-n \"${params.experiment_name}\" "
+                        args += "-e ${params.environment_manager_address} "
+                        args += "-a model.graphml"
+
                         //Add the experiment and pipe the output to the json_file
-                        if(ReEnvironmentController(args, "> ${json_file}")){
+                        if(utils.runReEnvironmentController(args, "> ${json_file}")){
                             archiveArtifacts json_file
                             stash includes: json_file, name: json_file
                         }else{
@@ -56,10 +61,10 @@ pipeline{
                     dir("${env.BUILD_ID}/codegen"){
                         unstash 'model'
                         script{
-                            if(!RunRegenXSL('generate_project.xsl', 'model.graphml')){
+                            if(!utils.runRegenXSL('generate_project.xsl', 'model.graphml')){
                                 error('Project code generation failed.')
                             }
-                            if(!RunRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
+                            if(!utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
                                 error('Validation report generation failed.')
                             }
                         }
@@ -154,8 +159,11 @@ pipeline{
                             if(d["hasLoganServer"]){
                                 execution_map["LOGAN_${node_name}"] = {
                                     node(node_name){
-                                        def args = " -n \"${params.experiment_name}\" -e ${params.environment_manager_address} -a ${IP_ADDRESS}"
-                                        if(utils.runScript("${RE_PATH}/bin/logan_managedserver" + args) != 0){
+                                        def args = "-n \"${params.experiment_name}\" "
+                                        args += "-e ${params.environment_manager_address} "
+                                        args += "-a ${IP_ADDRESS}"
+
+                                        if(utils.runScript("${RE_PATH}/bin/logan_managedserver ${args}") != 0){
                                             error("logan_managedserver failed on Node: ${node_name}")
                                         }
                                         
@@ -179,18 +187,18 @@ pipeline{
                                             //Have to run in the lib directory due to dll linker paths
                                             def stash_name = "code_" + utils.getNodeOSVersion(node_name)
                                             
-                                            def args = " -n \"${params.experiment_name}\""
-                                            args += " -e ${params.environment_manager_address}"
-                                            args += " -a ${IP_ADDRESS}"
-                                            args += " -l ."
-                                            args += " -t ${params.execution_time}"
-                                            args += " -c ${container_id}"
+                                            def args = "-n \"${params.experiment_name}\" "
+                                            args += "-e ${params.environment_manager_address} "
+                                            args += "-a ${IP_ADDRESS} "
+                                            args += "-l . "
+                                            args += "-t ${params.execution_time} "
+                                            args += "-c ${container_id} "
 
                                             if("${params.log_verbosity}"){
-                                                args += " -v ${params.log_verbosity}"
+                                                args += "-v ${params.log_verbosity} "
                                             }
                                             //Run re_node_manager
-                                            if(utils.runScript('${RE_PATH}/bin/re_node_manager' + args) != 0){
+                                            if(utils.runScript("${RE_PATH}/bin/re_node_manager${args}") != 0){
                                                 error("logan_managedserver failed on Node: ${node_name}")
                                             }
                                         }
@@ -209,24 +217,10 @@ pipeline{
     }
     post{
         failure{
-            node('re') {
-                script{
-                    def args = " -n \"${params.experiment_name}\" -e ${params.environment_manager_address} -s"
-                    if(ReEnvironmentController(args)){
-                        echo "Experiment: ${params.experiment_name} Removed"
-                    }
-                }
-            }
+            terminateExperiment()
         }
         aborted{
-            node('re') {
-                script{
-                    def args = " -n \"${params.experiment_name}\" -e ${params.environment_manager_address} -s"
-                    if(ReEnvironmentController(args)){
-                        echo "Experiment: ${params.experiment_name} Removed"
-                    }
-                }
-            }
+            terminateExperiment()
         }
     }
 }
