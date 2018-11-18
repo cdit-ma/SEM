@@ -5,7 +5,7 @@ def utils = new cditma.Utils(this);
 pipeline{
     agent none
     parameters{
-        string(name: 'experiment_name', defaultValue: 'hello', description: 'The name for the experiment')
+        string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
         booleanParam(name: 'is_regex', defaultValue: false, description: 'Should the Environment Manager treat the experiment_name field as a regex field.')
     }

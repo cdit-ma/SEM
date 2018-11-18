@@ -1,35 +1,37 @@
-//This script requires the following Jenkins plugins:
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-//Requires following parameters in jenkins job:
-// -String parameter: IP_ADDRESS
-// -String parameter: PORT
-// -String parameter: TAO_NAMING_SERVICE_ENDPOINT
-// -String parameter: QPID_BROKER_ENDPOINT
-stage("Run Environment Manager"){
-    def node_ = env.NODE;
+pipeline{
+    agent none
+    parameters{
+        string(name: 'ip_address', defaultValue: "${env.ENVIRONMENT_MANAGER_IP_ADDRESS}", description: 'The IP address of the interface the Environment Manager should use')
+        string(name: 'port', defaultValue: '20000', description: 'The port that the Environment Manager should use')
+        string(name: 'tao_ns_endpoint', defaultValue: '', description: 'The qualified endpoint of the TAO Naming Server that the Environment Manager should use')
+        string(name: 'qpid_broker_endpoint', defaultValue: '', description: 'The qualified endpoint of the QPiD Broker that the Environment Manager should use')
+    }
 
-    node(node_){
-        def re_path = env.RE_PATH;
-        def ip_addr = env.IP_ADDRESS;
-        def port = env.PORT;
-        def tao_naming_service_endpoint = env.TAO_NAMING_SERVICE_ENDPOINT;
-        def qpid_broker_endpoint = env.QPID_BROKER_ENDPOINT;
-        def command = "";
+    stages{
+        stage("Run Environment Manager"){
+            steps{
+                node("master"){
+                    script{
+                        def args = "-a ${params.ip_address} "
+                        args += "-r ${params.port} "
+                        
+                        if(params.tao_ns_endpoint){
+                            args += "-t ${params.tao_ns_endpoint} "
+                        }
+                        if(params.qpid_broker_endpoint){
+                            args += "-q ${params.qpid_broker_endpoint} "
+                        }
 
-        if (re_path && ip_addr && port){
-             command = re_path + "/bin/re_environment_manager -a " + ip_addr + " -r " + port
-        }else{
-            error("Missing Parameters/Environment Variables")
+                        if(!utils.runScript("${RE_PATH}/bin/re_environment_manager", args) == 0){
+                            error('Running re_environment_manager failed!')
+                        }
+                    }
+                }
+            }
         }
-
-        if(qpid_broker_endpoint){
-            command += " -q " + qpid_broker_endpoint
-        }
-        if(tao_naming_service_endpoint){
-            command += " -t " + tao_naming_service_endpoint
-        }
-
-        sh command
-
     }
 }
