@@ -1,6 +1,7 @@
 #!groovy
 @Library('cditma-utils') _
-def utils = new cditma.Utils(this);
+import hudson.tasks.test.AbstractTestResultAction
+def utils = new cditma.Utils(this)
 
 final Boolean IS_TAG = env.TAG_NAME
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
