@@ -36,11 +36,13 @@ pipeline{
                         if(fileExists("VERSION.md")){
                             RELEASE_DESCRIPTION = readFile("VERSION.md")
                         }
+                
+                        def git_id = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
+                        def rollout_file = "re-${git_id}-rollout.tar.gz"
 
-                        final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
                         //Create rollout archive
-                        utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
-                        archiveArtifacts(ROLLOUT_FILE_NAME)
+                        utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz")
+                        archiveArtifacts(rollout_file)
                         deleteDir()
                     }
                 }
