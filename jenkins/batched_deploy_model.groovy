@@ -6,7 +6,7 @@ final build_id = env.BUILD_ID
 final workspace_dir = build_id + "-models"
 
 pipeline{
-    agent{node{'re'}}
+    agent{node 're'}
 
     parameters{
         string(name: 'experiment_prefix', defaultValue: '', description: 'The prefix to be given to each experiment')

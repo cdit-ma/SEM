@@ -7,7 +7,7 @@ final workspace_dir = build_id + "-models"
 def execution_map = [:]
 
 pipeline{
-    agent{node{'master'}}
+    agent{node "master"}
 
     parameters{
         string(name: 'experiment_prefix', defaultValue: '', description: 'The prefix to be given to each experiment')

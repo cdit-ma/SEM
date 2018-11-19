@@ -3,7 +3,7 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent{node{label "master"}}
+    agent{node "master"}
 
     parameters{
         string(name: 'ip_address', defaultValue: "${env.ENVIRONMENT_MANAGER_IP_ADDRESS}", description: 'The IP address of the interface the Environment Manager should use')

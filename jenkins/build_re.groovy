@@ -35,8 +35,14 @@ pipeline{
                         
                         //Get the SHA
                         def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false).trim()
-                        utils.runScript("git bundle create re.bundle ${COMMIT_SHA} --all")
-                        utils.runScript('git-archive-all re.tar.gz')
+
+                        if(utils.runScript("git bundle create re.bundle ${COMMIT_SHA} --all") != 0){
+                            error("Cannot create bundle of SHA: ${COMMIT_SHA}")
+                        }
+
+                        if(utils.runScript('git-archive-all re.tar.gz') != 0){
+                            error("Cannot create git archive")
+                        }
 
                         //Read the VERSION.MD
                         if(fileExists("VERSION.md")){
@@ -46,7 +52,9 @@ pipeline{
                         def rollout_file = "re-${GIT_ID}-rollout.tar.gz"
 
                         //Create rollout archive
-                        utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz")
+                        if(utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz") != 0){
+                            error("Cannot tar git archives")
+                        }
                         archiveArtifacts(rollout_file)
                     }
                 }

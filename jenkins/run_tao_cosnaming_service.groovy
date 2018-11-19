@@ -3,7 +3,8 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent{node{"${params.node_name}"}}
+    agent{node params.node_name}
+    
     parameters{
         string(name: 'node_name', defaultValue: 'master', description: 'The name of the node to run the TAO naming service on.')
         string(name: 'port', defaultValue: '4355', description: 'The port number to run the TAO naming service on.')

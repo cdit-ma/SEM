@@ -3,7 +3,7 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent{node{"re"}}
+    agent{node "re"}
     parameters{
         booleanParam(name: 'kill_node_manager', defaultValue: true, description: 'Teardown any running re_node_managers/logan_managedservers.')
         booleanParam(name: 'kill_env_manager', defaultValue: true, description: 'Teardown any running re_environment_managers.')
