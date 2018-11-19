@@ -97,7 +97,7 @@ pipeline{
                                         glob_str += ".exe"
                                     }
                                         
-                                    def tests_list = findFiles glob: globstr
+                                    def tests_list = findFiles glob: glob_str
                                     dir("results"){
                                         for(f in test_list){
                                             def file_path = f.name
@@ -134,12 +134,12 @@ pipeline{
                             unstash  "${n}_test_cases"
                         }
 
-                        def globstr = "**.xml"
-                        junit globstr
+                        def glob_str = "**.xml"
+                        junit glob_str
                         
                         //Test cases
                         def test_archive = "test_results.zip"
-                        zip glob: globstr, zipFile: test_archive
+                        zip glob: glob_str, zipFile: test_archive
                         archiveArtifacts test_archive
                     }
                 }
