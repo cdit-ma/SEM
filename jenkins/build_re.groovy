@@ -33,11 +33,8 @@ pipeline{
                         checkout scm
                         stash includes: "**", name: "source_code"
                         
-                        //Get the SHA
-                        def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false).trim()
-
-                        if(utils.runScript("git bundle create re.bundle ${COMMIT_SHA} --all") != 0){
-                            error("Cannot create bundle of SHA: ${COMMIT_SHA}")
+                        if(utils.runScript("git bundle create re.bundle HEAD  --tags --branch") != 0){
+                            error("Cannot create git bundle")
                         }
 
                         if(utils.runScript('git-archive-all re.tar.gz') != 0){
