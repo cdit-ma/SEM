@@ -6,7 +6,7 @@ def RELEASE_DESCRIPTION = ""
 
 
 pipeline{
-    agent{node{"builder"}}
+    agent{node "builder"}
     parameters{
         string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
