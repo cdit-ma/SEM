@@ -1,7 +1,13 @@
 #!groovy
 @Library('cditma-utils') _
 def utils = new cditma.Utils(this);
-def RELEASE_DESCRIPTION = ""
+
+final Boolean IS_TAG = env.TAG_NAME
+final GIT_CREDENTIAL_ID = "cditma-github-auth"
+final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
+//Run full tests on a Tag or a Pull Request
+final RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
+def RELEASE_DESCRIPTION = "re-" + GIT_ID
 
 
 
@@ -37,8 +43,7 @@ pipeline{
                             RELEASE_DESCRIPTION = readFile("VERSION.md")
                         }
 
-                        def git_id = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
-                        def rollout_file = "re-${git_id}-rollout.tar.gz"
+                        def rollout_file = "re-${GIT_ID}-rollout.tar.gz"
 
                         //Create rollout archive
                         utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz")
