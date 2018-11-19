@@ -3,7 +3,8 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent none
+    agent{node{label "master"}}
+
     parameters{
         string(name: 'ip_address', defaultValue: "${env.ENVIRONMENT_MANAGER_IP_ADDRESS}", description: 'The IP address of the interface the Environment Manager should use')
         string(name: 'port', defaultValue: '20000', description: 'The port that the Environment Manager should use')
@@ -14,21 +15,19 @@ pipeline{
     stages{
         stage("Run Environment Manager"){
             steps{
-                node("master"){
-                    script{
-                        def args = "-a ${params.ip_address} "
-                        args += "-r ${params.port} "
-                        
-                        if(params.tao_ns_endpoint){
-                            args += "-t ${params.tao_ns_endpoint} "
-                        }
-                        if(params.qpid_broker_endpoint){
-                            args += "-q ${params.qpid_broker_endpoint} "
-                        }
+                script{
+                    def args = "-a ${params.ip_address} "
+                    args += "-r ${params.port} "
+                    
+                    if(params.tao_ns_endpoint){
+                        args += "-t ${params.tao_ns_endpoint} "
+                    }
+                    if(params.qpid_broker_endpoint){
+                        args += "-q ${params.qpid_broker_endpoint} "
+                    }
 
-                        if(!utils.runScript("${RE_PATH}/bin/re_environment_manager", args) == 0){
-                            error('Running re_environment_manager failed!')
-                        }
+                    if(!utils.runScript("${RE_PATH}/bin/re_environment_manager", args) == 0){
+                        error('Running re_environment_manager failed!')
                     }
                 }
             }

@@ -3,7 +3,7 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent none
+    agent{node{"re"}}
     parameters{
         string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
@@ -13,16 +13,14 @@ pipeline{
     stages{
         stage("Terminate Experiment"){
             steps{
-                node("re"){
-                    script{
-                        def args = "-s -n \"${params.experiment_name}\" "
-                        args += "-e ${params.environment_manager_address} "
-                        if(params.is_regex){
-                            args += "-r "
-                        }
-                        if(!utils.runReEnvironmentController(args)){
-                            error('Termination of Experiment failed.')
-                        }
+                script{
+                    def args = "-s -n \"${params.experiment_name}\" "
+                    args += "-e ${params.environment_manager_address} "
+                    if(params.is_regex){
+                        args += "-r "
+                    }
+                    if(!utils.runReEnvironmentController(args)){
+                        error('Termination of experiment failed.')
                     }
                 }
             }

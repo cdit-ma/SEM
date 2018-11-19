@@ -1,29 +1,24 @@
-//This script requires the following Jenkins plugins:
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-//Requires following parameters in jenkins job:
-// -String parameter: ENV_MANAGER_ENDPOINT
+pipeline{
+    agent{node{"re"}}
+    parameters{
+        string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
+    }
 
-@Library('cditma-utils')
-import cditma.Utils
-def utils = new Utils(this);
-
-final env_manager_endpoint = "${ENV_MANAGER_ENDPOINT}"
-
-stage("Execute Command"){
-    if(env_manager_endpoint){
-        node("master"){
-            def re_path = env.RE_PATH;
-
-            if(re_path){
-                command = re_path + "/bin/re_environment_controller -e " + env_manager_endpoint + " -l"
-                if(utils.runScript(command) != 0){
-                    error('List experimentation failed.')
+    stages{
+        stage("List Experiments"){
+            steps{
+                script{
+                    def args = "-l "
+                    args += "-e ${params.environment_manager_address} "
+                    if(!utils.runReEnvironmentController(args)){
+                        error('Listing experiments failed.')
+                    }
                 }
-            }else{
-                error("RE_PATH not set")
             }
         }
-    }else{
-        error("Missing Parameters/Environment Variables")
     }
 }
