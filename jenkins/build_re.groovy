@@ -16,7 +16,7 @@ def get_test_status(){
     if(test != null){
         def total = test.totalCount
         def passed = total - test.failCount - test.skipCount
-        return "Tests: ${passed}/${total}"
+        return "Passed ${passed}/${total} Tests"
     }
     return ""
 }
@@ -153,7 +153,7 @@ pipeline{
                         archiveArtifacts test_archive
 
                         //Set the Display Name
-                        currentBuild.displayName = get_test_status()
+                        currentBuild.displayName = "#${env.BUILD_ID} - " + get_test_status()
                     }
                 }
             }
