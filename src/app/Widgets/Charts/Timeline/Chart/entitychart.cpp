@@ -168,7 +168,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
 
-
     for(const auto& kind : paintOrder){
             if (kind != _hoveredSeriesKind) {
             paintSeries(painter, kind);
@@ -198,10 +197,13 @@ void EntityChart::paintEvent(QPaintEvent* event)
         emit dataHovered(_hoveredPoints);
     }
 
+    QPointF offset(0, penWidth / 2.0);
+
     // draw horizontal grid lines
     painter.setPen(QPen(_gridPen.color(), penWidth));
-    painter.drawLine(rect().topLeft(), rect().topRight());
-    painter.drawLine(rect().bottomLeft(), rect().bottomRight());
+    painter.drawLine(rect().topLeft() + offset, rect().topRight() + offset);
+    painter.translate(0, 1);
+    painter.drawLine(rect().bottomLeft() - offset, rect().bottomRight() - offset);
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)

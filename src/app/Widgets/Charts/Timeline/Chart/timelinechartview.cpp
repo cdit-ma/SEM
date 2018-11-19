@@ -25,7 +25,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     : QWidget(parent)
 {
     /*
-     * CHART/AXES
+     * CHART/AXES - Note: The axis lines are on by default for both axes.
+     * The timeline chart can draw its own axis lines but is off by default.
      */
     _entityAxis = new EntityAxis(this);
     _entityAxis->setAxisLineVisible(false);
@@ -627,83 +628,4 @@ void TimelineChartView::UpdateChartHover()
             }
         }
     }
-
-    /*
-    for(auto button : _hoverDisplayButtons.values()){
-        button->setText("");
-        button->hide();
-    }
-    
-    bool show_hover = false;
-    const auto& hover_rect = _timelineChart->getHoverRect();
-
-    auto min = _timelineChart->mapPixelToTime(hover_rect.left());
-    auto max = _timelineChart->mapPixelToTime(hover_rect.right());
-
-    for(auto entity_chart : _timelineChart->getEntityCharts()){
-        //QString text;
-        //QTextStream stream(&text);
-        if(entity_chart->isHovered()){
-            const auto& series = entity_chart->getSeries();
-            auto current = series.begin();
-            auto end = series.end();
-
-            for(;current != end; current++){
-                const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataString(min, max);
-                QPushButton* button = _hoverDisplayButtons.value(kind);
-                button->setText(button->text() + text);
-                if(button->text().size()){
-                    button->setVisible(true);
-                    show_hover = true;
-                }
-            }
-        }
-    }
-
-    _hoverDisplay->setVisible(show_hover);
-    if (show_hover) {
-        _hoverDisplay->adjustSize();
-
-        //EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        /*QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        int posY = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-        //_hoverDisplay->move(rect().center());
-    }
-    /*
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
-
-    _hoverDisplay->setVisible(showDisplay);
-    if (showDisplay) {
-        
-        _hoverDisplay->adjustSize();
-
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }*/
 }

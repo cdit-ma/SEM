@@ -180,7 +180,7 @@ void EntitySet::themeChanged(Theme* theme)
     contractedPixmap = theme->getImage("Icons", "triangleRight", theme->getIconSize(), theme->getMenuIconColor());
 
     textLabel->setFont(theme->getFont());
-    _tickPen = QPen(theme->getAltTextColor(), 2);
+    _tickPen = QPen(theme->getAltTextColor(), 2.0);
 
     textColorStr = theme->getTextColorHex();
     highlighColorStr = theme->getHighlightColorHex();
