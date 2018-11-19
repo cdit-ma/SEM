@@ -1,9 +1,9 @@
 #ifndef ENTITYCHART_H
 #define ENTITYCHART_H
 
-#include "../../Series/dataseries.h"
 #include "../Chart/timelinechart.h"
-#include "../Data/portlifecycleeventseries.h"
+#include "../../Series/dataseries.h"
+#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
