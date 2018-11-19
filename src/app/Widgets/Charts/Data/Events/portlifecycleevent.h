@@ -1,7 +1,7 @@
 #ifndef PORTLIFECYCLEEVENT_H
 #define PORTLIFECYCLEEVENT_H
 
-#include <QObject>
+#include "event.h"
 
 enum class LifecycleType {
     NO_TYPE,
@@ -46,17 +46,15 @@ struct Port {
 };
 
 
-class PortLifecycleEvent : public QObject
+class PortLifecycleEvent : public MEDEA::Event
 {
     Q_OBJECT
 
 public:
-    // time should be in milliseconds since epoch
     explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
 
-    Port getPort();
-    LifecycleType getType();
-    qint64 getTime();
+    const Port getPort();
+    const LifecycleType getType();
 
     const QString getPortGraphmlID();
     const QString getPortPath();
@@ -64,7 +62,6 @@ public:
 private:
     Port port_;
     LifecycleType type_;
-    qint64 time_;
 
 };
 

@@ -5,11 +5,10 @@
  * @param parent
  */
 PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent)
-    : QObject(parent)
+    : MEDEA::Event(time, port.name, parent)
 {
     port_ = port;
     type_ = type;
-    time_ = time;
 }
 
 
@@ -17,7 +16,7 @@ PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 tim
  * @brief PortLifecycleEvent::getPort
  * @return
  */
-Port PortLifecycleEvent::getPort()
+const Port PortLifecycleEvent::getPort()
 {
     return port_;
 }
@@ -27,19 +26,9 @@ Port PortLifecycleEvent::getPort()
  * @brief PortLifecycleEvent::getType
  * @return
  */
-LifecycleType PortLifecycleEvent::getType()
+const LifecycleType PortLifecycleEvent::getType()
 {
     return type_;
-}
-
-
-/**
- * @brief PortLifecycleEvent::getTime
- * @return
- */
-qint64 PortLifecycleEvent::getTime()
-{
-    return time_;
 }
 
 

@@ -78,6 +78,26 @@ void TimelineChart::setRange(double min, double max)
 
 
 /**
+ * @brief TimelineChart::setAxisXVisible
+ * @param visible
+ */
+void TimelineChart::setAxisXVisible(bool visible)
+{
+    axisXVisible = visible;
+}
+
+
+/**
+ * @brief TimelineChart::setAxisYVisible
+ * @param visible
+ */
+void TimelineChart::setAxisYVisible(bool visible)
+{
+    axisYVisible = visible;
+}
+
+
+/**
  * @brief TimelineChart::setAxisWidth
  * @param width
  */
@@ -85,7 +105,7 @@ void TimelineChart::setAxisWidth(double width)
 {
     axisWidth = width;
     axisLinePen.setWidthF(width);
-    setContentsMargins(width, 0, 0, 0);
+    //setContentsMargins(width, 0, 0, 0);
 }
 
 
@@ -422,15 +442,19 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 
     visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
 
-    QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
+    /*QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
     painter.setPen(topLinePen);
-    painter.drawLine(topLine);
+    painter.drawLine(topLine);*/
 
-    QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
-    QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
     painter.setPen(axisLinePen);
-    painter.drawLine(axisX);
-    painter.drawLine(axisY);
+    if (axisXVisible) {
+        QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
+        painter.drawLine(axisX);
+    }
+    if (axisYVisible) {
+        QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
+        painter.drawLine(axisY);
+    }
 
     switch (dragMode) {
     case RUBBERBAND: {

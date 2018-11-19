@@ -61,10 +61,8 @@ public slots:
     void clearPortLifecycleWidgets();
     void clearPortLifecycleEvents();
     void receivedPortLifecycleEvent(PortLifecycleEvent* event);
-    void printResults();
 
 private:
-    //void constructChartForPortLifecycle(int ID, QString label);
     void constructChartForPortLifecycle(QString path, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);

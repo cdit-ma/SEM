@@ -12,13 +12,23 @@ class EventSeries : public QObject
 public:
     explicit EventSeries(QObject* parent = 0);
 
+    void clear();
+
     void addEvent(MEDEA::Event* event);
+    void addEvents(QList<MEDEA::Event*>& events);
     const QList<MEDEA::Event*>& getEvents();
 
-    virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS);
+    qint64 getMinTimeMS();
+    qint64 getMaxTimeMS();
+    QPair<qint64, qint64> getTimeRangeMS();
+
+    virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat = "hh:mm:ss:zz");
 
 private:
     QList<MEDEA::Event*> events_;
+
+    qint64 minTime_;
+    qint64 maxTime_;
 };
 
 }

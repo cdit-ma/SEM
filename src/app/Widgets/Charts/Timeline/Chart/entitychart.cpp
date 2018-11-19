@@ -186,7 +186,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
 
-
     for(const auto& kind : paintOrder){
             if (kind != _hoveredSeriesKind) {
             paintSeries(painter, kind);
@@ -217,10 +216,13 @@ void EntityChart::paintEvent(QPaintEvent* event)
         emit dataHovered(_hoveredPoints);
     }
 
+    QPointF offset(0, penWidth / 2.0);
+
     // draw horizontal grid lines
     painter.setPen(QPen(_gridPen.color(), penWidth));
-    painter.drawLine(rect().topLeft(), rect().topRight());
-    painter.drawLine(rect().bottomLeft(), rect().bottomRight());
+    painter.drawLine(rect().topLeft() + offset, rect().topRight() + offset);
+    painter.translate(0, 1);
+    painter.drawLine(rect().bottomLeft() - offset, rect().bottomRight() - offset);
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
@@ -436,7 +438,8 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
 
     //qDebug() << "SERIES - " << _lifeCycleSeries->getPortPath();
 
-    QVector< QList<PortLifecycleEvent*> > buckets(barCount);
+    //QVector< QList<PortLifecycleEvent*> > buckets(barCount);
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
@@ -447,11 +450,11 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
         current_left = bucket_endTimes.last();
     }
 
-    const auto& events = _lifeCycleSeries->getConstPortEvents();
+    const auto& events = _lifeCycleSeries->getEvents();
     auto current = events.constBegin();
     auto upper = events.constEnd();
     for (; current != upper; current++) {
-        const auto& current_time = (*current)->getTime();
+        const auto& current_time = (*current)->getTimeMS();
         if (current_time > _displayedMin) {
             break;
         }
@@ -463,7 +466,7 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
 
     // put the data in the correct bucket
     for (;current != upper; current++) {
-        const auto& current_time = (*current)->getTime();
+        const auto& current_time = (*current)->getTimeMS();
         while (current_bucket_ittr != end_bucket_ittr) {
             if (current_time > (*current_bucket_ittr)) {
                 current_bucket_ittr ++;
@@ -488,7 +491,8 @@ void EntityChart::paintLifeCycleSeries(QPainter &painter)
         if (count == 1) {
             if (pointHovered(rect))
                 painter.fillRect(rect, _highlightColor);
-            painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(buckets[i][0]->getType()));
+            auto event = (PortLifecycleEvent*) buckets[i][0];
+            painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);

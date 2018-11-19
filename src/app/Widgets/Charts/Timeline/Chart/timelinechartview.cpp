@@ -25,13 +25,13 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     : QWidget(parent)
 {
     /*
-     * CHART/AXES
+     * CHART/AXES - Note: The axis lines are on by default for both axes.
+     * The timeline chart can draw its own axis lines but is off by default.
      */
     _entityAxis = new EntityAxis(this);
     _entityAxis->setAxisLineVisible(false);
 
     _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this, VALUE_TYPE::DATETIME);
-    _dateTimeAxis->setAxisLineVisible(true);
     _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
 
     connect(_entityAxis, &EntityAxis::sizeChanged, this, &TimelineChartView::entityAxisSizeChanged);
@@ -41,6 +41,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart = new TimelineChart(this);
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
     _timelineChart->setPointsWidth(POINTS_WIDTH);
+    _timelineChart->setAxisYVisible(true);
 
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);    
@@ -632,85 +633,6 @@ void TimelineChartView::UpdateChartHover()
             }
         }
     }
-
-    /*
-    for(auto button : _hoverDisplayButtons.values()){
-        button->setText("");
-        button->hide();
-    }
-    
-    bool show_hover = false;
-    const auto& hover_rect = _timelineChart->getHoverRect();
-
-    auto min = _timelineChart->mapPixelToTime(hover_rect.left());
-    auto max = _timelineChart->mapPixelToTime(hover_rect.right());
-
-    for(auto entity_chart : _timelineChart->getEntityCharts()){
-        //QString text;
-        //QTextStream stream(&text);
-        if(entity_chart->isHovered()){
-            const auto& series = entity_chart->getSeries();
-            auto current = series.begin();
-            auto end = series.end();
-
-            for(;current != end; current++){
-                const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataString(min, max);
-                QPushButton* button = _hoverDisplayButtons.value(kind);
-                button->setText(button->text() + text);
-                if(button->text().size()){
-                    button->setVisible(true);
-                    show_hover = true;
-                }
-            }
-        }
-    }
-
-    _hoverDisplay->setVisible(show_hover);
-    if (show_hover) {
-        _hoverDisplay->adjustSize();
-
-        //EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        /*QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        int posY = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-        //_hoverDisplay->move(rect().center());
-    }
-    /*
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
-
-    _hoverDisplay->setVisible(showDisplay);
-    if (showDisplay) {
-        
-        _hoverDisplay->adjustSize();
-
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }*/
 }
 
 
@@ -823,12 +745,12 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
 
     if (series) {
 
-        series->addPortEvent(event);
+        series->addEvent(event);
 
         // TODO: Don't need this once we have the start/end time of the experiment
         // update this timeline chart's range
         auto timelineRange = _timelineChart->getRange();
-        auto seriesRange = series->getRange();
+        auto seriesRange = series->getTimeRangeMS();
         if (!_timelineChart->isRangeSet()) {
             _timelineChart->setRange(seriesRange.first, seriesRange.second);
             _timelineChart->initialRangeSet();
@@ -889,47 +811,6 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
         parentSeries->addPortEvent(event);
         */
 }
-
-
-void TimelineChartView::printResults()
-{
-    for (auto series : portLifecycleSeries) {
-        qDebug()  << "Port: " << series->getPortPath() << " - " << series->getConstPortEvents().size();
-        for (auto event : series->getConstPortEvents()) {
-            qDebug() << "time: " << QDateTime::fromMSecsSinceEpoch(event->getTime()).toString("MMM d yyyy, hh:mm:ss:zzz");
-        }
-        qDebug() << "-------------------------------------";
-    }
-    qDebug() << "\n\n\n\n\n";
-}
-
-
-/**
- * @brief TimelineChartView::constructChartForPortLifecycle
- * @param ID
- * @param label
- */
-/*
-void TimelineChartView::constructChartForPortLifecycle(int ID, QString label)
-{
-    PortLifecycleEventSeries* series = new PortLifecycleEventSeries("", this);
-    portLifecycleSeries2[ID] = series;
-
-    EntityChart* chart = new EntityChart(0, this);
-    entityCharts_portLifecycle2[ID] = chart;
-    chart->addLifeCycleSeries(series);
-    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
-
-    EntitySet* set = new EntitySet(label, this);
-    entitySets_portLifecycle2[ID] = set;
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->setEntityChartHovered(chart, hovered);
-    });
-}
-*/
 
 
 /**

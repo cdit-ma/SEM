@@ -241,7 +241,6 @@ void PanelWidget::testLifecycleSeries()
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedPortLifecycleEvent);
         //connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
-        //connect(&viewController->getAggregationProxy(), &AggregationProxy::printResults, lifecycleView, &TimelineChartView::printResults);
     }
 }
 

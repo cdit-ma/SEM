@@ -27,6 +27,9 @@ public:
     void setMax(double max);
     void setRange(double min, double max);
 
+    void setAxisXVisible(bool visible);
+    void setAxisYVisible(bool visible);
+
     void setAxisWidth(double width);
     void setPointsWidth(double width);
 
@@ -84,6 +87,9 @@ private:
 
     double axisWidth;
     double pointsWidth;
+
+    bool axisXVisible = false;
+    bool axisYVisible = false;
 
     DRAG_MODE dragMode = NONE;
     bool hovered = false;

@@ -16,10 +16,10 @@ MEDEA::Event::Event(qint64 time, QString name, QObject *parent)
 
 
 /**
- * @brief MEDEA::Event::getTime
+ * @brief MEDEA::Event::getTimeMS
  * @return
  */
-const qint64 MEDEA::Event::getTime()
+const qint64 MEDEA::Event::getTimeMS()
 {
     return time_;
 }

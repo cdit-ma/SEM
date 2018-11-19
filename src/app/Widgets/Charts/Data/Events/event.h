@@ -10,9 +10,10 @@ class Event : public QObject
     Q_OBJECT
 
 public:
+    // time should be in milliseconds since epoch
     explicit Event(qint64 time, QString name = "", QObject* parent = 0);
 
-    const qint64 getTime();
+    const qint64 getTimeMS();
     const QString getName();
 
 private:
