@@ -34,8 +34,7 @@ pipeline{
                         stash includes: "**", name: "source_code"
                         
                         //Get the SHA
-                        def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false)
-                        print("SHA: '${COMMIT_SHA}'")
+                        def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false).trim()
                         utils.runScript("git bundle create re.bundle ${COMMIT_SHA} --all")
                         utils.runScript('git-archive-all re.tar.gz')
 
