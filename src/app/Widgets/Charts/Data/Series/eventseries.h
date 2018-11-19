@@ -1,7 +1,7 @@
-#ifndef MEDEAEVENTSERIES_H
-#define MEDEAEVENTSERIES_H
+#ifndef BASESERIES_H
+#define BASESERIES_H
 
-#include "event.h"
+#include "../Events/event.h"
 
 namespace MEDEA {
 
@@ -23,4 +23,6 @@ private:
 
 }
 
-#endif // MEDEAEVENTSERIES_H
+
+
+#endif // BASESERIES_H

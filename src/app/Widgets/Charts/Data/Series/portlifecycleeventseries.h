@@ -2,7 +2,7 @@
 #define PORTLIFECYCLEEVENTSERIES_H
 
 #include "eventseries.h"
-#include "portlifecycleevent.h"
+#include "../Events/portlifecycleevent.h"
 
 
 class PortLifecycleEventSeries : public MEDEA::EventSeries

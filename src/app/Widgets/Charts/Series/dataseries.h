@@ -5,7 +5,7 @@
 #include <QDateTime>
 #include <QPointF>
 
-#include "../Timeline/Data/eventseries.h"
+#include "../Data/Series/eventseries.h"
 #include "../../../Controllers/ViewController/viewitem.h"
 
 enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};

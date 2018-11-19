@@ -6,7 +6,7 @@
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
-#include "../../../app/Widgets/Charts/Timeline/Data/portlifecycleevent.h"
+#include "../../../app/Widgets/Charts/Data/Events/portlifecycleevent.h"
 
 class AggregationProxy : public QObject
 {
