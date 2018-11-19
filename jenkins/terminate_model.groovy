@@ -3,7 +3,7 @@
 def utils = new cditma.Utils(this);
 
 pipeline{
-    agent{node "re"}
+    agent{node "master"}
 
     parameters{
         string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
