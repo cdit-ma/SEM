@@ -36,7 +36,7 @@ pipeline{
                         if(fileExists("VERSION.md")){
                             RELEASE_DESCRIPTION = readFile("VERSION.md")
                         }
-                
+
                         def git_id = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
                         def rollout_file = "re-${git_id}-rollout.tar.gz"
 
@@ -63,8 +63,10 @@ pipeline{
                             dir("lib"){
                                 deleteDir()
                             }
+
                             unstash "source_code"
                             dir("build"){
+                                deleteDir()
                                 if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
                                     error("CMake failed on Builder Node: ${node_name}")
                                 }
