@@ -59,25 +59,6 @@ ViewItem* EntityChart::getViewItem()
 }
 
 
-void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
-{
-    if (!series || series == _lifeCycleSeries)
-        return;
-
-    removeLifeCycleSeries(_lifeCycleSeries->getID());
-    _lifeCycleSeries = series;
-}
-
-
-void EntityChart::removeLifeCycleSeries(int ID)
-{
-    if (_lifeCycleSeries && _lifeCycleSeries->getID() == ID) {
-        delete _lifeCycleSeries;
-        _lifeCycleSeries = 0;
-    }
-}
-
-
 /**
  * @brief EntityChart::addSeries
  * @param series
@@ -174,7 +155,7 @@ QList<QPointF> EntityChart::getSeriesPoints(TIMELINE_SERIES_KIND seriesKind)
  */
 void EntityChart::resizeEvent(QResizeEvent* event)
 {
-    mapPointsFromRange();
+    update();
     QWidget::resizeEvent(event);
 }
 
@@ -198,8 +179,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
         }
     }
     paintSeries(painter, _hoveredSeriesKind);
-
-    paintLifeCycleSeries(painter);
 
     // display the y-range and send the series points that were hovered over
     if (_hovered) {
@@ -324,20 +303,6 @@ void EntityChart::themeChanged()
     _highlightPen = QPen(theme->getHighlightColor(), HIGHLIGHT_PEN_WIDTH);
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
-
-    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), Qt::white));
-    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), Qt::black));
-
-    /*
-    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion")); //, QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "circleInfo", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clock", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinus", QSize(), theme->getMenuIconColor()));
-    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
-    */
 }
 
 
@@ -380,8 +345,7 @@ void EntityChart::pointsAdded(QList<QPointF> points)
     MEDEA::DataSeries* series = qobject_cast<MEDEA::DataSeries*>(sender());
     if (series) {
         _seriesPoints[series->getSeriesKind()].append(points);
-        mapPointsFromRange(series, points);
-        //emit dataAdded(points);
+        update();
     }
 }
 
@@ -429,87 +393,6 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
         painter.drawPoints(mappedPoints.toVector());*/
         break;
     }
-    }
-}
-
-
-/**
- * @brief EntityChart::paintLifeCycleSeries
- * @param painter
- */
-void EntityChart::paintLifeCycleSeries(QPainter &painter)
-{
-    if (!_lifeCycleSeries)
-        return;
-
-    // bucket count
-    double barWidth = 22; //BAR_WIDTH;
-    double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-
-    QVector< QList<PortLifecycleEvent*> > buckets(barCount);
-    QList<qint64> bucket_endtimes;
-
-    auto current_left = _displayedMin;
-    for (int i = 0; i < barCount; i++) {
-        bucket_endtimes.append(current_left + barTimeWidth);
-        current_left = bucket_endtimes.last();
-    }
-
-    const auto& events = _lifeCycleSeries->getConstPortEvents();
-    auto current = events.constBegin();
-    auto upper = events.constEnd();
-    for (; current != upper; current++) {
-        const auto& current_time = (*current)->getTime();
-        if (current_time > _displayedMin) {
-            break;
-        }
-    }
-
-    auto current_bucket = 0;
-    auto current_bucket_ittr = bucket_endtimes.constBegin();
-    auto end_bucket_ittr = bucket_endtimes.constEnd();
-
-    // put the data in the correct bucket
-    for (;current != upper; current++) {
-        const auto& current_time = (*current)->getTime();
-        while (current_bucket_ittr != end_bucket_ittr) {
-            if (current_time > (*current_bucket_ittr)) {
-                current_bucket_ittr ++;
-                current_bucket ++;
-            } else {
-                break;
-            }
-        }
-        if (current_bucket < barCount) {
-            buckets[current_bucket].append(*current);
-        }
-    }
-
-    QColor seriesColor = Qt::gray; // Qt::magenta;
-    //painter.setRenderHint(QPainter::Antialiasing, true);
-    //painter.setPen(QPen(Qt::lightGray, 1));
-
-    int y = rect().center().y() - barWidth / 2.0;
-    for (int i = 0; i < barCount; i ++) {
-        int count = buckets[i].count();
-        if (count == 0)
-            continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
-        if (count == 1) {
-            if (pointHovered(rect))
-                painter.fillRect(rect, _highlightColor);
-            painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(buckets[i][0]->getType()));
-        } else {
-            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
-            painter.setPen(Qt::lightGray);
-            if (pointHovered(rect)) {
-                painter.setPen(_highlightTextColor);
-                color = _highlightColor;
-            }
-            painter.fillRect(rect, color);
-            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
-        }
     }
 }
 
@@ -1058,7 +941,7 @@ double EntityChart::getPointWidth(TIMELINE_SERIES_KIND kind)
 void EntityChart::setMin(double min)
 {
     _displayedMin = min;
-    rangeChanged();
+    update();
 }
 
 
@@ -1069,7 +952,7 @@ void EntityChart::setMin(double min)
 void EntityChart::setMax(double max)
 {
     _displayedMax = max;
-    rangeChanged();
+    update();
 }
 
 
@@ -1082,117 +965,7 @@ void EntityChart::setRange(double min, double max)
 {
     _displayedMin = min;
     _displayedMax = max;
-    rangeChanged();
-}
-
-
-/**
- * @brief EntityChart::rangeChanged
- */
-void EntityChart::rangeChanged()
-{
-    mapPointsFromRange();
-    return;
-    //double dataRange = _timelineRange;
-    double dataRange = _dataMaxX - _dataMinX;
-    double displayRange = _displayedMax - _displayedMin;
-    if ((dataRange == 0) || (displayRange == 0)) {
-        _xScale = 1;
-    } else {
-        _xScale = displayRange / dataRange;
-    }
-    mapPointsFromRange();
-}
-
-
-/**
- * @brief EntityChart::mapPointsFromRange
- * This function effectively scales and translates the points based on the current chart transformations.
- * It maps the points so that they are respectively within the chart's visible region.
- * @param series
- * @param points
- */
-void EntityChart::mapPointsFromRange(MEDEA::DataSeries* series, QList<QPointF> points)
-{
     update();
-    return;
-    if (series) {
-        TIMELINE_SERIES_KIND kind = series->getSeriesKind();
-        if (points.isEmpty()) {
-            points = series->getConstPoints();
-            _mappedPoints.remove(kind);
-            getSeriesHitRects(kind).clear();
-        }
-        QList<QPointF> mappedPoints;
-        double w = getPointWidth(kind);
-        int centerY = rect().center().y();
-        for (QPointF p : points) {
-            double x = mapValueFromRange(p.x(), _displayedMin, _displayedMax, (double) width());
-            double y = centerY;
-            if (series->isLineSeries() || series->isBarSeries()) {
-                y = mapValueFromRange(p.y(), series->getRangeY().first, series->getRangeY().second, (double) height());
-            }
-            mappedPoints.append(QPointF(x, y));
-            getSeriesHitRects(kind).insert(x, QRectF(x - w / 2.0, 0, w, height()));
-        }
-        _mappedPoints[kind] = mappedPoints;
-    } else {
-        for (MEDEA::DataSeries* s : _seriesList.values()) {
-            mapPointsFromRange(s);
-        }
-    }    
-    update();
-}
-
-
-/**
- * @brief EntityChart::mapValueFromRange
- * @param value
- * @param min
- * @param max
- * @param range
- * @return
- */
-double EntityChart::mapValueFromRange(double value, double min, double max, double range)
-{
-    if ((max - min) == 0)
-        return 0.0;
-
-    double ratio = (value - min) / (max - min);
-    return ratio * range;
-}
-
-
-/**
- * @brief EntityChart::pointHovered
- * @param kind
- * @param point
- * @param index
- * @return
- */
-bool EntityChart::pointHovered(TIMELINE_SERIES_KIND kind, QPointF point, int index)
-{
-    if (_hoveredRect.isNull() || index == -1)
-        return false;
-
-    bool hovered = false;
-    QRectF pointRect = getSeriesHitRects(kind).value(point.x());
-    if (kind == TIMELINE_SERIES_KIND::BAR) {
-        pointRect.setWidth(_barWidth);
-        pointRect.moveCenter(QPointF(point.x(), pointRect.center().y()));
-    }
-    if (pointRect.intersects(_hoveredRect)) {
-        MEDEA::DataSeries* series = _seriesList.value(kind, 0);
-        if (series) {
-            QList<QPointF> seriesPoints = series->getConstPoints();
-            if (index >= 0 && index < seriesPoints.count()) {
-                _hoveredPoints[kind].append(series->getConstPoints().at(index));
-            }
-        }
-        hovered = true;
-    }
-
-    return hovered;
 }
 
 

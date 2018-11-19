@@ -73,7 +73,7 @@ private:
     double _hoveredValue;
     double _hoveredPos;
 
-    bool _axisLineVisible = false;
+    bool _axisLineVisible = true;
     bool _tickVisible = true;
     double _tickLength = 4;
     int _tickCount = 2;

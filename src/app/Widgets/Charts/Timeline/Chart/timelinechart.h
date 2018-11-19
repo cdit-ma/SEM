@@ -3,16 +3,13 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QToolBar>
-#include <QToolButton>
-#include <QSpinBox>
-#include <QAction>
-#include <QMenu>
 #include <QPen>
 #include <math.h>
 #include <float.h>
 
 #include <QDebug>
+
+enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
 class EntityChart;
 class TimelineChart : public QWidget
@@ -20,15 +17,18 @@ class TimelineChart : public QWidget
     Q_OBJECT
 
 public:
-    enum DRAG_MODE{NO_MODE, PAN_MODE, RUBBERBAND_MODE};
+    enum DRAG_MODE{NONE, PAN, RUBBERBAND};
 
     explicit TimelineChart(QWidget* parent = 0);
 
+    // NOTE: The timeline chart doesn't know anything about the data range
+    // These functions all relate to the displayed range
     void setMin(double min);
     void setMax(double max);
     void setRange(double min, double max);
 
-    const QRectF& getHoverRect();
+    void setAxisXVisible(bool visible);
+    void setAxisYVisible(bool visible);
 
     void setAxisWidth(double width);
     void setPointsWidth(double width);
@@ -38,8 +38,12 @@ public:
     void removeEntityChart(EntityChart* chart);
 
     const QList<EntityChart*>& getEntityCharts();
+    const QRectF& getHoverRect();
 
     QPair<double, double> getRange();
+
+    void initialRangeSet();
+    bool isRangeSet();
     bool isPanning();
 
     qint64 mapPixelToTime(double pixel_x);
@@ -48,17 +52,14 @@ signals:
     void zoomed(int delta);
     void panned(double dx, double dy);
     void changeDisplayedRange(double min, double max);
-    void rangeChanged(double min, double max, bool updateDisplay = false);
+
+    void entityChartHovered(EntityChart* chart, bool hovered);
     void hoverLineUpdated(bool visible, QPointF pos);
 
 public slots:
     void themeChanged();
 
-    void entityChartHovered(EntityChart* chart, bool hovered);
-    void entityChartRangeChanged(double min, double max);
-
-private slots:
-    void setRangeTriggered();
+    void setEntityChartHovered(EntityChart* chart, bool hovered);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -81,36 +82,18 @@ private:
     void clearDragMode();
     double mapToRange(double value);
 
-    double _dataMin = DBL_MAX;
-    double _dataMax = DBL_MIN;
     double _displayMin;
     double _displayMax;
 
     double axisWidth;
     double pointsWidth;
 
-    DRAG_MODE dragMode = NO_MODE;
+    bool axisXVisible = false;
+    bool axisYVisible = false;
+
+    DRAG_MODE dragMode = NONE;
     bool hovered = false;
-
-    QToolBar* _toolbar;
-    QToolBar* t1;
-    QToolBar* t2;
-
-    QSpinBox* h1;
-    QSpinBox* h2;
-    QSpinBox* m1;
-    QSpinBox* m2;
-    QSpinBox* s1;
-    QSpinBox* s2;
-    QSpinBox* ms1;
-    QSpinBox* ms2;
-
-    QMenu* _setMinMenu;
-    QMenu* _setMaxMenu;
-    QAction* _showSetMinMenu;
-    QAction* _showSetMaxMenu;
-    QToolButton* _setMinButton;
-    QToolButton* _setMaxButton;
+    bool rangeSet = false;
 
     QColor backgroundColor;
     QColor backgroundHighlightColor;

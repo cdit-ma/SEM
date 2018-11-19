@@ -160,11 +160,15 @@ void AxisWidget::setMax(double max)
  * @brief AxisWidget::setRange
  * @param min
  * @param max
+ * @param updateDisplay
  */
-void AxisWidget::setRange(double min, double max)
+void AxisWidget::setRange(double min, double max, bool updateDisplay)
 {
     setMax(max);
     setMin(min);
+
+    if (updateDisplay)
+        setDisplayedRange(min, max);
 }
 
 

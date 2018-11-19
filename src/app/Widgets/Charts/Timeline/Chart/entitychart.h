@@ -3,7 +3,6 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -19,16 +18,13 @@ public:
 
     ViewItem* getViewItem();
 
-    void addLifeCycleSeries(PortLifecycleEventSeries* series);
-    void removeLifeCycleSeries(int ID);
-
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
 
-    const QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries *> &getSeries();
+    const QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
     
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
@@ -61,7 +57,6 @@ private slots:
 
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
-    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
@@ -73,12 +68,7 @@ private:
     void setMin(double min);
     void setMax(double max);
     void setRange(double min, double max);
-    void rangeChanged();
 
-    void mapPointsFromRange(MEDEA::DataSeries* series = 0, QList<QPointF> points = QList<QPointF>());
-    double mapValueFromRange(double value, double min, double max, double range);
-
-    bool pointHovered(TIMELINE_SERIES_KIND kind, QPointF point, int index);
     bool pointHovered(const QRectF& hitRect);
 
     QHash<qint64, QRectF>& getSeriesHitRects(TIMELINE_SERIES_KIND kind);
@@ -149,9 +139,6 @@ private:
     }
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
-
-    PortLifecycleEventSeries* _lifeCycleSeries = 0;
-    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;

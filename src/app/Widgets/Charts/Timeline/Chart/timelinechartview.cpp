@@ -31,7 +31,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _entityAxis->setAxisLineVisible(false);
 
     _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this, VALUE_TYPE::DATETIME);
-    _dateTimeAxis->setAxisLineVisible(true);
     _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
 
     connect(_entityAxis, &EntityAxis::sizeChanged, this, &TimelineChartView::entityAxisSizeChanged);
@@ -41,6 +40,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart = new TimelineChart(this);
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
     _timelineChart->setPointsWidth(POINTS_WIDTH);
+    _timelineChart->setAxisYVisible(true);
 
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
@@ -56,11 +56,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     connect(_timelineChart, &TimelineChart::changeDisplayedRange, [=](double min, double max) {
         _dateTimeAxis->setDisplayedRange(min, max);
     });
-    connect(_timelineChart, &TimelineChart::rangeChanged, [=](double min, double max) {
-        _dateTimeAxis->setRange(min, max);
-        // TODO - remove this later
-        _dateTimeAxis->setDisplayedRange(min, max);
-    });
+
 
     /*
      * HOVER LAYOUT
@@ -437,19 +433,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         bool filled = false;
         samplePoints = generateRandomNumbers(barCount);
 
-        // TESTING PORT LIFE CYCLE EVENTS
-        // By default, request random time-frame of events from all Ports for all ComponentInstances
-        /*if (itemLabel.startsWith("ComponentInstance")) {
-            PortLifecycleEventSeries* portEventsSeries = new PortLifecycleEventSeries(itemID, this);
-            int numPorts = samplePoints.count();
-            for (int i = 0; i < numPorts; i++) {
-                int type = 1 + rand() % 4;
-                PortLifeCycle* plc = new PortLifeCycle((LifecycleType)type, samplePoints.at(i).x(), this);
-                portEventsSeries->addPortEvent(plc);
-            }
-            seriesChart->addLifeCycleSeries(portEventsSeries);
-        } else {*/
-
         if (random % 2 == 0) {
             MEDEA::StateSeries* stateSeries = new MEDEA::StateSeries(item);
             for (int i = 1; i < samplePoints.count(); i += 2) {
@@ -499,7 +482,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             }
             seriesChart->addSeries(barSeries);
         }
-        //}
     }
 
     EntitySet* parentSet = addEntitySet(item->getParentItem());
@@ -522,6 +504,25 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         TIMELINE_SERIES_KIND kind = (TIMELINE_SERIES_KIND)action->property("TIMELINE_SERIES_KIND").toInt();
         seriesChart->setSeriesVisible(kind, action->isChecked());
     }
+
+    // update this timeline chart's range
+       auto timelineRange = _timelineChart->getRange();
+       auto chartRange = seriesChart->getRangeX();
+       if (!_timelineChart->isRangeSet()) {
+           _timelineChart->setRange(chartRange.first, chartRange.second);
+           _timelineChart->initialRangeSet();
+       } else {
+           if (chartRange.first < timelineRange.first) {
+               _timelineChart->setMin(chartRange.first);
+           }
+           if (chartRange.second > timelineRange.second) {
+               _timelineChart->setMax(chartRange.second);
+           }
+       }
+       // if the timeline chart's range was changed, update the date/time axis' range
+       if (timelineRange != _timelineChart->getRange()) {
+           _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+       }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesHovered, seriesChart, &EntityChart::seriesHovered);

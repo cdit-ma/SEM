@@ -316,14 +316,14 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
 {
     double rectWidth = rect.width() / _tickCount;
     double lineLength = _tickLength;
-    double tickY = rect.top();
+    double tickY = rect.top() + _penWidth / 2.0;
     double offset = _tickLength + _spacing;
     QSizeF rectSize(rectWidth, rect.height() - offset);
     QPointF startPoint(-rectWidth / 2.0 + rect.left(), rect.top() + offset);
     QPointF dateRectCenter(rect.center().x(), rect.center().y() + rectSize.height() / 2.0);
 
     if (_slider->getAlignment() == Qt::AlignTop) {
-        tickY = rect.bottom();
+        tickY = rect.bottom() - _penWidth / 2.0;
         lineLength = -_tickLength;
         startPoint = QPointF(startPoint.x(), rect.top());
         dateRectCenter.setY(rect.center().y() - rectSize.height() / 2.0);
