@@ -20,3 +20,5 @@ RUN     cd re && \
         cmake --build .
 #Change back to using dash
 RUN ln -sf /bin/dash /bin/sh
+
+ENV PATH="/re/lib:${PATH}"

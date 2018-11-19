@@ -125,7 +125,6 @@ for(n in builder_nodes){
                 //Cache dir is the experiment_name
                 docker.image(docker_image_repository + "/" + docker_image_name).inside() {
                     def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-                    print(stash_name)
                     dir(UNIQUE_ID){
                         //Unstash the generated code
                         unstash 'codegen'
@@ -213,8 +212,6 @@ stage("Add Experiment"){
                     deployment_message += "** " + container_id["id"] + "\n"
                     container_id_list += container_id["id"]
                     container_docker_flags[container_id["id"]] = container_id["isDocker"]
-                    print(container_id["isDocker"])
-                    print(container_docker_flags[container_id["id"]])
                 }
                 node_containers[deployment_host_name] = container_id_list
 
