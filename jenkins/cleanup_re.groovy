@@ -1,43 +1,52 @@
-//Load shared pipeline utility library
-@Library('cditma-utils')
-import cditma.Utils
-def utils = new Utils(this);
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-final KILL_NODE_MANAGER = "${KILL_NODE_MANAGER}" == "true"
-final KILL_ENV_MANAGER = "${KILL_ENV_MANAGER}" == "true"
-final CLEANUP_WORKSPACE = "${CLEANUP_WORKSPACE}" == "true"
-
-def nodes = nodesByLabel("re")
-nodes += nodesByLabel("deploy_re")
-def kill_map = [:]
-
-//Construct a builder map
-for(n in nodes){
-    def node_name = n
-    if(node_name == ""){
-        node_name = "master"
+pipeline{
+    agent{node{"re"}}
+    parameters{
+        booleanParam(name: 'kill_node_manager', defaultValue: true, description: 'Teardown any running re_node_managers/logan_managedservers.')
+        booleanParam(name: 'kill_env_manager', defaultValue: true, description: 'Teardown any running re_environment_managers.')
+        booleanParam(name: 'cleanup_workspace', defaultValue: true, description: 'Remove all cached files from the jenkins workspace.')
     }
-    
-    kill_map[node_name] = {
-        node(node_name){
-            if(CLEANUP_WORKSPACE){
-                def workspace_dir = pwd() + "/../"
-                print("Removing: " + workspace_dir)
-                dir(workspace_dir){
-                    deleteDir()
+
+    stages{
+        stage("Cleanup Environment"){
+            steps{
+                script{
+                    def kill_map = [:]
+                    
+                    def nodes = nodesByLabel("re") + nodesByLabel("deploy_re")
+
+                    for(n in nodes.unique()){
+                        def node_name = n
+                        if(node_name == ""){
+                            node_name = "master"
+                        }
+                        kill_map[node_name] = {
+                            node(node_name){
+                                if(params.cleanup_workspace){
+                                    def workspace_dir = pwd() + "/../"
+                                    print("Removing: ${workspace_dir}")
+                                    dir(workspace_dir){
+                                        deleteDir()
+                                    }
+                                }
+
+                                if(params.kill_node_manager){
+                                    utils.runScript("pkill -9 re_node_manager")
+                                    utils.runScript("pkill -9 logan_managedserver")
+                                }
+
+                                if(params.kill_env_manager){
+                                    utils.runScript("pkill -9 re_environment_manager")
+                                }
+                            }
+                        }
+                    }
+                    parallel(kill_map)
                 }
-            }
-
-            if(KILL_NODE_MANAGER){
-                utils.runScript("pkill -9 re_node_manager")
-                utils.runScript("pkill -9 logan_managedserver")
-            }
-
-            if(KILL_ENV_MANAGER){
-                utils.runScript("pkill -9 re_environment_manager")
             }
         }
     }
 }
-
-parallel kill_map

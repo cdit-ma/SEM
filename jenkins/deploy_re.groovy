@@ -1,64 +1,53 @@
-/**
-This script will deploy re to all jenkins slaves with the re label.
-This script requires the following Jenkins plugins:
--Pipeline: Utility Steps
-*/
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-//Load shared pipeline utility library
-@Library('cditma-utils')
-import cditma.Utils
+final ARCHIVE_NAME = 're.tar.gz'
+def builder_map = [:]
+pipeline{
+    agent none
 
-def utils = new Utils(this);
+    stages{
+        stage('Checkout'){
+            steps{
+                node('master'){
+                    dir('/srv/git/'){
+                        stash includes: ARCHIVE_NAME, name: ARCHIVE_NAME
+                    }
+                    script{
+                        for(def n in nodesByLabel('deploy_re')){
+                            def node_name = n
+                            if(node_name == ''){
+                                node_name = 'master'
+                            }
 
-final PROJECT_NAME = 're'
-def git_url = "/srv/git"
-def re_nodes = nodesByLabel("deploy_re")
+                            builder_map[node_name] = {
+                                node(node_name){
+                                    dir("${HOME}/re"){
+                                        deleteDir()
+                                    }
+                                    unstash ARCHIVE_NAME
+                                    utils.runScript("tar -xf ${ARCHIVE_NAME} -C ${HOME}" )
 
-
-final ARCHIVE_NAME = PROJECT_NAME + ".tar.gz"
-final STASH_NAME = ARCHIVE_NAME + "_stash"
-
-//Checkout and stash re source archive (stored on Master's local git repo)
-stage('Checkout'){
-    node('master'){
-        dir(git_url){
-            stash includes: ARCHIVE_NAME, name: STASH_NAME
-        }
-    }
-}
-
-//Construct build map for all nodes which should build
-def step_build = [:]
-for(n in re_nodes){
-    def node_name = n
-    if(node_name == ""){
-        node_name = "master"
-    }
-    step_build[node_name] = {
-        node(node_name){
-            dir("${HOME}/re"){
-                deleteDir()
-            }
-            unstash STASH_NAME
-            sleep(1)
-
-            //Build into HOME
-            utils.runScript("tar -xf " + ARCHIVE_NAME + " -C ${HOME}" )
-
-            dir("${HOME}/re/build"){
-                sleep(1)
-                touch '.dummy'
-                print("Running in: " + pwd())
-                def result = utils.buildProject("Ninja", "")
-                if(!result){
-                    error('Failed to compile')
+                                    dir("${HOME}/re/build"){
+                                        print("Running in: " + pwd())
+                                        def result = utils.buildProject("Ninja", "")
+                                        if(!result){
+                                            error('Failed to compile')
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
-}
 
-//Build re on all re nodes
-stage('Build'){
-    parallel step_build
+        stage('Compile'){
+            steps{
+                parallel builder_map
+            }
+        }
+    }
 }
