@@ -71,7 +71,7 @@ pipeline{
                             }
                         }
                     }
-                    parallel builder_map
+                    parallel(builder_map)
                 }
             }
         }
@@ -120,7 +120,8 @@ pipeline{
                         }
                     }
                     //Run the Tests
-                    parallel test_map
+                    parallel(test_map)
+                    
                     dir("test_cases"){
                         deleteDir()
                         
