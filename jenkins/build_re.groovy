@@ -8,6 +8,23 @@ final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
 final RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
 
+@NonCPS
+def get_test_status(){
+    //Thanks to https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
+    def status = "#Test Status\n"
+    AbstractTestResultAction testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+    if (testResultAction != null) {
+        def total = testResultAction.totalCount
+        def failed = testResultAction.failCount
+        def skipped = testResultAction.skipCount
+        def passed = total - failed - skipped
+        status += "Passed: ${passed}, Failed: ${failed} ${testResultAction.failureDiffString}, Skipped: ${skipped}"
+    }
+    return status
+}
+
+
+
 pipeline{
     agent{node "builder"}
 
@@ -107,7 +124,7 @@ pipeline{
                                             }
 
                                             if(utils.runScript("../${file_path} --gtest_output=xml:${test_output} ${test_filter}") != 0){
-                                                print("Running Test: ${file_path} Failed!")
+                                                error("Running Test: ${file_path} Failed!")
                                             }
                                         }
                                         def stash_name = "${node_name}_test_cases"
@@ -132,11 +149,14 @@ pipeline{
 
                         def glob_str = "**.xml"
                         junit glob_str
-                        
+
                         //Test cases
                         def test_archive = "test_results.zip"
                         zip glob: glob_str, zipFile: test_archive
                         archiveArtifacts test_archive
+
+                        //Set the Display Name
+                        currentBuild.displayName = get_test_status()
                     }
                 }
             }
