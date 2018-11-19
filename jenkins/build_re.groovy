@@ -57,18 +57,20 @@ pipeline{
                         def node_name = n
 
                         builder_map[node_name] = {
-                            dir("bin"){
-                                deleteDir()
-                            }
-                            dir("lib"){
-                                deleteDir()
-                            }
+                            node(node_name){
+                                dir("bin"){
+                                    deleteDir()
+                                }
+                                dir("lib"){
+                                    deleteDir()
+                                }
 
-                            unstash "source_code"
-                            dir("build"){
-                                deleteDir()
-                                if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
-                                    error("CMake failed on Builder Node: ${node_name}")
+                                unstash "source_code"
+                                dir("build"){
+                                    deleteDir()
+                                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
+                                        error("CMake failed on Builder Node: ${node_name}")
+                                    }
                                 }
                             }
                         }
