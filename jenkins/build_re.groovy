@@ -54,7 +54,6 @@ pipeline{
                         //Create rollout archive
                         utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz")
                         archiveArtifacts(rollout_file)
-                        deleteDir()
                     }
                 }
             }
