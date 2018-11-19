@@ -3,21 +3,13 @@
 def utils = new cditma.Utils(this);
 
 final Boolean IS_TAG = env.TAG_NAME
-final GIT_CREDENTIAL_ID = "cditma-github-auth"
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
 //Run full tests on a Tag or a Pull Request
 final RUN_ALL_TESTS = IS_TAG || GIT_ID.contains("PR-")
 def RELEASE_DESCRIPTION = "re-" + GIT_ID
 
-
-
 pipeline{
     agent{node "builder"}
-    parameters{
-        string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
-        string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
-        booleanParam(name: 'is_regex', defaultValue: false, description: 'Should the Environment Manager treat the experiment_name field as a regex field.')
-    }
 
     stages{
         stage("Checkout/Bundle"){
@@ -84,7 +76,6 @@ pipeline{
                 }
             }
         }
-
 
         stage("Execute Test"){
             steps{
@@ -155,7 +146,7 @@ pipeline{
             when{buildingTag()}
             steps{
                 script{
-                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
+                    withCredentials([usernamePassword(credentialsId: "cditma-github-auth", passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
                         def release_name = "re " + GIT_ID
                         def git_args = "--user cdit-ma --repo re --tag " + GIT_ID
 
