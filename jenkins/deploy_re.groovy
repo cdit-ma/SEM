@@ -5,36 +5,34 @@ def utils = new cditma.Utils(this);
 final ARCHIVE_NAME = 're.tar.gz'
 def builder_map = [:]
 pipeline{
-    agent none
+    agent{node "master"}
 
     stages{
         stage('Checkout'){
             steps{
-                node('master'){
-                    dir('/srv/git/'){
-                        stash includes: ARCHIVE_NAME, name: ARCHIVE_NAME
-                    }
-                    script{
-                        for(def n in nodesByLabel('deploy_re')){
-                            def node_name = n
-                            if(node_name == ''){
-                                node_name = 'master'
-                            }
+                dir('/srv/git/'){
+                    stash includes: ARCHIVE_NAME, name: ARCHIVE_NAME
+                }
+                script{
+                    for(def n in nodesByLabel('deploy_re')){
+                        def node_name = n
+                        if(node_name == ''){
+                            node_name = 'master'
+                        }
 
-                            builder_map[node_name] = {
-                                node(node_name){
-                                    dir("${HOME}/re"){
-                                        deleteDir()
-                                    }
-                                    unstash ARCHIVE_NAME
-                                    utils.runScript("tar -xf ${ARCHIVE_NAME} -C ${HOME}" )
+                        builder_map[node_name] = {
+                            node(node_name){
+                                dir("${HOME}/re"){
+                                    deleteDir()
+                                }
+                                unstash ARCHIVE_NAME
+                                utils.runScript("tar -xf ${ARCHIVE_NAME} -C ${HOME}" )
 
-                                    dir("${HOME}/re/build"){
-                                        print("Running in: " + pwd())
-                                        def result = utils.buildProject("Ninja", "")
-                                        if(!result){
-                                            error('Failed to compile')
-                                        }
+                                dir("${HOME}/re/build"){
+                                    print("Running in: " + pwd())
+                                    def result = utils.buildProject("Ninja", "")
+                                    if(!result){
+                                        error('Failed to compile')
                                     }
                                 }
                             }
@@ -46,7 +44,9 @@ pipeline{
 
         stage('Compile'){
             steps{
-                parallel builder_map
+                script{
+                    parallel builder_map
+                }
             }
         }
     }
