@@ -12,18 +12,14 @@ def RELEASE_DESCRIPTION = "re-" + GIT_ID
 @NonCPS
 def get_test_status(){
     //Thanks to https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
-    def status = "#Test Status\n"
-    AbstractTestResultAction testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
-    if (testResultAction != null) {
-        def total = testResultAction.totalCount
-        def failed = testResultAction.failCount
-        def skipped = testResultAction.skipCount
-        def passed = total - failed - skipped
-        status += "Passed: ${passed}, Failed: ${failed} ${testResultAction.failureDiffString}, Skipped: ${skipped}"
+    AbstractTestResultAction test = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+    if(test != null){
+        def total = test.totalCount
+        def passed = total - test.failCount - test.skipCount
+        return "Tests: ${passed}/${total}"
     }
-    return status
+    return ""
 }
-
 
 
 pipeline{
