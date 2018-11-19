@@ -53,7 +53,7 @@ pipeline{
             steps{
                 script{
                     def builder_map = [:]
-                    for(n in nodesByLabel("builder"){
+                    for(n in nodesByLabel("builder")){
                         def node_name = n
 
                         builder_map[node_name] = {
@@ -121,7 +121,7 @@ pipeline{
                     }
                     //Run the Tests
                     parallel(test_map)
-                    
+
                     dir("test_cases"){
                         deleteDir()
                         
