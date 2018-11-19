@@ -99,7 +99,7 @@ pipeline{
                                         
                                     def tests_list = findFiles glob: glob_str
                                     dir("results"){
-                                        for(f in test_list){
+                                        for(f in tests_list){
                                             def file_path = f.name
                                             def file_name = utils.trimExtension(file_path)
                                             def test_output = "${file_name}_${node_name}.xml"
