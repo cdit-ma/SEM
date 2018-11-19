@@ -17,33 +17,31 @@ pipeline{
         stage("Checkout/Bundle"){
             steps{
                 node("master"){
-                    dir(PROJECT_NAME){
-                        script{
-                            checkout scm
-                            stash includes: "**", name: "source_code"
-                            
-                            //Get the SHA
-                            def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false)
-                            //Checkout into master
-                            utils.runScript('git branch master')
-                            utils.runScript('git checkout master')
-                            //point master at the SHA of this branch/tag
-                            utils.runScript("git reset --hard ${COMMIT_SHA}")
+                    script{
+                        checkout scm
+                        stash includes: "**", name: "source_code"
+                        
+                        //Get the SHA
+                        def COMMIT_SHA = utils.runScript('git rev-parse HEAD', false)
+                        //Checkout into master
+                        utils.runScript('git branch master')
+                        utils.runScript('git checkout master')
+                        //point master at the SHA of this branch/tag
+                        utils.runScript("git reset --hard ${COMMIT_SHA}")
 
-                            utils.runScript('git bundle create re.bundle master --tags --branches')
-                            utils.runScript('git-archive-all re.tar.gz')
+                        utils.runScript('git bundle create re.bundle master --tags --branches')
+                        utils.runScript('git-archive-all re.tar.gz')
 
-                            //Read the VERSION.MD
-                            if(fileExists("VERSION.md")){
-                                RELEASE_DESCRIPTION = readFile("VERSION.md")
-                            }
-
-                            final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
-                            //Create rollout archive
-                            utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
-                            archiveArtifacts(ROLLOUT_FILE_NAME)
-                            deleteDir()
+                        //Read the VERSION.MD
+                        if(fileExists("VERSION.md")){
+                            RELEASE_DESCRIPTION = readFile("VERSION.md")
                         }
+
+                        final ROLLOUT_FILE_NAME = "re-" + GIT_ID + "-rollout.tar.gz"
+                        //Create rollout archive
+                        utils.runScript('tar -czf ' + ROLLOUT_FILE_NAME + ' re.bundle re.tar.gz')
+                        archiveArtifacts(ROLLOUT_FILE_NAME)
+                        deleteDir()
                     }
                 }
             }
