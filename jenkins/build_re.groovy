@@ -33,7 +33,7 @@ pipeline{
                         checkout scm
                         stash includes: "**", name: "source_code"
                         
-                        if(utils.runScript("git bundle create re.bundle HEAD  --tags --branch") != 0){
+                        if(utils.runScript("git bundle create re.bundle HEAD --all") != 0){
                             error("Cannot create git bundle")
                         }
 
