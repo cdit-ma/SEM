@@ -3,6 +3,8 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
+#include "../../Data/Events/workloadevent.h"
+#include "../../Data/Series/workloadeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -17,6 +19,9 @@ public:
     explicit EntityChart(ViewItem* item = 0, QWidget* parent = 0);
 
     ViewItem* getViewItem();
+
+    void addWorkloadEventSeries(WorkloadEventSeries* series);
+    void removeWorkloadEventSeries(quint32 workloadID);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
@@ -139,6 +144,8 @@ private:
     }
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
+
+    WorkloadEventSeries* _workloadEventSeries;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;

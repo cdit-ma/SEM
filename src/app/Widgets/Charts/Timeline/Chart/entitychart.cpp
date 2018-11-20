@@ -60,6 +60,28 @@ ViewItem* EntityChart::getViewItem()
 
 
 /**
+ * @brief EntityChart::addWorkloadEventSeries
+ * @param series
+ */
+void EntityChart::addWorkloadEventSeries(WorkloadEventSeries* series)
+{
+    _workloadEventSeries = series;
+}
+
+
+/**
+ * @brief EntityChart::removeWorkloadEventSeries
+ * @param workloadID
+ */
+void EntityChart::removeWorkloadEventSeries(quint32 workloadID)
+{
+    if (_workloadEventSeries && _workloadEventSeries->getWorkloadID() == workloadID) {
+        _workloadEventSeries = 0;
+    }
+}
+
+
+/**
  * @brief EntityChart::addSeries
  * @param series
  */
