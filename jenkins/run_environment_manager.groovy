@@ -26,7 +26,7 @@ pipeline{
                         args += "-q ${params.qpid_broker_endpoint} "
                     }
 
-                    if(!utils.runScript("${RE_PATH}/bin/re_environment_manager", args) == 0){
+                    if(!utils.runScript("${RE_PATH}/bin/re_environment_manager ${args}") == 0){
                         error('Running re_environment_manager failed!')
                     }
                 }
