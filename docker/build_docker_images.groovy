@@ -1,6 +1,6 @@
 
 
-node("docker") {
+node("docker_runtime") {
     checkout scm
     def minimal_deps = docker.build("minimal_deps", "re/docker/minimal_deps")
     def full_deps = docker.build("full_deps", "re/docker/full_deps")
