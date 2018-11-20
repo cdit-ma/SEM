@@ -32,8 +32,13 @@ pipeline{
                     script{
                         checkout scm
                         stash includes: "**", name: "source_code"
+
+                        //Create a special branch called jenkins-rollout, pointed at this revision
+                        if(utils.runScript("git checkout -b jenkins-rollout") != 0){
+                            error("Cannot create git branch jenkins-rollout")
+                        }
                         
-                        if(utils.runScript("git bundle create re.bundle HEAD --all") != 0){
+                        if(utils.runScript("git bundle create re.bundle HEAD --branches") != 0){
                             error("Cannot create git bundle")
                         }
 
