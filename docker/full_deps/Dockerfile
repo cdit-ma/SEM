@@ -1,8 +1,8 @@
 FROM minimal_deps
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y expect sed python-minimal uuid-dev ruby bison && rm -rf /var/lib/apt/lists/*
-COPY install_rti.exp /opt/install_rti.exp
-COPY Makefile.Build_DCPS_ISO_Cpp_Lib /opt/Makefile.Build_DCPS_ISO_Cpp_Lib
+COPY docker/full_deps/install_rti.exp /opt/install_rti.exp
+COPY docker/full_deps/Makefile.Build_DCPS_ISO_Cpp_Lib /opt/Makefile.Build_DCPS_ISO_Cpp_Lib
 
 RUN wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connext_dds-5.3.0-eval-x64Linux3gcc5.4.0.run -q -P /opt/ && \
         chmod +x /opt/rti_connext_dds-5.3.0-eval-x64Linux3gcc5.4.0.run && \
