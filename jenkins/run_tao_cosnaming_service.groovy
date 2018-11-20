@@ -1,22 +1,27 @@
-//This script requires the following Jenkins plugins:
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-//Requires following parameters in jenkins job:
-// -String parameter: NODE_NAME
-// -String parameter: TAO_COSNAMING_PORT
-stage("Run TAO cosnaming service"){
-    def node_ = env.NODE_NAME;
-    def port = env.TAO_COSNAMING_PORT
+pipeline{
+    agent{node params.node_name}
+    
+    parameters{
+        string(name: 'node_name', defaultValue: 'master', description: 'The name of the node to run the TAO naming service on.')
+        string(name: 'port', defaultValue: '4355', description: 'The port number to run the TAO naming service on.')
+    }
 
-    node(node_){
-        def ip_address = env.IP_ADDRESS;
-        def tao_root = env.TAO_ROOT;
+    stages{
+        stage("Run TAO Naming Service"){
+            steps{
+                script{
+                    def endpoint = "iiop://${env.IP_ADDRESS}:${params.port}"
+                    print("TAO Endpoint: ${endpoint}")
 
-
-        if (tao_root && ip_address && port){
-            //TODO: fill the things.
-            sh tao_root + "/orbsvcs/Naming_Service/tao_cosnaming -ORBEndpoint iiop://" + ip_address + ":" + port
-        }else{
-            error("Missing Parameters/Environment Variables")
+                    if(utils.runScript("${env.TAO_ROOT}/orbsvcs/Naming_Service/tao_cosnaming -ORBEndpoint ${endpoint}") != 0){
+                        error('Running TAO naming service failed.')
+                    }
+                }
+            }
         }
     }
 }
