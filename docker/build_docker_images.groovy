@@ -6,7 +6,7 @@ final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
 node("docker_runtime") {
     checkout scm
     
-    docker.withRegistry('192.168.111.98:5000'){
+    docker.withRegistry('http://192.168.111.98:5000'){
         def minimal_deps = docker.build("minimal_deps:${GIT_ID}", "-f docker/minimal_deps/Dockerfile .")
         minimal_deps.push()
         def full_deps = docker.build("full_deps:${GIT_ID}", "-f docker/full_deps/Dockerfile .")
