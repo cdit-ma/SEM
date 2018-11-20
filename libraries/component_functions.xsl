@@ -1706,7 +1706,8 @@
                                 $kind = 'MemberInstance' or
                                 $kind = 'Member' or
                                 $kind = 'EnumInstance' or
-                                $kind = 'VectorInstance'">
+                                $kind = 'VectorInstance' or
+                                $kind = 'Vector'">
                         <xsl:choose>
                         <xsl:when test="$parent_kind = 'ReturnParameterGroupInstance' and
                                         $parents_parent_kind = 'RequesterPortImpl'">
@@ -1738,9 +1739,6 @@
                 </xsl:when>
                 <xsl:when test="$kind = 'BooleanExpression'">
                     <xsl:value-of select="cdit:get_variable_name($node)" />
-                </xsl:when>
-                <xsl:when test="$kind = 'VectorInstance'">
-                    <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'ReturnParameter'">
                     <xsl:choose>
