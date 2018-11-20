@@ -655,3 +655,84 @@ void TimelineChartView::UpdateChartHover(){
     }*/
 
 }
+
+
+/**
+ * @brief TimelineChartView::receivedWorkloadEvent
+ * @param event
+ */
+void TimelineChartView::receivedWorkloadEvent(WorkloadEvent* event)
+{
+    if (!event)
+        return;
+
+    // group events by workload id
+    MEDEA::EventSeries* series = 0;
+
+    auto workloadID = event->getWorkloadID();
+    if (eventSeries.contains(workloadID)) {
+        series = eventSeries.value(workloadID);
+    } else {
+        constructChartForWorkloadEvent(event->getWorkerInstanceGraphmlID(), workloadID, event->getName());
+
+        auto chart = eventEntityCharts[workloadID];
+        auto set = eventEntitySets[workloadID];
+        series = eventSeries[workloadID];
+
+        _entityAxis->appendEntity(set);
+        _timelineChart->addEntityChart(chart);
+    }
+
+    if (series) {
+
+        series->addEvent(event);
+
+        // TODO: Don't need this once we have the start/end time of the experiment
+        // update this timeline chart's range
+        auto timelineRange = _timelineChart->getRange();
+        auto seriesRange = series->getTimeRangeMS();
+        if (!_timelineChart->isRangeSet()) {
+            _timelineChart->setRange(seriesRange.first, seriesRange.second);
+            _timelineChart->initialRangeSet();
+        } else {
+            if (seriesRange.first < timelineRange.first) {
+                _timelineChart->setMin(seriesRange.first);
+            }
+            if (seriesRange.second > timelineRange.second) {
+                _timelineChart->setMax(seriesRange.second);
+            }
+        }
+        // if the timeline chart's range was changed, update the date/time axis' range
+        if (timelineRange != _timelineChart->getRange()) {
+            _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+        }
+    }
+
+    // TODO - Group workloads by worker id
+}
+
+
+/**
+ * @brief TimelineChartView::constructChartForWorkloadEvent
+ * @param ID
+ * @param label
+ */
+void TimelineChartView::constructChartForWorkloadEvent(QString workerInstID, quint32 workloadID, QString label)
+{
+    WorkloadEventSeries* series = new WorkloadEventSeries(workerInstID, workloadID, this);
+    eventSeries[workloadID] = series;
+
+    EntityChart* chart = new EntityChart(0, this);
+    eventEntityCharts[workloadID] = chart;
+    chart->addWorkloadEventSeries(series);
+    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
+
+    EntitySet* set = new EntitySet(label, this);
+    eventEntitySets[workloadID] = set;
+    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+    set->themeChanged(Theme::theme());
+    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+    connect(set, &EntitySet::hovered, [=] (bool hovered) {
+        _timelineChart->setEntityChartHovered(chart, hovered);
+    });
+}

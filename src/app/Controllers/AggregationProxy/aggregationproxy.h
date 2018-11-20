@@ -5,6 +5,7 @@
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
+#include "../../../app/Widgets/Charts/Data/Events/workloadevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -20,7 +21,15 @@ public:
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
     static const QString getQString(const std::string &string);
 
+signals:
+    void receivedWorkloadEvent(WorkloadEvent* event);
+
 private:
+    void SendWorkloadRequest(AggServer::WorkloadRequest& request);
+
+    WorkloadEvent::WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance inst);
+    WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
+
     AggServer::Requester requester_;
 
 };
