@@ -7,6 +7,7 @@
 #include <proto/controlmessage/helper.h>
 #include "node.h"
 #include <zmq/zmqutils.hpp>
+#include <regex>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& ip_address,
@@ -56,6 +57,8 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     const auto& experiment_name = message.name();
+
+    std::cerr << "GOT : " << experiment_name << std::endl;
 
     if(experiment_map_.count(experiment_name) > 0){
         throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
@@ -205,13 +208,41 @@ void Environment::ShutdownExperiment(const std::string& experiment_name){
     std::lock(configure_experiment_mutex_, experiment_mutex_);
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
+    ShutdownExperimentInternal(experiment_name);
+}
 
+std::vector<std::string> Environment::ShutdownExperimentRegex(const std::string& regex){
+    std::lock(configure_experiment_mutex_, experiment_mutex_);
+    std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
+
+    auto experiment_names = GetMatchingExperiments(regex);
+    for(const auto& experiment_name : experiment_names){
+        ShutdownExperimentInternal(experiment_name);
+    }
+    return experiment_names;
+}
+
+void Environment::ShutdownExperimentInternal(const std::string& experiment_name){
     auto& experiment = GetExperimentInternal(experiment_name);
     if(experiment.IsActive()){
         experiment.Shutdown();
     }else{
         RemoveExperimentInternal(experiment_name);
     }
+}
+
+std::vector<std::string> Environment::GetMatchingExperiments(const std::string& experiment_name_regex){
+    std::vector<std::string> experiment_list;
+    std::regex match_re(experiment_name_regex);
+
+    for(const auto& e_pair : experiment_map_){
+        std::smatch match;
+        if(std::regex_match(e_pair.first, match, match_re)){
+            experiment_list.emplace_back(e_pair.first);
+        }
+    }
+    return experiment_list;
 }
 
 void Environment::RemoveExperiment(const std::string& experiment_name){

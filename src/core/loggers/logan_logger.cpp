@@ -10,6 +10,8 @@
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
+    info.set_container_name(logger.GetContainerName());
+    info.set_container_id(logger.GetContainerId());
 
     using namespace google::protobuf::util;
     auto timestamp = TimeUtil::MillisecondsToTimestamp(logger.GetCurrentTime().count());
@@ -36,9 +38,11 @@ void FillPortPB(ModelEvent::Port& p, const Port& port){
     p.set_middleware(port.get_middleware());
 }
 
-Logan::Logger::Logger(const std::string& experiment_name, const std::string& host_name, const std::string& address, const std::string& port, Logger::Mode mode):
+Logan::Logger::Logger(const std::string& experiment_name, const std::string& host_name, const std::string& container_name, const std::string& container_id, const std::string& address, const std::string& port, Logger::Mode mode):
     experiment_name_(experiment_name),
-    host_name_(host_name)
+    host_name_(host_name),
+    container_name_(container_name),
+    container_id_(container_id)
 {
     const auto& endpoint = "tcp://" + address + ":" + port;
         
@@ -192,3 +196,15 @@ const std::string& Logan::Logger::GetHostName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return host_name_;
 }
+
+const std::string& Logan::Logger::GetContainerId() const{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return container_id_;
+}
+
+const std::string& Logan::Logger::GetContainerName() const{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return container_name_;
+}
+
+

@@ -35,7 +35,6 @@ DeploymentManager::DeploymentManager(
     proto_receiever_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotExperimentUpdate, this, std::placeholders::_1));
     proto_receiever_->Connect(master_publisher_endpoint);
     proto_receiever_->Filter("*");
-    proto_receiever_->Start();
 
     //Construct a thread to process the control queue
     control_queue_future_ = std::async(std::launch::async, &DeploymentManager::ProcessControlQueue, this);
@@ -94,7 +93,7 @@ void DeploymentManager::RequestDeployment(){
         request.set_allocated_id(GetSlaveID().release());
 
         try{
-            HandleContainerUpdate(startup_reply->configuration());
+            HandleContainerUpdate(startup_reply->host_name(), startup_reply->configuration());
             request.set_success(true);
         }catch(const std::exception& ex){
             request.set_success(false);
@@ -113,21 +112,21 @@ void DeploymentManager::HandleExperimentUpdate(const NodeManager::ControlMessage
         if(node.ip_address() == ip_address_){
             for(const auto& container : node.containers()){
                 if(container.info().id() == container_id_){
-                    HandleContainerUpdate(container);
+                    HandleContainerUpdate(node.info().name(), container);
                 }
             }
         }
     }
 }
 
-void DeploymentManager::HandleContainerUpdate(const NodeManager::Container& container){
+void DeploymentManager::HandleContainerUpdate(const std::string& host_name, const NodeManager::Container& container){
     std::lock_guard<std::mutex> lock(container_mutex_);
     const auto& id = container.info().id();
     
     if(deployment_containers_.count(id)){
         deployment_containers_.at(id)->Configure(container);
     }else{
-        deployment_containers_.emplace(id, std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_, library_path_, container)));
+        deployment_containers_.emplace(id, std::unique_ptr<DeploymentContainer>(new DeploymentContainer(experiment_name_, host_name, library_path_, container)));
     }
 }
 
@@ -233,12 +232,14 @@ void DeploymentManager::ProcessControlQueue(){
         using namespace NodeManager;
         SlaveTerminatedRequest request;
         request.set_allocated_id(GetSlaveID().release());
-
-        auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
-            ("SlaveTerminated", request, 1000);
-
-        
-        reply_future.get();
+        try{
+            auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
+                ("SlaveTerminated", request, 5000);
+            reply_future.get();
+        }catch(const std::exception& ex){
+            std::cerr << "* Sending SlaveTerminatedRequest Failed!: " << ex.what() << std::endl;
+            throw;
+        }
     }
 
     if(!is_master_node_){

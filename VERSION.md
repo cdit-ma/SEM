@@ -1,3 +1,6 @@
-# Runtime Environment v3.2.3
+# Runtime Environment v3.2.6
 ## New Features:
-* Updated re_gen to v3.2.3
+* Added Regex mode to ShutdownExperiment (RE-385)
+* Added Dockerfile for building re environment containers
+* Added Jenkinsfile for batched_deploy_model
+* Added Jenkinsfile for parallel_deploy_model

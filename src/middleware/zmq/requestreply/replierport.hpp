@@ -157,9 +157,10 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, BaseRequestType, ProtoRe
                     auto base_reply = port.ProcessRequest(*base_request_ptr);
                     auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
                     zmq_response = String2Zmq(reply_str);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply/Request Failed: ";
-                    port.ProcessGeneralException(error_str + ex.what());
+                    port.ProcessGeneralException(ex.what());
                 }
 
                 //Send reply, regardless if we failed
@@ -189,13 +190,14 @@ void zmq::RequestHandler<void, void, BaseRequestType, ProtoRequestType>::Loop(Th
                 zmq::message_t zmq_response;
                 socket->recv(&zmq_request);
 
-                const auto& request_str = Zmq2String(zmq_request);
                 try{
+                    const auto& request_str = Zmq2String(zmq_request);
                     auto base_request_ptr = ::Proto::Translator<BaseRequestType, ProtoRequestType>::StringToBase(request_str);
                     port.ProcessRequest(*base_request_ptr);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Request Failed: ";
-                    port.ProcessGeneralException(error_str + ex.what());
+                    port.ProcessGeneralException(ex.what());
                 }
 
                 //Send reply, regardless if we failed
@@ -232,8 +234,9 @@ void zmq::RequestHandler<BaseReplyType, ProtoReplyType, void, void>::Loop(Thread
                     auto base_reply = port.ProcessRequest();
                     auto reply_str = ::Proto::Translator<BaseReplyType, ProtoReplyType>::BaseToString(base_reply);
                     zmq_response = String2Zmq(reply_str);
+                }catch(const CallbackException& ex){
+
                 }catch(const std::exception& ex){
-                    std::string error_str = "Translating Reply Failed: ";
                     port.ProcessGeneralException(ex.what());
                 }
                 //Send reply

@@ -126,9 +126,14 @@ template <class BaseType>
 void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
     //Only process the message if we are running and we have a callback, and we aren't meant to ignore
     if(process_message && process_event() && callback_wrapper_.callback_fn){
-        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::STARTED_FUNC);
-        callback_wrapper_.callback_fn(message);
-        logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::FINISHED_FUNC);
+        try{
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::STARTED_FUNC);
+            callback_wrapper_.callback_fn(message);
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::FINISHED_FUNC);
+        }catch(const std::exception& ex){
+            CallbackException exception(ex.what());
+            logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::EXCEPTION, exception.what());
+        }
         EventProcessed(message);
     }else{
         EventIgnored(message);

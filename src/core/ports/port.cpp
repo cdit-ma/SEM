@@ -46,7 +46,6 @@ void Port::EventRecieved(const BaseMessage& message){
 }
 
 void Port::EventProcessed(const BaseMessage& message){
-
     std::lock_guard<std::mutex> lock(mutex_);
     processed_count_++;
 }

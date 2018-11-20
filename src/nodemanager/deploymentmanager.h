@@ -36,7 +36,7 @@ class DeploymentManager{
         NodeManager::SlaveStartupResponse HandleSlaveStartup(const NodeManager::SlaveStartup startup);
         void HandleExperimentUpdate(const NodeManager::ControlMessage& control_message);
         void GotExperimentUpdate(const NodeManager::ControlMessage& control_message);
-        void HandleContainerUpdate(const NodeManager::Container& container);
+        void HandleContainerUpdate(const std::string& host_name, const NodeManager::Container& container);
 
         void Terminate();
         void RequestDeployment();
