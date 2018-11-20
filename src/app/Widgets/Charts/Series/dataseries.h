@@ -1,16 +1,17 @@
 #ifndef DATASERIES_H
 #define DATASERIES_H
 
-#include <QObject>
 #include <QDateTime>
 #include <QPointF>
+
 #include "../../../Controllers/ViewController/viewitem.h"
+#include "../Data/Series/eventseries.h"
 
 enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};
 
 namespace MEDEA {
 
-class DataSeries : public QObject
+class DataSeries : public EventSeries
 {
     Q_OBJECT
 

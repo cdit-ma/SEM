@@ -323,7 +323,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
-    testLifecycleSeries();
+    //testLifecycleSeries();
 }
 
 
@@ -683,17 +683,16 @@ void PanelWidget::setupLayout()
         playPauseAction->setChecked(false);
     }
 
-
-
     requestDataAction = titleBar->addAction("Request/Reload Data");
+    requestDataAction->setVisible(false);
     connect(requestDataAction, &QAction::triggered, [=]() {
         requestData(true);
     });
     refreshDataAction = titleBar->addAction("Refresh Data");
+    refreshDataAction->setVisible(false);
     /*connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
     });*/
-    refreshDataAction->setVisible(false);
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
