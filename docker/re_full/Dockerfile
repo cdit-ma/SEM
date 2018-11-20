@@ -2,7 +2,7 @@ FROM full_deps
 
 
 #Set up code and env vars
-COPY re/ /re/
+COPY . /re/
 ENV CMAKE_MODULE_PATH /re/cmake_modules/
 ENV RE_PATH /re
 
