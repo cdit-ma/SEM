@@ -52,6 +52,7 @@ public:
 
     SelectionController* getSelectionController();
     ActionController* getActionController();
+    AggregationProxy& getAggregationProxy();
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
@@ -301,7 +302,7 @@ private:
     BaseDockWidget* execution_monitor = 0;
     JobMonitor* job_monitor = 0;
 
-    
+
 
     SelectionController* selectionController;
     ActionController* actionController;

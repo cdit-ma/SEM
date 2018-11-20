@@ -262,6 +262,11 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
+AggregationProxy& ViewController::getAggregationProxy()
+{
+    return proxy;
+}
+
 
 bool ViewController::isWelcomeScreenShowing(){
     return showingWelcomeScreen;

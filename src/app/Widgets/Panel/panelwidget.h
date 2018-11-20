@@ -3,7 +3,6 @@
 
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
-#include <QtCharts/QCategoryAxis>
 #include <QFrame>
 #include <QToolBar>
 #include <QAction>
@@ -12,11 +11,14 @@
 #include <QDateTime>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
+#include "../Charts/Timeline/Chart/timelinechartview.h"
 
-QT_CHARTS_BEGIN_NAMESPACE
-class QLineSeries;
-QT_CHARTS_END_NAMESPACE
-QT_CHARTS_USE_NAMESPACE
+namespace QtCharts{
+    class QLineSeries;
+    class QCategoryAxis;
+}
+
+using namespace QtCharts;
 
 class PanelWidget : public QFrame
 {
@@ -33,6 +35,7 @@ public:
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
+    void testLifecycleSeries();
 
     void constructBigDataChart();
     void constructCustomChartView();
@@ -56,11 +59,11 @@ public slots:
     void popOutPanel();
     void popOutActiveTab();
 
+    void requestData(bool clear);
+    void timeRangeChanged(qint64 from, qint64 to);
+
     void handleTimeout();
     void playPauseToggled(bool checked);
-
-protected:
-    bool eventFilter(QObject* object, QEvent* event);
 
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
@@ -81,6 +84,10 @@ private:
     QAction* snapShotAction = 0;
     QAction* popOutActiveTabAction = 0;
     QAction* playPauseAction = 0;
+
+    QAction* requestDataAction = 0;
+    QAction* refreshDataAction = 0;
+    TimelineChartView* lifecycleView = 0;
 
     QAction* tabsMenuAction = 0;
     QMenu* tabsMenu = 0;

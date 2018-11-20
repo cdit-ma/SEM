@@ -1,6 +1,33 @@
 #include "panelwidget.h"
-//#include "../Charts/chartmanager.h"
-//#include "../Charts/chartview.h"
+
+#ifdef _WIN32
+    #define NOMINMAX
+#endif //_WIN32
+
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
+
+#include <QGraphicsLinearLayout>
+#include <QVBoxLayout>
+#include <QTimer>
+#include <QDateTime>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+/*
+#include <QtCharts/QCategoryAxis>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QDateTimeAxis>
+*/
+
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QImageWriter>
+#include <QMessageBox>
+
+
+
 #include "../../theme.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
@@ -8,27 +35,12 @@
 #include "../DockWidgets/defaultdockwidget.h"
 #include "../optiongroupbox.h"
 
-#include "../Charts/Timeline/Chart/timelinechartview.h"
+//#include "../Charts/Timeline/Chart/timelinechartview.h"
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
 
-#include <QGraphicsLinearLayout>
-#include <QVBoxLayout>
-#include <QTimer>
-#include <QDateTime>
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QBarCategoryAxis>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QSplineSeries>
-#include <QtCharts/QScatterSeries>
-#include <QtCharts/QValueAxis>
-#include <QtCharts/QDateTimeAxis>
 
-#include <QFileDialog>
-#include <QStandardPaths>
-#include <QImageWriter>
-#include <QMessageBox>
+
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
@@ -101,7 +113,8 @@ QAction* PanelWidget::addTab(QString title, QWidget* widget, QString iconPath, Q
 
         if (iconPath.isEmpty() || iconName.isEmpty()) {
             iconPath = "Icons";
-            iconName = "circleHalo";
+            iconName = "dotsInCircle";
+            //iconName = "circleHalo";
         }
 
         // TODO - Setup icons that ignore toggle state colouring
@@ -152,9 +165,10 @@ void PanelWidget::testDataSeries()
     points.append(QPointF(8, 6));
     points.append(QPointF(10, 8));
 
-    MEDEA::DataSeries* ds = new MEDEA::DataSeries();
-    ds->addPoints(points);
+    //MEDEA::DataSeries* ds = new MEDEA::DataSeries();
+    //ds->addPoints(points);
 }
+
 
 void PanelWidget::testWidgets()
 {
@@ -204,16 +218,25 @@ void PanelWidget::testWidgets()
     addTab("AxisW", w3);
 }
 
+
 void PanelWidget::testNewTimelineView()
 {
-    TimelineChartView* view2 = new TimelineChartView(this);
-    defaultActiveAction = addTab("Timeline", view2);
+    TimelineChartView* view = new TimelineChartView(this);
+    defaultActiveAction = addTab("Timeline", view);
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(viewController, &ViewController::vc_viewItemConstructed, view2, &TimelineChartView::viewItemConstructed);
-        connect(viewController, &ViewController::vc_viewItemDestructing, view2, &TimelineChartView::viewItemDestructed);
+        connect(viewController, &ViewController::vc_viewItemConstructed, view, &TimelineChartView::viewItemConstructed);
+        connect(viewController, &ViewController::vc_viewItemDestructing, view, &TimelineChartView::viewItemDestructed);
     }
+}
+
+
+void PanelWidget::testLifecycleSeries()
+{
+    lifecycleView = new TimelineChartView(this);
+    defaultActiveAction = addTab("Lifecycle", lifecycleView);
+    defaultActiveAction->trigger();
 }
 
 
@@ -247,23 +270,23 @@ void PanelWidget::constructCustomChartView()
 {
     QGraphicsView* view = new QGraphicsView(new QGraphicsScene);
     defaultActiveAction = addTab("Custom", view);
-    
+
     QChart* c1 = new QChart;
     QChart* c2 = new QChart;
     QChart* c3 = new QChart;
-    
+
     QLineSeries* line = new QLineSeries;
     QSplineSeries* spline = new QSplineSeries;
     QScatterSeries* scatter = new QScatterSeries;
-    
+
     c1->addSeries(line);
     c2->addSeries(spline);
     c3->addSeries(scatter);
-    
+
     c1->createDefaultAxes();
     c2->createDefaultAxes();
     c3->createDefaultAxes();
-    
+
     view->scene()->addItem(c1);
     view->scene()->addItem(c2);
     view->scene()->addItem(c3);
@@ -300,6 +323,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
+    testLifecycleSeries();
 }
 
 
@@ -340,6 +364,9 @@ void PanelWidget::themeChanged()
     popOutAction->setIcon(theme->getIcon("Icons", "arrowLineLeft"));
     minimiseAction->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
+
+    requestDataAction->setIcon(theme->getIcon("Icons", "reload"));
+    refreshDataAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     for (auto action : tabBar->actions()) {
         QString path = action->property("iconPath").toString();
@@ -514,6 +541,33 @@ void PanelWidget::popOutActiveTab()
 
 
 /**
+ * @brief PanelWidget::requestData
+ * @param clear
+ */
+void PanelWidget::requestData(bool clear)
+{
+    if (viewController) {
+        QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
+    }
+}
+
+
+/**
+ * @brief PanelWidget::timeRangeChanged
+ * @param from
+ * @param to
+ */
+void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
+{
+    // pass the new ranges to the chart view
+    //lifecycleView->requestedData(from, to);
+
+    // send a request with the new time range
+
+}
+
+
+/**
  * @brief PanelWidget::handleTimeout
  */
 void PanelWidget::handleTimeout()
@@ -552,24 +606,6 @@ void PanelWidget::playPauseToggled(bool checked)
         minDateTime.setMSecsSinceEpoch(QDateTime::currentMSecsSinceEpoch() - 5000);
         timer->start();
     }
-}
-
-
-bool PanelWidget::eventFilter(QObject *object, QEvent *event)
-{
-    /*
-    qDebug() << "OBJ: " << object;
-    if (object == categoryAxis) {
-        qDebug() << "CATEGORY AXIS CLICKED";
-        if (event->type() == QEvent::MouseButtonDblClick) {
-            qDebug() << "AXIS double clicked";
-            event->accept();
-            //return true;
-        }
-    }
-    */
-
-    return QFrame::eventFilter(object, event);
 }
 
 
@@ -647,8 +683,21 @@ void PanelWidget::setupLayout()
         playPauseAction->setChecked(false);
     }
 
-    popOutActiveTabAction = titleBar->addAction("Popout Tab");
+
+
+    requestDataAction = titleBar->addAction("Request/Reload Data");
+    connect(requestDataAction, &QAction::triggered, [=]() {
+        requestData(true);
+    });
+    refreshDataAction = titleBar->addAction("Refresh Data");
+    /*connect(refreshDataAction, &QAction::triggered, [=]() {
+        requestData(false);
+    });*/
+    refreshDataAction->setVisible(false);
+    titleBar->addSeparator();
+
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
+    popOutActiveTabAction = titleBar->addAction("Popout Tab");
 
     tabsMenu = new QMenu(this);
     connect(tabsMenu, &QMenu::triggered, this, &PanelWidget::tabMenuTriggered);
@@ -668,6 +717,9 @@ void PanelWidget::setupLayout()
         popOutAction = titleBar->addAction("Show Panel Dialog");
         closeAction = titleBar->addAction("Close");
     }
+
+    // TODO: Not using this action currently - hide for now
+    popOutAction->setVisible(false);
 
     tabStack = new QStackedWidget(this);
 
