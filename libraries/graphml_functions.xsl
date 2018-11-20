@@ -153,6 +153,18 @@
     </xsl:function>
 
     <!--
+        Gets the 'index' data value from the entity, casts as an integer
+    -->
+    <xsl:function name="graphml:get_row" as="xs:integer?">
+        <xsl:param name="entity" as="element()?" />
+        <xsl:variable name="row" select="graphml:get_data_value($entity, 'row')" />
+
+
+        <xsl:value-of select="if($row) then number($row) else 0" />
+    </xsl:function>
+
+
+    <!--
         Gets the 'is_key' data value from the entity, converts it to a boolean
     -->
     <xsl:function name="graphml:is_key" as="xs:boolean?">
@@ -334,6 +346,20 @@
         
         <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
         <xsl:sequence select="$node/ancestor::gml:node/gml:data[@key=$kind_id and text() = $kinds]/.." />
+    </xsl:function>
+
+    <!--
+        Gets ancestors nodes of the node provided, of a particular 'kind'(s)
+    -->
+    <xsl:function name="graphml:get_shared_ancestor" as="element(gml:node)*">
+        <xsl:param name="node1" as="element(gml:node)?" />
+        <xsl:param name="node2" as="element(gml:node)?" />
+
+        <xsl:variable name="node1_anc" select="graphml:get_ancestor_nodes($node1)" />
+        <xsl:variable name="node2_anc" select="graphml:get_ancestor_nodes($node2)" />
+
+        <xsl:variable name="shared_anc" select="$node1_anc intersect $node2_anc" />
+        <xsl:sequence select="$shared_anc[last()]" />
     </xsl:function>
 
 
