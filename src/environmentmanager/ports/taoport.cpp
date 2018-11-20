@@ -27,7 +27,7 @@ tao::Port::Port(Component& parent, const NodeManager::Port& port):
     server_name_.push_back(server_name);
 
     //Set the naming service endpoint
-    naming_service_endpoint_ = "corbaloc:iiop:" + GetEnvironment().GetTaoNamingServiceAddress();
+    naming_service_endpoint_ = GetEnvironment().GetTaoNamingServiceAddress();
     if(GetKind() == Kind::Replier){
         server_kind_ = "medea_port";
     }    
