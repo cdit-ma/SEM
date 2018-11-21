@@ -2,17 +2,38 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <google/protobuf/util/json_util.h>
+#include <vector>
+#include <sstream>
+
+std::string ExperimentListToJson(const std::vector<std::string>& experiment_names){
+    std::ostringstream s_stream;
+    s_stream << "{\"experiment_names\":[" << "\n";
+
+    for(int i = 0; i < experiment_names.size(); i++){
+        s_stream << "\t" << "\"";
+        s_stream << experiment_names.at(i);
+        s_stream << "\"";
+        if(i != experiment_names.size() - 1){
+            s_stream << ",";
+        }
+        s_stream << "\n";
+    }
+    s_stream << "]}";
+    return s_stream.str();
+}
 
 int main(int argc, char** argv){
     std::string environment_manager_endpoint;
     std::string experiment_name;
     std::string graphml_path;
+    
 
 
     boost::program_options::options_description desc("Environment Manager Controller Options");
     desc.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name), "Name of experiment.");
     desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
-    desc.add_options()("shutdown-experiment,s", "Shutdown experiment <name>");
+    desc.add_options()("shutdown-experiment,s", "Shutdown experiment <experiment-name> use with <regex> for regex matching.");
+    desc.add_options()("regex,r", "Use Regex Matching for Shutdown experiment.");
     desc.add_options()("add-experiment,a", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path.");
     desc.add_options()("list-experiments,l", "List running experiments.");
     desc.add_options()("inspect-experiment,i", "Inspect an experiment");
@@ -39,7 +60,9 @@ int main(int argc, char** argv){
     
     try{
         if(vm.count("shutdown-experiment") && vm.count("experiment-name")){
-            controller.ShutdownExperiment(experiment_name);
+            bool is_regex = vm.count("regex");
+            const auto& experiments = controller.ShutdownExperiment(experiment_name, is_regex);
+            std::cout << ExperimentListToJson(experiments) << std::endl;
         }else if(vm.count("add-experiment") && vm.count("experiment-name")){
             auto result = controller.AddExperiment(experiment_name, graphml_path);
             std::string output;
@@ -54,21 +77,11 @@ int main(int argc, char** argv){
                 return 1;
             }
         }else if(vm.count("list-experiments")){
-            const auto& experiment_names = controller.ListExperiments();
-            std::cout << "{\"experiment_names\":[" << std::endl;
-            for(int i = 0; i < experiment_names.size(); i++){
-                std::cout << "\t" << "\"";
-                std::cout << experiment_names.at(i);
-                std::cout << "\"";
-                if(i != experiment_names.size() - 1){
-                    std::cout << ",";
-                }
-                std::cout << std::endl;
-            }
-            std::cout << "]}" << std::endl;
-        } else if(vm.count("inspect-experiment") && vm.count("experiment-name")){
+            const auto& experiments = controller.ListExperiments();
+            std::cout << ExperimentListToJson(experiments) << std::endl;
+        }else if(vm.count("inspect-experiment") && vm.count("experiment-name")){
             std::cout << controller.InspectExperiment(experiment_name) << std::endl;
-        } else{
+        }else{
             std::cout << desc << std::endl;
             return 1;
         }

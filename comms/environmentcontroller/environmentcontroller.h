@@ -11,7 +11,7 @@ namespace EnvironmentManager{
     class EnvironmentController{
         public:
             EnvironmentController(const std::string& environment_manager_endpoint);
-            void ShutdownExperiment(const std::string& experiment_name);
+            std::vector<std::string> ShutdownExperiment(const std::string& experiment_name, bool is_regex);
             std::unique_ptr<NodeManager::RegisterExperimentReply> AddExperiment(const std::string& experiment_name, const std::string& graphml_path);
             std::vector<std::string> ListExperiments();
             std::string InspectExperiment(const std::string& experiment_name);
