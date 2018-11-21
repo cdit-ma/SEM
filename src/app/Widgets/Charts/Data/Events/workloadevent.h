@@ -25,6 +25,8 @@ public:
 
     explicit WorkloadEvent(WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
 
+    const QString getWorkloadPath();
+
     const QString getWorkerInstanceGraphmlID();
     const WorkloadEventType getType();
     const quint32 getWorkloadID();

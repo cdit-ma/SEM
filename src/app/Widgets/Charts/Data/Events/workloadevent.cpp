@@ -25,6 +25,16 @@ WorkloadEvent::WorkloadEvent(WorkloadEvent::WorkerInstance inst, WorkloadEvent::
 
 
 /**
+ * @brief WorkloadEvent::getWorkloadPath
+ * @return
+ */
+const QString WorkloadEvent::getWorkloadPath()
+{
+    return getWorkerInstanceGraphmlID() + "_" + getWorkloadID();
+}
+
+
+/**
  * @brief WorkloadEvent::getWorkerInstanceGraphmlID
  * @return
  */

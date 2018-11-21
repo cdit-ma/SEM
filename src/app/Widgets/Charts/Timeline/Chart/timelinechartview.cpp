@@ -607,7 +607,6 @@ void TimelineChartView::UpdateChartHover(){
         }
     }
 
-
     _hoverDisplay->setVisible(show_hover);
     if (show_hover) {
         _hoverDisplay->adjustSize();
@@ -658,6 +657,17 @@ void TimelineChartView::UpdateChartHover(){
 
 
 /**
+ * @brief TimelineChartView::clearWorkloadEvents
+ */
+void TimelineChartView::clearWorkloadEvents()
+{
+    for (auto series : eventSeries.values()) {
+        series->clear();
+    }
+}
+
+
+/**
  * @brief TimelineChartView::receivedWorkloadEvent
  * @param event
  */
@@ -669,15 +679,15 @@ void TimelineChartView::receivedWorkloadEvent(WorkloadEvent* event)
     // group events by workload id
     MEDEA::EventSeries* series = 0;
 
-    auto workloadID = event->getWorkloadID();
-    if (eventSeries.contains(workloadID)) {
-        series = eventSeries.value(workloadID);
+    auto eventID = event->getWorkloadPath();
+    if (eventSeries.contains(eventID)) {
+        series = eventSeries.value(eventID);
     } else {
-        constructChartForWorkloadEvent(event->getWorkerInstanceGraphmlID(), workloadID, event->getName());
+        constructChartForWorkload(event->getWorkerInstanceGraphmlID(), event->getWorkloadID(), event->getName());
 
-        auto chart = eventEntityCharts[workloadID];
-        auto set = eventEntitySets[workloadID];
-        series = eventSeries[workloadID];
+        auto chart = eventEntityCharts[eventID];
+        auto set = eventEntitySets[eventID];
+        series = eventSeries[eventID];
 
         _entityAxis->appendEntity(set);
         _timelineChart->addEntityChart(chart);
@@ -713,22 +723,22 @@ void TimelineChartView::receivedWorkloadEvent(WorkloadEvent* event)
 
 
 /**
- * @brief TimelineChartView::constructChartForWorkloadEvent
+ * @brief TimelineChartView::constructChartForWorkload
  * @param ID
  * @param label
  */
-void TimelineChartView::constructChartForWorkloadEvent(QString workerInstID, quint32 workloadID, QString label)
+void TimelineChartView::constructChartForWorkload(QString workerInstID, quint32 workloadID, QString label)
 {
     WorkloadEventSeries* series = new WorkloadEventSeries(workerInstID, workloadID, this);
-    eventSeries[workloadID] = series;
+    eventSeries[series->getWorkloadPath()] = series;
 
     EntityChart* chart = new EntityChart(0, this);
-    eventEntityCharts[workloadID] = chart;
+    eventEntityCharts[series->getWorkloadPath()] = chart;
     chart->addWorkloadEventSeries(series);
     connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
-    EntitySet* set = new EntitySet(label, this);
-    eventEntitySets[workloadID] = set;
+    EntitySet* set = new EntitySet("Function", this);
+    eventEntitySets[series->getWorkloadPath()] = set;
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->themeChanged(Theme::theme());
     connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);

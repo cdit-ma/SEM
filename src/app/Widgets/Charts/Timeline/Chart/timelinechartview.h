@@ -56,10 +56,11 @@ public slots:
 
     void UpdateChartHover();
 
+    void clearWorkloadEvents();
     void receivedWorkloadEvent(WorkloadEvent* event);
 
 private:
-    void constructChartForWorkloadEvent(QString workerInstID, quint32 workloadID, QString label);
+    void constructChartForWorkload(QString workerInstID, quint32 workloadID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
@@ -89,9 +90,9 @@ private:
     QHash<int, EntityChart*> itemChartWidgets;
 
     // workload events
-    QHash<quint32, EntitySet*> eventEntitySets;
-    QHash<quint32, EntityChart*> eventEntityCharts;
-    QHash<quint32, MEDEA::EventSeries*> eventSeries;
+    QHash<QString, EntitySet*> eventEntitySets;
+    QHash<QString, EntityChart*> eventEntityCharts;
+    QHash<QString, MEDEA::EventSeries*> eventSeries;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

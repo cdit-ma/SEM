@@ -16,6 +16,16 @@ WorkloadEventSeries::WorkloadEventSeries(QString workerInstID, quint32 workloadI
 
 
 /**
+ * @brief WorkloadEventSeries::getWorkloadPath
+ * @return
+ */
+const QString WorkloadEventSeries::getWorkloadPath()
+{
+    return workerInstanceID_ + "_" + workloadID_;
+}
+
+
+/**
  * @brief WorkloadEventSeries::getWorkerInstanceID
  * @return
  */

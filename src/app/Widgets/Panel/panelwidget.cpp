@@ -232,11 +232,14 @@ void PanelWidget::testNewTimelineView()
 }
 
 
-void PanelWidget::testLifecycleSeries()
+void PanelWidget::testEventSeries()
 {
-    lifecycleView = new TimelineChartView(this);
-    defaultActiveAction = addTab("Lifecycle", lifecycleView);
+    eventView = new TimelineChartView(this);
+    defaultActiveAction = addTab("Workload", eventView);
     defaultActiveAction->trigger();
+
+    if (viewController)
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, eventView, &TimelineChartView::receivedWorkloadEvent);
 }
 
 
@@ -323,7 +326,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
-    //testLifecycleSeries();
+    testEventSeries();
 }
 
 
@@ -547,6 +550,8 @@ void PanelWidget::popOutActiveTab()
 void PanelWidget::requestData(bool clear)
 {
     if (viewController) {
+        if (clear)
+            eventView->clearWorkloadEvents();
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
 }

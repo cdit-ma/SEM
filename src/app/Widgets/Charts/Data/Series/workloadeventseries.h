@@ -10,6 +10,8 @@ class WorkloadEventSeries : public MEDEA::EventSeries
 public:
     explicit WorkloadEventSeries(QString workerInstID, quint32 workloadID, QObject* parent = 0);
 
+    const QString getWorkloadPath();
+
     const QString getWorkerInstanceID();
     const quint32 getWorkloadID();
 
