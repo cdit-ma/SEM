@@ -170,11 +170,11 @@ pipeline{
                 node("master"){
                     script{
                         withCredentials([usernamePassword(credentialsId: "cditma-github-auth", passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
-                            def release_name = "re " + GIT_ID
-                            def git_args = "--user cdit-ma --repo re --tag " + GIT_ID
+                            def release_name = "re ${GIT_ID}"
+                            def git_args = "--user cdit-ma --repo re --tag ${GIT_ID}"
 
                             //Write a VERSION.md to be used as the Git Release Description
-                            writeFile(file: "VERSION.md", text: RELEASE_DESCRIPTION + "\n\n" + get_test_status())
+                            writeFile(file: "VERSION.md", text: "${RELEASE_DESCRIPTION}\n\n" + get_test_status())
 
                             def release_success = utils.runScript("github-release release ${git_args} --name \"${release_name}\" -d - < VERSION.md") == 0
                             if(!release_success){
@@ -187,7 +187,7 @@ pipeline{
                                     for(def file : findFiles(glob: '*')){
                                         def file_path = file.name
                                         //Upload binaries, replacing if they exist
-                                        utils.runScript("github-release upload" + git_args + " -R --file \"" + file_path + "\" --name \"" + file_path + "\"")
+                                        utils.runScript("github-release upload ${git_args} -R --file \"${file_path}\" --name \"${file_path}\"")
                                     }
                                 }
                             }else{
