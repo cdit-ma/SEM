@@ -1,31 +1,30 @@
-//This script requires the following Jenkins plugins:
+#!groovy
+@Library('cditma-utils') _
+def utils = new cditma.Utils(this);
 
-//Requires following parameters in jenkins job:
-// -String parameter: ENV_MANAGER_ENDPOINT
-// -String parameter: EXPERIMENT_NAME
+pipeline{
+    agent{node "re"}
 
-@Library('cditma-utils')
-import cditma.Utils
-def utils = new Utils(this);
+    parameters{
+        string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment to terminate.')
+        string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment.')
+        booleanParam(name: 'is_regex', defaultValue: false, description: 'Should the Environment Manager treat the experiment_name field as a regex field.')
+    }
 
-final env_manager_endpoint = "${ENV_MANAGER_ENDPOINT}"
-final experiment_name = "${EXPERIMENT_NAME}"
-
-stage("Execute Command"){
-    if(env_manager_endpoint && experiment_name){
-        node("master"){
-            def re_path = env.RE_PATH;
-
-            if(re_path){
-                command = re_path + "/bin/re_environment_controller -e " + env_manager_endpoint + " -s -n " + experiment_name
-                if(utils.runScript(command) != 0){
-                    error('Termination of Experiment failed.')
+    stages{
+        stage("Terminate Experiment"){
+            steps{
+                script{
+                    def args = "-s -n \"${params.experiment_name}\" "
+                    args += "-e ${params.environment_manager_address} "
+                    if(params.is_regex){
+                        args += "-r "
+                    }
+                    if(!utils.runReEnvironmentController(args)){
+                        error('Termination of experiment failed.')
+                    }
                 }
-            }else{
-                error("RE_PATH not set")
             }
         }
-    }else{
-        error("Missing Parameters/Environment Variables")
     }
 }

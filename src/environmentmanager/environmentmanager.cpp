@@ -85,7 +85,7 @@ int main(int argc, char **argv){
     std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
     std::cout << "* Endpoint: " << "tcp://" << ip_address << ":" << registration_port << std::endl;
     std::cout << "* Qpid Broker Address: " << qpid_address << std::endl;
-    std::cout << "* Tao Naming Service Endpoint: " << "corbaloc:iiop:" << tao_naming_service_address << std::endl << std::endl;
+    std::cout << "* Tao Naming Service Endpoint: " << tao_naming_service_address << std::endl << std::endl;
     std::cout << "------------------[Running]------------------" << std::endl << std::endl;
     execution.Start();
     return 0;

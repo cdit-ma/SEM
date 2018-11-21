@@ -11,10 +11,12 @@
 #include <middleware/zmq/pubsub/publisherport.hpp>
 #include <middleware/zmq/pubsub/subscriberport.hpp>
 
+static int port_id = 7000;
+
 bool setup_pub_port(Port& port, int test_id){
     auto address = port.GetAttribute("publisher_address").lock();
     if(address){
-        std::string port_address = "tcp://127.0.0.1:" + std::to_string(7000 + test_id);
+        std::string port_address = "tcp://127.0.0.1:" + std::to_string(test_id);
         address->set_String(port_address);
         return true;
     }
@@ -24,7 +26,7 @@ bool setup_pub_port(Port& port, int test_id){
 bool setup_sub_port(Port& port, int test_id){
     auto address = port.GetAttribute("publisher_addresses").lock();
     if(address){
-        std::string port_address = "tcp://127.0.0.1:" + std::to_string(7000 + test_id);
+        std::string port_address = "tcp://127.0.0.1:" + std::to_string(test_id);
         address->StringList().emplace_back(port_address);
         return true;
     }
@@ -42,7 +44,8 @@ class zmq_SubPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             component->RegisterCallback<void, Base::Basic>(port_name, EmptyCallback);
             auto port = ConstructSubscriberPort<zmq::SubscriberPort<Base::Basic, ::Basic> >(port_name, component);
-            EXPECT_TRUE(setup_sub_port(*port, 7000));
+            auto port_number = ++port_id;
+            EXPECT_TRUE(setup_sub_port(*port, port_number));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -54,7 +57,8 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = ConstructPublisherPort<zmq::PublisherPort<Base::Basic, ::Basic> >(port_name, component);
-        EXPECT_TRUE(setup_pub_port(*port, 7000));
+        auto port_number = ++port_id;
+        EXPECT_TRUE(setup_pub_port(*port, port_number));
         a = port;
         ASSERT_TRUE(a);
     }
@@ -88,9 +92,11 @@ TEST(zmq_PubSub, Basic_Stable){
     zmq::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
     auto address = "tcp://" + test_name;
+
     //Setup Ports
-    EXPECT_TRUE(setup_pub_port(pub_port, 7000));
-    EXPECT_TRUE(setup_sub_port(sub_port, 7000));
+    auto port_number = ++port_id;
+    EXPECT_TRUE(setup_pub_port(pub_port, port_number));
+    EXPECT_TRUE(setup_sub_port(sub_port, port_number));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -115,10 +121,9 @@ TEST(zmq_PubSub, Basic_Busy){
     zmq::PublisherPort<base_type, mw_type> pub_port(c, "tx_" + test_name);
     zmq::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
-    auto address = "inproc://" + test_name;
-    //Setup Ports
-    EXPECT_TRUE(setup_pub_port(pub_port, 7000));
-    EXPECT_TRUE(setup_sub_port(sub_port, 7000));
+    auto port_number = ++port_id;
+    EXPECT_TRUE(setup_pub_port(pub_port, port_number));
+    EXPECT_TRUE(setup_sub_port(sub_port, port_number));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -142,10 +147,9 @@ TEST(zmq_PubSub, Basic_Terminate){
     zmq::PublisherPort<base_type, mw_type> pub_port(c, "tx_" + test_name);
     zmq::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
-    auto address = "inproc://" + test_name;
-    //Setup Ports
-    EXPECT_TRUE(setup_pub_port(pub_port, 7000));
-    EXPECT_TRUE(setup_sub_port(sub_port, 7000));
+    auto port_number = ++port_id;
+    EXPECT_TRUE(setup_pub_port(pub_port, port_number));
+    EXPECT_TRUE(setup_sub_port(sub_port, port_number));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }

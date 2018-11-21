@@ -46,7 +46,14 @@ class Environment{
         std::string GetUpdatePublisherPort() const;
 
 
+
         void ShutdownExperiment(const std::string& experiment_name);
+        std::vector<std::string> ShutdownExperimentRegex(const std::string& experiment_name_regex);
+        
+        
+        
+
+
         void RemoveExperiment(const std::string& experiment_name);
         
         std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(const std::string& experiment_name, const bool full_update);
@@ -89,6 +96,9 @@ class Environment{
         std::string GetAmqpBrokerAddress();
         std::string GetTaoNamingServiceAddress();
     private:
+        void ShutdownExperimentInternal(const std::string& experiment_name);
+        std::vector<std::string> GetMatchingExperiments(const std::string& experiment_name_regex);
+
         std::string GetExperimentHandlerPort(const std::string& experiment_name);
 
         void RemoveExperimentInternal(const std::string& experiment_name);
