@@ -198,7 +198,7 @@ pipeline{
                                                 args += "-v ${params.log_verbosity} "
                                             }
                                             //Run re_node_manager
-                                            if(utils.runScript("${RE_PATH}/bin/re_node_manager${args}") != 0){
+                                            if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
                                                 error("logan_managedserver failed on Node: ${node_name}")
                                             }
                                         }
