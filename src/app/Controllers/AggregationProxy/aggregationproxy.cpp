@@ -26,10 +26,7 @@ void AggregationProxy::RequestRunningExperiments()
  */
 void AggregationProxy::RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS)
 {
-    AggServer::PortLifecycleRequest request;
-    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(fromTimeMS).release());
-    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(toTimeMS).release());
-    SendPortLifecycleRequest(request);
+
 }
 
 
