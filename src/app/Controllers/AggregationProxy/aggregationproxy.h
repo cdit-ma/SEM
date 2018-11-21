@@ -21,7 +21,6 @@ public:
     static const QString getQString(const std::string &string);
 
 private:
-    void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
     AggServer::Requester requester_;
 
 };
