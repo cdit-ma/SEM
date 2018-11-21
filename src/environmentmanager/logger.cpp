@@ -12,7 +12,8 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
 
     type_ = TranslateProtoType(logger.type());
 
-    if(type_ ==  Type::Client){
+    switch(type_){
+    case Type::Client:{
         frequency_ = logger.frequency();
         mode_ = TranslateProtoMode(logger.mode());
 
@@ -21,13 +22,24 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
         }
 
         publisher_port_ = environment_.GetPort(GetNode().GetIp());
-    }else if(type_ == Type::Server){
+        break;    
+    }
+    case Type::Model:{
+        mode_ = TranslateProtoMode(logger.mode());
+        break;
+    }
+    case Type::Server:{
         db_file_name_ = logger.db_file_name();
 
         for(const auto& client_id : logger.client_ids()){
             AddConnectedClientId(client_id);
         }
         AddConnectedClientId("model_logger");
+        break;
+    }
+    default:{
+        throw std::runtime_error("Unhandle Logger Type");
+    }
     }
 }
 
