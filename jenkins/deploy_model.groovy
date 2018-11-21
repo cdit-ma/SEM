@@ -186,7 +186,7 @@ pipeline{
                                         dir("${container_id}_libs"){
                                             //Unstash the required libraries for this node.
                                             //Have to run in the lib directory due to dll linker paths
-                                            def stash_name = "code_" + utils.getNodeOSVersion(node_name)
+                                            unstash("code_" + utils.getNodeOSVersion(node_name))
                                             
                                             def args = "-n \"${params.experiment_name}\" "
                                             args += "-e ${params.environment_manager_address} "

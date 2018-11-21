@@ -20,10 +20,10 @@ pipeline{
         stage("Extracting Experiments"){
             steps{
                 dir("${env.BUILD_ID}"){
-                    def archive_name = "${params.archive}"
-                    unstashParam 'archive', 'models.archive'
-
                     script{
+                        def archive_name = "${params.archive}"
+                        unstashParam 'archive', 'models.archive'
+
                         if(archive_name.endsWith(".zip")){
                             extract_command = "unzip"
                         }else if(archive_name.endsWith(".tar.gz")){
