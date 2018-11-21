@@ -164,8 +164,8 @@ pipeline{
 
         stage("Release Upload"){
             when{buildingTag()}
-            node("master"){
-                steps{
+            steps{
+                node("master"){
                     script{
                         withCredentials([usernamePassword(credentialsId: "cditma-github-auth", passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
                             def release_name = "re " + GIT_ID
