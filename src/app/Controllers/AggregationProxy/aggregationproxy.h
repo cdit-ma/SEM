@@ -5,7 +5,7 @@
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
-#include "../../../app/Widgets/Charts/Timeline/Data/portlifecycleevent.h"
+#include "../../../app/Widgets/Charts/Data/Events/portlifecycleevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -15,12 +15,23 @@ public:
     AggregationProxy();
 
     void RequestRunningExperiments();
+    void RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
     static const QString getQString(const std::string &string);
 
-private:
+signals:
+    void receivedPortLifecycleEvent(PortLifecycleEvent* event);
+    void clearPreviousResults();
+
+private:    
+    void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
+
+    Port convertPort(const AggServer::Port port);
+    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
+    Port::Kind getPortKind(const AggServer::Port_Kind kind);
+
     AggServer::Requester requester_;
 
 };

@@ -1,7 +1,7 @@
 #ifndef PORTLIFECYCLEEVENT_H
 #define PORTLIFECYCLEEVENT_H
 
-#include "../../Data/Events/event.h"
+#include "event.h"
 
 enum class LifecycleType {
     NO_TYPE,

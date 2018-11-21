@@ -53,6 +53,24 @@ ViewItem* EntityChart::getViewItem()
 }
 
 
+void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
+{
+    if (!series || series == _lifeCycleSeries)
+        return;
+
+    //removeLifeCycleSeries(_lifeCycleSeries->getID());
+    _lifeCycleSeries = series;
+}
+
+
+void EntityChart::removeLifeCycleSeries(QString path)
+{
+    if (_lifeCycleSeries && _lifeCycleSeries->getPortPath() == path) {
+        _lifeCycleSeries = 0;
+    }
+}
+
+
 /**
  * @brief EntityChart::addSeries
  * @param series
@@ -174,6 +192,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
         }
     }
     paintSeries(painter, _hoveredSeriesKind);
+
+    paintLifeCycleSeries(painter);
 
     qreal penWidth = _gridPen.widthF();
 
@@ -304,6 +324,12 @@ void EntityChart::themeChanged()
     _highlightPen = QPen(theme->getHighlightColor(), HIGHLIGHT_PEN_WIDTH);
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
+
+    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor()));
+    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
 }
 
 
@@ -382,6 +408,93 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
         painter.drawPoints(mappedPoints.toVector());*/
         break;
     }
+    }
+}
+
+
+/**
+ * @brief EntityChart::paintLifeCycleSeries
+ * @param painter
+ */
+void EntityChart::paintLifeCycleSeries(QPainter &painter)
+{
+    if (!_lifeCycleSeries)
+        return;
+
+    double barWidth = 22.0; //BAR_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // NOTE - barTimeWidth and bucket_endTimes have to be a double
+    // Otherwise if the time range is too small, barTimeWidth is rounded down to 0
+    // and bucket_endTimes will consist of the same times, and hence no bar will be drawn
+
+    //qDebug() << "SERIES - " << _lifeCycleSeries->getPortPath();
+
+    //QVector< QList<PortLifecycleEvent*> > buckets(barCount);
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double current_left = _displayedMin;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = _lifeCycleSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > _displayedMin) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    QColor seriesColor = Qt::gray; // Qt::magenta;
+    int y = rect().center().y() - barWidth / 2.0;
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            if (pointHovered(rect))
+                painter.fillRect(rect, _highlightColor);
+            auto event = (PortLifecycleEvent*) buckets[i][0];
+            painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
+        } else {
+            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+            painter.setPen(Qt::lightGray);
+            if (pointHovered(rect)) {
+                painter.setPen(_highlightTextColor);
+                color = _highlightColor;
+            }
+            painter.fillRect(rect, color);
+            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        }
     }
 }
 

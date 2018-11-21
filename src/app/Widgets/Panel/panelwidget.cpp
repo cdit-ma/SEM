@@ -6,8 +6,6 @@
 
 #include "../../Controllers/AggregationProxy/aggregationproxy.h"
 
-#include "../../Controllers/AggregationProxy/aggregationproxy.h"
-
 #include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -39,7 +37,6 @@
 
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
-
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
@@ -236,6 +233,11 @@ void PanelWidget::testLifecycleSeries()
     lifecycleView = new TimelineChartView(this);
     defaultActiveAction = addTab("Lifecycle", lifecycleView);
     defaultActiveAction->trigger();
+
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedPortLifecycleEvent);
+        //connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
+    }
 }
 
 
@@ -322,7 +324,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
-    //testLifecycleSeries();
+    testLifecycleSeries();
 }
 
 
@@ -545,7 +547,10 @@ void PanelWidget::popOutActiveTab()
  */
 void PanelWidget::requestData(bool clear)
 {
-    if (viewController) {
+    if (viewController && lifecycleView) {
+        // clear previous results in the timeline chart
+        if (clear)
+            lifecycleView->clearPortLifecycleEvents();
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
 }
@@ -559,6 +564,7 @@ void PanelWidget::requestData(bool clear)
 void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
 {
     // pass the new ranges to the chart view
+    lifecycleView->requestedData(from, to);
 
     // send a request with the new time range
 

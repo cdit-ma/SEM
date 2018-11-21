@@ -55,6 +55,13 @@ public slots:
 
     void UpdateChartHover();
 
+    void requestedData(qint64 from, qint64 to);
+    void receivedData(qint64 from, qint64 to);
+
+    void clearPortLifecycleWidgets();
+    void clearPortLifecycleEvents();
+    void receivedPortLifecycleEvent(PortLifecycleEvent* event);
+
 private:
     void constructChartForPortLifecycle(QString path, QString label);
 
@@ -90,6 +97,15 @@ private:
     QHash<int, EntitySet*> entitySets;
     QHash<int, EntityChart*> entityCharts;
 
+    qint64 lastRequestedFromTime;
+    qint64 lastRequestedToTime;
+    qint64 lastDataUpdatedTime;
+
+    // port lifecycle events
+    QHash<QString, EntitySet*> entitySets_portLifecycle;
+    QHash<QString, EntityChart*> entityCharts_portLifecycle;
+    QHash<QString, PortLifecycleEventSeries*> portLifecycleSeries;
+
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;
     QPushButton* _messagesButton;
@@ -97,7 +113,6 @@ private:
     QPushButton* _barButton;
 
     EntitySet* prevHighlightedSet = 0;
-
 };
 
 #endif // TIMELINECHARTVIEW_H

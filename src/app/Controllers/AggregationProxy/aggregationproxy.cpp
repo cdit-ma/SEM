@@ -14,14 +14,22 @@ AggregationProxy::AggregationProxy() :
 
 void AggregationProxy::RequestRunningExperiments()
 {
-    auto notification = NotificationManager::manager()->AddNotification("Requested Events", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-    try {
-        // TODO - Request EVENTS here
-        notification->setSeverity(Notification::Severity::SUCCESS);
-    } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
-    }
+    AggServer::PortLifecycleRequest request;
+    SendPortLifecycleRequest(request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestRunningExperiments
+ * @param fromTimeMS
+ * @param toTimeMS
+ */
+void AggregationProxy::RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS)
+{
+    AggServer::PortLifecycleRequest request;
+    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(fromTimeMS).release());
+    request.mutable_time_interval()->AddAllocated(constructTimestampFromMS(toTimeMS).release());
+    SendPortLifecycleRequest(request);
 }
 
 
@@ -57,4 +65,107 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 const QString AggregationProxy::getQString(const std::string &string)
 {
     return QString::fromUtf8(string.c_str());
+}
+
+
+/**
+ * @brief AggregationProxy::SendPortLifecycleRequest
+ * @param request
+ */
+void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+        auto start = QDateTime::currentMSecsSinceEpoch();
+        auto results = requester_.GetPortLifecycle(request);
+
+        qDebug() << "--------------------------------------------------------------------------------";
+        qDebug() << "Requested PortLifecycleEvents . . . ";
+        qDebug() << "Result Size#: " << results.get()->events_size();
+
+        emit clearPreviousResults();
+
+        for (auto item : results.get()->events()) {
+            auto port = convertPort(item.port());
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
+
+            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            emit receivedPortLifecycleEvent(event);
+        }
+
+        auto finish = QDateTime::currentMSecsSinceEpoch();
+        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::convertPort
+ * @param port
+ * @return
+ */
+Port AggregationProxy::convertPort(const AggServer::Port port)
+{
+    Port portStruct;
+    portStruct.kind = getPortKind(port.kind());
+    portStruct.name = getQString(port.name());
+    portStruct.path = getQString(port.path());
+    portStruct.middleware = getQString(port.middleware());
+    portStruct.graphml_id = getQString(port.graphml_id());
+    return portStruct;
+}
+
+
+/**
+ * @brief AggregationProxy::getLifeCycleType
+ * @param type
+ * @return
+ */
+LifecycleType AggregationProxy::getLifeCycleType(const AggServer::LifecycleType type)
+{
+    switch (type) {
+    case AggServer::LifecycleType::CONFIGURE:
+        return LifecycleType::CONFIGURE;
+    case AggServer::LifecycleType::ACTIVATE:
+        return LifecycleType::ACTIVATE;
+    case AggServer::LifecycleType::PASSIVATE:
+        return LifecycleType::PASSIVATE;
+    case AggServer::LifecycleType::TERMINATE:
+        return LifecycleType::TERMINATE;
+    default:
+        return LifecycleType::NO_TYPE;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::getPortKind
+ * @param kind
+ * @return
+ */
+Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
+{
+    switch (kind) {
+    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+        return Port::Kind::PERIODIC;
+    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+        return Port::Kind::PUBLISHER;
+    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+        return Port::Kind::SUBSCRIBER;
+    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+        return Port::Kind::REQUESTER;
+    case AggServer::Port_Kind::Port_Kind_REPLIER:
+        return Port::Kind::REPLIER;
+    default:
+        return Port::Kind::NO_KIND;
+    }
 }
