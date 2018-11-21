@@ -2,12 +2,12 @@
 @Library('cditma-utils') _
 def utils = new cditma.Utils(this);
 
-final build_id = env.BUILD_ID
-final workspace_dir = build_id + "-models"
-def execution_map = [:]
+
+final workspace_dir = env.BUILD_ID
+def model_dir = ""
 
 pipeline{
-    agent{node "master"}
+    agent{node 'master'}
 
     parameters{
         string(name: 'experiment_prefix', defaultValue: '', description: 'The prefix to be given to each experiment')
@@ -20,11 +20,14 @@ pipeline{
     stages{
         stage("Extracting Experiments"){
             steps{
-                dir("${env.BUILD_ID}"){
+                dir(workspace_dir){
                     script{
-                        def archive_name = "${params.archive}"
-                        unstashParam 'archive', 'models.archive'
+                        touch(".dummy")
+                        //Unstashing files must be done relative to the workspace dir
+                        unstashParam 'archive', "${workspace_dir}/models.archive"
+                        final archive_name = "${archive}"
 
+                        def extract_command = ""
                         if(archive_name.endsWith(".zip")){
                             extract_command = "unzip"
                         }else if(archive_name.endsWith(".tar.gz")){
@@ -41,20 +44,22 @@ pipeline{
                         if(utils.runScript(extract_command + " models.archive") != 0){
                             error('Extract archive failed')
                         }
+
+                        model_dir = pwd()
                     }
                 }
             }
         }
-        stage("Prepare Experiments"){
+        stage("Execute Experiments"){
             steps{
-                dir("${env.BUILD_ID}"){
+                dir(model_dir){
                     script{
+                        def execution_map = [:]
                         def model_files = findFiles(glob: '**/*.graphml')
                         def success_count = 0
                         def experiment_count = model_files.length
                         currentBuild.displayName = "#${env.BUILD_ID} - ${params.experiment_prefix} [${experiment_count}]"
 
-                        
                         def index = 0
 
                         for(def file : model_files){
@@ -65,14 +70,12 @@ pipeline{
 
                             execution_map[experiment_name] = {
                                 //For some reason files can only be constructed from the Master Node and relative to WORKSPACE
-                                def model = new File("${WORKSPACE}/${workspace_dir}/${file_path}")
-
-                                
+                                def model = new File("${model_dir}/${file_path}")
                                 def result = build(job: 'deploy_model', quietPeriod: 0, wait: true, propagate: false,
                                     parameters: [
                                         string(name: 'environment_manager_address', value: params.environment_manager_address),
                                         string(name: 'experiment_name', value: "${experiment_name}"),
-                                        string(name: 'experiment_time', value: params.experiment_time),
+                                        string(name: 'execution_time', value: params.execution_time),
                                         string(name: 'log_verbosity', value: params.log_verbosity),
                                         new FileParameterValue("model", model, file_path)
                                     ])
@@ -87,19 +90,15 @@ pipeline{
                                 }
                             }
                         }
-                    }
 
-                    dir('artifacts'){
-                        archiveArtifacts artifacts: '**/*'
+                        parallel(execution_map)
+
+                        dir("${model_dir}/artifacts"){
+                            archiveArtifacts artifacts: '**', allowEmptyArchive: true
+                        }
+                        deleteDir()
                     }
-                    deleteDir()
                 }
-            }
-        }
-        
-        stage("Execute Experiments"){
-            script{
-                parallel(execution_map)
             }
         }
     }
