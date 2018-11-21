@@ -199,7 +199,7 @@ pipeline{
                                             }
                                             //Run re_node_manager
                                             if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
-                                                error("logan_managedserver failed on Node: ${node_name}")
+                                                error("re_node_manager failed on Node: ${node_name}")
                                             }
                                         }
                                     }
