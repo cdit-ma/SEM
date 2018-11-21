@@ -23,7 +23,7 @@ def terminateExperiment(){
 pipeline{
     agent none
     parameters{
-        string(name: 'experiment_name', defaultValue: 'hello', description: 'The name for the experiment')
+        string(name: 'experiment_name', defaultValue: '', description: 'The name for the experiment')
         string(name: 'execution_time', defaultValue: '60', description: 'The duration of the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
         string(name: 'log_verbosity', defaultValue: '3', description: 'The logging verbosity (1-10)')
