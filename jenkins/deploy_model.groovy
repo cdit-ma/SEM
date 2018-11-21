@@ -9,6 +9,7 @@ final json_file = 'experiment_config.json'
 def terminateExperiment(){
     node('re') {
         script{
+            def utils = new cditma.Utils(this);
             def args = "-s "
             args += "-n \"${params.experiment_name}\" "
             args += "-e ${params.environment_manager_address} "
