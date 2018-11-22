@@ -112,6 +112,7 @@ size_t SQLiteDatabase::Flush_(){
         if(result != SQLITE_OK){
             std::cerr << "SQLite failed to END_TRANSACTION" << std::endl;
         }
+        std::cerr << "Transaction had: " << transaction_count_ << std::endl;
         transaction_count_ = 0;
     }
     return flush_count;
