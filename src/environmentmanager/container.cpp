@@ -24,14 +24,22 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
         AddComponent(component);
     }
 
+    bool needs_model_logger = components_.size() > 0;
+
     // If we have deployed components, add a model logger to this container
-    if(!components_.empty()){
+    if(needs_model_logger){
         AddModelLogger();
     }
 
     // Add our explicitly defined loggers
-    for(const auto& logger : container.loggers()){
-        AddLogger(logger);
+    for(const auto& logger_pb : container.loggers()){
+        auto& logger = AddLogger(logger_pb);
+
+        if(needs_model_logger && logger.GetType() == Logger::Type::Client){
+            //Set model_logger mode to be the mode of the first client we discover
+            auto& model_logger = GetModelLogger();
+            model_logger.SetMode(logger.GetMode());
+        }
     }
 }
 
@@ -135,9 +143,10 @@ void Container::AddComponent(const NodeManager::Component &component_pb) {
     components_.emplace(id, std::move(component));
 }
 
-void Container::AddLogger(const NodeManager::Logger &logger_pb) {
+EnvironmentManager::Logger& Container::AddLogger(const NodeManager::Logger &logger_pb) {
     const auto& id = logger_pb.id();
-    loggers_.emplace(id, std::move(std::unique_ptr<Logger>(new Logger(environment_, *this, logger_pb))));
+    loggers_.emplace(id, std::unique_ptr<Logger>(new Logger(environment_, *this, logger_pb)));
+    return GetLogger(id);
 }
 
 int Container::GetDeployedComponentCount() const {
@@ -182,8 +191,11 @@ void Container::SetOrbPort(const std::string& orb_port) {
 }
 
 void Container::AddModelLogger() {
-    auto id = "model_logger";
-    loggers_.emplace(id, std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Cached)));
+    loggers_.emplace("model_logger", std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Cached)));
+}
+
+EnvironmentManager::Logger& Container::GetModelLogger(){
+    return GetLogger("model_logger");
 }
 
 Logger &Container::GetLogger(const std::string &logger_id) {

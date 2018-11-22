@@ -33,7 +33,7 @@ public:
     Port& GetPort(const std::string& port_id);
 
     void AddComponent(const NodeManager::Component& component_pb);
-    void AddLogger(const NodeManager::Logger& logger_pb);
+    EnvironmentManager::Logger& AddLogger(const NodeManager::Logger& logger_pb);
 
     int GetDeployedCount() const;
     int GetDeployedComponentCount() const;
@@ -58,6 +58,7 @@ public:
 
 private:
     void AddModelLogger();
+    EnvironmentManager::Logger& GetModelLogger();
 
     Environment& environment_;
     Node& parent_;
