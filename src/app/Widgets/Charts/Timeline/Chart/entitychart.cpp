@@ -202,6 +202,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
     }
     paintSeries(painter, _hoveredSeriesKind);
 
+    paintWorkloadEventSeries(painter);
+
     // display the y-range and send the series points that were hovered over
     if (_hovered) {
         if (_containsYRange) {
@@ -325,6 +327,13 @@ void EntityChart::themeChanged()
     _highlightPen = QPen(theme->getHighlightColor(), HIGHLIGHT_PEN_WIDTH);
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
+
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::STARTED, theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::FINISHED, theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    //_workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::MESSAGE, theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(148, 176, 184)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::MESSAGE, theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::WARNING, theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::ERROR_EVENT, theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
 }
 
 
@@ -381,6 +390,86 @@ void EntityChart::timelineChartRangeChanged(double min, double max)
 {
     _timelineRange = max - min;
     update();
+}
+
+
+/**
+ * @brief EntityChart::paintWorkloadEventSeries
+ * @param painter
+ */
+void EntityChart::paintWorkloadEventSeries(QPainter &painter)
+{
+    if (!_workloadEventSeries)
+           return;
+
+       double barWidth = 22.0; //BAR_WIDTH;
+       double barCount = ceil((double)width() / barWidth);
+
+       QVector< QList<MEDEA::Event*> > buckets(barCount);
+       QVector<double> bucket_endTimes;
+       bucket_endTimes.reserve(barCount);
+
+       double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+       double current_left = _displayedMin;
+       for (int i = 0; i < barCount; i++) {
+           bucket_endTimes.append(current_left + barTimeWidth);
+           current_left = bucket_endTimes.last();
+       }
+
+       const auto& events = _workloadEventSeries->getEvents();
+       auto current = events.constBegin();
+       auto upper = events.constEnd();
+       for (; current != upper; current++) {
+           const auto& current_time = (*current)->getTimeMS();
+           if (current_time > _displayedMin) {
+               break;
+           }
+       }
+
+       auto current_bucket = 0;
+       auto current_bucket_ittr = bucket_endTimes.constBegin();
+       auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+       // put the data in the correct bucket
+       for (;current != upper; current++) {
+           const auto& current_time = (*current)->getTimeMS();
+           while (current_bucket_ittr != end_bucket_ittr) {
+               if (current_time > (*current_bucket_ittr)) {
+                   current_bucket_ittr ++;
+                   current_bucket ++;
+               } else {
+                   break;
+               }
+           }
+           if (current_bucket < barCount) {
+               buckets[current_bucket].append(*current);
+           }
+       }
+
+       QColor seriesColor = Qt::gray;
+       int y = rect().center().y() - barWidth / 2.0;
+
+       for (int i = 0; i < barCount; i++) {
+           int count = buckets[i].count();
+           if (count == 0)
+               continue;
+           QRectF rect(i * barWidth, y, barWidth, barWidth);
+           if (count == 1) {
+               if (pointHovered(rect))
+                   painter.fillRect(rect, _highlightColor);
+               auto event = (WorkloadEvent*) buckets[i][0];
+               painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
+           } else {
+               QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+               painter.setPen(Qt::lightGray);
+               if (pointHovered(rect)) {
+                   painter.setPen(_highlightTextColor);
+                   color = _highlightColor;
+               }
+               painter.fillRect(rect, color);
+               painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+           }
+       }
 }
 
 

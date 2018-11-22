@@ -61,6 +61,7 @@ private slots:
     void timelineChartRangeChanged(double min, double max);
 
 private:
+    void paintWorkloadEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
@@ -146,6 +147,7 @@ private:
     */
 
     WorkloadEventSeries* _workloadEventSeries;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;

@@ -441,7 +441,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             seriesChart->addSeries(stateSeries);
             filled = true;
         }
-         if (random % 5 == 0 || random % 3 == 0) {
+        if (random % 5 == 0 || random % 3 == 0) {
             MEDEA::NotificationSeries* notificationSeries = new MEDEA::NotificationSeries(item);
             for (QPointF point : samplePoints) {
                 int randomType = rand() % 4;
@@ -450,22 +450,22 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             seriesChart->addSeries(notificationSeries);
             filled = true;
         }
-         if (random % 3 == 0) {
-             MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
-             for (QPointF p : samplePoints) {
-                 int count = 1 + rand() % 5;
-                 int val = 0;
-                 QVector<double> data;
-                 for (int i = 0; i < count; i++) {
-                     double y = (double)(rand() % 200);
-                     data.insert(0, val + y);
-                     val += y;
-                 }
-                 barSeries->addData(p.x(), data);
-             }
-             seriesChart->addSeries(barSeries);
-             filled = true;
-         }
+        if (random % 3 == 0) {
+            MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
+            for (QPointF p : samplePoints) {
+                int count = 1 + rand() % 5;
+                int val = 0;
+                QVector<double> data;
+                for (int i = 0; i < count; i++) {
+                    double y = (double)(rand() % 200);
+                    data.insert(0, val + y);
+                    val += y;
+                }
+                barSeries->addData(p.x(), data);
+            }
+            seriesChart->addSeries(barSeries);
+            filled = true;
+        }
 
         if (!filled) {
             MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
@@ -506,23 +506,23 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
 
     // update this timeline chart's range
-       auto timelineRange = _timelineChart->getRange();
-       auto chartRange = seriesChart->getRangeX();
-       if (!_timelineChart->isRangeSet()) {
-           _timelineChart->setRange(chartRange.first, chartRange.second);
-           _timelineChart->initialRangeSet();
-       } else {
-           if (chartRange.first < timelineRange.first) {
-               _timelineChart->setMin(chartRange.first);
-           }
-           if (chartRange.second > timelineRange.second) {
-               _timelineChart->setMax(chartRange.second);
-           }
-       }
-       // if the timeline chart's range was changed, update the date/time axis' range
-       if (timelineRange != _timelineChart->getRange()) {
-           _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
-       }
+    auto timelineRange = _timelineChart->getRange();
+    auto chartRange = seriesChart->getRangeX();
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setRange(chartRange.first, chartRange.second);
+        _timelineChart->initialRangeSet();
+    } else {
+        if (chartRange.first < timelineRange.first) {
+            _timelineChart->setMin(chartRange.first);
+        }
+        if (chartRange.second > timelineRange.second) {
+            _timelineChart->setMax(chartRange.second);
+        }
+    }
+    // if the timeline chart's range was changed, update the date/time axis' range
+    if (timelineRange != _timelineChart->getRange()) {
+        _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+    }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesHovered, seriesChart, &EntityChart::seriesHovered);
@@ -663,6 +663,8 @@ void TimelineChartView::clearWorkloadEvents()
 {
     for (auto series : eventSeries.values()) {
         series->clear();
+        qDebug() << "Cleared series: " + series->getEvents().count();
+        qDebug() << "series is empty: " << series->getEvents().isEmpty();
     }
 }
 
@@ -737,7 +739,7 @@ void TimelineChartView::constructChartForWorkload(QString workerInstID, quint32 
     chart->addWorkloadEventSeries(series);
     connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
-    EntitySet* set = new EntitySet("Function", this);
+    EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
     eventEntitySets[series->getWorkloadPath()] = set;
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->themeChanged(Theme::theme());

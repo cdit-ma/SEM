@@ -97,9 +97,9 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
             auto args = getQString(item.args());
             auto logLevel = item.log_level();
 
-            qDebug() << "WORKER ID: " << workerInst.graphml_id;
-            qDebug() << "workload_id: " << QString::number(workloadID);
-            qDebug() << "funcName: " << funcName;
+            //qDebug() << "WORKER ID: " << workerInst.graphml_id;
+            //qDebug() << "workload_id: " << QString::number(workloadID);
+            //qDebug() << "funcName: " << funcName;
 
             WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
             emit receivedWorkloadEvent(event);
