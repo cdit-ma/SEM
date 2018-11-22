@@ -428,8 +428,6 @@ HIT_RECT AxisSlider::getCursorHitRect(QPointF cursorPos)
 void AxisSlider::moveSliders(double min, double max)
 {
     // make sure that the min/max stays within the bounds
-
-    //qDebug() << "MOVE SLIDERS: min - " << min << ", max - " << max;
     if (min <= max) {
         min = qMax(0.0, min);
         max = qMin(_sliderRange, max);
@@ -454,9 +452,6 @@ void AxisSlider::minSliderMoved(double min)
     _actualMin = min;
     _minRatio = min / _sliderRange;
 
-    //qDebug() << "\n";
-    //qDebug() << "SLIDER::minSliderMoved: " << _minRatio;
-
     if (_orientation == Qt::Horizontal) {
         emit minRatioChanged(_minRatio);
     } else {
@@ -479,9 +474,6 @@ void AxisSlider::maxSliderMoved(double max)
 
     _actualMax = max;
     _maxRatio = max / _sliderRange;
-
-    //qDebug() << "\n";
-    //qDebug() << "SLIDER::maxSliderMoved: " << _maxRatio;
 
     if (_orientation == Qt::Horizontal) {
         emit maxRatioChanged(_maxRatio);

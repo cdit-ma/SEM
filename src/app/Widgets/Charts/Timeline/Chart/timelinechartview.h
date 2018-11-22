@@ -34,6 +34,8 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event);
 
+    void clearTimelineChart();
+
 signals:
     void toggledStateLegend(bool checked);
     void toggledNotificationLegend(bool checked);
@@ -53,8 +55,6 @@ public slots:
     void displayedMaxChanged(double max);
 
     void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
-
-    void UpdateChartHover();
 
 private:
     EntitySet* addEntitySet(ViewItem* item);

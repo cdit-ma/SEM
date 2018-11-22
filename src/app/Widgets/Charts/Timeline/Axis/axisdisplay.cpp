@@ -212,8 +212,8 @@ void AxisDisplay::themeChanged()
  */
 void AxisDisplay::updateDisplayedMin(double minRatio)
 {
-    //qDebug() << "AxisDisplay::updateDisplayedMin: " << minRatio;
     displayedMinChanged(minRatio * _range + _min);
+
 }
 
 
@@ -224,7 +224,6 @@ void AxisDisplay::updateDisplayedMin(double minRatio)
  */
 void AxisDisplay::updateDisplayedMax(double maxRatio)
 {
-    //qDebug() << "AxisDisplay::updateDisplayedMax: " << maxRatio;
     displayedMaxChanged(maxRatio * _range + _min);
 }
 
@@ -425,7 +424,6 @@ void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, Q
  */
 void AxisDisplay::displayedMinChanged(double min)
 {
-    //qDebug() << "AxisDisplay::displayedMinChanged: " << ((min-_min)/_range);
     _displayedMin = min;
     _displayedRange = _displayedMax - min;
     _displayedMinTextWidth = fontMetrics().width(getCovertedString(min));
@@ -439,7 +437,6 @@ void AxisDisplay::displayedMinChanged(double min)
  */
 void AxisDisplay::displayedMaxChanged(double max)
 {
-    //qDebug() << "AxisDisplay::displayedMaxChanged: " << ((max-_min)/_range);
     _displayedMax = max;
     _displayedRange = max - _displayedMin;
     _displayedMaxTextWidth = fontMetrics().width(getCovertedString(max));

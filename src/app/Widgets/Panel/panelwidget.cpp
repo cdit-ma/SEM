@@ -547,6 +547,14 @@ void PanelWidget::popOutActiveTab()
 void PanelWidget::requestData(bool clear)
 {
     if (viewController) {
+        if (clear) {
+            QAction* activeTab = tabsActionGroup->checkedAction();
+            if (activeTab && tabWidgets.contains(activeTab)) {
+                auto view = qobject_cast<TimelineChartView*>(tabWidgets.value(activeTab));
+                if (view)
+                    view->clearTimelineChart();
+            }
+        }
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
 }

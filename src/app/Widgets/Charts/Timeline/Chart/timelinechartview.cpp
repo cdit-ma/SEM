@@ -42,7 +42,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setPointsWidth(POINTS_WIDTH);
     _timelineChart->setAxisYVisible(true);
 
-    connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
 
     // connect the chart's pan and zoom signals to the datetime axis
@@ -54,10 +53,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         _dateTimeAxis->zoom(factor);
     });
     connect(_timelineChart, &TimelineChart::changeDisplayedRange, [=](double min, double max) {
-        qDebug() << "\n";
-        qDebug() << "TimelineChartView - Change displayed range: " << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
-
-        //qDebug() << "TimelineChartView - Change displayed range: " << min << ", " << max;
         _dateTimeAxis->setDisplayedRange(min, max);
     });
 
@@ -227,6 +222,32 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
 
 
 /**
+ * @brief TimelineChartView::clearTimelineChart
+ */
+void TimelineChartView::clearTimelineChart()
+{
+    // clear/delete the items in the entity axis
+    auto axisItr = itemEntitySets.begin();
+    while (axisItr != itemEntitySets.end()) {
+        auto set = (*axisItr);
+        _entityAxis->removeEntity(set);
+        set->deleteLater();
+        axisItr = itemEntitySets.erase(axisItr);
+    }
+    // clear/delete the entity charts in the timeline chart
+    auto chartItr = itemChartWidgets.begin();
+    while (chartItr != itemChartWidgets.end()) {
+        auto chart = (*chartItr);
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        chartItr = itemChartWidgets.erase(chartItr);
+    }
+    _timelineChart->setInitialRange(true);
+    _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+}
+
+
+/**
  * @brief TimelineChartView::themeChanged
  */
 void TimelineChartView::themeChanged()
@@ -319,7 +340,7 @@ void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
  */
 void TimelineChartView::displayedMinChanged(double min)
 {
-    qDebug() << "TimelineChartView::displayedMinChanged: " << min;
+    //qDebug() << "TimelineChartView::displayedMinChanged: " << min;
     _timelineChart->setMin(min);
 }
 
@@ -391,10 +412,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     // we only care about node items
     if (!item || !item->isNode())
         return 0;
-
-    // it has to be in the model
-    /*if (!item->isInModel())
-        return 0;*/
 
     QString itemLabel = item->getData("label").toString();
     int itemID = item->getID();
@@ -511,23 +528,22 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
 
     // update this timeline chart's range
-       auto timelineRange = _timelineChart->getRange();
-       auto chartRange = seriesChart->getRangeX();
-       if (!_timelineChart->isRangeSet()) {
-           _timelineChart->setRange(chartRange.first, chartRange.second);
-           _timelineChart->initialRangeSet();
-       } else {
-           if (chartRange.first < timelineRange.first) {
-               _timelineChart->setMin(chartRange.first);
-           }
-           if (chartRange.second > timelineRange.second) {
-               _timelineChart->setMax(chartRange.second);
-           }
-       }
-       // if the timeline chart's range was changed, update the date/time axis' range
-       if (timelineRange != _timelineChart->getRange()) {
-           _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
-       }
+    auto timelineRange = _timelineChart->getRange();
+    auto chartRange = seriesChart->getRangeX();
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setInitialRange(false, chartRange.first, chartRange.second);
+    } else {
+        if (chartRange.first < timelineRange.first) {
+            _timelineChart->setMin(chartRange.first);
+        }
+        if (chartRange.second > timelineRange.second) {
+            _timelineChart->setMax(chartRange.second);
+        }
+    }
+    // if the timeline chart's range was changed, update the date/time axis' range
+    if (timelineRange != _timelineChart->getRange()) {
+        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+    }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesHovered, seriesChart, &EntityChart::seriesHovered);
@@ -575,88 +591,4 @@ void TimelineChartView::removeEntitySet(int ID)
 inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
-}
-
-
-void TimelineChartView::UpdateChartHover(){
-    return;
-    for(auto button : _hoverDisplayButtons.values()){
-        button->setText("");
-        button->hide();
-    }
-    
-    bool show_hover = false;
-    const auto& hover_rect = _timelineChart->getHoverRect();
-
-    auto min = _timelineChart->mapPixelToTime(hover_rect.left());
-    auto max = _timelineChart->mapPixelToTime(hover_rect.right());
-
-    for(auto entity_chart : _timelineChart->getEntityCharts()){
-        //QString text;
-        //QTextStream stream(&text);
-        if(entity_chart->isHovered()){
-            const auto& series = entity_chart->getSeries();
-            auto current = series.begin();
-            auto end = series.end();
-
-            for(;current != end; current++){
-                const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataInformation(min, max);
-                QPushButton* button = _hoverDisplayButtons.value(kind);
-                button->setText(button->text() + text);
-                if(button->text().size()){
-                    button->setVisible(true);
-                    show_hover = true;
-                }
-            }
-        }
-    }
-
-
-    _hoverDisplay->setVisible(show_hover);
-    if (show_hover) {
-        _hoverDisplay->adjustSize();
-
-        //EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        /*QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        int posY = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*/
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-        //_hoverDisplay->move(rect().center());
-    }
-    /*
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
-
-    _hoverDisplay->setVisible(showDisplay);
-    if (showDisplay) {
-        
-        _hoverDisplay->adjustSize();
-
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }*/
-
 }

@@ -19,16 +19,6 @@ public:
     void setTickVisible(bool visible);
     void setTickCount(int ticks);
 
-    // these functions update the displayed values
-    /*
-    void setMin(double min, bool setDisplay = false);
-    void setMax(double max, bool setDisplay = false);
-    void setRange(double min, double max, bool setDisplay = false);
-
-    void setDisplayedMin(double min);
-    void setDisplayedMax(double max);
-    */
-
     void setMax(double max);
     void setMin(double min);
     void setRange(double min, double max);

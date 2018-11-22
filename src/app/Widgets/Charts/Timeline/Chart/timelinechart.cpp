@@ -20,6 +20,7 @@ TimelineChart::TimelineChart(QWidget* parent)
 {
     setMouseTracking(true);
     setFocusPolicy(Qt::WheelFocus);
+    setRange(0, 100);
 
     _layout = new QVBoxLayout(this);
     _layout->setMargin(0);
@@ -193,11 +194,19 @@ QPair<double, double> TimelineChart::getRange()
 
 
 /**
- * @brief TimelineChart::initialRangeSet
+ * @brief TimelineChart::setInitialRange
+ * @param reset
+ * @param min
+ * @param max
  */
-void TimelineChart::initialRangeSet()
+void TimelineChart::setInitialRange(bool reset, double min, double max)
 {
-    rangeSet = true;
+    if (reset) {
+        setRange(0, 100);
+    } else {
+        setRange(min, max);
+    }
+    rangeSet = !reset;
 }
 
 
@@ -320,13 +329,6 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
         double min = mapToRange(rubberBandRect.left());
         double max = mapToRange(rubberBandRect.right());
 
-        qDebug() << "TimelineChartView::mouseReleaseEvent: ";
-        qDebug() << "[1]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
-
-        // keep min/max within the bounds
-        //min = qMax(min, mapToRange(rect().left()));
-        //max = qMin(max, mapToRange(rect().right()));
-
         // make sure that min < max
         if (min > max) {
             double temp = max;
@@ -334,17 +336,14 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
             min = temp;
         }
 
-        qDebug() << "[2]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
-        //*
         // keep min/max within the bounds
         min = qMax(min, mapToRange(rect().left()));
         max = qMin(max, mapToRange(rect().right()));
 
-        qDebug() << "[3]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
-        //*/
         for (EntityChart* chart : _entityCharts) {
             chart->setRange(min, max);
         }
+
         _displayMin = min;
         _displayMax = max;
 
@@ -375,6 +374,7 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     case PAN: {
         QPointF delta = cursorPoint - panOrigin;
         panOrigin = cursorPoint;
+        qDebug() << "\n";
         emit panned(-delta.x(), 0);
         break;
     }
