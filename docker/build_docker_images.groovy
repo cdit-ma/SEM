@@ -21,11 +21,9 @@ node("docker_runtime") {
         def re_minimal = docker.build(re_minimal_tag, "-f docker/re_minimal/Dockerfile .")
         re_minimal.push()
         sh "docker save ${re_minimal_tag} > ${re_minimal_tag}.tar"
-        archiveArtifacts("${re_minimal_tag}.tar")
 
         def re_full = docker.build(re_full_tag, "-f docker/re_full/Dockerfile .")
         re_full.push()
         sh "docker save ${re_full_tag} > ${re_full_tag}.tar"
-        archiveArtifacts("${re_full_tag}.tar")
     }
 }
