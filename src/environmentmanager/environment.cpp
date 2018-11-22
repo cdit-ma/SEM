@@ -57,9 +57,6 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     const auto& experiment_name = message.name();
-
-    std::cerr << "GOT : " << experiment_name << std::endl;
-
     if(experiment_map_.count(experiment_name) > 0){
         throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
     }
@@ -128,7 +125,7 @@ void Environment::DistributeContainerToImplicitNodeContainers(const std::string&
         }
         if(logger.type() == NodeManager::Logger::SERVER){
             // Add server to the least deployed to node's implicit container
-            GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddLoggingServerToImplicitContainer(logger);
+            GetExperimentInternal(experiment_id).GetLeastDeployedToNode(true).AddLoggingServerToImplicitContainer(logger);
         }
     }
 }

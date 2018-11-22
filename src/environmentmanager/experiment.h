@@ -87,7 +87,7 @@ class Experiment{
 
         std::string GetPublicEventPortName(const std::string& public_port_local_id);
 
-        Node& GetLeastDeployedToNode();
+        Node& GetLeastDeployedToNode(bool non_empty = false);
         Port& GetPort(const std::string& id);
 
         bool IsDirty() const;

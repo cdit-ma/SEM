@@ -132,6 +132,8 @@ std::unique_ptr<NodeManager::EnvironmentMessage> DeploymentHandler::HandleGetExp
     }else{
         throw std::runtime_error("Experiment: '" + experiment_id_ + "' already active");
     }
+
+    reply_message->PrintDebugString();
     return reply_message;
 }
 
