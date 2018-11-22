@@ -319,15 +319,29 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
     if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
         double min = mapToRange(rubberBandRect.left());
         double max = mapToRange(rubberBandRect.right());
+
+        qDebug() << "TimelineChartView::mouseReleaseEvent: ";
+        qDebug() << "[1]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
+
+        // keep min/max within the bounds
+        //min = qMax(min, mapToRange(rect().left()));
+        //max = qMin(max, mapToRange(rect().right()));
+
         // make sure that min < max
         if (min > max) {
             double temp = max;
             max = min;
             min = temp;
         }
+
+        qDebug() << "[2]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
+        //*
         // keep min/max within the bounds
         min = qMax(min, mapToRange(rect().left()));
         max = qMin(max, mapToRange(rect().right()));
+
+        qDebug() << "[3]:" << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
+        //*/
         for (EntityChart* chart : _entityCharts) {
             chart->setRange(min, max);
         }

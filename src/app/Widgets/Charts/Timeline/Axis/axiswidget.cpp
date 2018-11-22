@@ -224,6 +224,9 @@ bool AxisWidget::eventFilter(QObject* watched, QEvent* event)
  */
 void AxisWidget::minRatioChanged(double ratio)
 {
+    //emit displayedMinChanged(_display->getDisplayedRange().first);
+
+    //qDebug() << "AxisWidget::minRatioChanged: " << ratio;
     emit displayedMinChanged(_display->getDisplayedRange().first);
 }
 
@@ -234,6 +237,7 @@ void AxisWidget::minRatioChanged(double ratio)
  */
 void AxisWidget::maxRatioChanged(double ratio)
 {
+    //qDebug() << "AxisWidget::maxRatioChanged: " << ratio;
     emit displayedMaxChanged(_display->getDisplayedRange().second);
 }
 
@@ -254,7 +258,11 @@ void AxisWidget::setDisplayedMin(double min)
 
     _displayedMin = min;
     _slider->updateMinRatio(ratio);
-    _display->updateDisplayedMin(ratio);
+    //_display->updateDisplayedMin(ratio);
+    _display->displayedMinChanged(min);
+
+    //qDebug() << "AxisWidget::setDisplayedMin: " << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz");
+    //qDebug() << "Actual Min: " << QDateTime::fromMSecsSinceEpoch(_min).toString("hh:mm:ss:zz");
 }
 
 
@@ -274,7 +282,11 @@ void AxisWidget::setDisplayedMax(double max)
 
     _displayedMax = max;
     _slider->updateMaxRatio(ratio);
-    _display->updateDisplayedMax(ratio);
+    //_display->updateDisplayedMax(ratio);
+    _display->displayedMaxChanged(max);
+
+    //qDebug() << "AxisWidget::setDisplayedMax: " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
+    //qDebug() << "Actual Max: " << QDateTime::fromMSecsSinceEpoch(_max).toString("hh:mm:ss:zz");
 }
 
 

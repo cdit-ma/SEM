@@ -54,6 +54,10 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         _dateTimeAxis->zoom(factor);
     });
     connect(_timelineChart, &TimelineChart::changeDisplayedRange, [=](double min, double max) {
+        qDebug() << "\n";
+        qDebug() << "TimelineChartView - Change displayed range: " << QDateTime::fromMSecsSinceEpoch(min).toString("hh:mm:ss:zz") << ", " << QDateTime::fromMSecsSinceEpoch(max).toString("hh:mm:ss:zz");
+
+        //qDebug() << "TimelineChartView - Change displayed range: " << min << ", " << max;
         _dateTimeAxis->setDisplayedRange(min, max);
     });
 
@@ -315,6 +319,7 @@ void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
  */
 void TimelineChartView::displayedMinChanged(double min)
 {
+    qDebug() << "TimelineChartView::displayedMinChanged: " << min;
     _timelineChart->setMin(min);
 }
 
@@ -521,7 +526,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
        }
        // if the timeline chart's range was changed, update the date/time axis' range
        if (timelineRange != _timelineChart->getRange()) {
-           _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+           _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
        }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
