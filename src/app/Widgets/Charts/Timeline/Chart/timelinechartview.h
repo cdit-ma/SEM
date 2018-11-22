@@ -34,6 +34,9 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event);
 
+    void clearTimelineChart();
+    void updateTimelineChart();
+
 signals:
     void toggledStateLegend(bool checked);
     void toggledNotificationLegend(bool checked);

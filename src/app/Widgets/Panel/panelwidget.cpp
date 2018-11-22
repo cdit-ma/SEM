@@ -238,8 +238,11 @@ void PanelWidget::testEventSeries()
     defaultActiveAction = addTab("Workload", eventView);
     defaultActiveAction->trigger();
 
-    if (viewController)
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, eventView, &TimelineChartView::clearWorkloadEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, eventView, &TimelineChartView::receivedWorkloadEvent);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, eventView, &TimelineChartView::updateTimelineChart);
+    }
 }
 
 
@@ -549,9 +552,11 @@ void PanelWidget::popOutActiveTab()
  */
 void PanelWidget::requestData(bool clear)
 {
-    if (viewController) {
-        if (clear)
-            eventView->clearWorkloadEvents();
+    if (viewController && eventView) {
+        // clear previous results in the timeline chart
+        if (clear) {
+            eventView->clearTimelineChart();
+        }
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
 }
@@ -692,10 +697,9 @@ void PanelWidget::setupLayout()
         requestData(true);
     });
     refreshDataAction = titleBar->addAction("Refresh Data");
-    refreshDataAction->setVisible(false);
-    /*connect(refreshDataAction, &QAction::triggered, [=]() {
+    connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
-    });*/
+    });
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");

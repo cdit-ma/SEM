@@ -84,6 +84,7 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
 
     try {
         auto results = requester_.GetWorkload(request);
+        emit clearPreviousEvents();
 
         qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "[Workload Request] Result size#: " << results.get()->events_size();
@@ -106,6 +107,7 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
         }
 
         qDebug() << "--------------------------------------------------------------------------------";
+        emit receivedAllEvents();
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {

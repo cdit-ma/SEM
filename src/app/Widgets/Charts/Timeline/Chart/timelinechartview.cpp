@@ -42,7 +42,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setPointsWidth(POINTS_WIDTH);
     _timelineChart->setAxisYVisible(true);
 
-    connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::UpdateChartHover);
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
 
     // connect the chart's pan and zoom signals to the datetime axis
@@ -223,6 +222,71 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
 
 
 /**
+ * @brief TimelineChartView::clearTimelineChart
+ */
+void TimelineChartView::clearTimelineChart()
+{
+    // clear/delete the items in the entity axis
+    auto axisItr = itemEntitySets.begin();
+    while (axisItr != itemEntitySets.end()) {
+        auto set = (*axisItr);
+        _entityAxis->removeEntity(set);
+        set->deleteLater();
+        axisItr = itemEntitySets.erase(axisItr);
+    }
+    // clear/delete the entity charts in the timeline chart
+    auto chartItr = itemChartWidgets.begin();
+    while (chartItr != itemChartWidgets.end()) {
+        auto chart = (*chartItr);
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        chartItr = itemChartWidgets.erase(chartItr);
+    }
+
+    /*
+     * NOTE:: Only clear the widgets when:
+     * New project is triggered or the project is closed
+     * The user unchecks everything in the entity axis
+     */
+    // TODO - These hashes will be combined with the ones above eventually
+    // clear/delete the items in the entity axis
+    auto axisItr_e = eventEntitySets.begin();
+    while (axisItr_e != eventEntitySets.end()) {
+        auto set = (*axisItr_e);
+        _entityAxis->removeEntity(set);
+        set->deleteLater();
+        axisItr_e = eventEntitySets.erase(axisItr_e);
+    }
+    // clear/delete the entity charts in the timeline chart
+    auto chartItr_e = eventEntityCharts.begin();
+    while (chartItr_e != eventEntityCharts.end()) {
+        auto chart = (*chartItr_e);
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        chartItr_e = eventEntityCharts.erase(chartItr_e);
+    }
+
+    auto seriesItr_e = eventSeries.begin();
+    while (seriesItr_e != eventSeries.end()) {
+        (*seriesItr_e)->deleteLater();
+        seriesItr_e = eventSeries.erase(seriesItr_e);
+    }
+
+    _timelineChart->setInitialRange(true);
+    _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+}
+
+
+/**
+ * @brief TimelineChartView::updateTimelineChart
+ */
+void TimelineChartView::updateTimelineChart()
+{
+    _timelineChart->update();
+}
+
+
+/**
  * @brief TimelineChartView::themeChanged
  */
 void TimelineChartView::themeChanged()
@@ -315,6 +379,7 @@ void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
  */
 void TimelineChartView::displayedMinChanged(double min)
 {
+    //qDebug() << "TimelineChartView::displayedMinChanged: " << min;
     _timelineChart->setMin(min);
 }
 
@@ -386,10 +451,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     // we only care about node items
     if (!item || !item->isNode())
         return 0;
-
-    // it has to be in the model
-    /*if (!item->isInModel())
-        return 0;*/
 
     QString itemLabel = item->getData("label").toString();
     int itemID = item->getID();
@@ -509,8 +570,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     auto timelineRange = _timelineChart->getRange();
     auto chartRange = seriesChart->getRangeX();
     if (!_timelineChart->isRangeSet()) {
-        _timelineChart->setRange(chartRange.first, chartRange.second);
-        _timelineChart->initialRangeSet();
+        _timelineChart->setInitialRange(false, chartRange.first, chartRange.second);
     } else {
         if (chartRange.first < timelineRange.first) {
             _timelineChart->setMin(chartRange.first);
@@ -521,7 +581,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
     // if the timeline chart's range was changed, update the date/time axis' range
     if (timelineRange != _timelineChart->getRange()) {
-        _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
     }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
@@ -663,10 +723,8 @@ void TimelineChartView::clearWorkloadEvents()
 {
     for (auto series : eventSeries.values()) {
         series->clear();
-        qDebug() << "Cleared series: " + series->getEvents().count();
-        qDebug() << "series is empty: " << series->getEvents().isEmpty();
     }
-    //_timelineChart->initialRangeSet(false);
+    _timelineChart->setInitialRange(true);
 }
 
 
@@ -705,8 +763,7 @@ void TimelineChartView::receivedWorkloadEvent(WorkloadEvent* event)
         auto timelineRange = _timelineChart->getRange();
         auto seriesRange = series->getTimeRangeMS();
         if (!_timelineChart->isRangeSet()) {
-            _timelineChart->setRange(seriesRange.first, seriesRange.second);
-            _timelineChart->initialRangeSet();
+            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
         } else {
             if (seriesRange.first < timelineRange.first) {
                 _timelineChart->setMin(seriesRange.first);

@@ -20,6 +20,7 @@ TimelineChart::TimelineChart(QWidget* parent)
 {
     setMouseTracking(true);
     setFocusPolicy(Qt::WheelFocus);
+    setRange(0, 100);
 
     _layout = new QVBoxLayout(this);
     _layout->setMargin(0);
@@ -193,11 +194,19 @@ QPair<double, double> TimelineChart::getRange()
 
 
 /**
- * @brief TimelineChart::initialRangeSet
+ * @brief TimelineChart::setInitialRange
+ * @param reset
+ * @param min
+ * @param max
  */
-void TimelineChart::initialRangeSet(bool set)
+void TimelineChart::setInitialRange(bool reset, double min, double max)
 {
-    rangeSet = set;
+    if (reset) {
+        setRange(0, 100);
+    } else {
+        setRange(min, max);
+    }
+    rangeSet = !reset;
 }
 
 
@@ -319,18 +328,22 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
     if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
         double min = mapToRange(rubberBandRect.left());
         double max = mapToRange(rubberBandRect.right());
+
         // make sure that min < max
         if (min > max) {
             double temp = max;
             max = min;
             min = temp;
         }
+
         // keep min/max within the bounds
         min = qMax(min, mapToRange(rect().left()));
         max = qMin(max, mapToRange(rect().right()));
+
         for (EntityChart* chart : _entityCharts) {
             chart->setRange(min, max);
         }
+
         _displayMin = min;
         _displayMax = max;
 
@@ -361,6 +374,7 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     case PAN: {
         QPointF delta = cursorPoint - panOrigin;
         panOrigin = cursorPoint;
+        qDebug() << "\n";
         emit panned(-delta.x(), 0);
         break;
     }

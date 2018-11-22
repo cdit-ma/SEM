@@ -22,7 +22,9 @@ public:
     static const QString getQString(const std::string &string);
 
 signals:
+    void clearPreviousEvents();
     void receivedWorkloadEvent(WorkloadEvent* event);
+    void receivedAllEvents();
 
 private:
     void SendWorkloadRequest(AggServer::WorkloadRequest& request);
