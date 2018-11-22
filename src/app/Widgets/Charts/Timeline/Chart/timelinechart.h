@@ -42,7 +42,7 @@ public:
 
     QPair<double, double> getRange();
 
-    void initialRangeSet();
+    void initialRangeSet(bool set = true);
     bool isRangeSet();
     bool isPanning();
 

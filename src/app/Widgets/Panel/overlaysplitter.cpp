@@ -8,7 +8,7 @@
 #include <QDebug>
 
 //#define WIDGET_MIN_HEIGHT 800
-#define WIDGET_MIN_HEIGHT 400
+#define WIDGET_MIN_HEIGHT 300
 
 /**
  * @brief OverlaySplitter::OverlaySplitter

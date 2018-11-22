@@ -666,6 +666,7 @@ void TimelineChartView::clearWorkloadEvents()
         qDebug() << "Cleared series: " + series->getEvents().count();
         qDebug() << "series is empty: " << series->getEvents().isEmpty();
     }
+    //_timelineChart->initialRangeSet(false);
 }
 
 

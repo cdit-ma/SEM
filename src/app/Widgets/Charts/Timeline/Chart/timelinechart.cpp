@@ -195,9 +195,9 @@ QPair<double, double> TimelineChart::getRange()
 /**
  * @brief TimelineChart::initialRangeSet
  */
-void TimelineChart::initialRangeSet()
+void TimelineChart::initialRangeSet(bool set)
 {
-    rangeSet = true;
+    rangeSet = set;
 }
 
 
