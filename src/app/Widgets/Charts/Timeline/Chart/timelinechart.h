@@ -41,8 +41,8 @@ public:
     const QRectF& getHoverRect();
 
     QPair<double, double> getRange();
+    void setInitialRange(bool reset, double min = 0.0, double max = 100.0);
 
-    void initialRangeSet();
     bool isRangeSet();
     bool isPanning();
 

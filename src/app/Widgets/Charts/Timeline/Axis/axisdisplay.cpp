@@ -213,6 +213,7 @@ void AxisDisplay::themeChanged()
 void AxisDisplay::updateDisplayedMin(double minRatio)
 {
     displayedMinChanged(minRatio * _range + _min);
+
 }
 
 

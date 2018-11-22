@@ -59,7 +59,7 @@ public slots:
     void popOutPanel();
     void popOutActiveTab();
 
-    void requestData(bool clear);
+    void requestData(bool clear = true);
     void timeRangeChanged(qint64 from, qint64 to);
 
     void handleTimeout();

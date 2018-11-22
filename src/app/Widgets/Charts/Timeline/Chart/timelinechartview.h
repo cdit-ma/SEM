@@ -33,6 +33,8 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event);
 
+    void clearTimelineChart();
+
 signals:
     void toggledStateLegend(bool checked);
     void toggledNotificationLegend(bool checked);
@@ -58,7 +60,6 @@ public slots:
     void requestedData(qint64 from, qint64 to);
     void receivedData(qint64 from, qint64 to);
 
-    void clearPortLifecycleWidgets();
     void clearPortLifecycleEvents();
     void receivedPortLifecycleEvent(PortLifecycleEvent* event);
 
@@ -102,9 +103,9 @@ private:
     qint64 lastDataUpdatedTime;
 
     // port lifecycle events
-    QHash<QString, EntitySet*> entitySets_portLifecycle;
-    QHash<QString, EntityChart*> entityCharts_portLifecycle;
-    QHash<QString, PortLifecycleEventSeries*> portLifecycleSeries;
+    QHash<QString, EntitySet*> eventEntitySets;
+    QHash<QString, EntityChart*> eventEntityCharts;
+    QHash<QString, PortLifecycleEventSeries*> eventSeries;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

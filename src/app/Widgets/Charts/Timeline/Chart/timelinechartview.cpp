@@ -47,8 +47,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);    
     connect(_timelineChart, &TimelineChart::entityChartHovered, [=] (EntityChart* chart, bool hovered) {
         if (chart) {
-            QString path = entityCharts_portLifecycle.key(chart, "");
-            EntitySet* set = entitySets_portLifecycle.value(path, 0);
+            QString path = eventEntityCharts.key(chart, "");
+            EntitySet* set = eventEntitySets.value(path, 0);
             if (!set)
                 set = entitySets.value(chart->getViewItem()->getID(), 0);
             if (set)
@@ -254,6 +254,63 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
 
 
 /**
+ * @brief TimelineChartView::clearTimelineChart
+ * Clear/delete all the axis items and entity charts and reset the timeline range.
+ */
+void TimelineChartView::clearTimelineChart()
+{
+    // clear/delete the items in the entity axis
+    auto axisItr = entitySets.begin();
+    while (axisItr != entitySets.end()) {
+        auto set = (*axisItr);
+        _entityAxis->removeEntity(set);
+        set->deleteLater();
+        axisItr = entitySets.erase(axisItr);
+    }
+    // clear/delete the entity charts in the timeline chart
+    auto chartItr = entityCharts.begin();
+    while (chartItr != entityCharts.end()) {
+        auto chart = (*chartItr);
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        chartItr = entityCharts.erase(chartItr);
+    }
+
+    /*
+     * NOTE:: Only clear the widgets when:
+     * New project is triggered or the project is closed
+     * The user unchecks everything in the entity axis
+     */
+    // TODO - These hashes will be combined with the ones above eventually
+    // clear/delete the items in the entity axis
+    auto axisItr_e = eventEntitySets.begin();
+    while (axisItr_e != eventEntitySets.end()) {
+        auto set = (*axisItr_e);
+        _entityAxis->removeEntity(set);
+        set->deleteLater();
+        axisItr_e = eventEntitySets.erase(axisItr_e);
+    }
+    // clear/delete the entity charts in the timeline chart
+    auto chartItr_e = eventEntityCharts.begin();
+    while (chartItr_e != eventEntityCharts.end()) {
+        auto chart = (*chartItr_e);
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        chartItr_e = eventEntityCharts.erase(chartItr_e);
+    }
+
+    auto seriesItr_e = eventSeries.begin();
+    while (seriesItr_e != eventSeries.end()) {
+        (*seriesItr_e)->deleteLater();
+        seriesItr_e = eventSeries.erase(seriesItr_e);
+    }
+
+    _timelineChart->setInitialRange(true);
+    _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+}
+
+
+/**
  * @brief TimelineChartView::themeChanged
  */
 void TimelineChartView::themeChanged()
@@ -429,10 +486,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     if (!item || !item->isNode())
         return 0;
 
-    // it has to be in the model
-    /*if (!item->isInModel())
-        return 0;*/
-
     QString itemLabel = item->getData("label").toString();
     int itemID = item->getID();
 
@@ -551,8 +604,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     auto timelineRange = _timelineChart->getRange();
     auto chartRange = seriesChart->getRangeX();
     if (!_timelineChart->isRangeSet()) {
-        _timelineChart->setRange(chartRange.first, chartRange.second);
-        _timelineChart->initialRangeSet();
+        _timelineChart->setInitialRange(false, chartRange.first, chartRange.second);
     } else {
         if (chartRange.first < timelineRange.first) {
             _timelineChart->setMin(chartRange.first);
@@ -563,7 +615,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
     // if the timeline chart's range was changed, update the date/time axis' range
     if (timelineRange != _timelineChart->getRange()) {
-        _dateTimeAxis->setRange(timelineRange.first, timelineRange.second, true);
+        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
     }
 
     connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
@@ -672,38 +724,12 @@ void TimelineChartView::receivedData(qint64 from, qint64 to)
 
 
 /**
- * @brief TimelineChartView::clearPortLifecycleWidgets
- */
-void TimelineChartView::clearPortLifecycleWidgets()
-{
-    /*
-     * NOTE:: Only clear the widgets when:
-     * New project is triggered or the project is closed
-     * The user unchecks everything in the entity axis
-     */
-    // delete the series, axis item and chart widgets
-    for (auto path : portLifecycleSeries.keys()) {
-        auto entitySet = entitySets_portLifecycle.take(path);
-        auto entityChart = entityCharts_portLifecycle.take(path);
-        _entityAxis->removeEntity(entitySet);
-        _timelineChart->removeEntityChart(entityChart);
-        entitySet->deleteLater();
-        entityChart->deleteLater();
-        portLifecycleSeries.value(path)->deleteLater();
-    }
-    entitySets_portLifecycle.clear();
-    entityCharts_portLifecycle.clear();
-    portLifecycleSeries.clear();
-}
-
-
-/**
  * @brief TimelineChartView::clearPortLifecycleEvents
  * @param clearWidgets
  */
 void TimelineChartView::clearPortLifecycleEvents()
 {
-    for (auto series : portLifecycleSeries.values()) {
+    for (auto series : eventSeries.values()) {
         series->clear();
     }
 }
@@ -718,26 +744,17 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
     if (!event)
         return;
 
-    /*
-    qDebug() << "port id: " << event->getPortGraphmlID();
-    qDebug() << "port label: " << event->getPort().name;
-    qDebug() << "port path: " << event->getPortPath();
-    qDebug() << "event type: " << QString::number((int)event->getType());
-    qDebug() << "event time: " << QDateTime::fromMSecsSinceEpoch(event->getTime()).toString("hh:mm:ss:zzz");
-    qDebug() << "------";
-    */
-
     PortLifecycleEventSeries* series = 0;
 
     auto portID = event->getPortGraphmlID();
-    if (portLifecycleSeries.contains(portID)) {
-        series = portLifecycleSeries.value(portID);
+    if (eventSeries.contains(portID)) {
+        series = eventSeries.value(portID);
     } else {
         constructChartForPortLifecycle(portID, event->getPort().name);
 
-        auto chart = entityCharts_portLifecycle[portID];
-        auto set = entitySets_portLifecycle[portID];
-        series = portLifecycleSeries[portID];
+        auto chart = eventEntityCharts[portID];
+        auto set = eventEntitySets[portID];
+        series = eventSeries[portID];
 
         _entityAxis->appendEntity(set);
         _timelineChart->addEntityChart(chart);
@@ -752,8 +769,7 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
         auto timelineRange = _timelineChart->getRange();
         auto seriesRange = series->getTimeRangeMS();
         if (!_timelineChart->isRangeSet()) {
-            _timelineChart->setRange(seriesRange.first, seriesRange.second);
-            _timelineChart->initialRangeSet();
+            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
         } else {
             if (seriesRange.first < timelineRange.first) {
                 _timelineChart->setMin(seriesRange.first);
@@ -821,15 +837,15 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
 void TimelineChartView::constructChartForPortLifecycle(QString path, QString label)
 {
     PortLifecycleEventSeries* series = new PortLifecycleEventSeries(path, this);
-    portLifecycleSeries[path] = series;
+    eventSeries[path] = series;
 
     EntityChart* chart = new EntityChart(0, this);
-    entityCharts_portLifecycle[path] = chart;
+    eventEntityCharts[path] = chart;
     chart->addLifeCycleSeries(series);
     connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
     EntitySet* set = new EntitySet(label + "_" + path, this);
-    entitySets_portLifecycle[path] = set;
+    eventEntitySets[path] = set;
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->themeChanged(Theme::theme());
     connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
