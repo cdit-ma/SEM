@@ -11,7 +11,6 @@ class EventSeries : public QObject
 
 public:
     explicit EventSeries(QObject* parent = 0);
-
     void clear();
 
     void addEvent(MEDEA::Event* event);
@@ -22,6 +21,7 @@ public:
     qint64 getMaxTimeMS();
     QPair<qint64, qint64> getTimeRangeMS();
 
+    virtual QString getID();
     virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat = "hh:mm:ss:zz");
 
 private:
@@ -29,6 +29,9 @@ private:
 
     qint64 minTime_;
     qint64 maxTime_;
+    int eventSeriesID_;
+
+    static int eventSeries_ID;
 };
 
 }

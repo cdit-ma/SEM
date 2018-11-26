@@ -35,6 +35,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event);
 
     void clearTimelineChart();
+    void updateTimelineChart();
 
 signals:
     void toggledStateLegend(bool checked);
@@ -56,7 +57,12 @@ public slots:
 
     void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
 
+    void clearSeriesEvents();
+    void receivedRequestedEvent(MEDEA::Event* event);
+
 private:
+    void constructChartForEvent(QString ID, QString label);
+
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
 
@@ -83,6 +89,11 @@ private:
 
     QHash<int, EntitySet*> itemEntitySets;
     QHash<int, EntityChart*> itemChartWidgets;
+
+    // MEDEA::Event related widgets/series
+    QHash<QString, EntitySet*> eventEntitySets;
+    QHash<QString, EntityChart*> eventEntityCharts;
+    QHash<QString, MEDEA::EventSeries*> eventSeries;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

@@ -232,11 +232,19 @@ void PanelWidget::testNewTimelineView()
 }
 
 
-void PanelWidget::testLifecycleSeries()
+/**
+ * @brief PanelWidget::testEventSeries
+ */
+void PanelWidget::testEventSeries()
 {
-    lifecycleView = new TimelineChartView(this);
-    defaultActiveAction = addTab("Lifecycle", lifecycleView);
-    defaultActiveAction->trigger();
+    TimelineChartView* view = new TimelineChartView(this);
+    /*defaultActiveAction =*/ addTab("Events", view);
+    //defaultActiveAction->trigger();
+
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+    }
 }
 
 
@@ -323,7 +331,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
-    //testLifecycleSeries();
+    testEventSeries();
 }
 
 
@@ -696,9 +704,9 @@ void PanelWidget::setupLayout()
     });
     refreshDataAction = titleBar->addAction("Refresh Data");
     refreshDataAction->setVisible(false);
-    /*connect(refreshDataAction, &QAction::triggered, [=]() {
+    connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
-    });*/
+    });
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");

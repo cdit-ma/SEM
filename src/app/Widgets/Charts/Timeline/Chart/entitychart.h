@@ -18,6 +18,9 @@ public:
 
     ViewItem* getViewItem();
 
+    void addEventSeries(MEDEA::EventSeries* series);
+    void removeEventSeries(QString ID);
+
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
@@ -56,6 +59,7 @@ private slots:
     void timelineChartRangeChanged(double min, double max);
 
 private:
+    void paintEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
@@ -148,6 +152,8 @@ private:
 
     QHash<TIMELINE_SERIES_KIND, QList<qint64>> hovered_timepoints_;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;
+
+    MEDEA::EventSeries* _eventSeries = 0;
 
     double _barWidth;
 };

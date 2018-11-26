@@ -248,6 +248,15 @@ void TimelineChartView::clearTimelineChart()
 
 
 /**
+ * @brief TimelineChartView::updateTimelineChart
+ */
+void TimelineChartView::updateTimelineChart()
+{
+    _timelineChart->update();
+}
+
+
+/**
  * @brief TimelineChartView::themeChanged
  */
 void TimelineChartView::themeChanged()
@@ -399,6 +408,95 @@ void TimelineChartView::entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QLi
         posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
         _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
     }
+}
+
+
+/**
+ * @brief TimelineChartView::clearSeriesEvents
+ */
+void TimelineChartView::clearSeriesEvents()
+{
+    for (auto series : eventSeries.values()) {
+        series->clear();
+    }
+    _timelineChart->setInitialRange(true);
+}
+
+
+/**
+ * @brief TimelineChartView::receivedRequestedEvent
+ * @param event
+ */
+void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
+{
+    if (!event)
+        return;
+
+    MEDEA::EventSeries* series = 0;
+
+    auto ID = event->getID();
+    if (eventSeries.contains(ID)) {
+        series = eventSeries.value(ID);
+    } else {
+        constructChartForEvent(ID, event->getName());
+
+        auto chart = eventEntityCharts[ID];
+        auto set = eventEntitySets[ID];
+        series = eventSeries[ID];
+
+        _entityAxis->appendEntity(set);
+        _timelineChart->addEntityChart(chart);
+    }
+
+    if (series) {
+
+        series->addEvent(event);
+
+        // TODO: Don't need this once we have the start/end time of the experiment
+        // update this timeline chart's range
+        auto timelineRange = _timelineChart->getRange();
+        auto seriesRange = series->getTimeRangeMS();
+        if (!_timelineChart->isRangeSet()) {
+            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
+        } else {
+            if (seriesRange.first < timelineRange.first) {
+                _timelineChart->setMin(seriesRange.first);
+            }
+            if (seriesRange.second > timelineRange.second) {
+                _timelineChart->setMax(seriesRange.second);
+            }
+        }
+        // if the timeline chart's range was changed, update the date/time axis' range
+        if (timelineRange != _timelineChart->getRange()) {
+            _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+        }
+    }
+}
+
+
+/**
+ * @brief TimelineChartView::constructChartForEvent
+ * @param ID
+ * @param label
+ */
+void TimelineChartView::constructChartForEvent(QString ID, QString label)
+{
+    MEDEA::EventSeries* series = new MEDEA::EventSeries(this);
+    eventSeries[ID] = series;
+
+    EntityChart* chart = new EntityChart(0, this);
+    eventEntityCharts[ID] = chart;
+    chart->addEventSeries(series);
+    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
+
+    EntitySet* set = new EntitySet(label, this);
+    eventEntitySets[ID] = set;
+    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+    set->themeChanged(Theme::theme());
+    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+    connect(set, &EntitySet::hovered, [=] (bool hovered) {
+        _timelineChart->setEntityChartHovered(chart, hovered);
+    });
 }
 
 

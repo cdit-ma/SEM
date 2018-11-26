@@ -35,7 +35,7 @@ public:
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
-    void testLifecycleSeries();
+    void testEventSeries();
 
     void constructBigDataChart();
     void constructCustomChartView();

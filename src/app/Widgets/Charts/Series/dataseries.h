@@ -30,7 +30,7 @@ public:
         return QString();
     }
 
-    int getID();
+    //int getID();
     QString getLabel();
     ViewItem* getViewItem();
     TIMELINE_SERIES_KIND getSeriesKind();

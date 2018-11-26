@@ -3,6 +3,8 @@
 #include <QDateTime>
 
 
+int MEDEA::EventSeries::eventSeries_ID = 0;
+
 /**
  * @brief MEDEA::EventSeries::BaseSeries
  * @param parent
@@ -12,6 +14,7 @@ MEDEA::EventSeries::EventSeries(QObject* parent)
 {
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
+    eventSeriesID_ = eventSeries_ID++;
 }
 
 
@@ -95,6 +98,16 @@ qint64 MEDEA::EventSeries::getMaxTimeMS()
 QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS()
 {
     return {minTime_, maxTime_};
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getID
+ * @return
+ */
+QString MEDEA::EventSeries::getID()
+{
+    return QString::number(eventSeriesID_);
 }
 
 
