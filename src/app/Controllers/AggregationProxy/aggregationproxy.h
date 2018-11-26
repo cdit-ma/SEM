@@ -20,6 +20,10 @@ public:
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
     static const QString getQString(const std::string &string);
 
+signals:
+    void clearPreviousEvents();
+    void receivedAllEvents();
+
 private:
     AggServer::Requester requester_;
 
