@@ -100,6 +100,11 @@ void DeploymentManager::RequestDeployment(){
             request.add_error_messages(ex.what());
         }
 
+        //Start our heartbeater
+        heartbeater_ = std::unique_ptr<SlaveHeartbeater>(new SlaveHeartbeater(*proto_requester_, ip_address_, container_id_));
+        heartbeater_->SetTimeoutCallback(std::bind(&Execution::Interrupt, &execution_));
+
+
         auto reply_future = proto_requester_->SendRequest<SlaveConfiguredRequest, SlaveConfiguredReply>
             ("SlaveConfigured", request, 1000);
 
@@ -149,7 +154,9 @@ void DeploymentManager::Terminate(){
 }
 
 DeploymentManager::~DeploymentManager(){
+    std::cerr << "~DeploymentManager()" << std::endl;
     Terminate();
+    std::cerr << "~~DeploymentManager()" << std::endl;
 }
 
 void DeploymentManager::GotExperimentUpdate(const NodeManager::ControlMessage& control_message){

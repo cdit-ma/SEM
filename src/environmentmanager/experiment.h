@@ -65,7 +65,7 @@ class Experiment{
 
         void AddExternalPorts(const NodeManager::Experiment& message);
         void AddNode(const NodeManager::Node& node);
-        void AddLoggingClientToImplicitContainers(const NodeManager::Logger& logging_client);
+        void AddLoggingClientToNodes(const NodeManager::Logger& logging_client);
 
         Node& GetNode(const std::string& ip_address) const;
 

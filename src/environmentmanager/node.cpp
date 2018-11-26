@@ -203,8 +203,18 @@ void Node::AddComponentToImplicitContainer(const NodeManager::Component &compone
     containers_.at(implicit_container_id_)->AddComponent(component);
 }
 
-void Node::AddLoggingClientToImplicitContainer(const NodeManager::Logger &logging_client) {
-    containers_.at(implicit_container_id_)->AddLogger(logging_client);
+void Node::AddLoggingClient(const NodeManager::Logger &logging_client) {
+    auto& implicit_container = GetContainer(implicit_container_id_);
+    if(implicit_container.GetDeployedComponentCount()){
+        implicit_container.AddLogger(logging_client);
+    }else{
+        for(const auto& container_pair : containers_){
+            if(container_pair.second->GetDeployedComponentCount()){
+                container_pair.second->AddLogger(logging_client);
+                break;
+            }
+        }
+    }
 }
 
 void Node::AddLoggingServerToImplicitContainer(const NodeManager::Logger &logging_server) {

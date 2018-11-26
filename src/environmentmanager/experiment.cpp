@@ -472,9 +472,9 @@ Node &Experiment::GetLeastDeployedToNode(bool non_empty) {
                               })->second);
 }
 
-void Experiment::AddLoggingClientToImplicitContainers(const NodeManager::Logger &logging_client) {
+void Experiment::AddLoggingClientToNodes(const NodeManager::Logger &logging_client) {
     for (const auto &node : node_map_) {
-        node.second->AddLoggingClientToImplicitContainer(logging_client);
+        node.second->AddLoggingClient(logging_client);
     }
 }
 

@@ -32,7 +32,7 @@ class Node{
         void AddContainer(const NodeManager::Container& container);
 
         void AddComponentToImplicitContainer(const NodeManager::Component& component);
-        void AddLoggingClientToImplicitContainer(const NodeManager::Logger& logging_client);
+        void AddLoggingClient(const NodeManager::Logger& logging_client);
         void AddLoggingServerToImplicitContainer(const NodeManager::Logger& logging_server);
 
         bool HasMasterEligibleContainer() const;
