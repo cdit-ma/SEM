@@ -89,15 +89,21 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
 
         //Complete the Configuration
         experiment.SetConfigured();
-        std::cout << "* Registration complete" << std::endl;
-
-        //Send our experiment's configuration to anything interested in updates
-        update_publisher_->PushMessage(experiment.GetProto(true));
 
     }catch(const std::exception& ex){
         //Remove the Experiment if we have any exceptions
         RemoveExperimentInternal(experiment_name);
         throw;
+    }
+
+    //Successfully got through experiment registration
+    std::cout << "* Registration complete" << std::endl;
+
+    //Send our experiment's configuration to anything interested in updates
+    try{
+        update_publisher_->PushMessage(experiment_map_.at(experiment_name)->GetProto(true));
+    } catch(const std::exception& ex) {
+        std::cerr << "Failed to send experiment registration message to aggregation server." << std::endl;
     }
 }
 
@@ -257,6 +263,11 @@ void Environment::RemoveExperimentInternal(const std::string& experiment_name){
         std::cerr << "* Experiment Deregistering: '" << experiment_name << "'" << std::endl;
         experiment_map_.erase(experiment_name);
         std::cerr << "* Current registered experiments: " << experiment_map_.size() << std::endl;
+
+        auto remove_experiment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
+        remove_experiment_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_EXPERIMENT);
+        remove_experiment_message->mutable_control_message()->set_experiment_id(experiment_name);
+        update_publisher_->PushMessage(std::move(remove_experiment_message));
     }
 }
 
