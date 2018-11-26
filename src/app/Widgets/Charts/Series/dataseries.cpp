@@ -124,21 +124,6 @@ void MEDEA::DataSeries::addPoints(QList<QPointF> points)
         emit rangeYChanged(_minY, _maxY);
 }
 
-/*QString MEDEA::DataSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
-{
-    return "MEDEA::DataSeries::getHoveredDataString()";
-}*/
-
-
-/**
- * @brief MEDEA::DataSeries::getID
- * @return
- */
-int MEDEA::DataSeries::getID()
-{
-    return _ID;
-}
-
 
 /**
  * @brief MEDEA::DataSeries::getLabel

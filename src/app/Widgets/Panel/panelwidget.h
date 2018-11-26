@@ -35,7 +35,7 @@ public:
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
-    void testLifecycleSeries();
+    void testEventSeries();
 
     void constructBigDataChart();
     void constructCustomChartView();
@@ -60,7 +60,6 @@ public slots:
     void popOutActiveTab();
 
     void requestData(bool clear = true);
-    void timeRangeChanged(qint64 from, qint64 to);
 
     void handleTimeout();
     void playPauseToggled(bool checked);

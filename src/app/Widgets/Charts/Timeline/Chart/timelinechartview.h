@@ -56,16 +56,11 @@ public slots:
 
     void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
 
-    void UpdateChartHover();
-
-    void requestedData(qint64 from, qint64 to);
-    void receivedData(qint64 from, qint64 to);
-
-    void clearPortLifecycleEvents();
-    void receivedPortLifecycleEvent(PortLifecycleEvent* event);
+    void clearSeriesEvents();
+    void receivedRequestedEvent(MEDEA::Event* event);
 
 private:
-    void constructChartForPortLifecycle(QString path, QString label);
+    void constructChartForEvent(QString path, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
@@ -103,7 +98,7 @@ private:
     qint64 lastRequestedToTime;
     qint64 lastDataUpdatedTime;
 
-    // port lifecycle events
+    // MEDEA::Event related widgets/series
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
     QHash<QString, MEDEA::EventSeries*> eventSeries;

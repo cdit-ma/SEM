@@ -228,15 +228,18 @@ void PanelWidget::testNewTimelineView()
 }
 
 
-void PanelWidget::testLifecycleSeries()
+/**
+ * @brief PanelWidget::testEventSeries
+ */
+void PanelWidget::testEventSeries()
 {
     lifecycleView = new TimelineChartView(this);
     defaultActiveAction = addTab("Lifecycle", lifecycleView);
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedPortLifecycleEvent);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, lifecycleView, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedRequestedEvent);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, lifecycleView, &TimelineChartView::updateTimelineChart);
     }
 }
@@ -325,7 +328,7 @@ void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
     testNewTimelineView();
-    testLifecycleSeries();
+    testEventSeries();
 }
 
 
@@ -549,29 +552,11 @@ void PanelWidget::popOutActiveTab()
 void PanelWidget::requestData(bool clear)
 {
     if (viewController && lifecycleView) {
-        // clear previous results in the timeline chart
-        if (clear) {
+        // clear previous results and their widgets in the timeline chart view
+        if (clear)
             lifecycleView->clearTimelineChart();
-        } else {
-            lifecycleView->clearPortLifecycleEvents();
-        }
         QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
     }
-}
-
-
-/**
- * @brief PanelWidget::timeRangeChanged
- * @param from
- * @param to
- */
-void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
-{
-    // pass the new ranges to the chart view
-    lifecycleView->requestedData(from, to);
-
-    // send a request with the new time range
-
 }
 
 
