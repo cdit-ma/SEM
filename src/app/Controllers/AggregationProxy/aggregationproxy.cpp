@@ -74,14 +74,13 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
     auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-        auto start = QDateTime::currentMSecsSinceEpoch();
+        //auto start = QDateTime::currentMSecsSinceEpoch();
         auto results = requester_.GetPortLifecycle(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
-        qDebug() << "Requested PortLifecycleEvents . . . ";
-        qDebug() << "Result Size#: " << results.get()->events_size();
+        qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
 
-        emit clearPreviousResults();
+        emit clearPreviousEvents();
 
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
@@ -92,10 +91,11 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
             emit receivedPortLifecycleEvent(event);
         }
 
-        auto finish = QDateTime::currentMSecsSinceEpoch();
-        qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
+        //auto finish = QDateTime::currentMSecsSinceEpoch();
+        //qDebug() << "Construction of portlifecycle widgets and series WITH clearing took: " << finish - start << " ms.";
         qDebug() << "--------------------------------------------------------------------------------";
 
+        emit receivedAllEvents();
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {

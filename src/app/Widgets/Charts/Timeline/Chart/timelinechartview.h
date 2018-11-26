@@ -34,6 +34,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event);
 
     void clearTimelineChart();
+    void updateTimelineChart();
 
 signals:
     void toggledStateLegend(bool checked);
@@ -105,7 +106,7 @@ private:
     // port lifecycle events
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
-    QHash<QString, PortLifecycleEventSeries*> eventSeries;
+    QHash<QString, MEDEA::EventSeries*> eventSeries;
 
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
     QPushButton* _eventsButton;

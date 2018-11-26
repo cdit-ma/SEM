@@ -22,8 +22,9 @@ public:
     static const QString getQString(const std::string &string);
 
 signals:
+    void clearPreviousEvents();
+    void receivedAllEvents();
     void receivedPortLifecycleEvent(PortLifecycleEvent* event);
-    void clearPreviousResults();
 
 private:    
     void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);

@@ -235,8 +235,9 @@ void PanelWidget::testLifecycleSeries()
     defaultActiveAction->trigger();
 
     if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, lifecycleView, &TimelineChartView::receivedPortLifecycleEvent);
-        //connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousResults, lifecycleView, &TimelineChartView::clearPortLifecycleEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, lifecycleView, &TimelineChartView::updateTimelineChart);
     }
 }
 

@@ -311,6 +311,15 @@ void TimelineChartView::clearTimelineChart()
 
 
 /**
+ * @brief TimelineChartView::updateTimelineChart
+ */
+void TimelineChartView::updateTimelineChart()
+{
+    _timelineChart->update();
+}
+
+
+/**
  * @brief TimelineChartView::themeChanged
  */
 void TimelineChartView::themeChanged()
@@ -732,6 +741,7 @@ void TimelineChartView::clearPortLifecycleEvents()
     for (auto series : eventSeries.values()) {
         series->clear();
     }
+    _timelineChart->setInitialRange(true);
 }
 
 
@@ -744,7 +754,7 @@ void TimelineChartView::receivedPortLifecycleEvent(PortLifecycleEvent* event)
     if (!event)
         return;
 
-    PortLifecycleEventSeries* series = 0;
+    MEDEA::EventSeries* series = 0;
 
     auto portID = event->getPortGraphmlID();
     if (eventSeries.contains(portID)) {
