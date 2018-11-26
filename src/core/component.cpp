@@ -31,6 +31,7 @@ void Component::HandleActivate(){
         }
     }
     BehaviourContainer::HandleActivate();
+    
 }
 
 void Component::HandleConfigure(){
@@ -56,7 +57,6 @@ void Component::HandlePassivate(){
     }
 
     BehaviourContainer::HandlePassivate();
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
 }
 
 void Component::HandleTerminate(){
@@ -68,7 +68,6 @@ void Component::HandleTerminate(){
         }
     }
     BehaviourContainer::HandleTerminate();
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
 }
 
 void Component::SetLocation(const std::vector<std::string>& location){

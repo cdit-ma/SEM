@@ -428,10 +428,8 @@ std::vector<std::reference_wrapper<Logger> > Experiment::GetLoggerClients(const 
     std::vector<std::reference_wrapper<Logger> > loggers;
 
     for (auto &node_pair : node_map_) {
-        auto &node = node_pair.second;
-        if (node->HasLogger(logger_id)) {
-            loggers.emplace_back(node->GetLogger(logger_id));
-        }
+        auto node_loggers = node_pair.second->GetLoggers(logger_id);
+        loggers.insert(loggers.end(), node_loggers.begin(), node_loggers.end());
     }
 
     return loggers;

@@ -57,6 +57,7 @@ class Logger{
         static const std::string GetWorkloadName(const WorkloadEvent& event);
         static const std::string GetLifecycleName(const LifeCycleEvent& event);
     public:
+        virtual ~Logger(){};
         virtual void LogMessage(const Activatable& entity, const std::string& message) = 0;
         virtual void LogException(const Activatable& entity, const std::string& message) = 0;
         virtual void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event) = 0;

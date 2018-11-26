@@ -54,7 +54,7 @@ class Node{
         bool HasPort(const std::string& port_id) const;
 
         Container& GetContainer(const std::string& component_id) const;
-        Logger& GetLogger(const std::string& logger_id) const;
+        std::vector<std::reference_wrapper<Logger> > GetLoggers(const std::string& logger_id) const;
         Port& GetPort(const std::string& port_id) const;
 
         int GetDeployedCount() const;

@@ -243,6 +243,8 @@ void DeploymentManager::ProcessControlQueue(){
             auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
                 ("SlaveTerminated", request, 5000);
             reply_future.get();
+            //Destroy our heartbeater
+            heartbeater_.reset();
         }catch(const std::exception& ex){
             std::cerr << "* Sending SlaveTerminatedRequest Failed!: " << ex.what() << std::endl;
             throw;

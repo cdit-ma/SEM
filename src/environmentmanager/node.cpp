@@ -169,13 +169,19 @@ bool Node::HasLogger(const std::string& logger_id) const {
     }
     return false;
 }
-Logger &Node::GetLogger(const std::string &logger_id) const {
+
+
+std::vector<std::reference_wrapper<Logger> > Node::GetLoggers(const std::string &logger_id) const {
+    std::vector<std::reference_wrapper<Logger> > loggers;
+
     for(const auto& container : containers_){
-        if(container.second->HasLogger(logger_id)){
-            return container.second->GetLogger(logger_id);
+        try{
+            loggers.emplace_back(container.second->GetLogger(logger_id));
+        }catch(const std::exception& ex){
+
         }
     }
-    throw std::runtime_error("Got no logger with ID: '" + logger_id + "'");
+    return loggers;
 }
 
 int Node::GetLoganServerCount() const {
@@ -192,6 +198,7 @@ std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServer
     for(const auto& container_pair : containers_) {
         if(container_pair.second->GetLoganServerCount() > 0){
             for(const auto& server_id : container_pair.second->GetLoganServerIds()){
+
                 logan_servers.emplace_back(container_pair.second->GetLogger(server_id).GetProto(true));
             }
         }

@@ -7,11 +7,15 @@
 #include <core/worker.h>
 #include <google/protobuf/util/time_util.h>
 
+
+
+
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
     info.set_container_name(logger.GetContainerName());
     info.set_container_id(logger.GetContainerId());
+    info.set_sequence_number(logger.send_count++);
 
     using namespace google::protobuf::util;
     auto timestamp = TimeUtil::MillisecondsToTimestamp(logger.GetCurrentTime().count());
@@ -63,8 +67,14 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
         throw std::runtime_error("Cannot bind endpoint: " + endpoint);
     }
 }
+Logan::Logger::~Logger(){
+    std::cerr << "BEFORE DELETE: " << container_id_ << " SENT: " << send_count << " VS " << SENT_COUNT << " VS " << SENT_COUNT_A << std::endl;
+    writer_.reset();
+    std::cerr << "BEFORE DELETE: " << container_id_ << " SENT: " << send_count << " VS " << SENT_COUNT << std::endl;
+}
 
 void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, const std::string& message){
+    return;
     auto event_pb = std::unique_ptr<ModelEvent::UtilizationEvent>(new ModelEvent::UtilizationEvent());
     event_pb->set_type(is_exception ? ModelEvent::UtilizationEvent::EXCEPTION : ModelEvent::UtilizationEvent::MESSAGE);
     if(message.size()){
@@ -100,6 +110,7 @@ void Logan::Logger::LogException(const Activatable& entity, const std::string& m
 }
 
 void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
+    return;
     auto event_pb = std::unique_ptr<ModelEvent::WorkloadEvent>(new ModelEvent::WorkloadEvent());
     event_pb->set_event_type((ModelEvent::WorkloadEvent::Type)(int)event);
 
@@ -150,13 +161,16 @@ void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger:
             FillComponentPB(*(event_pb->mutable_component()), *component);
         }
     }else{
+        std::cerr << "ASDASDADS::LogLifecycleEvent" << std::endl;
         return;
     }
 
+    SENT_COUNT_A ++;
     PushMessage(std::move(event_pb)); 
 }
 
 void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const ::Logger::UtilizationEvent& event, const std::string& message_str){
+    return;
     auto event_pb = std::unique_ptr<ModelEvent::UtilizationEvent>(new ModelEvent::UtilizationEvent());
     
     event_pb->set_type((ModelEvent::UtilizationEvent::Type)(int)event);
@@ -184,7 +198,9 @@ std::chrono::milliseconds Logan::Logger::GetCurrentTime(){
 
 void Logan::Logger::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
     if(writer_){
-        writer_->PushMessage("ModelEvent*", std::move(message));
+        if(writer_->PushMessage("ModelEvent*", std::move(message))){
+            SENT_COUNT++;
+        }
     }
 }
 const std::string& Logan::Logger::GetExperimentName() const{

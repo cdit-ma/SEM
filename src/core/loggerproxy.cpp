@@ -1,5 +1,6 @@
 #include "loggerproxy.h"
 #include <algorithm>
+#include <iostream>
 
 LoggerProxy::LoggerProxy(): Logger(){
 
@@ -32,5 +33,11 @@ void LoggerProxy::LogPortUtilizationEvent(const Port& port, const ::BaseMessage&
 
 void LoggerProxy::RunOnLoggers(std::function<void (Logger&)> func){
     std::lock_guard<std::mutex> lock(mutex_);
-    std::for_each(attached_loggers_.begin(), attached_loggers_.end(), [func](std::reference_wrapper<Logger> logger){func(logger.get());});
+    std::for_each(attached_loggers_.begin(), attached_loggers_.end(), [func](std::reference_wrapper<Logger> logger){
+        try{
+            func(logger.get());
+        }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
+        }
+    });
 }

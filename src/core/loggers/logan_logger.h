@@ -12,11 +12,11 @@ namespace Logan{
     class Logger : public ::Logger{
         public:
             Logger(const std::string& experiment_name, const std::string& host_name, const std::string& container_name, const std::string& container_id, const std::string& address, const std::string& port, Logger::Mode mode);
+            ~Logger();
             
             void LogMessage(const Activatable& entity, const std::string& message);
             void LogException(const Activatable& entity, const std::string& message);
             void LogLifecycleEvent(const Activatable& entity, const ::Logger::LifeCycleEvent& event);
-            
             void LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
             void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const ::Logger::UtilizationEvent& event, const std::string& message_str);
             
@@ -36,6 +36,10 @@ namespace Logan{
             const std::string host_name_;
             const std::string container_id_;
             const std::string container_name_;
+        public:
+            int send_count = 0;
+            int SENT_COUNT = 0;
+            int SENT_COUNT_A = 0;
     };
 };
 
