@@ -58,25 +58,20 @@ ViewItem* EntityChart::getViewItem()
     return _viewItem;
 }
 
-
-/**
- * @brief EntityChart::addWorkloadEventSeries
- * @param series
- */
-void EntityChart::addWorkloadEventSeries(WorkloadEventSeries* series)
+void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
-    _workloadEventSeries = series;
+    _eventSeries = series;
 }
 
 
 /**
- * @brief EntityChart::removeWorkloadEventSeries
- * @param workloadID
+ * @brief EntityChart::removeEventSeries
+ * @param ID
  */
-void EntityChart::removeWorkloadEventSeries(quint32 workloadID)
+void EntityChart::removeEventSeries(QString ID)
 {
-    if (_workloadEventSeries && _workloadEventSeries->getWorkloadID() == workloadID) {
-        _workloadEventSeries = 0;
+    if (_eventSeries && _eventSeries->getID() == ID) {
+        _eventSeries = 0;
     }
 }
 
@@ -202,7 +197,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
     }
     paintSeries(painter, _hoveredSeriesKind);
 
-    paintWorkloadEventSeries(painter);
+    paintEventSeries(painter);
 
     // display the y-range and send the series points that were hovered over
     if (_hovered) {
@@ -382,94 +377,82 @@ void EntityChart::pointsAdded(QList<QPointF> points)
 
 
 /**
- * @brief EntityChart::timelineChartRangeChanged
- * @param min
- * @param max
- */
-void EntityChart::timelineChartRangeChanged(double min, double max)
-{
-    _timelineRange = max - min;
-    update();
-}
-
-
-/**
- * @brief EntityChart::paintWorkloadEventSeries
+ * @brief EntityChart::paintEventSeries
  * @param painter
  */
-void EntityChart::paintWorkloadEventSeries(QPainter &painter)
+void EntityChart::paintEventSeries(QPainter &painter)
 {
-    if (!_workloadEventSeries)
-           return;
+    if (!_eventSeries)
+        return;
 
-       double barWidth = 22.0; //BAR_WIDTH;
-       double barCount = ceil((double)width() / barWidth);
+    double barWidth = 22.0; //BAR_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
 
-       QVector< QList<MEDEA::Event*> > buckets(barCount);
-       QVector<double> bucket_endTimes;
-       bucket_endTimes.reserve(barCount);
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
 
-       double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-       double current_left = _displayedMin;
-       for (int i = 0; i < barCount; i++) {
-           bucket_endTimes.append(current_left + barTimeWidth);
-           current_left = bucket_endTimes.last();
-       }
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double current_left = _displayedMin;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
 
-       const auto& events = _workloadEventSeries->getEvents();
-       auto current = events.constBegin();
-       auto upper = events.constEnd();
-       for (; current != upper; current++) {
-           const auto& current_time = (*current)->getTimeMS();
-           if (current_time > _displayedMin) {
-               break;
-           }
-       }
+    const auto& events = _eventSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > _displayedMin) {
+            break;
+        }
+    }
 
-       auto current_bucket = 0;
-       auto current_bucket_ittr = bucket_endTimes.constBegin();
-       auto end_bucket_ittr = bucket_endTimes.constEnd();
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
 
-       // put the data in the correct bucket
-       for (;current != upper; current++) {
-           const auto& current_time = (*current)->getTimeMS();
-           while (current_bucket_ittr != end_bucket_ittr) {
-               if (current_time > (*current_bucket_ittr)) {
-                   current_bucket_ittr ++;
-                   current_bucket ++;
-               } else {
-                   break;
-               }
-           }
-           if (current_bucket < barCount) {
-               buckets[current_bucket].append(*current);
-           }
-       }
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
 
-       QColor seriesColor = Qt::gray;
-       int y = rect().center().y() - barWidth / 2.0;
+    QColor seriesColor = Qt::gray;
+    int y = rect().center().y() - barWidth / 2.0;
 
-       for (int i = 0; i < barCount; i++) {
-           int count = buckets[i].count();
-           if (count == 0)
-               continue;
-           QRectF rect(i * barWidth, y, barWidth, barWidth);
-           if (count == 1) {
-               if (pointHovered(rect))
-                   painter.fillRect(rect, _highlightColor);
-               auto event = (WorkloadEvent*) buckets[i][0];
-               painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
-           } else {
-               QColor color = seriesColor.darker(100 + (50 * (count - 1)));
-               painter.setPen(Qt::lightGray);
-               if (pointHovered(rect)) {
-                   painter.setPen(_highlightTextColor);
-                   color = _highlightColor;
-               }
-               painter.fillRect(rect, color);
-               painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
-           }
-       }
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            if (pointHovered(rect))
+                painter.fillRect(rect, _highlightColor);
+            auto event = (WorkloadEvent*) buckets[i][0];
+            painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
+        } else {
+            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+            painter.setPen(Qt::lightGray);
+            if (pointHovered(rect)) {
+                painter.setPen(_highlightTextColor);
+                color = _highlightColor;
+            }
+            painter.fillRect(rect, color);
+            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        }
+    }
 }
 
 

@@ -239,8 +239,8 @@ void PanelWidget::testEventSeries()
     defaultActiveAction->trigger();
 
     if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, eventView, &TimelineChartView::clearWorkloadEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, eventView, &TimelineChartView::receivedWorkloadEvent);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, eventView, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, eventView, &TimelineChartView::receivedRequestedEvent);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, eventView, &TimelineChartView::updateTimelineChart);
     }
 }

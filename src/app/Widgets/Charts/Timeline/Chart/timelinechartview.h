@@ -57,13 +57,11 @@ public slots:
 
     void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
 
-    void UpdateChartHover();
-
-    void clearWorkloadEvents();
-    void receivedWorkloadEvent(WorkloadEvent* event);
+    void clearSeriesEvents();
+    void receivedRequestedEvent(MEDEA::Event* event);
 
 private:
-    void constructChartForWorkload(QString workerInstID, quint32 workloadID, QString label);
+    void constructChartForEvent(QString workerInstID, quint32 workloadID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
@@ -92,7 +90,7 @@ private:
     QHash<int, EntitySet*> itemEntitySets;
     QHash<int, EntityChart*> itemChartWidgets;
 
-    // workload events
+    // MEDEA::Event related widgets/series
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
     QHash<QString, MEDEA::EventSeries*> eventSeries;

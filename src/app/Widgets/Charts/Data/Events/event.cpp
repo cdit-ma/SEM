@@ -1,6 +1,8 @@
 #include "event.h"
 
 
+int MEDEA::Event::event_ID = 0;
+
 /**
  * @brief MEDEA::Event::Event
  * @param time
@@ -12,6 +14,7 @@ MEDEA::Event::Event(qint64 time, QString name, QObject *parent)
 {
     time_ = time;
     name_ = name;
+    eventID_ = event_ID++;
 }
 
 
@@ -32,4 +35,14 @@ const qint64 MEDEA::Event::getTimeMS()
 const QString MEDEA::Event::getName()
 {
     return name_;
+}
+
+
+/**
+ * @brief MEDEA::Event::getID
+ * @return
+ */
+QString MEDEA::Event::getID()
+{
+    return QString::number(eventID_);
 }

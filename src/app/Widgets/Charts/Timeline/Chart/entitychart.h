@@ -20,8 +20,8 @@ public:
 
     ViewItem* getViewItem();
 
-    void addWorkloadEventSeries(WorkloadEventSeries* series);
-    void removeWorkloadEventSeries(quint32 workloadID);
+    void addEventSeries(MEDEA::EventSeries* series);
+    void removeEventSeries(QString ID);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
@@ -58,10 +58,8 @@ private slots:
     void rangeYChanged(double min, double max);
     void pointsAdded(QList<QPointF> points);
 
-    void timelineChartRangeChanged(double min, double max);
-
 private:
-    void paintWorkloadEventSeries(QPainter& painter);
+    void paintEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
@@ -146,7 +144,7 @@ private:
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
 
-    WorkloadEventSeries* _workloadEventSeries;
+    MEDEA::EventSeries* _eventSeries = 0;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;

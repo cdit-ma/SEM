@@ -129,10 +129,10 @@ void MEDEA::DataSeries::addPoints(QList<QPointF> points)
  * @brief MEDEA::DataSeries::getID
  * @return
  */
-int MEDEA::DataSeries::getID()
+/*int MEDEA::DataSeries::getID()
 {
     return _ID;
-}
+}*/
 
 
 /**

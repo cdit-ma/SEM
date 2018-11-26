@@ -442,6 +442,98 @@ void TimelineChartView::entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QLi
 
 
 /**
+ * @brief TimelineChartView::clearSeriesEvents
+ */
+void TimelineChartView::clearSeriesEvents()
+{
+    for (auto series : eventSeries.values()) {
+        series->clear();
+    }
+    _timelineChart->setInitialRange(true);
+}
+
+
+/**
+ * @brief TimelineChartView::receivedRequestedEvent
+ * @param event
+ */
+void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
+{
+    if (!event)
+        return;
+
+    MEDEA::EventSeries* series = 0;
+    auto workloadEvent = (WorkloadEvent*) event;
+
+    auto ID = workloadEvent->getWorkloadPath();
+    if (eventSeries.contains(ID)) {
+        series = eventSeries.value(ID);
+    } else {
+        constructChartForEvent(workloadEvent->getWorkerInstanceGraphmlID(), workloadEvent->getWorkloadID(), event->getName());
+
+        auto chart = eventEntityCharts[ID];
+        auto set = eventEntitySets[ID];
+        series = eventSeries[ID];
+
+        _entityAxis->appendEntity(set);
+        _timelineChart->addEntityChart(chart);
+    }
+
+    if (series) {
+
+        series->addEvent(event);
+
+        // TODO: Don't need this once we have the start/end time of the experiment
+        // update this timeline chart's range
+        auto timelineRange = _timelineChart->getRange();
+        auto seriesRange = series->getTimeRangeMS();
+        if (!_timelineChart->isRangeSet()) {
+            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
+        } else {
+            if (seriesRange.first < timelineRange.first) {
+                _timelineChart->setMin(seriesRange.first);
+            }
+            if (seriesRange.second > timelineRange.second) {
+                _timelineChart->setMax(seriesRange.second);
+            }
+        }
+        // if the timeline chart's range was changed, update the date/time axis' range
+        if (timelineRange != _timelineChart->getRange()) {
+            _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+        }
+    }
+}
+
+
+/**
+ * @brief TimelineChartView::constructChartForEvent
+ * @param workerInstID
+ * @param workloadID
+ * @param label
+ */
+void TimelineChartView::constructChartForEvent(QString workerInstID, quint32 workloadID, QString label)
+{
+    WorkloadEventSeries* series = new WorkloadEventSeries(workerInstID, workloadID, this);
+    QString seriesID = series->getWorkloadPath();
+    eventSeries[seriesID] = series;
+
+    EntityChart* chart = new EntityChart(0, this);
+    eventEntityCharts[seriesID] = chart;
+    chart->addEventSeries(series);
+    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
+
+    EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
+    eventEntitySets[seriesID] = set;
+    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+    set->themeChanged(Theme::theme());
+    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+    connect(set, &EntitySet::hovered, [=] (bool hovered) {
+        _timelineChart->setEntityChartHovered(chart, hovered);
+    });
+}
+
+
+/**
  * @brief TimelineChartView::addEntitySet
  * @param item
  * @return
@@ -630,179 +722,4 @@ void TimelineChartView::removeEntitySet(int ID)
 inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
-}
-
-
-void TimelineChartView::UpdateChartHover(){
-    return;
-    for(auto button : _hoverDisplayButtons.values()){
-        button->setText("");
-        button->hide();
-    }
-    
-    bool show_hover = false;
-    const auto& hover_rect = _timelineChart->getHoverRect();
-
-    auto min = _timelineChart->mapPixelToTime(hover_rect.left());
-    auto max = _timelineChart->mapPixelToTime(hover_rect.right());
-
-    for(auto entity_chart : _timelineChart->getEntityCharts()){
-        //QString text;
-        //QTextStream stream(&text);
-        if(entity_chart->isHovered()){
-            const auto& series = entity_chart->getSeries();
-            auto current = series.begin();
-            auto end = series.end();
-
-            for(;current != end; current++){
-                const auto& kind = current.value()->getSeriesKind();
-                auto text = current.value()->getHoveredDataInformation(min, max);
-                QPushButton* button = _hoverDisplayButtons.value(kind);
-                button->setText(button->text() + text);
-                if(button->text().size()){
-                    button->setVisible(true);
-                    show_hover = true;
-                }
-            }
-        }
-    }
-
-    _hoverDisplay->setVisible(show_hover);
-    if (show_hover) {
-        _hoverDisplay->adjustSize();
-
-        //EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        /*QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        int posY = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;*/
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));//, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-        //_hoverDisplay->move(rect().center());
-    }
-    /*
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
-
-    _hoverDisplay->setVisible(showDisplay);
-    if (showDisplay) {
-        
-        _hoverDisplay->adjustSize();
-
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }*/
-
-}
-
-
-/**
- * @brief TimelineChartView::clearWorkloadEvents
- */
-void TimelineChartView::clearWorkloadEvents()
-{
-    for (auto series : eventSeries.values()) {
-        series->clear();
-    }
-    _timelineChart->setInitialRange(true);
-}
-
-
-/**
- * @brief TimelineChartView::receivedWorkloadEvent
- * @param event
- */
-void TimelineChartView::receivedWorkloadEvent(WorkloadEvent* event)
-{
-    if (!event)
-        return;
-
-    // group events by workload id
-    MEDEA::EventSeries* series = 0;
-
-    auto eventID = event->getWorkloadPath();
-    if (eventSeries.contains(eventID)) {
-        series = eventSeries.value(eventID);
-    } else {
-        constructChartForWorkload(event->getWorkerInstanceGraphmlID(), event->getWorkloadID(), event->getName());
-
-        auto chart = eventEntityCharts[eventID];
-        auto set = eventEntitySets[eventID];
-        series = eventSeries[eventID];
-
-        _entityAxis->appendEntity(set);
-        _timelineChart->addEntityChart(chart);
-    }
-
-    if (series) {
-
-        series->addEvent(event);
-
-        // TODO: Don't need this once we have the start/end time of the experiment
-        // update this timeline chart's range
-        auto timelineRange = _timelineChart->getRange();
-        auto seriesRange = series->getTimeRangeMS();
-        if (!_timelineChart->isRangeSet()) {
-            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
-        } else {
-            if (seriesRange.first < timelineRange.first) {
-                _timelineChart->setMin(seriesRange.first);
-            }
-            if (seriesRange.second > timelineRange.second) {
-                _timelineChart->setMax(seriesRange.second);
-            }
-        }
-        // if the timeline chart's range was changed, update the date/time axis' range
-        if (timelineRange != _timelineChart->getRange()) {
-            _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
-        }
-    }
-
-    // TODO - Group workloads by worker id
-}
-
-
-/**
- * @brief TimelineChartView::constructChartForWorkload
- * @param ID
- * @param label
- */
-void TimelineChartView::constructChartForWorkload(QString workerInstID, quint32 workloadID, QString label)
-{
-    WorkloadEventSeries* series = new WorkloadEventSeries(workerInstID, workloadID, this);
-    eventSeries[series->getWorkloadPath()] = series;
-
-    EntityChart* chart = new EntityChart(0, this);
-    eventEntityCharts[series->getWorkloadPath()] = chart;
-    chart->addWorkloadEventSeries(series);
-    connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
-
-    EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
-    eventEntitySets[series->getWorkloadPath()] = set;
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->setEntityChartHovered(chart, hovered);
-    });
 }

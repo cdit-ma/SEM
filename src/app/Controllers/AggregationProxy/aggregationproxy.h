@@ -23,8 +23,8 @@ public:
 
 signals:
     void clearPreviousEvents();
-    void receivedWorkloadEvent(WorkloadEvent* event);
     void receivedAllEvents();
+    void receivedWorkloadEvent(WorkloadEvent* event);
 
 private:
     void SendWorkloadRequest(AggServer::WorkloadRequest& request);
