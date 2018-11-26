@@ -4,7 +4,9 @@
 Heartbeater::Heartbeater(const int heartbeat_period, zmq::ProtoRequester& requester) : 
 heartbeat_period_(heartbeat_period),
 requester_(requester)
-{}
+{
+    
+}
 
 Heartbeater::~Heartbeater(){
     Terminate();

@@ -30,6 +30,7 @@ message Info{
     string experiment_name = 3;
     string container_name = 4;
     string container_id = 5;
+    int64 sequence_number = 6;
 }
 
 message Component{

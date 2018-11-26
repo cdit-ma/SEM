@@ -331,3 +331,16 @@ message InspectExperimentRequest{
 message InspectExperimentReply{
     EnvironmentMessage environment_message = 1;
 }
+
+message SlaveHeartbeatRequest{
+    enum Type{
+        HEARBEAT = 0;
+        END_HEARTBEAT = 1;
+    }
+    SlaveId id = 1;
+    Type type = 2;
+}
+
+message SlaveHeartbeatReply{
+
+}
