@@ -73,22 +73,20 @@ zmq::CachedProtoWriter::~CachedProtoWriter(){
 
 //Takes ownership of message
 bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message){
-    std::unique_lock<std::mutex> lock(mutex_);
-    if(writer_future_.valid()){
-        if(message){
-            //Gain the lock
+    if(message){
+        bool notify = false;
+        {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Push the message onto the queue
             write_queue_.emplace_back(std::make_pair(topic, std::move(message)));
             log_count_ ++;
-            if(write_queue_.size() >= cache_count_){
-                //Notify the writer_thread to flush the queue if we have hit our write limit
-                queue_lock_condition_.notify_all();
-            }
-            return true;
-        }else{
-            std::cerr << "zmq::CachedProtoWriter::PushMessage() Given a null message" << std::endl;
+            notify = write_queue_.size() >= cache_count_;
         }
+        if(notify){
+            //Notify the writer_thread to flush the queue if we have hit our write limit
+            queue_lock_condition_.notify_all();
+        }
+        return true;
     }
     return false;
 }
@@ -98,38 +96,34 @@ void zmq::CachedProtoWriter::Terminate(){
     if(writer_future_.valid()){
         {
             //Gain the lock so we can notify and set our terminate flag.
-            std::unique_lock<std::mutex> lock(queue_mutex_);
+            std::lock_guard<std::mutex> lock(queue_mutex_);
             writer_terminate_ = true;
-            queue_lock_condition_.notify_all();
         }
+        queue_lock_condition_.notify_all();
 
         //Wait for the writer_thread to finish
         writer_future_.get();
-        uint64_t send_count = 0;
-
+        
         //Read the messages from the queue
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             if(written_to_disk_count){
-                auto messages = ReadMessagesFromFile(temp_file_path_);
+                auto cached_messages = ReadMessagesFromFile(temp_file_path_);
                 auto temp_size_kb = boost::filesystem::file_size(temp_file_path_) / 1024;
 
-                if(messages.size() == written_to_disk_count){
-                    std::cout << "* zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "' Size: " << temp_size_kb << "kb" << std::endl;
+                if(cached_messages.size() == written_to_disk_count){
+                    std::cout << "* zmq::CachedProtoWriter: Read all " << cached_messages.size() << " messages in cache file '" << temp_file_path_ << "' Size: " << temp_size_kb << "kb" << std::endl;
                 }else{
-                    std::cerr << "* zmq::CachedProtoWriter: Could only read " << messages.size() << "/" << written_to_disk_count  << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
+                    std::cerr << "* zmq::CachedProtoWriter: Could only read " << cached_messages.size() << "/" << written_to_disk_count  << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
                 } 
 
                 //Send the messages serialized in the temp file
-                while(!messages.empty()){
-                    auto& s = messages.front();
+                while(!cached_messages.empty()){
+                    auto& s = cached_messages.front();
                     if(s){
                         zmq::ProtoWriter::PushString(s->topic, s->type, s->data);
-                        if(send_count++ % 100 == 0){
-                            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                        }
                     }
-                    messages.pop_front();
+                    cached_messages.pop_front();
                 }
             }
         }
@@ -138,21 +132,16 @@ void zmq::CachedProtoWriter::Terminate(){
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
             auto& message = write_queue_.front().second;
-            zmq::ProtoWriter::PushMessage(topic, std::move(message));
+            if(message){
+                zmq::ProtoWriter::PushMessage(topic, std::move(message));
+            }
             write_queue_.pop_front();
-
-            if(send_count++ % 100 == 0){
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }   
         }
 
         //Remove the temp file
         std::remove(temp_file_path_.c_str());
         running = false;
     }
-    
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
     //Terminate the base class
     zmq::ProtoWriter::Terminate();
 }
@@ -167,6 +156,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             queue_lock_condition_.wait(lock, [this]{return writer_terminate_ || write_queue_.size() >= cache_count_;});
             
             if(writer_terminate_){
+                //Terminating should leave the messages in the write_queue
                 return;
             }
             //Swap the queue
@@ -195,7 +185,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             int write_count = 0;
             
             //Write all messages in queue
-            while(!replace_queue.empty()){
+            while(replace_queue.size()){
                 const auto& topic = replace_queue.front().first;
                 const auto& message = *(replace_queue.front().second);
                 
@@ -206,6 +196,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
                 }
                 replace_queue.pop_front();
             }
+
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
             written_to_disk_count += write_count;
@@ -215,14 +206,12 @@ void zmq::CachedProtoWriter::WriteQueue(){
 
 std::list< std::unique_ptr<Message_Struct> > zmq::CachedProtoWriter::ReadMessagesFromFile(const std::string& file_path){
     std::list< std::unique_ptr<Message_Struct> > queue;
-
     int filedesc = getReadFileDesc(file_path.c_str());
 
     if(filedesc < 0){
         std::cerr << "Failed to open file '" << file_path << "' to read." << std::endl;
         return queue;
     }
-
 
     //Make an input stream using the file
     ::google::protobuf::io::FileInputStream raw_input(filedesc);
@@ -239,7 +228,7 @@ std::list< std::unique_ptr<Message_Struct> > zmq::CachedProtoWriter::ReadMessage
             break;
         }
     }
-    return std::move(queue);
+    return queue;
 }
 
 bool zmq::CachedProtoWriter::WriteDelimitedTo(const std::string& topic, const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* raw_output){
@@ -290,8 +279,7 @@ bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyIn
 
     //Read the number of bytes as a string
     if(!in.ReadString(&topic, topic_size)){
-        std::cout << "Stream Error @ " << in.CurrentPosition() << " Reading " << topic_size << std::endl;
-        std::cout << "ERROR!" << std::endl;
+        std::cerr << "Stream Error @ " << in.CurrentPosition() << " Reading Topic: " << topic_size << std::endl;
         return false;
     }
 
@@ -304,8 +292,7 @@ bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyIn
 
     //Read the number of bytes as a string
     if(!in.ReadString(&type, type_size)){
-        std::cout << "Stream Error @ " << in.CurrentPosition() << " Reading " << type_size << std::endl;
-        std::cout << "ERROR!" << std::endl;
+        std::cerr << "Stream Error @ " << in.CurrentPosition() << " Reading Type: " << type_size << std::endl;
         return false;
     }
 
@@ -318,8 +305,7 @@ bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyIn
 
     //Read the number of bytes as a string
     if(!in.ReadString(&message, size)){
-        std::cout << "Stream Error @ " << in.CurrentPosition() << " Reading " << size << std::endl;
-        std::cout << "ERROR!" << std::endl;
+        std::cerr << "Stream Error @ " << in.CurrentPosition() << " Reading Message: " << size << std::endl;
         return false;
     }
     return true;

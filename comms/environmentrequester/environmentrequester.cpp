@@ -32,12 +32,12 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
             retry_count++;
         }catch(const zmq::RMIException& ex){
             std::cerr << "* RMI Exception: " << ex.what() << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
             retry_count++;
         }catch(const std::exception& ex){
-            std::cerr << "Exception in EnvironmentRequester::TryRegisterNodeManager" << ex.what() << std::endl;
-            throw;
+            std::cerr << "* Exception in EnvironmentRequester::TryRegisterNodeManager" << ex.what() << std::endl;
+            retry_count++;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
     }
     throw zmq::TimeoutException("TryRegisterNodeManager failed after three attempts.");
 }
@@ -67,7 +67,7 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
             retry_count++;
         }catch(const std::exception& ex){
             std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
-            throw;
+            retry_count++;
         }
     }
     throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");

@@ -168,6 +168,7 @@ void zmq::ProtoRequester::ProcessRequest(zmq::socket_t& socket, RequestStruct& r
         if(ex.num() != ETERM){
             std::runtime_error error("Got ZMQ Exception: " + std::string(ex.what()));
             request.promise.set_exception(std::make_exception_ptr(error));
+            throw;
         }else{
             std::runtime_error error("ZMQ ProtoRequester was shutdown during request handling");
             request.promise.set_exception(std::make_exception_ptr(error));
