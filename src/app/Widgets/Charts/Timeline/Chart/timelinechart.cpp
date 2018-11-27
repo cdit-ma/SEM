@@ -39,6 +39,7 @@ TimelineChart::TimelineChart(QWidget* parent)
  */
 void TimelineChart::setMin(double min)
 {
+    min--;
     if (min != _displayMin) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
@@ -54,6 +55,7 @@ void TimelineChart::setMin(double min)
  */
 void TimelineChart::setMax(double max)
 {
+    max++;
     if (max != _displayMax) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
@@ -70,6 +72,8 @@ void TimelineChart::setMax(double max)
  */
 void TimelineChart::setRange(double min, double max)
 {
+    min--;
+    max++;
     for (EntityChart* chart : _entityCharts) {
         chart->setRange(min, max);
     }

@@ -459,10 +459,10 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
         if (!_timelineChart->isRangeSet()) {
             _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
         } else {
-            if (seriesRange.first < timelineRange.first) {
+            if (seriesRange.first <= timelineRange.first) {
                 _timelineChart->setMin(seriesRange.first);
             }
-            if (seriesRange.second > timelineRange.second) {
+            if (seriesRange.second >= timelineRange.second) {
                 _timelineChart->setMax(seriesRange.second);
             }
         }
@@ -631,10 +631,10 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     if (!_timelineChart->isRangeSet()) {
         _timelineChart->setInitialRange(false, chartRange.first, chartRange.second);
     } else {
-        if (chartRange.first < timelineRange.first) {
+        if (chartRange.first <= timelineRange.first) {
             _timelineChart->setMin(chartRange.first);
         }
-        if (chartRange.second > timelineRange.second) {
+        if (chartRange.second >= timelineRange.second) {
             _timelineChart->setMax(chartRange.second);
         }
     }
