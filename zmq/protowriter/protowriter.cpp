@@ -28,7 +28,7 @@
 #include <functional>
 
 zmq::ProtoWriter::ProtoWriter():
-    message_process_delay_(50)
+    message_process_delay_(200)
 {
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_PUB));
@@ -137,9 +137,8 @@ void zmq::ProtoWriter::UpdateBackpressure(bool increment_sender){
 
 void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
-    
     UpdateBackpressure(false);
-    
+
     if(backpressure_ > 0){
         std::chrono::microseconds sleep_us(message_process_delay_ * backpressure_);
         std::cout << "* Sleeping for: " << sleep_us.count() << " us to free backpressure on ProtoWriter." << std::endl;
