@@ -61,7 +61,6 @@ class Node{
         int GetDeployedComponentCount() const;
         int GetContainerCount() const;
         int GetLoganServerCount() const;
-        bool DeployedTo() const;
 
         std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers();
 

@@ -25,14 +25,18 @@ Container::Container(EnvironmentManager::Environment &environment, Node &parent,
     }
 
     // If we have deployed components, add a model logger to this container
-    if(components_.size() > 0){
+    if(GetDeployedComponentCount() > 0){
         AddModelLogger();
     }
 
     // Add our explicitly defined loggers
     for(const auto& logger_pb : container.loggers()){
-        AddLogger(logger_pb);
+        //Only Deploy Logging profiles if we have Components Deployed, or it's a server
+        if(logger_pb.type() == NodeManager::Logger::SERVER || GetDeployedComponentCount() > 0){
+            AddLogger(logger_pb);
+        }
     }
+
 }
 
 Container::~Container() {

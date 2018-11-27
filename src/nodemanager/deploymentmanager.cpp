@@ -8,7 +8,6 @@
 #include <comms/environmentrequester/environmentrequester.h>
 #include <proto/controlmessage/helper.h>
 
-const static int MAX_RETRY_COUNT = 5;
 DeploymentManager::DeploymentManager(
         Execution& execution,
         const std::string& experiment_name,
@@ -78,8 +77,7 @@ void DeploymentManager::RequestDeployment(){
             }catch(const zmq::RMIException& ex){
                 throw;
             }catch(const std::exception& ex){
-                std::cerr << "Unhandled exception in DeploymentManager::RequestDeployment" << ex.what() << std::endl;
-                throw;
+                retry_count++;
             }
             if(retry_count > 3){
                 throw std::runtime_error("DeploymentManager::RequestDeployment failed after three attempts.");
@@ -154,9 +152,7 @@ void DeploymentManager::Terminate(){
 }
 
 DeploymentManager::~DeploymentManager(){
-    std::cerr << "~DeploymentManager()" << std::endl;
     Terminate();
-    std::cerr << "~~DeploymentManager()" << std::endl;
 }
 
 void DeploymentManager::GotExperimentUpdate(const NodeManager::ControlMessage& control_message){

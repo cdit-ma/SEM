@@ -42,9 +42,7 @@ ExecutionManager::ExecutionManager(
 };
 
 ExecutionManager::~ExecutionManager(){
-    std::cerr << "~ExecutionManager()" << std::endl;
     Terminate();
-    std::cerr << "~~ExecutionManager()" << std::endl;
 }
 
 void ExecutionManager::Terminate(){

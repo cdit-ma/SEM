@@ -141,10 +141,6 @@ Experiment& Node::GetExperiment(){
     return experiment_;
 }
 
-bool Node::DeployedTo() const{
-    return GetDeployedCount() > 0;
-}
-
 int Node::GetDeployedCount() const{
     int temp = 0;
     for(const auto& container : containers_){

@@ -246,6 +246,7 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
             reply->mutable_deployments()->AddAllocated(node_deployment.release());
         }
     }
+    reply->PrintDebugString();
     return reply;
 }
 
@@ -324,7 +325,7 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
 
             control_message->set_experiment_id(model_name_);
             for (auto &node_pair : node_map_) {
-                if (node_pair.second->DeployedTo()) {
+                if (node_pair.second->GetDeployedComponentCount()) {
                     auto node_pb = node_pair.second->GetProto(full_update);
                     if (node_pb) {
                         control_message->mutable_nodes()->AddAllocated(node_pb.release());

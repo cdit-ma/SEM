@@ -139,8 +139,11 @@ std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
             case Type::Server:{
                 //Get the clients
                 for(const auto& client_id : GetConnectedClientIds()){
-                    for(const auto& logger : GetNode().GetExperiment().GetLoggerClients(client_id)){
-                        logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
+                    for(const auto& l : GetNode().GetExperiment().GetLoggerClients(client_id)){
+                        auto& logger = l.get();
+                        if(logger.GetContainer().GetDeployedComponentCount()){
+                            logger_pb->add_client_addresses(logger.GetPublisherEndpoint());
+                        }
                     }
                 }
 
@@ -226,5 +229,10 @@ NodeManager::Logger::Type Logger::TranslateInternalType(const Type type){
 }
 
 Node &Logger::GetNode() const {
-    return parent_.GetNode();
+    return GetContainer().GetNode();
+}
+
+
+Container &Logger::GetContainer() const {
+    return parent_;
 }
