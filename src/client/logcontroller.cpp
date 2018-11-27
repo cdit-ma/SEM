@@ -186,7 +186,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
                 system_.Update();
                 //Send the tick'd information to all servers
                 auto message = system_.GetSystemStatus(listener_id_);
-                //message->PrintDebugString();
                 if(message){
                     writer->PushMessage(std::move(message));
                 }
