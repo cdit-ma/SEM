@@ -97,7 +97,7 @@ QString MEDEA::BarSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeM
         //const auto& barData = current.value();
         //stream << barData->getMax() << " "; //\n";
         //stream << current.key() << "\n";
-        stream << QDateTime::fromMSecsSinceEpoch(current.key()).toString("MMMM d, hh:mm:ss:zzz") << "\n";
+        stream << QDateTime::fromMSecsSinceEpoch(current.key()).toString("MMMM d, hh:mm:ss:zzzzz") << "\n";
     }
 
     return text.trimmed();

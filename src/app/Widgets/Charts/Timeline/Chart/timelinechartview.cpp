@@ -392,17 +392,20 @@ void TimelineChartView::updateChartHoverDisplay()
         return;
 
     const auto& hoverRect = _timelineChart->getHoverRect();
-    //auto mapped = _timelineChart->mapTo(this, hoverRect.center().toPoint());
-    //qDebug() << "hover global: " << mapToGlobal(mapped).x();
 
+    /*
     auto fromTime = _timelineChart->mapPixelToTime(hoverRect.left());
     auto toTime = _timelineChart->mapPixelToTime(hoverRect.right());
-    qDebug() << "---------------------------------------------------";
     auto  centerTime = _timelineChart->mapPixelToTime(hoverRect.center().x());
-    qDebug() << "center: " << QDateTime::fromMSecsSinceEpoch(centerTime).toString("MMMM d, hh:mm:ss:zzz");
-    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(fromTime).toString("MMMM d, hh:mm:ss:zzz");
-    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(toTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "===================================================";
+    //qDebug() << "---------------------------------------------------";
+    qDebug() << "[VIEW]";
+    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(fromTime).toString(DATETIME_FORMAT);
+    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(toTime).toString(DATETIME_FORMAT);
     qDebug() << "---";
+    qDebug() << "center: " << QDateTime::fromMSecsSinceEpoch(centerTime).toString(DATETIME_FORMAT);
+    qDebug() << "===================================================";
+    */
 
     QHash<TIMELINE_SERIES_KIND, QString> hoveredData;
 

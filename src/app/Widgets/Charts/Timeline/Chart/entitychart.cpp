@@ -149,6 +149,9 @@ QList<QPointF> EntityChart::getSeriesPoints(TIMELINE_SERIES_KIND seriesKind)
  */
 void EntityChart::resizeEvent(QResizeEvent* event)
 {
+    //qDebug() << "ENTITTY CHART: " << this->width();
+    //qDebug() << "chart displayed range: " << (_displayedMax - _displayedMin);
+
     mapPointsFromRange();
     QWidget::resizeEvent(event);
 }
@@ -713,16 +716,18 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
-    const int bar_width = BAR_WIDTH;
-    double bar_count = ceil(width() / (double)bar_width);
+    const double bar_width = BAR_WIDTH;
+    //double bar_count = ceil(width() / (double)bar_width);
+    double bar_count = width() / bar_width;
     double bar_time_width = (_displayedMax - _displayedMin) / bar_count;
 
     // bar/bucket count
     QVector< QList<MEDEA::BarData*> > buckets(bar_count);
-    QList<qint64> bucket_endtimes;
+    QList<double> bucket_endtimes;
+    //QList<qint64> bucket_endtimes;
 
     auto current_left = _displayedMin;
-    for (int i = 0; i < bar_count; i++) {
+    for (double i = 0; i < bar_count; i++) {
         bucket_endtimes.append(current_left + bar_time_width);
         current_left = bucket_endtimes.last();
     }
@@ -747,20 +752,12 @@ void EntityChart::paintBarSeries(QPainter &painter)
         }
     }
 
-    auto min_size = INT_MAX;
-    auto max_size = 0;
-    for (int i = 0; i < bar_count; i ++) {
-        auto size = buckets[i].size();
-        min_size = qMin(min_size, size);
-        max_size = qMax(max_size, size);
-    }
-
     QColor seriesColor = _lineColor;
     painter.setPen(QPen(seriesColor.lighter(_borderColorDelta), 1));
 
     qreal offset = painter.pen().widthF() / 2.0;
 
-    for (int i = 0; i < bar_count; i ++) {
+    for (double i = 0; i < bar_count; i++) {
 
         auto size = buckets[i].size();
         switch(size) {
@@ -768,9 +765,14 @@ void EntityChart::paintBarSeries(QPainter &painter)
             break;
         case 1: {
             const auto& data = buckets[i][0];
-            //qDebug() << "qint64: " << data->getTime();
-            qDebug() << "time: " << QDateTime::fromMSecsSinceEpoch(data->getTime()).toString("MMMM d, hh:mm:ss:zzz");
+            /*
+            qDebug() << "[BAR]";
+            qDebug() << "ACTUAL time: " << QDateTime::fromMSecsSinceEpoch(data->getTime()).toString();
+            qDebug() << "time - qint64: " << data->getTime();
+            qDebug() << "x-time: " << QDateTime::fromMSecsSinceEpoch((qint64)(i * bar_time_width + _displayedMin)).toString("MMMM d, hh:mm:ss:zzzzz");
+            qDebug() << "x - qint64: " << (qint64)(i * bar_time_width + _displayedMin);
             qDebug() << "---";
+            */
             paintBar(painter, data->getData(), i * bar_width, seriesColor);
             break;
         }
@@ -825,7 +827,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
  * @param data
  * @param x
  */
-void EntityChart::paintBar(QPainter &painter, const QVector<double> &data, int x, QColor color)
+void EntityChart::paintBar(QPainter &painter, const QVector<double> &data, double x, QColor color)
 {
     if (data.isEmpty() || data.count() > 5)
         return;
@@ -860,6 +862,21 @@ void EntityChart::paintBar(QPainter &painter, const QVector<double> &data, int x
         //qDebug() << "bar center:" << barRect.center();
         color.setHsv(qAbs(color.hue() - 180), 255, 255);
     }
+
+    /*
+    auto adj = barRect.adjusted(-offset, 0, offset, 0);
+    auto min_offset = adj.left() / width();
+    auto max_offset = adj.right() / width();
+    auto delta = _displayedMax - _displayedMin;
+    auto minTime = _displayedMin + (delta * min_offset);
+    auto maxTime = _displayedMin + (delta * max_offset);
+
+    //qDebug() << "min offset: " << min_offset;
+    //qDebug() << "rect.left: " << barRect.left();
+    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(minTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(maxTime).toString("MMMM d, hh:mm:ss:zzz");
+    qDebug() << "---------------------------------------------------";
+    */
 
     painter.fillRect(barRect, color);
     painter.fillRect(upperRect, color.lighter());
@@ -921,6 +938,16 @@ void EntityChart::setHoveredRect(QRectF rect)
         QPoint pos = mapFromParent(rect.topLeft().toPoint());
         rect.moveTo(pos.x(), 0);
         _hoveredRect = rect;
+
+        auto min_offset = rect.left() / width();
+        auto max_offset = rect.right() / width();
+        auto delta = _displayedMax - _displayedMin;
+        auto minTime = _displayedMin + (delta * min_offset);
+        auto maxTime = _displayedMin + (delta * max_offset);
+
+        //qDebug() << "CHART: ";
+        //qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(minTime).toString("MMMM d, hh:mm:ss:zzz");
+        //qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(maxTime).toString("MMMM d, hh:mm:ss:zzz");
     }
 }
 

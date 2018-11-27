@@ -61,11 +61,10 @@ private slots:
 
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
-    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
-    void paintBar(QPainter &painter, const QVector<double> &data, int x, QColor color);
+    void paintBar(QPainter &painter, const QVector<double> &data, double x, QColor color);
 
     void setPointWidth(double width);
     double getPointWidth(TIMELINE_SERIES_KIND kind);
@@ -149,9 +148,6 @@ private:
     }
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
-
-    PortLifeCycleSeries* _lifeCycleSeries = 0;
-    QMap<LifeCycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;

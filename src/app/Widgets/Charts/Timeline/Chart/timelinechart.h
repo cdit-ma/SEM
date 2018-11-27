@@ -14,6 +14,10 @@
 
 #include <QDebug>
 
+static QString DATETIME_FORMAT = "MMMM d, hh:mm:ss:zzzzz";
+static QString TIME_FORMAT = "hh:mm:ss:zzzzz";
+static QString DATE_FORMAT = "MMMM d";
+
 class EntityChart;
 class TimelineChart : public QWidget
 {

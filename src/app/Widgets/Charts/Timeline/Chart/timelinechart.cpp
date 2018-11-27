@@ -135,7 +135,6 @@ TimelineChart::TimelineChart(QWidget* parent)
 void TimelineChart::setMin(double min)
 {
     if (min != _displayMin) {
-        QDateTime dt; dt.setMSecsSinceEpoch(min);
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
         }
@@ -151,7 +150,6 @@ void TimelineChart::setMin(double min)
 void TimelineChart::setMax(double max)
 {
     if (max != _displayMax) {
-        QDateTime dt; dt.setMSecsSinceEpoch(max);
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
         }
@@ -183,7 +181,7 @@ void TimelineChart::setAxisWidth(double width)
 {
     axisWidth = width;
     axisLinePen.setWidthF(width);
-    setContentsMargins(width, 0, 0, 0);
+    //setContentsMargins(width, 0, 0, 0);
 }
 
 

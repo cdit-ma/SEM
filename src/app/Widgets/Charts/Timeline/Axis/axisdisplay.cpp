@@ -237,6 +237,9 @@ void AxisDisplay::updateDisplayedMax(double maxRatio)
  */
 void AxisDisplay::resizeEvent(QResizeEvent* event)
 {
+    //qDebug() << "AXIS DISPLAY: " << this->width();
+    //qDebug() << "axis displayed range: " << _displayedRange;
+
     // update tick label locations
     QWidget::resizeEvent(event);
     update();
@@ -364,10 +367,10 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         startPoint += QPointF(rectWidth, 0);
 
         if (_valueType == VALUE_TYPE::DATETIME) {
-            QDate date = constructDateTime(value).date();
+            QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
             if (date != prevDate) {
                 textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
-                painter.drawText(textRect, date.toString("MMMM d"), QTextOption(_textAlignment));
+                painter.drawText(textRect, date.toString(DATE_FORMAT), QTextOption(_textAlignment));
             }
             prevDate = date;
         }
@@ -485,7 +488,7 @@ QString AxisDisplay::getCovertedString(double value)
 {
     switch (_valueType) {
     case VALUE_TYPE::DATETIME:
-        return constructDateTime(value).toString("hh:mm:ss.zzz");
+        return QDateTime::fromMSecsSinceEpoch(value).toString(TIME_FORMAT);
     default:
         return QString::number(value);
     }
@@ -500,17 +503,4 @@ QRectF AxisDisplay::getAdjustedRect()
 {
     double halfPenWidth = _penWidth / 2.0;
     return rect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
-}
-
-
-/**
- * @brief AxisDisplay::constructDateTime
- * @param mSecsSinceEpoch
- * @return
- */
-QDateTime AxisDisplay::constructDateTime(qint64 mSecsSinceEpoch)
-{
-    QDateTime dateTime;
-    dateTime.setMSecsSinceEpoch(mSecsSinceEpoch);
-    return dateTime;
 }

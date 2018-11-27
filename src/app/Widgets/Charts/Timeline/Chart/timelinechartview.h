@@ -18,7 +18,6 @@
 
 
 enum class VALUE_TYPE{DOUBLE, DATETIME};
-QString getDateTimeString(qint64 mSecsSinceEpoch);
 
 class AxisWidget;
 class TimelineChart;
