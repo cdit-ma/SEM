@@ -246,7 +246,6 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
             reply->mutable_deployments()->AddAllocated(node_deployment.release());
         }
     }
-    reply->PrintDebugString();
     return reply;
 }
 

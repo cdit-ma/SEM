@@ -106,7 +106,7 @@ void Environment::AddNodes(const std::string& experiment_id, const NodeManager::
 
     auto& containers = cluster.containers();
 
-    std::vector<std::reference_wrapper<const NodeManager::Container> > implicit_containers;
+    std::vector< std::reference_wrapper<const NodeManager::Container> > implicit_containers;
     
     for(const auto& container : cluster.containers()){
         if(container.implicit()){
@@ -115,7 +115,6 @@ void Environment::AddNodes(const std::string& experiment_id, const NodeManager::
             DeployContainer(experiment_id, container);
         }
     }
-
     for(const auto& container : implicit_containers){
         DistributeContainerToImplicitNodeContainers(experiment_id, container);
     }

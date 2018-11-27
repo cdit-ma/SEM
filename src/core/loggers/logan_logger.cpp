@@ -230,5 +230,3 @@ const std::string& Logan::Logger::GetContainerName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return container_name_;
 }
-
-
