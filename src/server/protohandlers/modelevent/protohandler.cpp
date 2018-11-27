@@ -72,11 +72,6 @@ ModelEvent::ProtoHandler::ProtoHandler(SQLiteDatabase& database):
     CreateUtilizationTable();
 }
 
-ModelEvent::ProtoHandler::~ProtoHandler(){
-    std::lock_guard<std::mutex> lock(mutex_);
-    std::cout << "* ModelEvent::ProtoHandler: Processed: " << rx_count_ << " Messages" << std::endl;
-};
-
 void ModelEvent::ProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver){
     receiver.RegisterProtoCallback<ModelEvent::LifecycleEvent>(std::bind(&ModelEvent::ProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
     receiver.RegisterProtoCallback<ModelEvent::WorkloadEvent>(std::bind(&ModelEvent::ProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
@@ -91,7 +86,9 @@ bool ModelEvent::ProtoHandler::GotTable(const std::string& table_name){
     try{
         GetTable(table_name);
         return true;
-    }catch(const std::exception& ex){}
+    }catch(const std::exception& ex){
+
+    }
     return false;
 }
 
@@ -302,3 +299,9 @@ void ModelEvent::ProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utiliza
     }
 }
 
+
+
+ModelEvent::ProtoHandler::~ProtoHandler(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::cout << "* ModelEvent::ProtoHandler: Processed: " << rx_count_ << " Messages" << std::endl;
+};

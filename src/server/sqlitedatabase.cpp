@@ -37,7 +37,8 @@ SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
     if(result != SQLITE_OK){
         throw std::runtime_error("SQLite Failed to Open Database");
     }
-    result = sqlite3_exec(database_, "PRAGMA journal_mode = MEMORY;PRAGMA synchronous = OFF;", NULL, NULL, NULL);
+    //result = sqlite3_exec(database_, "PRAGMA journal_mode = MEMORY;PRAGMA synchronous = OFF;", NULL, NULL, NULL);
+    //result = sqlite3_exec(database_, "PRAGMA journal_mode = MEMORY;PRAGMA synchronous = OFF;", NULL, NULL, NULL);
 
     if(result != SQLITE_OK){
         throw std::runtime_error("SQLite Failed to optimize");
@@ -94,7 +95,7 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
         transaction_count_ ++;
     }
 
-    if(flush || transaction_count_ > SQL_BATCH_SIZE){
+    if(flush || transaction_count_ >= SQL_BATCH_SIZE){
         Flush_();
     }
 }
@@ -112,7 +113,6 @@ size_t SQLiteDatabase::Flush_(){
         if(result != SQLITE_OK){
             std::cerr << "SQLite failed to END_TRANSACTION" << std::endl;
         }
-        std::cerr << "Transaction had: " << transaction_count_ << std::endl;
         transaction_count_ = 0;
     }
     return flush_count;

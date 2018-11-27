@@ -61,7 +61,7 @@ namespace ModelEvent{
         static void AddWorkerColumns(Table& table);
 
         //Bind columns functions
-        static void BindInfoColumns(TableInsert& row, const ModelEvent::Info& info);
+        void BindInfoColumns(TableInsert& row, const ModelEvent::Info& info);
         static void BindComponentColumns(TableInsert& row, const ModelEvent::Component& component);
         static void BindWorkerColumns(TableInsert& row, const ModelEvent::Worker& worker);
         static void BindPortColumns(TableInsert& row, const ModelEvent::Port& port);

@@ -51,6 +51,7 @@ void ManagedServer::InteruptExecution(){
 
 void ManagedServer::HandleExperimentUpdate(NodeManager::EnvironmentMessage& message){
     if(message.type() == NodeManager::EnvironmentMessage::SHUTDOWN_LOGAN_SERVER){
+        //std::this_thread::sleep_for(std::chrono::seconds(5));
         InteruptExecution();
     }
 }
