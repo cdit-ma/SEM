@@ -432,15 +432,23 @@ void EntityChart::paintEventSeries(QPainter &painter)
     QColor seriesColor = Qt::gray;
     int y = rect().center().y() - barWidth / 2.0;
 
+    WorkloadEvent* hovered_event = 0;
+    QRectF hovered_rect;
+
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
             continue;
         QRectF rect(i * barWidth, y, barWidth, barWidth);
         if (count == 1) {
-            if (pointHovered(rect))
-                painter.fillRect(rect, _highlightColor);
             auto event = (WorkloadEvent*) buckets[i][0];
+            //painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
+            if (pointHovered(rect)) {
+                hovered_event = event;
+                hovered_rect = rect;
+                painter.fillRect(rect, _highlightColor);
+            }
+            //auto event = (WorkloadEvent*) buckets[i][0];
             painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
@@ -451,6 +459,24 @@ void EntityChart::paintEventSeries(QPainter &painter)
             }
             painter.fillRect(rect, color);
             painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        }
+    }
+
+    if (_hovered && hovered_event) {
+        QString args = hovered_event->getArgs();
+        if (!args.isEmpty()) {
+            painter.save();
+            painter.setBrush(_hoveredRectColor);
+            painter.setPen(_hoverLinePen.color());
+            hovered_rect.moveRight(hovered_rect.right() + hovered_rect.width() + 5);
+            hovered_rect.setWidth(fontMetrics().width(args) + 10);
+            qreal centerY = hovered_rect.center().y();
+            hovered_rect.setHeight(hovered_rect.height() * 2 + 2);
+            hovered_rect.moveCenter(QPointF(hovered_rect.center().x(), centerY));
+            args = "[" + hovered_event->getFunctionName() + "]\n" + args;
+            painter.drawRect(hovered_rect);
+            painter.drawText(hovered_rect, args, QTextOption(Qt::AlignCenter));
+            painter.restore();
         }
     }
 }

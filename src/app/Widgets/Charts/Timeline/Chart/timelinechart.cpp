@@ -39,6 +39,7 @@ TimelineChart::TimelineChart(QWidget* parent)
  */
 void TimelineChart::setMin(double min)
 {
+    min--;
     if (min != _displayMin) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
@@ -54,6 +55,7 @@ void TimelineChart::setMin(double min)
  */
 void TimelineChart::setMax(double max)
 {
+    max++;
     if (max != _displayMax) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
@@ -70,6 +72,8 @@ void TimelineChart::setMax(double max)
  */
 void TimelineChart::setRange(double min, double max)
 {
+    min--;
+    max++;
     for (EntityChart* chart : _entityCharts) {
         chart->setRange(min, max);
     }
@@ -204,6 +208,17 @@ void TimelineChart::setInitialRange(bool reset, double min, double max)
     if (reset) {
         setRange(0, 100);
     } else {
+        if (rangeSet)
+            return;
+        /*
+        qDebug() << "min: " << min;
+        qDebug() << "max: " << max;
+        QDateTime minDT = QDateTime::fromMSecsSinceEpoch(ceil(min + 1.0));
+        QDateTime maxDT = QDateTime::fromMSecsSinceEpoch(ceil(max + 1.0));
+        setRange(minDT.toMSecsSinceEpoch(), maxDT.toMSecsSinceEpoch());
+        qDebug() << "minTime: " << minDT.toString("hh:mm:ss:zzz");
+        qDebug() << "maxTime: " << maxDT.toString("hh:mm:ss:zzz");
+        */
         setRange(min, max);
     }
     rangeSet = !reset;

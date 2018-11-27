@@ -13,7 +13,7 @@
  * @param parent
  */
 WorkloadEvent::WorkloadEvent(WorkloadEvent::WorkerInstance inst, WorkloadEvent::WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject *parent)
-    : MEDEA::Event(time, functionName, parent)
+    : MEDEA::Event(time, inst.name, parent)
 {
     workerInstance_ = inst;
     type_ = type;
@@ -71,4 +71,24 @@ const quint32 WorkloadEvent::getWorkloadID()
 const quint32 WorkloadEvent::getLogLevel()
 {
     return logLevel_;
+}
+
+
+/**
+ * @brief WorkloadEvent::getFunctionName
+ * @return
+ */
+const QString WorkloadEvent::getFunctionName()
+{
+    return functionName_;
+}
+
+
+/**
+ * @brief WorkloadEvent::getArgs
+ * @return
+ */
+const QString WorkloadEvent::getArgs()
+{
+    return args_;
 }

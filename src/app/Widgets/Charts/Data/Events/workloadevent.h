@@ -31,6 +31,8 @@ public:
     const WorkloadEventType getType();
     const quint32 getWorkloadID();
     const quint32 getLogLevel();
+    const QString getFunctionName();
+    const QString getArgs();
 
 private:
     WorkerInstance workerInstance_;

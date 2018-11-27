@@ -490,10 +490,10 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
         if (!_timelineChart->isRangeSet()) {
             _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
         } else {
-            if (seriesRange.first < timelineRange.first) {
+            if (seriesRange.first <= timelineRange.first) {
                 _timelineChart->setMin(seriesRange.first);
             }
-            if (seriesRange.second > timelineRange.second) {
+            if (seriesRange.second >= timelineRange.second) {
                 _timelineChart->setMax(seriesRange.second);
             }
         }
@@ -522,7 +522,8 @@ void TimelineChartView::constructChartForEvent(QString workerInstID, quint32 wor
     chart->addEventSeries(series);
     connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
-    EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
+    //EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
+    EntitySet* set = new EntitySet(label + "(" + workerInstID + ")", this);
     eventEntitySets[seriesID] = set;
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->themeChanged(Theme::theme());
