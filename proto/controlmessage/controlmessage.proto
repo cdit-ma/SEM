@@ -116,6 +116,7 @@ message HardwareId{
 
 message ContainerId{
     string id = 1;
+    bool is_master = 2;
 }
 
 message NodeDeployment{
