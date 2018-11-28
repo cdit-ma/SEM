@@ -34,6 +34,7 @@ class Logger{
         Logger::Type GetType() const;
 
 
+        Container& GetContainer() const;
         Node& GetNode() const;
         Experiment& GetExperiment() const;
 

@@ -23,6 +23,7 @@ void BehaviourContainer::HandleActivate(){
             worker->Activate();
         }
     }
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
 }
 
 void BehaviourContainer::HandlePassivate(){
@@ -34,6 +35,7 @@ void BehaviourContainer::HandlePassivate(){
             worker->Passivate(); 
         }
     }
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
 }
 
 void BehaviourContainer::HandleTerminate(){
@@ -45,6 +47,7 @@ void BehaviourContainer::HandleTerminate(){
             worker->Terminate();
         }
     }
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
 }
 
 void BehaviourContainer::HandleConfigure(){
@@ -56,6 +59,7 @@ void BehaviourContainer::HandleConfigure(){
             worker->Configure();
         }
     }
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::CONFIGURED);
 }
 
 std::weak_ptr<Worker> BehaviourContainer::AddWorker(std::unique_ptr<Worker> worker){

@@ -32,7 +32,7 @@ class Node{
         void AddContainer(const NodeManager::Container& container);
 
         void AddComponentToImplicitContainer(const NodeManager::Component& component);
-        void AddLoggingClientToImplicitContainer(const NodeManager::Logger& logging_client);
+        void AddLoggingClient(const NodeManager::Logger& logging_client);
         void AddLoggingServerToImplicitContainer(const NodeManager::Logger& logging_server);
 
         bool HasMasterEligibleContainer() const;
@@ -54,14 +54,13 @@ class Node{
         bool HasPort(const std::string& port_id) const;
 
         Container& GetContainer(const std::string& component_id) const;
-        Logger& GetLogger(const std::string& logger_id) const;
+        std::vector<std::reference_wrapper<Logger> > GetLoggers(const std::string& logger_id) const;
         Port& GetPort(const std::string& port_id) const;
 
         int GetDeployedCount() const;
         int GetDeployedComponentCount() const;
         int GetContainerCount() const;
         int GetLoganServerCount() const;
-        bool DeployedTo() const;
 
         std::vector<std::unique_ptr<NodeManager::Logger> > GetAllocatedLoganServers();
 

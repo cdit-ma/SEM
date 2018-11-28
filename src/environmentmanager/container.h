@@ -58,6 +58,7 @@ public:
 
 private:
     void AddModelLogger();
+    EnvironmentManager::Logger& GetModelLogger();
 
     Environment& environment_;
     Node& parent_;

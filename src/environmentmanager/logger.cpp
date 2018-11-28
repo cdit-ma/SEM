@@ -12,7 +12,8 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
 
     type_ = TranslateProtoType(logger.type());
 
-    if(type_ ==  Type::Client){
+    switch(type_){
+    case Type::Client:{
         frequency_ = logger.frequency();
         mode_ = TranslateProtoMode(logger.mode());
 
@@ -21,13 +22,24 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
         }
 
         publisher_port_ = environment_.GetPort(GetNode().GetIp());
-    }else if(type_ == Type::Server){
+        break;    
+    }
+    case Type::Model:{
+        mode_ = TranslateProtoMode(logger.mode());
+        break;
+    }
+    case Type::Server:{
         db_file_name_ = logger.db_file_name();
 
         for(const auto& client_id : logger.client_ids()){
             AddConnectedClientId(client_id);
         }
         AddConnectedClientId("model_logger");
+        break;
+    }
+    default:{
+        throw std::runtime_error("Unhandle Logger Type");
+    }
     }
 }
 
@@ -127,8 +139,11 @@ std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
             case Type::Server:{
                 //Get the clients
                 for(const auto& client_id : GetConnectedClientIds()){
-                    for(const auto& logger : GetNode().GetExperiment().GetLoggerClients(client_id)){
-                        logger_pb->add_client_addresses(logger.get().GetPublisherEndpoint());
+                    for(const auto& l : GetNode().GetExperiment().GetLoggerClients(client_id)){
+                        auto& logger = l.get();
+                        if(logger.GetContainer().GetDeployedComponentCount()){
+                            logger_pb->add_client_addresses(logger.GetPublisherEndpoint());
+                        }
                     }
                 }
 
@@ -214,5 +229,10 @@ NodeManager::Logger::Type Logger::TranslateInternalType(const Type type){
 }
 
 Node &Logger::GetNode() const {
-    return parent_.GetNode();
+    return GetContainer().GetNode();
+}
+
+
+Container &Logger::GetContainer() const {
+    return parent_;
 }

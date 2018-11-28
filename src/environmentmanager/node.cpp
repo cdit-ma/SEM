@@ -141,10 +141,6 @@ Experiment& Node::GetExperiment(){
     return experiment_;
 }
 
-bool Node::DeployedTo() const{
-    return GetDeployedCount() > 0;
-}
-
 int Node::GetDeployedCount() const{
     int temp = 0;
     for(const auto& container : containers_){
@@ -169,13 +165,19 @@ bool Node::HasLogger(const std::string& logger_id) const {
     }
     return false;
 }
-Logger &Node::GetLogger(const std::string &logger_id) const {
+
+
+std::vector<std::reference_wrapper<Logger> > Node::GetLoggers(const std::string &logger_id) const {
+    std::vector<std::reference_wrapper<Logger> > loggers;
+
     for(const auto& container : containers_){
-        if(container.second->HasLogger(logger_id)){
-            return container.second->GetLogger(logger_id);
+        try{
+            loggers.emplace_back(container.second->GetLogger(logger_id));
+        }catch(const std::exception& ex){
+
         }
     }
-    throw std::runtime_error("Got no logger with ID: '" + logger_id + "'");
+    return loggers;
 }
 
 int Node::GetLoganServerCount() const {
@@ -192,6 +194,7 @@ std::vector<std::unique_ptr<NodeManager::Logger> > Node::GetAllocatedLoganServer
     for(const auto& container_pair : containers_) {
         if(container_pair.second->GetLoganServerCount() > 0){
             for(const auto& server_id : container_pair.second->GetLoganServerIds()){
+
                 logan_servers.emplace_back(container_pair.second->GetLogger(server_id).GetProto(true));
             }
         }
@@ -203,8 +206,18 @@ void Node::AddComponentToImplicitContainer(const NodeManager::Component &compone
     containers_.at(implicit_container_id_)->AddComponent(component);
 }
 
-void Node::AddLoggingClientToImplicitContainer(const NodeManager::Logger &logging_client) {
-    containers_.at(implicit_container_id_)->AddLogger(logging_client);
+void Node::AddLoggingClient(const NodeManager::Logger &logging_client) {
+    auto& implicit_container = GetContainer(implicit_container_id_);
+    if(implicit_container.GetDeployedComponentCount()){
+        implicit_container.AddLogger(logging_client);
+    }else{
+        for(const auto& container_pair : containers_){
+            if(container_pair.second->GetDeployedComponentCount()){
+                container_pair.second->AddLogger(logging_client);
+                break;
+            }
+        }
+    }
 }
 
 void Node::AddLoggingServerToImplicitContainer(const NodeManager::Logger &logging_server) {

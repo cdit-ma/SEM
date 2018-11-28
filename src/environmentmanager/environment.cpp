@@ -8,6 +8,7 @@
 #include "node.h"
 #include <zmq/zmqutils.hpp>
 #include <regex>
+#include <functional>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& ip_address,
@@ -57,9 +58,6 @@ void Environment::PopulateExperiment(const NodeManager::Experiment& message){
     std::lock_guard<std::mutex> experiment_lock(experiment_mutex_, std::adopt_lock);
 
     const auto& experiment_name = message.name();
-
-    std::cerr << "GOT : " << experiment_name << std::endl;
-
     if(experiment_map_.count(experiment_name) > 0){
         throw std::runtime_error("Got duplicate experiment name: '" + experiment_name + "'");
     }
@@ -106,12 +104,19 @@ void Environment::AddNodes(const std::string& experiment_id, const NodeManager::
         AddNodeToExperiment(experiment_id, node);
     }
 
-    for(const auto& container : cluster.containers()) {
-        if(container.implicit()) {
-            DistributeContainerToImplicitNodeContainers(experiment_id, container);
-        } else {
+    auto& containers = cluster.containers();
+
+    std::vector< std::reference_wrapper<const NodeManager::Container> > implicit_containers;
+    
+    for(const auto& container : cluster.containers()){
+        if(container.implicit()){
+            implicit_containers.emplace_back(container);
+        }else{
             DeployContainer(experiment_id, container);
         }
+    }
+    for(const auto& container : implicit_containers){
+        DistributeContainerToImplicitNodeContainers(experiment_id, container);
     }
 }
 
@@ -124,11 +129,11 @@ void Environment::DistributeContainerToImplicitNodeContainers(const std::string&
     for(const auto& logger : container.loggers()){
         if(logger.type() == NodeManager::Logger::CLIENT){
             // Add client to all nodes implicit containers.
-            GetExperimentInternal(experiment_id).AddLoggingClientToImplicitContainers(logger);
+            GetExperimentInternal(experiment_id).AddLoggingClientToNodes(logger);
         }
         if(logger.type() == NodeManager::Logger::SERVER){
             // Add server to the least deployed to node's implicit container
-            GetExperimentInternal(experiment_id).GetLeastDeployedToNode().AddLoggingServerToImplicitContainer(logger);
+            GetExperimentInternal(experiment_id).GetLeastDeployedToNode(true).AddLoggingServerToImplicitContainer(logger);
         }
     }
 }

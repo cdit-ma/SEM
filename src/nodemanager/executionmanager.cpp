@@ -29,13 +29,14 @@ ExecutionManager::ExecutionManager(
     RequestDeployment();
 
     //Construct the execution future
-    execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, duration_sec, execute_promise_.get_future(), terminate_promise_.get_future(), slave_deregistration_promise_.get_future());
+    execution_future_ = std::async(std::launch::async, &ExecutionManager::ExecutionLoop, this, duration_sec, execute_promise_.get_future(), terminate_promise_.get_future());
 
     //Bind Registration functions
     slave_registration_handler_ = std::unique_ptr<zmq::ProtoReplier>(new zmq::ProtoReplier());
     slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveStartupRequest, NodeManager::SlaveStartupReply>("SlaveStartup", std::bind(&ExecutionManager::HandleSlaveStartup, this, std::placeholders::_1));
     slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveConfiguredRequest, NodeManager::SlaveConfiguredReply>("SlaveConfigured", std::bind(&ExecutionManager::HandleSlaveConfigured, this, std::placeholders::_1));
     slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveTerminatedRequest, NodeManager::SlaveTerminatedReply>("SlaveTerminated", std::bind(&ExecutionManager::HandleSlaveTerminated, this, std::placeholders::_1));
+    slave_registration_handler_->RegisterProtoCallback<NodeManager::SlaveHeartbeatRequest, NodeManager::SlaveHeartbeatReply>("SlaveHeartbeat", std::bind(&ExecutionManager::HandleSlaveHeartbeat, this, std::placeholders::_1));
     slave_registration_handler_->Bind(master_registration_endpoint_);
     slave_registration_handler_->Start();
 };
@@ -54,16 +55,6 @@ void ExecutionManager::Terminate(){
 
     try{
         terminate_promise_.set_exception(std::make_exception_ptr(error));
-    }catch(const std::exception& ex){
-    
-    }
-
-    try{
-        std::lock_guard<std::mutex> lock(slave_state_mutex_);
-        if(!execution_valid_){
-            //Only Ignore Deregistration if we didn't hit proper execution
-            slave_deregistration_promise_.set_exception(std::make_exception_ptr(error));
-        }
     }catch(const std::exception& ex){
     
     }
@@ -88,11 +79,13 @@ void ExecutionManager::RequestDeployment(){
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     //Construct a set of slaves to wait
+    auto now = std::chrono::steady_clock::now();
+
     for(const auto& node : control_message_->nodes()){
         for(const auto& container : node.containers()){
             const auto& slave_key = GetSlaveKey(node.ip_address(), container.info().id());
 
-            auto insert = slave_states_.emplace(slave_key, SlaveState::OFFLINE);
+            auto insert = slave_status_.emplace(slave_key, SlaveStatus{SlaveState::OFFLINE, now});
             if(!insert.second){
                 throw std::runtime_error("Got duplicate slaves in ControlMessage with IP: '" + slave_key + "'");
             }
@@ -101,24 +94,32 @@ void ExecutionManager::RequestDeployment(){
 }
 
 ExecutionManager::SlaveState ExecutionManager::GetSlaveState(const std::string& slave_key){
-    if(slave_states_.count(slave_key)){
-        return slave_states_.at(slave_key);
-    }else if(late_joiner_slave_states_.count(slave_key)){
-        return late_joiner_slave_states_.at(slave_key);
+    return GetSlaveStatus(slave_key).state;
+}
+
+void ExecutionManager::SetSlaveState(const std::string& slave_key, SlaveState state){
+    GetSlaveStatus(slave_key).state = state;
+    HandleSlaveStateChange();
+}
+
+void ExecutionManager::SetSlaveAlive(const std::string& slave_key){
+    GetSlaveStatus(slave_key).heartbeat_time = std::chrono::steady_clock::now();
+}
+
+ExecutionManager::SlaveStatus& ExecutionManager::GetSlaveStatus(const std::string& slave_key){
+    if(slave_status_.count(slave_key)){
+        return slave_status_.at(slave_key);
+    }else if(late_joiner_slave_status_.count(slave_key)){
+        return late_joiner_slave_status_.at(slave_key);
     }else{
         throw std::runtime_error("Slave with Key: '" + slave_key + "' not in experiment");
     }
 }
 
-void ExecutionManager::SetSlaveState(const std::string& ip_address, SlaveState state){
-    slave_states_.at(ip_address) = state;
-    HandleSlaveStateChange();
-}
-
 int ExecutionManager::GetSlaveStateCount(const SlaveState& state){
     int count = 0;
-    for(const auto& ss : slave_states_){
-        if(ss.second == state){
+    for(const auto& ss : slave_status_){
+        if(ss.second.state == state){
             count ++;
         }
     }
@@ -127,7 +128,8 @@ int ExecutionManager::GetSlaveStateCount(const SlaveState& state){
 
 void ExecutionManager::HandleSlaveStateChange(){
     //Whats our executions state
-    auto slave_count = slave_states_.size();
+    auto slave_count = slave_status_.size();
+
     auto configured_count = GetSlaveStateCount(SlaveState::CONFIGURED);
     auto terminated_count = GetSlaveStateCount(SlaveState::TERMINATED);
     auto error_count = GetSlaveStateCount(SlaveState::ERROR_);
@@ -141,10 +143,26 @@ void ExecutionManager::HandleSlaveStateChange(){
         std::runtime_error error(std::to_string(error_count) + " slaves has errors.");
         execute_promise_.set_exception(std::make_exception_ptr(error));
     }
-    else if(terminated_count == slave_count){
-        //All Slaves are terminated
-        slave_deregistration_promise_.set_value();
+    slave_state_cv_.notify_all();
+}
+
+bool ExecutionManager::AllSlavesTerminated(){
+    const auto now = std::chrono::steady_clock::now();
+
+    if(execution_valid_){
+        for(const auto& ss : slave_status_){
+            if(ss.second.state == SlaveState::TERMINATED){
+                continue;
+            }else{
+                auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ss.second.heartbeat_time);
+                if(milliseconds.count() > 5000){
+                    continue;
+                }
+            }
+            return false;
+        }
     }
+    return true;
 }
 
 
@@ -154,6 +172,16 @@ const std::string ExecutionManager::GetSlaveKey(const std::string& ip, const std
 
 const std::string ExecutionManager::GetSlaveKey(const NodeManager::SlaveId& slave){
     return GetSlaveKey(slave.ip_address(), slave.container_id());
+}
+
+std::unique_ptr<NodeManager::SlaveHeartbeatReply> ExecutionManager::HandleSlaveHeartbeat(const NodeManager::SlaveHeartbeatRequest request){
+    using namespace NodeManager;
+    const auto& slave_key = GetSlaveKey(request.id());
+    {
+        std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
+        SetSlaveAlive(slave_key);
+    }
+    return std::unique_ptr<SlaveHeartbeatReply>(new SlaveHeartbeatReply());
 }
 
 std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveStartup(const NodeManager::SlaveStartupRequest& request){
@@ -190,7 +218,6 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
     using namespace NodeManager;
     std::unique_ptr<SlaveConfiguredReply> reply;
     const auto& slave_key = GetSlaveKey(request.id());
-    std::cerr << "Slave Configured: " << slave_key << std::endl;
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     if(GetSlaveState(slave_key) == SlaveState::REGISTERED){
@@ -216,8 +243,6 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
 std::unique_ptr<NodeManager::SlaveTerminatedReply> ExecutionManager::HandleSlaveTerminated(const NodeManager::SlaveTerminatedRequest& request){
     using namespace NodeManager;
     const auto& slave_key = GetSlaveKey(request.id());
-
-    std::cerr << "Slave Terminating: " << slave_key << std::endl;
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
     auto reply = std::unique_ptr<SlaveTerminatedReply>(new SlaveTerminatedReply());
@@ -261,7 +286,7 @@ std::unique_ptr<NodeManager::ControlMessage> ExecutionManager::ConstructStateCon
     return message;
 }
 
-void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future, std::future<void> slave_deregistration_future){
+void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future){
     using namespace NodeManager;
 
     bool should_execute = true;
@@ -305,15 +330,13 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     PushControlMessage("*", ConstructStateControlMessage(ControlMessage::TERMINATE));
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
-    if(slave_deregistration_future.valid()){
-        try{
-            auto status = slave_deregistration_future.wait_for(std::chrono::seconds(30));
-            
-            if(status != std::future_status::ready){
-                std::cerr << "* Slave deregistration took longer than 30 seconds, Shutting down." << std::endl;
+    {
+        while(true){
+            std::unique_lock<std::mutex> slave_lock(slave_state_mutex_);
+            //Wait for all slaves to be offline or timed out
+            if(slave_state_cv_.wait_for(slave_lock, std::chrono::seconds(1), [this]{return AllSlavesTerminated();})){
+                break;
             }
-        }catch(const std::exception& ex){
-            std::cerr << ex.what() << std::endl;
         }
     }
 
@@ -323,7 +346,7 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     }catch(const std::exception& ex){
         std::cerr << "* Removing Deployment Exception: " << ex.what() << std::endl;
     }
-
+    
     //Interupt the Execution
     std::lock_guard<std::mutex> lock(execution_mutex_);
     execution_.Interrupt();

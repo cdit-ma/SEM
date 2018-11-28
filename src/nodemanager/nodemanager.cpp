@@ -93,7 +93,7 @@ int main(int argc, char **argv){
 
     try{
         auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address, container_id);
-        
+            
         for(const auto& type : reply->types()){
             switch(type){
                 case NodeManager::NodeManagerRegistrationReply::SLAVE:{

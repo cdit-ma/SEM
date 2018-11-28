@@ -324,7 +324,7 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
 
             control_message->set_experiment_id(model_name_);
             for (auto &node_pair : node_map_) {
-                if (node_pair.second->DeployedTo()) {
+                if (node_pair.second->GetDeployedComponentCount()) {
                     auto node_pb = node_pair.second->GetProto(full_update);
                     if (node_pb) {
                         control_message->mutable_nodes()->AddAllocated(node_pb.release());
@@ -428,10 +428,8 @@ std::vector<std::reference_wrapper<Logger> > Experiment::GetLoggerClients(const 
     std::vector<std::reference_wrapper<Logger> > loggers;
 
     for (auto &node_pair : node_map_) {
-        auto &node = node_pair.second;
-        if (node->HasLogger(logger_id)) {
-            loggers.emplace_back(node->GetLogger(logger_id));
-        }
+        auto node_loggers = node_pair.second->GetLoggers(logger_id);
+        loggers.insert(loggers.end(), node_loggers.begin(), node_loggers.end());
     }
 
     return loggers;
@@ -450,20 +448,31 @@ std::string Experiment::GetExternalPortInternalId(const std::string &external_po
             "Experiment: '" + model_name_ + "' doesn't have an external port with label '" + external_port_label + "'");
 }
 
-Node &Experiment::GetLeastDeployedToNode() {
+Node &Experiment::GetLeastDeployedToNode(bool non_empty) {
     // Min element with lambda comparison func, will be prettier in 14/17 with 'auto' lambda arguments
     using NodeMapPair = std::pair<const std::string, std::unique_ptr<Node> >;
 
+
+    //Find node with fewest deployed components, if non_empty, require at least 1 component to be the minimum
     return *(std::min_element(node_map_.cbegin(), node_map_.cend(),
-                              [](const NodeMapPair &p1, const NodeMapPair &p2) {
-                                  return p1.second->GetDeployedComponentCount() <
-                                         p2.second->GetDeployedComponentCount();
+                            [non_empty](const NodeMapPair &p1, const NodeMapPair &p2) {
+                                const auto& p1_count = p1.second->GetDeployedComponentCount();
+                                const auto& p2_count = p2.second->GetDeployedComponentCount();
+                                
+                                if(non_empty){
+                                    if(p1_count == 0){
+                                        return false;
+                                    }else if(p2_count == 0){
+                                        return true;
+                                    }
+                                }
+                                return p1_count < p2_count;
                               })->second);
 }
 
-void Experiment::AddLoggingClientToImplicitContainers(const NodeManager::Logger &logging_client) {
+void Experiment::AddLoggingClientToNodes(const NodeManager::Logger &logging_client) {
     for (const auto &node : node_map_) {
-        node.second->AddLoggingClientToImplicitContainer(logging_client);
+        node.second->AddLoggingClient(logging_client);
     }
 }
 
