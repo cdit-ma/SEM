@@ -69,7 +69,7 @@ void DeploymentManager::RequestDeployment(){
         while(true){
             try{
                 auto reply_future = proto_requester_->SendRequest<SlaveStartupRequest, SlaveStartupReply>
-                        ("SlaveStartup", request, 1000);
+                        ("SlaveStartup", request, 5000);
                 startup_reply = reply_future.get();
                 break;
             }catch(const zmq::TimeoutException& ex){

@@ -3,6 +3,7 @@
 def utils = new cditma.Utils(this);
 
 def builder_map = [:]
+def unstash_map = [:]
 def execution_map = [:]
 final json_file = 'experiment_config.json'
 
@@ -126,6 +127,8 @@ pipeline{
                                 //Get the node_name of the builder node for this OS
                                 def builder_name = builder_nodes[required_os]
 
+
+
                                 builder_map[builder_name] = {
                                     node(builder_name){
                                         def os = utils.getNodeOSVersion(builder_name)
@@ -194,6 +197,16 @@ pipeline{
                                     }
                                 }
 
+                                unstash_map["RE_${node_name}"] = {
+                                    node(node_name){
+                                        dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
+                                            //Unstash the required libraries once for this node, and place in the non-executor specific folder
+                                            //Have to run in the lib directory due to dll linker paths
+                                            unstash("code_" + utils.getNodeOSVersion(node_name))
+                                        }
+                                    }
+                                }
+
                                 //Handle Containers
                                 for(c in d["containerIds"]){
                                     def container_id = c["id"]
@@ -201,11 +214,8 @@ pipeline{
 
                                     execution_map["RE_${node_name}_${container_id}"] = {
                                         node(node_name){
-                                            dir("${workspace_dir}/${container_id}_libs"){
-                                                //Unstash the required libraries for this node.
-                                                //Have to run in the lib directory due to dll linker paths
-                                                unstash("code_" + utils.getNodeOSVersion(node_name))
-                                                
+                                            //All containers should run out of the same folder
+                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
                                                 def args = "-n \"${params.experiment_name}\" "
                                                 args += "-e ${params.environment_manager_address} "
                                                 args += "-a ${IP_ADDRESS} "
@@ -230,6 +240,7 @@ pipeline{
                 }
 
                 script{
+                    parallel(unstash_map)
                     parallel(execution_map)
                 }
             }
