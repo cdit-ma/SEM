@@ -5,6 +5,7 @@ def utils = new cditma.Utils(this);
 def builder_map = [:]
 def unstash_map = [:]
 def execution_map = [:]
+
 final json_file = 'experiment_config.json'
 
 final workspace_dir =  env.BUILD_ID
@@ -211,8 +212,11 @@ pipeline{
                                 for(c in d["containerIds"]){
                                     def container_id = c["id"]
                                     def is_docker = c["isDocker"]
+                                    def is_master = c["isMaster"]
+                                    def map_name = is_master ? "RE_MSTR" : "RE_SLV"
 
-                                    execution_map["RE_${node_name}_${container_id}"] = {
+                                    //Is Slave
+                                    execution_map["${map_name}_${node_name}_${container_id}"] = {
                                         node(node_name){
                                             //All containers should run out of the same folder
                                             dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
@@ -220,8 +224,11 @@ pipeline{
                                                 args += "-e ${params.environment_manager_address} "
                                                 args += "-a ${IP_ADDRESS} "
                                                 args += "-l . "
-                                                args += "-t ${params.execution_time} "
                                                 args += "-c ${container_id} "
+                                                
+                                                if(is_master){
+                                                    args += "-t ${params.execution_time} "
+                                                }
 
                                                 if("${params.log_verbosity}"){
                                                     args += "-v ${params.log_verbosity} "
@@ -238,7 +245,6 @@ pipeline{
                         }
                     }
                 }
-
                 script{
                     parallel(unstash_map)
                     parallel(execution_map)
