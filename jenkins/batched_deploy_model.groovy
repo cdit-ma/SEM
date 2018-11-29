@@ -2,11 +2,10 @@
 @Library('cditma-utils') _
 def utils = new cditma.Utils(this);
 
-final build_id = env.BUILD_ID
-final workspace_dir = build_id + "-models"
+final workspace_dir = env.BUILD_ID
 
 pipeline{
-    agent{node 're'}
+    agent{node 'master'}
 
     parameters{
         string(name: 'experiment_prefix', defaultValue: '', description: 'The prefix to be given to each experiment')
@@ -19,11 +18,14 @@ pipeline{
     stages{
         stage("Extracting Experiments"){
             steps{
-                dir("${env.BUILD_ID}"){
-                    def archive_name = "${params.archive}"
-                    unstashParam 'archive', 'models.archive'
-
+                dir(workspace_dir){
                     script{
+                        touch(".dummy")
+                        //Unstashing files must be done relative to the workspace dir
+                        unstashParam 'archive', "${workspace_dir}/models.archive"
+                        final archive_name = "${archive}"
+
+                        def extract_command = ""
                         if(archive_name.endsWith(".zip")){
                             extract_command = "unzip"
                         }else if(archive_name.endsWith(".tar.gz")){
@@ -46,7 +48,7 @@ pipeline{
         }
         stage("Executing Experiments"){
             steps{
-                dir("${env.BUILD_ID}"){
+                dir(workspace_dir){
                     script{
                         def model_files = findFiles(glob: '**/*.graphml')
                         def success_count = 0
@@ -66,8 +68,8 @@ pipeline{
                             def result = build(job: 'deploy_model', quietPeriod: 0, wait: true, propagate: false,
                                 parameters: [
                                     string(name: 'environment_manager_address', value: params.environment_manager_address),
-                                    string(name: 'experiment_name', value: "${experiment_name}"),
-                                    string(name: 'experiment_time', value: params.experiment_time),
+                                    string(name: 'experiment_name', value: experiment_name),
+                                    string(name: 'execution_time', value: params.execution_time),
                                     string(name: 'log_verbosity', value: params.log_verbosity),
                                     new FileParameterValue("model", model, file_path)
                                 ])
@@ -84,7 +86,7 @@ pipeline{
                     }
 
                     dir('artifacts'){
-                        archiveArtifacts artifacts: '**/*'
+                        archiveArtifacts artifacts: '**/*', allowEmptyArchive: true
                     }
                     deleteDir()
                 }

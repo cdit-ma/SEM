@@ -3,8 +3,13 @@
 def utils = new cditma.Utils(this);
 
 def builder_map = [:]
+def unstash_map = [:]
 def execution_map = [:]
+
 final json_file = 'experiment_config.json'
+
+final workspace_dir =  env.BUILD_ID
+def added_experiment = false
 
 def terminateExperiment(){
     node('re') {
@@ -33,23 +38,33 @@ pipeline{
     stages{
         stage("Add Experiment"){
             steps{
-                node("re"){
-                    unstashParam 'model', 'model.graphml'
-                    //Stash and Archive the model file
-                    stash includes: 'model.graphml', name: 'model'
-                    archiveArtifacts 'model.graphml'
-                
-                    script{
-                        def args = "-n \"${params.experiment_name}\" "
-                        args += "-e ${params.environment_manager_address} "
-                        args += "-a model.graphml"
+                node("master"){
+                    dir(workspace_dir){
+                        touch ".dummy"
+                        unstashParam 'model', "${workspace_dir}/model.graphml"
 
-                        //Add the experiment and pipe the output to the json_file
-                        if(utils.runReEnvironmentController(args, "> ${json_file}")){
-                            archiveArtifacts json_file
-                            stash includes: json_file, name: json_file
-                        }else{
-                            error("Failed to add experiment ${params.experiment_name} to environment manager.")
+                        //Stash and Archive the model file
+                        stash includes: 'model.graphml', name: 'model'
+                        archiveArtifacts 'model.graphml'
+                    }
+                }
+                node("re"){
+                    dir(workspace_dir){
+                        script{
+                            unstash 'model'
+                            def args = "-n \"${params.experiment_name}\" "
+                            args += "-e ${params.environment_manager_address} "
+                            args += "-a model.graphml"
+
+                            //Add the experiment and pipe the output to the json_file
+                            if(utils.runReEnvironmentController(args, "> ${json_file}")){
+                                archiveArtifacts json_file
+                                stash includes: json_file, name: json_file
+                                currentBuild.displayName = "#${env.BUILD_ID} - ${params.experiment_name}"
+                                added_experiment = true
+                            }else{
+                                error("Failed to add experiment ${params.experiment_name} to environment manager.")
+                            }
                         }
                     }
                 }
@@ -59,7 +74,7 @@ pipeline{
         stage("C++ Generation"){
             steps{
                 node("builder"){
-                    dir("${env.BUILD_ID}/codegen"){
+                    dir("${workspace_dir}/codegen"){
                         unstash 'model'
                         script{
                             if(!utils.runRegenXSL('generate_project.xsl', 'model.graphml')){
@@ -83,53 +98,57 @@ pipeline{
             steps{
                 //Construct the Compilation Map
                 node("re"){
-                    unstash json_file
-                    script{
-                        def builder_nodes = [:]
-                        
-                        //Construct a map of os_version - > node_names
-                        for(def node_name in nodesByLabel("builder")){
-                            def os_version = utils.getNodeOSVersion(node_name)
-                            if(os_version){
-                                builder_nodes[os_version] = node_name
+                    dir(workspace_dir){
+                        unstash json_file
+                        script{
+                            def builder_nodes = [:]
+                            
+                            //Construct a map of os_version - > node_names
+                            for(def node_name in nodesByLabel("builder")){
+                                def os_version = utils.getNodeOSVersion(node_name)
+                                if(os_version){
+                                    builder_nodes[os_version] = node_name
+                                }
                             }
-                        }
 
-                        //Parse the json file
-                        def parsed_json = readJSON file: json_file
-                        
-                        //Construct a list of required OS's to compile
-                        def required_oses = []
-                        for(def d in parsed_json['deployments']){
-                            required_oses += utils.getNodeOSVersion(d["id"]["hostName"])
-                        }
-
-                        //Compile all required OS's C++ Code
-                        for(def required_os in required_oses.unique()){
-                            if(!builder_nodes.containsKey(required_os)){
-                                error("Cannot find a Builder node with OS: ${required_os}")
+                            //Parse the json file
+                            def parsed_json = readJSON file: json_file
+                            
+                            //Construct a list of required OS's to compile
+                            def required_oses = []
+                            for(def d in parsed_json['deployments']){
+                                required_oses += utils.getNodeOSVersion(d["id"]["hostName"])
                             }
-                            //Get the node_name of the builder node for this OS
-                            def builder_name = builder_nodes[required_os]
 
-                            builder_map[builder_name] = {
-                                node(builder_name){
-                                    def os = utils.getNodeOSVersion(builder_name)
-                                    def stash_name = "code_${os}"
-                                    dir(stash_name){
-                                        print("Building on ${builder_name} for OS: ${os}")
+                            //Compile all required OS's C++ Code
+                            for(def required_os in required_oses.unique()){
+                                if(!builder_nodes.containsKey(required_os)){
+                                    error("Cannot find a Builder node with OS: ${required_os}")
+                                }
+                                //Get the node_name of the builder node for this OS
+                                def builder_name = builder_nodes[required_os]
 
-                                        unstash('codegen')
-                                        dir("build"){
-                                            if(!utils.buildProject("Ninja", "")){
-                                                error("CMake failed on Builder Node: ${builder_name}")
+
+
+                                builder_map[builder_name] = {
+                                    node(builder_name){
+                                        def os = utils.getNodeOSVersion(builder_name)
+                                        def stash_name = "code_${os}"
+                                        dir(stash_name){
+                                            print("Building on ${builder_name} for OS: ${os}")
+
+                                            unstash('codegen')
+                                            dir("build"){
+                                                if(!utils.buildProject("Ninja", "")){
+                                                    error("CMake failed on Builder Node: ${builder_name}")
+                                                }
                                             }
+                                            dir("lib"){
+                                                //Stash all built libraries
+                                                stash includes: '**', name: stash_name
+                                            }
+                                            deleteDir()
                                         }
-                                        dir("lib"){
-                                            //Stash all built libraries
-                                            stash includes: '**', name: stash_name
-                                        }
-                                        deleteDir()
                                     }
                                 }
                             }
@@ -147,69 +166,86 @@ pipeline{
             steps{
                 //Prepate Execution stages
                 node("re"){
-                    script{
-                        unstash json_file
-                        //Parse the json file
-                        def parsed_json = readJSON file: json_file
+                    dir(workspace_dir){
+                        script{
+                            unstash json_file
+                            //Parse the json file
+                            def parsed_json = readJSON file: json_file
 
-                        //Construct the execution map
-                        for(d in parsed_json['deployments']){
-                            def node_name = d["id"]["hostName"]
+                            //Construct the execution map
+                            for(d in parsed_json['deployments']){
+                                def node_name = d["id"]["hostName"]
 
-                            //Handle Logan
-                            if(d["hasLoganServer"]){
-                                execution_map["LOGAN_${node_name}"] = {
-                                    node(node_name){
-                                        def args = "-n \"${params.experiment_name}\" "
-                                        args += "-e ${params.environment_manager_address} "
-                                        args += "-a ${IP_ADDRESS}"
+                                //Handle Logan
+                                if(d["hasLoganServer"]){
+                                    execution_map["LOGAN_${node_name}"] = {
+                                        node(node_name){
+                                            dir(workspace_dir){
+                                                def args = "-n \"${params.experiment_name}\" "
+                                                args += "-e ${params.environment_manager_address} "
+                                                args += "-a ${IP_ADDRESS}"
 
-                                        if(utils.runScript("${RE_PATH}/bin/logan_managedserver ${args}") != 0){
-                                            error("logan_managedserver failed on Node: ${node_name}")
-                                        }
-                                        
-                                        //Archive any sql databases produced
-                                        if(findFiles(glob: '**/*.sql').size() > 0){
-                                            archiveArtifacts artifacts: '**/*.sql'
+                                                if(utils.runScript("${RE_PATH}/bin/logan_managedserver ${args}") != 0){
+                                                    error("logan_managedserver failed on Node: ${node_name}")
+                                                }
+                                                
+                                                //Archive any sql databases produced
+                                                if(findFiles(glob: '**/*.sql').size() > 0){
+                                                    archiveArtifacts artifacts: '**/*.sql'
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            //Handle Containers
-                            for(c in d["containerIds"]){
-                                def container_id = c["id"]
-                                def is_docker = c["isDocker"]
-
-                                execution_map["RE_${node_name}_${container_id}"] = {
+                                unstash_map["RE_${node_name}"] = {
                                     node(node_name){
-                                        dir("${container_id}_libs"){
-                                            //Unstash the required libraries for this node.
+                                        dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
+                                            //Unstash the required libraries once for this node, and place in the non-executor specific folder
                                             //Have to run in the lib directory due to dll linker paths
-                                            def stash_name = "code_" + utils.getNodeOSVersion(node_name)
-                                            unstash stash_name
-                                            
-                                            def args = "-n \"${params.experiment_name}\" "
-                                            args += "-e ${params.environment_manager_address} "
-                                            args += "-a ${IP_ADDRESS} "
-                                            args += "-l . "
-                                            args += "-t ${params.execution_time} "
-                                            args += "-c ${container_id} "
+                                            unstash("code_" + utils.getNodeOSVersion(node_name))
+                                        }
+                                    }
+                                }
 
-                                            if("${params.log_verbosity}"){
-                                                args += "-v ${params.log_verbosity} "
-                                            }
-                                            if(is_docker) {
-                                                //Run inside docker container on node_name node with host networking options
-                                                docker.image("${docker_image_repository}/${docker_image_name}").inside("--network host") {
-                                                    if(utils.runScript("/re/bin/re_node_manager ${args}") != 0) {
-                                                        error("re_node_manager failed on Node: ${node_name} : ${container_id}")
-                                                    }
+                                //Handle Containers
+                                for(c in d["containerIds"]){
+                                    def container_id = c["id"]
+                                    def is_docker = c["isDocker"]
+                                    def is_master = c["isMaster"]
+                                    def map_name = is_master ? "RE_MSTR" : "RE_SLV"
+
+                                    //Is Slave
+                                    execution_map["${map_name}_${node_name}_${container_id}"] = {
+                                        node(node_name){
+                                            //All containers should run out of the same folder
+                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
+                                                def args = "-n \"${params.experiment_name}\" "
+                                                args += "-e ${params.environment_manager_address} "
+                                                args += "-a ${IP_ADDRESS} "
+                                                args += "-l . "
+                                                args += "-c ${container_id} "
+                                                
+                                                if(is_master){
+                                                    args += "-t ${params.execution_time} "
                                                 }
-                                            } else {
+
+                                                if("${params.log_verbosity}"){
+                                                    args += "-v ${params.log_verbosity} "
+                                                }
                                                 //Run re_node_manager
-                                                if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
-                                                    error("re_node_manager failed on Node: ${node_name}")
+
+                                                if(is_docker) {
+                                                    //Run inside docker container on node_name node with host networking options
+                                                    docker.image("${docker_image_repository}/${docker_image_name}").inside("--network host") {
+                                                        if(utils.runScript("/re/bin/re_node_manager ${args}") != 0) {
+                                                            error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                        }
+                                                    }
+                                                } else {
+                                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
+                                                        error("re_node_manager failed on Node: ${node_name}")
+                                                    }
                                                 }
                                             }
                                         }
@@ -219,8 +255,8 @@ pipeline{
                         }
                     }
                 }
-
                 script{
+                    parallel(unstash_map)
                     parallel(execution_map)
                 }
             }
@@ -228,10 +264,18 @@ pipeline{
     }
     post{
         failure{
-            terminateExperiment()
+            script{
+                if(added_experiment){
+                    terminateExperiment()
+                }
+            }
         }
         aborted{
-            terminateExperiment()
+            script{
+                if(added_experiment){
+                    terminateExperiment()
+                }
+            }
         }
     }
 }

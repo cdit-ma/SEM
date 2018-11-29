@@ -7,12 +7,14 @@
 #include <core/worker.h>
 #include <google/protobuf/util/time_util.h>
 
+
+
+
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
     info.set_container_name(logger.GetContainerName());
     info.set_container_id(logger.GetContainerId());
-
     using namespace google::protobuf::util;
     auto timestamp = TimeUtil::MillisecondsToTimestamp(logger.GetCurrentTime().count());
     info.mutable_timestamp()->Swap(&timestamp);
@@ -72,20 +74,27 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
     }
 
     FillInfoPB(*(event_pb->mutable_info()), *this);
-    
-    if(entity.get_class() == Activatable::Class::COMPONENT){
-        const auto& component = (const Component&)entity;
-        FillComponentPB(*(event_pb->mutable_component()), component);
-    }else if(entity.get_class() == Activatable::Class::PORT){
-        const auto& port = (const Port&)entity;
-        FillPortPB(*(event_pb->mutable_port()), port);
 
-        auto component = port.get_component().lock();
-        if(component){
-            FillComponentPB(*(event_pb->mutable_component()), *component);
+    switch(entity.get_class()){
+        case Activatable::Class::COMPONENT:{
+            const auto& component = (const Component&)entity;
+            FillComponentPB(*(event_pb->mutable_component()), component);
+            break;
+        };
+        case Activatable::Class::PORT:{
+            const auto& port = (const Port&)entity;
+            FillPortPB(*(event_pb->mutable_port()), port);
+
+            auto component = port.get_component().lock();
+            if(component){
+                FillComponentPB(*(event_pb->mutable_component()), *component);
+            }
+            break;
+        };
+        default:{
+            std::cerr << "HELLO DED BOI2" << std::endl;
+            return;
         }
-    }else{
-        return;
     }
 
     PushMessage(std::move(event_pb));
@@ -106,7 +115,6 @@ void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& func
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
     auto log_level = GetWorkloadLogLevel(event, message_log_level);
-
     
     try{
         auto& component = worker.get_component();
@@ -135,22 +143,39 @@ void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& func
 
 void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger::LifeCycleEvent& event){
     auto event_pb = std::unique_ptr<ModelEvent::LifecycleEvent>(new ModelEvent::LifecycleEvent());
-    
     event_pb->set_type((ModelEvent::LifecycleEvent::Type)(int)event);
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
-    if(entity.get_class() == Activatable::Class::COMPONENT){
-        const auto& component = (const Component&)entity;
-        FillComponentPB(*(event_pb->mutable_component()), component);
-    }else if(entity.get_class() == Activatable::Class::PORT){
-        const auto& port = (const Port&)entity;
-        FillPortPB(*(event_pb->mutable_port()), port);
-        auto component = port.get_component().lock();
-        if(component){
-            FillComponentPB(*(event_pb->mutable_component()), *component);
+    switch(entity.get_class()){
+        case Activatable::Class::COMPONENT:{
+            const auto& component = (const Component&)entity;
+            FillComponentPB(*(event_pb->mutable_component()), component);
+            break;
+        };
+        case Activatable::Class::PORT:{
+            const auto& port = (const Port&)entity;
+            FillPortPB(*(event_pb->mutable_port()), port);
+            auto component = port.get_component().lock();
+            if(component){
+                FillComponentPB(*(event_pb->mutable_component()), *component);
+            }
+            break;
         }
-    }else{
-        return;
+        case Activatable::Class::WORKER:{
+            const auto& worker = (const Worker&)entity;
+            FillWorkerPB(*(event_pb->mutable_worker()), worker);
+            try{
+                const auto& component = worker.get_component();
+                FillComponentPB(*(event_pb->mutable_component()), component);
+            }catch(const std::exception& ex){
+
+            }
+            break;
+        }
+        default:{
+            std::cerr << "HELLO DED BOI" << std::endl;
+            return;
+        }
     }
 
     PushMessage(std::move(event_pb)); 
@@ -174,7 +199,6 @@ void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessag
     if(message_str.size()){
         event_pb->set_message(message_str);
     }
-
     PushMessage(std::move(event_pb)); 
 }
 
@@ -206,5 +230,3 @@ const std::string& Logan::Logger::GetContainerName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return container_name_;
 }
-
-

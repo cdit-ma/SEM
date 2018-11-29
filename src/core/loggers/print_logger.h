@@ -9,7 +9,6 @@
 
 namespace Print{
     class Logger : public ::Logger{
-        protected:
         public:
             static Print::Logger& get_logger();
             void SetLogLevel(int level);

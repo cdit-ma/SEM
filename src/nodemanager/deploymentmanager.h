@@ -13,6 +13,7 @@
 
 #include <core/logger.h>
 #include "deploymentcontainer.h"
+#include "slaveheartbeater.h"
 
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <zmq/protoreceiver/protoreceiver.h>
@@ -55,6 +56,7 @@ class DeploymentManager{
         
         std::unique_ptr<zmq::ProtoReceiver> proto_receiever_;
         std::unique_ptr<zmq::ProtoRequester> proto_requester_;
+        std::unique_ptr<SlaveHeartbeater> heartbeater_;
 
         //Storage of DeploymentContainers
         std::mutex container_mutex_;

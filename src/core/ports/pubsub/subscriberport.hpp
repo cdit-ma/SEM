@@ -59,7 +59,7 @@ callback_wrapper_(callback_wrapper)
 
 template <class BaseType>
 SubscriberPort<BaseType>::~SubscriberPort(){
-    HandleTerminate();
+    Terminate();
 };
 
 template <class BaseType>

@@ -8,7 +8,6 @@
 #include <comms/environmentrequester/environmentrequester.h>
 #include <proto/controlmessage/helper.h>
 
-const static int MAX_RETRY_COUNT = 5;
 DeploymentManager::DeploymentManager(
         Execution& execution,
         const std::string& experiment_name,
@@ -70,7 +69,7 @@ void DeploymentManager::RequestDeployment(){
         while(true){
             try{
                 auto reply_future = proto_requester_->SendRequest<SlaveStartupRequest, SlaveStartupReply>
-                        ("SlaveStartup", request, 1000);
+                        ("SlaveStartup", request, 5000);
                 startup_reply = reply_future.get();
                 break;
             }catch(const zmq::TimeoutException& ex){
@@ -78,8 +77,7 @@ void DeploymentManager::RequestDeployment(){
             }catch(const zmq::RMIException& ex){
                 throw;
             }catch(const std::exception& ex){
-                std::cerr << "Unhandled exception in DeploymentManager::RequestDeployment" << ex.what() << std::endl;
-                throw;
+                retry_count++;
             }
             if(retry_count > 3){
                 throw std::runtime_error("DeploymentManager::RequestDeployment failed after three attempts.");
@@ -99,6 +97,11 @@ void DeploymentManager::RequestDeployment(){
             request.set_success(false);
             request.add_error_messages(ex.what());
         }
+
+        //Start our heartbeater
+        heartbeater_ = std::unique_ptr<SlaveHeartbeater>(new SlaveHeartbeater(*proto_requester_, ip_address_, container_id_));
+        heartbeater_->SetTimeoutCallback(std::bind(&Execution::Interrupt, &execution_));
+
 
         auto reply_future = proto_requester_->SendRequest<SlaveConfiguredRequest, SlaveConfiguredReply>
             ("SlaveConfigured", request, 1000);
@@ -236,6 +239,8 @@ void DeploymentManager::ProcessControlQueue(){
             auto reply_future = proto_requester_->SendRequest<SlaveTerminatedRequest, SlaveTerminatedReply>
                 ("SlaveTerminated", request, 5000);
             reply_future.get();
+            //Destroy our heartbeater
+            heartbeater_.reset();
         }catch(const std::exception& ex){
             std::cerr << "* Sending SlaveTerminatedRequest Failed!: " << ex.what() << std::endl;
             throw;

@@ -16,7 +16,6 @@ namespace Logan{
             void LogMessage(const Activatable& entity, const std::string& message);
             void LogException(const Activatable& entity, const std::string& message);
             void LogLifecycleEvent(const Activatable& entity, const ::Logger::LifeCycleEvent& event);
-            
             void LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level);
             void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const ::Logger::UtilizationEvent& event, const std::string& message_str);
             
