@@ -40,8 +40,8 @@ namespace zmq{
             CachedProtoWriter(int cache_count = 50);
             ~CachedProtoWriter();
             
-            bool PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message);
-            void Terminate();
+            bool PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message) override;
+            void Terminate() override;
         private:
             void WriteQueue();
 

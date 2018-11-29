@@ -43,11 +43,16 @@ namespace zmq{
 
             virtual bool PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message);
             bool PushMessage(std::unique_ptr<google::protobuf::MessageLite> message);
+            
             virtual void Terminate();
         protected:
             bool PushString(const std::string& topic, const std::string& message_type, const std::string& message);
         private:
-            int tx_count_ = 0;
+            void UpdateBackpressure(bool increment);
+            int64_t tx_count_ = 0;
+            int64_t backpressure_ = 0;
+            std::chrono::steady_clock::time_point backpressure_update_time_;
+            const std::chrono::microseconds message_process_delay_;
 
             std::unique_ptr<zmq::socket_t> socket_;
             std::unique_ptr<zmq::context_t> context_;

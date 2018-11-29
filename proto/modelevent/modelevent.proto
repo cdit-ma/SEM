@@ -75,6 +75,7 @@ message LifecycleEvent{
 
     Component component = 3;
     Port port = 4;
+    Worker worker = 5;
 }
 
 message WorkloadEvent{

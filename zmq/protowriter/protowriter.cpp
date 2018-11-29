@@ -27,18 +27,21 @@
 #include <future>
 #include <functional>
 
-zmq::ProtoWriter::ProtoWriter(){
+zmq::ProtoWriter::ProtoWriter():
+    message_process_delay_(200)
+{
     context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
     socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_PUB));
     
-    //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
-    socket_->setsockopt(ZMQ_SNDHWM, 10000);
-    socket_->setsockopt(ZMQ_LINGER, 0);
+    //Linger until all messages are sent to a peer
+    socket_->setsockopt(ZMQ_LINGER, -1);
+    //Set an unlimited sending highwater mark
+    socket_->setsockopt(ZMQ_SNDHWM, 0);
 }
 
 zmq::ProtoWriter::~ProtoWriter(){
     Terminate();
-    std::cerr << "* zmq::ProtoWriter: Wrote "  << GetTxCount() << " messages." << std::endl;
+    std::cout << "* zmq::ProtoWriter: Wrote "  << GetTxCount() << " messages." << std::endl;
 }
 
 void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
@@ -52,7 +55,8 @@ bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){
         try{
-            socket_->bind(endpoint.c_str());    
+            socket_->bind(endpoint.c_str());
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }catch(zmq::error_t &ex){
             std::cerr << "zmq::ProtoWriter::BindPublisherSocket(" << endpoint << "): " << ex.what() << std::endl;
             return false;
@@ -95,8 +99,8 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
             socket_->send(topic_data, ZMQ_SNDMORE);
             socket_->send(type_data, ZMQ_SNDMORE);
             socket_->send(message_data);
-            tx_count_ ++;
-            return true;   
+            UpdateBackpressure(true);
+            return true;
         }catch(zmq::error_t &ex){
             std::cerr << "zmq::ProtoWriter::PushString(): " << ex.what() << std::endl;
         }
@@ -104,14 +108,48 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
     return false;
 }
 
+void zmq::ProtoWriter::UpdateBackpressure(bool increment_sender){
+    auto now = std::chrono::steady_clock::now();
+    auto duration_us = std::chrono::duration_cast<std::chrono::microseconds>(now - backpressure_update_time_);
+    
+    bool initial_message = tx_count_ == 0;
+    //Can send 
+    if(initial_message){
+        backpressure_update_time_ = now;
+    }
+    
+    if(increment_sender){
+        backpressure_ ++;
+        tx_count_ ++;
+    }
+
+    if(!initial_message){
+        int64_t message_count = duration_us / message_process_delay_;
+        if(message_count > 0){
+            backpressure_ -= message_count;
+            if(backpressure_ < 0){
+                backpressure_ = 0;
+            }
+            backpressure_update_time_ = now;
+        }
+    }
+}
+
 void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
+    UpdateBackpressure(false);
+
+    if(backpressure_ > 0){
+        std::chrono::microseconds sleep_us(message_process_delay_ * backpressure_);
+        std::cout << "* Sleeping for: " << sleep_us.count() << " us to free backpressure on ProtoWriter." << std::endl;
+        std::this_thread::sleep_for(sleep_us);
+    }
+
     //Teardown socket
     socket_.reset();
 
     //Remove monitors
     monitors_.clear();
-
     //Teardown context
     context_.reset();
 }

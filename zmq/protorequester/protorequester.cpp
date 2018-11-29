@@ -165,9 +165,14 @@ void zmq::ProtoRequester::ProcessRequest(zmq::socket_t& socket, RequestStruct& r
             request.promise.set_exception(std::make_exception_ptr(TimeoutException("Server Request timed out")));
         }
     }catch(const zmq::error_t& ex){
-        std::runtime_error error("Got ZMQ Exception: " + std::string(ex.what()));
-        request.promise.set_exception(std::make_exception_ptr(error));
-        throw error;
+        if(ex.num() != ETERM){
+            std::runtime_error error("Got ZMQ Exception: " + std::string(ex.what()));
+            request.promise.set_exception(std::make_exception_ptr(error));
+            throw;
+        }else{
+            std::runtime_error error("ZMQ ProtoRequester was shutdown during request handling");
+            request.promise.set_exception(std::make_exception_ptr(error));
+        }
     }catch(const std::exception& ex){
         //Catch all exceptions and pass them up the to the promise
         request.promise.set_exception(std::current_exception());
