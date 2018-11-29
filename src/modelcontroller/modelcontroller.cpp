@@ -1504,7 +1504,7 @@ bool ModelController::canDeleteNode(Node *node)
                 }
                 break;
             }
-                
+            case NODE_KIND::EXTERNAL_TYPE:
             case NODE_KIND::FUNCTION_CALL:
             case NODE_KIND::PORT_REQUESTER_IMPL:
             case NODE_KIND::PORT_PUBLISHER_IMPL:

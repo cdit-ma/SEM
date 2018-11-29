@@ -59,7 +59,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(comparator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
     broker.AttachData(comparator_, "value", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(comparator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
-    LinkData(comparator_, "label", comparator_, "value", true);
+    Data::LinkData(comparator_, "label", comparator_, "value", true);
 
     broker.RemoveData(comparator_, "type");
     broker.RemoveData(comparator_, "inner_type");

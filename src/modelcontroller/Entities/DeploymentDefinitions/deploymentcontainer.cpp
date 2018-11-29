@@ -18,7 +18,7 @@ MEDEA::DeploymentContainer::DeploymentContainer(EntityFactoryBroker &broker, boo
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
-    setLabelFunctional(false);
+    //setLabelFunctional(false);
 
     if(is_temp_node){
         return;

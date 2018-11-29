@@ -924,15 +924,6 @@ QSet<NODE_KIND> Node::getImplKinds() const{
     return impl_kinds_;
 }
 
-void Node::LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
-    auto source_data = source->getData(source_key);
-    auto destination_data = destination->getData(destination_key);
-
-    if(source_data && destination_data){
-        source_data->linkData(destination_data, setup);
-    }
-}
-
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
     if(!definition || !instance){
         return;
@@ -1098,7 +1089,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     for(const auto& definition_key : bind_values.keys()){
         for(const auto& instance_key : bind_values[definition_key]){
-            LinkData(definition, definition_key, instance, instance_key, setup);
+            Data::LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 

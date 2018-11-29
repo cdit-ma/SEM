@@ -16,8 +16,8 @@ public:
     TypeKey(EntityFactoryBroker& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
 
-    static void BindInnerAndOuterTypes(Node* src, Node* dst, bool bind);
-    static void BindTypes(Node* src, Node* dst, bool bind);
+    static bool BindInnerAndOuterTypes(Node* src, Node* dst, bool bind);
+    static bool BindTypes(Node* src, Node* dst, bool bind);
     static void BindNamespaceAndLabelToType(Node* node, bool bind);
 
     static QList<QVariant> GetValidPrimitiveTypes();

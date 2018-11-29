@@ -19,6 +19,7 @@ class Node : public Entity
     Q_OBJECT
     friend class Edge;
     friend class EntityFactoryBroker;
+    friend class Key;
     
     public:
         enum class EdgeRule{
@@ -33,7 +34,7 @@ class Node : public Entity
     protected:
         //Static Helper Functions
         static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
-        static void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup);
+        static bool LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup);
         
         //Constuctor
         Node(EntityFactoryBroker& factory, NODE_KIND node_kind, bool is_temp_node);

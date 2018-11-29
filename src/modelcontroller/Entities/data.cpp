@@ -2,6 +2,17 @@
 #include "../entityfactorybroker.h"
 #include <QDebug>
 
+
+bool Data::Data::LinkData(Entity* source, const QString &source_key, Entity* destination, const QString &destination_key, bool setup){
+    auto source_data = source->getData(source_key);
+    auto destination_data = destination->getData(destination_key);
+
+    if(source_data && destination_data){
+        return source_data->linkData(destination_data, setup);
+    }
+    return false;
+}
+
 Data::Data(EntityFactoryBroker& broker, Key *key, QVariant value, bool protect) : GraphML(broker, GRAPHML_KIND::DATA)
 {
     this->key = key;
