@@ -40,8 +40,7 @@
 
         <xsl:for-each select="$middlewares">
             <xsl:variable name="middleware" select="." />
-            <xsl:value-of select="o:message(('Generating Middleware:', o:wrap_quote($middleware)))" />
-
+            
             <xsl:variable name="datatype_aggregates" select="cdit:get_aggregates_for_middleware($model, $middleware, $generate_all)" />
             <xsl:variable name="pubsub_aggregates" select="cdit:get_pubsub_aggregates_for_middleware($model, $middleware, $generate_all)" />
             <xsl:variable name="server_interfaces" select="cdit:get_serverinterfaces_for_middleware($model, $middleware, $generate_all)" />
@@ -56,7 +55,7 @@
                     <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
                     <xsl:variable name="aggregate_path" select="cdit:get_aggregate_path_for_middleware(., $middleware)" />
                 
-                    <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($qualified_type)) )" />
+                    <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($qualified_type), 'For Middleware:', o:wrap_quote($middleware)))" />
 
                     <xsl:if test="$middleware != 'base'">
                         <!-- Generate the Translator CPP -->
@@ -167,7 +166,7 @@
                     <xsl:variable name="aggregate" select="." />
                     <xsl:variable name="qualified_type" select="cdit:get_aggregate_qualified_type($aggregate, $middleware)" />
                     <xsl:variable name="port_path" select="cdit:get_pubsub_path($middleware, $aggregate)" />
-                    <xsl:value-of select="o:message(('Generating Pub/Sub Port:', o:wrap_quote($qualified_type)) )" />
+                    <xsl:value-of select="o:message(('Generating Pub/Sub Port:', o:wrap_quote($qualified_type), 'For Middleware:', o:wrap_quote($middleware)))" />
                 
                     <!-- Generate the Pub/Sub Port Export CPP -->
                     <xsl:result-document href="{o:write_file(($port_path, 'libportexport.cpp'))}">
@@ -192,7 +191,7 @@
                     <xsl:variable name="server_interface" select="." />
                     <xsl:variable name="qualified_type" select="cdit:get_aggregate_qualified_type($server_interface, $middleware)" />
                     <xsl:variable name="reqrep_path" select="cdit:get_reqrep_path($middleware, $server_interface)" />
-                    <xsl:value-of select="o:message(('Generating Req/Rep Port:', o:wrap_quote($qualified_type)) )" />
+                    <xsl:value-of select="o:message(('Generating Req/Rep Port:', o:wrap_quote($qualified_type), 'For Middleware:', o:wrap_quote($middleware)))" />
 
                     <!-- Generate the Module(dll) port export class-->
                     <xsl:result-document href="{o:write_file(($reqrep_path, 'libportexport.cpp'))}">

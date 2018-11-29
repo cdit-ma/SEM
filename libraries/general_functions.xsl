@@ -174,8 +174,9 @@
         <xsl:param name="file_path" as="xs:string*" />
 
         <xsl:variable name="resolved_file_path" select="o:join_paths($file_path)" />
-        
-        <xsl:message>Created File: <xsl:value-of select="$resolved_file_path" /></xsl:message>
+        <xsl:if test="$debug_mode">
+            <xsl:message>Created File: <xsl:value-of select="$resolved_file_path" /></xsl:message>
+        </xsl:if>
         <xsl:value-of select="$resolved_file_path" />
     </xsl:function>
 

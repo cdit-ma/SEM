@@ -1569,29 +1569,13 @@
 
        
         <xsl:if test="count($input_parameters) = 3">
-            <xsl:variable name="var_setter">    
-                <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[1], true(), false())" />
-            </xsl:variable>
+            <xsl:variable name="operator" select="graphml:get_label($input_parameters[2])" />
+            <xsl:variable name="needs_variable" select="$operator = ('-', '+', '/', '*')" />
 
-            <xsl:variable name="operator">    
-                <xsl:value-of select="graphml:get_label($input_parameters[2])" />
-            </xsl:variable>
-
-            <xsl:variable name="variable_name">
-                <xsl:if test="$operator = ('-', '+', '/', '*')">
-                    <xsl:value-of select="cdit:get_variable_name($node)" />
-                </xsl:if>
-            </xsl:variable>
-
-            <xsl:variable name="value_setter">    
-                <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
-            </xsl:variable>
-
-            <xsl:variable name="statement">
-                <xsl:value-of select="concat($var_setter, ' ', $operator, ' ', $value_setter)" />
-            </xsl:variable>
-
-
+            <!-- Get const getter for the lhs if we aren't in-place modifying -->
+            <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], not($needs_variable), false())" />
+            <xsl:variable name="rhs" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+            <xsl:variable name="statement" select="concat($lhs, ' ', $operator, ' ', $rhs)" />
 
             <xsl:choose>
                 <xsl:when test="$inline">
@@ -1599,8 +1583,8 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:choose>
-                      <xsl:when test="$variable_name != ''">
-                            <xsl:value-of select="cpp:define_variable(cpp:auto(), $variable_name, $statement, cpp:nl(), $tab)"/>
+                      <xsl:when test="$needs_variable">
+                            <xsl:value-of select="cpp:define_variable(cpp:auto(), cdit:get_variable_name($node), $statement, cpp:nl(), $tab)"/>
                       </xsl:when>
                       <xsl:otherwise>
                           <xsl:value-of select="concat(o:t($tab), $statement, cpp:nl())" />
