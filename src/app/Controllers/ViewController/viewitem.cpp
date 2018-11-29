@@ -205,6 +205,7 @@ void ViewItem::addChild(ViewItem *child)
         if(set.size() > pre_size){
             child->setParentViewItem(this);
             connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
+            connect(child, &ViewItem::nestedNotificationsChanged, this, &ViewItem::nestedNotificationsChanged);
             childAdded(child);
         }
     }

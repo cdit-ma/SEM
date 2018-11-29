@@ -118,7 +118,6 @@ void ExecutionManager::ValidateModel_(QString model_path)
         //All Warnings aren't errors
         failed_count -= warnings_count;
         auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "Panel rendering notifications: " <<  finish - start << "MS";
         
 
         // Show the notification panel on validation failure
