@@ -523,7 +523,7 @@ void TimelineChartView::constructChartForEvent(QString workerInstID, quint32 wor
     connect(chart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
 
     //EntitySet* set = new EntitySet(label + "_" + workerInstID, this);
-    EntitySet* set = new EntitySet(label + "(" + workerInstID + ")", this);
+    EntitySet* set = new EntitySet(label + " (" + workerInstID + ")", this);
     eventEntitySets[seriesID] = set;
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
     set->themeChanged(Theme::theme());
