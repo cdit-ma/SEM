@@ -2291,7 +2291,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     if(UPDATE_PROGRESS){
         ProgressUpdated_("Constructing Nodes");
     }
-    QQueue<Node*> implicitly_constructed_nodes;
+    QList<Node*> implicitly_constructed_nodes;
 
     //Reset any delete nodes
     for(auto id : node_ids){
@@ -2337,7 +2337,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
         
         if(!parent_node){
-            qCritical() << "ImportGraphML: Node with ID:" << id << " Gas a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
+            qCritical() << "ImportGraphML: Node with ID:" << id << " Has a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
             error_count ++;
             continue;
         }
@@ -2427,12 +2427,16 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             if(got_parent || is_model){
                 entity->setID(node->getID());
             }else{
+                for(auto child : node->getChildren()){
+                    if(child->isImplicitlyConstructed()){
+                        implicitly_constructed_nodes.removeAll(child);
+                    }
+                }
+
                 //Destroy!
                 entity_factory->DestructEntity(node);
                 node = 0;
             }
-
-            
         }
 
         if(!node){
@@ -2448,7 +2452,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     }
 
     while(implicitly_constructed_nodes.size()){
-        auto node = implicitly_constructed_nodes.dequeue();
+        auto node = implicitly_constructed_nodes.takeFirst();
         storeNode(node, -1, false, false);
     }
 
