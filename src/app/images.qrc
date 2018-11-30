@@ -27,7 +27,7 @@
         <file alias="Edge_Data">Resources/EntityIcons/Edge_Data.png</file>
         <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
-        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
+        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file> 
 
         <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
 
@@ -382,5 +382,6 @@
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
         <file alias="docker">Resources/Icons/docker.png</file>
+        <file alias="santaHat">Resources/Icons/santaHat.png</file>
     </qresource>
 </RCC>

@@ -10,6 +10,7 @@
 #include <QAction>
 #include <QApplication>
 #include "../modelcontroller/entityfactory.h"
+#include <QPainter>
 
 
 
@@ -463,6 +464,24 @@ QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintCo
 
         //Construct a Pixmap from the image.
         auto pixmap = QPixmap::fromImage(image);
+
+        if(current_theme == ThemePreset::XMAS_THEME){
+            //Overlay some christmas shit
+            auto hat_name = getResourceName("Icons", "santaHat");
+            if(resourceName != hat_name && (resourceName.contains("EntityIcon") || resourceName.contains("medea")) && !resourceName.contains("Edge")){
+                auto hat_pixmap = _getPixmap(hat_name, pixmap.size());
+
+                QPixmap base, overlay; // come from your code
+                QPixmap result(pixmap.width(), pixmap.height());
+                result.fill(Qt::transparent); // force alpha channel
+                {
+                    QPainter painter(&result);
+                    painter.drawPixmap(0, 0, pixmap);
+                    painter.drawPixmap(result.rect(), hat_pixmap, hat_pixmap.rect());
+                }
+                pixmap = result;
+            }
+        }
 
         {
             QWriteLocker lock(&pixmap_lock_);
@@ -1063,6 +1082,11 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         setAspectBackgroundColor(VIEW_ASPECT::HARDWARE, color);
         break;
     }
+    
+    case SETTINGS::THEME_SETTHEME_XMASTHEME:{
+        resetTheme(ThemePreset::XMAS_THEME);
+        break;
+    }
     case SETTINGS::THEME_SETTHEME_DARKTHEME:{
         resetTheme(ThemePreset::DARK_THEME);
         break;
@@ -1129,6 +1153,7 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
 void Theme::clearIconMap()
 {
     QWriteLocker lock(&lock_);
+    pixmapLookup.clear();
     iconLookup.clear();
 }
 
@@ -1237,6 +1262,7 @@ void Theme::setIconAlias(const QString& prefix, const QString& alias, const QStr
 
 
 void Theme::resetTheme(ThemePreset themePreset){
+    current_theme = themePreset;
     //Solarized
     QColor base03("#002b36");
     QColor base02("#073642");
@@ -1256,6 +1282,10 @@ void Theme::resetTheme(ThemePreset themePreset){
     QColor green("#859900");
 
     switch(themePreset){
+        case ThemePreset::XMAS_THEME:{
+            clearIconMap();
+
+        }
         case ThemePreset::DARK_THEME:{
             QColor bgColor = QColor(70,70,70);
             emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);

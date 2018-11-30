@@ -28,7 +28,7 @@
 typedef QPair<QString, QString> IconPair;
 Q_DECLARE_METATYPE(IconPair); 
 
-enum class ThemePreset{LIGHT_THEME, DARK_THEME, SOLARIZED_DARK_THEME, SOLARIZED_LIGHT_THEME};
+enum class ThemePreset{XMAS_THEME, LIGHT_THEME, DARK_THEME, SOLARIZED_DARK_THEME, SOLARIZED_LIGHT_THEME};
 enum class ColorRole{NONE, NORMAL, DISABLED, SELECTED};
 
 
@@ -243,7 +243,7 @@ struct ImageLoad{
     QReadWriteLock lock_;
     QReadWriteLock pixmap_lock_;
 
-
+    ThemePreset current_theme = ThemePreset::XMAS_THEME;
     bool themeChanged = false;
     bool valid = false;
 public:
