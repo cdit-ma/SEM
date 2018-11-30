@@ -16,7 +16,6 @@
 Theme* Theme::themeSingleton = 0;
 
 Theme::Theme() : QObject(0)
-  //,lock(QReadWriteLock::Recursive)
 {
     //Set up the default colors
     iconColor = QColor(70,70,70);
