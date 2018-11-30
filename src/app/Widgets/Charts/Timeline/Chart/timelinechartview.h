@@ -37,8 +37,8 @@ signals:
     void toggledStateLegend(bool checked);
     void toggledNotificationLegend(bool checked);
     void toggledLineLegend(bool checked);
-    void toggleSeriesKind(TIMELINE_SERIES_KIND kind, bool checked);
-    void seriesHovered(TIMELINE_SERIES_KIND kind);
+    void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);
+    void seriesLegendHovered(TIMELINE_SERIES_KIND kind);
 
 public slots:
     void themeChanged();
@@ -55,8 +55,6 @@ public slots:
     
     void updateChartHoverDisplay();
     
-    void UpdateChartHover();
-
 private:
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);

@@ -360,9 +360,9 @@ void TimelineChart::entityChartRangeChanged(double min, double max)
     }
     if (update) {
         setRange(_dataMin, _dataMax);
-        for (EntityChart* chart : _entityCharts) {
+        /*for (EntityChart* chart : _entityCharts) {
             chart->timelineChartRangeChanged(_dataMin, _dataMax);
-        }
+        }*/
         // send a signal to update the axis' range to match the chart's range
         emit rangeChanged(_dataMin, _dataMax);
     }
@@ -491,9 +491,9 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     QWidget::mouseMoveEvent(event);
     cursorPoint = mapFromGlobal(cursor().pos());
     hoverRect.moveCenter(cursorPoint);
-    //hoverRect.moveCenter(QPointF(cursor().pos().x(), 0));
-    //hoverRect.moveCenter(cursor().pos());
-    hoverRectUpdated();
+    //qDebug() << "===================================================";
+    //qDebug() << "[TIMELINE - MOVE event]";
+    hoverRectUpdated(true);
 
     switch (dragMode) {
     case PAN_MODE: {
@@ -550,6 +550,9 @@ void TimelineChart::enterEvent(QEvent *event)
 
     hoverRect = visibleRegion().boundingRect();
     hoverRect.setWidth(HOVER_LINE_WIDTH);
+
+    //qDebug() << "===================================================";
+    //qDebug() << "[TIMELINE - ENTER event]";
     hoverRectUpdated();
 }
 
@@ -562,8 +565,10 @@ void TimelineChart::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
     hovered = false;
-
     hoverRect = QRectF();
+
+    //qDebug() << "===================================================";
+    //qDebug() << "[TIMELINE - LEAVE event]";
     hoverRectUpdated();
 }
 
@@ -607,10 +612,14 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 
 
 /**
- * @brief TimelineChart::hovereRectUpdated
+ * @brief TimelineChart::hoverRectUpdated
+ * @param repaintRequired
  */
-void TimelineChart::hoverRectUpdated()
+void TimelineChart::hoverRectUpdated(bool repaintRequired)
 {
+    //qDebug() << "---------------------------------------------------";
+    //qDebug() << "[TIMELINE] - Update hover rect";
+
     if (hoverRect.isNull()) {
         for (EntityChart* chart : _entityCharts) {
             chart->setHoveredRect(hoverRect);
@@ -626,8 +635,17 @@ void TimelineChart::hoverRectUpdated()
         }
     }
 
+    if (repaintRequired) {
+        // this repaint is required instead of an update whenever there's a moveEvent
+        // the hovered series ranges are being calculated in the children charts' paint event
+        // and it needs to happen before the signal below is sent to the timeline view
+        repaint();
+    } else {
+        update();
+    }
+
     emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
-    update();
+    //qDebug() << "===================================================";
 }
 
 

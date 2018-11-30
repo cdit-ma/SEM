@@ -29,6 +29,8 @@ public:
         return data_;
     }
     double getMin() const {
+        if (data_.count() == 1)
+            return 0.0;
         return data_.constLast();
     }
     double getMax() const {
@@ -71,6 +73,7 @@ private:
     QMap<qint64, QVector<double>> _dataMap;
     QMap<qint64, BarData*> data_map_;
 
+    QString hovereData_;
 };
 
 }

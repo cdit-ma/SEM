@@ -80,7 +80,7 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    void hoverRectUpdated();
+    void hoverRectUpdated(bool repaintRequired = false);
 
     void clearDragMode();
     double mapToRange(double value);
