@@ -1138,25 +1138,18 @@ void ViewController::TeardownController()
     if (controller) {
         setControllerReady(false);
         emit selectionController->clearSelection();
-
-         
-       
+        
         emit ProjectFileChanged("");
         emit ProjectModified(false);
         
         ResetViewItems();
+        
 
-        //This will destruct!
         disconnect(controller);
         controller->disconnect(this);
         emit controller->InitiateTeardown();
         controller = 0;
-
-
-
         
-
-
         auto manager = NotificationManager::manager();
         
         // Clear previous validation notification items

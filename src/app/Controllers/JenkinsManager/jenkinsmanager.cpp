@@ -9,6 +9,7 @@
 #include <QHttpMultiPart>
 #include <QUrlQuery>
 
+
 JenkinsManager::JenkinsManager(ViewController* view_controller):
     QObject(view_controller),
     var_mutex_(QMutex::Recursive)
@@ -278,6 +279,7 @@ QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJenkinsConfiguration(){
 }
 
 QJsonDocument JenkinsManager::RequestJenkinsConfiguration(bool auth){
+
     QJsonDocument document;
     auto api_url = GetUrl() + "/api/json";
 
@@ -305,7 +307,6 @@ QJsonDocument JenkinsManager::RequestJenkinsConfiguration(bool auth){
 
 QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJobConfiguration(QString job_name, int job_number)
 {
-
     auto hash_key = GetUrl() + GetJobStatusKey(job_name, job_number) + "/api/json";
     QMutexLocker lock(&futures_mutex_);
     
@@ -484,6 +485,7 @@ QList<Jenkins_Job_Parameter> JenkinsManager::RequestJobParameters(QString job_na
             job_parameters.append(job_parameter);
         }
     }
+
     return job_parameters;
 }
 
@@ -507,7 +509,7 @@ bool JenkinsManager::RequestBuildJob(QString job_name, QList<Jenkins_Job_Paramet
     auto notification = NotificationManager::manager()->AddNotification("Build Job '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
     
     if(WaitForSettingsValidation()){
-        auto multi_part = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+        QScopedPointer<QHttpMultiPart> multi_part(new QHttpMultiPart(QHttpMultiPart::FormDataType));
         {
             //Construct a Json Parameter Array
             QJsonArray parameter_array_json;
@@ -550,7 +552,7 @@ bool JenkinsManager::RequestBuildJob(QString job_name, QList<Jenkins_Job_Paramet
                         file_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
                         file_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"" + parameter.name + "\"; filename=\""+ file_info.baseName() + "\""));
                         file_part.setBodyDevice(file);
-                        file->setParent(multi_part);
+                        file->setParent(multi_part.get());
                         multi_part->append(file_part);
                     }
                 }
@@ -560,7 +562,7 @@ bool JenkinsManager::RequestBuildJob(QString job_name, QList<Jenkins_Job_Paramet
         ProcessRunner runner;
         auto build_url = GetUrl() + "job/" + job_name + "/build?delay=0sec";
         auto build_request = getAuthenticatedRequest(build_url);
-        auto build_result = runner.HTTPPostMulti(build_request, multi_part);
+        auto build_result = runner.HTTPPostMulti(build_request, multi_part.take());
         result = build_result.success;
     }
 
@@ -596,6 +598,7 @@ QPair<bool, QFuture<QString> > JenkinsManager::GetJobConsoleOutput(QString job_n
 }
 
 QString JenkinsManager::RequestJobConsoleOutput(QString job_name, int job_number){
+
     QString console_output;
     if(WaitForSettingsValidation()){
         ProcessRunner runner;
@@ -717,6 +720,7 @@ bool JenkinsManager::RequestValidation(){
     notification->setTitle(result ? "Jenkins settings validated successfully": "Jenkins settings invalid");
     notification->setDescription(result_string);
     SetSettingsValidated(result);
+
     return result;
 }
 

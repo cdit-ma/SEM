@@ -13,8 +13,6 @@
 
 
 
-Theme* Theme::themeSingleton = 0;
-
 Theme::Theme() : QObject(0)
 {
     //Set up the default colors
@@ -978,14 +976,12 @@ void Theme::preloadImages()
         }
     }
 
-
     auto results = QtConcurrent::blockingMapped(files, &Theme::LoadImage);
 
     {
         QWriteLocker lock(&lock_);
         for(const auto& i : results){
             icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
-
             imageLookup[i.resource_name] = i.image;
             pixmapSizeLookup[i.resource_name] = i.image.size();
             pixmapMainColorLookup[i.resource_name] = i.color;
@@ -1532,17 +1528,10 @@ QString Theme::QColorToHex(const QColor color)
 
 Theme *Theme::theme()
 {
-    if(!themeSingleton){
-        themeSingleton = new Theme();
-    }
-    return themeSingleton;
+    static Theme theme;
+    return &theme;
 }
 
-void Theme::teardownTheme()
-{
-    delete themeSingleton;
-    themeSingleton = 0;
-}
 
 CustomMenuStyle::CustomMenuStyle(int icon_size) : QProxyStyle("Windows"){
     this->icon_size = icon_size;

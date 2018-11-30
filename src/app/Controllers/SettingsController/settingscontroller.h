@@ -148,10 +148,7 @@ private:
 
 public:
     static SettingsController* settings();
-    static void teardownSettings();
     static void initializeSettings();
-private:
-    static SettingsController* settingsSingleton;
 };
 
 inline uint qHash(SETTINGS key, uint seed)

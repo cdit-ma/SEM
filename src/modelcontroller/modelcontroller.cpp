@@ -10,6 +10,7 @@
 #include <QStringBuilder>
 #include <QThread>
 #include <QXmlStreamReader>
+#include <QCoreApplication>
 
 #include "version.h"
 
@@ -60,12 +61,12 @@ QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
     this->application_dir = application_dir;
-
     controller_thread = new QThread();
     moveToThread(controller_thread);
 
-    connect(this, &ModelController::InitiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
-    connect(this, &ModelController::InitiateTeardown, controller_thread, &QThread::quit, Qt::QueuedConnection);
+    connect(this, &ModelController::InitiateTeardown, controller_thread, &QThread::quit);
+    connect(controller_thread, &QThread::finished, this, &ModelController::deleteLater);
+    connect(controller_thread, &QThread::finished, controller_thread, &QThread::deleteLater);
     controller_thread->start();
 
     entity_factory = EntityFactory::getNewFactory();
@@ -78,7 +79,14 @@ lock_(QReadWriteLock::Recursive)
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
     qRegisterMetaType<QSet<EDGE_DIRECTION> >("QSet<EDGE_DIRECTION>");
     qRegisterMetaType<DataUpdate>("DataUpdate");
+}
 
+
+ModelController::~ModelController()
+{
+    setModelAction(MODEL_ACTION::DESTRUCTING);
+    destructEntities({workerDefinitions, model});
+    delete entity_factory;
 }
 
 void ModelController::ConnectViewController(ViewControllerInterface* view_controller){
@@ -140,12 +148,6 @@ bool ModelController::SetupController(const QString& file_path)
     return success;
 }
 
-ModelController::~ModelController()
-{
-    setModelAction(MODEL_ACTION::DESTRUCTING);
-    destructEntities({workerDefinitions, model});
-    delete entity_factory;
-}
 
 /**
  * @brief NewController::loadWorkerDefinitions Loads in both the compiled in WorkerDefinitions and Externally defined worker defintions.

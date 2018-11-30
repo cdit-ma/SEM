@@ -249,15 +249,12 @@ struct ImageLoad{
 public:
     static QString QColorToHex(const QColor color);
     static Theme* theme();
-    static void teardownTheme();
     static QSize roundQSize(QSize size);
     static IconPair getIconPair(QString prefix, QString alias);
 
     static void UpdateActionIcon(QAction* action, Theme* theme = 0);
     static void StoreActionIcon(QAction* action, QString alias, QString name);
     static void StoreActionIcon(QAction* action, IconPair icon);
-private:
-    static Theme* themeSingleton;
 };
 
 

@@ -9,8 +9,6 @@
 #include "../../theme.h"
 #include "../../Widgets/Dialogs/appsettings.h"
 
-SettingsController* SettingsController::settingsSingleton = 0;
-
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
     intializeSettings();
@@ -400,17 +398,8 @@ void SettingsController::saveSettings()
 
 SettingsController *SettingsController::settings()
 {
-    if(!settingsSingleton){
-        settingsSingleton = new SettingsController();
-    }
-    return settingsSingleton;
-}
-
-void SettingsController::teardownSettings()
-{
-    if(settingsSingleton){
-        delete settingsSingleton;
-    }
+    static SettingsController controller;
+    return &controller;
 }
 
 void SettingsController::initializeSettings()
