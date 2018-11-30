@@ -13,9 +13,6 @@ SettingsController* SettingsController::settingsSingleton = 0;
 
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
-    //Register the settings key.
-    //qRegisterMetaType<SETTINGS>("SETTINGS");
-    //qRegisterMetaType<SETTING_TYPE>("SETTING_TYPE");
     intializeSettings();
 
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
@@ -104,8 +101,13 @@ void SettingsController::intializeSettings()
 {
     //General
     createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
+    createSetting(SETTINGS::GENERAL_REGEN_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "re_gen Path", "Icons", "folder");
+
     createSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH, SETTING_TYPE::FILE, "General", "Runtime Environment", "RE configure script path", "Icons", "file");
     createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
+    
+
+    
     
 
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
@@ -214,9 +216,12 @@ void SettingsController::intializeSettings()
 
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
     _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
+    _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
+
+    
+
 
     _getSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION)->setDefaultValue(3);
-    
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
     

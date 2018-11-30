@@ -17,10 +17,9 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     view_controller_ = view_controller;
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
 
-    saxon_jar_path_ = transforms_path_ % "saxon.jar";
-
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
     connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
+    connect(this, &ExecutionManager::GotRegen, view_controller, &ViewController::GotRegen);
 
 
     auto settings = SettingsController::settings();
@@ -33,11 +32,21 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
 
     //Force a revalidatino
     settingChanged(SETTINGS::GENERAL_RE_CONFIGURE_PATH, settings->getSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH));
+    settingChanged(SETTINGS::GENERAL_REGEN_PATH, settings->getSetting(SETTINGS::GENERAL_REGEN_PATH));
+}
+
+QString ExecutionManager::GetSaxonPath(){
+    return transforms_path_ % "saxon.jar";
 }
 
 bool ExecutionManager::HasJava(){
     QReadLocker lock(&lock_);
     return got_java_;
+}
+
+bool ExecutionManager::HasRegen(){
+    QReadLocker lock(&lock_);
+    return got_regen_;
 }
 
 bool ExecutionManager::HasRe(){
@@ -154,7 +163,7 @@ void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* 
 }
 
 void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory, int duration){
-    if(HasRe() && HasJava()){
+    if(HasRe() && HasJava() && HasRegen()){
         ProcessRunner runner;
         auto runner_ = &runner;
 
@@ -265,10 +274,22 @@ void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
             CheckForRe(value.toString());
             break;
         }
+        case SETTINGS::GENERAL_REGEN_PATH:{
+
+            QFileInfo info(value.toString() % "/");
+            if(info.isAbsolute()){
+                transforms_path_ = info.absolutePath() % "/";
+            }else{
+                transforms_path_ = QApplication::applicationDirPath() % "/" % info.path() % "/";
+            }
+            CheckForRegen(transforms_path_);
+            break;
+        }
         default:
         break;
     }
 }
+
 
 void ExecutionManager::CheckForRe(QString re_configure_path)
 {
@@ -278,6 +299,16 @@ void ExecutionManager::CheckForRe(QString re_configure_path)
         configure_thread = QtConcurrent::run(this, &ExecutionManager::CheckForRe_, re_configure_path);
     }
 }
+
+void ExecutionManager::CheckForRegen(QString regen_path)
+{
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!regen_thread.isRunning()){
+        regen_thread = QtConcurrent::run(this, &ExecutionManager::CheckForRegen_, regen_path);
+    }
+}
+
 
 bool ExecutionManager::ExecuteModel(QString document_path, QString output_directory, int runtime_duration)
 {
@@ -320,6 +351,25 @@ void ExecutionManager::CheckForJava_(){
         got_java_ = result.success;
     }
     emit GotJava(result.success);
+}
+
+
+void ExecutionManager::CheckForRegen_(QString regen_path){
+    auto notification = NotificationManager::manager()->AddNotification("Checking for Regen", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+    
+    QFileInfo file(regen_path + "/saxon.jar");
+
+    bool saxon_exists = file.exists() && file.size();
+
+    notification->setSeverity(saxon_exists ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    notification->setTitle(saxon_exists ? "Found re_gen" : "Cannot find re_gen");
+    notification->setDescription(notification->getTitle() + " in: '" + regen_path + "'");
+
+    {
+        QWriteLocker lock(&lock_);
+        got_regen_ = saxon_exists;
+    }
+    emit GotRegen(saxon_exists);
 }
 
 //Designed to be run on a background thread
@@ -369,7 +419,7 @@ ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QStrin
 
     QStringList args;
     args << "-jar";
-    args << saxon_jar_path_;
+    args << GetSaxonPath();
     args << "-xsl:" + transform_path;
     args << "-s:" + document;
     args << arguments;

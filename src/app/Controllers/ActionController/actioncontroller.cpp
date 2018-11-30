@@ -49,6 +49,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::GotJenkins, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::GotJava, this, &ActionController::gotJava);
         connect(controller, &ViewController::GotRe, this, &ActionController::gotRe);
+        connect(controller, &ViewController::GotRegen, this, &ActionController::gotRegen);
 
         connect(controller, &ViewController::UndoRedoUpdated, this, &ActionController::updateUndoRedo);
 
@@ -278,6 +279,14 @@ void ActionController::gotRe(bool re)
     }
 }
 
+void ActionController::gotRegen(bool regen){
+    if(got_regen != regen){
+        got_regen = regen;
+        updateReActions();
+        updateJenkinsActions();
+    }
+}
+
 void ActionController::selectionChanged(int selection_size)
 {
     if(selectionController){
@@ -347,7 +356,7 @@ void ActionController::selectionChanged(int selection_size)
         view_fitView->setEnabled(got_selection);
         view_fitAllViews->setEnabled(controller_ready);
 
-        model_getCodeForComponent->setEnabled(got_java && selection_properties.contains(SELECTION_PROPERTIES::CAN_GENERATE_CODE));
+        model_getCodeForComponent->setEnabled(got_java && got_regen && selection_properties.contains(SELECTION_PROPERTIES::CAN_GENERATE_CODE));
 
         auto active_item = selectionController->getActiveSelectedItem();
         
@@ -395,11 +404,17 @@ void ActionController::updateJenkinsActions()
     jenkins_listJobs->setEnabled(controller_ready && got_valid_jenkins);
     jenkins_showBrowser->setEnabled(controller_ready && got_valid_jenkins);
     
-    model_generateModelWorkspace->setEnabled(controller_ready && got_java);
-    model_executeLocalJob->setEnabled(controller_ready && got_java);
-    
-    model_validateModel->setEnabled(controller_ready && got_java);
+    auto r = gotRegenAndJava();
+
+    model_generateModelWorkspace->setEnabled(controller_ready && r);
+    model_executeLocalJob->setEnabled(controller_ready && r);
+    model_validateModel->setEnabled(controller_ready && r);
 }
+
+bool ActionController::gotRegenAndJava(){
+    return got_java && got_regen;
+}
+
 void ActionController::updateReActions(){
     bool controller_ready = viewController->isControllerReady();
     model_executeLocalJob->setEnabled(controller_ready && got_re && got_java);
