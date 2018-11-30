@@ -5,8 +5,8 @@
 #include <math.h>
 #include <float.h>
 
-int MEDEA::DataSeries::series_ID = 0;
 
+int MEDEA::DataSeries::series_ID = 0;
 
 /**
  * @brief MEDEA::DataSeries::DataSeries

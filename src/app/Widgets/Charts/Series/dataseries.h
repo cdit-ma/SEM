@@ -26,9 +26,11 @@ public:
     explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
     void addPoints(QList<QPointF> points);
 
+    /*
     virtual QString getHoveredDataInformation(qint64 start_time, qint64 end_time){
         return QString();
     }
+    */
 
     //int getID();
     QString getLabel();

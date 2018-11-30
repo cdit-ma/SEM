@@ -11,6 +11,10 @@
 
 enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
+static QString DATETIME_FORMAT = "MMMM d, hh:mm:ss:zzzzz";
+static QString TIME_FORMAT = "hh:mm:ss:zzzzz";
+static QString DATE_FORMAT = "MMMM d";
+
 class EntityChart;
 class TimelineChart : public QWidget
 {
@@ -77,7 +81,7 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    void hoverRectUpdated();
+    void hoverRectUpdated(bool repaintRequired = false);
 
     void clearDragMode();
     double mapToRange(double value);
