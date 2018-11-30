@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QPainter>
 #include <algorithm>
+#include <iostream>
 
 #define BACKGROUND_OPACITY 0.25
 #define LINE_WIDTH 2.0
@@ -14,7 +15,6 @@
 
 #define BAR_PEN_WIDTH 1.0
 #define BAR_WIDTH 5.0
-//#define BAR_WIDTH 1.0
 #define PRINT_RENDER_TIMES false
 
 /**
@@ -162,10 +162,6 @@ bool EntityChart::isHovered()
 void EntityChart::setHovered(bool visible)
 {
     _hovered = visible;
-    if (!visible) {
-        _hoveredPoints.clear();
-        emit dataHovered(_hoveredPoints);
-    }
 }
 
 
@@ -361,17 +357,14 @@ void EntityChart::paintEvent(QPaintEvent* event)
     const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
 
     QPainter painter(this);
-    //painter.setClipRegion(visibleRegion());
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
 
-    // clear previously hovered series kinds
-    _hoveredSeriesTimeRange.clear();
+    clearHoveredLists();
 
     for (const auto& kind : paintOrder) {
-        if (kind != _hoveredSeriesKind) {
+        if (kind != _hoveredSeriesKind)
             paintSeries(painter, kind);
-        }
     }
     paintSeries(painter, _hoveredSeriesKind);
 
@@ -396,7 +389,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
         }
         penColor = _hoverLinePen.color();
         penWidth = 4.0;
-        emit dataHovered(_hoveredPoints);
     }
 
     // NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
@@ -421,9 +413,6 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
     if (!_seriesKindVisible.value(kind, false))
         return;
 
-    // clear previous hovered points
-    _hoveredPoints[kind].clear();
-
     // draw the points and get intersection point(s) index
     switch (kind) {
     case TIMELINE_SERIES_KIND::STATE:
@@ -435,13 +424,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::BAR:
         paintBarSeries(painter);
         break;
-    default: {
-        /*painter.setPen(_pointBorderPen);
-        painter.drawPoints(mappedPoints.toVector());
-        painter.setPen(_pointPen);
-        painter.drawPoints(mappedPoints.toVector());*/
+    default:
+        //qWarning("EntityChart::paintSeries - Series kind not handled");
         break;
-    }
     }
 }
 
@@ -468,39 +453,39 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     });
 
     // bucket count
-    double bar_width = BAR_WIDTH * 1.5; //size;
-    double bar_count = ceil((double)width() / bar_width);
-    double bar_time_width = (_displayedMax - _displayedMin) / bar_count;
+    double barWidth = BAR_WIDTH * 1.5;
+    double barCount = ceil((double)width() / barWidth);
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
 
     // because bar_count needed to be rounded up, the bar_width also needs to be recalculated
-    bar_width = (double) width() / bar_count;
+    barWidth = (double) width() / barCount;
 
-    QVector< QList<QPointF> > buckets(bar_count);
-    QList<qint64> bucket_endtimes;
+    QVector< QList<QPointF> > buckets(barCount);
+    QList<qint64> bucketEndtimes;
 
-    auto current_time = _displayedMin;
-    for (int i = 0; i < bar_count; i++) {
-        bucket_endtimes.append(current_time + bar_time_width);
-        current_time = bucket_endtimes.last();
+    auto currentTime = _displayedMin;
+    for (int i = 0; i < barCount; i++) {
+        bucketEndtimes.append(currentTime + barTimeWidth);
+        currentTime = bucketEndtimes.last();
     }
 
-    auto current_bucket = 0;
-    auto current_bucket_ittr = bucket_endtimes.constBegin();
-    auto end_bucket_ittr = bucket_endtimes.constEnd();
+    auto currentBucket = 0;
+    auto currentBucketIttr = bucketEndtimes.constBegin();
+    auto endBucketIttr = bucketEndtimes.constEnd();
 
     // put the data in the correct bucket
     for (; current != upper; current++) {
         auto current_point = (*current);
-        while (current_bucket_ittr != end_bucket_ittr) {
-            if (current_point.x() > (*current_bucket_ittr)) {
-                current_bucket_ittr++;
-                current_bucket++;
+        while (currentBucketIttr != endBucketIttr) {
+            if (current_point.x() > (*currentBucketIttr)) {
+                currentBucketIttr++;
+                currentBucket++;
             } else {
                 break;
             }
         }
-        if (current_bucket < bar_count) {
-            buckets[current_bucket].append(current_point);
+        if (currentBucket < barCount) {
+            buckets[currentBucket].append(current_point);
         }
     }
 
@@ -513,14 +498,12 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     painter.setPen(QPen(seriesColor.lighter(_borderColorDelta), BAR_PEN_WIDTH));
 
     double dataToPixel = (double) height() / max;
-    for (int i = 0; i < bar_count; i++) {
+    for (int i = 0; i < barCount; i++) {
         int count = buckets[i].size();
-        QRectF rect = QRect(i * bar_width, height() - count * dataToPixel, bar_width, count * dataToPixel);
+        QRectF rect = QRect(i * barWidth, height() - count * dataToPixel, barWidth, count * dataToPixel);
         auto color = count == 1 ? seriesColor : seriesColor.darker(100 * (1 + count / (double)max));
-        //if (rectHovered(rect)) {
         if (rectHovered(TIMELINE_SERIES_KIND::NOTIFICATION, rect)) {
             color.setHsv(qAbs(color.hue() - 180), 255, 255);
-            //_hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::NOTIFICATION] = {mapPixelToTime(rect.left()), mapPixelToTime(rect.right())};
         }
         painter.setBrush(color);
         painter.drawRect(rect);
@@ -558,7 +541,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
         return;
 
     // bucket count
-    double barWidth = BAR_WIDTH * 2.0; //getPointWidth(series->getSeriesKind());
+    double barWidth = BAR_WIDTH * 2.0;
     double barCount = ceil((double)width() / barWidth);
     double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
 
@@ -749,7 +732,6 @@ void EntityChart::paintStateSeries(QPainter &painter)
  * @param painter
  * @param points
  */
-#include <iostream>
 void EntityChart::paintBarSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
@@ -807,8 +789,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
     QColor seriesColor = _lineColor;
     painter.setPen(QPen(seriesColor.lighter(_borderColorDelta), BAR_PEN_WIDTH));
 
-    qreal offset = painter.pen().widthF() / 2.0;
-
     for (int i = 0; i < barCount; i++) {
         auto size = buckets[i].size();
         if (size > 0) {
@@ -825,13 +805,11 @@ void EntityChart::paintBarSeries(QPainter &painter)
             auto color = seriesColor.darker(100 * (1.0 + size / dataMax));
             auto rect = QRectF(i * barWidth, height() - pixelMax, barWidth, barHeight);
 
-            //if (rectHovered(rect.adjusted(-offset, 0, offset, 0))) {
             if (rectHovered(TIMELINE_SERIES_KIND::BAR, rect)) {
                 color.setHsv(qAbs(color.hue() - 180), 255, 255);
-                //_hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::BAR] = {mapPixelToTime(rect.left()), mapPixelToTime(rect.right())};
             }
-
             painter.setBrush(color);
+
             if (size == 1) {
                 const auto& data = buckets[i][0];
                 paintBarData(painter, rect, color, data->getData());
@@ -840,48 +818,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
             painter.drawRect(rect);
         }
     }
-
-    /*
-    for (int i = 0; i < barCount; i++) {
-        auto size = buckets[i].size();
-        switch(size) {
-        case 0:
-            break;
-        case 1: {
-            const auto& data = buckets[i][0];
-            paintBar(painter, data->getData(), i * barWidth, seriesColor);
-            break;
-        }
-        default: {
-            auto min = DBL_MAX;
-            auto max = 0.0;
-            for (const auto& data : buckets[i]) {
-                min = qMin(min, data->getMin());
-                max = qMax(max, data->getMax());
-            }
-
-            // using this function here takes longer due to the vector construction
-            //paintBar(painter, {(double)max, (double)min}, i * bar_width, color);
-
-            auto dataToPixel = height() / _dataMaxY;
-            auto pixel_min = min * dataToPixel;
-            auto size_pixels = (max - min) * dataToPixel;
-
-            auto color = seriesColor.darker(100 * (1 + size / (double)max));
-            QRectF rect(i * barWidth, height() - size_pixels - pixel_min, barWidth, size_pixels);
-
-            if (pointHovered(rect.adjusted(-offset, 0, offset, 0))) {
-                _hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::BAR] = {mapPixelToTime(rect.left()), mapPixelToTime(rect.right())};
-                color.setHsv(qAbs(color.hue() - 180), 255, 255);
-            }
-
-            painter.setBrush(color);
-            painter.drawRect(rect);
-            break;
-        }
-        }
-    }
-    */
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
@@ -959,23 +895,9 @@ void EntityChart::paintBar(QPainter &painter, const QVector<double> &data, doubl
     }
 
     qreal offset = painter.pen().widthF() / 2.0;
-    /*
-    QRectF adjustedRect = barRect; //.adjusted(-offset, 0, offset, 0);
-    auto min_offset = adjustedRect.left() / width();
-    auto max_offset = adjustedRect.right() / width();
-    auto delta = _displayedMax - _displayedMin;
-    auto minTime = _displayedMin + (delta * min_offset);
-    auto maxTime = _displayedMin + (delta * max_offset);
-    qDebug() << "[BAR]";
-    */
     if (rectHovered(barRect.adjusted(-offset, 0, offset, 0))) {
-        //_hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::BAR] = {mapPixelToTime(barRect.left()), mapPixelToTime(barRect.right())};
         color.setHsv(qAbs(color.hue() - 180), 255, 255);
-        qDebug() << "HOVERED . . .";
     }
-
-    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(mapPixelToTime(barRect.left())).toString("MMMM d, hh:mm:ss:zzzzz");
-    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(mapPixelToTime(barRect.right())).toString("MMMM d, hh:mm:ss:zzzzz");
 
     painter.fillRect(barRect, color);
     painter.fillRect(upperRect, color.lighter());
@@ -983,13 +905,6 @@ void EntityChart::paintBar(QPainter &painter, const QVector<double> &data, doubl
     painter.fillRect(midRect, color);
     painter.setBrush(Qt::NoBrush);
     painter.drawRect(barRect);
-
-    //*
-    painter.save();
-    painter.setPen(QPen(Qt::red, 2));
-    painter.drawPoint(x, barRect.center().y());
-    painter.restore();
-    //*/
 }
 
 
@@ -1003,6 +918,7 @@ bool EntityChart::rectHovered(TIMELINE_SERIES_KIND kind, const QRectF& hitRect)
 {
     auto painterRect = hitRect.adjusted(-BAR_PEN_WIDTH / 2.0, 0, BAR_PEN_WIDTH / 2.0, 0);
     if (rectHovered(painterRect)) {
+        // if the hit rect is hovered, store/update the hovered time range for the provided series kind
         QPair<qint64, qint64> timeRange = {mapPixelToTime(hitRect.left()), mapPixelToTime(hitRect.right())};
         if (_hoveredSeriesTimeRange.contains(kind)) {
             timeRange.first = _hoveredSeriesTimeRange.value(kind).first;
@@ -1022,6 +938,16 @@ bool EntityChart::rectHovered(TIMELINE_SERIES_KIND kind, const QRectF& hitRect)
 bool EntityChart::rectHovered(const QRectF &hitRect)
 {
     return _hoveredRect.intersects(hitRect);
+}
+
+
+/**
+ * @brief EntityChart::clearHoveredLists
+ */
+void EntityChart::clearHoveredLists()
+{
+    // clear previously hovered series kinds
+    _hoveredSeriesTimeRange.clear();
 }
 
 

@@ -50,8 +50,6 @@ public slots:
 
     void displayedMinChanged(double min);
     void displayedMaxChanged(double max);
-
-    void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
     
     void updateChartHoverDisplay();
     

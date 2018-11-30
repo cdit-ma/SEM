@@ -33,7 +33,6 @@ public:
 
 signals:
     void dataAdded(QList<QPointF> points);
-    void dataHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
     void dataRangeXChanged(double min, double max);
 
 public slots:
@@ -63,6 +62,8 @@ private:
 
     bool rectHovered(TIMELINE_SERIES_KIND kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
+
+    void clearHoveredLists();
 
     void setPointWidth(double width);
     double getPointWidth(TIMELINE_SERIES_KIND kind);
@@ -136,7 +137,6 @@ private:
     QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
-    QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _hoveredPoints;
 
     QHash<TIMELINE_SERIES_KIND, QPair<qint64, qint64>> _hoveredSeriesTimeRange;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;

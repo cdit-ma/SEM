@@ -177,13 +177,10 @@ void AxisDisplay::hoverLineUpdated(bool visible, QPointF globalPos)
 {
     _displayHoverValue = visible;
     if (visible) {
-        //qDebug() << "line global: " << globalPos.x();
         QPointF pos = mapFromGlobal(globalPos.toPoint());
         if (_orientation == Qt::Horizontal) {
             _hoveredPos = pos.x();
             _hoveredValue = (_hoveredPos / width()) * _displayedRange + _displayedMin;
-            //qDebug() << "line val: " << ((qint64)_hoveredValue);
-            //qDebug() << "---";
         } else {
             _hoveredPos = pos.y();
             _hoveredValue = (1.0 - (_hoveredPos / height())) * _displayedRange + _displayedMin;

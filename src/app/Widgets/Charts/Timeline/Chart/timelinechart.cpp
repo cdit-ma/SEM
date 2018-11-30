@@ -491,8 +491,6 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     QWidget::mouseMoveEvent(event);
     cursorPoint = mapFromGlobal(cursor().pos());
     hoverRect.moveCenter(cursorPoint);
-    //qDebug() << "===================================================";
-    //qDebug() << "[TIMELINE - MOVE event]";
     hoverRectUpdated(true);
 
     switch (dragMode) {
@@ -550,9 +548,6 @@ void TimelineChart::enterEvent(QEvent *event)
 
     hoverRect = visibleRegion().boundingRect();
     hoverRect.setWidth(HOVER_LINE_WIDTH);
-
-    //qDebug() << "===================================================";
-    //qDebug() << "[TIMELINE - ENTER event]";
     hoverRectUpdated();
 }
 
@@ -566,9 +561,6 @@ void TimelineChart::leaveEvent(QEvent *event)
     QWidget::leaveEvent(event);
     hovered = false;
     hoverRect = QRectF();
-
-    //qDebug() << "===================================================";
-    //qDebug() << "[TIMELINE - LEAVE event]";
     hoverRectUpdated();
 }
 
@@ -617,9 +609,6 @@ void TimelineChart::paintEvent(QPaintEvent *event)
  */
 void TimelineChart::hoverRectUpdated(bool repaintRequired)
 {
-    //qDebug() << "---------------------------------------------------";
-    //qDebug() << "[TIMELINE] - Update hover rect";
-
     if (hoverRect.isNull()) {
         for (EntityChart* chart : _entityCharts) {
             chart->setHoveredRect(hoverRect);
@@ -645,7 +634,6 @@ void TimelineChart::hoverRectUpdated(bool repaintRequired)
     }
 
     emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
-    //qDebug() << "===================================================";
 }
 
 

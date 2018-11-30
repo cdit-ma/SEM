@@ -338,53 +338,6 @@ void TimelineChartView::displayedMaxChanged(double max)
 
 
 /**
- * @brief TimelineChartView::entityChartPointsHovered
- * @param points
- */
-void TimelineChartView::entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points)
-{
-    return;
-    _hoverDisplay->hide();
-
-    if (_timelineChart->isPanning())
-        return;
-    if (points.isEmpty())
-        return;
-
-    bool showDisplay = false;
-    for (TIMELINE_SERIES_KIND kind : _hoverDisplayButtons.keys()) {
-        QList<QPointF> hoveredPoints = points.value(kind, QList<QPointF>());
-        QPushButton* button = _hoverDisplayButtons.value(kind);
-        int pointCount = hoveredPoints.count();
-        bool visible = pointCount > 0;
-        showDisplay = showDisplay || visible;
-        button->setVisible(visible);
-        if (visible) {
-            QString text; // = "(" + QString::number(pointCount) + "): ";
-            for (QPointF p : hoveredPoints) {
-                QDateTime dt; dt.setMSecsSinceEpoch(p.x());
-                text += dt.toString("MMMM d, hh:mm:ss:zzz") + "\n";
-            }
-            text.remove(text.lastIndexOf("\n"), 2);
-            button->setText(text);
-        }
-    }
-
-    if (showDisplay) {
-        _hoverDisplay->setVisible(showDisplay);
-        _hoverDisplay->adjustSize();
-
-        EntityChart* chart = qobject_cast<EntityChart*>(sender());
-        QPoint centerPoint = mapTo(this, mapToGlobal(chart->geometry().center() - QPoint(0, verticalScrollValue))); // + SPACING)));
-        int topHeight = legendToolbar->height() + SPACING * 2;
-        int posX = mapTo(this, cursor().pos()).x();
-        posX = posX > (mapToGlobal(pos()).x() + width() / 2) ? posX - _hoverDisplay->width() - 30 : posX + 30;
-        _hoverDisplay->move(posX, centerPoint.y() + topHeight - _hoverDisplay->height() / 2.0);
-    }
-}
-
-
-/**
  * @brief TimelineChartView::udpateChartHoverDisplay
  */
 void TimelineChartView::updateChartHoverDisplay()
@@ -397,24 +350,22 @@ void TimelineChartView::updateChartHoverDisplay()
     QHash<TIMELINE_SERIES_KIND, QString> hoveredData;
 
     for (auto entityChart : _timelineChart->getEntityCharts()) {
-        if (!entityChart)
+        if (!entityChart || !entityChart->isHovered())
             continue;
-        if (entityChart->isHovered()) {
-            const auto& series = entityChart->getSeries();
-            auto hoveredKinds = entityChart->getHovereSeriesKinds();
-            for (auto s : series) {
-                if (s) {
-                    auto kind = s->getSeriesKind();
-                    if (hoveredKinds.contains(kind)) {
-                        auto range = entityChart->getHoveredTimeRange(kind);
-                        auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
-                        if (!hoveredInfo.isEmpty()) {
-                            hoveredData[s->getSeriesKind()] += hoveredInfo + "\n";
-                        }
+        const auto& series = entityChart->getSeries();
+        auto hoveredKinds = entityChart->getHovereSeriesKinds();
+        for (auto s : series) {
+            if (s) {
+                auto kind = s->getSeriesKind();
+                if (hoveredKinds.contains(kind)) {
+                    auto range = entityChart->getHoveredTimeRange(kind);
+                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
+                    if (!hoveredInfo.isEmpty()) {
+                        hoveredData[s->getSeriesKind()] += hoveredInfo + "\n";
                     }
-                } else {
-                    qWarning("TimelineChartView::updateChartHoverDisplay - Got NULL series somehow.");
                 }
+            } else {
+                qWarning("TimelineChartView::updateChartHoverDisplay - Got NULL series somehow");
             }
         }
     }
@@ -434,7 +385,6 @@ void TimelineChartView::updateChartHoverDisplay()
     _hoverDisplay->setVisible(!hoveredData.isEmpty());
     if (_hoverDisplay->isVisible()) {
         _hoverDisplay->adjustSize();
-        //_hoverDisplay->move(geometry().center());
         _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));
     }
 }
@@ -497,19 +447,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         bool filled = false;
         samplePoints = generateRandomNumbers(barCount);
 
-        // TESTING PORT LIFE CYCLE EVENTS
-        // By default, request random time-frame of events from all Ports for all ComponentInstances
-        /*if (itemLabel.startsWith("ComponentInstance")) {
-            PortLifeCycleSeries* portEventsSeries = new PortLifeCycleSeries(itemID, this);
-            int numPorts = samplePoints.count();
-            for (int i = 0; i < numPorts; i++) {
-                int type = 1 + rand() % 4;
-                PortLifeCycle* plc = new PortLifeCycle((LifeCycleType)type, samplePoints.at(i).x(), this);
-                portEventsSeries->addPortEvent(plc);
-            }
-            seriesChart->addLifeCycleSeries(portEventsSeries);
-        } else {*/
-
         if (random % 2 == 0) {
             MEDEA::StateSeries* stateSeries = new MEDEA::StateSeries(item);
             for (int i = 1; i < samplePoints.count(); i += 2) {
@@ -559,7 +496,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
             }
             seriesChart->addSeries(barSeries);
         }
-        //}
     }
 
     EntitySet* parentSet = addEntitySet(item->getParentItem());
@@ -583,7 +519,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         seriesChart->setSeriesKindVisible(kind, action->isChecked());
     }
 
-    connect(seriesChart, &EntityChart::dataHovered, this, &TimelineChartView::entityChartPointsHovered);
     connect(this, &TimelineChartView::seriesLegendHovered, seriesChart, &EntityChart::seriesKindHovered);
     connect(this, &TimelineChartView::toggleSeriesLegend, seriesChart, &EntityChart::setSeriesKindVisible);
     connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
