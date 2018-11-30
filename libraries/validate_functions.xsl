@@ -208,6 +208,7 @@
         <xsl:value-of select="cdit:output_test('All Component entities require unique labels', $results, 1)" />
     </xsl:function>
 
+
     <xsl:function name="cdit:is_node_data_connected" as="xs:boolean">
         <xsl:param name="entity" as="element(gml:node)"/>
 
@@ -266,10 +267,10 @@
         <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
 
         <xsl:choose>
-            <xsl:when test="cdit:are_all_children_linked($entity, $allow_value)">
+            <xsl:when test="$parent and cdit:is_data_linked($parent, $allow_value)">
                 <xsl:value-of select="true()" />        
             </xsl:when>
-            <xsl:when test="$parent and cdit:are_all_children_linked($parent, $allow_value)">
+            <xsl:when test="cdit:are_all_children_linked($entity, $allow_value)">
                 <xsl:value-of select="true()" />        
             </xsl:when>
             <xsl:otherwise>
@@ -370,6 +371,59 @@
         <xsl:value-of select="cdit:output_test('ComponentImpl Duplicate Transition Functions', $results, 1)" />
     </xsl:function>
 
+    <xsl:function name="cdit:requires_data_link" as="xs:boolean">
+        <xsl:param name="entity" as="element(gml:node)?"/>
+
+        <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
+        <xsl:variable name="parent_kind" select="graphml:get_kind($parent)" />
+        <xsl:variable name="kind" select="graphml:get_kind($entity)" />
+        <xsl:variable name="is_optional" select="graphml:evaluate_data_value_as_boolean($entity, 'is_optional_param')" />
+
+        <xsl:choose>
+            <xsl:when test="$is_optional">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$kind = ('InputParameterGroup', 'InputParameterGroupInstance') and $parent_kind = ('Function', 'ReplierPortImpl')">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$kind = 'ReturnParameterGroupInstance' and $parent_kind = ('FunctionCall')">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Variable'">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$kind = 'AggregateInstance' and $parent_kind = 'SubscriberPortImpl'">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$kind = ('VectorInstance', 'Vector')">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:when test="$parent_kind = ('Variable', 'AggregateInstance', 'VectorInstance', 'Vector' , 'InputParameterGroup', 'InputParameterGroupInstance', 'ReturnParameterGroup', 'ReturnParameterGroupInstance')">
+                <xsl:value-of select="cdit:requires_data_link($parent)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="true()" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:is_data_mislink_warning" as="xs:boolean">
+        <xsl:param name="entity" as="element(gml:node)?"/>
+
+        <xsl:variable name="kind" select="graphml:get_kind($entity)" />
+        <xsl:variable name="in_aggregate_instance" select="count(graphml:get_ancestor_nodes_of_kind($entity, ('AggregateInstance'))) > 0 or $kind = 'AggregateInstance'"/>
+        <xsl:variable name="in_function_call" select="count(graphml:get_ancestor_nodes_of_kind($entity, ('FunctionCall'))) > 0"/>
+
+        <xsl:choose>
+            <xsl:when test="$in_aggregate_instance and $in_function_call">
+                <xsl:value-of select="false()" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$in_aggregate_instance" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
 
     <!-- Tests that all ComponentImpls have all their parameters set via either data-linking or value -->
     <xsl:function name="cdit:test_componentimpl_data">
@@ -386,45 +440,28 @@
                 'Member',
                 'EnumInstance')
                 )" />
-
-                <xsl:for-each select="$parameters">
-                    <xsl:variable name="id" select="graphml:get_id(.)" />
-                    <xsl:variable name="is_connected" select="cdit:is_data_linked(., true())" />
-                    <xsl:message><xsl:value-of select="concat($id, ' ', $is_connected)"/></xsl:message>
-                </xsl:for-each>
-
-
-
                 
                 <!-- This should select all non data linked entities -->
-                <xsl:for-each select="cdit:get_non_data_linked_entities($parameters, true())">
+                <xsl:for-each select="$parameters">
                     <xsl:variable name="id" select="graphml:get_id(.)" />
                     <xsl:variable name="label" select="graphml:get_label(.)" />
                     <xsl:variable name="kind" select="graphml:get_kind(.)" />
                     <xsl:variable name="type" select="graphml:get_type(.)" />
                     <xsl:variable name="value" select="graphml:get_value(.)" />
-                    <xsl:variable name="parent_node" select="graphml:get_parent_node(.)" />
-                    <xsl:variable name="parent_kind" select="graphml:get_kind($parent_node)" />
-                    <xsl:variable name="parent_parent_kind" select="graphml:get_parent_kind($parent_node)" />
 
-                    <!--<xsl:variable name="is_input_port_parameter" select="$kind = 'AggregateInstance' and ($parent_kind = 'SubscriberPortImpl' or $parent_parent_kind = 'ReplierPortImpl')"/>-->
-                    <xsl:variable name="is_input_port_parameter" select="$kind = 'AggregateInstance' and ($parent_kind = 'SubscriberPortImpl' or $parent_parent_kind = 'ReplierPortImpl')"/>
-
-
-                    <xsl:variable name="is_valid_kind" select="not($kind = ('VectorInstance', 'Vector'))"/>
-                    <xsl:variable name="in_valid_kind" select="count(graphml:get_ancestor_nodes_of_kind(., ('ReturnParameterGroupInstance', 'InputParameterGroup', 'VectorInstance', 'Vector', 'Variable'))) = 0"/>
-                    <xsl:variable name="allowed_empty" select="count(graphml:get_ancestor_nodes_of_kind(., ('AggregateInstance' ,'RequesterPortImpl', 'PublisherPortImpl'))) > 0 or $is_input_port_parameter"/>
-                    <xsl:variable name="is_optional" select="graphml:evaluate_data_value_as_boolean(., 'is_optional_param')" />
+                    <xsl:variable name="is_data_linked" select="cdit:is_data_linked(., true())" />
+                    <xsl:variable name="is_data_linked_by_link" select="cdit:is_data_linked(., false())" />
                     
-                    <!-- Don't want to check inside vectors, as they do not need data -->
-                    <xsl:if test="$is_valid_kind and $in_valid_kind">
-                        <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
-                        <xsl:value-of select="cdit:output_result($id, $allowed_empty or $is_optional, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), false(), 2)" />        
-                        
-                        <xsl:if test="$type = 'String' and $value != ''">
+
+                    <xsl:if test="cdit:requires_data_link(.) and not($is_data_linked)">
+                        <xsl:variable name="is_warning" select="cdit:is_data_mislink_warning(.)"/>
+                        <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($kind, o:wrap_quote($label), 'should have either a value set or a data connection (Edge_Data)'), ' '), $is_warning, 2)" />        
+                    </xsl:if>
+                    <xsl:if test="$is_data_linked and $type = 'String' and $value != ''">
+                        <xsl:if test="count(graphml:get_sources(., 'Edge_Data')) = 0">
                             <!-- Check if string that is set is double-quote wrapped -->
                             <xsl:variable name="got_valid_string" select="starts-with($value, o:dblquote()) and ends-with($value , o:dblquote())" />
-                            <xsl:value-of select="cdit:output_result($id, $got_valid_string = true(), o:join_list(($kind, o:wrap_quote($label), 'has a string value set which is not double quoted. Are you trying to reference a variable'), ' '), true(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, $got_valid_string = true(), o:join_list(($kind, o:wrap_quote($label), 'has a string value set which is not double quoted. Are you trying to reference a variable'), ' '), true(), 2)" />
                         </xsl:if>
                     </xsl:if>
                 </xsl:for-each>
