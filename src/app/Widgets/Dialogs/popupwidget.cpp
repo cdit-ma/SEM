@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <QPainter>
 #include "../../theme.h"
+#include <QKeyEvent>
 
 /**
  * @brief PopupWidget::PopupWidget
@@ -25,9 +26,7 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
     case TYPE::SPLASH:
         setAttribute(Qt::WA_TranslucentBackground);
         setAttribute(Qt::WA_ShowWithoutActivating);
-        //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput | Qt::WindowDoesNotAcceptFocus);
         setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
-        //setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
         
         break;
     case TYPE::POPUP:
@@ -72,4 +71,17 @@ void PopupWidget::paintEvent(QPaintEvent* event){
     painter.setPen(border_color);
     painter.setBrush(background_color);
     painter.drawRoundedRect(rect(), 4, 4);
+}
+
+
+void PopupWidget::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
+        accept();
+        return;
+    }else if(event->key() == Qt::Key_Escape){
+        reject();
+        return;
+    }
+    QDialog::keyPressEvent(event);
 }

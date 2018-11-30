@@ -15,6 +15,7 @@ public:
 protected:
     Q_INVOKABLE void adjustSize();
     void paintEvent(QPaintEvent* event);
+    void keyPressEvent(QKeyEvent *event);
 private:
     void themeChanged();
     QColor background_color;
