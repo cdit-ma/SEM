@@ -14,8 +14,8 @@ protected:
     explicit Event(qint64 time, QString name = "no_name", QObject* parent = 0);
 
 public:
-    const qint64 getTimeMS();
-    const QString getName();
+    const qint64 getTimeMS() const;
+    const QString getName() const;
 
     virtual QString getID();
 

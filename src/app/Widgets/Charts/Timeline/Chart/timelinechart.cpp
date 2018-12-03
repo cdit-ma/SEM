@@ -110,7 +110,7 @@ void TimelineChart::setAxisWidth(double width)
 {
     axisWidth = width;
     axisLinePen.setWidthF(width);
-    setContentsMargins(width, 0, 0, 0);
+    //setContentsMargins(width, 0, 0, 0);
 }
 
 
@@ -382,8 +382,8 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     cursorPoint = mapFromGlobal(cursor().pos());
-    hoverRect.moveCenter(QPointF(cursorPoint.x(), 0));
-    hoverRectUpdated();
+    hoverRect.moveCenter(cursorPoint);
+    hoverRectUpdated(true);
 
     switch (dragMode) {
     case PAN: {
@@ -453,7 +453,6 @@ void TimelineChart::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
     hovered = false;
-
     hoverRect = QRectF();
     hoverRectUpdated();
 }
@@ -508,9 +507,10 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 
 
 /**
- * @brief TimelineChart::hovereRectUpdated
+ * @brief TimelineChart::hoverRectUpdated
+ * @param repaintRequired
  */
-void TimelineChart::hoverRectUpdated()
+void TimelineChart::hoverRectUpdated(bool repaintRequired)
 {
     if (hoverRect.isNull()) {
         for (EntityChart* chart : _entityCharts) {
@@ -527,8 +527,16 @@ void TimelineChart::hoverRectUpdated()
         }
     }
 
-    emit hoverLineUpdated(hoverRect.isValid(), hoverRect.center());
-    update();
+    if (repaintRequired) {
+        // this repaint is required instead of an update whenever there's a moveEvent
+        // the hovered series ranges are being calculated in the children charts' paint event
+        // and it needs to happen before the signal below is sent to the timeline view
+        repaint();
+    } else {
+        update();
+    }
+
+    emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
 }
 
 

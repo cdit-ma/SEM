@@ -26,10 +26,12 @@ public:
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries *> &getSeries();
+    const QList<TIMELINE_SERIES_KIND> getHovereSeriesKinds();
+    const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_SERIES_KIND kind);
+
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
-
-    const QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
     
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
@@ -38,18 +40,13 @@ public:
 
 signals:
     void dataAdded(QList<QPointF> points);
-    void dataHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
     void dataRangeXChanged(double min, double max);
 
-protected:
-    void resizeEvent(QResizeEvent* event);
-    void paintEvent(QPaintEvent* event);
-
 public slots:
-    void seriesHovered(TIMELINE_SERIES_KIND kind);
-    void setSeriesVisible(TIMELINE_SERIES_KIND kind, bool visible);
     void setHovered(bool visible);
     void setHoveredRect(QRectF rect);
+    void seriesKindHovered(TIMELINE_SERIES_KIND kind);
+    void setSeriesKindVisible(TIMELINE_SERIES_KIND kind, bool visible);
 
 private slots:
     void themeChanged();
@@ -58,13 +55,22 @@ private slots:
     void rangeYChanged(double min, double max);
     void pointsAdded(QList<QPointF> points);
 
+protected:
+    void resizeEvent(QResizeEvent* event);
+    void paintEvent(QPaintEvent* event);
+
 private:
     void paintEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
-    void paintBar(QPainter &painter, const QVector<double> &data, int x, QColor color);
+    void paintBarData(QPainter &painter, const QRectF &barRect, const QColor &color, const QVector<double> &data);
+
+    bool rectHovered(TIMELINE_SERIES_KIND kind, const QRectF& hitRect);
+    bool rectHovered(const QRectF& hitRect);
+
+    void clearHoveredLists();
 
     void setPointWidth(double width);
     double getPointWidth(TIMELINE_SERIES_KIND kind);
@@ -73,16 +79,13 @@ private:
     void setMax(double max);
     void setRange(double min, double max);
 
-    bool pointHovered(const QRectF& hitRect);
-
-    QHash<qint64, QRectF>& getSeriesHitRects(TIMELINE_SERIES_KIND kind);
+    qint64 mapPixelToTime(double x);
+    double mapTimeToPixel(double time);
 
     bool _containsYRange = false;
     bool _hovered = false;
 
     double _pointWidth = 12;
-    double _xScale = 1;
-    double _timelineRange = 0;
 
     double _displayedMin;
     double _displayedMax;
@@ -130,12 +133,6 @@ private:
     QPen _hoverLinePen;
     QPen _highlightPen;
 
-    QHash<qint64, QRectF> _dataHitRects;
-    QHash<qint64, QRectF> _notificationHitRects;
-    QHash<qint64, QRectF> _stateHitRects;
-    QHash<qint64, QRectF> _lineHitRects;
-    QHash<qint64, QRectF> _barHitRects;
-
     /*
     struct Series{
         MEDEA::DataSeries* series = 0;
@@ -148,15 +145,12 @@ private:
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
-    QMap<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
+    QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
-    QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _hoveredPoints;
 
-    QHash<TIMELINE_SERIES_KIND, QList<qint64>> hovered_timepoints_;
+    QHash<TIMELINE_SERIES_KIND, QPair<qint64, qint64>> _hoveredSeriesTimeRange;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;
-
-    double _barWidth;
 };
 
 #endif // ENTITYCHART_H

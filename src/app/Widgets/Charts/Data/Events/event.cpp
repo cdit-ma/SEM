@@ -22,7 +22,7 @@ MEDEA::Event::Event(qint64 time, QString name, QObject *parent)
  * @brief MEDEA::Event::getTimeMS
  * @return
  */
-const qint64 MEDEA::Event::getTimeMS()
+const qint64 MEDEA::Event::getTimeMS() const
 {
     return time_;
 }
@@ -32,7 +32,7 @@ const qint64 MEDEA::Event::getTimeMS()
  * @brief MEDEA::Event::getName
  * @return
  */
-const QString MEDEA::Event::getName()
+const QString MEDEA::Event::getName() const
 {
     return name_;
 }

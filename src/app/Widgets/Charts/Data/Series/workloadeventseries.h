@@ -15,10 +15,13 @@ public:
     const QString getWorkerInstanceID();
     const quint32 getWorkloadID();
 
+    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat);
+
 private:
     QString workerInstanceID_;
     quint32 workloadID_;
 
+    QString hovereData_;
 };
 
 #endif // WORKLOADEVENTSERIES_H
