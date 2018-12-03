@@ -7,8 +7,6 @@
 #include "../../../Controllers/ViewController/viewitem.h"
 #include "../Data/Series/eventseries.h"
 
-enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};
-
 namespace MEDEA {
 
 class DataSeries : public EventSeries

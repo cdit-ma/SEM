@@ -59,7 +59,6 @@ public:
     QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS);
     QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat);
 
-
     const QMap<qint64, QVector<double>>& getConstData();
 
     const QMap<qint64, BarData*>& getConstData2() {

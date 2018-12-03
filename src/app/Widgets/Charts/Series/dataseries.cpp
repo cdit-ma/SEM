@@ -14,7 +14,7 @@ int MEDEA::DataSeries::series_ID = 0;
  * @param kind
  */
 MEDEA::DataSeries::DataSeries(ViewItem* item, TIMELINE_SERIES_KIND kind)
-    : EventSeries(item)
+    : EventSeries(item, kind)
 {
     _viewItem = item;
     _ID = series_ID++;
