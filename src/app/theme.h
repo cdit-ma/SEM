@@ -98,6 +98,7 @@ public:
     void setMenuIconColor(ColorRole role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
     void setIconToggledImage(const QString& prefix, const QString& alias, const QString& toggledOnPrefix, const QString& toggledOnAlias, const QString& toggledOffPrefix, const QString& toggleOffAlias, bool ignore_toggle_coloring = true);
+    void setInactiveEdgeOpacity(qreal opacity);
 
     void setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias);
 
@@ -125,6 +126,8 @@ public:
     QString getCornerRadius();
     QString getSharpCornerRadius();
 
+    qreal getInactiveEdgeOpacity();
+
     // Default StyleSheets
     QString getWindowStyleSheet(bool show_background_image);
     QString getScrollBarStyleSheet();
@@ -146,6 +149,7 @@ public:
     QString getLineEditStyleSheet(QString widget_name="QLineEdit");
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+    QString getSliderStyleSheet();
 
     QFont getFont() const;
     QFont getLargeFont() const;
@@ -237,6 +241,8 @@ struct ImageLoad{
     QColor altTextColor;
 
     QSize icon_size = QSize(16,16);
+
+    qreal inactive_opacity_ = 0.50;
 
     QFont font;
 

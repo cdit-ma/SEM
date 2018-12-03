@@ -166,6 +166,8 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
     createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
+    createSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, SETTING_TYPE::PERCENTAGE, "Theme", "Size", "Set Inactive Edge Opacity", "Icons", "torch");
+    
 
     
     createSetting(SETTINGS::THEME_SETTHEME_XMASTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Christmas Theme");
@@ -234,6 +236,8 @@ void SettingsController::intializeSettings()
     
     _getSetting(SETTINGS::THEME_SIZE_FONTSIZE)->setDefaultValue(font);
     _getSetting(SETTINGS::THEME_SIZE_ICONSIZE)->setDefaultValue(16);
+    _getSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY)->setDefaultValue(33);
+
     _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);
     _getSetting(SETTINGS::TOOLBAR_SEARCH)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_UNDO)->setDefaultValue(true);

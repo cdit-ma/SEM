@@ -82,16 +82,24 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     addHoverFunction(EntityRect::MOVE, std::bind(&EdgeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_ICON, std::bind(&EdgeItem::sourceIconHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::TERTIARY_ICON, std::bind(&EdgeItem::targetIconHover, this, std::placeholders::_1, std::placeholders::_2));
+    connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::updateEdgeOpacity);
+    updateEdgeOpacity();
+}
+
+void EdgeItem::updateEdgeOpacity(){
+    auto new_opacity = Theme::theme()->getInactiveEdgeOpacity();
+    if(inactive_opacity_ != new_opacity){
+        inactive_opacity_ = new_opacity;
+        update();
+    }
 }
 
 EdgeItem::~EdgeItem()
 {
     disconnect(this);
-
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildEdge(this);
     }
-
     unsetParent();
 }
 
@@ -162,6 +170,12 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     painter->setClipRect(option->exposedRect);
 
+    bool full_render = vSrc->isHovered() || vDst->isHovered() || isSelected() || isHovered();
+    full_render |= vSrc->isSelected() || vDst->isSelected();
+
+    painter->setOpacity(full_render ? 1 : inactive_opacity_);
+
+
     painter->setBrush(Qt::blue);
 
     if(!isSelected()){
@@ -176,17 +190,24 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(Qt::NoBrush);
 
         auto inactive_pen = pen;
-        inactive_pen.setWidthF(pen.widthF() / 2.0);
+        inactive_pen.setWidthF(pen.widthF() / 4.0);
+        auto color = inactive_pen.color();
+        inactive_pen.setColor(color);
+
+       
+
+        auto src_pen = (full_render) ? pen : inactive_pen;
+        auto dst_pen = (full_render) ? pen : inactive_pen;
 
         //Stroke the Bezier Curbe
-        painter->strokePath(srcCurve, src == vSrc ? pen : inactive_pen);
-        painter->strokePath(dstCurve, dst == vDst ? pen : inactive_pen);
+        painter->strokePath(srcCurve, src_pen);
+        painter->strokePath(dstCurve, dst_pen);
         
         painter->setPen(Qt::NoPen);
-        painter->setBrush(pen.color());
-
-        //Fill the arrow Heads
+        painter->setBrush(src_pen.color());
         painter->drawPath(srcArrow);
+
+        painter->setBrush(dst_pen.color());
         painter->drawPath(dstArrow);
     }
 
@@ -485,13 +506,21 @@ void EdgeItem::srcAncestorVisibilityChanged()
         if(vSrc){
             //Disconnect old visible Src
             disconnect(vSrc, &EntityItem::sizeChanged, this, &EdgeItem::updateEdge);
+            disconnect(vSrc, &EntityItem::hoveredChanged, this, &EdgeItem::repaint);
+            disconnect(vSrc, &EntityItem::selectionChanged, this, &EdgeItem::repaint);
         }
         vSrc = newSrc;
         if(vSrc){
             connect(vSrc, &EntityItem::sizeChanged, this, &EdgeItem::updateEdge);
+            connect(vSrc, &EntityItem::hoveredChanged, this, &EdgeItem::repaint);
+            connect(vSrc, &EntityItem::selectionChanged, this, &EdgeItem::repaint);
             updateEdge();
         }
     }
+}
+
+void EdgeItem::repaint(){
+    update();
 }
 
 /**
@@ -505,10 +534,14 @@ void EdgeItem::dstAncestorVisibilityChanged()
         if(vDst){
             //Disconnect old visible Dst
             disconnect(vDst, &EntityItem::sizeChanged, this, &EdgeItem::updateEdge);
+            disconnect(vDst, &EntityItem::hoveredChanged, this, &EdgeItem::repaint);
+            disconnect(vDst, &EntityItem::selectionChanged, this, &EdgeItem::repaint);
         }
         vDst = newDst;
         if(vDst){
             connect(vDst, &EntityItem::sizeChanged, this, &EdgeItem::updateEdge);
+            connect(vDst, &EntityItem::hoveredChanged, this, &EdgeItem::repaint);
+            connect(vDst, &EntityItem::selectionChanged, this, &EdgeItem::repaint);
             updateEdge();
         }
     }

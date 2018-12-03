@@ -831,6 +831,7 @@ void EntityItem::setHovered(bool isHovered)
         if(is_hovered && getParent()){
             getParent()->setHovered(false);
         }
+        emit hoveredChanged();
         update();
     }
 }
@@ -849,6 +850,7 @@ void EntityItem::setSelected(bool selected)
         is_selected = selected;
 
         updateZValue();
+        emit selectionChanged();
         update();
     }
 }

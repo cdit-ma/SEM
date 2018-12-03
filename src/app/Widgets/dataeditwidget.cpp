@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QSlider>
 #include "../theme.h"
 
 DataEditWidget::DataEditWidget(QString label, SETTING_TYPE type, QVariant data, QWidget *parent) : QWidget(parent)
@@ -96,6 +97,13 @@ void DataEditWidget::setValue(QVariant data)
         }
         break;
     }
+    case SETTING_TYPE::PERCENTAGE:{
+        auto slider = qobject_cast<QSlider*>(editWidget_1);
+        if(slider){
+            slider->setValue(newData.toInt());
+        }
+        break;
+    }
     case SETTING_TYPE::COLOR:{
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
 
@@ -149,17 +157,18 @@ void DataEditWidget::themeChanged()
     if(isHighlighted){
         label_ss = "color: " + theme->getHighlightColorHex() + "; text-decoration:underline;";
     }
-    if(label){
-        label->setStyleSheet(label_ss);
-    }
+    setStyleSheet("QLabel{" + label_ss + "}");
 
     auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
     auto spin_box = qobject_cast<QSpinBox*>(editWidget_1);
+    auto slider = qobject_cast<QSlider*>(editWidget_1);
 
     if(line_edit){
         line_edit->setStyleSheet(theme->getLineEditStyleSheet());
     }else if(spin_box){
         editWidget_1->setStyleSheet(theme->getLineEditStyleSheet("QSpinBox"));
+    }else if(slider){
+        editWidget_1->setStyleSheet(theme->getSliderStyleSheet());
     }else if(editWidget_1){
         auto style = label_ss;
         if(type != SETTING_TYPE::BOOL){
@@ -234,6 +243,14 @@ void DataEditWidget::editFinished()
         if(combo_box){
             //Call data Changed first
             dataChanged(combo_box->currentText());
+        }
+        break;
+    }
+    case SETTING_TYPE::PERCENTAGE:{
+        auto slider = qobject_cast<QSlider*>(editWidget_1);
+        if(slider){
+            //Call data Changed first
+            dataChanged(slider->value());
         }
         break;
     }
@@ -342,12 +359,31 @@ void DataEditWidget::setupLayout()
         break;
     }
     case SETTING_TYPE::STRINGLIST:{
-            auto combo_box = new QComboBox(this);
-            combo_box->addItems(currentData.toStringList());
-            connect(combo_box, &QComboBox::currentTextChanged, this, &DataEditWidget::editFinished);
-            
-            editWidget_1 = combo_box;
-            toolbar->addWidget(combo_box);
+        auto combo_box = new QComboBox(this);
+        combo_box->addItems(currentData.toStringList());
+        connect(combo_box, &QComboBox::currentTextChanged, this, &DataEditWidget::editFinished);
+        
+        editWidget_1 = combo_box;
+        toolbar->addWidget(combo_box);
+        break;
+    }
+    case SETTING_TYPE::PERCENTAGE:{
+        auto slider = new QSlider(Qt::Horizontal, this);
+        slider->setMinimum(0);
+        slider->setMaximum(100);
+        slider->setValue(currentData.toInt());
+        auto value_label = new QLabel(this);
+
+        toolbar->addWidget(slider);
+        toolbar->addWidget(value_label);
+        connect(slider, &QSlider::valueChanged, [=](int value){
+            value_label->setText(QStringLiteral("%1").arg(value).leftJustified(3, ' ') + QString("%") );
+        });
+        emit slider->valueChanged(slider->value());
+        
+        connect(slider, &QSlider::valueChanged, this, &DataEditWidget::editFinished);
+        
+        editWidget_1 = slider;
         break;
     }
     case SETTING_TYPE::BOOL:{

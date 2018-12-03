@@ -167,6 +167,14 @@ void Theme::setBackgroundColor(QColor color)
     }
 }
 
+void Theme::setInactiveEdgeOpacity(qreal opacity)
+{
+    if(inactive_opacity_ != opacity){
+        inactive_opacity_ = opacity;
+        updateValid();
+    }
+}
+
 void Theme::setDisabledBackgroundColor(QColor color)
 {
     if(disabledBackgroundColor != color){
@@ -564,9 +572,28 @@ QString Theme::getScrollBarStyleSheet()
            "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
            "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
-
-
             ;
+}
+
+qreal Theme::getInactiveEdgeOpacity(){
+    return inactive_opacity_;   
+}
+
+QString Theme::getSliderStyleSheet()
+{
+    return "QSlider {"
+           "margin: 0px;"
+           "}"
+           "QSlider::groove:horizontal {"
+           "background: " % getBackgroundColorHex() % ";"
+           "border: 1px solid " % getAltBackgroundColorHex() % ";"
+           "}"
+           "QSlider::handle{background: " % getAltBackgroundColorHex() % ";"
+           "width:10px;"
+           "}"
+           "QSlider::handle:active{background: " % getHighlightColorHex() % ";}"
+           "QSlider::sub-page {background: " % getDisabledBackgroundColorHex() % ";border: 1px solid " % getAltBackgroundColorHex() % ";}"
+           ;
 }
 
 QString Theme::getDialogStyleSheet()
@@ -1022,6 +1049,10 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         setBackgroundColor(color);
         break;
     }
+    case SETTINGS::THEME_INACTIVE_EDGE_OPACITY:{
+        setInactiveEdgeOpacity(value.toInt() / 100.0);
+        break;
+    }
     case SETTINGS::THEME_BG_ALT_COLOR:{
         setAltBackgroundColor(color);
         break;
@@ -1281,11 +1312,12 @@ void Theme::resetTheme(ThemePreset themePreset){
     QColor cyan("#2aa198");
     QColor green("#859900");
 
-    switch(themePreset){
-        case ThemePreset::XMAS_THEME:{
-            clearIconMap();
 
-        }
+    emit changeSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, 50);
+
+    switch(themePreset){
+        case ThemePreset::XMAS_THEME:
+            clearIconMap();
         case ThemePreset::DARK_THEME:{
             QColor bgColor = QColor(70,70,70);
             emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
