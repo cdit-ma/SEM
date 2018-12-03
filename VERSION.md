@@ -6,13 +6,18 @@
 * Fixed sporadic crashes when pasting certain entities
 * Fixed data-binding to handle edge cases previously not discovered
 * Added 'Christmas' theme
+* Updated rendering of edges to be transparent until either end of the edges are selected.
+* Added a new setting for Inactive Edge Opacity
 
 ## Validation:
 * Fixed false-positive errors for data-linking validation errors
+* Fixed false-positive errors for for-loops/booleanexpressions
 
 ## Resolved JIRA Tickets:
 * MED-450
 * MED-451
 * MED-452
+* MED-454
+* MED-457
 * REGEN-83
 * REGEN-84
