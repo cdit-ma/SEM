@@ -150,5 +150,7 @@ WorkloadEvent::WorkloadEventType AggregationProxy::getWorkloadEventType(const Ag
         return WorkloadEvent::WorkloadEventType::WARNING;
     case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
         return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
+    default:
+        return WorkloadEvent::WorkloadEventType::UNKNOWN;
     }
 }

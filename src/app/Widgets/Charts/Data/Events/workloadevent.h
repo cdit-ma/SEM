@@ -10,6 +10,7 @@ class WorkloadEvent : public MEDEA::Event
 
 public:
     enum WorkloadEventType {
+        UNKNOWN,
         STARTED,
         FINISHED,
         MESSAGE,
@@ -25,14 +26,14 @@ public:
 
     explicit WorkloadEvent(WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
 
-    const QString getWorkloadPath();
+    QString getWorkloadPath() const;
+    QString getWorkerInstanceGraphmlID() const;
 
-    const QString getWorkerInstanceGraphmlID();
-    const WorkloadEventType getType();
-    const quint32 getWorkloadID();
-    const quint32 getLogLevel();
-    const QString getFunctionName();
-    const QString getArgs();
+    const WorkloadEventType& getType() const;
+    const quint32& getWorkloadID() const;
+    const quint32& getLogLevel() const;
+    const QString& getFunctionName() const;
+    const QString& getArgs() const;
 
 private:
     WorkerInstance workerInstance_;

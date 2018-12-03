@@ -9,9 +9,10 @@ int MEDEA::EventSeries::eventSeries_ID = 0;
  * @brief MEDEA::EventSeries::BaseSeries
  * @param parent
  */
-MEDEA::EventSeries::EventSeries(QObject* parent)
+MEDEA::EventSeries::EventSeries(QObject* parent, TIMELINE_SERIES_KIND kind)
     : QObject(parent)
 {
+    kind_ = kind;
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
     eventSeriesID_ = eventSeries_ID++;
@@ -65,7 +66,7 @@ void MEDEA::EventSeries::addEvents(QList<MEDEA::Event*>& events)
  * @brief MEDEA::EventSeries::getEvents
  * @return
  */
-const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents()
+const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents() const
 {
     return events_;
 }
@@ -75,7 +76,7 @@ const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents()
  * @brief MEDEA::EventSeries::getMinTimeMS
  * @return
  */
-qint64 MEDEA::EventSeries::getMinTimeMS()
+const qint64& MEDEA::EventSeries::getMinTimeMS() const
 {
     return minTime_;
 }
@@ -85,7 +86,7 @@ qint64 MEDEA::EventSeries::getMinTimeMS()
  * @brief MEDEA::EventSeries::getMaxTimeMS
  * @return
  */
-qint64 MEDEA::EventSeries::getMaxTimeMS()
+const qint64& MEDEA::EventSeries::getMaxTimeMS() const
 {
     return maxTime_;
 }
@@ -95,9 +96,19 @@ qint64 MEDEA::EventSeries::getMaxTimeMS()
  * @brief MEDEA::EventSeries::getTimeRangeMS
  * @return
  */
-QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS()
+QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 {
     return {minTime_, maxTime_};
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getKind
+ * @return
+ */
+const TIMELINE_SERIES_KIND& MEDEA::EventSeries::getKind() const
+{
+    return kind_;
 }
 
 
@@ -105,7 +116,7 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS()
  * @brief MEDEA::EventSeries::getID
  * @return
  */
-QString MEDEA::EventSeries::getID()
+QString MEDEA::EventSeries::getID() const
 {
     return QString::number(eventSeriesID_);
 }

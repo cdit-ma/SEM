@@ -11,8 +11,8 @@
 
 enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
-static QString DATETIME_FORMAT = "MMMM d, hh:mm:ss:zzzzz";
-static QString TIME_FORMAT = "hh:mm:ss:zzzzz";
+static QString DATETIME_FORMAT = "MMMM d, hh:mm:ss:zzz";
+static QString TIME_FORMAT = "hh:mm:ss:zzz";
 static QString DATE_FORMAT = "MMMM d";
 
 class EntityChart;

@@ -69,24 +69,27 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _messagesButton = new QPushButton(this);
     _utilisationButton = new QPushButton(this);
     _barButton = new QPushButton(this);
+    _eventButton = new QPushButton(this);
 
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::STATE] = _eventsButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::NOTIFICATION] = _messagesButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::LINE] = _utilisationButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::BAR] = _barButton;
+    _hoverDisplayButtons[TIMELINE_SERIES_KIND::EVENT] = _eventButton;
 
     for (QPushButton* button : _hoverDisplayButtons.values()) {
         button->setStyleSheet("QPushButton{ text-align: left; }");
     }
 
     _hoverWidget = new QWidget(this);
-    QHBoxLayout* hoverLayout = new QHBoxLayout(_hoverWidget);
+    QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
     hoverLayout->setSpacing(SPACING * 2);
     hoverLayout->setMargin(SPACING);
     hoverLayout->addWidget(_eventsButton);
     hoverLayout->addWidget(_messagesButton);
     hoverLayout->addWidget(_utilisationButton);
     hoverLayout->addWidget(_barButton);
+    hoverLayout->addWidget(_eventButton);
 
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
@@ -340,6 +343,7 @@ void TimelineChartView::themeChanged()
     _messagesButton->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
     _utilisationButton->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
     _barButton->setIcon(theme->getIcon("ToggleIcons", "barLegendToggle"));
+    _eventButton->setIcon(theme->getIcon("ToggleIcons", "eventLegendToggle"));
 }
 
 
@@ -418,20 +422,22 @@ void TimelineChartView::updateChartHoverDisplay()
         auto hoveredKinds = entityChart->getHovereSeriesKinds();
         for (auto s : series) {
             if (s) {
-                /*auto kind = s->getSeriesKind();
+                auto kind = s->getKind();
                 if (hoveredKinds.contains(kind)) {
                     auto range = entityChart->getHoveredTimeRange(kind);
-                    //qDebug() << ""
-                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
+                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second, DATETIME_FORMAT);
                     if (!hoveredInfo.isEmpty()) {
-                        hoveredData[s->getSeriesKind()] += hoveredInfo + "\n";
+                        hoveredData[kind] += hoveredInfo + "\n";
                     }
-                }*/
+                }
             } else {
                 qWarning("TimelineChartView::updateChartHoverDisplay - Got NULL series somehow");
             }
         }
     }
+
+    if (hoveredData.isEmpty())
+        return;
 
     for (auto kind : _hoverDisplayButtons.keys()) {
         auto button = _hoverDisplayButtons.value(kind, 0);
@@ -448,7 +454,7 @@ void TimelineChartView::updateChartHoverDisplay()
     _hoverDisplay->setVisible(!hoveredData.isEmpty());
     if (_hoverDisplay->isVisible()) {
         _hoverDisplay->adjustSize();
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));
+        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, -_hoverDisplay->height() / 2.0)));
     }
 }
 

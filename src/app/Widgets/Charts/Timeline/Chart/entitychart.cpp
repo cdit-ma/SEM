@@ -88,8 +88,8 @@ void EntityChart::addSeries(MEDEA::DataSeries* series)
     if (!series)
         return;
 
-    _seriesList[series->getSeriesKind()] = series;
-    _seriesKindVisible[series->getSeriesKind()] = true;
+    _seriesList[series->getKind()] = series;
+    _seriesKindVisible[series->getKind()] = true;
 
     connect(series, &MEDEA::DataSeries::pointsAdded, this, &EntityChart::pointsAdded);
     series->pointsAdded((series->getConstPoints()));
@@ -356,7 +356,7 @@ void EntityChart::pointsAdded(QList<QPointF> points)
 {
     MEDEA::DataSeries* series = qobject_cast<MEDEA::DataSeries*>(sender());
     if (series) {
-        _seriesPoints[series->getSeriesKind()].append(points);
+        _seriesPoints[series->getKind()].append(points);
         update();
         //emit dataAdded(points);
     }

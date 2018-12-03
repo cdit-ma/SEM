@@ -7,8 +7,6 @@
 #include "../../../Controllers/ViewController/viewitem.h"
 #include "../Data/Series/eventseries.h"
 
-enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR, EVENT};
-
 namespace MEDEA {
 
 class DataSeries : public EventSeries
@@ -35,7 +33,6 @@ public:
     //int getID();
     QString getLabel();
     ViewItem* getViewItem();
-    TIMELINE_SERIES_KIND getSeriesKind();
 
     bool isStateSeries();
     bool isNotificationSeries();
@@ -58,7 +55,6 @@ signals:
     void rangeYChanged(double min, double max);
 
 private:
-    TIMELINE_SERIES_KIND _seriesKind;
     ViewItem* _viewItem;
     int _ID;
 

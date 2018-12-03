@@ -28,7 +28,7 @@ WorkloadEvent::WorkloadEvent(WorkloadEvent::WorkerInstance inst, WorkloadEvent::
  * @brief WorkloadEvent::getWorkloadPath
  * @return
  */
-const QString WorkloadEvent::getWorkloadPath()
+QString WorkloadEvent::getWorkloadPath() const
 {
     return getWorkerInstanceGraphmlID() + "_" + getWorkloadID();
 }
@@ -38,7 +38,7 @@ const QString WorkloadEvent::getWorkloadPath()
  * @brief WorkloadEvent::getWorkerInstanceGraphmlID
  * @return
  */
-const QString WorkloadEvent::getWorkerInstanceGraphmlID()
+QString WorkloadEvent::getWorkerInstanceGraphmlID() const
 {
     return workerInstance_.graphml_id;
 }
@@ -48,7 +48,7 @@ const QString WorkloadEvent::getWorkerInstanceGraphmlID()
  * @brief WorkloadEvent::getType
  * @return
  */
-const WorkloadEvent::WorkloadEventType WorkloadEvent::getType()
+const WorkloadEvent::WorkloadEventType& WorkloadEvent::getType() const
 {
     return type_;
 }
@@ -58,7 +58,7 @@ const WorkloadEvent::WorkloadEventType WorkloadEvent::getType()
  * @brief WorkloadEvent::getWorkloadID
  * @return
  */
-const quint32 WorkloadEvent::getWorkloadID()
+const quint32& WorkloadEvent::getWorkloadID() const
 {
     return workloadID_;
 }
@@ -68,7 +68,7 @@ const quint32 WorkloadEvent::getWorkloadID()
  * @brief WorkloadEvent::getLogLevel
  * @return
  */
-const quint32 WorkloadEvent::getLogLevel()
+const quint32& WorkloadEvent::getLogLevel() const
 {
     return logLevel_;
 }
@@ -78,7 +78,7 @@ const quint32 WorkloadEvent::getLogLevel()
  * @brief WorkloadEvent::getFunctionName
  * @return
  */
-const QString WorkloadEvent::getFunctionName()
+const QString& WorkloadEvent::getFunctionName() const
 {
     return functionName_;
 }
@@ -88,7 +88,7 @@ const QString WorkloadEvent::getFunctionName()
  * @brief WorkloadEvent::getArgs
  * @return
  */
-const QString WorkloadEvent::getArgs()
+const QString& WorkloadEvent::getArgs() const
 {
     return args_;
 }

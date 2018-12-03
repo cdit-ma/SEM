@@ -1,6 +1,8 @@
 #include "workloadeventseries.h"
 #include "../Events/workloadevent.h"
 
+#include <QDateTime>
+
 /**
  * @brief WorkloadEventSeries::WorkloadEventSeries
  * @param workerInstID
@@ -8,7 +10,7 @@
  * @param parent
  */
 WorkloadEventSeries::WorkloadEventSeries(QString workerInstID, quint32 workloadID, QObject* parent)
-    : MEDEA::EventSeries(parent)
+    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::EVENT)
 {
     workerInstanceID_ = workerInstID;
     workloadID_ = workloadID;
@@ -16,20 +18,10 @@ WorkloadEventSeries::WorkloadEventSeries(QString workerInstID, quint32 workloadI
 
 
 /**
- * @brief WorkloadEventSeries::getWorkloadPath
- * @return
- */
-const QString WorkloadEventSeries::getWorkloadPath()
-{
-    return workerInstanceID_ + "_" + workloadID_;
-}
-
-
-/**
  * @brief WorkloadEventSeries::getWorkerInstanceID
  * @return
  */
-const QString WorkloadEventSeries::getWorkerInstanceID()
+const QString& WorkloadEventSeries::getWorkerInstanceID() const
 {
     return workerInstanceID_;
 }
@@ -39,9 +31,19 @@ const QString WorkloadEventSeries::getWorkerInstanceID()
  * @brief WorkloadEventSeries::getWorkloadID
  * @return
  */
-const quint32 WorkloadEventSeries::getWorkloadID()
+const quint32& WorkloadEventSeries::getWorkloadID() const
 {
     return workloadID_;
+}
+
+
+/**
+ * @brief WorkloadEventSeries::getWorkloadPath
+ * @return
+ */
+QString WorkloadEventSeries::getWorkloadPath() const
+{
+    return workerInstanceID_ + "_" + workloadID_;
 }
 
 
@@ -68,9 +70,13 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
     } else if (count == 1) {
         // args + function name
         auto event = (WorkloadEvent*)(*current);
-        if (event)
-            hovereData_ = "[" + event->getFunctionName() + "]\n" + event->getArgs();
-        return hovereData_.trimmed();
+        if (event) {
+            return "[" + event->getFunctionName() + "]: "
+                    + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, h:mm:ss:zzz A")
+                    + "\n" + event->getArgs();
+        } else {
+            return "";
+        }
     } else {
         return QString::number(count);
     }

@@ -14,10 +14,10 @@ protected:
     explicit Event(qint64 time, QString name = "no_name", QObject* parent = 0);
 
 public:
-    const qint64 getTimeMS() const;
-    const QString getName() const;
+    const qint64& getTimeMS() const;
+    const QString& getName() const;
 
-    virtual QString getID();
+    virtual QString getID() const;
 
 private:
     qint64 time_;
