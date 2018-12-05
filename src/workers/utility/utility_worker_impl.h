@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <regex>
 #include <boost/uuid/uuid_generators.hpp>
 
 class Utility_Worker_Impl{
@@ -24,7 +25,8 @@ class Utility_Worker_Impl{
 
         std::string GenerateUUID();
     private:
-        std::vector<char> ProcessVarList(const char* complexity);
+        std::vector<std::string> ProcessVarList(const std::string& function);
+
 
         std::default_random_engine random_generator_;
         boost::uuids::random_generator uuid_generator_;
