@@ -39,8 +39,21 @@ double Utility_Worker_Impl::EvaluateComplexity(const char* function, va_list arg
 }
 
 std::vector<std::string> Utility_Worker_Impl::ProcessVarList(const std::string& function){
-    static std::regex reserved_names(R"((\d|abs|acos|asin|atan|atan2|cos|cosh|exp|log|log10|sin|sinh|sqrt|tan|tanh|floor|round|min|max|sig|log2|epsilon|pi|infinity|\(|\)|\-|\+|\*|\/|\^))");
-    std::string stripped_function = std::regex_replace(function, reserved_names, " ");
+
+    std::string stripped_function = function;
+
+    static std::vector<std::string> symbols = {"1","2","3","4","5","6","7","8","9","0","*","/","+","-","(",")","^"};
+    static std::vector<std::string> functions = {"abs", "acos", "asin", "atan", "atan2", "cos", "cosh",
+                                                 "exp", "log", "log10", "sin", "sinh", "sqrt", "tan", "tanh",
+                                                 "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
+
+    for(const auto& symbol : symbols) {
+        ReplaceAllSubstring(stripped_function, symbol, " ");
+    }
+
+    for(const auto& func : functions) {
+        ReplaceAllSubstring(stripped_function, func, " ");
+    }
 
     std::istringstream iss(stripped_function);
     std::vector<std::string> variable_names(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
@@ -57,6 +70,14 @@ std::vector<std::string> Utility_Worker_Impl::ProcessVarList(const std::string& 
         }
     }
     return variable_names;
+}
+
+void Utility_Worker_Impl::ReplaceAllSubstring(std::string& str, const std::string& search, const std::string& replace) {
+    size_t position = 0;
+    while((position = str.find(search, position)) != std::string::npos) {
+        str.replace(position, search.length(), replace);
+        position += replace.length();
+    }
 }
 
 void Utility_Worker_Impl::USleep(int microseconds){

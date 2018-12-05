@@ -26,6 +26,7 @@ class Utility_Worker_Impl{
         std::string GenerateUUID();
     private:
         std::vector<std::string> ProcessVarList(const std::string& function);
+        void ReplaceAllSubstring(std::string& str, const std::string& search, const std::string& replace);
 
 
         std::default_random_engine random_generator_;
