@@ -7,13 +7,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/exprtk.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/exprtkwrapper.cpp
     )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker_impl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/exprtkwrapper.h
     )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
