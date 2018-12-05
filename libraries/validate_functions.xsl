@@ -760,36 +760,38 @@
                 <xsl:variable name="comparable_types" select="cdit:compare_nodes_types($source, $target)" />
                 <xsl:value-of select="cdit:output_result($target_id, $comparable_types, o:join_list(($target_kind, o:wrap_quote($target_label), 'with type', o:wrap_quote($target_type), 'has an invalid type', o:wrap_quote($source_type), 'connected to it (DataEdge)'), ' '), false(), 2)" />        
 
-                <xsl:variable name="shared_ancestor" select="graphml:get_shared_ancestor($source, $target)" />
-                
-                <xsl:variable name="source_ancestor" as="element(gml:node)?">
-                    <xsl:variable name="source_ancestors" select="graphml:get_ancestor_nodes_until($source, $shared_ancestor)" />
-                    <xsl:choose>
-                        <xsl:when test="count($source_ancestors) = 0">
-                            <xsl:sequence select="$source" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="$source_ancestors[1]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
+                <xsl:if test="$source_kind != 'DeploymentAttribute' and $target_kind != 'DeploymentAttribute'">
+                    <xsl:variable name="shared_ancestor" select="graphml:get_shared_ancestor($source, $target)" />
+                    
+                    <xsl:variable name="source_ancestor" as="element(gml:node)?">
+                        <xsl:variable name="source_ancestors" select="graphml:get_ancestor_nodes_until($source, $shared_ancestor)" />
+                        <xsl:choose>
+                            <xsl:when test="count($source_ancestors) = 0">
+                                <xsl:sequence select="$source" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:sequence select="$source_ancestors[1]" />
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
 
-                <xsl:variable name="target_ancestor" as="element(gml:node)?">
-                    <xsl:variable name="target_ancestors" select="graphml:get_ancestor_nodes_until($target, $shared_ancestor)" />
-                    <xsl:choose>
-                        <xsl:when test="count($target_ancestors) = 0">
-                            <xsl:sequence select="$target" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="$target_ancestors[1]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
+                    <xsl:variable name="target_ancestor" as="element(gml:node)?">
+                        <xsl:variable name="target_ancestors" select="graphml:get_ancestor_nodes_until($target, $shared_ancestor)" />
+                        <xsl:choose>
+                            <xsl:when test="count($target_ancestors) = 0">
+                                <xsl:sequence select="$target" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:sequence select="$target_ancestors[1]" />
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
 
-                <xsl:if test="graphml:get_row($source_ancestor) = graphml:get_row($target_ancestor)">
-                    <xsl:variable name="source_anc_index" select="graphml:get_index($source_ancestor)" />
-                    <xsl:variable name="target_anc_index" select="graphml:get_index($target_ancestor)" />
-                    <xsl:value-of select="cdit:output_result($source_id, $source_anc_index lt $target_anc_index, o:join_list(($source_kind, o:wrap_quote($source_label), 'is connected to', $target_kind, o:wrap_quote($target_label), 'before it would have been declared'), ' '), false(), 2)" />        
+                    <xsl:if test="graphml:get_row($source_ancestor) = graphml:get_row($target_ancestor)">
+                        <xsl:variable name="source_anc_index" select="graphml:get_index($source_ancestor)" />
+                        <xsl:variable name="target_anc_index" select="graphml:get_index($target_ancestor)" />
+                        <xsl:value-of select="cdit:output_result($source_id, $source_anc_index lt $target_anc_index, o:join_list(($source_kind, o:wrap_quote($source_label), 'is connected to', $target_kind, o:wrap_quote($target_label), 'before it would have been declared'), ' '), false(), 2)" />        
+                    </xsl:if>
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>

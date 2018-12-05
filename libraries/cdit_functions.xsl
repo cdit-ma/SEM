@@ -1750,17 +1750,26 @@
         <xsl:sequence select="o:remove_duplicates($required_components)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_class_instances" as="element(gml:node)*">
+        <xsl:param name="entity" as="element(gml:node)?" />
+
+        <xsl:for-each select="graphml:get_descendant_nodes_of_kind($entity, 'ClassInstance')">
+            <xsl:if test="graphml:is_class_instance_worker(.) = false()">
+                <xsl:variable name="class_definition" select="graphml:get_definition(.)" /> 
+                <xsl:sequence select="$class_definition" />
+                <xsl:sequence select="cdit:get_class_instances($class_definition)" />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+
     <xsl:function name="cdit:get_classes_to_build" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)?" />
         <xsl:param name="generate_all" as="xs:boolean" />
 
         <xsl:variable name="required_classes" as="element(gml:node)*">
             <xsl:for-each select="cdit:get_components_to_build($model, $generate_all)">
-                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'ClassInstance')">
-                    <xsl:if test="graphml:is_class_instance_worker(.) = false()">
-                        <xsl:sequence select="graphml:get_definition(.)" />
-                    </xsl:if>
-                </xsl:for-each>
+                <xsl:sequence select="cdit:get_class_instances(.)" />
             </xsl:for-each>
         </xsl:variable>
 
