@@ -8,18 +8,34 @@ def execution_map = [:]
 
 final json_file = 'experiment_config.json'
 
-final workspace_dir =  env.BUILD_ID
+final workspace_dir = env.BUILD_ID
 def added_experiment = false
 
-def terminateExperiment(){
-    node('re') {
-        script{
-            def utils = new cditma.Utils(this);
-            def args = "-s "
-            args += "-n \"${params.experiment_name}\" "
-            args += "-e ${params.environment_manager_address} "
-            if(utils.runReEnvironmentController(args)){
-                echo "Experiment: ${params.experiment_name} Removed"
+def cleanupExperiment(Boolean remove_experiment){
+    if(remove_experiment){
+        node('re') {
+            script{
+                def utils = new cditma.Utils(this);
+                def args = "-s "
+                args += "-n \"${params.experiment_name}\" "
+                args += "-e ${params.environment_manager_address} "
+                if(utils.runReEnvironmentController(args)){
+                    echo "Experiment: ${params.experiment_name} Removed"
+                }
+            }
+        }
+    }
+    //Run Validation on failure
+    node("builder"){
+        dir("${env.BUILD_ID}/validation"){
+            unstash 'model'
+            script{
+                def utils = new cditma.Utils(this);
+                if(utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
+                    archiveArtifacts artifacts: '*.xml'
+                }else{
+                    error('Validation report generation failed.')
+                }
             }
         }
     }
@@ -79,9 +95,6 @@ pipeline{
                         script{
                             if(!utils.runRegenXSL('generate_project.xsl', 'model.graphml')){
                                 error('Project code generation failed.')
-                            }
-                            if(!utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
-                                error('Validation report generation failed.')
                             }
                         }
 
@@ -233,6 +246,7 @@ pipeline{
                                                 if("${params.log_verbosity}"){
                                                     args += "-v ${params.log_verbosity} "
                                                 }
+
                                                 //Run re_node_manager
                                                 if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
                                                     error("re_node_manager failed on Node: ${node_name}")
@@ -255,16 +269,12 @@ pipeline{
     post{
         failure{
             script{
-                if(added_experiment){
-                    terminateExperiment()
-                }
+                cleanupExperiment(added_experiment)
             }
         }
         aborted{
             script{
-                if(added_experiment){
-                    terminateExperiment()
-                }
+                cleanupExperiment(added_experiment)
             }
         }
     }
