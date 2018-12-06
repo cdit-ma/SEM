@@ -126,6 +126,20 @@ bool EntitySet::isExpanded()
 
 
 /**
+ * @brief EntitySet::setHovered
+ * @param hovered
+ */
+void EntitySet::setHovered(bool hovered)
+{
+    if (hovered) {
+        textLabel->setStyleSheet("color: " + highlighColorStr + ";");
+    } else {
+        textLabel->setStyleSheet("color: " + textColorStr + ";");
+    }
+}
+
+
+/**
  * @brief EntitySet::setPreviousID
  * @param ID
  */
@@ -277,6 +291,10 @@ void EntitySet::themeChanged(Theme* theme)
     textLabel->setFont(theme->getFont());
     _tickPen = QPen(theme->getAltTextColor(), 2);
 
+    textColorStr = theme->getTextColorHex();
+    highlighColorStr = theme->getHighlightColorHex();
+    setHovered(false);
+
     if (allDepthChildrenCount <= 0) {
         iconLabel->setPixmap(unExpandablePixmap);
     } else {
@@ -383,6 +401,7 @@ bool EntitySet::eventFilter(QObject* object, QEvent* event)
  */
 void EntitySet::enterEvent(QEvent* event)
 {
+    setHovered(true);
     emit hovered(true);
 }
 
@@ -393,6 +412,7 @@ void EntitySet::enterEvent(QEvent* event)
  */
 void EntitySet::leaveEvent(QEvent* event)
 {
+    setHovered(false);
     emit hovered(false);
 }
 

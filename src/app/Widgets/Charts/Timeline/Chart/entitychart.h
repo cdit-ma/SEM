@@ -19,6 +19,7 @@ public:
     explicit EntityChart(ViewItem* item = 0, QWidget* parent = 0);
 
     ViewItem* getViewItem();
+    int getViewItemID();
 
     void addEventSeries(MEDEA::EventSeries* series);
     void removeEventSeries(QString ID);

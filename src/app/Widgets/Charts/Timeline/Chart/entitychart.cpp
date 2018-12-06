@@ -56,6 +56,19 @@ ViewItem* EntityChart::getViewItem()
 
 
 /**
+ * @brief EntityChart::getViewItemID
+ * @return
+ */
+int EntityChart::getViewItemID()
+{
+    if (_viewItem) {
+        return _viewItem->getID();
+    }
+    return -1;
+}
+
+
+/**
  * @brief EntityChart::addEventSeries
  * @param series
  */
@@ -889,6 +902,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
+    //double availableWidth = width() -
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
 

@@ -48,6 +48,16 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::updateChartHoverDisplay);
     }
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+    connect(_timelineChart, &TimelineChart::entityChartHovered, [=] (EntityChart* chart, bool hovered) {
+        if (chart) {
+            QString path = eventEntityCharts.key(chart, "");
+            EntitySet* set = eventEntitySets.value(path, 0);
+            if (!set)
+                set = itemEntitySets.value(chart->getViewItemID(), 0);
+            if (set)
+                set->setHovered(hovered);
+        }
+    });
 
     // connect the chart's pan and zoom signals to the datetime axis
     connect(_timelineChart, &TimelineChart::panned, [=](double dx, double dy) {
@@ -698,7 +708,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     connect(this, &TimelineChartView::toggleSeriesLegend, seriesChart, &EntityChart::setSeriesKindVisible);
     connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->entityChartHovered(seriesChart, hovered);
+        _timelineChart->setEntityChartHovered(seriesChart, hovered);
     });
 
     // set the initial visibility states of the chart and each individual series in the chart
