@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <regex>
 #include <boost/uuid/uuid_generators.hpp>
 
 class Utility_Worker_Impl{
@@ -26,6 +27,7 @@ class Utility_Worker_Impl{
     private:
         std::vector<std::string> ProcessVarList(const std::string& function);
         void ReplaceAllSubstring(std::string& str, const std::string& search, const std::string& replace);
+
 
         std::default_random_engine random_generator_;
         boost::uuids::random_generator uuid_generator_;
