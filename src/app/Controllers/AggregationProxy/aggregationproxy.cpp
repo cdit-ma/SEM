@@ -108,6 +108,7 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
 
         qDebug() << "--------------------------------------------------------------------------------";
         emit receivedAllEvents();
+
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -127,7 +128,7 @@ WorkloadEvent::WorkerInstance AggregationProxy::convertWorkerInstance(const AggS
     WorkloadEvent::WorkerInstance workerInst;
     workerInst.name = getQString(inst.name());
     workerInst.path = getQString(inst.path());
-    workerInst.graphml_id = getQString(inst.grpahml_id());
+    workerInst.graphml_id = getQString(inst.graphml_id());
     return workerInst;
 }
 
