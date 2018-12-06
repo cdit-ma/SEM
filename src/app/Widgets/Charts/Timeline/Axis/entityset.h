@@ -30,6 +30,8 @@ public:
 
     bool isExpanded();
 
+    void setHovered(bool hovered);
+
     void setID(int ID);
     int getID();
 
@@ -98,6 +100,9 @@ private:
     QPixmap unExpandablePixmap;
     QPixmap expandedPixmap;
     QPixmap contractedPixmap;
+
+    QString textColorStr;
+    QString highlighColorStr;
 
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;

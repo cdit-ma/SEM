@@ -159,16 +159,6 @@ ViewItem* MEDEA::DataSeries::getViewItem()
 
 
 /**
- * @brief MEDEA::DataSeries::getSeriesKind
- * @return
- */
-TIMELINE_SERIES_KIND MEDEA::DataSeries::getSeriesKind()
-{
-    return _seriesKind;
-}
-
-
-/**
  * @brief MEDEA::DataSeries::isStateSeries
  * @return
  */

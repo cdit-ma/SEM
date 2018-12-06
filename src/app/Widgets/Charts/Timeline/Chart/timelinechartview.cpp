@@ -48,6 +48,16 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::updateChartHoverDisplay);
     }
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+    connect(_timelineChart, &TimelineChart::entityChartHovered, [=] (EntityChart* chart, bool hovered) {
+        if (chart) {
+            QString path = eventEntityCharts.key(chart, "");
+            EntitySet* set = eventEntitySets.value(path, 0);
+            if (!set)
+                set = itemEntitySets.value(chart->getViewItemID(), 0);
+            if (set)
+                set->setHovered(hovered);
+        }
+    });
 
     // connect the chart's pan and zoom signals to the datetime axis
     connect(_timelineChart, &TimelineChart::panned, [=](double dx, double dy) {
@@ -80,7 +90,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     }
 
     _hoverWidget = new QWidget(this);
-    QHBoxLayout* hoverLayout = new QHBoxLayout(_hoverWidget);
+    QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
     hoverLayout->setSpacing(SPACING * 2);
     hoverLayout->setMargin(SPACING);
     hoverLayout->addWidget(_eventsButton);
@@ -388,13 +398,13 @@ void TimelineChartView::updateChartHoverDisplay()
         auto hoveredKinds = entityChart->getHovereSeriesKinds();
         for (auto s : series) {
             if (s) {
-                auto kind = s->getSeriesKind();
+                auto kind = s->getKind();
                 if (hoveredKinds.contains(kind)) {
                     auto range = entityChart->getHoveredTimeRange(kind);
                     //qDebug() << ""
                     auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
                     if (!hoveredInfo.isEmpty()) {
-                        hoveredData[s->getSeriesKind()] += hoveredInfo + "\n";
+                        hoveredData[s->getKind()] += hoveredInfo + "\n";
                     }
                 }
             } else {
@@ -402,6 +412,9 @@ void TimelineChartView::updateChartHoverDisplay()
             }
         }
     }
+
+    if (hoveredData.isEmpty())
+        return;
 
     for (auto kind : _hoverDisplayButtons.keys()) {
         auto button = _hoverDisplayButtons.value(kind, 0);
@@ -658,7 +671,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     connect(this, &TimelineChartView::toggleSeriesLegend, seriesChart, &EntityChart::setSeriesKindVisible);
     connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->entityChartHovered(seriesChart, hovered);
+        _timelineChart->setEntityChartHovered(seriesChart, hovered);
     });
 
     // set the initial visibility states of the chart and each individual series in the chart

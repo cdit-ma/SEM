@@ -56,6 +56,19 @@ ViewItem* EntityChart::getViewItem()
 
 
 /**
+ * @brief EntityChart::getViewItemID
+ * @return
+ */
+int EntityChart::getViewItemID()
+{
+    if (_viewItem) {
+        return _viewItem->getID();
+    }
+    return -1;
+}
+
+
+/**
  * @brief EntityChart::addEventSeries
  * @param series
  */
@@ -86,8 +99,8 @@ void EntityChart::addSeries(MEDEA::DataSeries* series)
     if (!series)
         return;
 
-    _seriesList[series->getSeriesKind()] = series;
-    _seriesKindVisible[series->getSeriesKind()] = true;
+    _seriesList[series->getKind()] = series;
+    _seriesKindVisible[series->getKind()] = true;
 
     connect(series, &MEDEA::DataSeries::pointsAdded, this, &EntityChart::pointsAdded);
     series->pointsAdded((series->getConstPoints()));
@@ -347,7 +360,7 @@ void EntityChart::pointsAdded(QList<QPointF> points)
 {
     MEDEA::DataSeries* series = qobject_cast<MEDEA::DataSeries*>(sender());
     if (series) {
-        _seriesPoints[series->getSeriesKind()].append(points);
+        _seriesPoints[series->getKind()].append(points);
         update();
         //emit dataAdded(points);
     }
@@ -843,6 +856,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
+    //double availableWidth = width() -
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
 

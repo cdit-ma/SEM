@@ -42,7 +42,7 @@ const QString& MEDEA::Event::getName() const
  * @brief MEDEA::Event::getID
  * @return
  */
-const QString& MEDEA::Event::getID()
+QString MEDEA::Event::getID() const
 {
     return QString::number(eventID_);
 }

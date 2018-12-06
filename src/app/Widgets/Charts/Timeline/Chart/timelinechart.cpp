@@ -110,7 +110,7 @@ void TimelineChart::setAxisWidth(double width)
 {
     axisWidth = width;
     axisLinePen.setWidthF(width);
-    //setContentsMargins(width, 0, 0, 0);
+    setContentsMargins(width, 0, 0, 0);
 }
 
 
@@ -269,7 +269,8 @@ void TimelineChart::themeChanged()
 
 
 /**
- * @brief TimelineChart::entityChartHovered
+ * @brief TimelineChart::setEntityChartHovered
+ * This is called
  * @param chart
  * @param hovered
  */
@@ -280,7 +281,6 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
         hoveredChartRect.moveTo(chart->pos());
         chart->setHovered(hovered);
         update();
-        emit entityChartHovered(chart, hovered);
     }
 }
 
@@ -293,11 +293,16 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
  */
 bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
 {
+    // the signal below is used to tell the entity axis which chart was hovered
+    // it's not sent from the setEntityChartHovered to avoid duplicated signals
+    // because the entity axis uses that slot to hover on a chart
     EntityChart* chart = qobject_cast<EntityChart*>(watched);
     if (event->type() == QEvent::Enter) {
         setEntityChartHovered(chart, true);
+        emit entityChartHovered(chart, true);
     } else if (event->type() == QEvent::Leave) {
         setEntityChartHovered(chart, false);
+        emit entityChartHovered(chart, false);
     }
     return QWidget::eventFilter(watched, event);
 }

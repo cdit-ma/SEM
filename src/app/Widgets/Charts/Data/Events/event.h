@@ -17,7 +17,7 @@ public:
     const qint64& getTimeMS() const;
     const QString& getName() const;
 
-    virtual const QString& getID();
+    virtual QString getID() const;
 
 private:
     qint64 time_;

@@ -33,7 +33,6 @@ public:
     //int getID();
     QString getLabel();
     ViewItem* getViewItem();
-    TIMELINE_SERIES_KIND getSeriesKind();
 
     bool isStateSeries();
     bool isNotificationSeries();
