@@ -27,7 +27,7 @@ public:
     QPair<double, double> getDisplayedRange();
 
 public slots:
-    void hoverLineUpdated(bool visible, QPointF pos = QPointF());
+    void hoverLineUpdated(bool visible, QPointF globalPos = QPointF());
 
 private slots:
     void themeChanged();

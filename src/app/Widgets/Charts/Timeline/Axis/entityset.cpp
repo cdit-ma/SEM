@@ -186,6 +186,10 @@ void EntitySet::themeChanged(Theme* theme)
     highlighColorStr = theme->getHighlightColorHex();
     setHovered(false);
 
+    textColorStr = theme->getTextColorHex();
+    highlighColorStr = theme->getHighlightColorHex();
+    setHovered(false);
+
     if (allDepthChildrenCount <= 0) {
         iconLabel->setPixmap(unExpandablePixmap);
     } else {

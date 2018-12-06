@@ -39,6 +39,7 @@ TimelineChart::TimelineChart(QWidget* parent)
  */
 void TimelineChart::setMin(double min)
 {
+    min--;
     if (min != _displayMin) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
@@ -54,6 +55,7 @@ void TimelineChart::setMin(double min)
  */
 void TimelineChart::setMax(double max)
 {
+    max++;
     if (max != _displayMax) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
@@ -70,6 +72,8 @@ void TimelineChart::setMax(double max)
  */
 void TimelineChart::setRange(double min, double max)
 {
+    min--;
+    max++;
     for (EntityChart* chart : _entityCharts) {
         chart->setRange(min, max);
     }
@@ -265,7 +269,8 @@ void TimelineChart::themeChanged()
 
 
 /**
- * @brief TimelineChart::entityChartHovered
+ * @brief TimelineChart::setEntityChartHovered
+ * This is called
  * @param chart
  * @param hovered
  */
@@ -276,7 +281,6 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
         hoveredChartRect.moveTo(chart->pos());
         chart->setHovered(hovered);
         update();
-        emit entityChartHovered(chart, hovered);
     }
 }
 
@@ -289,11 +293,16 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
  */
 bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
 {
+    // the signal below is used to tell the entity axis which chart was hovered
+    // it's not sent from the setEntityChartHovered to avoid duplicated signals
+    // because the entity axis uses that slot to hover on a chart
     EntityChart* chart = qobject_cast<EntityChart*>(watched);
     if (event->type() == QEvent::Enter) {
         setEntityChartHovered(chart, true);
+        emit entityChartHovered(chart, true);
     } else if (event->type() == QEvent::Leave) {
         setEntityChartHovered(chart, false);
+        emit entityChartHovered(chart, false);
     }
     return QWidget::eventFilter(watched, event);
 }
@@ -367,8 +376,8 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     cursorPoint = mapFromGlobal(cursor().pos());
-    hoverRect.moveCenter(QPointF(cursorPoint.x(), 0));
-    hoverRectUpdated();
+    hoverRect.moveCenter(cursorPoint);
+    hoverRectUpdated(true);
 
     switch (dragMode) {
     case PAN: {
@@ -438,7 +447,6 @@ void TimelineChart::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
     hovered = false;
-
     hoverRect = QRectF();
     hoverRectUpdated();
 }
@@ -493,9 +501,10 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 
 
 /**
- * @brief TimelineChart::hovereRectUpdated
+ * @brief TimelineChart::hoverRectUpdated
+ * @param repaintRequired
  */
-void TimelineChart::hoverRectUpdated()
+void TimelineChart::hoverRectUpdated(bool repaintRequired)
 {
     if (hoverRect.isNull()) {
         for (EntityChart* chart : _entityCharts) {
@@ -512,8 +521,16 @@ void TimelineChart::hoverRectUpdated()
         }
     }
 
-    emit hoverLineUpdated(hoverRect.isValid(), hoverRect.center());
-    update();
+    if (repaintRequired) {
+        // this repaint is required instead of an update whenever there's a moveEvent
+        // the hovered series ranges are being calculated in the children charts' paint event
+        // and it needs to happen before the signal below is sent to the timeline view
+        repaint();
+    } else {
+        update();
+    }
+
+    emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
 }
 
 

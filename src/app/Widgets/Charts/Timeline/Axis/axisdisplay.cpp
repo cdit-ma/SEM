@@ -171,12 +171,13 @@ QPair<double, double> AxisDisplay::getDisplayedRange()
 /**
  * @brief AxisDisplay::hoverLineUpdated
  * @param visible
- * @param pos
+ * @param globalPos
  */
-void AxisDisplay::hoverLineUpdated(bool visible, QPointF pos)
+void AxisDisplay::hoverLineUpdated(bool visible, QPointF globalPos)
 {
     _displayHoverValue = visible;
     if (visible) {
+        QPointF pos = mapFromGlobal(globalPos.toPoint());
         if (_orientation == Qt::Horizontal) {
             _hoveredPos = pos.x();
             _hoveredValue = (_hoveredPos / width()) * _displayedRange + _displayedMin;
@@ -234,6 +235,9 @@ void AxisDisplay::updateDisplayedMax(double maxRatio)
  */
 void AxisDisplay::resizeEvent(QResizeEvent* event)
 {
+    //qDebug() << "AXIS DISPLAY: " << this->width();
+    //qDebug() << "axis displayed range: " << _displayedRange;
+
     // update tick label locations
     QWidget::resizeEvent(event);
     update();
@@ -364,7 +368,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
             QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
             if (date != prevDate) {
                 textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
-                painter.drawText(textRect, date.toString("MMMM d"), QTextOption(_textAlignment));
+                painter.drawText(textRect, date.toString(DATE_FORMAT), QTextOption(_textAlignment));
             }
             prevDate = date;
         }
@@ -483,7 +487,7 @@ QString AxisDisplay::getCovertedString(double value)
 {
     switch (_valueType) {
     case VALUE_TYPE::DATETIME:
-        return QDateTime::fromMSecsSinceEpoch(value).toString("hh:mm:ss.zzz");
+        return QDateTime::fromMSecsSinceEpoch(value).toString(TIME_FORMAT);
     default:
         return QString::number(value);
     }

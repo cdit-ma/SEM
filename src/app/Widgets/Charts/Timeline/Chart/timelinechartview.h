@@ -40,8 +40,8 @@ signals:
     void toggledStateLegend(bool checked);
     void toggledNotificationLegend(bool checked);
     void toggledLineLegend(bool checked);
-    void toggleSeriesKind(TIMELINE_SERIES_KIND kind, bool checked);
-    void seriesHovered(TIMELINE_SERIES_KIND kind);
+    void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);
+    void seriesLegendHovered(TIMELINE_SERIES_KIND kind);
 
 public slots:
     void themeChanged();
@@ -54,11 +54,11 @@ public slots:
     void displayedMinChanged(double min);
     void displayedMaxChanged(double max);
 
-    void entityChartPointsHovered(QHash<TIMELINE_SERIES_KIND, QList<QPointF>> points);
-
     void clearSeriesEvents();
     void receivedRequestedEvent(MEDEA::Event* event);
-
+    
+    void updateChartHoverDisplay();
+    
 private:
     void constructChartForEvent(QString path, QString label);
 
@@ -91,8 +91,8 @@ private:
     QColor hoverItemBackgroundColor;
     QString hoveredEntityLabel;
 
-    QHash<int, EntitySet*> entitySets;
-    QHash<int, EntityChart*> entityCharts;
+    QHash<int, EntitySet*> itemEntitySets;
+    QHash<int, EntityChart*> itemEntityCharts;
 
     qint64 lastRequestedFromTime;
     qint64 lastRequestedToTime;

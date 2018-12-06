@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 #ifndef PORTLIFECYCLEEVENT_H
 #define PORTLIFECYCLEEVENT_H
 
 #include "../../Data/Events/event.h"
 
 enum class LifecycleType {
+=======
+#ifndef PORTLIFECYCLE_H
+#define PORTLIFECYCLE_H
+
+#include <QObject>
+
+enum class LifeCycleType {
+>>>>>>> feature-hub
     NO_TYPE,
     CONFIGURE,
     ACTIVATE,
@@ -11,6 +20,7 @@ enum class LifecycleType {
     TERMINATE
 };
 
+<<<<<<< HEAD
 /*
 struct Node {
     QString hostname;
@@ -29,6 +39,8 @@ struct ComponentInstance {
 };
 */
 
+=======
+>>>>>>> feature-hub
 struct Port {
     enum Kind {
         NO_KIND,
@@ -38,6 +50,7 @@ struct Port {
         REQUESTER,
         REPLIER
     };
+<<<<<<< HEAD
     Kind kind;
     QString name;
     QString path;
@@ -47,10 +60,41 @@ struct Port {
 
 
 class PortLifecycleEvent : public MEDEA::Event
+=======
+    int ID;
+    Kind kind;
+    QString path;
+    QString name;
+    QString middleware;
+};
+
+struct Component {
+    int ID;
+    QString nsme;
+};
+
+struct Node {
+    int ID;
+    QString hostname;
+    QString ip;
+};
+
+struct ComponentInstance {
+    int ID;
+    Component component;
+    Node node;
+    QString name;
+    QString path;
+};
+
+
+class PortLifeCycle : public QObject
+>>>>>>> feature-hub
 {
     Q_OBJECT
 
 public:
+<<<<<<< HEAD
     explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
 
     const Port getPort();
@@ -66,3 +110,20 @@ private:
 };
 
 #endif // PORTLIFECYCLEEVENT_H
+=======
+    explicit PortLifeCycle(Port port, LifeCycleType type, qint64 time, QObject* parent = 0);
+    explicit PortLifeCycle(LifeCycleType type, qint64 time, QObject* parent = 0);
+
+    Port getPort();
+    LifeCycleType getType();
+    qint64 getTime();
+
+private:
+    Port port_;
+    LifeCycleType type_;
+    qint64 time_;
+
+};
+
+#endif // PORTLIFECYCLE_H
+>>>>>>> feature-hub

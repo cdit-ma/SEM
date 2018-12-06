@@ -7,8 +7,6 @@
 #include "../../../Controllers/ViewController/viewitem.h"
 #include "../Data/Series/eventseries.h"
 
-enum class TIMELINE_SERIES_KIND{DATA, STATE, NOTIFICATION, LINE, BAR};
-
 namespace MEDEA {
 
 class DataSeries : public EventSeries
@@ -25,13 +23,14 @@ protected:
 public:
     void addPoints(QList<QPointF> points);
 
-    virtual QString getHoveredDataInformation(qint64 start_time, qint64 end_time) {
+    /*
+    virtual QString getHoveredDataInformation(qint64 start_time, qint64 end_time){
         return QString();
     }
+    */
 
     QString getLabel();
     ViewItem* getViewItem();
-    TIMELINE_SERIES_KIND getSeriesKind();
 
     bool isStateSeries();
     bool isNotificationSeries();
