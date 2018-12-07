@@ -505,11 +505,20 @@ void EntityChart::paintEventSeries(QPainter &painter)
         }
     }
 
+    /*
+    for (int i = 0; i < barCount; i++) {
+        auto list = buckets[i];
+        if (list.count() == 81) {
+            for (auto item : list) {
+                qDebug() << "item: " << QDateTime::fromMSecsSinceEpoch(item->getTimeMS()).toString("MMM d, hh:mm:ss:zzz");
+            }
+            break;
+        }
+    }
+    */
+
     QColor seriesColor = Qt::gray;
     int y = rect().center().y() - barWidth / 2.0;
-
-    WorkloadEvent* hovered_event = 0;
-    QRectF hovered_rect;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
@@ -518,13 +527,8 @@ void EntityChart::paintEventSeries(QPainter &painter)
         QRectF rect(i * barWidth, y, barWidth, barWidth);
         if (count == 1) {
             auto event = (WorkloadEvent*) buckets[i][0];
-            //painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
-            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
-                hovered_event = event;
-                hovered_rect = rect;
+            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect))
                 painter.fillRect(rect, _highlightColor);
-            }
-            //auto event = (WorkloadEvent*) buckets[i][0];
             painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
@@ -533,30 +537,11 @@ void EntityChart::paintEventSeries(QPainter &painter)
                 painter.setPen(_highlightTextColor);
                 color = _highlightColor;
             }
+            QString countStr = count > 99 ? "99+" : QString::number(count);
             painter.fillRect(rect, color);
-            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
-
-    /*
-    if (_hovered && hovered_event) {
-        QString args = hovered_event->getArgs();
-        if (!args.isEmpty()) {
-            painter.save();
-            painter.setBrush(_hoveredRectColor);
-            painter.setPen(_hoverLinePen.color());
-            hovered_rect.moveRight(hovered_rect.right() + hovered_rect.width() + 5);
-            hovered_rect.setWidth(fontMetrics().width(args) + 10);
-            qreal centerY = hovered_rect.center().y();
-            hovered_rect.setHeight(hovered_rect.height() * 2 + 2);
-            hovered_rect.moveCenter(QPointF(hovered_rect.center().x(), centerY));
-            args = "[" + hovered_event->getFunctionName() + "]\n" + args;
-            painter.drawRect(hovered_rect);
-            painter.drawText(hovered_rect, args, QTextOption(Qt::AlignCenter));
-            painter.restore();
-        }
-    }
-    */
 }
 
 

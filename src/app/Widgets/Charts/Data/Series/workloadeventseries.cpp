@@ -2,6 +2,7 @@
 #include "../Events/workloadevent.h"
 
 #include <QDateTime>
+#include <QTextStream>
 
 /**
  * @brief WorkloadEventSeries::WorkloadEventSeries
@@ -67,6 +68,27 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
     int count = std::distance(current, upper);
     if (count <= 0) {
         return "";
+    } else {
+        // display upto the first 10 events
+        QString hoveredData;
+        QTextStream stream(&hoveredData);
+        int displayCount = qMin(count, 10);
+        for (int i = 0; i < displayCount; i++) {
+            auto event = (WorkloadEvent*)(*current);
+            stream << "[" + event->getFunctionName() + "] - "
+                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss:zzz")
+                      + "\n" + event->getArgs().trimmed() + "\n\n";
+            current++;
+        }
+        if (count > 10) {
+            stream << "... (more omitted)";
+        }
+        return hoveredData.trimmed();
+    }
+
+
+    /*if (count <= 0) {
+        return "";
     } else if (count == 1) {
         // args + function name
         auto event = (WorkloadEvent*)(*current);
@@ -80,5 +102,5 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
         }
     } else {
         return QString::number(count);
-    }
+    }*/
 }
