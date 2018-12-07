@@ -75,6 +75,7 @@ int EntityChart::getViewItemID()
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
     _eventSeries = series;
+    _seriesList[TIMELINE_SERIES_KIND::EVENT] = series;
 }
 
 
@@ -86,24 +87,7 @@ void EntityChart::removeEventSeries(QString ID)
 {
     if (_eventSeries && _eventSeries->getID() == ID) {
         _eventSeries = 0;
-    }
-}
-
-
-void EntityChart::addLifeCycleSeries(PortLifecycleEventSeries* series)
-{
-    if (!series || series == _lifeCycleSeries)
-        return;
-
-    //removeLifeCycleSeries(_lifeCycleSeries->getID());
-    _lifeCycleSeries = series;
-}
-
-
-void EntityChart::removeLifeCycleSeries(QString path)
-{
-    if (_lifeCycleSeries && _lifeCycleSeries->getPortPath() == path) {
-        _lifeCycleSeries = 0;
+        _seriesList.remove(TIMELINE_SERIES_KIND::EVENT);
     }
 }
 
@@ -151,7 +135,7 @@ void EntityChart::removeSeries(TIMELINE_SERIES_KIND seriesKind)
  * @brief EntityChart::getSeries
  * @return
  */
-const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& EntityChart::getSeries()
+const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*>& EntityChart::getSeries()
 {
     return _seriesList;
 }
@@ -427,6 +411,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
     }
     paintSeries(painter, _hoveredSeriesKind);
 
+    paintEventSeries(painter);
+
     QColor penColor = _gridPen.color();
     qreal penWidth = _gridPen.widthF();
 
@@ -525,16 +511,23 @@ void EntityChart::paintEventSeries(QPainter &painter)
         int count = buckets[i].count();
         if (count == 0)
             continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        QRectF rect(i * barWidth, y, barWidth, barWidth);        
         if (count == 1) {
-            if (pointHovered(rect))
-                painter.fillRect(rect, _highlightColor);
             auto event = (PortLifecycleEvent*) buckets[i][0];
+            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
+                /*
+                 *  TODO - This forces the hover display to only show the hovered item's data/time
+                 *  This can be removed when the date-time axis range has a minimum limit
+                 *  This also needs to be changed when there are multiple series of the same kind
+                 */
+                _hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::EVENT] = {event->getTimeMS(), event->getTimeMS()};
+                painter.fillRect(rect, _highlightColor);
+            }
             painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);
-            if (pointHovered(rect)) {
+            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
                 painter.setPen(_highlightTextColor);
                 color = _highlightColor;
             }
@@ -581,7 +574,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    MEDEA::DataSeries* series = _seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
+    MEDEA::DataSeries* series = (MEDEA::DataSeries*)_seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
     if (!series)
         return;
 
@@ -1152,13 +1145,3 @@ inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }
-
-
-/**
- * @brief EntityChart::getSeries
- * @return
- */
-/*const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& EntityChart::getSeries()
-{
-    return _seriesList;
-}*/

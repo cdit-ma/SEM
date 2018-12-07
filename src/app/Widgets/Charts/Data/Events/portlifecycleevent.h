@@ -53,13 +53,13 @@ class PortLifecycleEvent : public MEDEA::Event
 public:
     explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
 
-    const Port getPort();
-    const LifecycleType getType();
+    const Port& getPort() const;
+    const LifecycleType& getType() const;
 
-    const QString getPortGraphmlID();
-    const QString getPortPath();
+    QString getPortGraphmlID() const;
+    QString getPortPath() const;
 
-private:
+private:    
     Port port_;
     LifecycleType type_;
 

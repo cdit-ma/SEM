@@ -12,9 +12,12 @@ class PortLifecycleEventSeries : public MEDEA::EventSeries
 public:
     explicit PortLifecycleEventSeries(QString path, QObject* parent = 0);
 
-    QString getPortPath();
+    const QString& getPortPath() const;
+    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat);
 
 private:
+    QString getTypeString(LifecycleType type);
+
     QString port_path;
 
 };

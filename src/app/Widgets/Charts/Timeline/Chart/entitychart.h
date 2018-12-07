@@ -20,23 +20,18 @@ public:
     ViewItem* getViewItem();
     int getViewItemID();
 
-    void addLifeCycleSeries(PortLifecycleEventSeries* series);
-    void removeLifeCycleSeries(QString path);
-
     void addEventSeries(MEDEA::EventSeries* series);
     void removeEventSeries(QString ID);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
-    const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> &getSeries();
     const QList<TIMELINE_SERIES_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_SERIES_KIND kind);
 
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
-
-    //const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries *> &getSeries();
 
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
@@ -152,7 +147,7 @@ private:
     QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
-    QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
+    QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
 

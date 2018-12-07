@@ -110,7 +110,7 @@ void TimelineChart::setAxisWidth(double width)
 {
     axisWidth = width;
     axisLinePen.setWidthF(width);
-    //setContentsMargins(width, 0, 0, 0);
+    setContentsMargins(width, 0, 0, 0);
 }
 
 

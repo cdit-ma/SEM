@@ -16,7 +16,7 @@ PortLifecycleEvent::PortLifecycleEvent(Port port, LifecycleType type, qint64 tim
  * @brief PortLifecycleEvent::getPort
  * @return
  */
-const Port PortLifecycleEvent::getPort()
+const Port& PortLifecycleEvent::getPort() const
 {
     return port_;
 }
@@ -26,7 +26,7 @@ const Port PortLifecycleEvent::getPort()
  * @brief PortLifecycleEvent::getType
  * @return
  */
-const LifecycleType PortLifecycleEvent::getType()
+const LifecycleType& PortLifecycleEvent::getType() const
 {
     return type_;
 }
@@ -36,7 +36,7 @@ const LifecycleType PortLifecycleEvent::getType()
  * @brief PortLifecycleEvent::getPortGraphmlID
  * @return
  */
-const QString PortLifecycleEvent::getPortGraphmlID()
+QString PortLifecycleEvent::getPortGraphmlID() const
 {
     return port_.graphml_id;
 }
@@ -46,7 +46,7 @@ const QString PortLifecycleEvent::getPortGraphmlID()
  * @brief PortLifecycleEvent::getPortPath
  * @return
  */
-const QString PortLifecycleEvent::getPortPath()
+QString PortLifecycleEvent::getPortPath() const
 {
     return port_.path;
 }

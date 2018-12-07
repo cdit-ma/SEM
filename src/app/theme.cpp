@@ -1291,6 +1291,8 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
     setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
+    setIconToggledImage("ToggleIcons", "eventLegendToggle", "Icons", "plugTwoTone", "Icons", "plugTwoTone");
+    //setIconToggledImage("ToggleIcons", "eventLegendToggle", "Icons", "clockCycle", "Icons", "clockCycle");
 }
 
 void Theme::setupAliasIcons(){

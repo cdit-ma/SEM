@@ -79,11 +79,13 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _messagesButton = new QPushButton(this);
     _utilisationButton = new QPushButton(this);
     _barButton = new QPushButton(this);
+    _eventButton = new QPushButton(this);
 
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::STATE] = _eventsButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::NOTIFICATION] = _messagesButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::LINE] = _utilisationButton;
     _hoverDisplayButtons[TIMELINE_SERIES_KIND::BAR] = _barButton;
+    _hoverDisplayButtons[TIMELINE_SERIES_KIND::EVENT] = _eventButton;
 
     for (QPushButton* button : _hoverDisplayButtons.values()) {
         button->setStyleSheet("QPushButton{ text-align: left; }");
@@ -97,6 +99,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     hoverLayout->addWidget(_messagesButton);
     hoverLayout->addWidget(_utilisationButton);
     hoverLayout->addWidget(_barButton);
+    hoverLayout->addWidget(_eventButton);
 
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
@@ -382,6 +385,7 @@ void TimelineChartView::themeChanged()
     _messagesButton->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
     _utilisationButton->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
     _barButton->setIcon(theme->getIcon("ToggleIcons", "barLegendToggle"));
+    _eventButton->setIcon(theme->getIcon("ToggleIcons", "eventLegendToggle"));
 }
 
 
@@ -463,7 +467,6 @@ void TimelineChartView::updateChartHoverDisplay()
                 auto kind = s->getKind();
                 if (hoveredKinds.contains(kind)) {
                     auto range = entityChart->getHoveredTimeRange(kind);
-                    //qDebug() << ""
                     auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
                     if (!hoveredInfo.isEmpty()) {
                         hoveredData[s->getKind()] += hoveredInfo + "\n";

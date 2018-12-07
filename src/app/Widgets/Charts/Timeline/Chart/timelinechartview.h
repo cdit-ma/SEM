@@ -108,6 +108,7 @@ private:
     QPushButton* _messagesButton;
     QPushButton* _utilisationButton;
     QPushButton* _barButton;
+    QPushButton* _eventButton;
 
     EntitySet* prevHighlightedSet = 0;
 };
