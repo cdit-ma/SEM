@@ -1290,7 +1290,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
     setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
-    setIconToggledImage("ToggleIcons", "eventLegendToggle", "Icons", "spanner", "Icons", "spanner");
+    setIconToggledImage("ToggleIcons", "eventLegendToggle", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
 }
 
 void Theme::setupAliasIcons(){

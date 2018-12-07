@@ -71,7 +71,7 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
         // args + function name
         auto event = (WorkloadEvent*)(*current);
         if (event) {
-            return "[" + event->getFunctionName() + "]: "
+            return "[" + event->getFunctionName() + "] - "
                     //+ QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, h:mm:ss:zzz A")
                     + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss:zzz")
                     + "\n" + event->getArgs();
