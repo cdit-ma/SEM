@@ -141,7 +141,8 @@ void zmq::ProtoWriter::Terminate(){
 
     if(backpressure_ > 0){
         std::chrono::microseconds sleep_us(message_process_delay_ * backpressure_);
-        std::cout << "* Sleeping for: " << sleep_us.count() << " us to free backpressure on ProtoWriter." << std::endl;
+        auto sleep_ms = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_us);
+        std::cout << "* Sleeping for: " << sleep_ms.count() << " ms to free backpressure on ProtoWriter." << std::endl;
         std::this_thread::sleep_for(sleep_us);
     }
 
