@@ -68,6 +68,7 @@ int main(int argc, char** argv){
             std::string output;
             google::protobuf::util::JsonOptions options;
             options.add_whitespace = true;
+            options.always_print_primitive_fields = true;
 
             if(result){
                 google::protobuf::util::MessageToJsonString(*result, &output, options);
