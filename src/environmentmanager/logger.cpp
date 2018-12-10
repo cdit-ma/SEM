@@ -20,8 +20,6 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
         for(const auto& process : logger.processes()){
             AddProcess(process);
         }
-
-        publisher_port_ = environment_.GetPort(GetNode().GetIp());
         break;    
     }
     case Type::Model:{
@@ -48,14 +46,10 @@ Logger::Logger(Environment& environment, Container& parent, EnvironmentManager::
                 parent_(parent), environment_(environment){
     type_ = type;
     mode_ = mode;
-
-    if(type_ == EnvironmentManager::Logger::Type::Model){
-        publisher_port_ = environment_.GetPort(GetNode().GetIp());
-    }
 }
 
 Logger::~Logger(){
-    if(type_ == Type::Client || type_ == Type::Model){
+    if(publisher_port_.length()){
         environment_.FreePort(GetNode().GetIp(), publisher_port_);
     }
 }
@@ -71,7 +65,26 @@ Logger::Type Logger::GetType() const{
 void Logger::SetPublisherPort(const std::string& publisher_port){
     publisher_port_ = publisher_port;
 }
-std::string Logger::GetPublisherPort() const{
+
+std::string Logger::GetPublisherPort(){
+    if(!publisher_port_.length()){
+        switch(mode_){
+            case Mode::Live:
+            case Mode::Cached:{
+                if(GetMode() == Logger::Mode::Off){
+                    throw std::runtime_error("No assigned port for OFFLINE logger");
+                }
+                if(GetContainer().GetDeployedComponentCount() == 0){
+                    throw std::runtime_error("No assigned port for logger with no deployed components");
+                }
+                publisher_port_ = publisher_port_ = environment_.GetPort(GetNode().GetIp());
+                break;
+            }
+            default:{
+                throw std::runtime_error("No publisher port assigned");
+            }
+        }
+    }
     return publisher_port_;
 }
 
@@ -125,61 +138,65 @@ bool Logger::IsDirty(){
     return dirty_;
 }
 
-std::string Logger::GetPublisherEndpoint() const{
+std::string Logger::GetPublisherEndpoint(){
     return "tcp://" + GetNode().GetIp() + ":" + GetPublisherPort();
 }
 
 std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
     std::unique_ptr<NodeManager::Logger> logger_pb;
 
-
     if(dirty_ || full_update){
-        logger_pb = std::unique_ptr<NodeManager::Logger>(new NodeManager::Logger());
-        switch(GetType()){
-            case Type::Server:{
-                //Get the clients
-                for(const auto& client_id : GetConnectedClientIds()){
-                    for(const auto& l : GetNode().GetExperiment().GetLoggerClients(client_id)){
-                        auto& logger = l.get();
-                        if(logger.GetContainer().GetDeployedComponentCount()){
-                            logger_pb->add_client_addresses(logger.GetPublisherEndpoint());
+        try{
+            logger_pb = std::unique_ptr<NodeManager::Logger>(new NodeManager::Logger());
+
+            switch(GetType()){
+                case Type::Server:{
+                    //Get the clients
+                    for(const auto& client_id : GetConnectedClientIds()){
+                        for(const auto& l : GetNode().GetExperiment().GetLoggerClients(client_id)){
+                            auto& logger = l.get();
+                            try{
+                                logger_pb->add_client_addresses(logger.GetPublisherEndpoint());
+                            }catch(const std::runtime_error&){
+                            }
                         }
                     }
-                }
 
-                //Fetch the model logger
-                logger_pb->set_db_file_name(GetDbFileName());
-                break;
-            }
-            case Type::Client:{
-                logger_pb->set_mode(TranslateInternalMode(mode_));
-                for(const auto& process : GetProcesses()){
-                    logger_pb->add_processes(process);
+                    //Fetch the model logger
+                    logger_pb->set_db_file_name(GetDbFileName());
+                    break;
                 }
-                logger_pb->set_frequency(GetFrequency());
-                logger_pb->set_publisher_address(GetNode().GetIp());
-                logger_pb->set_publisher_port(GetPublisherPort());
-                break;
+                case Type::Client:{
+                    logger_pb->set_mode(TranslateInternalMode(mode_));
+                    for(const auto& process : GetProcesses()){
+                        logger_pb->add_processes(process);
+                    }
+                    logger_pb->set_frequency(GetFrequency());
+                    logger_pb->set_publisher_address(GetNode().GetIp());
+                    logger_pb->set_publisher_port(GetPublisherPort());
+                    break;
+                }
+                case Type::Model:{
+                    logger_pb->set_mode(TranslateInternalMode(mode_));
+                    logger_pb->set_publisher_address(GetNode().GetIp());
+                    logger_pb->set_publisher_port(GetPublisherPort());
+                    break;
+                }
+                default:{
+                    logger_pb.reset();
+                    break;
+                }
             }
-            case Type::Model:{
-                logger_pb->set_mode(TranslateInternalMode(mode_));
-                logger_pb->set_publisher_address(GetNode().GetIp());
-                logger_pb->set_publisher_port(GetPublisherPort());
-                break;
+            if(logger_pb){
+               //Set the Mode
+                logger_pb->set_type(TranslateInternalType(type_));
             }
-            default:{
-                logger_pb.reset();
-                break;
-            }
-        }
-
-        if(logger_pb){
-            //Set the Mode
-            logger_pb->set_type(TranslateInternalType(type_));
-        }
         
-        if(dirty_){
-            dirty_ = false;
+            if(dirty_){
+                dirty_ = false;
+            }
+        }catch(const std::runtime_error&){
+            logger_pb.reset();
         }
     }
     return logger_pb;
