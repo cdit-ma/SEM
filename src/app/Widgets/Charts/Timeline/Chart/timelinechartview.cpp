@@ -73,15 +73,21 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     });
 
     /*
-     *  TOP (LEGEND) TOOLBAR
+     *  TOP (LEGEND) LAYOUT
      */
+    _topFillerWidget = new QWidget(this);
     _legendToolbar = new QToolBar(this);
     _legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->setMargin(0);
+    topLayout->setSpacing(0);
+    topLayout->addWidget(_topFillerWidget);
+    topLayout->addWidget(_legendToolbar, 1, Qt::AlignCenter);
 
     /*
      * HOVER LAYOUT
      */
-
     _hoverWidget = new QWidget(this);
     QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
     hoverLayout->setSpacing(SPACING * 2);
@@ -94,12 +100,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
      * HOVER AND LEGEND TIMELINE_SERIES_KIND WIDGETS
      */
     for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
-        if (kind == TIMELINE_SERIES_KIND::BASE || kind == TIMELINE_SERIES_KIND::DATA)
+        if (kind == TIMELINE_SERIES_KIND::BASE || kind == TIMELINE_SERIES_KIND::DATA || kind == TIMELINE_SERIES_KIND::LINE)
             continue;
         // construct legend widgets
-        //QAction* action = legendToolbar->addAction(QString::number((uint)kind));
         QAction* action = _legendToolbar->addAction(GET_TIMELINE_SERIES_KIND_STRING(kind));
-        action->setToolTip("Show/Hide " + action->text());
+        action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
         _legendActions[kind] = action;
@@ -135,7 +140,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     _scrollArea->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
 
-    _fillerWidget = new QWidget(this);
+    _bottomFillerWidget = new QWidget(this);
 
     /*
      * BOTTOM (TIME AXIS) LAYOUT
@@ -143,7 +148,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);
-    bottomLayout->addWidget(_fillerWidget);
+    bottomLayout->addWidget(_bottomFillerWidget);
     bottomLayout->addWidget(_dateTimeAxis, 1);
 
     /*
@@ -153,7 +158,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
-    mainLayout->addWidget(_legendToolbar, 0, Qt::AlignCenter);
+    mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
     mainLayout->addWidget(_scrollArea, 1);
     mainLayout->addLayout(bottomLayout);
@@ -286,35 +291,32 @@ void TimelineChartView::themeChanged()
                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
     for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
-        QIcon icon;
+        QIcon actionIcon, buttonIcon;
         switch (kind) {
-        case TIMELINE_SERIES_KIND::STATE:
-            icon = theme->getIcon("ToggleIcons", "stateLegendToggle");
+        case TIMELINE_SERIES_KIND::STATE: {
+            actionIcon = theme->getIcon("ToggleIcons", "stateLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "stateHover");
             break;
-        case TIMELINE_SERIES_KIND::NOTIFICATION:
-            icon = theme->getIcon("ToggleIcons", "notificationLegendToggle");
+        }
+        case TIMELINE_SERIES_KIND::NOTIFICATION: {
+            actionIcon = theme->getIcon("ToggleIcons", "notificationLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "notificationHover");
             break;
-        case TIMELINE_SERIES_KIND::LINE:
-            icon = theme->getIcon("ToggleIcons", "lineLegendToggle");
+        }
+        case TIMELINE_SERIES_KIND::BAR: {
+            actionIcon = theme->getIcon("ToggleIcons", "barLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "barHover");
             break;
-        case TIMELINE_SERIES_KIND::BAR:
-            icon = theme->getIcon("ToggleIcons", "barLegendToggle");
-            break;
-        case TIMELINE_SERIES_KIND::PORTLIFECYCLE:
-            icon = theme->getIcon("ToggleIcons", "portLifecycleLegendToggle");
-            break;
-        case TIMELINE_SERIES_KIND::WORKLOAD:
-            icon = theme->getIcon("ToggleIcons", "workloadLegendToggle");
-            break;
+        }
         default:
             continue;
         }
         auto action = _legendActions.value(kind, 0);
         if (action)
-            action->setIcon(icon);
+            action->setIcon(actionIcon);
         auto button = _hoverDisplayButtons.value(kind, 0);
         if (button)
-            button->setIcon(icon);
+            button->setIcon(buttonIcon);
     }
 }
 
@@ -329,7 +331,8 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
-    _fillerWidget->setFixedWidth(size.width());
+    _topFillerWidget->setFixedWidth(size.width());
+    _bottomFillerWidget->setFixedWidth(size.width());
 }
 
 

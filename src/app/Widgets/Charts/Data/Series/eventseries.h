@@ -4,7 +4,7 @@
 #include "../Events/event.h"
 
 
-enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, PORTLIFECYCLE, WORKLOAD};
+enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR};
 
 static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
 {
@@ -13,9 +13,7 @@ static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
             TIMELINE_SERIES_KIND::STATE,
             TIMELINE_SERIES_KIND::NOTIFICATION,
             TIMELINE_SERIES_KIND::LINE,
-            TIMELINE_SERIES_KIND::BAR,
-            TIMELINE_SERIES_KIND::PORTLIFECYCLE,
-            TIMELINE_SERIES_KIND::WORKLOAD};
+            TIMELINE_SERIES_KIND::BAR};
 }
 
 static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
@@ -27,12 +25,12 @@ static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
         return "State";
     case TIMELINE_SERIES_KIND::NOTIFICATION:
         return "Notification";
+    case TIMELINE_SERIES_KIND::LINE:
+        return "Notification";
     case TIMELINE_SERIES_KIND::BAR:
         return "Bar";
-    case TIMELINE_SERIES_KIND::PORTLIFECYCLE:
-        return "PortLifecycle";
     default:
-        return "Workload";
+        return "Data";
     }
 }
 

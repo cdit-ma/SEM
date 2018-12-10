@@ -230,8 +230,6 @@
         <file alias="globe">Resources/Icons/globe.png</file>
         <file alias="gme">Resources/Icons/gme.ico</file>
         <file alias="gpu">Resources/Icons/gpu.png</file>
-        <file alias="graph">Resources/Icons/graph.png</file>
-        <file alias="graphDark">Resources/Icons/graphDark.png</file>
         <file alias="grid3x2">Resources/Icons/grid3x2.png</file>
         <file alias="grid3x3">Resources/Icons/grid3x3.png</file>
         <file alias="gridCombo">Resources/Icons/gridCombo.png</file>
@@ -385,7 +383,11 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-        <file alias="bars">Resources/Icons/bars.png</file>
         <file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
+        <file alias="barChart">Resources/Icons/barChart.png</file>
+        <file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
+        <file alias="chartTwoTone">Resources/Icons/chartTwoTone.png</file>
+        <file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
+        <file alias="chartDark">Resources/Icons/chartDark.png</file>
     </qresource>
 </RCC>

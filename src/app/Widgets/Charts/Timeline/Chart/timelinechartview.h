@@ -73,11 +73,13 @@ private:
     AxisWidget* _dateTimeAxis;
     HoverPopup* _hoverDisplay;
 
+    QToolBar* _legendToolbar;
     QScrollArea* _scrollArea;
-    QWidget* _fillerWidget;
+
+    QWidget* _topFillerWidget;
+    QWidget* _bottomFillerWidget;
     QWidget* _hoverWidget;
 
-    QToolBar* _legendToolbar;
     QHash<TIMELINE_SERIES_KIND, QAction*> _legendActions;
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
 
