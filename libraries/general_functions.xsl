@@ -230,6 +230,19 @@
     </xsl:function>
 
     <!--
+        Escapes any regex meta characters
+    -->
+    <xsl:function name="o:escape_regex">
+        <xsl:param name="str" as="xs:string"/>
+        <xsl:variable name="a" select="replace($str, '$', '\$', 'q')" />
+        <xsl:variable name="b" select="replace($a, '^', '\^', 'q')" />
+        <xsl:variable name="c" select="replace($b, '.', '\.', 'q')" />
+        <xsl:variable name="d" select="replace($c, '(', '\(', 'q')" />
+        <xsl:variable name="e" select="replace($d, ')', '\)', 'q')" />
+        <xsl:value-of select="$e" />
+    </xsl:function>
+
+    <!--
         Prints a message to standard out
     -->
     <xsl:function name="o:string_in_list_count" as="xs:integer">
@@ -237,7 +250,8 @@
         <xsl:param name="string_list" as="xs:string*"/>
         <xsl:param name="case_insensitive" as="xs:boolean"/>
 
-        <xsl:value-of select="count($string_list[matches(., concat('^', $str, '$'), if($case_insensitive) then 'i' else '')])" />
+        <xsl:variable name="escaped_str" select="concat('^', o:escape_regex($str), '$')"/>
+        <xsl:value-of select="count($string_list[matches(., $escaped_str, if($case_insensitive) then 'i' else '')])" />
     </xsl:function>
 
     <!--

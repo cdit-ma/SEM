@@ -163,7 +163,7 @@
 
             <!-- Check the number of times the type is in the list of all types-->
             <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels, true())" />
-            <xsl:sequence select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), $warning, 2)" />
+            <xsl:sequence select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str, string($match_count)), ' '), $warning, 2)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -179,11 +179,23 @@
                 <xsl:variable name="id" select="graphml:get_id(.)" />
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="type" select="graphml:get_type(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+
+                <xsl:variable name="check_value">
+                    <xsl:choose>
+                        <xsl:when test="$kind = 'Class'">
+                            <xsl:value-of select="$type" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$label" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="o:string_in_list_count($type, $all_types, true())" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($check_value, $all_types, true())" />
 
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($type), ' does not have a unique qualifed class name'), ' '), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $match_count = 1 , o:join_list(($kind, o:wrap_quote($type), ' does not have a unique qualifed class name', string($match_count)), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
         <xsl:value-of select="cdit:output_test($test, $results, 1)" />
@@ -429,7 +441,12 @@
     <xsl:function name="cdit:test_componentimpl_data">
         <xsl:param name="component_impls" as="element(gml:node)*"/>
 
+
+
         <xsl:variable name="results">
+            <xsl:variable name="functions" select="graphml:get_descendant_nodes_of_kind($component_impls, 'Function')" />
+            <xsl:value-of select="cdit:test_invalid_label('Functions valid names', $functions, 'operation')" />
+
             <xsl:for-each select="$component_impls">
                 <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(.,(
                 'AggregateInstance',
@@ -991,8 +1008,9 @@
     <xsl:function name="cdit:test_invalid_label">
         <xsl:param name="test" as="xs:string*" />
         <xsl:param name="entities" as="element(gml:node)*" />
+        <xsl:param name="key_to_test" as="xs:string" />
 
-        <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| '"  />
+        <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| ()-=&amp;^%$#@!+.,:;[]{}'"  />
 
         <xsl:variable name="replace_map">
              <xsl:for-each select="1 to string-length($invalid_characters)">
@@ -1005,16 +1023,15 @@
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="graphml:get_id(.)" />
-                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="label" select="graphml:get_data_value(., $key_to_test)" />
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 
                 <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
-                <xsl:variable name="label_print" select="translate($label, $invalid_characters, '*')" />   
+                <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
                 <xsl:variable name="invalid_count" select="count($invalid_labels[$label = .])" />
 
-                <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label), 'has an invalid characters in label', o:wrap_quote($label_print), '(Replaced with *)'), ' '), false(), 2)"/> 
+                <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label_print), 'has an invalid characters in label', o:wrap_quote($label), '(Replaced with *)'), ' '), false(), 2)"/> 
                 <xsl:value-of select="cdit:output_result($id, $invalid_count = 0, o:join_list(($kind, o:wrap_quote($label), 'has an invalid Class Type which is reserved or a symbol used by runtime environment.'), ' '), false(), 2)"/> 
-
             </xsl:for-each>
         </xsl:variable>
 
@@ -1046,11 +1063,11 @@
 
         
         <xsl:value-of select="cdit:test_namespace_collisions($aggregates)" />
-        <xsl:value-of select="cdit:test_invalid_label('Descendants of an Aggregate require valid labels', $aggregate_descendants)" />
+        <xsl:value-of select="cdit:test_invalid_label('Descendants of an Aggregate require valid labels', $aggregate_descendants, 'label')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
         <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
         
-        <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums)" />
+        <xsl:value-of select="cdit:test_invalid_label('Enum valid names', $enums, 'label')" />
         <xsl:value-of select="cdit:test_valid_server_interfaces($server_interfaces)" />
 
         
@@ -1079,7 +1096,7 @@
         <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($behaviour_definitions, 'ComponentImpl')" />
 
         <xsl:value-of select="cdit:test_unique_types('All Compilable Elements Must have unique kinds', ($aggregates, $components, $classes))" />
-        <xsl:value-of select="cdit:test_invalid_label('Compilable Elements must have valid names', ($aggregates, $components))" />
+        <xsl:value-of select="cdit:test_invalid_label('Compilable Elements must have valid names', ($aggregates, $classes, $components), 'label')" />
         
 
         <xsl:value-of select="cdit:test_component_relations($components)" />
