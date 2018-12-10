@@ -114,9 +114,11 @@ private:
     QColor _defaultStateColor;
     QColor _defaultNotificationColor;
     QColor _defaultLineColor;
+    QColor _defaultWorkloadColor;
     QColor _stateColor;
     QColor _notificationColor;
     QColor _lineColor;
+    QColor _workloadColor;
 
     int _borderColorDelta;
     int _colorDelta;

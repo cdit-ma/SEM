@@ -1,7 +1,7 @@
 #include "eventseries.h"
 
 #include <QDateTime>
-
+#include <QTextStream>
 
 int MEDEA::EventSeries::eventSeries_ID = 0;
 
@@ -34,9 +34,19 @@ void MEDEA::EventSeries::clear()
 
 /**
  * @brief MEDEA::EventSeries::addEvent
+ * @param time
+ */
+void MEDEA::EventSeries::addEvent(qint64 time)
+{
+    addEvent(new Event(time));
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::addEvent
  * @param event
  */
-void MEDEA::EventSeries::addEvent(MEDEA::Event* event)
+void MEDEA::EventSeries::addEvent(Event* event)
 {
     if (event) {
         // update the range
@@ -54,7 +64,7 @@ void MEDEA::EventSeries::addEvent(MEDEA::Event* event)
  * @brief MEDEA::EventSeries::addEvents
  * @param events
  */
-void MEDEA::EventSeries::addEvents(QList<MEDEA::Event*>& events)
+void MEDEA::EventSeries::addEvents(QList<Event*>& events)
 {
     for (auto event : events) {
         addEvent(event);
@@ -66,7 +76,7 @@ void MEDEA::EventSeries::addEvents(QList<MEDEA::Event*>& events)
  * @brief MEDEA::EventSeries::getEvents
  * @return
  */
-const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents() const
+const QList<MEDEA::Event *> &MEDEA::EventSeries::getEvents()
 {
     return events_;
 }
@@ -126,13 +136,60 @@ QString MEDEA::EventSeries::getID() const
  * @brief MEDEA::EventSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS
+ * @param numberOfItemsToDisplay
+ * @param displayFormat
  * @return
  */
-QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat)
+QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
-    return "Hovered range: " +
+    auto current = std::lower_bound(events_.cbegin(), events_.cend(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {
+        return e->getTimeMS() < time;
+    });
+    auto upper = std::upper_bound(events_.cbegin(), events_.cend(), toTimeMS, [](const qint64 &time, const MEDEA::Event* e) {
+        return time < e->getTimeMS();
+    });
+
+    int count = std::distance(current, upper);
+    if (count <= 0)
+        return "";
+
+    QString hoveredData;
+    QTextStream stream(&hoveredData);
+    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+
+    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+        auto event = (*current);
+        stream << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) << "\n";
+        current++;
+    }
+    if (count > numberOfItemsToDisplay)
+        stream << "... (more omitted)";
+
+    return hoveredData.trimmed();
+
+    /*return "Hovered range: " +
             QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString(displayFormat) +
             ", " +
-            QDateTime::fromMSecsSinceEpoch(toTimeMS).toString(displayFormat);
+            QDateTime::fromMSecsSinceEpoch(toTimeMS).toString(displayFormat);*/
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getDefaultDisplayFormat
+ * @return
+ */
+QString MEDEA::EventSeries::getDefaultDisplayFormat()
+{
+    return "MMM d, hh:mm:ss:zzz";
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getDefaultNumberOfItemsToDisplay
+ * @return
+ */
+int MEDEA::EventSeries::getDefaultNumberOfItemsToDisplay()
+{
+    return 10;
 }
 

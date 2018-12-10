@@ -91,6 +91,7 @@ void MEDEA::DataSeries::addPoints(QList<QPointF> points)
         newMaxX = qMax(p.x(), newMaxX);
         newMinY = qMin(p.y(), newMinY);
         newMaxY = qMax(p.y(), newMaxY);
+        addEvent(p.x());
     }
 
     if (newMinX != _minX) {

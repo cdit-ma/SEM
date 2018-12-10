@@ -7,6 +7,7 @@ namespace MEDEA {
 
 class Event : public QObject
 {
+    friend class EventSeries;
     Q_OBJECT
 
 protected:

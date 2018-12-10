@@ -74,42 +74,33 @@ QMap<qint64, QVector<double> > MEDEA::BarSeries::getData()
  * @brief MEDEA::BarSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS
- * @return
- */
-QString MEDEA::BarSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS)
-{
-    qDebug() << "from: " << QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString("MMMM d, hh:mm:ss:zzzzz");
-    qDebug() << "to: " << QDateTime::fromMSecsSinceEpoch(toTimeMS).toString("MMMM d, hh:mm:ss:zzzzz");
-    return getHoveredDataString(fromTimeMS, toTimeMS, "MMMM d, hh:mm:ss:zzzzz");
-}
-
-
-/**
- * @brief MEDEA::BarSeries::getHoveredDataString
- * @param fromTimeMS
- * @param toTimeMS
+ * @param numberOfItemsToDisplay
  * @param displayFormat
  * @return
  */
-QString MEDEA::BarSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat)
+QString MEDEA::BarSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
     const auto& data = getConstData2();
     auto current = data.lowerBound(fromTimeMS);
     auto upper = data.upperBound(toTimeMS);
 
     int count = std::distance(current, upper);
-    if (count <= 0) {
+    if (count <= 0)
         return "";
-    } else if (count == 1) {
-        hovereData_ = "";
-        QTextStream stream(&hovereData_);
-        for (;current != upper; current++) {
-            stream << QDateTime::fromMSecsSinceEpoch(current.key()).toString(displayFormat) << "\n";
-        }
-        return hovereData_.trimmed();
-    } else {
-        return QString::number(count);
+
+    QString hovereData = "";
+    QTextStream stream(&hovereData);
+    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+
+    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+        stream << QDateTime::fromMSecsSinceEpoch(current.key()).toString(displayFormat) << "\n";
+        current++;
     }
+
+    if (count > numberOfItemsToDisplay)
+        stream << "... (more omitted)";
+
+    return hovereData.trimmed();
 }
 
 

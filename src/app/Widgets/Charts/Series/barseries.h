@@ -56,8 +56,7 @@ public:
 
     QMap<qint64, QVector<double>> getData();
 
-    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS);
-    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat);
+    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
 
     const QMap<qint64, QVector<double>>& getConstData();
 
@@ -73,8 +72,6 @@ private:
     // need to use a map to preserve the insertion order of the data
     QMap<qint64, QVector<double>> _dataMap;
     QMap<qint64, BarData*> data_map_;
-
-    QString hovereData_;    
 };
 
 }

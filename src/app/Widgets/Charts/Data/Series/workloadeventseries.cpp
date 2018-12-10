@@ -11,7 +11,7 @@
  * @param parent
  */
 WorkloadEventSeries::WorkloadEventSeries(QString workerInstID, quint32 workloadID, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::EVENT)
+    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::WORKLOAD)
 {
     workerInstanceID_ = workerInstID;
     workloadID_ = workloadID;
@@ -55,7 +55,7 @@ QString WorkloadEventSeries::getWorkloadPath() const
  * @param displayFormat
  * @return
  */
-QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat)
+QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
     const auto& data = getEvents();
     auto current = std::lower_bound(data.cbegin(), data.cend(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {

@@ -10,6 +10,8 @@
 #include "../Axis/entityset.h"
 #include "entitychart.h"
 
+#include "../../Data/Series/eventseries.h"
+
 #include <QWidget>
 #include <QToolBar>
 #include <QPushButton>
@@ -37,9 +39,6 @@ public:
     void updateTimelineChart();
 
 signals:
-    void toggledStateLegend(bool checked);
-    void toggledNotificationLegend(bool checked);
-    void toggledLineLegend(bool checked);
     void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);
     void seriesLegendHovered(TIMELINE_SERIES_KIND kind);
 
@@ -78,13 +77,9 @@ private:
     QWidget* _fillerWidget;
     QWidget* _hoverWidget;
 
-    QToolBar* legendToolbar;
-    QAction* stateLegendAction;
-    QAction* notificationLegendAction;
-    QAction* lineLegendAction;
-
-    QColor hoverItemBackgroundColor;
-    QString hoveredEntityLabel;
+    QToolBar* _legendToolbar;
+    QHash<TIMELINE_SERIES_KIND, QAction*> _legendActions;
+    QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
 
     QHash<int, EntitySet*> itemEntitySets;
     QHash<int, EntityChart*> itemChartWidgets;
@@ -93,14 +88,6 @@ private:
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
     QHash<QString, MEDEA::EventSeries*> eventSeries;
-
-    QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
-    QPushButton* _eventsButton;
-    QPushButton* _messagesButton;
-    QPushButton* _utilisationButton;
-    QPushButton* _barButton;
-    QPushButton* _eventButton;
-
 };
 
 #endif // TIMELINECHARTVIEW_H

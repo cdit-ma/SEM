@@ -1278,7 +1278,6 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
 
     // TODO - setup toggle icons for the visualisastion panel here
-    setIconToggledImage("ToggleIcons", "panelVisible", "Icons", "graphDark", "Icons", "graph");
     setIconToggledImage("ToggleIcons", "playPause", "Icons", "pause", "Icons", "play");
     setIconToggledImage("ToggleIcons", "gridToggle", "Icons", "gridOutlineStriked", "Icons", "gridOutline");
     setIconToggledImage("ToggleIcons", "labelToggle", "Icons", "number0", "Icons", "number1");
@@ -1286,11 +1285,16 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "legendToggle", "Icons", "labelDark", "Icons", "label");
     setIconToggledImage("ToggleIcons", "dataLabelToggle", "Icons", "radioButtonChecked", "Icons", "radioButtonUnchecked");
 
+    setIconToggledImage("ToggleIcons", "chartToggle", "Icons", "chartDark", "Icons", "barChart");
     setIconToggledImage("ToggleIcons", "stateLegendToggle", "Icons", "circleHalo", "Icons", "circleHalo");
-    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
-    setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
-    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
-    setIconToggledImage("ToggleIcons", "eventLegendToggle", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
+    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "bell", "Icons", "bell");
+    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "chart", "Icons", "chart");
+    setIconToggledImage("ToggleIcons", "workloadLegendToggle", "Icons", "spanner", "Icons", "spanner");
+
+    setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
+    setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
+    setIconToggledImage("ToggleIcons", "barHover", "Icons", "chartTwoTone", "Icons", "chartTwoTone");
+    setIconToggledImage("ToggleIcons", "workloadHover", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
 }
 
 void Theme::setupAliasIcons(){

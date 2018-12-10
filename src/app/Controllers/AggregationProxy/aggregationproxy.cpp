@@ -102,11 +102,11 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
             //qDebug() << "workload_id: " << QString::number(workloadID);
             //qDebug() << "funcName: " << funcName;
 
-            if (workerInst.name.startsWith("OpenCL_Worker") && workerInst.graphml_id == "473_2") {
+            /*if (workerInst.name.startsWith("OpenCL_Worker") && workerInst.graphml_id == "473_2") {
                 qDebug() << "funcName: " << funcName;
                 qDebug() << "args: " << args;
                 qDebug() << "------";
-            }
+            }*/
 
             WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
             emit receivedWorkloadEvent(event);

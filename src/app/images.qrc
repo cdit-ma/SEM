@@ -125,6 +125,7 @@
         <file alias="avStop">Resources/Icons/avStop.png</file>
         <file alias="bed">Resources/Icons/bed.png</file>
         <file alias="bell">Resources/Icons/bell.png</file>
+        <file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
         <file alias="bellExclamation">Resources/Icons/bellExclamation.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
@@ -141,8 +142,6 @@
         <file alias="category">Resources/Icons/category.png</file>
         <file alias="chart">Resources/Icons/chart.png</file>
         <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
-        <file alias="chartMean">Resources/Icons/chartMean.png</file>
-        <file alias="chartMean">Resources/Icons/chartMean.png</file>
         <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
         <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
         <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
@@ -230,8 +229,6 @@
         <file alias="globe">Resources/Icons/globe.png</file>
         <file alias="gme">Resources/Icons/gme.ico</file>
         <file alias="gpu">Resources/Icons/gpu.png</file>
-        <file alias="graph">Resources/Icons/graph.png</file>
-        <file alias="graphDark">Resources/Icons/graphDark.png</file>
         <file alias="grid3x2">Resources/Icons/grid3x2.png</file>
         <file alias="grid3x3">Resources/Icons/grid3x3.png</file>
         <file alias="gridCombo">Resources/Icons/gridCombo.png</file>
@@ -335,6 +332,7 @@
         <file alias="sigma">Resources/Icons/sigma.png</file>
         <file alias="sliders">Resources/Icons/sliders.png</file>
         <file alias="spanner">Resources/Icons/spanner.png</file>
+        <file alias="spannerTwoTone">Resources/Icons/spannerTwoTone.png</file>
         <file alias="speechBubbleComment">Resources/Icons/speechBubbleComment.png</file>
         <file alias="speechBubbleEmpty">Resources/Icons/speechBubbleEmpty.png</file>
         <file alias="speechBubbleFilled">Resources/Icons/speechBubbleFilled.png</file>
@@ -385,6 +383,11 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-        <file alias="spannerTwoTone">Resources/Icons/spannerTwoTone.png</file>
+        <file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
+        <file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
+        <file alias="chartTwoTone">Resources/Icons/chartTwoTone.png</file>
+        <file alias="barChart">Resources/Icons/barChart.png</file>
+        <file alias="chartMean">Resources/Icons/chartMean.png</file>
+        <file alias="chartDark">Resources/Icons/chartDark.png</file>
     </qresource>
 </RCC>

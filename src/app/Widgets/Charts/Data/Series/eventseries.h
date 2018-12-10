@@ -3,7 +3,39 @@
 
 #include "../Events/event.h"
 
-enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, EVENT};
+
+enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, PORTLIFECYCLE, WORKLOAD};
+
+static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
+{
+    return {TIMELINE_SERIES_KIND::BASE,
+            TIMELINE_SERIES_KIND::DATA,
+            TIMELINE_SERIES_KIND::STATE,
+            TIMELINE_SERIES_KIND::NOTIFICATION,
+            TIMELINE_SERIES_KIND::LINE,
+            TIMELINE_SERIES_KIND::BAR,
+            TIMELINE_SERIES_KIND::WORKLOAD};
+}
+
+static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
+{
+    switch (kind) {
+    case TIMELINE_SERIES_KIND::BASE:
+        return "Base";
+    case TIMELINE_SERIES_KIND::STATE:
+        return "State";
+    case TIMELINE_SERIES_KIND::NOTIFICATION:
+        return "Notification";
+    case TIMELINE_SERIES_KIND::LINE:
+        return "Line";
+    case TIMELINE_SERIES_KIND::BAR:
+        return "Bar";
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        return "Workload";
+    default:
+        return "Data";
+    }
+}
 
 namespace MEDEA {
 
@@ -15,9 +47,10 @@ public:
     explicit EventSeries(QObject* parent = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::BASE);
     void clear();
 
-    void addEvent(MEDEA::Event* event);
-    void addEvents(QList<MEDEA::Event*>& events);
-    const QList<MEDEA::Event*>& getEvents() const;
+    void addEvent(qint64 time);
+    void addEvent(Event* event);
+    void addEvents(QList<Event*>& events);
+    const QList<Event*>& getEvents();
 
     const qint64& getMinTimeMS() const;
     const qint64& getMaxTimeMS() const;
@@ -26,11 +59,13 @@ public:
     const TIMELINE_SERIES_KIND& getKind() const;
 
     virtual QString getID() const;
-    virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat = "hh:mm:ss:zz");
+    virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
+
+    static QString getDefaultDisplayFormat();
+    static int getDefaultNumberOfItemsToDisplay();
 
 private:
-    QList<MEDEA::Event*> events_;
-
+    QList<Event*> events_;
     TIMELINE_SERIES_KIND kind_;
 
     qint64 minTime_;

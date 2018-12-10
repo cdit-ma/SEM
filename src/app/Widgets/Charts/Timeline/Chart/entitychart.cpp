@@ -74,8 +74,10 @@ int EntityChart::getViewItemID()
  */
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
-    _eventSeries = series;
-    _seriesList[TIMELINE_SERIES_KIND::EVENT] = series;
+    if (series) {
+        _eventSeries = series;
+        _seriesList[series->getKind()] = series;
+    }
 }
 
 
@@ -87,7 +89,7 @@ void EntityChart::removeEventSeries(QString ID)
 {
     if (_eventSeries && _eventSeries->getID() == ID) {
         _eventSeries = 0;
-        _seriesList.remove(TIMELINE_SERIES_KIND::EVENT);
+        _seriesList.remove(_eventSeries->getKind());
     }
 }
 
@@ -240,6 +242,7 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     _stateColor = _backgroundColor;
     _notificationColor = _backgroundColor;
     _lineColor = _backgroundColor;
+    _workloadColor = _backgroundColor;
 
     switch (kind) {
     case TIMELINE_SERIES_KIND::STATE:
@@ -251,6 +254,9 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::BAR:
     case TIMELINE_SERIES_KIND::LINE:
         _lineColor = _defaultLineColor;
+        break;
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        _workloadColor = _defaultWorkloadColor;
         break;
     default: {
         // clear hovered state
@@ -306,6 +312,9 @@ void EntityChart::themeChanged()
     _stateColor = _defaultStateColor;
     _notificationColor = _defaultNotificationColor;
     _lineColor = _defaultLineColor;
+
+    _defaultWorkloadColor = Qt::lightGray;
+    _workloadColor = _defaultWorkloadColor;
 
     _backgroundColor = theme->getAltBackgroundColor();
     _backgroundColor.setAlphaF(BACKGROUND_OPACITY);
@@ -398,7 +407,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
      */
 
     auto start = QDateTime::currentMSecsSinceEpoch();
-    const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
+    const auto paintOrder = GET_TIMELINE_SERIES_KINDS();
+    //const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
@@ -517,7 +527,7 @@ void EntityChart::paintEventSeries(QPainter &painter)
     }
     */
 
-    QColor seriesColor = Qt::gray;
+    QColor seriesColor = _workloadColor;
     int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
@@ -527,13 +537,13 @@ void EntityChart::paintEventSeries(QPainter &painter)
         QRectF rect(i * barWidth, y, barWidth, barWidth);
         if (count == 1) {
             auto event = (WorkloadEvent*) buckets[i][0];
-            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect))
+            if (rectHovered(_eventSeries->getKind(), rect))
                 painter.fillRect(rect, _highlightColor);
             painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);
-            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
+            if (rectHovered(_eventSeries->getKind(), rect)) {
                 painter.setPen(_highlightTextColor);
                 color = _highlightColor;
             }
@@ -565,6 +575,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
         break;
     case TIMELINE_SERIES_KIND::BAR:
         paintBarSeries(painter);
+        break;
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        //paintEventSeries(painter);
         break;
     default:
         //qWarning("EntityChart::paintSeries - Series kind not handled");
@@ -887,7 +900,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
-    //double availableWidth = width() -
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
 
@@ -920,8 +932,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
                 break;
             }
         }
-        //qDebug() << "mappedPrevBucket: " << mapTimeToPixel((*currentBucketIttr) - barTimeWidth);
-        //qDebug() << "mappedBucket: " << mapTimeToPixel(*currentBucketIttr);
         if (currentBucket < barCount)
             buckets[currentBucket] += current.value();
     }
@@ -947,7 +957,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
 
             if (rectHovered(TIMELINE_SERIES_KIND::BAR, rect)) {
                 color.setHsv(qAbs(color.hue() - 180), 255, 255);
-                //qDebug() << "pixel: " << i * barWidth;
             }
             painter.setBrush(color);
 
