@@ -15,6 +15,10 @@ class Logger;
 
 class Container {
 public:
+    enum class Type {
+        Docker,
+        Generic
+    };
     Container(Environment& environment, Node& parent, const NodeManager::Container& container);
     ~Container();
 
@@ -46,6 +50,8 @@ public:
     std::string AssignOrbPort();
     void SetOrbPort(const std::string& orb_port);
 
+    bool IsDocker() const;
+
     void SetNodeManagerMaster();
     bool IsNodeManagerMaster() const;
 
@@ -66,6 +72,7 @@ private:
     std::string id_;
     std::string name_;
     std::string type_;
+    Type container_type_;
 
     std::string management_port_;
     std::string orb_port_;
@@ -78,7 +85,6 @@ private:
 
     std::unordered_map<std::string, std::unique_ptr<Component> > components_;
     std::unordered_map<std::string, std::unique_ptr<Logger> > loggers_;
-
 
 };
 

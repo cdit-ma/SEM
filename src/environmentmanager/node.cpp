@@ -131,6 +131,7 @@ std::vector<std::unique_ptr<NodeManager::ContainerId> > Node::GetComponentContai
         if(container.second->GetDeployedComponentCount() > 0){
             auto container_id = std::unique_ptr<NodeManager::ContainerId>(new NodeManager::ContainerId());
             container_id->set_id(container.second->GetId());
+            container_id->set_is_docker(container.second->IsDocker());
             container_id->set_is_master(container.second->IsNodeManagerMaster());
             container_ids.emplace_back(std::move(container_id));
         }

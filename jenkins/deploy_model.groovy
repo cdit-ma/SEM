@@ -234,8 +234,18 @@ pipeline{
                                                     args += "-v ${params.log_verbosity} "
                                                 }
                                                 //Run re_node_manager
-                                                if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
-                                                    error("re_node_manager failed on Node: ${node_name}")
+
+                                                if(is_docker) {
+                                                    //Run inside docker container on node_name node with host networking options
+                                                    docker.image("${docker_image_repository}/${docker_image_name}").inside("--network host") {
+                                                        if(utils.runScript("/re/bin/re_node_manager ${args}") != 0) {
+                                                            error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                        }
+                                                    }
+                                                } else {
+                                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
+                                                        error("re_node_manager failed on Node: ${node_name}")
+                                                    }
                                                 }
                                             }
                                         }
