@@ -1,6 +1,5 @@
 #include "event.h"
 
-
 int MEDEA::Event::event_ID = 0;
 
 /**

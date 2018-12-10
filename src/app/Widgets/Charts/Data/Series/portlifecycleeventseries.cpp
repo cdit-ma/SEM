@@ -10,7 +10,7 @@
  * @param parent
  */
 PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::EVENT)
+    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::PORT_LIFECYCLE)
 {
     port_path = path;
 }
@@ -33,7 +33,7 @@ const QString &PortLifecycleEventSeries::getPortPath() const
  * @param displayFormat
  * @return
  */
-QString PortLifecycleEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, QString displayFormat)
+QString PortLifecycleEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
     const auto& data = getEvents();
     auto current = std::lower_bound(data.cbegin(), data.cend(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {
@@ -46,16 +46,21 @@ QString PortLifecycleEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64
     int count = std::distance(current, upper);
     if (count <= 0) {
         return "";
-    } else if (count == 1) {
-        auto event = (PortLifecycleEvent*)(*current);
-        if (event) {
-            return /*"[" +*/ getTypeString(event->getType()) + " - " //+ "] - "
-                    + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss:zzz");
-        } else {
-            return "";
-        }
     } else {
-        return QString::number(count);
+        // display upto the first 10 events
+        QString hoveredData;
+        QTextStream stream(&hoveredData);
+        int displayCount = qMin(count, numberOfItemsToDisplay);
+        for (int i = 0; i < displayCount; i++) {
+            auto event = (PortLifecycleEvent*)(*current);
+            stream << getTypeString(event->getType()) + " - "
+                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
+            current++;
+        }
+        if (count > 10) {
+            stream << "... (more omitted)";
+        }
+        return hoveredData.trimmed();
     }
 }
 

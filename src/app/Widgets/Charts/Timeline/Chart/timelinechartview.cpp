@@ -17,7 +17,8 @@
 #define SPACING 5
 #define OPACITY 0.2
 
-#define HOVERE_DISPLAY_ON true
+#define HOVER_DISPLAY_ON true
+#define HOVER_DISPLAY_ITEM_COUNT 10
 
 /**
  * @brief TimelineChartView::TimelineChartView
@@ -45,7 +46,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setPointsWidth(POINTS_WIDTH);
     _timelineChart->setAxisYVisible(true);
 
-    if (HOVERE_DISPLAY_ON) {
+    if (HOVER_DISPLAY_ON) {
         connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::updateChartHoverDisplay);
     }
     connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
@@ -73,87 +74,55 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     });
 
     /*
+     *  TOP (LEGEND) LAYOUT
+     */
+
+    _topFillerWidget = new QWidget(this);
+    _legendToolbar = new QToolBar(this);
+    _legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->setMargin(0);
+    topLayout->setSpacing(0);
+    topLayout->addWidget(_topFillerWidget);
+    topLayout->addWidget(_legendToolbar, 1, Qt::AlignCenter);
+
+    /*
      * HOVER LAYOUT
      */
-    _eventsButton = new QPushButton(this);
-    _messagesButton = new QPushButton(this);
-    _utilisationButton = new QPushButton(this);
-    _barButton = new QPushButton(this);
-    _eventButton = new QPushButton(this);
-
-    _hoverDisplayButtons[TIMELINE_SERIES_KIND::STATE] = _eventsButton;
-    _hoverDisplayButtons[TIMELINE_SERIES_KIND::NOTIFICATION] = _messagesButton;
-    _hoverDisplayButtons[TIMELINE_SERIES_KIND::LINE] = _utilisationButton;
-    _hoverDisplayButtons[TIMELINE_SERIES_KIND::BAR] = _barButton;
-    _hoverDisplayButtons[TIMELINE_SERIES_KIND::EVENT] = _eventButton;
-
-    for (QPushButton* button : _hoverDisplayButtons.values()) {
-        button->setStyleSheet("QPushButton{ text-align: left; }");
-    }
-
     _hoverWidget = new QWidget(this);
     QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
     hoverLayout->setSpacing(SPACING * 2);
     hoverLayout->setMargin(SPACING);
-    hoverLayout->addWidget(_eventsButton);
-    hoverLayout->addWidget(_messagesButton);
-    hoverLayout->addWidget(_utilisationButton);
-    hoverLayout->addWidget(_barButton);
-    hoverLayout->addWidget(_eventButton);
 
     _hoverDisplay = new HoverPopup(this);
     _hoverDisplay->setWidget(_hoverWidget);
 
     /*
-     *  TOP (LEGEND) LAYOUT
+     * HOVER AND LEGEND TIMELINE_SERIES_KIND WIDGETS
      */
-    _topfillerWidget = new QWidget(this);
-    legendToolbar = new QToolBar(this);
-
-    QHBoxLayout* topLayout = new QHBoxLayout();
-    topLayout->setMargin(0);
-    topLayout->setSpacing(0);
-    topLayout->addWidget(_topfillerWidget);
-    topLayout->addWidget(legendToolbar, 1, Qt::AlignCenter);
-
-    legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    stateLegendAction = legendToolbar->addAction("Events");
-    notificationLegendAction = legendToolbar->addAction("Messages");
-    lineLegendAction = legendToolbar->addAction("Utilisation");
-
-    legendToolbar->widgetForAction(stateLegendAction)->setProperty("TIMELINE_SERIES_KIND", (int)TIMELINE_SERIES_KIND::STATE);
-    legendToolbar->widgetForAction(notificationLegendAction)->setProperty("TIMELINE_SERIES_KIND", (int)TIMELINE_SERIES_KIND::NOTIFICATION);
-    legendToolbar->widgetForAction(lineLegendAction)->setProperty("TIMELINE_SERIES_KIND", (int)TIMELINE_SERIES_KIND::LINE);
-
-    connect(stateLegendAction, &QAction::toggled, this, &TimelineChartView::toggledStateLegend);
-    connect(notificationLegendAction, &QAction::toggled, this, &TimelineChartView::toggledNotificationLegend);
-    connect(lineLegendAction, &QAction::toggled, this, &TimelineChartView::toggledLineLegend);
-
-    connect(stateLegendAction, &QAction::toggled, [=](bool checked){
-        legendToolbar->widgetForAction(stateLegendAction)->setProperty("checked", checked);
-        emit toggleSeriesLegend(TIMELINE_SERIES_KIND::STATE, checked);
-        emit seriesLegendHovered(checked ? TIMELINE_SERIES_KIND::STATE : TIMELINE_SERIES_KIND::DATA);
-    });
-    connect(notificationLegendAction, &QAction::toggled,[=](bool checked){
-        legendToolbar->widgetForAction(notificationLegendAction)->setProperty("checked", checked);
-        emit toggleSeriesLegend(TIMELINE_SERIES_KIND::NOTIFICATION, checked);
-        emit seriesLegendHovered(checked ? TIMELINE_SERIES_KIND::NOTIFICATION : TIMELINE_SERIES_KIND::DATA);
-    });
-    connect(lineLegendAction, &QAction::toggled, [=](bool checked){
-        legendToolbar->widgetForAction(lineLegendAction)->setProperty("checked", checked);
-        emit toggleSeriesLegend(TIMELINE_SERIES_KIND::LINE, checked);
-        emit seriesLegendHovered(checked ? TIMELINE_SERIES_KIND::LINE : TIMELINE_SERIES_KIND::DATA);
-    });
-
-    for (QAction* action : legendToolbar->actions()) {
-        // don't need the filter for the series that's painted on top by default
-        /*if (action != lineLegendAction) {
-            legendToolbar->widgetForAction(action)->installEventFilter(this);
-        }*/
-        legendToolbar->widgetForAction(action)->installEventFilter(this);
+    for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
+        if (kind == TIMELINE_SERIES_KIND::BASE || kind == TIMELINE_SERIES_KIND::DATA || kind == TIMELINE_SERIES_KIND::LINE)
+            continue;
+        // construct legend widgets
+        QAction* action = _legendToolbar->addAction(GET_TIMELINE_SERIES_KIND_STRING(kind));
+        action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
-        action->setToolTip("Show/Hide " + action->text());
+        _legendActions[kind] = action;
+        QWidget* actionWidget = _legendToolbar->widgetForAction(action);
+        actionWidget->installEventFilter(this);
+        actionWidget->setProperty("TIMELINE_SERIES_KIND", (uint)kind);
+        connect(action, &QAction::toggled, [=](bool checked){
+            actionWidget->setProperty("checked", checked);
+            emit toggleSeriesLegend(kind, checked);
+            emit seriesLegendHovered(checked ? kind : TIMELINE_SERIES_KIND::DATA);
+        });
+        // construct hover display widgets
+        QPushButton* button = new QPushButton(this);
+        button->setStyleSheet("QPushButton{ text-align: left; }");
+        hoverLayout->addWidget(button);
+        _hoverDisplayButtons[kind] = button;
     }
 
     /*
@@ -188,12 +157,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     /*
      * BOTTOM (TIME AXIS) LAYOUT
      */
-    _bottomfillerWidget = new QWidget(this);
-
+    _bottomFillerWidget = new QWidget(this);
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);
-    bottomLayout->addWidget(_bottomfillerWidget);
+    bottomLayout->addWidget(_bottomFillerWidget);
     bottomLayout->addWidget(_dateTimeAxis, 1);
 
     /*
@@ -203,7 +171,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
-    //mainLayout->addWidget(legendToolbar, 0, Qt::AlignCenter);
     mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
     mainLayout->addWidget(_scrollArea, 1);
@@ -251,7 +218,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
             return false;
         TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA;
         if (event->type() == QEvent::HoverEnter) {
-            kind = (TIMELINE_SERIES_KIND) watched->property("TIMELINE_SERIES_KIND").toInt();
+            kind = (TIMELINE_SERIES_KIND) watched->property("TIMELINE_SERIES_KIND").toUInt();
         }
         emit seriesLegendHovered(kind);
         return true;
@@ -360,32 +327,46 @@ void TimelineChartView::themeChanged()
 
     _timelineChart->setStyleSheet("background: " + Theme::QColorToHex(bgColor) + ";");
 
-    legendToolbar->setFixedHeight(theme->getLargeIconSize().height());
-    legendToolbar->setStyleSheet(theme->getToolTipStyleSheet() +
+    _legendToolbar->setFixedHeight(theme->getLargeIconSize().height());
+    _legendToolbar->setStyleSheet(theme->getToolTipStyleSheet() +
                                  theme->getToolBarStyleSheet() +
                                  "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
                                  "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
-    stateLegendAction->setIcon(theme->getIcon("ToggleIcons", "stateLegendToggle"));
-    notificationLegendAction->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
-    lineLegendAction->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
-
-    /*axisToolbar->setFixedWidth(theme->getLargeIconSize().width());
-    axisToolbar->setStyleSheet(theme->getToolTipStyleSheet() +
-                                 theme->getToolBarStyleSheet() +
-                                 "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
-                                 "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
-                                 "QToolButton:!hover{ background: rgba(0,0,0,0); }");
-
-    allEntitiesAction->setIcon(theme->getIcon("Icons", "list"));
-    selectedEntityAction->setIcon(theme->getIcon("Icons", "crosshair"));*/
-
-    _eventsButton->setIcon(theme->getIcon("ToggleIcons", "stateLegendToggle"));
-    _messagesButton->setIcon(theme->getIcon("ToggleIcons", "notificationLegendToggle"));
-    _utilisationButton->setIcon(theme->getIcon("ToggleIcons", "lineLegendToggle"));
-    _barButton->setIcon(theme->getIcon("ToggleIcons", "barLegendToggle"));
-    _eventButton->setIcon(theme->getIcon("ToggleIcons", "eventLegendToggle"));
+    for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
+        QIcon actionIcon, buttonIcon;
+        switch (kind) {
+        case TIMELINE_SERIES_KIND::STATE: {
+            actionIcon = theme->getIcon("ToggleIcons", "stateLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "stateHover");
+            break;
+        }
+        case TIMELINE_SERIES_KIND::NOTIFICATION: {
+            actionIcon = theme->getIcon("ToggleIcons", "notificationLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "notificationHover");
+            break;
+        }
+        case TIMELINE_SERIES_KIND::BAR: {
+            actionIcon = theme->getIcon("ToggleIcons", "barLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "barHover");
+            break;
+        }
+        case TIMELINE_SERIES_KIND::PORT_LIFECYCLE: {
+            actionIcon = theme->getIcon("ToggleIcons", "portLifecycleLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
+            break;
+        }
+        default:
+            continue;
+        }
+        auto action = _legendActions.value(kind, 0);
+        if (action)
+            action->setIcon(actionIcon);
+        auto button = _hoverDisplayButtons.value(kind, 0);
+        if (button)
+            button->setIcon(buttonIcon);
+    }
 }
 
 
@@ -395,12 +376,12 @@ void TimelineChartView::themeChanged()
  */
 void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 {
-    qreal chartHeight = height() - _dateTimeAxis->height() - legendToolbar->height() - SPACING * 3;
+    qreal chartHeight = height() - _dateTimeAxis->height() - _legendToolbar->height() - SPACING * 3;
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
-    _topfillerWidget->setFixedWidth(size.width()); // + axisToolbar->width());
-    _bottomfillerWidget->setFixedWidth(size.width()); // + axisToolbar->width());
+    _topFillerWidget->setFixedWidth(size.width());
+    _bottomFillerWidget->setFixedWidth(size.width());
 }
 
 
@@ -463,17 +444,18 @@ void TimelineChartView::updateChartHoverDisplay()
         const auto& series = entityChart->getSeries();
         auto hoveredKinds = entityChart->getHovereSeriesKinds();
         for (auto s : series) {
-            if (s) {
-                auto kind = s->getKind();
+            if (!s)
+                continue;
+            auto kind = s->getKind();
+            auto action = _legendActions.value(kind, 0);
+            if (action && action->isChecked()) {
                 if (hoveredKinds.contains(kind)) {
                     auto range = entityChart->getHoveredTimeRange(kind);
-                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second);
+                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second, HOVER_DISPLAY_ITEM_COUNT);
                     if (!hoveredInfo.isEmpty()) {
                         hoveredData[s->getKind()] += hoveredInfo + "\n";
                     }
                 }
-            } else {
-                qWarning("TimelineChartView::updateChartHoverDisplay - Got NULL series somehow");
             }
         }
     }
@@ -709,10 +691,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
         _timelineChart->addEntityChart(seriesChart);
     }
 
-    for (auto& action : legendToolbar->actions()) {
-        TIMELINE_SERIES_KIND kind = (TIMELINE_SERIES_KIND)action->property("TIMELINE_SERIES_KIND").toInt();
-        seriesChart->setSeriesKindVisible(kind, action->isChecked());
-    }
+
 
     // update this timeline chart's range
     auto timelineRange = _timelineChart->getRange();
@@ -741,9 +720,10 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
 
     // set the initial visibility states of the chart and each individual series in the chart
     seriesChart->setVisible(showSeries);
-    seriesChart->setSeriesKindVisible(TIMELINE_SERIES_KIND::STATE, stateLegendAction->isChecked());
-    seriesChart->setSeriesKindVisible(TIMELINE_SERIES_KIND::NOTIFICATION, notificationLegendAction->isChecked());
-    seriesChart->setSeriesKindVisible(TIMELINE_SERIES_KIND::LINE, lineLegendAction->isChecked());
+    for (auto& action : _legendToolbar->actions()) {
+        auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+        seriesChart->setSeriesKindVisible(kind, action->isChecked());
+    }
 
     itemEntityCharts[itemID] = seriesChart;
     return set;

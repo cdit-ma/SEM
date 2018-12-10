@@ -74,8 +74,10 @@ int EntityChart::getViewItemID()
  */
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
-    _eventSeries = series;
-    _seriesList[TIMELINE_SERIES_KIND::EVENT] = series;
+    if (series) {
+        _eventSeries = series;
+        _seriesList[series->getKind()] = series;
+    }
 }
 
 
@@ -87,7 +89,7 @@ void EntityChart::removeEventSeries(QString ID)
 {
     if (_eventSeries && _eventSeries->getID() == ID) {
         _eventSeries = 0;
-        _seriesList.remove(TIMELINE_SERIES_KIND::EVENT);
+        _seriesList.remove(_eventSeries->getKind());
     }
 }
 
@@ -514,20 +516,20 @@ void EntityChart::paintEventSeries(QPainter &painter)
         QRectF rect(i * barWidth, y, barWidth, barWidth);        
         if (count == 1) {
             auto event = (PortLifecycleEvent*) buckets[i][0];
-            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
+            if (rectHovered(_eventSeries->getKind(), rect)) {
                 /*
                  *  TODO - This forces the hover display to only show the hovered item's data/time
                  *  This can be removed when the date-time axis range has a minimum limit
                  *  This also needs to be changed when there are multiple series of the same kind
                  */
-                _hoveredSeriesTimeRange[TIMELINE_SERIES_KIND::EVENT] = {event->getTimeMS(), event->getTimeMS()};
+                _hoveredSeriesTimeRange[_eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, _highlightColor);
             }
             painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);
-            if (rectHovered(TIMELINE_SERIES_KIND::EVENT, rect)) {
+            if (rectHovered(_eventSeries->getKind(), rect)) {
                 painter.setPen(_highlightTextColor);
                 color = _highlightColor;
             }
@@ -558,6 +560,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
         break;
     case TIMELINE_SERIES_KIND::BAR:
         paintBarSeries(painter);
+        break;
+    case TIMELINE_SERIES_KIND::PORT_LIFECYCLE:
+        paintEventSeries(painter);
         break;
     default:
         //qWarning("EntityChart::paintSeries - Series kind not handled");
@@ -880,7 +885,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
-    //double availableWidth = width() -
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
 
@@ -913,8 +917,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
                 break;
             }
         }
-        //qDebug() << "mappedPrevBucket: " << mapTimeToPixel((*currentBucketIttr) - barTimeWidth);
-        //qDebug() << "mappedBucket: " << mapTimeToPixel(*currentBucketIttr);
         if (currentBucket < barCount)
             buckets[currentBucket] += current.value();
     }
@@ -940,7 +942,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
 
             if (rectHovered(TIMELINE_SERIES_KIND::BAR, rect)) {
                 color.setHsv(qAbs(color.hue() - 180), 255, 255);
-                //qDebug() << "pixel: " << i * barWidth;
             }
             painter.setBrush(color);
 

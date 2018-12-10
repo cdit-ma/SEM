@@ -123,9 +123,12 @@
         <file alias="avPause">Resources/Icons/avPause.png</file>
         <file alias="avPlay">Resources/Icons/avPlay.png</file>
         <file alias="avStop">Resources/Icons/avStop.png</file>
+	<file alias="barChart">Resources/Icons/barChart.png</file>
         <file alias="bed">Resources/Icons/bed.png</file>
         <file alias="bell">Resources/Icons/bell.png</file>
         <file alias="bellExclamation">Resources/Icons/bellExclamation.png</file>
+	<file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
+	<file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
         <file alias="book">Resources/Icons/book.png</file>
@@ -140,11 +143,12 @@
         <file alias="cards">Resources/Icons/cards.png</file>
         <file alias="category">Resources/Icons/category.png</file>
         <file alias="chart">Resources/Icons/chart.png</file>
+	<file alias="chartDark">Resources/Icons/chartDark.png</file>
         <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
-        <file alias="chartMean">Resources/Icons/chartMean.png</file>
         <file alias="chartMean">Resources/Icons/chartMean.png</file>
         <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
         <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
+	<file alias="chartTwoTone">Resources/Icons/chartTwoTone.png</file>
         <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
         <file alias="circleArrowDownDark">Resources/Icons/circleArrowDownDark.png</file>
         <file alias="circleArrowRightDark">Resources/Icons/circleArrowRightDark.png</file>
@@ -158,6 +162,7 @@
         <file alias="circleCrossDark">Resources/Icons/circleCrossDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
         <file alias="circleHalo">Resources/Icons/circleHalo.png</file>
+	<file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
         <file alias="circleInfo">Resources/Icons/circleInfo.png</file>
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleMinus">Resources/Icons/circleMinus.png</file>
@@ -229,9 +234,7 @@
         <file alias="getH">Resources/Icons/getH.png</file>
         <file alias="globe">Resources/Icons/globe.png</file>
         <file alias="gme">Resources/Icons/gme.ico</file>
-        <file alias="gpu">Resources/Icons/gpu.png</file>
-        <file alias="graph">Resources/Icons/graph.png</file>
-        <file alias="graphDark">Resources/Icons/graphDark.png</file>
+	<file alias="gpu">Resources/Icons/gpu.png</file>
         <file alias="grid3x2">Resources/Icons/grid3x2.png</file>
         <file alias="grid3x3">Resources/Icons/grid3x3.png</file>
         <file alias="gridCombo">Resources/Icons/gridCombo.png</file>
@@ -305,6 +308,7 @@
         <file alias="planeStriked">Resources/Icons/planeStriked.png</file>
         <file alias="play">Resources/Icons/play.png</file>
         <file alias="plug">Resources/Icons/plug.png</file>
+	<file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
         <file alias="plus">Resources/Icons/plus.png</file>
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="popOut">Resources/Icons/popOut.png</file>
@@ -385,6 +389,5 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-        <file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
     </qresource>
 </RCC>

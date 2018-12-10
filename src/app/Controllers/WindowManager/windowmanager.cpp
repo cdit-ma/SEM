@@ -180,7 +180,7 @@ void WindowManager::constructInnerDockWidget(ViewController* vc, BaseDockWidget*
             layout->addWidget(splitter, 1);
 
             // add an action to toggle the inner dock widget's visibility
-            QAction* action = parentDockWidget->addAction("Show/Hide Panel", "ToggleIcons", "panelVisible", Qt::AlignCenter);
+            QAction* action = parentDockWidget->addAction("Show/Hide Panel", "ToggleIcons", "chartToggle", Qt::AlignCenter);
             if (action) {
                 action->setCheckable(true);
                 action->setChecked(true);
