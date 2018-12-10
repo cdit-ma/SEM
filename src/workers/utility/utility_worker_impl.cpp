@@ -11,6 +11,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <unordered_map>
 #include <set>
+#include <sstream>
 #include "exprtkwrapper.h"
 
 std::string Utility_Worker_Impl::TimeOfDayString(){
@@ -42,8 +43,8 @@ std::vector<std::string> Utility_Worker_Impl::ProcessVarList(const std::string& 
 
     std::string stripped_function = function;
 
-    static std::vector<std::string> symbols = {"1","2","3","4","5","6","7","8","9","0","*","/","+","-","(",")","^"};
-    static std::vector<std::string> functions = {"abs", "acos", "asin", "atan", "atan2", "cos", "cosh",
+    const static std::vector<std::string> symbols = {"1","2","3","4","5","6","7","8","9","0","*","/","+","-","(",")","^"};
+    const static std::vector<std::string> functions = {"abs", "acos", "asin", "atan", "atan2", "cos", "cosh",
                                                  "exp", "log", "log10", "sin", "sinh", "sqrt", "tan", "tanh",
                                                  "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
 

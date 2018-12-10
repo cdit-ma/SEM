@@ -57,11 +57,14 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
             writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
             break;
         }
+        case Mode::OFF:{
+            throw NotNeededException("Offline Logging");
+        }
         default:{
             throw std::runtime_error("Invalid logging Mode");
         }
     }
-    if(!writer_->BindPublisherSocket(endpoint)){
+    if(!writer_ || !writer_->BindPublisherSocket(endpoint)){
         throw std::runtime_error("Cannot bind endpoint: " + endpoint);
     }
 }
@@ -92,7 +95,6 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
             break;
         };
         default:{
-            std::cerr << "HELLO DED BOI2" << std::endl;
             return;
         }
     }
@@ -173,7 +175,6 @@ void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger:
             break;
         }
         default:{
-            std::cerr << "HELLO DED BOI" << std::endl;
             return;
         }
     }

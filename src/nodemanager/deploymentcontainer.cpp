@@ -65,7 +65,11 @@ void DeploymentContainer::Configure(const NodeManager::Container& container){
                 case NodeManager::Logger::MODEL:{
                     //Setup logan logger
                     if(!logan_logger_){
-                        logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
+                        try{
+                            logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
+                        }catch(const Logan::Logger::NotNeededException&){
+                            
+                        }
                     }
                     break;
                 }

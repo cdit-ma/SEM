@@ -175,7 +175,6 @@ void Container::AddLogger(const NodeManager::Logger &logger_pb) {
             auto& model_logger = GetModelLogger();
             model_logger.SetMode(logger.GetMode());
         }catch(const std::exception&){
-
         }
     }
 }
@@ -222,7 +221,7 @@ void Container::SetOrbPort(const std::string& orb_port) {
 }
 
 void Container::AddModelLogger() {
-    loggers_.emplace("model_logger", std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Cached)));
+    loggers_.emplace("model_logger", std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Off)));
 }
 
 EnvironmentManager::Logger& Container::GetModelLogger(){

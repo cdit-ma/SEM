@@ -7,10 +7,16 @@
 #include <core/logger.h>
 #include <zmq/protowriter/cachedprotowriter.h>
 #include <chrono>
+#include <exception>
 
 namespace Logan{
     class Logger : public ::Logger{
         public:
+            class NotNeededException : public std::runtime_error{
+                public:
+                    NotNeededException(const std::string& what_arg) : std::runtime_error(what_arg){};
+            };
+
             Logger(const std::string& experiment_name, const std::string& host_name, const std::string& container_name, const std::string& container_id, const std::string& address, const std::string& port, Logger::Mode mode);
             
             void LogMessage(const Activatable& entity, const std::string& message);

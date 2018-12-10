@@ -39,9 +39,9 @@ class Logger{
         Experiment& GetExperiment() const;
 
         void SetPublisherPort(const std::string& publisher_port);
-        std::string GetPublisherPort() const;
 
-        std::string GetPublisherEndpoint() const;
+        std::string GetPublisherPort();
+        std::string GetPublisherEndpoint();
 
         void SetFrequency(const double frequency);
         double GetFrequency() const;
