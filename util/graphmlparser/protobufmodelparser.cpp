@@ -485,6 +485,8 @@ void ProtobufModelParser::ParseLoggingClients(){
                 logger_pb->set_mode(NodeManager::Logger::LIVE);
             }else if(graphml_parser_->GetDataValue(client_id, "mode") == "CACHED"){
                 logger_pb->set_mode(NodeManager::Logger::CACHED);
+            }else if(graphml_parser_->GetDataValue(client_id, "mode") == "OFF"){
+                logger_pb->set_mode(NodeManager::Logger::OFF);
             }
         }
     }
