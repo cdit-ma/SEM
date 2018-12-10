@@ -8,34 +8,18 @@ def execution_map = [:]
 
 final json_file = 'experiment_config.json'
 
-final workspace_dir = env.BUILD_ID
+final workspace_dir =  env.BUILD_ID
 def added_experiment = false
 
-def cleanupExperiment(Boolean remove_experiment){
-    if(remove_experiment){
-        node('re') {
-            script{
-                def utils = new cditma.Utils(this);
-                def args = "-s "
-                args += "-n \"${params.experiment_name}\" "
-                args += "-e ${params.environment_manager_address} "
-                if(utils.runReEnvironmentController(args)){
-                    echo "Experiment: ${params.experiment_name} Removed"
-                }
-            }
-        }
-    }
-    //Run Validation on failure
-    node("builder"){
-        dir("${env.BUILD_ID}/validation"){
-            unstash 'model'
-            script{
-                def utils = new cditma.Utils(this);
-                if(utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
-                    archiveArtifacts artifacts: '*.xml'
-                }else{
-                    error('Validation report generation failed.')
-                }
+def terminateExperiment(){
+    node('re') {
+        script{
+            def utils = new cditma.Utils(this);
+            def args = "-s "
+            args += "-n \"${params.experiment_name}\" "
+            args += "-e ${params.environment_manager_address} "
+            if(utils.runReEnvironmentController(args)){
+                echo "Experiment: ${params.experiment_name} Removed"
             }
         }
     }
@@ -95,6 +79,9 @@ pipeline{
                         script{
                             if(!utils.runRegenXSL('generate_project.xsl', 'model.graphml')){
                                 error('Project code generation failed.')
+                            }
+                            if(!utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
+                                error('Validation report generation failed.')
                             }
                         }
 
@@ -246,10 +233,19 @@ pipeline{
                                                 if("${params.log_verbosity}"){
                                                     args += "-v ${params.log_verbosity} "
                                                 }
-
                                                 //Run re_node_manager
-                                                if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
-                                                    error("re_node_manager failed on Node: ${node_name}")
+
+                                                if(is_docker) {
+                                                    //Run inside docker container on node_name node with host networking options
+                                                    docker.image("${docker_image_repository}/${docker_image_name}").inside("--network host") {
+                                                        if(utils.runScript("/re/bin/re_node_manager ${args}") != 0) {
+                                                            error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                        }
+                                                    }
+                                                } else {
+                                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
+                                                        error("re_node_manager failed on Node: ${node_name}")
+                                                    }
                                                 }
                                             }
                                         }
@@ -269,12 +265,16 @@ pipeline{
     post{
         failure{
             script{
-                cleanupExperiment(added_experiment)
+                if(added_experiment){
+                    terminateExperiment()
+                }
             }
         }
         aborted{
             script{
-                cleanupExperiment(added_experiment)
+                if(added_experiment){
+                    terminateExperiment()
+                }
             }
         }
     }

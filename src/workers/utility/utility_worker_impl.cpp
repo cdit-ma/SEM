@@ -5,11 +5,14 @@
 #include <cmath>      // Math. functions needed for whets.cpp?
 #include <stdarg.h>
 #include <cstring>
-#include "exprtk.hpp"
 #include <thread>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <unordered_map>
+#include <set>
+#include <sstream>
+#include "exprtkwrapper.h"
 
 std::string Utility_Worker_Impl::TimeOfDayString(){
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -20,66 +23,62 @@ double Utility_Worker_Impl::TimeOfDay(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
 }
 
-double Utility_Worker_Impl::EvaluateComplexity(const char* complexity, va_list args){
+double Utility_Worker_Impl::EvaluateComplexity(const char* function, va_list args){
+
+    std::unordered_map<std::string, double> variable_map;
 
     //Pull variables from expression
-    std::vector<char> variable_list = ProcessVarList(complexity);
+    std::vector<std::string> variable_list = ProcessVarList(function);
 
-    //construct symbol table
-    exprtk::symbol_table<double> symbol_table;
-
-    for(auto var : variable_list){
-        if(var != ' '){
-            double temp = va_arg(args, double);
-            symbol_table.create_variable(std::string(1, var), temp);
-        }
+    for(const auto& var : variable_list){
+        // Map variable to value in va_list
+        double temp = va_arg(args, double);
+        variable_map.insert({var, temp});
     }
-    //Add infinity, pi and epsilon
-    symbol_table.add_constants();
 
-    //parse and compile symbol table and expression
-    exprtk::expression<double> expression;
-    expression.register_symbol_table(symbol_table);
-    exprtk::parser<double> parser;
-    parser.compile(complexity, expression);
-
-    return expression.value();
+    return ExprtkWrapper::EvaluateComplexity(function, variable_map);
 }
 
-std::vector<char> Utility_Worker_Impl::ProcessVarList(const char* complexity){
-    char * cptr;
-    char varlist[50];
-    char mathchar[] = "()-+*/^0123456789";
-    char mathfunc[24][9] = {"abs", "acos", "asin", "atan", "atan2", "cos", "cosh",
-                            "exp", "log", "log10", "sin", "sinh", "sqrt", "tan", "tanh",
-                            "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
-    //remove all math functions from complexity algorithm
-    strcpy(varlist, complexity);
+std::vector<std::string> Utility_Worker_Impl::ProcessVarList(const std::string& function){
 
-    for(unsigned int i = 0; i < 24; ++i){
-        cptr = varlist;
-        while ((cptr=strstr(cptr,mathfunc[i])) != NULL)
-        memmove(cptr, cptr+strlen(mathfunc[i]), strlen(cptr+strlen(mathfunc[i]))+1);
+    std::string stripped_function = function;
+
+    const static std::vector<std::string> symbols = {"1","2","3","4","5","6","7","8","9","0","*","/","+","-","(",")","^"};
+    const static std::vector<std::string> functions = {"abs", "acos", "asin", "atan", "atan2", "cos", "cosh",
+                                                 "exp", "log", "log10", "sin", "sinh", "sqrt", "tan", "tanh",
+                                                 "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
+
+    for(const auto& symbol : symbols) {
+        ReplaceAllSubstring(stripped_function, symbol, " ");
     }
-    
-    //remove all math characters from varlist
-    for(unsigned int i = 0; i < strlen(mathchar); ++i){
-        cptr = varlist;
-        while((cptr=strchr(cptr ,mathchar[i])) != NULL)
-        memmove(cptr, cptr+1, strlen(cptr+1)+1);
+
+    for(const auto& func : functions) {
+        ReplaceAllSubstring(stripped_function, func, " ");
     }
-    //remove duplicate variables
-    char * prev = varlist;
-    while((*prev) != '\0'){
-        cptr = prev + 1;
-        while((cptr=strchr(cptr, (*prev))) != NULL){
-            memmove(cptr, cptr+1, strlen(cptr+1)+1);
+
+    std::istringstream iss(stripped_function);
+    std::vector<std::string> variable_names(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+
+    std::set<std::string> seen_names;
+
+    auto iter = std::begin(variable_names);
+    while(iter != std::end(variable_names)) {
+        if(seen_names.find(*iter) != std::end(seen_names)) {
+            iter = variable_names.erase(iter);
+        } else {
+            seen_names.insert(*iter);
+            iter++;
         }
-        prev += 1;
     }
-    std::string temp(varlist);
-    std::vector<char> vec(temp.begin(), temp.end());
-    return vec;
+    return variable_names;
+}
+
+void Utility_Worker_Impl::ReplaceAllSubstring(std::string& str, const std::string& search, const std::string& replace) {
+    size_t position = 0;
+    while((position = str.find(search, position)) != std::string::npos) {
+        str.replace(position, search.length(), replace);
+        position += replace.length();
+    }
 }
 
 void Utility_Worker_Impl::USleep(int microseconds){
