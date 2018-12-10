@@ -72,11 +72,11 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
         // display upto the first 10 events
         QString hoveredData;
         QTextStream stream(&hoveredData);
-        int displayCount = qMin(count, 10);
+        int displayCount = qMin(count, numberOfItemsToDisplay);
         for (int i = 0; i < displayCount; i++) {
             auto event = (WorkloadEvent*)(*current);
             stream << "[" + event->getFunctionName() + "] - "
-                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss:zzz")
+                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat)
                       + "\n" + event->getArgs().trimmed() + "\n\n";
             current++;
         }
