@@ -68,6 +68,9 @@ void Logger::SetPublisherPort(const std::string& publisher_port){
 
 std::string Logger::GetPublisherPort(){
     if(!publisher_port_.length()){
+        if(GetType() == Logger::Type::Server){
+            throw std::runtime_error("No assigned port for Server");
+        }
         switch(mode_){
             case Mode::Live:
             case Mode::Cached:{
