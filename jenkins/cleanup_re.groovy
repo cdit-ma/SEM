@@ -8,6 +8,7 @@ pipeline{
         booleanParam(name: 'kill_node_manager', defaultValue: true, description: 'Teardown any running re_node_managers/logan_managedservers.')
         booleanParam(name: 'kill_env_manager', defaultValue: true, description: 'Teardown any running re_environment_managers.')
         booleanParam(name: 'cleanup_workspace', defaultValue: true, description: 'Remove all cached files from the jenkins workspace.')
+        booleanParam(name: 'cleanup_temp', defaultValue: true, description: 'Remove all temp files from the nodes.')
     }
 
     stages{
@@ -31,6 +32,11 @@ pipeline{
                                     dir(workspace_dir){
                                         deleteDir()
                                     }
+                                }
+                                if(params.cleanup_temp){
+                                    def temp_dir = System.getProperty("java.io.tmpdir")
+                                    print("Removing all files in: ${temp_dir}/*")
+                                    utils.runScript("rm -r ${temp_dir}/*")
                                 }
 
                                 if(params.kill_node_manager){
