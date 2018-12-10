@@ -856,7 +856,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto current = data.lowerBound(_displayedMin);
     auto upper = data.upperBound(_displayedMax);
 
-    //double availableWidth = width() -
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
 
@@ -889,8 +888,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
                 break;
             }
         }
-        //qDebug() << "mappedPrevBucket: " << mapTimeToPixel((*currentBucketIttr) - barTimeWidth);
-        //qDebug() << "mappedBucket: " << mapTimeToPixel(*currentBucketIttr);
         if (currentBucket < barCount)
             buckets[currentBucket] += current.value();
     }
@@ -916,7 +913,6 @@ void EntityChart::paintBarSeries(QPainter &painter)
 
             if (rectHovered(TIMELINE_SERIES_KIND::BAR, rect)) {
                 color.setHsv(qAbs(color.hue() - 180), 255, 255);
-                //qDebug() << "pixel: " << i * barWidth;
             }
             painter.setBrush(color);
 

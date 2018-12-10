@@ -1287,9 +1287,11 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "dataLabelToggle", "Icons", "radioButtonChecked", "Icons", "radioButtonUnchecked");
 
     setIconToggledImage("ToggleIcons", "stateLegendToggle", "Icons", "circleHalo", "Icons", "circleHalo");
-    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "exclamationInBubble", "Icons", "exclamationInBubble");
+    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "bellExclamationDark", "Icons", "bellExclamationDark");
     setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
-    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "graph", "Icons", "graph");
+    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "bars", "Icons", "bars");
+    setIconToggledImage("ToggleIcons", "portLifecycleLegendToggle", "Icons", "plug", "Icons", "plug");
+    setIconToggledImage("ToggleIcons", "workloadLegendToggle", "Icons", "spanner", "Icons", "spanner");
 }
 
 void Theme::setupAliasIcons(){
