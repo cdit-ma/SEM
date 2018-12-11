@@ -1,7 +1,5 @@
 #include "eventseries.h"
 
-#include <QDateTime>
-#include <QTextStream>
 
 int MEDEA::EventSeries::eventSeries_ID = 0;
 

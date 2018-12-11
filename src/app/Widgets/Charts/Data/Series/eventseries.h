@@ -3,8 +3,10 @@
 
 #include "../Events/event.h"
 
+#include <QDateTime>
+#include <QTextStream>
 
-enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR};
+enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, CPU_UTILISATION};
 
 static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
 {
@@ -13,7 +15,8 @@ static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
             TIMELINE_SERIES_KIND::STATE,
             TIMELINE_SERIES_KIND::NOTIFICATION,
             TIMELINE_SERIES_KIND::LINE,
-            TIMELINE_SERIES_KIND::BAR};
+            TIMELINE_SERIES_KIND::BAR,
+            TIMELINE_SERIES_KIND::CPU_UTILISATION};
 }
 
 static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
@@ -26,9 +29,11 @@ static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::NOTIFICATION:
         return "Notification";
     case TIMELINE_SERIES_KIND::LINE:
-        return "Notification";
+        return "Line";
     case TIMELINE_SERIES_KIND::BAR:
         return "Bar";
+    case TIMELINE_SERIES_KIND::CPU_UTILISATION:
+        return "Utilisation";
     default:
         return "Data";
     }

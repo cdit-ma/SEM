@@ -101,8 +101,4 @@ struct Experiment {
 
 
 
-
-
-
-
-#endif // PROTOstructSTRUCTS_H
+#endif // PROTOMESSAGESTRUCTS_H
