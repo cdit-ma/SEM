@@ -5,20 +5,14 @@
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
+#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
 
 class AggregationProxy : public QObject
 {
     Q_OBJECT
 
 public:
-    struct ExperimentRun {
-        quint32 experiment_run_id;
-        quint32 job_num;
-        qint64 start_time;
-        qint64 end_time;
-    };
-
-    AggregationProxy();
+    explicit AggregationProxy();
 
     void RequestRunningExperiments();
     void RequestExperimentRun(QString experimentName = "");

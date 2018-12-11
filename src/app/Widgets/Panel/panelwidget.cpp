@@ -17,10 +17,8 @@
 
 #include "../../theme.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
-#include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Windows/mainwindow.h"
 #include "../DockWidgets/defaultdockwidget.h"
-#include "../optiongroupbox.h"
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
 
@@ -221,8 +219,8 @@ void PanelWidget::testNewTimelineView()
 void PanelWidget::testEventSeries()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    /*defaultActiveAction =*/ addTab("Events", view);
-    //defaultActiveAction->trigger();
+    defaultActiveAction = addTab("Events", view);
+    defaultActiveAction->trigger();
 
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
@@ -373,8 +371,12 @@ void PanelWidget::themeChanged()
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
-    nameGroupBox->setStyleSheet(theme->getGroupBoxStyleSheet() + "QGroupBox{color: lightGray;}");
-    runsGroupBox->setStyleSheet(theme->getGroupBoxStyleSheet() + "QGroupBox{color: lightGray;}");
+
+    auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
+                         "QGroupBox{color: lightGray; margin-top: 15px;}" +
+                         "QGroupBox::title{subcontrol-origin: margin;}";
+    nameGroupBox->setStyleSheet(groupBoxStyle);
+    runsGroupBox->setStyleSheet(groupBoxStyle);
 }
 
 
@@ -620,7 +622,7 @@ void PanelWidget::playPauseToggled(bool checked)
  * @brief PanelWidget::populateRunsGroupBox
  * @param runs
  */
-void PanelWidget::populateRunsGroupBox(QList<AggregationProxy::ExperimentRun> runs)
+void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
 {
     while (!runButtons.isEmpty()) {
         auto button = runButtons.takeFirst();
@@ -801,6 +803,7 @@ void PanelWidget::setupChartInputDialog()
 {
     lineEdit = new QLineEdit(this);
     lineEdit->setFixedHeight(40);
+    lineEdit->setMinimumWidth(400);
     lineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
     lineEdit->setPlaceholderText("Enter experiment name...");
     lineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -813,7 +816,7 @@ void PanelWidget::setupChartInputDialog()
     nameGroupBox = new QGroupBox("Visualise Events For Experiment:");
     QVBoxLayout* topLayout = new QVBoxLayout(nameGroupBox);
     topLayout->setMargin(0);
-    topLayout->setContentsMargins(1, 10, 1, 1);
+    topLayout->setContentsMargins(1, 5, 1, 1);
     topLayout->addWidget(lineEdit);
 
     runsGroupBox = new QGroupBox("Select Experiment Run:", this);
@@ -829,14 +832,13 @@ void PanelWidget::setupChartInputDialog()
 
     QWidget* holderWidget = new QWidget(this);
     QVBoxLayout* popupLayout = new QVBoxLayout(holderWidget);
-    popupLayout->setMargin(10);
-    popupLayout->setSpacing(10);
+    popupLayout->setMargin(5);
+    popupLayout->setSpacing(5);
     popupLayout->addWidget(nameGroupBox);
     popupLayout->addWidget(runsGroupBox);
     popupLayout->addWidget(toolbar);
 
     chartInputPopup = new HoverPopup(this);
-    chartInputPopup->setMinimumWidth(400);
 
     connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
     connect(okAction, &QAction::triggered, [=]() {

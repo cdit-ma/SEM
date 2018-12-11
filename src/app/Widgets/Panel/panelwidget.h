@@ -14,7 +14,6 @@
 #include <QGroupBox>
 #include <QRadioButton>
 
-#include "../../Controllers/AggregationProxy/aggregationproxy.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
 
@@ -72,7 +71,7 @@ public slots:
     void handleTimeout();
     void playPauseToggled(bool checked);
 
-    void populateRunsGroupBox(QList<AggregationProxy::ExperimentRun> runs);
+    void populateRunsGroupBox(QList<ExperimentRun> runs);
 
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
