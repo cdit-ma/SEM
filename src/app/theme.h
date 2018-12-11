@@ -13,6 +13,7 @@
 #include <QFuture>
 #include <QProxyStyle>
 #include <QFont>
+#include <QCache>
 
 #include "../modelcontroller/nodekinds.h"
 #include "Controllers/SettingsController/settingscontroller.h"
@@ -160,7 +161,6 @@ signals:
 public slots:
     void settingChanged(SETTINGS setting, QVariant value);
 private:
-    void clearIconMap();
     void preloadImages();
 
 struct ImageLoad{
@@ -183,7 +183,6 @@ struct ImageLoad{
     void setFont(QFont size);
 
     QImage getImage(const QString& resource_name);
-    QColor getTintColor(const QString& resource_name);
 
     static IconPair SplitImagePath(const QString& path);
 
@@ -195,9 +194,11 @@ struct ImageLoad{
     QSet<QString> image_names;
 
     QHash<QString, QMovie*> gifLookup;
+
     QHash<QString, QImage> imageLookup;
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QIcon> iconLookup;
+
 
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QColor> pixmapTintLookup;
@@ -216,8 +217,7 @@ struct ImageLoad{
         ColorRole off_disabled = ColorRole::DISABLED;
     };
 
-    QHash<QString, QPair<IconPair, IconPair> > iconToggledLookup;
-    QHash<QString, IconToggle > iconToggledLookup2;
+    QHash<QString, IconToggle > iconToggledLookup;
     QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
@@ -235,8 +235,6 @@ struct ImageLoad{
     QColor backgroundColor;
     QColor altBackgroundColor;
     QColor disabledBackgroundColor;
-    QColor iconColor;
-    QColor selectedItemBorderColor;
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
 
@@ -252,11 +250,12 @@ struct ImageLoad{
     ThemePreset current_theme = ThemePreset::XMAS_THEME;
     bool themeChanged = false;
     bool valid = false;
+    QFuture<void> entity_icons_load_future;
 public:
-    static QString QColorToHex(const QColor color);
+    static QString QColorToHex(const QColor& color);
     static Theme* theme();
-    static QSize roundQSize(QSize size);
-    static IconPair getIconPair(QString prefix, QString alias);
+    static void roundQSize(QSize& size);
+    static IconPair getIconPair(const QString& prefix, const QString& alias);
 
     static void UpdateActionIcon(QAction* action, Theme* theme = 0);
     static void StoreActionIcon(QAction* action, QString alias, QString name);

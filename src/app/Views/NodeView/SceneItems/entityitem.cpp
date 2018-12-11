@@ -238,7 +238,7 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
     QSize requiredSize;
     requiredSize.setWidth(rect.width() * 2 * lod);
     requiredSize.setHeight(rect.height() * 2 * lod);
-    requiredSize = Theme::roundQSize(requiredSize);
+    Theme::roundQSize(requiredSize);
     
     //Max out at 128 pixels
     if(requiredSize.width() > 128){
@@ -250,12 +250,10 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
 
 QPixmap EntityItem::getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize, QColor tintColor) const
 {
-    Theme* theme = Theme::theme();
     if(!tintColor.isValid()){
         tintColor = getTextColor();
     }
-    QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
-    return image;
+    return Theme::theme()->getImage(imageAlias, imageName, requiredSize, tintColor);
 }
 
 
