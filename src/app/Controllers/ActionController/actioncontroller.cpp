@@ -860,7 +860,7 @@ void ActionController::setupActions()
     help_wiki->setShortcut(QKeySequence::HelpContents);
 
 
-    help_aboutMedea = createRootAction("Help", "About MEDEA", "", "Icons", "circleInfo");
+    help_aboutMedea = createRootAction("Help", "About", "", "Icons", "circleInfo");
     help_aboutQt = createRootAction("Help", "About Qt", "", "Icons", "qt");
 
     options_settings = createRootAction("Help", "Settings", "", "Icons", "gear");

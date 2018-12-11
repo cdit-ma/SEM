@@ -11,17 +11,13 @@
 #define MIN_HEIGHT 700
 
 
-QToolButton* WelcomeScreenWidget::getButton(QAction* action){
+QToolButton* WelcomeScreenWidget::getButton(QAction* action, Qt::ToolButtonStyle style){
     auto button = new QToolButton(this);
-    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    button->setToolButtonStyle(style);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     //Connect the button to it's action so we don't need to worry about QToolButton stuff
     button->setDefaultAction(action);
     return button;
-}
-
-void WelcomeScreenWidget::refreshSize(){
-    recent_project_toolbar->setFixedHeight(left_toolbar->height());
 }
 
 /**
@@ -32,8 +28,8 @@ void WelcomeScreenWidget::refreshSize(){
 WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QWidget *parent) : QWidget(parent)
 {
     this->action_controller = action_controller;
-    auto title_widget = new QWidget(this);
-    auto title_layout = new QVBoxLayout(title_widget);
+
+    auto title_layout = new QVBoxLayout();
     medea_icon = new QLabel(this);
     medea_label = new QLabel("MEDEA");
     medea_version_label = new QLabel("Version " % APP_VERSION());
@@ -56,24 +52,21 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     left_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     left_toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    left_toolbar->installEventFilter(this);
 
-    left_toolbar->addWidget(title_widget);
     if (action_controller) {
-        left_toolbar->addWidget(getButton(action_controller->file_newProject));
-        left_toolbar->addWidget(getButton(action_controller->file_openProject));
-        left_toolbar->addWidget(getButton(action_controller->options_settings));
+        left_toolbar->addWidget(getButton(action_controller->file_newProject, Qt::ToolButtonTextUnderIcon));
+        left_toolbar->addWidget(getButton(action_controller->file_openProject, Qt::ToolButtonTextUnderIcon));
+        left_toolbar->addWidget(getButton(action_controller->options_settings, Qt::ToolButtonTextUnderIcon));
+        left_toolbar->addWidget(getButton(action_controller->file_exit, Qt::ToolButtonTextUnderIcon));
     }
 
     
     bottom_toolbar = new QToolBar(this);
     bottom_toolbar->setOrientation(Qt::Horizontal);
-    bottom_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     
     if (action_controller) {
-        bottom_toolbar->addAction(action_controller->help_wiki);
-        bottom_toolbar->addAction(action_controller->help_aboutMedea);
-        bottom_toolbar->addAction(action_controller->file_exit);
+        bottom_toolbar->addWidget(getButton(action_controller->help_wiki, Qt::ToolButtonTextUnderIcon));
+        bottom_toolbar->addWidget(getButton(action_controller->help_aboutMedea, Qt::ToolButtonTextUnderIcon));
     }
 
     for(auto action : left_toolbar->actions()){
@@ -88,19 +81,23 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     recent_project_toolbar = new QToolBar(this);
     recent_project_toolbar->setOrientation(Qt::Vertical);
     recent_project_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recent_project_toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    recent_project_toolbar->setFixedHeight(400);
-    
-    auto right_widget = new QWidget(this);
+    recent_project_toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    auto right_layout = new QVBoxLayout(right_widget);
+    auto left_layout = new QVBoxLayout();
+    left_layout->setSpacing(10);
+    left_layout->addLayout(title_layout);
+    left_layout->addWidget(left_toolbar);
+    
+
+    auto right_layout = new QVBoxLayout();
     right_layout->setSpacing(2);
     right_layout->addWidget(recent_project_label);
     right_layout->addWidget(recent_project_toolbar, 1);
 
     auto h_layout = new QHBoxLayout();
-    h_layout->addWidget(left_toolbar);
-    h_layout->addWidget(right_widget, 1, Qt::AlignVCenter);
+    h_layout->setSpacing(10);
+    h_layout->addLayout(left_layout, 0);
+    h_layout->addLayout(right_layout, 1);
 
     auto main_widget = new QWidget(this);
     main_widget->setObjectName("WELCOME_WIDGET");
@@ -117,15 +114,10 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     auto layout = new QVBoxLayout(this);
     layout->addWidget(main_widget, 0, Qt::AlignCenter);
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-
-    //connect(leftToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
-    //connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
-
+    connect(Theme::theme(), &Theme::theme_Changed, this, &WelcomeScreenWidget::themeChanged);
     connect(action_controller, &ActionController::recentProjectsUpdated, this, &WelcomeScreenWidget::recentProjectsUpdated);
 
     setContextMenuPolicy(Qt::NoContextMenu);
-    
     recentProjectsUpdated();
     themeChanged();
 }
@@ -167,13 +159,6 @@ void WelcomeScreenWidget::themeChanged()
     medea_version_label->setStyleSheet("color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
 }
 
-bool WelcomeScreenWidget::eventFilter(QObject *object, QEvent *event)
-{
-    if (object && event->type() == QEvent::Resize) {
-        refreshSize();
-    }
-    return false;
-}
 
 
 
