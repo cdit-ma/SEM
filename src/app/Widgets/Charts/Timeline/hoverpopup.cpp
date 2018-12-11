@@ -8,7 +8,8 @@
  * @brief HoverPopup::HoverPopup
  * @param parent
  */
-HoverPopup::HoverPopup(QWidget* parent) : PopupWidget(PopupWidget::TYPE::SPLASH, parent)
+HoverPopup::HoverPopup(QWidget* parent)
+    : PopupWidget(PopupWidget::TYPE::SPLASH, parent)
 {
     useDefaultBorder = true;
     connect(Theme::theme(), &Theme::theme_Changed, this, &HoverPopup::themeChanged);

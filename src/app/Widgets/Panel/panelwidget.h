@@ -10,6 +10,11 @@
 #include <QStackedWidget>
 #include <QDateTime>
 
+#include <QLineEdit>
+#include <QGroupBox>
+#include <QRadioButton>
+
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
 
@@ -47,6 +52,8 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
+    void requestExperimentRun(QString name);
+
 public slots:
     void themeChanged();
     void activeTabChanged();
@@ -65,12 +72,25 @@ public slots:
     void handleTimeout();
     void playPauseToggled(bool checked);
 
+    void populateRunsGroupBox(QList<AggregationProxy::ExperimentRun> runs);
+
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
     void activateNewTab(QAction* previouslyActivatedTab);
 
     void setupLayout();
     void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
+
+    void setupChartInputDialog();
+    void showChartInputDialog();
+
+    HoverPopup* chartInputPopup;
+    QToolBar* toolbar;
+    QLineEdit* lineEdit;
+    QGroupBox* nameGroupBox;
+    QGroupBox* runsGroupBox;
+    quint32 currentExperimentRunID;
+    QList<QRadioButton*> runButtons;
 
     ViewController* viewController = 0;
 

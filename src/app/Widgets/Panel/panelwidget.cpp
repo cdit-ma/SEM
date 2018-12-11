@@ -4,8 +4,6 @@
     #define NOMINMAX
 #endif //_WIN32
 
-#include "../../Controllers/AggregationProxy/aggregationproxy.h"
-
 #include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -39,6 +37,7 @@ PanelWidget::PanelWidget(QWidget *parent)
     defaultActiveAction = 0;
 
     setupLayout();
+    setupChartInputDialog();
 
     //testDataSeries();
     //testNewTimelineView();
@@ -228,6 +227,10 @@ void PanelWidget::testEventSeries()
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::showChartUserInputDialog, this, &PanelWidget::showChartInputDialog);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::experimentRuns, this, &PanelWidget::populateRunsGroupBox);
+        connect(this, &PanelWidget::requestExperimentRun, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRun);
     }
 }
 
@@ -367,6 +370,11 @@ void PanelWidget::themeChanged()
             updateIcon(action, path, name, false);
         }
     }
+
+    toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
+    nameGroupBox->setStyleSheet(theme->getGroupBoxStyleSheet() + "QGroupBox{color: lightGray;}");
+    runsGroupBox->setStyleSheet(theme->getGroupBoxStyleSheet() + "QGroupBox{color: lightGray;}");
 }
 
 
@@ -609,6 +617,38 @@ void PanelWidget::playPauseToggled(bool checked)
 
 
 /**
+ * @brief PanelWidget::populateRunsGroupBox
+ * @param runs
+ */
+void PanelWidget::populateRunsGroupBox(QList<AggregationProxy::ExperimentRun> runs)
+{
+    while (!runButtons.isEmpty()) {
+        auto button = runButtons.takeFirst();
+        runsGroupBox->layout()->removeWidget(button);
+        button->deleteLater();
+    }
+
+    if (runs.isEmpty())
+        return;
+
+    for (auto run : runs) {
+        auto ID = run.experiment_run_id;
+        QString text = "ID: " + QString::number(ID) + " (" +
+                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString(DATETIME_FORMAT) + " - " +
+                       QDateTime::fromMSecsSinceEpoch(run.end_time).toString(DATETIME_FORMAT) + ")";
+
+        QRadioButton* button = new QRadioButton(text, this);
+        button->setProperty("ID", ID);
+        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
+        runsGroupBox->layout()->addWidget(button);
+        runButtons.append(button);
+    }
+
+    chartInputPopup->adjustSize();
+}
+
+
+/**
  * @brief PanelWidget::removeTab
  * @param tabAction
  * @param deleteWidget
@@ -751,4 +791,79 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
         }
         action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
     }
+}
+
+
+/**
+ * @brief PanelWidget::setupChartInputDialog
+ */
+void PanelWidget::setupChartInputDialog()
+{
+    lineEdit = new QLineEdit(this);
+    lineEdit->setFixedHeight(40);
+    lineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
+    lineEdit->setPlaceholderText("Enter experiment name...");
+    lineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    lineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
+
+    connect(lineEdit, &QLineEdit::returnPressed, [=]() {
+        emit requestExperimentRun(lineEdit->text().trimmed());
+    });
+
+    nameGroupBox = new QGroupBox("Visualise Events For Experiment:");
+    QVBoxLayout* topLayout = new QVBoxLayout(nameGroupBox);
+    topLayout->setMargin(0);
+    topLayout->setContentsMargins(1, 10, 1, 1);
+    topLayout->addWidget(lineEdit);
+
+    runsGroupBox = new QGroupBox("Select Experiment Run:", this);
+    QVBoxLayout* bottomLayout = new QVBoxLayout(runsGroupBox);
+    bottomLayout->setMargin(0);
+    bottomLayout->setSpacing(2);
+    bottomLayout->setContentsMargins(1, 10, 1, 1);
+
+    toolbar = new QToolBar(this);
+    toolbar->setLayoutDirection(Qt::RightToLeft);
+    QAction* okAction = toolbar->addAction("Ok");
+    QAction* cancelAction = toolbar->addAction("Cancel");
+
+    QWidget* holderWidget = new QWidget(this);
+    QVBoxLayout* popupLayout = new QVBoxLayout(holderWidget);
+    popupLayout->setMargin(10);
+    popupLayout->setSpacing(10);
+    popupLayout->addWidget(nameGroupBox);
+    popupLayout->addWidget(runsGroupBox);
+    popupLayout->addWidget(toolbar);
+
+    chartInputPopup = new HoverPopup(this);
+    chartInputPopup->setMinimumWidth(400);
+
+    connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
+    connect(okAction, &QAction::triggered, [=]() {
+        for (auto button : runButtons) {
+            if (button->isChecked()) {
+                currentExperimentRunID = button->property("ID").toUInt();
+                qDebug() << "Selected experimen_run_id: " << currentExperimentRunID;
+                break;
+            }
+        }
+        chartInputPopup->hide();
+    });
+
+
+    chartInputPopup->setWidget(holderWidget);
+    chartInputPopup->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    chartInputPopup->setVisible(false);
+}
+
+
+/**
+ * @brief PanelWidget::showChartInputDialog
+ */
+void PanelWidget::showChartInputDialog()
+{
+    chartInputPopup->setVisible(true);
+    chartInputPopup->activateWindow();
+    lineEdit->setFocus();
+    lineEdit->selectAll();
 }

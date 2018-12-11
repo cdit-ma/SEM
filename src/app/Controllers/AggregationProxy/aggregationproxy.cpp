@@ -14,32 +14,51 @@ AggregationProxy::AggregationProxy() :
 
 void AggregationProxy::RequestRunningExperiments()
 {
-    auto notification = NotificationManager::manager()->AddNotification("Request Events", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+    emit showChartUserInputDialog();
+}
+
+
+/**
+ * @brief AggregationProxy::RequestExperimentRun
+ * @param experimentName
+ */
+void AggregationProxy::RequestExperimentRun(QString experimentName)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Request Experiment Run", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    QList<ExperimentRun> runs;
+
     try {
 
-        qDebug() << "--------------------------------------------------------------------------------";
-        qDebug() << "Requesting Events ...";
+        AggServer::ExperimentRunRequest request;
+        request.set_experiment_name(experimentName.toStdString());
 
-        // TODO - Do work here!
+        auto& results = requester_.GetExperimentRun(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
+        qDebug() << "Requesting experiment with name: " << experimentName;
+        qDebug() << "Results: " << results->experiments_size();
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        for (const auto& ex : results->experiments()) {
+            for (auto& exRun : ex.runs()) {
+                ExperimentRun run;
+                run.experiment_run_id = exRun.experiment_run_id();
+                run.job_num = exRun.job_num();
+                run.start_time = getQDateTime(exRun.start_time()).toMSecsSinceEpoch();
+                run.end_time = getQDateTime(exRun.end_time()).toMSecsSinceEpoch();
+                runs.append(run);
+            }
+        }
+
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
-}
 
-
-/**
- * @brief AggregationProxy::RequestRunningExperiments
- * @param fromTimeMS
- * @param toTimeMS
- */
-void AggregationProxy::RequestRunningExperiments(qint64 fromTimeMS, qint64 toTimeMS)
-{
-
+    emit experimentRuns(runs);
 }
 
 
