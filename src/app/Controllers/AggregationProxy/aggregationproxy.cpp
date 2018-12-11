@@ -75,6 +75,7 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
 
     try {
         //auto start = QDateTime::currentMSecsSinceEpoch();
+        request.set_experiment_run_id(1);
         auto results = requester_.GetPortLifecycle(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
