@@ -3,6 +3,7 @@
 * Optimized image loading to reduce memory footprint
 * Updated re_gen to v3.2.10
 * Added docker mode for deployment containers
+* Updated Welcome screen
 
 ## Validation:
 * Added more checks for invalid characters in labels
