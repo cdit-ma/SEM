@@ -241,9 +241,9 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
     Theme::roundQSize(requiredSize);
     
     //Max out at 128 pixels
-    if(requiredSize.width() > 128){
-        requiredSize.setWidth(128);
-        requiredSize.setHeight(128);
+    if(requiredSize.width() > 64){
+        requiredSize.setWidth(64);
+        requiredSize.setHeight(64);
     }
     return requiredSize;
 }
