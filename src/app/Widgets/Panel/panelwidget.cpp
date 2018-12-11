@@ -12,21 +12,10 @@
 #include <QDateTime>
 #include <QtCharts/QSplineSeries>
 #include <QtCharts/QScatterSeries>
-/*
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QBarCategoryAxis>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QValueAxis>
-#include <QtCharts/QDateTimeAxis>
-*/
-
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
-
-
 
 #include "../../theme.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
@@ -34,13 +23,8 @@
 #include "../Windows/mainwindow.h"
 #include "../DockWidgets/defaultdockwidget.h"
 #include "../optiongroupbox.h"
-
-//#include "../Charts/Timeline/Chart/timelinechartview.h"
 #include "../Charts/Timeline/Axis/axiswidget.h"
 #include "../Charts/Series/dataseries.h"
-
-
-
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
@@ -59,7 +43,7 @@ PanelWidget::PanelWidget(QWidget *parent)
     //testDataSeries();
     //testNewTimelineView();
 
-    testWidgets();
+    //testWidgets();
 
     //constructBigDataChart();
     //constructCustomChartView();
@@ -222,7 +206,7 @@ void PanelWidget::testWidgets()
 void PanelWidget::testNewTimelineView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    defaultActiveAction = addTab("Timeline", view);
+    defaultActiveAction = addTab("Entities", view);
     defaultActiveAction->trigger();
 
     if (viewController) {

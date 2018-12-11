@@ -16,6 +16,7 @@ void AggregationProxy::RequestRunningExperiments()
 {
     auto notification = NotificationManager::manager()->AddNotification("Request Events", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     try {
+
         qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "Requesting Events ...";
 

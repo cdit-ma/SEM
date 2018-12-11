@@ -9,6 +9,7 @@
 
 //#define WIDGET_MIN_HEIGHT 800
 #define WIDGET_MIN_HEIGHT 400
+#define HANDLE_WIDTH 5
 
 /**
  * @brief OverlaySplitter::OverlaySplitter
@@ -24,7 +25,7 @@ OverlaySplitter::OverlaySplitter(QWidget* parent)
     addWidget(fillerWidget);
 
     setOrientation(Qt::Vertical);
-    setHandleWidth(3);
+    setHandleWidth(HANDLE_WIDTH);
     setStyleSheet("QSplitter{ background: rgba(0,0,0,0); }"
                   "QSplitter::handle:vertical{ background: rgba(0,0,0,0); }");
 

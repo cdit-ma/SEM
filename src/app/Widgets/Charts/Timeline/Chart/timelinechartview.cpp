@@ -427,9 +427,22 @@ void TimelineChartView::updateChartHoverDisplay()
     }
 
     _hoverDisplay->setVisible(!hoveredData.isEmpty());
+
+    // adjust the hover display's position to make sure that it is fully visible
     if (_hoverDisplay->isVisible()) {
         _hoverDisplay->adjustSize();
-        _hoverDisplay->move(mapTo(this, cursor().pos()  + QPoint(30, 0)));
+        auto globalPos = mapToGlobal(pos());
+        auto hoverPos = mapTo(this, cursor().pos());
+        if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {
+            hoverPos.setX(hoverPos.x() - _hoverDisplay->width() - 25);
+        } else {
+            hoverPos.setX(hoverPos.x() + 25);
+        }
+        auto bottom = globalPos.y() + height() - _dateTimeAxis->height();
+        if ((hoverPos.y() + _hoverDisplay->height()) > bottom) {
+            hoverPos.setY(bottom - _hoverDisplay->height());
+        }
+        _hoverDisplay->move(hoverPos);
     }
 }
 
