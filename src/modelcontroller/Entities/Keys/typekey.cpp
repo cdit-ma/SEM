@@ -132,6 +132,8 @@ bool TypeKey::BindTypes(Node* src, Node* dst, bool bind_outer, bool bind){
     }
     if(success && bind_outer){
         success = Data::LinkData(src, KeyName::OuterType, dst, KeyName::OuterType, bind);
+    }else{
+        success = Data::LinkData(src, KeyName::Type, dst, KeyName::Type, bind);
     }
     return success;
 }
