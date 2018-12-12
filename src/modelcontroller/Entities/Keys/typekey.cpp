@@ -130,7 +130,7 @@ bool TypeKey::BindTypes(Node* src, Node* dst, bool bind_outer, bool bind){
         //Try Type to Inner
         success = Data::LinkData(src, KeyName::Type, dst, KeyName::InnerType, bind);
     }
-    if(success){
+    if(success && bind_outer){
         success = Data::LinkData(src, KeyName::OuterType, dst, KeyName::OuterType, bind);
     }
     return success;

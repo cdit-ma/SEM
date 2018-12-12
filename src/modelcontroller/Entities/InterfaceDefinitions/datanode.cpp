@@ -302,13 +302,6 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             for(auto parameter : children_to_bind){
                 if(parameter->getDataValue(KeyName::IsGenericParam).toBool()){
                     TypeKey::BindTypes(source, parameter, bind_outer_type, setup);
-                    /*
-                    if(bind_inner_type){
-                        Data::LinkData(source, KeyName::InnerType, parameter, KeyName::InnerType, setup);
-                    }
-                    if(bind_outer_type){
-                        Data::LinkData(source,KeyName::OuterType, parameter, KeyName::OuterType, setup);
-                    }*/
                 }
             }
         }
