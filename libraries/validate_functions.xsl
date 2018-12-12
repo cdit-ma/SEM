@@ -279,7 +279,7 @@
         <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
 
         <xsl:choose>
-            <xsl:when test="$parent and cdit:is_data_linked($parent, $allow_value)">
+            <xsl:when test="$parent and cdit:is_node_data_connected($parent)">
                 <xsl:value-of select="true()" />        
             </xsl:when>
             <xsl:when test="cdit:are_all_children_linked($entity, $allow_value)">
@@ -395,22 +395,31 @@
             <xsl:when test="$is_optional">
                 <xsl:value-of select="false()" />
             </xsl:when>
+            <!-- Input Parameters in Functions/ReplierPortImpls are exempt-->
             <xsl:when test="$kind = ('InputParameterGroup', 'InputParameterGroupInstance') and $parent_kind = ('Function', 'ReplierPortImpl')">
                 <xsl:value-of select="false()" />
             </xsl:when>
-            <xsl:when test="$kind = 'ReturnParameterGroupInstance' and $parent_kind = ('FunctionCall')">
+            <!-- Return Parameters from Function Calls/RequesterPortImpls are exempt -->
+            <xsl:when test="$kind = 'ReturnParameterGroupInstance' and $parent_kind = ('FunctionCall', 'RequesterPortImpl')">
                 <xsl:value-of select="false()" />
             </xsl:when>
+            <!-- Entities contained within variables are exempt -->
             <xsl:when test="$kind = 'Variable'">
                 <xsl:value-of select="false()" />
             </xsl:when>
+            <!-- Entities contained within an AggregateInstance inside a SubscriberPortImpl are exempt -->
             <xsl:when test="$kind = 'AggregateInstance' and $parent_kind = 'SubscriberPortImpl'">
                 <xsl:value-of select="false()" />
             </xsl:when>
-            <xsl:when test="$kind = ('VectorInstance', 'Vector')">
+            <!-- VectorInstances used in InputParameterGroupInstance are requiring a data-link -->
+            <xsl:when test="$kind = 'VectorInstance' and $parent_kind = 'InputParameterGroupInstance'">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <!-- Entities contained within AggregateInstance/VectorInstance/Vector are checked by checking the parent -->
+            <xsl:when test="$parent_kind = ('AggregateInstance', 'VectorInstance', 'Vector')">
                 <xsl:value-of select="false()" />
             </xsl:when>
-            <xsl:when test="$parent_kind = ('Variable', 'AggregateInstance', 'VectorInstance', 'Vector' , 'InputParameterGroup', 'InputParameterGroupInstance', 'ReturnParameterGroup', 'ReturnParameterGroupInstance')">
+            <xsl:when test="$parent_kind = ('Variable', 'AggregateInstance', 'InputParameterGroup', 'InputParameterGroupInstance', 'ReturnParameterGroup', 'ReturnParameterGroupInstance')">
                 <xsl:value-of select="cdit:requires_data_link($parent)" />
             </xsl:when>
             <xsl:otherwise>
@@ -455,9 +464,11 @@
                 'VariableParameter',
                 'MemberInstance',
                 'Member',
-                'EnumInstance')
+                'EnumInstance',
+                'VectorInstance',
+                'Vector')
                 )" />
-                
+
                 <!-- This should select all non data linked entities -->
                 <xsl:for-each select="$parameters">
                     <xsl:variable name="id" select="graphml:get_id(.)" />
@@ -465,20 +476,22 @@
                     <xsl:variable name="kind" select="graphml:get_kind(.)" />
                     <xsl:variable name="type" select="graphml:get_type(.)" />
                     <xsl:variable name="value" select="graphml:get_value(.)" />
-
-                    <xsl:variable name="is_data_linked" select="cdit:is_data_linked(., true())" />
-                    <xsl:variable name="is_data_linked_by_link" select="cdit:is_data_linked(., false())" />
-                    
-
-                    <xsl:if test="cdit:requires_data_link(.) and not($is_data_linked)">
+                        
+                    <xsl:if test="cdit:requires_data_link(.)">
+                        <xsl:variable name="is_data_linked" select="cdit:is_data_linked(., true())" />
                         <xsl:variable name="is_warning" select="cdit:is_data_mislink_warning(.)"/>
-                        <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($kind, o:wrap_quote($label), 'should have either a value set or a data connection (Edge_Data)'), ' '), $is_warning, 2)" />        
+
+                        <xsl:variable name="description">
+                            <xsl:value-of select="o:join_list(($kind, o:wrap_quote($label), if($kind = 'AggregateInstance') then '(or all children of)' else '', 'should have a connected Edge_Data or an explicit value set'), ' ')" />
+                        </xsl:variable>
+                        <xsl:value-of select="cdit:output_result($id, $is_data_linked, $description, $is_warning, 2)" />        
                     </xsl:if>
-                    <xsl:if test="$is_data_linked and $type = 'String' and $value != ''">
+                        
+                    <xsl:if test="$type = 'String' and $value != ''">
                         <xsl:if test="count(graphml:get_sources(., 'Edge_Data')) = 0">
                             <!-- Check if string that is set is double-quote wrapped -->
                             <xsl:variable name="got_valid_string" select="starts-with($value, o:dblquote()) and ends-with($value , o:dblquote())" />
-                            <xsl:value-of select="cdit:output_result($id, $got_valid_string = true(), o:join_list(($kind, o:wrap_quote($label), 'has a string value set which is not double quoted. Are you trying to reference a variable'), ' '), true(), 2)" />
+                            <xsl:value-of select="cdit:output_result($id, $got_valid_string = true(), o:join_list(($kind, o:wrap_quote($label), 'has an explicit string value set which is not double quoted. Are you trying to reference a variable?'), ' '), true(), 2)" />
                         </xsl:if>
                     </xsl:if>
                 </xsl:for-each>
