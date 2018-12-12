@@ -3,6 +3,9 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
+#include "../../Data/Events/cpuutilisationevent.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
+
 #include <QWidget>
 #include <QPen>
 #include <QBrush>
@@ -24,7 +27,7 @@ public:
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
-    const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& getSeries();
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries *> &getSeries();
     const QList<TIMELINE_SERIES_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_SERIES_KIND kind);
 
@@ -111,9 +114,11 @@ private:
     QColor _defaultStateColor;
     QColor _defaultNotificationColor;
     QColor _defaultLineColor;
+    QColor _defaultUtilisationColor = Qt::lightGray;
     QColor _stateColor;
     QColor _notificationColor;
     QColor _lineColor;
+    QColor _utilisationColor = _defaultUtilisationColor;
 
     int _borderColorDelta;
     int _colorDelta;
@@ -140,7 +145,7 @@ private:
     */
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
-    QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*> _seriesList;
+    QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _mappedPoints;
 

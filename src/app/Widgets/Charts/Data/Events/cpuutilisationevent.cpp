@@ -3,15 +3,15 @@
 
 /**
  * @brief CPUUtilisationEvent::CPUUtilisationEvent
- * @param node
+ * @param hostname
  * @param utilisation
  * @param time
  * @param parent
  */
-CPUUtilisationEvent::CPUUtilisationEvent(Node node, double utilisation, qint64 time, QObject *parent)
-    : MEDEA::Event(time, node.hostname, parent)
+CPUUtilisationEvent::CPUUtilisationEvent(QString hostname, double utilisation, qint64 time, QObject *parent)
+    : MEDEA::Event(time, hostname, parent)
 {
-    node_ = node;
+    hostname_ = hostname;
     utilisation_ = utilisation;
 }
 
@@ -20,7 +20,7 @@ CPUUtilisationEvent::CPUUtilisationEvent(Node node, double utilisation, qint64 t
  * @brief CPUUtilisationEvent::getUtilisation
  * @return
  */
-double CPUUtilisationEvent::getUtilisation() const
+const double& CPUUtilisationEvent::getUtilisation() const
 {
     return utilisation_;
 }
@@ -30,17 +30,7 @@ double CPUUtilisationEvent::getUtilisation() const
  * @brief CPUUtilisationEvent::getHostname
  * @return
  */
-QString CPUUtilisationEvent::getHostname() const
+const QString& CPUUtilisationEvent::getHostname() const
 {
-    return node_.hostname;
-}
-
-
-/**
- * @brief CPUUtilisationEvent::getIp
- * @return
- */
-QString CPUUtilisationEvent::getIp() const
-{
-    return node_.ip;
+    return hostname_;
 }

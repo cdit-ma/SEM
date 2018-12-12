@@ -8,15 +8,13 @@ class CPUUtilisationEvent : public MEDEA::Event
     Q_OBJECT
 
 public:
-    explicit CPUUtilisationEvent(Node node, double utilisation, qint64 time, QObject* parent = 0);
+    explicit CPUUtilisationEvent(QString hostname, double utilisation, qint64 time, QObject* parent = 0);
 
-    double getUtilisation() const;
-
-    QString getHostname() const;
-    QString getIp() const;
+    const double& getUtilisation() const;
+    const QString& getHostname() const;
 
 private:
-    Node node_;
+    QString hostname_;
     double utilisation_;
 };
 

@@ -74,7 +74,10 @@ int EntityChart::getViewItemID()
  */
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
-    _eventSeries = series;
+    if (series) {
+        _eventSeries = series;
+        _seriesList[series->getKind()] = series;
+    }
 }
 
 
@@ -86,6 +89,7 @@ void EntityChart::removeEventSeries(QString ID)
 {
     if (_eventSeries && _eventSeries->getID() == ID) {
         _eventSeries = 0;
+        _seriesList.remove(_eventSeries->getKind());
     }
 }
 
@@ -133,7 +137,7 @@ void EntityChart::removeSeries(TIMELINE_SERIES_KIND seriesKind)
  * @brief EntityChart::getSeries
  * @return
  */
-const QHash<TIMELINE_SERIES_KIND, MEDEA::DataSeries*>& EntityChart::getSeries()
+const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*>& EntityChart::getSeries()
 {
     return _seriesList;
 }
@@ -238,6 +242,7 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     _stateColor = _backgroundColor;
     _notificationColor = _backgroundColor;
     _lineColor = _backgroundColor;
+    _utilisationColor = _backgroundColor;
 
     switch (kind) {
     case TIMELINE_SERIES_KIND::STATE:
@@ -250,11 +255,15 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::LINE:
         _lineColor = _defaultLineColor;
         break;
+    case TIMELINE_SERIES_KIND::CPU_UTILISATION:
+        _utilisationColor = _defaultUtilisationColor;
+        break;
     default: {
         // clear hovered state
         _stateColor = _defaultStateColor;
         _notificationColor = _defaultNotificationColor;
         _lineColor = _defaultLineColor;
+        _utilisationColor = _defaultUtilisationColor;
         break;
     }
     }
@@ -389,7 +398,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
      */
 
     auto start = QDateTime::currentMSecsSinceEpoch();
-    const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
+    const auto& paintOrder = GET_TIMELINE_SERIES_KINDS();
+    //const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
@@ -447,7 +457,7 @@ void EntityChart::paintEventSeries(QPainter &painter)
     if (!_eventSeries)
         return;
 
-    double barWidth = 22.0; //BAR_WIDTH;
+    double barWidth = 10.0; //BAR_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
@@ -494,23 +504,55 @@ void EntityChart::paintEventSeries(QPainter &painter)
         }
     }
 
-    QColor seriesColor = Qt::gray;
-    int y = rect().center().y() - barWidth / 2.0;
+    auto max = 0.0;
+    for (const auto& data : buckets) {
+        for (auto e : data) {
+            auto event = (CPUUtilisationEvent*) e;
+            max = qMax(max, event->getUtilisation());
+        }
+    }
+
+    auto availableHeight = height() - barWidth;
+    QColor seriesColor = _utilisationColor;
+    QList<QRectF> rects;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
             continue;
+        auto event = (CPUUtilisationEvent*) buckets[i][0];
+        auto utilisation = event->getUtilisation();
+        double y = (1 - utilisation / max) * availableHeight;
         QRectF rect(i * barWidth, y, barWidth, barWidth);
-        QColor color = seriesColor.darker(100 + (50 * (count - 1)));
-        painter.setPen(Qt::lightGray);
-        if (rectHovered(rect)) {
-            painter.setPen(_highlightTextColor);
-            color = _highlightColor;
-        }
-        painter.fillRect(rect, color);
-        painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        rects.append(rect);
     }
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    for (int i = 0; i < rects.count() - 1; i++) {
+        auto rect1 = rects.at(i);
+        auto rect2 = rects.at(i + 1);
+        painter.setPen(QPen(seriesColor, 3.0));
+        painter.drawLine(rect1.center(), rect2.center());
+        painter.setPen(QPen(seriesColor, 2));
+        if (rectHovered(_eventSeries->getKind(), rect1)) {
+            painter.setPen(QPen(_highlightTextColor, 2.0));
+            painter.setBrush(_highlightColor);
+        } else {
+            painter.setBrush(seriesColor);
+        }
+        painter.drawEllipse(rect1);
+        painter.setPen(QPen(seriesColor, 2));
+        if (rectHovered(_eventSeries->getKind(), rect2)) {
+            painter.setPen(QPen(_highlightTextColor, 2.0));
+            painter.setBrush(_highlightColor);
+        } else {
+            painter.setBrush(seriesColor);
+        }
+        painter.drawEllipse(rect2);
+    }
+
+    painter.setRenderHint(QPainter::Antialiasing, false);
 }
 
 
@@ -535,6 +577,8 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::BAR:
         paintBarSeries(painter);
         break;
+    case TIMELINE_SERIES_KIND::CPU_UTILISATION:
+        paintEventSeries(painter);
     default:
         //qWarning("EntityChart::paintSeries - Series kind not handled");
         break;
@@ -550,7 +594,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    MEDEA::DataSeries* series = _seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
+    MEDEA::DataSeries* series = (MEDEA::DataSeries*)_seriesList.value(TIMELINE_SERIES_KIND::NOTIFICATION, 0);
     if (!series)
         return;
 

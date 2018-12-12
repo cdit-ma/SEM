@@ -51,7 +51,9 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
-    void requestExperimentRun(QString name);
+    void reloadExperimentRun();
+    void requestExperimentRuns(QString name);
+    void experimentRunIDSelected(quint32 ID);
 
 public slots:
     void themeChanged();
@@ -88,6 +90,8 @@ private:
     QLineEdit* lineEdit;
     QGroupBox* nameGroupBox;
     QGroupBox* runsGroupBox;
+    QAction* okAction;
+    QAction* cancelAction;
     quint32 currentExperimentRunID;
     QList<QRadioButton*> runButtons;
 

@@ -12,6 +12,9 @@ AggregationProxy::AggregationProxy() :
 }
 
 
+/**
+ * @brief AggregationProxy::RequestRunningExperiments
+ */
 void AggregationProxy::RequestRunningExperiments()
 {
     emit showChartUserInputDialog();
@@ -19,10 +22,10 @@ void AggregationProxy::RequestRunningExperiments()
 
 
 /**
- * @brief AggregationProxy::RequestExperimentRun
+ * @brief AggregationProxy::RequestExperimentRuns
  * @param experimentName
  */
-void AggregationProxy::RequestExperimentRun(QString experimentName)
+void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment Run", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
@@ -33,7 +36,7 @@ void AggregationProxy::RequestExperimentRun(QString experimentName)
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experimentName.toStdString());
 
-        auto& results = requester_.GetExperimentRun(request);
+        auto& results = requester_.GetExperimentRuns(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "Requesting experiment with name: " << experimentName;
@@ -41,10 +44,13 @@ void AggregationProxy::RequestExperimentRun(QString experimentName)
         qDebug() << "--------------------------------------------------------------------------------";
 
         for (const auto& ex : results->experiments()) {
+            auto experiment_name = getQString(ex.name());
             for (auto& exRun : ex.runs()) {
                 ExperimentRun run;
+                run.experiment_name = experiment_name;
                 run.experiment_run_id = exRun.experiment_run_id();
                 run.job_num = exRun.job_num();
+                //qDebug() << "time: " << getQString(google::protobuf::util::TimeUtil::ToString(exRun.start_time()));
                 run.start_time = getQDateTime(exRun.start_time()).toMSecsSinceEpoch();
                 run.end_time = getQDateTime(exRun.end_time()).toMSecsSinceEpoch();
                 runs.append(run);
@@ -59,6 +65,16 @@ void AggregationProxy::RequestExperimentRun(QString experimentName)
     }
 
     emit experimentRuns(runs);
+}
+
+
+/**
+ * @brief AggregationProxy::ReloadRunningExperiments
+ */
+void AggregationProxy::ReloadRunningExperiments()
+{
+    AggServer::CPUUtilisationRequest request;
+    SendCPUUtilisationRequest(request);
 }
 
 
@@ -94,5 +110,54 @@ const QDateTime AggregationProxy::getQDateTime(const google::protobuf::Timestamp
 const QString AggregationProxy::getQString(const std::string &string)
 {
     return QString::fromUtf8(string.c_str());
+}
+
+
+/**
+ * @brief AggregationProxy::setSelectedExperimentRunID
+ * @param ID
+ */
+void AggregationProxy::setSelectedExperimentRunID(quint32 ID)
+{
+    experimentRunID_ = ID;
+}
+
+
+/**
+ * @brief AggregationProxy::SendCPUUtilisationRequest
+ * @param request
+ */
+void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest &request)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Requesting CPU Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+        request.set_experiment_run_id(experimentRunID_);
+
+        auto results = requester_.GetCPUUtilisation(request);
+        emit clearPreviousEvents();
+
+        qDebug() << "--------------------------------------------------------------------------------";
+        qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
+
+        for (const auto& node : results->nodes()) {
+            auto hostname = getQString(node.node_info().hostname());
+            for (const auto& e : node.events()) {
+                auto utilisation = e.cpu_utilisation();
+                auto time = getQDateTime(e.time());
+                CPUUtilisationEvent* event = new CPUUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
+                emit receivedCPUUtilisationEvent(event);
+            }
+        }
+
+        qDebug() << "--------------------------------------------------------------------------------";
+        emit receivedAllEvents();
+
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
 }
 

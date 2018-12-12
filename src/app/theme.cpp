@@ -1290,10 +1290,12 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "bell", "Icons", "bell");
     setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "chart", "Icons", "chart");
+    setIconToggledImage("ToggleIcons", "utilisationLegendToggle", "Icons", "connect", "Icons", "connect");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
     setIconToggledImage("ToggleIcons", "barHover", "Icons", "chartTwoTone", "Icons", "chartTwoTone");
+    setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "connect", "Icons", "connect");
 }
 
 void Theme::setupAliasIcons(){

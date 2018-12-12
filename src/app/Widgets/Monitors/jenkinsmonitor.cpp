@@ -128,7 +128,7 @@ void JenkinsMonitor::themeChanged(){
     top_toolbar->setIconSize(icon_size);
     
     setStyleSheet(theme->getWidgetStyleSheet("JenkinsMonitor") + "QLabel {color:" + theme->getTextColorHex() + ";} ");
-    text_browser->setStyleSheet(theme->getLineEditStyleSheet("QTextBrowser"));
+    text_browser->setStyleSheet(theme->getLineEditStyleSheet("QTextBrowser") + "QTextBrowser{background:" + theme->getDisabledBackgroundColorHex() + ";}");
 
     abort_action->setIcon(theme->getIcon("Icons", "circleCrossDark"));
     close_action->setIcon(theme->getIcon("Icons", "cross"));

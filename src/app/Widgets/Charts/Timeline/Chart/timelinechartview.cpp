@@ -308,6 +308,11 @@ void TimelineChartView::themeChanged()
             buttonIcon = theme->getIcon("ToggleIcons", "barHover");
             break;
         }
+        case TIMELINE_SERIES_KIND::CPU_UTILISATION: {
+            actionIcon = theme->getIcon("ToggleIcons", "utilisationLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
+            break;
+        }
         default:
             continue;
         }
@@ -469,8 +474,9 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
         return;
 
     MEDEA::EventSeries* series = 0;
+    auto cpuUtilisationEvent = (CPUUtilisationEvent*) event;
+    auto ID = cpuUtilisationEvent->getHostname();
 
-    auto ID = event->getID();
     if (eventSeries.contains(ID)) {
         series = eventSeries.value(ID);
     } else {
@@ -517,7 +523,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
  */
 void TimelineChartView::constructChartForEvent(QString ID, QString label)
 {
-    MEDEA::EventSeries* series = new MEDEA::EventSeries(this);
+    CPUUtilisationEventSeries* series = new CPUUtilisationEventSeries(ID, this);
     eventSeries[ID] = series;
 
     EntityChart* chart = new EntityChart(0, this);
@@ -532,6 +538,15 @@ void TimelineChartView::constructChartForEvent(QString ID, QString label)
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
         _timelineChart->setEntityChartHovered(chart, hovered);
     });
+
+    connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
+    connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
+
+    // set the initial visibility states of the chart and each individual series in the chart
+    for (auto& action : _legendToolbar->actions()) {
+        auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+        chart->setSeriesKindVisible(kind, action->isChecked());
+    }
 }
 
 

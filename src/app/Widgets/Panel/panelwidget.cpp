@@ -225,10 +225,14 @@ void PanelWidget::testEventSeries()
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
 
         connect(&viewController->getAggregationProxy(), &AggregationProxy::showChartUserInputDialog, this, &PanelWidget::showChartInputDialog);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::experimentRuns, this, &PanelWidget::populateRunsGroupBox);
-        connect(this, &PanelWidget::requestExperimentRun, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRun);
+
+        connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
+        connect(this, &PanelWidget::reloadExperimentRun, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
+        connect(this, &PanelWidget::experimentRunIDSelected, &viewController->getAggregationProxy(), &AggregationProxy::setSelectedExperimentRunID);
     }
 }
 
@@ -369,8 +373,11 @@ void PanelWidget::themeChanged()
         }
     }
 
+    toolbar->setIconSize(theme->getIconSize());
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
+    okAction->setIcon(theme->getIcon("Icons", "tick"));
+    cancelAction->setIcon(theme->getIcon("Icons", "cross"));
 
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
                          "QGroupBox{color: lightGray; margin-top: 15px;}" +
@@ -548,17 +555,7 @@ void PanelWidget::popOutActiveTab()
  */
 void PanelWidget::requestData(bool clear)
 {
-    if (viewController) {
-        if (clear) {
-            QAction* activeTab = tabsActionGroup->checkedAction();
-            if (activeTab && tabWidgets.contains(activeTab)) {
-                auto view = qobject_cast<TimelineChartView*>(tabWidgets.value(activeTab));
-                if (view)
-                    view->clearTimelineChart();
-            }
-        }
-        QtConcurrent::run(viewController, &ViewController::QueryRunningExperiments);
-    }
+    emit reloadExperimentRun();
 }
 
 
@@ -633,11 +630,14 @@ void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
     if (runs.isEmpty())
         return;
 
+    // hiding it first, resizes the widget immediately
+    runsGroupBox->hide();
+
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
-        QString text = "ID: " + QString::number(ID) + " (" +
-                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString(DATETIME_FORMAT) + " - " +
-                       QDateTime::fromMSecsSinceEpoch(run.end_time).toString(DATETIME_FORMAT) + ")";
+        QString text = run.experiment_name + "[" + QString::number(ID) + "] - started at " +
+                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString(DATETIME_FORMAT); // + " - " +
+                       //QDateTime::fromMSecsSinceEpoch(run.end_time).toString(DATETIME_FORMAT) + ")";
 
         QRadioButton* button = new QRadioButton(text, this);
         button->setProperty("ID", ID);
@@ -646,7 +646,9 @@ void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
         runButtons.append(button);
     }
 
+    runsGroupBox->show();
     chartInputPopup->adjustSize();
+
 }
 
 
@@ -810,7 +812,7 @@ void PanelWidget::setupChartInputDialog()
     lineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(lineEdit, &QLineEdit::returnPressed, [=]() {
-        emit requestExperimentRun(lineEdit->text().trimmed());
+        emit requestExperimentRuns(lineEdit->text().trimmed());
     });
 
     nameGroupBox = new QGroupBox("Visualise Events For Experiment:");
@@ -825,10 +827,14 @@ void PanelWidget::setupChartInputDialog()
     bottomLayout->setSpacing(2);
     bottomLayout->setContentsMargins(1, 10, 1, 1);
 
+    QWidget* spacerWidget = new QWidget(this);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     toolbar = new QToolBar(this);
-    toolbar->setLayoutDirection(Qt::RightToLeft);
-    QAction* okAction = toolbar->addAction("Ok");
-    QAction* cancelAction = toolbar->addAction("Cancel");
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    toolbar->addWidget(spacerWidget);
+    cancelAction = toolbar->addAction("Cancel");
+    okAction = toolbar->addAction("Ok");
 
     QWidget* holderWidget = new QWidget(this);
     QVBoxLayout* popupLayout = new QVBoxLayout(holderWidget);
@@ -845,7 +851,7 @@ void PanelWidget::setupChartInputDialog()
         for (auto button : runButtons) {
             if (button->isChecked()) {
                 currentExperimentRunID = button->property("ID").toUInt();
-                qDebug() << "Selected experimen_run_id: " << currentExperimentRunID;
+                emit experimentRunIDSelected(currentExperimentRunID);
                 break;
             }
         }

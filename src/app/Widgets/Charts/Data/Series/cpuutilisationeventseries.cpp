@@ -5,14 +5,12 @@
 /**
  * @brief CPUUtilisationEventSeries::CPUUtilisationEventSeries
  * @param hostname
- * @param ip
  * @param parent
  */
-CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString hostname, QString ip, QObject *parent)
+CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString hostname, QObject *parent)
     : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::CPU_UTILISATION)
 {
     hostname_ = hostname;
-    ip_ = ip;
 }
 
 
@@ -23,16 +21,6 @@ CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString hostname, QString i
 const QString& CPUUtilisationEventSeries::getHostname() const
 {
     return hostname_;
-}
-
-
-/**
- * @brief CPUUtilisationEventSeries::getIp
- * @return
- */
-const QString& CPUUtilisationEventSeries::getIp() const
-{
-    return ip_;
 }
 
 
@@ -63,8 +51,8 @@ QString CPUUtilisationEventSeries::getHoveredDataString(qint64 fromTimeMS, qint6
         numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
         for (int i = 0; i < numberOfItemsToDisplay; i++) {
             auto event = (CPUUtilisationEvent*)(*current);
-            stream << "Host: " << event->getHostname() << ":\n"
-                   << "Utilisation: " << event->getUtilisation() << "%\n"
+            stream << "Host: " << hostname_ << "\n"
+                   << "Utilisation: " << event->getUtilisation() << "% "
                    << "at " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss:zzz") << "\n\n";
             current++;
         }

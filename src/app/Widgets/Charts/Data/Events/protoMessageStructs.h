@@ -87,6 +87,7 @@ struct Node {
 
 
 struct ExperimentRun {
+    QString experiment_name;
     quint32 experiment_run_id;
     quint32 job_num;
     qint64 start_time;

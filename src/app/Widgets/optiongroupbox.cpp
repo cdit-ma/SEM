@@ -206,8 +206,10 @@ void OptionGroupBox::setTitle(QString title)
 void OptionGroupBox::updateTitleCount()
 {
     auto new_title = title;
-    if (reset_action && !reset_action->isChecked()) {
-        new_title += QString(" (%1)").arg(QString::number(checkedKeys.count()));
+    if (!exclusive) {
+        if (reset_action && !reset_action->isChecked()) {
+            new_title += QString(" (%1)").arg(QString::number(checkedKeys.count()));
+        }
     }
     CustomGroupBox::setTitle(new_title);
 }
