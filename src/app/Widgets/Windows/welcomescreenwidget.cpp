@@ -168,6 +168,7 @@ void WelcomeScreenWidget::themeChanged()
 void WelcomeScreenWidget::recentProjectsUpdated()
 {
     if (action_controller) {
+        recent_project_toolbar->clear();
         for(auto action : action_controller->getRecentProjectActions()){
             recent_project_toolbar->addWidget(getButton(action));
         }

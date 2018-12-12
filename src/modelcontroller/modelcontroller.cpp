@@ -1301,8 +1301,12 @@ void ModelController::destructEntities(QList<Entity*> entities)
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(edges.toList(), true);
         addActionToStack(action);
+        
 
-        std::for_each(edges.begin(), edges.end(), [this](Entity* edge){destructEdge_((Edge*)edge);});
+        std::for_each(edges.begin(), edges.end(), [this](Entity* edge){
+            qCritical() << "Destructing: " << edge;
+            destructEdge_((Edge*)edge);}
+            );
     }
 
     for(auto entity : sorted_nodes){
@@ -1315,6 +1319,7 @@ void ModelController::destructEntities(QList<Entity*> entities)
         action.xml = exportGraphML(entity);
         addActionToStack(action);
 
+        qCritical() << "Destructing: " << node;
         destructNode_(node);
     }
 }

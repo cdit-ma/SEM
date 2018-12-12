@@ -584,7 +584,7 @@ QList<RootAction *> ActionController::getRecentProjectActions()
 {
     QList<RootAction*> actions;
 
-    foreach(QAction* action, menu_file_recentProjects->actions()){
+    for(auto action : menu_file_recentProjects->actions()){
         if(action->isSeparator()){
             continue;
         }
