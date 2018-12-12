@@ -53,7 +53,6 @@ signals:
     void rangeYChanged(double min, double max);
 
 private:
-    TIMELINE_SERIES_KIND _seriesKind;
     ViewItem* _viewItem;
     int _ID;
 

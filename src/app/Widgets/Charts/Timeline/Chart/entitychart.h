@@ -3,8 +3,8 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-//#include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
 #include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
@@ -64,6 +64,7 @@ protected:
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
+    void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
     void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
@@ -118,13 +119,16 @@ private:
     QColor _defaultStateColor;
     QColor _defaultNotificationColor;
     QColor _defaultLineColor;
-    QColor _defaultPortLifecycleColor = Qt::lightGray;
-    QColor _defaultUtilisationColor = Qt::lightGray;
     QColor _stateColor;
     QColor _notificationColor;
     QColor _lineColor;
+
+    QColor _defaultPortLifecycleColor = Qt::gray;
+    QColor _defaultWorkloadColor = Qt::gray;
+    QColor _defaultUtilisationColor = Qt::lightGray;
     QColor _portLifecycleColor = _defaultUtilisationColor;
     QColor _utilisationColor = _defaultUtilisationColor;
+    QColor _workloadColor = _defaultWorkloadColor;
 
     int _borderColorDelta;
     int _colorDelta;
@@ -150,8 +154,9 @@ private:
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
 
-    PortLifecycleEventSeries* _lifeCycleSeries = 0;
+    MEDEA::EventSeries* _eventSeries = 0;
     QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;
@@ -160,9 +165,6 @@ private:
 
     QHash<TIMELINE_SERIES_KIND, QPair<qint64, qint64>> _hoveredSeriesTimeRange;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;
-
-    MEDEA::EventSeries* _eventSeries = 0;
-
 };
 
 #endif // ENTITYCHART_H

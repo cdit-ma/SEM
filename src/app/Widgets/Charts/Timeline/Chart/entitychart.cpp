@@ -243,6 +243,7 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     _notificationColor = _backgroundColor;
     _lineColor = _backgroundColor;
     _portLifecycleColor = _backgroundColor;
+    _workloadColor = _backgroundColor;
     _utilisationColor = _backgroundColor;
 
     switch (kind) {
@@ -259,6 +260,9 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
     case TIMELINE_SERIES_KIND::PORT_LIFECYCLE:
         _portLifecycleColor = _defaultPortLifecycleColor;
         break;
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        _workloadColor = _defaultWorkloadColor;
+        break;
     case TIMELINE_SERIES_KIND::CPU_UTILISATION:
         _utilisationColor = _defaultUtilisationColor;
         break;
@@ -268,6 +272,7 @@ void EntityChart::seriesKindHovered(TIMELINE_SERIES_KIND kind)
         _notificationColor = _defaultNotificationColor;
         _lineColor = _defaultLineColor;
         _portLifecycleColor = _defaultPortLifecycleColor;
+        _workloadColor = _defaultWorkloadColor;
         _utilisationColor = _defaultUtilisationColor;
         break;
     }
@@ -319,6 +324,9 @@ void EntityChart::themeChanged()
     _notificationColor = _defaultNotificationColor;
     _lineColor = _defaultLineColor;
 
+    _defaultWorkloadColor = Qt::lightGray;
+    _workloadColor = _defaultWorkloadColor;
+
     _backgroundColor = theme->getAltBackgroundColor();
     _backgroundColor.setAlphaF(BACKGROUND_OPACITY);
     _highlightColor = theme->getHighlightColor();
@@ -339,6 +347,12 @@ void EntityChart::themeChanged()
     _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
     _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
     _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
+
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::STARTED, theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::FINISHED, theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::MESSAGE, theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::WARNING, theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
+    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::ERROR_EVENT, theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
 }
 
 
@@ -410,7 +424,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
     auto start = QDateTime::currentMSecsSinceEpoch();
     const auto& paintOrder = GET_TIMELINE_SERIES_KINDS();
-    //const static QList<TIMELINE_SERIES_KIND> paintOrder({TIMELINE_SERIES_KIND::STATE, TIMELINE_SERIES_KIND::NOTIFICATION, TIMELINE_SERIES_KIND::LINE, TIMELINE_SERIES_KIND::BAR});
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
@@ -479,6 +492,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
         break;
     case TIMELINE_SERIES_KIND::BAR:
         paintBarSeries(painter);
+        break;
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        paintWorkloadEventSeries(painter);
         break;
     case TIMELINE_SERIES_KIND::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
@@ -549,7 +565,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
            }
        }
 
-       QColor seriesColor = Qt::gray;
+       QColor seriesColor = _portLifecycleColor;
        int y = rect().center().y() - barWidth / 2.0;
 
        for (int i = 0; i < barCount; i++) {
@@ -578,6 +594,90 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
                }
                painter.fillRect(rect, color);
                painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+           }
+       }
+}
+
+
+/**
+ * @brief EntityChart::paintWorkloadEventSeries
+ * @param painter
+ */
+void EntityChart::paintWorkloadEventSeries(QPainter &painter)
+{
+    if (!_eventSeries)
+           return;
+
+       double barWidth = 22.0; //BAR_WIDTH;
+       double barCount = ceil((double)width() / barWidth);
+
+       // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+       barWidth = (double) width() / barCount;
+
+       QVector< QList<MEDEA::Event*> > buckets(barCount);
+       QVector<double> bucket_endTimes;
+       bucket_endTimes.reserve(barCount);
+
+       double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+       double current_left = _displayedMin;
+       for (int i = 0; i < barCount; i++) {
+           bucket_endTimes.append(current_left + barTimeWidth);
+           current_left = bucket_endTimes.last();
+       }
+
+       const auto& events = _eventSeries->getEvents();
+       auto current = events.constBegin();
+       auto upper = events.constEnd();
+       for (; current != upper; current++) {
+           const auto& current_time = (*current)->getTimeMS();
+           if (current_time > _displayedMin) {
+               break;
+           }
+       }
+
+       auto current_bucket = 0;
+       auto current_bucket_ittr = bucket_endTimes.constBegin();
+       auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+       // put the data in the correct bucket
+       for (;current != upper; current++) {
+           const auto& current_time = (*current)->getTimeMS();
+           while (current_bucket_ittr != end_bucket_ittr) {
+               if (current_time > (*current_bucket_ittr)) {
+                   current_bucket_ittr ++;
+                   current_bucket ++;
+               } else {
+                   break;
+               }
+           }
+           if (current_bucket < barCount) {
+               buckets[current_bucket].append(*current);
+           }
+       }
+
+       QColor seriesColor = _workloadColor;
+       int y = rect().center().y() - barWidth / 2.0;
+
+       for (int i = 0; i < barCount; i++) {
+           int count = buckets[i].count();
+           if (count == 0)
+               continue;
+           QRectF rect(i * barWidth, y, barWidth, barWidth);
+           if (count == 1) {
+               auto event = (WorkloadEvent*) buckets[i][0];
+               if (rectHovered(_eventSeries->getKind(), rect))
+                   painter.fillRect(rect, _highlightColor);
+               painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
+           } else {
+               QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+               painter.setPen(Qt::lightGray);
+               if (rectHovered(_eventSeries->getKind(), rect)) {
+                   painter.setPen(_highlightTextColor);
+                   color = _highlightColor;
+               }
+               QString countStr = count > 99 ? "99+" : QString::number(count);
+               painter.fillRect(rect, color);
+               painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
            }
        }
 }

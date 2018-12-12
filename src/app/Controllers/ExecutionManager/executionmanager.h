@@ -66,7 +66,7 @@ private:
     ProcessResult RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments=QStringList());
 
     //ProcessRunner* runner_ = 0;
-    ViewController* view_controller_ = 0;;
+    ViewController* view_controller_= 0;
     
     QProcessEnvironment re_configured_env_;
     QString saxon_jar_path_;

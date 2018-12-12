@@ -308,7 +308,7 @@ void TimelineChartView::setActiveTimelineSeriesKinds(QList<TIMELINE_EVENT_KIND> 
             _legendActions.value(TIMELINE_SERIES_KIND::PORT_LIFECYCLE)->setVisible(true);
             break;
         case TIMELINE_EVENT_KIND::WORKLOAD:
-            //_legendActions.value(TIMELINE_SERIES_KIND::)->setVisible(true);
+            _legendActions.value(TIMELINE_SERIES_KIND::WORKLOAD)->setVisible(true);
             break;
         case TIMELINE_EVENT_KIND::CPU_UTILISATION:
             _legendActions.value(TIMELINE_SERIES_KIND::CPU_UTILISATION)->setVisible(true);
@@ -380,6 +380,11 @@ void TimelineChartView::themeChanged()
         case TIMELINE_SERIES_KIND::PORT_LIFECYCLE: {
             actionIcon = theme->getIcon("ToggleIcons", "portLifecycleLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
+            break;
+        }
+        case TIMELINE_SERIES_KIND::WORKLOAD: {
+            actionIcon = theme->getIcon("ToggleIcons", "workloadLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
             break;
         }
         case TIMELINE_SERIES_KIND::CPU_UTILISATION: {
@@ -481,9 +486,9 @@ void TimelineChartView::updateChartHoverDisplay()
             if (action && action->isChecked()) {
                 if (hoveredKinds.contains(kind)) {
                     auto range = entityChart->getHoveredTimeRange(kind);
-                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second, HOVER_DISPLAY_ITEM_COUNT);
+                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second, HOVER_DISPLAY_ITEM_COUNT, DATETIME_FORMAT);
                     if (!hoveredInfo.isEmpty()) {
-                        hoveredData[s->getKind()] += hoveredInfo + "\n";
+                        hoveredData[kind] += hoveredInfo + "\n";
                     }
                 }
             }
@@ -593,6 +598,9 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     switch (kind) {
     case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
         series = new PortLifecycleEventSeries(ID, this);
+        break;
+    case TIMELINE_EVENT_KIND::WORKLOAD:
+        series = new WorkloadEventSeries(ID, this);
         break;
     case TIMELINE_EVENT_KIND::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(ID, this);

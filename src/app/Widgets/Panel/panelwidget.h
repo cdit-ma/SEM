@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QRadioButton>
+#include <QCheckBox>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
@@ -54,9 +55,10 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
-    void reloadExperimentRun();
     void requestExperimentRuns(QString name);
-    void experimentRunIDSelected(quint32 ID);
+    void requestExperimentState(quint32 ID);
+    void requestEvents(QStringList names);
+    void reloadEvents();
 
 public slots:
     void themeChanged();
@@ -76,6 +78,7 @@ public slots:
     void playPauseToggled(bool checked);
 
     void populateRunsGroupBox(QList<ExperimentRun> runs);
+    void populateNamesGroupBox(QStringList names);
 
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
@@ -85,17 +88,19 @@ private:
     void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
 
     void setupChartInputDialog();
-    void showChartInputDialog();
+    void setChartInputDialogVisible(bool visible);
 
     HoverPopup* chartInputPopup;
     QToolBar* toolbar;
     QLineEdit* lineEdit;
     QGroupBox* nameGroupBox;
     QGroupBox* runsGroupBox;
+    QGroupBox* filtersGroupBox;
     QAction* okAction;
     QAction* cancelAction;
-    quint32 currentExperimentRunID;
+
     QList<QRadioButton*> runButtons;
+    QList<QCheckBox*> nameButtons;
 
     ViewController* viewController = 0;
 

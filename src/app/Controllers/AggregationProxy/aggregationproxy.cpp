@@ -20,7 +20,7 @@ AggregationProxy::AggregationProxy() :
  */
 void AggregationProxy::RequestRunningExperiments()
 {
-    emit showChartUserInputDialog();
+    emit setChartUserInputDialogVisible(true);
 }
 
 
@@ -30,12 +30,11 @@ void AggregationProxy::RequestRunningExperiments()
  */
 void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
-    auto notification = NotificationManager::manager()->AddNotification("Request Experiment Run", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
-    QList<ExperimentRun> runs;
+    auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
 
+        QList<ExperimentRun> runs;
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experimentName.toStdString());
 
@@ -59,14 +58,61 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
             }
         }
 
+        emit requstedExperimentRuns(runs);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
+        emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
 
-    emit experimentRuns(runs);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestExperimentState
+ * @param experimentRunID
+ */
+void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+
+        AggServer::ExperimentStateRequest request;
+        request.set_experiment_run_id(experimentRunID);
+        experimentRunID_ = experimentRunID;
+
+        auto& results = requester_.GetExperimentState(request);
+        QStringList names;
+        qDebug() << "[Experiment State] Results: " << results->components_size();
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        for (const auto& component : results->components()) {
+            auto name = getQString(component.name());
+            names.append(name);
+        }
+
+        emit requstedComponentNames(names);
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        emit setChartUserInputDialogVisible(false);
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::RequestEvents
+ * @param componentNames
+ */
+void AggregationProxy::RequestEvents(QStringList componentNames)
+{
+    componentNames_ = componentNames;
+    ReloadRunningExperiments();
 }
 
 
@@ -75,13 +121,22 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
  */
 void AggregationProxy::ReloadRunningExperiments()
 {
-    AggServer::PortLifecycleRequest portRequest;
-    portRequest.set_experiment_run_id(experimentRunID_);
-    SendPortLifecycleRequest(portRequest);
+    AggServer::PortLifecycleRequest portLifecycleRequest;
+    portLifecycleRequest.set_experiment_run_id(experimentRunID_);
+    SendPortLifecycleRequest(portLifecycleRequest);
 
-    AggServer::CPUUtilisationRequest cpuRequest;
-    cpuRequest.set_experiment_run_id(experimentRunID_);
-    SendCPUUtilisationRequest(cpuRequest);
+    AggServer::WorkloadRequest workloadRequest;
+    workloadRequest.set_experiment_run_id(experimentRunID_);
+    SendWorkloadRequest(workloadRequest);
+
+    AggServer::CPUUtilisationRequest cpuUtilisationRequest;
+    cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
+    SendCPUUtilisationRequest(cpuUtilisationRequest);
+
+    for (auto name : componentNames_) {
+        portLifecycleRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
+        workloadRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
+    }
 }
 
 
@@ -94,6 +149,17 @@ std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::constructTimestam
 {
     google::protobuf::Timestamp timestamp = google::protobuf::util::TimeUtil::MillisecondsToTimestamp(milliseconds);
     return std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp(timestamp));
+}
+
+
+/**
+ * @brief AggregationProxy::constructStdStringFromQString
+ * @param s
+ * @return
+ */
+std::string AggregationProxy::constructStdStringFromQString(QString s)
+{
+    return s.toLocal8Bit().constData();
 }
 
 
@@ -140,7 +206,6 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
     auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-
         auto results = requester_.GetPortLifecycle(request);
         emit clearPreviousEvents();
 
@@ -166,6 +231,43 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
 
 
 /**
+ * @brief AggregationProxy::SendWorkloadRequest
+ * @param request
+ */
+void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Requesting Workload", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+        auto results = requester_.GetWorkload(request);
+        emit clearPreviousEvents();
+
+        qDebug() << "[Workload Request] Result size#: " << results.get()->events_size();
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        for (auto item : results.get()->events()) {
+            auto workerInst = convertWorkerInstance(item.worker_inst());
+            auto type = getWorkloadEventType(item.type());
+            auto workloadID = item.workload_id();
+            auto time = getQDateTime(item.time()).toMSecsSinceEpoch();
+            auto funcName = getQString(item.function_name());
+            auto args = getQString(item.args());
+            auto logLevel = item.log_level();
+            WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
+            emit receivedWorkloadEvent(event);
+        }
+
+        emit receivedAllEvents();
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
+}
+
+
+/**
  * @brief AggregationProxy::SendCPUUtilisationRequest
  * @param request
  */
@@ -174,7 +276,6 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
     auto notification = NotificationManager::manager()->AddNotification("Requesting CPU Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-
         auto results = requester_.GetCPUUtilisation(request);
         emit clearPreviousEvents();
 
@@ -260,5 +361,44 @@ Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
         return Port::Kind::REPLIER;
     default:
         return Port::Kind::NO_KIND;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::convertWorkerInstance
+ * @param inst
+ * @return
+ */
+WorkloadEvent::WorkerInstance AggregationProxy::convertWorkerInstance(const AggServer::WorkerInstance inst)
+{
+    WorkloadEvent::WorkerInstance workerInst;
+    workerInst.name = getQString(inst.name());
+    workerInst.path = getQString(inst.path());
+    workerInst.graphml_id = getQString(inst.graphml_id());
+    return workerInst;
+}
+
+
+/**
+ * @brief AggregationProxy::getWorkloadEventType
+ * @param type
+ * @return
+ */
+WorkloadEvent::WorkloadEventType AggregationProxy::getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type)
+{
+    switch (type) {
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
+        return WorkloadEvent::WorkloadEventType::STARTED;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
+        return WorkloadEvent::WorkloadEventType::FINISHED;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
+        return WorkloadEvent::WorkloadEventType::MESSAGE;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
+        return WorkloadEvent::WorkloadEventType::WARNING;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
+        return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
+    default:
+        return WorkloadEvent::WorkloadEventType::UNKNOWN;
     }
 }

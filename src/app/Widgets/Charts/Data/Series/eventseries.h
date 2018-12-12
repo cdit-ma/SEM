@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <QTextStream>
 
-enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, PORT_LIFECYCLE, CPU_UTILISATION};
+enum class TIMELINE_SERIES_KIND{BASE, DATA, STATE, NOTIFICATION, LINE, BAR, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION};
 
 static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
 {
@@ -17,6 +17,7 @@ static QList<TIMELINE_SERIES_KIND> GET_TIMELINE_SERIES_KINDS()
             TIMELINE_SERIES_KIND::LINE,
             TIMELINE_SERIES_KIND::BAR,
             TIMELINE_SERIES_KIND::PORT_LIFECYCLE,
+            TIMELINE_SERIES_KIND::WORKLOAD,
             TIMELINE_SERIES_KIND::CPU_UTILISATION};
 }
 
@@ -35,8 +36,10 @@ static QString GET_TIMELINE_SERIES_KIND_STRING(TIMELINE_SERIES_KIND kind)
         return "Bar";
     case TIMELINE_SERIES_KIND::PORT_LIFECYCLE:
         return "PortLifecycle";
+    case TIMELINE_SERIES_KIND::WORKLOAD:
+        return "Workload";
     case TIMELINE_SERIES_KIND::CPU_UTILISATION:
-        return "Utilisation";
+        return "CPUUtilisation";
     default:
         return "Data";
     }
@@ -57,11 +60,11 @@ public:
     void addEvents(QList<Event*>& events);
     const QList<Event*>& getEvents();
 
-    qint64 getMinTimeMS() const;
-    qint64 getMaxTimeMS() const;
+    const qint64& getMinTimeMS() const;
+    const qint64& getMaxTimeMS() const;
     QPair<qint64, qint64> getTimeRangeMS() const;
 
-    TIMELINE_SERIES_KIND getKind() const;
+    const TIMELINE_SERIES_KIND& getKind() const;
 
     virtual QString getID() const;
     virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());

@@ -123,14 +123,21 @@ void AxisSlider::updateMaxRatio(double ratio)
  */
 void AxisSlider::zoom(double factor)
 {
+    double delta = (_actualMax - _actualMin) * (1 - factor);
+    double scaledMin = _actualMin + delta;
+    double scaledMax = _actualMax - delta;
     if (factor > 1) {
+        if (scaledMin < 0 || scaledMax > _sliderRange)
+            return;
+    }
+    moveSliders(scaledMin, scaledMax);
+
+    /*if (factor > 1) {
         // stop zooming out when one of the sliders hit a limit
         if (_sliderMin == 0 || _sliderMax == _sliderRange)
             return;
     }
-
-    double delta = (_actualMax - _actualMin) * (1 - factor);
-    moveSliders(_actualMin + delta, _actualMax - delta);
+    moveSliders(_actualMin + delta, _actualMax - delta);*/
 }
 
 
