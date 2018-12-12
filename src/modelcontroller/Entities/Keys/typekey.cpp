@@ -112,9 +112,6 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
 
 #include <QDebug>
 
-bool TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
-    return BindTypes(src, dst, bind);
-}
 
 void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
     auto namespace_data = node->getData(KeyName::Namespace);
@@ -126,12 +123,17 @@ void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
     }
 }
 
-bool TypeKey::BindTypes(Node* src, Node* dst, bool bind){
-    auto inner_success = Data::LinkData(src, KeyName::InnerType, dst, KeyName::InnerType, bind);
-    if(inner_success){
-        return Data::LinkData(src, KeyName::OuterType, dst, KeyName::OuterType, bind);
+bool TypeKey::BindTypes(Node* src, Node* dst, bool bind_outer, bool bind){
+    //Try bind Inner to Inner
+    auto success = Data::LinkData(src, KeyName::InnerType, dst, KeyName::InnerType, bind);
+    if(!success){
+        //Try Type to Inner
+        success = Data::LinkData(src, KeyName::Type, dst, KeyName::InnerType, bind);
     }
-    return Data::LinkData(src, KeyName::Type, dst, KeyName::InnerType, bind);
+    if(success){
+        success = Data::LinkData(src, KeyName::OuterType, dst, KeyName::OuterType, bind);
+    }
+    return success;
 }
 
 bool TypeKey::CompareTypes(Node* node_1, Node* node_2){

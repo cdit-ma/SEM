@@ -273,9 +273,11 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             QList<Node*> children_to_bind;
 
             switch(destination_parent->getNodeKind()){
-                case NODE_KIND::SETTER:
+                case NODE_KIND::SETTER:{
+                    //children_to_bind += destination_parent;
+                }
                 case NODE_KIND::BOOLEAN_EXPRESSION:{
-                    children_to_bind = destination_parent->getChildren();
+                    children_to_bind += destination_parent->getChildren();
                     bind_outer_type = true;
                     break;
                 }
@@ -299,12 +301,14 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             
             for(auto parameter : children_to_bind){
                 if(parameter->getDataValue(KeyName::IsGenericParam).toBool()){
+                    TypeKey::BindTypes(source, parameter, bind_outer_type, setup);
+                    /*
                     if(bind_inner_type){
                         Data::LinkData(source, KeyName::InnerType, parameter, KeyName::InnerType, setup);
                     }
                     if(bind_outer_type){
                         Data::LinkData(source,KeyName::OuterType, parameter, KeyName::OuterType, setup);
-                    }
+                    }*/
                 }
             }
         }
@@ -318,7 +322,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         Data::LinkData(bind_source, KeyName::Label, destination, KeyName::Value, setup);
 
         if(destination->getNodeKind() == NODE_KIND::VARIABLE_PARAMETER){
-            TypeKey::BindTypes(source, destination, setup);
+            TypeKey::BindTypes(source, destination, true, setup);
         }
     }
 }

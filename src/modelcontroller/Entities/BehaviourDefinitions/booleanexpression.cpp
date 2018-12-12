@@ -85,7 +85,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     
 
     updateLabel();
-    TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
+    TypeKey::BindTypes(lhs_, rhs_, true, true);
 };
 
 bool MEDEA::BooleanExpression::canAdoptChild(Node* child)

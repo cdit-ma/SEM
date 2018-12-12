@@ -44,10 +44,10 @@ void Enum::DataAdded(Data* data){
 
 void Enum::childAdded(Node* child){
     Node::childAdded(child);
-    TypeKey::BindTypes(this, child, true);
+    TypeKey::BindTypes(this, child, false, true);
 }
 
 void Enum::childRemoved(Node* child){
     Node::childRemoved(child);
-    TypeKey::BindTypes(this, child, false);
+    TypeKey::BindTypes(this, child, false, false);
 }
