@@ -2,6 +2,7 @@
 #define CPUUTILISATIONEVENTSERIES_H
 
 #include "eventseries.h"
+#include "../Events/cpuutilisationevent.h"
 
 class CPUUtilisationEventSeries : public MEDEA::EventSeries
 {

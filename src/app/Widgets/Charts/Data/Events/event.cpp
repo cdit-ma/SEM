@@ -18,6 +18,16 @@ MEDEA::Event::Event(qint64 time, QString name, QObject *parent)
 
 
 /**
+ * @brief MEDEA::Event::getID
+ * @return
+ */
+QString MEDEA::Event::getID() const
+{
+    return QString::number(eventID_);
+}
+
+
+/**
  * @brief MEDEA::Event::getTimeMS
  * @return
  */
@@ -41,7 +51,17 @@ const QString& MEDEA::Event::getName() const
  * @brief MEDEA::Event::getID
  * @return
  */
-QString MEDEA::Event::getID() const
+QString MEDEA::Event::getEventID() const
 {
-    return QString::number(eventID_);
+    return getID();
+}
+
+
+/**
+ * @brief MEDEA::Event::getKind
+ * @return
+ */
+TIMELINE_EVENT_KIND MEDEA::Event::getKind() const
+{
+    return TIMELINE_EVENT_KIND::UNKNOWN;
 }

@@ -13,6 +13,8 @@ public:
     const double& getUtilisation() const;
     const QString& getHostname() const;
 
+    QString getEventID() const;
+
 private:
     QString hostname_;
     double utilisation_;

@@ -1,5 +1,4 @@
 #include "cpuutilisationeventseries.h"
-#include "../Events/cpuutilisationevent.h"
 
 
 /**

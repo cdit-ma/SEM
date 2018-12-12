@@ -567,7 +567,18 @@ void NodeView::minimap_Zoom(int delta)
  */
 void NodeView::receiveMouseMove(QMouseEvent *event)
 {
-    mouseMoveEvent(event);
+    switch (event->type()) {
+    case QEvent::MouseMove:
+        mouseMoveEvent(event);
+        break;
+    case QEvent::MouseButtonDblClick:
+        mouseDoubleClickEvent(event);
+        break;
+    default:
+        break;
+    }
+
+    //mouseMoveEvent(event);
 }
 
 

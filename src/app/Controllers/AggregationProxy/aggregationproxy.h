@@ -6,7 +6,9 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 #include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
+#include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
+
 
 class AggregationProxy : public QObject
 {
@@ -27,6 +29,7 @@ signals:
     void showChartUserInputDialog();
     void experimentRuns(QList<ExperimentRun> runs);
 
+    void receivedPortLifecycleEvent(PortLifecycleEvent* event);
     void receivedCPUUtilisationEvent(CPUUtilisationEvent* event);
 
     void clearPreviousEvents();
@@ -35,8 +38,13 @@ signals:
 public slots:
     void setSelectedExperimentRunID(quint32 ID);
 
-private:
+private:    
+    void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
     void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
+
+    Port convertPort(const AggServer::Port port);
+    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
+    Port::Kind getPortKind(const AggServer::Port_Kind kind);
 
     AggServer::Requester requester_;
     quint32 experimentRunID_;

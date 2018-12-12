@@ -34,3 +34,13 @@ const QString& CPUUtilisationEvent::getHostname() const
 {
     return hostname_;
 }
+
+
+/**
+ * @brief CPUUtilisationEvent::getEventID
+ * @return
+ */
+QString CPUUtilisationEvent::getEventID() const
+{
+    return hostname_;
+}

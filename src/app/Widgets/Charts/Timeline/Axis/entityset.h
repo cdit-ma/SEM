@@ -1,16 +1,17 @@
 #ifndef ENTITYSET_H
 #define ENTITYSET_H
 
+
+
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QtCharts/QChart>
 
 #include "../../../../theme.h"
 #include "entityaxis.h"
 
-using namespace QtCharts;
+#include <QtCharts/QAbstractSeries>
 
 class EntitySet : public QWidget
 {
@@ -21,25 +22,9 @@ public:
     explicit EntitySet(QString label = "", QWidget* parent = 0);
     ~EntitySet();
 
-    int getParentEntityID();
-    int getLastChildID();
     int getAllDepthChildrenCount();
 
-    EntitySet* getChildEntitySet(int ID);
-    QList<EntitySet*> getChildrenEntitySets();
-
     bool isExpanded();
-
-    void setHovered(bool hovered);
-
-    void setID(int ID);
-    int getID();
-
-    void setPreviousID(int ID);
-    int getPreviousID();
-
-    void setNextID(int ID);
-    int getNextID();
 
     void setDepth(int depth);
     int getDepth();
@@ -49,6 +34,8 @@ public:
 
     void addChildEntitySet(EntitySet* child);
     void setParentEntitySet(EntitySet* parent);
+
+    void setHovered(bool hovered);
 
 signals:
     void childAdded();
@@ -82,9 +69,6 @@ private:
     int _depth;
     QString _label;
 
-    int _previousID = -1;
-    int _nextID = -1;
-
     int allDepthChildrenCount = 0;
     bool _isExpanded = false;
     bool _isVisible = true;
@@ -106,8 +90,8 @@ private:
 
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;
-    QHash<int, EntitySet*> childrenHash;
-    QList<QAbstractSeries*> seriesList;
+    //QHash<int, EntitySet*> childrenHash;
+    QList<QtCharts::QAbstractSeries*> seriesList;
 
 };
 

@@ -3,8 +3,9 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Events/cpuutilisationevent.h"
+//#include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -27,13 +28,13 @@ public:
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
-    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries *> &getSeries();
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> &getSeries();
     const QList<TIMELINE_SERIES_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_SERIES_KIND kind);
 
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
-    
+
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
 
@@ -61,8 +62,10 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    void paintEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
+    void paintPortLifecycleEventSeries(QPainter& painter);
+    void paintCPUUtilisationEventSeries(QPainter& painter);
+    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
@@ -79,6 +82,7 @@ private:
     void setMin(double min);
     void setMax(double max);
     void setRange(double min, double max);
+    void rangeChanged();
 
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
@@ -114,10 +118,12 @@ private:
     QColor _defaultStateColor;
     QColor _defaultNotificationColor;
     QColor _defaultLineColor;
+    QColor _defaultPortLifecycleColor = Qt::lightGray;
     QColor _defaultUtilisationColor = Qt::lightGray;
     QColor _stateColor;
     QColor _notificationColor;
     QColor _lineColor;
+    QColor _portLifecycleColor = _defaultUtilisationColor;
     QColor _utilisationColor = _defaultUtilisationColor;
 
     int _borderColorDelta;
@@ -143,6 +149,9 @@ private:
     }
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
+
+    PortLifecycleEventSeries* _lifeCycleSeries = 0;
+    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;

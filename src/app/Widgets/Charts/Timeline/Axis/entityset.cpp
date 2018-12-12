@@ -48,42 +48,6 @@ EntitySet::~EntitySet()
 
 
 /**
- * @brief EntitySet::getID
- * @return
- */
-int EntitySet::getID()
-{
-    return _ID;
-}
-
-
-/**
- * @brief EntitySet::getParentEntityID
- * @return
- */
-int EntitySet::getParentEntityID()
-{
-    if (parentEntitySet) {
-        return parentEntitySet->getID();
-    }
-    return -1;
-}
-
-
-/**
- * @brief EntitySet::getLastChildID
- * @return
- */
-int EntitySet::getLastChildID()
-{
-    if (!childrenSets.isEmpty()) {
-        return childrenSets.last()->getID();
-    }
-    return _ID;
-}
-
-
-/**
  * @brief EntitySet::getAllDepthChildrenCount
  * This returns this set's total number of children all the way down to the lowest depth.
  * @return
@@ -95,87 +59,12 @@ int EntitySet::getAllDepthChildrenCount()
 
 
 /**
- * @brief EntitySet::getChildEntitySet
- * @param ID
- * @return
- */
-EntitySet* EntitySet::getChildEntitySet(int ID)
-{
-    return childrenHash.value(ID, 0);
-}
-
-
-/**
- * @brief EntitySet::getChildrenEntitySets
- * @return
- */
-QList<EntitySet*> EntitySet::getChildrenEntitySets()
-{
-    return childrenSets;
-}
-
-
-/**
  * @brief EntitySet::isExpanded
  * @return
  */
 bool EntitySet::isExpanded()
 {
     return _isExpanded;
-}
-
-
-/**
- * @brief EntitySet::setHovered
- * @param hovered
- */
-void EntitySet::setHovered(bool hovered)
-{
-    if (hovered) {
-        textLabel->setStyleSheet("color: " + highlighColorStr + ";");
-    } else {
-        textLabel->setStyleSheet("color: " + textColorStr + ";");
-    }
-}
-
-
-/**
- * @brief EntitySet::setPreviousID
- * @param ID
- */
-void EntitySet::setPreviousID(int ID)
-{
-    _previousID = ID;
-}
-
-
-/**
- * @brief EntitySet::getPreviousID
- * @return
- */
-int EntitySet::getPreviousID()
-{
-    return _previousID;
-}
-
-
-/**
- * @brief EntitySet::setNextID
- * @param ID
- */
-void EntitySet::setNextID(int ID)
-{
-    _nextID = ID;
-}
-
-
-/**
- * @brief EntitySet::getNextID
- * @return
- */
-int EntitySet::getNextID()
-{
-    return _nextID;
 }
 
 
@@ -210,16 +99,6 @@ QString EntitySet::getLabel()
 
 
 /**
- * @brief EntitySet::setID
- * @param ID
- */
-void EntitySet::setID(int ID)
-{
-    _ID = ID;
-}
-
-
-/**
  * @brief EntitySet::setLabel
  * @param label
  */
@@ -241,13 +120,11 @@ void EntitySet::addChildEntitySet(EntitySet* child)
 {
     if (child) {
 
-        int childID = child->getID();
         child->setParentEntitySet(this);
         child->setDepth(_depth + 1);
         child->setContentsMargins(CHILD_TAB_WIDTH * child->getDepth(), 0, 0, 0);
         child->setVisible(_isExpanded);
         childrenSets.append(child);
-        childrenHash[childID] = child;
 
         connect(child, &EntitySet::childAdded, this, &EntitySet::childEntityAdded);
         connect(child, &EntitySet::childRemoved, this, &EntitySet::childEntityRemoved);
@@ -271,6 +148,20 @@ void EntitySet::setParentEntitySet(EntitySet* parent)
 
 
 /**
+ * @brief EntitySet::setHovered
+ * @param hovered
+ */
+void EntitySet::setHovered(bool hovered)
+{
+    if (hovered) {
+        textLabel->setStyleSheet("color: " + highlighColorStr + ";");
+    } else {
+        textLabel->setStyleSheet("color: " + textColorStr + ";");
+    }
+}
+
+
+/**
  * @brief EntitySet::themeChanged
  * @param theme
  */
@@ -289,7 +180,11 @@ void EntitySet::themeChanged(Theme* theme)
     contractedPixmap = theme->getImage("Icons", "triangleRight", theme->getIconSize(), theme->getMenuIconColor());
 
     textLabel->setFont(theme->getFont());
-    _tickPen = QPen(theme->getAltTextColor(), 2);
+    _tickPen = QPen(theme->getAltTextColor(), 2.0);
+
+    textColorStr = theme->getTextColorHex();
+    highlighColorStr = theme->getHighlightColorHex();
+    setHovered(false);
 
     textColorStr = theme->getTextColorHex();
     highlighColorStr = theme->getHighlightColorHex();
@@ -365,7 +260,6 @@ void EntitySet::childEntityRemoved(EntitySet* child)
     int totalChildrenToRemove = 1 + child->getAllDepthChildrenCount();
     allDepthChildrenCount -= totalChildrenToRemove;
     childrenSets.removeAll(child);
-    childrenHash.remove(child->getID());
 
     // update the icon to show that it can't be expanded
     if (allDepthChildrenCount == 0) {

@@ -6,6 +6,9 @@
 #include <QtConcurrent>
 
 
+/**
+ * @brief AggregationProxy::AggregationProxy
+ */
 AggregationProxy::AggregationProxy() :
     requester_("tcp://192.168.111.249:12345")
 {
@@ -50,7 +53,6 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
                 run.experiment_name = experiment_name;
                 run.experiment_run_id = exRun.experiment_run_id();
                 run.job_num = exRun.job_num();
-                //qDebug() << "time: " << getQString(google::protobuf::util::TimeUtil::ToString(exRun.start_time()));
                 run.start_time = getQDateTime(exRun.start_time()).toMSecsSinceEpoch();
                 run.end_time = getQDateTime(exRun.end_time()).toMSecsSinceEpoch();
                 runs.append(run);
@@ -73,8 +75,13 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
  */
 void AggregationProxy::ReloadRunningExperiments()
 {
-    AggServer::CPUUtilisationRequest request;
-    SendCPUUtilisationRequest(request);
+    AggServer::PortLifecycleRequest portRequest;
+    portRequest.set_experiment_run_id(experimentRunID_);
+    SendPortLifecycleRequest(portRequest);
+
+    AggServer::CPUUtilisationRequest cpuRequest;
+    cpuRequest.set_experiment_run_id(experimentRunID_);
+    SendCPUUtilisationRequest(cpuRequest);
 }
 
 
@@ -120,6 +127,41 @@ const QString AggregationProxy::getQString(const std::string &string)
 void AggregationProxy::setSelectedExperimentRunID(quint32 ID)
 {
     experimentRunID_ = ID;
+    ReloadRunningExperiments();
+}
+
+
+/**
+ * @brief AggregationProxy::SendPortLifecycleRequest
+ * @param request
+ */
+void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
+{
+    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+    try {
+
+        auto results = requester_.GetPortLifecycle(request);
+        emit clearPreviousEvents();
+
+        qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
+        qDebug() << "--------------------------------------------------------------------------------";
+
+        for (auto item : results.get()->events()) {
+            auto port = convertPort(item.port());
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
+            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            emit receivedPortLifecycleEvent(event);
+        }
+
+        emit receivedAllEvents();
+        notification->setSeverity(Notification::Severity::SUCCESS);
+
+    } catch (const std::exception& ex) {
+        notification->setSeverity(Notification::Severity::ERROR);
+        notification->setDescription(ex.what());
+    }
 }
 
 
@@ -132,13 +174,12 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
     auto notification = NotificationManager::manager()->AddNotification("Requesting CPU Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-        request.set_experiment_run_id(experimentRunID_);
 
         auto results = requester_.GetCPUUtilisation(request);
         emit clearPreviousEvents();
 
-        qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
+        qDebug() << "--------------------------------------------------------------------------------";
 
         for (const auto& node : results->nodes()) {
             auto hostname = getQString(node.node_info().hostname());
@@ -150,9 +191,7 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
             }
         }
 
-        qDebug() << "--------------------------------------------------------------------------------";
         emit receivedAllEvents();
-
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -161,3 +200,65 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
     }
 }
 
+
+/**
+ * @brief AggregationProxy::convertPort
+ * @param port
+ * @return
+ */
+Port AggregationProxy::convertPort(const AggServer::Port port)
+{
+    Port portStruct;
+    portStruct.kind = getPortKind(port.kind());
+    portStruct.name = getQString(port.name());
+    portStruct.path = getQString(port.path());
+    portStruct.middleware = getQString(port.middleware());
+    portStruct.graphml_id = getQString(port.graphml_id());
+    return portStruct;
+}
+
+
+/**
+ * @brief AggregationProxy::getLifeCycleType
+ * @param type
+ * @return
+ */
+LifecycleType AggregationProxy::getLifeCycleType(const AggServer::LifecycleType type)
+{
+    switch (type) {
+    case AggServer::LifecycleType::CONFIGURE:
+        return LifecycleType::CONFIGURE;
+    case AggServer::LifecycleType::ACTIVATE:
+        return LifecycleType::ACTIVATE;
+    case AggServer::LifecycleType::PASSIVATE:
+        return LifecycleType::PASSIVATE;
+    case AggServer::LifecycleType::TERMINATE:
+        return LifecycleType::TERMINATE;
+    default:
+        return LifecycleType::NO_TYPE;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::getPortKind
+ * @param kind
+ * @return
+ */
+Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
+{
+    switch (kind) {
+    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+        return Port::Kind::PERIODIC;
+    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+        return Port::Kind::PUBLISHER;
+    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+        return Port::Kind::SUBSCRIBER;
+    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+        return Port::Kind::REQUESTER;
+    case AggServer::Port_Kind::Port_Kind_REPLIER:
+        return Port::Kind::REPLIER;
+    default:
+        return Port::Kind::NO_KIND;
+    }
+}

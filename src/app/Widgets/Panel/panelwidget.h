@@ -36,6 +36,9 @@ public:
 
     bool isMinimised();
 
+    void constructEventsView();
+    void constructCPUEventsView();
+
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
@@ -68,7 +71,6 @@ public slots:
     void popOutActiveTab();
 
     void requestData(bool clear = true);
-    void timeRangeChanged(qint64 from, qint64 to);
 
     void handleTimeout();
     void playPauseToggled(bool checked);
@@ -110,7 +112,6 @@ private:
 
     QAction* requestDataAction = 0;
     QAction* refreshDataAction = 0;
-    TimelineChartView* lifecycleView = 0;
 
     QAction* tabsMenuAction = 0;
     QMenu* tabsMenu = 0;

@@ -137,6 +137,42 @@ bool PanelWidget::isMinimised()
 }
 
 
+/**
+ * @brief PanelWidget::constructEventsView
+ */
+void PanelWidget::constructEventsView()
+{
+    TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::WORKLOAD});
+    defaultActiveAction = addTab("Events", view);
+    defaultActiveAction->trigger();
+
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
+    }
+}
+
+
+/**
+ * @brief PanelWidget::constructCPUEventsView
+ */
+void PanelWidget::constructCPUEventsView()
+{
+    TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    defaultActiveAction = addTab("Utilisation", view);
+    defaultActiveAction->trigger();
+
+    if (viewController) {
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+    }
+}
+
+
 void PanelWidget::testDataSeries()
 {
     QList<QPointF> points;
@@ -219,20 +255,15 @@ void PanelWidget::testNewTimelineView()
 void PanelWidget::testEventSeries()
 {
     TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::CPU_UTILISATION});
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
 
     if (viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
-
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::showChartUserInputDialog, this, &PanelWidget::showChartInputDialog);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::experimentRuns, this, &PanelWidget::populateRunsGroupBox);
-
-        connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-        connect(this, &PanelWidget::reloadExperimentRun, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
-        connect(this, &PanelWidget::experimentRunIDSelected, &viewController->getAggregationProxy(), &AggregationProxy::setSelectedExperimentRunID);
     }
 }
 
@@ -319,8 +350,19 @@ void PanelWidget::constructSizeTestTab()
 void PanelWidget::setViewController(ViewController *vc)
 {
     viewController = vc;
-    testNewTimelineView();
-    testEventSeries();
+
+    // connect panel to the AggregationProxy
+    connect(&viewController->getAggregationProxy(), &AggregationProxy::showChartUserInputDialog, this, &PanelWidget::showChartInputDialog);
+    connect(&viewController->getAggregationProxy(), &AggregationProxy::experimentRuns, this, &PanelWidget::populateRunsGroupBox);
+    connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
+    connect(this, &PanelWidget::reloadExperimentRun, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
+    connect(this, &PanelWidget::experimentRunIDSelected, &viewController->getAggregationProxy(), &AggregationProxy::setSelectedExperimentRunID);
+
+    constructEventsView();
+    constructCPUEventsView();
+
+    //testNewTimelineView();
+    //testEventSeries();
 }
 
 
@@ -560,20 +602,6 @@ void PanelWidget::requestData(bool clear)
 
 
 /**
- * @brief PanelWidget::timeRangeChanged
- * @param from
- * @param to
- */
-void PanelWidget::timeRangeChanged(qint64 from, qint64 to)
-{
-    // pass the new ranges to the chart view
-
-    // send a request with the new time range
-
-}
-
-
-/**
  * @brief PanelWidget::handleTimeout
  */
 void PanelWidget::handleTimeout()
@@ -731,7 +759,6 @@ void PanelWidget::setupLayout()
         requestData(true);
     });
     refreshDataAction = titleBar->addAction("Refresh Data");
-    refreshDataAction->setVisible(false);
     connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
     });
@@ -854,6 +881,9 @@ void PanelWidget::setupChartInputDialog()
                 emit experimentRunIDSelected(currentExperimentRunID);
                 break;
             }
+        }
+        if (!isVisible()) {
+            show();
         }
         chartInputPopup->hide();
     });

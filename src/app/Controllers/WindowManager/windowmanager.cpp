@@ -1,4 +1,5 @@
 #include "windowmanager.h"
+
 #include <QDebug>
 #include <QDialog>
 #include <QPushButton>
@@ -7,7 +8,7 @@
 #include <QApplication>
 #include <QSplitter>
 
-#define NOMINMAX
+
 
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
@@ -185,6 +186,9 @@ void WindowManager::constructInnerDockWidget(ViewController* vc, BaseDockWidget*
                 action->setChecked(true);
                 connect(action, &QAction::triggered, panel, &PanelWidget::setVisible);
                 connect(panel, &PanelWidget::closeTriggered, [=](){ action->setChecked(false); });
+                // initially hide the panel
+                action->setChecked(false);
+                panel->setVisible(false);
             }
         }
     }
