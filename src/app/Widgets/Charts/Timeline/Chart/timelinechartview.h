@@ -38,7 +38,8 @@ public:
     void clearTimelineChart();
     void updateTimelineChart();
 
-    void setActiveTimelineSeriesKinds(QList<TIMELINE_EVENT_KIND> kinds);
+    void setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds);
+    const QList<TIMELINE_EVENT_KIND>& getActiveEventKinds();
 
 signals:
     void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);

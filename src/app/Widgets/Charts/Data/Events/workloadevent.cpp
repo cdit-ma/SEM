@@ -83,3 +83,13 @@ QString WorkloadEvent::getEventID() const
     return workerInstance_.graphml_id + workloadID_;
 
 }
+
+
+/**
+ * @brief WorkloadEvent::getKind
+ * @return
+ */
+TIMELINE_EVENT_KIND WorkloadEvent::getKind() const
+{
+    return TIMELINE_EVENT_KIND::WORKLOAD;
+}

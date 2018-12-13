@@ -295,10 +295,10 @@ void TimelineChartView::updateTimelineChart()
 
 
 /**
- * @brief TimelineChartView::setActiveTimelineSeriesKinds
+ * @brief TimelineChartView::setActiveEventKinds
  * @param kinds
  */
-void TimelineChartView::setActiveTimelineSeriesKinds(QList<TIMELINE_EVENT_KIND> kinds)
+void TimelineChartView::setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds)
 {
     _activeEventKinds = kinds;
 
@@ -315,6 +315,16 @@ void TimelineChartView::setActiveTimelineSeriesKinds(QList<TIMELINE_EVENT_KIND> 
             break;
         }
     }
+}
+
+
+/**
+ * @brief TimelineChartView::getActiveEventKinds
+ * @return
+ */
+const QList<TIMELINE_EVENT_KIND> &TimelineChartView::getActiveEventKinds()
+{
+    return _activeEventKinds;
 }
 
 
@@ -536,10 +546,7 @@ void TimelineChartView::updateChartHoverDisplay()
  */
 void TimelineChartView::clearSeriesEvents()
 {
-    for (auto series : eventSeries.values()) {
-        series->clear();
-    }
-    _timelineChart->setInitialRange(true);
+    clearTimelineChart();
 }
 
 
@@ -551,9 +558,6 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 {
     if (!event)
         return;
-
-    /*if (!_activeEventKinds.contains(event->getKind()))
-        return;*/
 
     auto series = constructChartForEvent(event->getKind(), event->getEventID(), event->getName());
 
@@ -596,12 +600,16 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     MEDEA::EventSeries* series = 0;
 
     switch (kind) {
-    case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
+    case TIMELINE_EVENT_KIND::PORT_LIFECYCLE: {
         series = new PortLifecycleEventSeries(ID, this);
+        label += "_" + ID;
         break;
-    case TIMELINE_EVENT_KIND::WORKLOAD:
+    }
+    case TIMELINE_EVENT_KIND::WORKLOAD: {
         series = new WorkloadEventSeries(ID, this);
+        label += "_" + ID;
         break;
+    }
     case TIMELINE_EVENT_KIND::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(ID, this);
         break;
@@ -626,8 +634,8 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
         _timelineChart->setEntityChartHovered(chart, hovered);
     });
 
-    // set the initial visibility states of the chart and each individual series in the chart
-    for (auto& action : _legendToolbar->actions()) {
+    // set the initial visibility states of each individual series in the charts
+    for (auto& action : _legendActions.values()) {
         auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
         chart->setSeriesKindVisible(kind, action->isChecked());
     }

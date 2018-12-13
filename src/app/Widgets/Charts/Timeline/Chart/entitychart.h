@@ -23,6 +23,7 @@ public:
     int getViewItemID();
 
     void addEventSeries(MEDEA::EventSeries* series);
+    void removeEventSeries(TIMELINE_SERIES_KIND kind);
     void removeEventSeries(QString ID);
 
     void addSeries(MEDEA::DataSeries* series);
@@ -43,6 +44,7 @@ public:
 signals:
     void dataAdded(QList<QPointF> points);
     void dataRangeXChanged(double min, double max);
+    void setChartVisible(bool visible);
 
 public slots:
     void setHovered(bool visible);
@@ -154,7 +156,6 @@ private:
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
 
-    MEDEA::EventSeries* _eventSeries = 0;
     QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 

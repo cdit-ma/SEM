@@ -40,3 +40,13 @@ QString PortLifecycleEvent::getEventID() const
 {
     return port_.graphml_id;
 }
+
+
+/**
+ * @brief PortLifecycleEvent::getKind
+ * @return
+ */
+TIMELINE_EVENT_KIND PortLifecycleEvent::getKind() const
+{
+    return TIMELINE_EVENT_KIND::PORT_LIFECYCLE;
+}

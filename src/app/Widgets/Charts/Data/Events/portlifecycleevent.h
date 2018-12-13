@@ -14,6 +14,7 @@ public:
     const LifecycleType& getType() const;
 
     QString getEventID() const;
+    TIMELINE_EVENT_KIND getKind() const;
 
 private:    
     Port port_;

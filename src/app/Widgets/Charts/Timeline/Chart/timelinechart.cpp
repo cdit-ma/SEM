@@ -473,9 +473,10 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     QRect visibleRect = visibleRegion().boundingRect();
     painter.fillRect(visibleRect, backgroundColor);
 
-    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
+    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, 0);
 
-    /*QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
+    /*visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
+    QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
     painter.setPen(topLinePen);
     painter.drawLine(topLine);*/
 
@@ -499,6 +500,11 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     }
     default: {
         //painter.fillRect(hoveredChartRect, backgroundHighlightColor);
+        if (!hoveredChartRect.isNull()) {
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(backgroundHighlightColor);
+            painter.drawRect(hoveredChartRect);
+        }
         if (hovered) {
             painter.setPen(hoverLinePen);
             painter.drawLine(cursorPoint.x(), rect().top(), cursorPoint.x(), rect().bottom());

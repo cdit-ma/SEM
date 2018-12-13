@@ -21,7 +21,8 @@ public:
     void RequestRunningExperiments();
     void RequestExperimentRuns(QString experimentName = "");
     void RequestExperimentState(quint32 experimentRunID);
-    void RequestEvents(QStringList componentNames);
+    void RequestEvents(quint32 ID, QString componentName);
+    //void RequestEvents(QStringList componentNames);
     void ReloadRunningExperiments();
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);

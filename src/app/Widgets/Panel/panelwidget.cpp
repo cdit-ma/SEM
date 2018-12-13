@@ -143,16 +143,10 @@ bool PanelWidget::isMinimised()
 void PanelWidget::constructEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::WORKLOAD});
+    view->setActiveEventKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::WORKLOAD, TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
-
-    if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
-    }
 }
 
 
@@ -162,15 +156,10 @@ void PanelWidget::constructEventsView()
 void PanelWidget::constructCPUEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    view->setActiveEventKinds({TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Utilisation", view);
     defaultActiveAction->trigger();
-
-    if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
-    }
 }
 
 
@@ -253,7 +242,7 @@ void PanelWidget::testNewTimelineView()
 void PanelWidget::testEventSeries()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveTimelineSeriesKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    view->setActiveEventKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::CPU_UTILISATION});
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
 
@@ -353,10 +342,10 @@ void PanelWidget::setViewController(ViewController *vc)
     // connect panel to the AggregationProxy
     connect(&viewController->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &PanelWidget::setChartInputDialogVisible);
     connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedExperimentRuns, this, &PanelWidget::populateRunsGroupBox);
-    connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedComponentNames, this, &PanelWidget::populateNamesGroupBox);
+    //connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedComponentNames, this, &PanelWidget::populateNamesGroupBox);
 
     connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-    connect(this, &PanelWidget::requestExperimentState, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+    //connect(this, &PanelWidget::requestExperimentState, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
     connect(this, &PanelWidget::requestEvents, &viewController->getAggregationProxy(), &AggregationProxy::RequestEvents);
     connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
@@ -419,7 +408,8 @@ void PanelWidget::themeChanged()
 
     toolbar->setIconSize(theme->getIconSize());
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
-    lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
+    nameLineEdit->setStyleSheet(theme->getLineEditStyleSheet());
+    filterLineEdit->setStyleSheet(theme->getLineEditStyleSheet());
     okAction->setIcon(theme->getIcon("Icons", "tick"));
     cancelAction->setIcon(theme->getIcon("Icons", "cross"));
 
@@ -672,11 +662,11 @@ void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
         QRadioButton* button = new QRadioButton(text, this);
         button->setProperty("ID", ID);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        connect(button, &QRadioButton::toggled, [=]() {
+        /*connect(button, &QRadioButton::toggled, [=]() {
             if (button->isChecked()) {
                 emit requestExperimentState(ID);
             }
-        });
+        });*/
 
         runsGroupBox->layout()->addWidget(button);
         runButtons.append(button);
@@ -693,6 +683,7 @@ void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
  */
 void PanelWidget::populateNamesGroupBox(QStringList names)
 {
+    /*
     while (!nameButtons.isEmpty()) {
         auto button = nameButtons.takeFirst();
         nameGroupBox->layout()->removeWidget(button);
@@ -714,6 +705,7 @@ void PanelWidget::populateNamesGroupBox(QStringList names)
 
     nameGroupBox->show();
     chartInputPopup->adjustSize();
+    */
 }
 
 
@@ -867,23 +859,23 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
  */
 void PanelWidget::setupChartInputDialog()
 {
-    lineEdit = new QLineEdit(this);
-    lineEdit->setFixedHeight(40);
-    lineEdit->setMinimumWidth(400);
-    lineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
-    lineEdit->setPlaceholderText("Enter experiment name...");
-    lineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    lineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
+    nameLineEdit = new QLineEdit(this);
+    nameLineEdit->setFixedHeight(40);
+    nameLineEdit->setMinimumWidth(400);
+    nameLineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
+    nameLineEdit->setPlaceholderText("Enter experiment name...");
+    nameLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    nameLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
 
-    connect(lineEdit, &QLineEdit::returnPressed, [=]() {
-        emit requestExperimentRuns(lineEdit->text().trimmed());
+    connect(nameLineEdit, &QLineEdit::returnPressed, [=]() {
+        emit requestExperimentRuns(nameLineEdit->text().trimmed());
     });
 
     nameGroupBox = new QGroupBox("Visualise Events For Experiment:");
     QVBoxLayout* topLayout = new QVBoxLayout(nameGroupBox);
     topLayout->setMargin(0);
     topLayout->setContentsMargins(1, 5, 1, 1);
-    topLayout->addWidget(lineEdit);
+    topLayout->addWidget(nameLineEdit);
 
     runsGroupBox = new QGroupBox("Select Experiment Run:", this);
     QVBoxLayout* midLayout = new QVBoxLayout(runsGroupBox);
@@ -891,11 +883,24 @@ void PanelWidget::setupChartInputDialog()
     midLayout->setSpacing(2);
     midLayout->setContentsMargins(1, 5, 1, 1);
 
+    filterLineEdit = new QLineEdit(this);
+    filterLineEdit->setFixedHeight(40);
+    filterLineEdit->setMinimumWidth(400);
+    filterLineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
+    filterLineEdit->setPlaceholderText("Enter component name...");
+    filterLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    filterLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
+
+    connect(filterLineEdit, &QLineEdit::returnPressed, [=]() {
+        sendEventsRequest();
+    });
+
     filtersGroupBox = new QGroupBox("Filter Events By Component(s):", this);
     QVBoxLayout* bottomLayout = new QVBoxLayout(filtersGroupBox);
     bottomLayout->setMargin(0);
-    bottomLayout->setSpacing(2);
-    bottomLayout->setContentsMargins(1, 5, 1, 1);
+    bottomLayout->setContentsMargins(1, 5, 1, 1);    
+    bottomLayout->addWidget(filterLineEdit);
+    filtersGroupBox->hide();
 
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -919,17 +924,7 @@ void PanelWidget::setupChartInputDialog()
 
     connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
     connect(okAction, &QAction::triggered, [=]() {
-        QStringList names;
-        for (auto button : nameButtons) {
-            if (button->isChecked()) {
-                names.append(button->text());
-            }
-        }
-        emit requestEvents(names);
-        if (!isVisible()) {
-            show();
-        }
-        chartInputPopup->hide();
+        sendEventsRequest();
     });
 
 
@@ -947,7 +942,59 @@ void PanelWidget::setChartInputDialogVisible(bool visible)
     chartInputPopup->setVisible(visible);
     if (visible) {
         chartInputPopup->activateWindow();
-        lineEdit->setFocus();
-        lineEdit->selectAll();
+        nameLineEdit->setFocus();
+        nameLineEdit->selectAll();
+    }
+}
+
+
+/**
+ * @brief PanelWidget::sendEventsRequest
+ */
+void PanelWidget::sendEventsRequest()
+{
+    /*QStringList names;
+    for (auto button : nameButtons) {
+        if (button->isChecked()) {
+            names.append(button->text());
+        }
+    }*/
+    quint32 ID;
+    for (auto button : runButtons) {
+        if (button->isChecked()) {
+            ID = button->property("ID").toUInt();
+            break;
+        }
+    }
+    emit requestEvents(ID, filterLineEdit->text().trimmed());
+    if (!isVisible()) {
+        show();
+    }
+    chartInputPopup->hide();
+}
+
+
+/**
+ * @brief PanelWidget::connectChartViewToAggreagtionProxy
+ * @param view
+ */
+void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
+{
+    if (view && viewController) {
+        for (auto kind : view->getActiveEventKinds()) {
+            switch (kind) {
+            case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
+                break;
+            case TIMELINE_EVENT_KIND::WORKLOAD:
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
+                break;
+            case TIMELINE_EVENT_KIND::CPU_UTILISATION:
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+                break;
+            }
+        }
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
     }
 }

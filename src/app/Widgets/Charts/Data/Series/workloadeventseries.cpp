@@ -54,8 +54,12 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
         for (int i = 0; i < displayCount; i++) {
             auto event = (WorkloadEvent*)(*current);
             stream << "[" + event->getFunctionName() + "] - "
-                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat)
-                      + "\n" + event->getArgs().trimmed() + "\n\n";
+                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
+            if (!event->getArgs().isEmpty()) {
+                stream << event->getArgs().trimmed() + "\n\n";
+            } else {
+                stream << "\n";
+            }
             current++;
         }
         if (count > 10) {

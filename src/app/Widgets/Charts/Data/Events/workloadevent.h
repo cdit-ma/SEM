@@ -33,6 +33,7 @@ public:
     const QString& getArgs() const;
 
     QString getEventID() const;
+    TIMELINE_EVENT_KIND getKind() const;
 
 private:
     WorkerInstance workerInstance_;

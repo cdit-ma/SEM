@@ -57,7 +57,8 @@ signals:
 
     void requestExperimentRuns(QString name);
     void requestExperimentState(quint32 ID);
-    void requestEvents(QStringList names);
+    //void requestEvents(QStringList names);
+    void requestEvents(quint32 ID, QString name);
     void reloadEvents();
 
 public slots:
@@ -89,10 +90,14 @@ private:
 
     void setupChartInputDialog();
     void setChartInputDialogVisible(bool visible);
+    void sendEventsRequest();
+
+    void connectChartViewToAggreagtionProxy(TimelineChartView* view);
 
     HoverPopup* chartInputPopup;
     QToolBar* toolbar;
-    QLineEdit* lineEdit;
+    QLineEdit* nameLineEdit;
+    QLineEdit* filterLineEdit;
     QGroupBox* nameGroupBox;
     QGroupBox* runsGroupBox;
     QGroupBox* filtersGroupBox;

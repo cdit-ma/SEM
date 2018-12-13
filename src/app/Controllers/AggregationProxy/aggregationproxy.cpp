@@ -32,9 +32,9 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
-    try {
+    QList<ExperimentRun> runs;
 
-        QList<ExperimentRun> runs;
+    try {
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experimentName.toStdString());
 
@@ -58,14 +58,15 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
             }
         }
 
-        emit requstedExperimentRuns(runs);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        emit setChartUserInputDialogVisible(false);
+        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
+
+    emit requstedExperimentRuns(runs);
 
 }
 
@@ -107,13 +108,29 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 
 /**
  * @brief AggregationProxy::RequestEvents
+ * @param ID
+ * @param componentName
+ */
+void AggregationProxy::RequestEvents(quint32 ID, QString componentName)
+{
+    experimentRunID_ = ID;
+    componentNames_.clear();
+    componentNames_.append(componentName);
+    ReloadRunningExperiments();
+}
+
+
+/**
+ * @brief AggregationProxy::RequestEvents
  * @param componentNames
  */
+/*
 void AggregationProxy::RequestEvents(QStringList componentNames)
 {
     componentNames_ = componentNames;
     ReloadRunningExperiments();
 }
+*/
 
 
 /**
@@ -121,22 +138,27 @@ void AggregationProxy::RequestEvents(QStringList componentNames)
  */
 void AggregationProxy::ReloadRunningExperiments()
 {
+    emit clearPreviousEvents();
+
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-    SendPortLifecycleRequest(portLifecycleRequest);
 
     AggServer::WorkloadRequest workloadRequest;
     workloadRequest.set_experiment_run_id(experimentRunID_);
-    SendWorkloadRequest(workloadRequest);
 
     AggServer::CPUUtilisationRequest cpuUtilisationRequest;
     cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    SendCPUUtilisationRequest(cpuUtilisationRequest);
 
-    for (auto name : componentNames_) {
+    /*for (auto name : componentNames_) {
         portLifecycleRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
         workloadRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
-    }
+    }*/
+
+    SendPortLifecycleRequest(portLifecycleRequest);
+    SendWorkloadRequest(workloadRequest);
+    SendCPUUtilisationRequest(cpuUtilisationRequest);
+
+    emit receivedAllEvents();
 }
 
 
@@ -207,7 +229,6 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
 
     try {
         auto results = requester_.GetPortLifecycle(request);
-        emit clearPreviousEvents();
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
         qDebug() << "--------------------------------------------------------------------------------";
@@ -220,7 +241,6 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
             emit receivedPortLifecycleEvent(event);
         }
 
-        emit receivedAllEvents();
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -240,7 +260,6 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
 
     try {
         auto results = requester_.GetWorkload(request);
-        emit clearPreviousEvents();
 
         qDebug() << "[Workload Request] Result size#: " << results.get()->events_size();
         qDebug() << "--------------------------------------------------------------------------------";
@@ -257,7 +276,6 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
             emit receivedWorkloadEvent(event);
         }
 
-        emit receivedAllEvents();
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -277,7 +295,6 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
 
     try {
         auto results = requester_.GetCPUUtilisation(request);
-        emit clearPreviousEvents();
 
         qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
         qDebug() << "--------------------------------------------------------------------------------";
@@ -292,7 +309,6 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
             }
         }
 
-        emit receivedAllEvents();
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {

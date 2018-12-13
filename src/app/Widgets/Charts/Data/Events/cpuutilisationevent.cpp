@@ -44,3 +44,13 @@ QString CPUUtilisationEvent::getEventID() const
 {
     return hostname_;
 }
+
+
+/**
+ * @brief CPUUtilisationEvent::getKind
+ * @return
+ */
+TIMELINE_EVENT_KIND CPUUtilisationEvent::getKind() const
+{
+    return TIMELINE_EVENT_KIND::CPU_UTILISATION;
+}

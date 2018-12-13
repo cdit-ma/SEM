@@ -75,9 +75,18 @@ int EntityChart::getViewItemID()
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
     if (series) {
-        _eventSeries = series;
         _seriesList[series->getKind()] = series;
     }
+}
+
+
+/**
+ * @brief EntityChart::removeEventSeries
+ * @param kind
+ */
+void EntityChart::removeEventSeries(TIMELINE_SERIES_KIND kind)
+{
+    _seriesList.remove(kind);
 }
 
 
@@ -87,10 +96,12 @@ void EntityChart::addEventSeries(MEDEA::EventSeries* series)
  */
 void EntityChart::removeEventSeries(QString ID)
 {
+    return;
+    /*
     if (_eventSeries && _eventSeries->getID() == ID) {
-        _eventSeries = 0;
         _seriesList.remove(_eventSeries->getKind());
     }
+    */
 }
 
 
@@ -227,6 +238,14 @@ void EntityChart::setSeriesKindVisible(TIMELINE_SERIES_KIND kind, bool visible)
 {
     _seriesKindVisible[kind] = visible;
     update();
+
+    if (visible) {
+        if (!isVisible())
+            emit setChartVisible(true);
+    } else {
+        if (_seriesList.count() == 1 && _seriesList.keys().contains(kind))
+            emit setChartVisible(false);
+    }
 }
 
 
@@ -456,8 +475,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
             painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
             painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
         }
-        penColor = _hoverLinePen.color();
-        penWidth = 4.0;
+        //penColor = _hoverLinePen.color();
+        //penWidth = 4.0;
     }
 
     // NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
@@ -515,87 +534,89 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_SERIES_KIND kind)
  */
 void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 {
-    if (!_eventSeries)
-           return;
+    MEDEA::EventSeries* eventSeries = _seriesList.value(TIMELINE_SERIES_KIND::PORT_LIFECYCLE, 0);
+    if (!eventSeries)
+        return;
 
-       double barWidth = 22.0; //BAR_WIDTH;
-       double barCount = ceil((double)width() / barWidth);
+    double barWidth = 22.0; //BAR_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
 
-       // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-       barWidth = (double) width() / barCount;
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
 
-       QVector< QList<MEDEA::Event*> > buckets(barCount);
-       QVector<double> bucket_endTimes;
-       bucket_endTimes.reserve(barCount);
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
 
-       double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-       double current_left = _displayedMin;
-       for (int i = 0; i < barCount; i++) {
-           bucket_endTimes.append(current_left + barTimeWidth);
-           current_left = bucket_endTimes.last();
-       }
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double current_left = _displayedMin;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
 
-       const auto& events = _eventSeries->getEvents();
-       auto current = events.constBegin();
-       auto upper = events.constEnd();
-       for (; current != upper; current++) {
-           const auto& current_time = (*current)->getTimeMS();
-           if (current_time > _displayedMin) {
-               break;
-           }
-       }
+    const auto& events = eventSeries->getEvents();
+    //qDebug() << "port events#: " << events.count();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > _displayedMin) {
+            break;
+        }
+    }
 
-       auto current_bucket = 0;
-       auto current_bucket_ittr = bucket_endTimes.constBegin();
-       auto end_bucket_ittr = bucket_endTimes.constEnd();
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
 
-       // put the data in the correct bucket
-       for (;current != upper; current++) {
-           const auto& current_time = (*current)->getTimeMS();
-           while (current_bucket_ittr != end_bucket_ittr) {
-               if (current_time > (*current_bucket_ittr)) {
-                   current_bucket_ittr ++;
-                   current_bucket ++;
-               } else {
-                   break;
-               }
-           }
-           if (current_bucket < barCount) {
-               buckets[current_bucket].append(*current);
-           }
-       }
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
 
-       QColor seriesColor = _portLifecycleColor;
-       int y = rect().center().y() - barWidth / 2.0;
+    QColor seriesColor = _portLifecycleColor;
+    int y = rect().center().y() - barWidth / 2.0;
 
-       for (int i = 0; i < barCount; i++) {
-           int count = buckets[i].count();
-           if (count == 0)
-               continue;
-           QRectF rect(i * barWidth, y, barWidth, barWidth);
-           if (count == 1) {
-               auto event = (PortLifecycleEvent*) buckets[i][0];
-               if (rectHovered(_eventSeries->getKind(), rect)) {
-                   /*
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (PortLifecycleEvent*) buckets[i][0];
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                /*
                     *  TODO - This forces the hover display to only show the hovered item's data/time
                     *  This can be removed when the date-time axis range has a minimum limit
                     *  This also needs to be changed when there are multiple series of the same kind
                     */
-                   _hoveredSeriesTimeRange[_eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
-                   painter.fillRect(rect, _highlightColor);
-               }
-               painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
-           } else {
-               QColor color = seriesColor.darker(100 + (50 * (count - 1)));
-               painter.setPen(Qt::lightGray);
-               if (rectHovered(_eventSeries->getKind(), rect)) {
-                   painter.setPen(_highlightTextColor);
-                   color = _highlightColor;
-               }
-               painter.fillRect(rect, color);
-               painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
-           }
-       }
+                _hoveredSeriesTimeRange[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
+                painter.fillRect(rect, _highlightColor);
+            }
+            painter.drawPixmap(rect.toRect(), _lifeCycleTypePixmaps.value(event->getType()));
+        } else {
+            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+            painter.setPen(Qt::lightGray);
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                painter.setPen(_highlightTextColor);
+                color = _highlightColor;
+            }
+            painter.fillRect(rect, color);
+            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        }
+    }
 }
 
 
@@ -605,6 +626,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
  */
 void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 {
+    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_SERIES_KIND::WORKLOAD, 0);
     if (!_eventSeries)
            return;
 
@@ -689,6 +711,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
  */
 void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
+    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_SERIES_KIND::CPU_UTILISATION, 0);
     if (!_eventSeries)
          return;
 
@@ -746,6 +769,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
              max = qMax(max, event->getUtilisation());
          }
      }
+     max = 1.0;
 
      auto availableHeight = height() - barWidth;
      QColor seriesColor = _utilisationColor;
