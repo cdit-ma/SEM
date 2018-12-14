@@ -18,12 +18,6 @@ public:
         ERROR_EVENT
     };
 
-    struct WorkerInstance {
-        QString name;
-        QString path;
-        QString graphml_id;
-    };
-
     explicit WorkloadEvent(WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
 
     const WorkloadEventType& getType() const;

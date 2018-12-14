@@ -600,21 +600,12 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     MEDEA::EventSeries* series = 0;
 
     switch (kind) {
-    case TIMELINE_EVENT_KIND::PORT_LIFECYCLE: {
-        series = new PortLifecycleEventSeries(ID, this);
-        label += "_" + ID;
-        break;
-    }
-    case TIMELINE_EVENT_KIND::WORKLOAD: {
+    case TIMELINE_EVENT_KIND::WORKLOAD:
         series = new WorkloadEventSeries(ID, this);
-        label += "_" + ID;
-        break;
-    }
-    case TIMELINE_EVENT_KIND::CPU_UTILISATION:
-        series = new CPUUtilisationEventSeries(ID, this);
         break;
     default:
-        return 0;
+        series = new MEDEA::EventSeries(this);
+        break;
     }
 
     eventSeries[ID] = series;
@@ -642,6 +633,7 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
 
     connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
     connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
+
     return series;
 }
 
