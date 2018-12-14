@@ -44,13 +44,7 @@ public slots:
 private:    
     void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
 
-    Port convertPort(const AggServer::Port port);
-    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
-    Port::Kind getPortKind(const AggServer::Port_Kind kind);
-
-    WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance inst);
-    //WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
-
+    bool hasSelectedExperimentID = false;
     quint32 experimentRunID_;
     QStringList componentNames_;
 
