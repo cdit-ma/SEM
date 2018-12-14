@@ -3,8 +3,9 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -22,18 +23,19 @@ public:
     int getViewItemID();
 
     void addEventSeries(MEDEA::EventSeries* series);
+    void removeEventSeries(TIMELINE_SERIES_KIND kind);
     void removeEventSeries(QString ID);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_SERIES_KIND seriesKind);
 
-    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries *> &getSeries();
+    const QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> &getSeries();
     const QList<TIMELINE_SERIES_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_SERIES_KIND kind);
 
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
-    
+
     QColor getSeriesColor();
     QList<QPointF> getSeriesPoints(TIMELINE_SERIES_KIND seriesKind = TIMELINE_SERIES_KIND::DATA);
 
@@ -42,6 +44,7 @@ public:
 signals:
     void dataAdded(QList<QPointF> points);
     void dataRangeXChanged(double min, double max);
+    void setChartVisible(bool visible);
 
 public slots:
     void setHovered(bool visible);
@@ -61,8 +64,11 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    void paintEventSeries(QPainter& painter);
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
+    void paintPortLifecycleEventSeries(QPainter& painter);
+    void paintWorkloadEventSeries(QPainter& painter);
+    void paintCPUUtilisationEventSeries(QPainter& painter);
+    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
@@ -79,6 +85,7 @@ private:
     void setMin(double min);
     void setMax(double max);
     void setRange(double min, double max);
+    void rangeChanged();
 
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
@@ -114,11 +121,16 @@ private:
     QColor _defaultStateColor;
     QColor _defaultNotificationColor;
     QColor _defaultLineColor;
-    QColor _defaultUtilisationColor = Qt::lightGray;
     QColor _stateColor;
     QColor _notificationColor;
     QColor _lineColor;
+
+    QColor _defaultPortLifecycleColor = Qt::gray;
+    QColor _defaultWorkloadColor = Qt::gray;
+    QColor _defaultUtilisationColor = Qt::lightGray;
+    QColor _portLifecycleColor = _defaultUtilisationColor;
     QColor _utilisationColor = _defaultUtilisationColor;
+    QColor _workloadColor = _defaultWorkloadColor;
 
     int _borderColorDelta;
     int _colorDelta;
@@ -144,6 +156,9 @@ private:
     QHash<TIMELINE_SERIES_KIND, Series> series_;
     */
 
+    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
+
     QHash<TIMELINE_SERIES_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_SERIES_KIND, MEDEA::EventSeries*> _seriesList;
     QHash<TIMELINE_SERIES_KIND, QList<QPointF>> _seriesPoints;
@@ -151,9 +166,6 @@ private:
 
     QHash<TIMELINE_SERIES_KIND, QPair<qint64, qint64>> _hoveredSeriesTimeRange;
     TIMELINE_SERIES_KIND _hoveredSeriesKind;
-
-    MEDEA::EventSeries* _eventSeries = 0;
-
 };
 
 #endif // ENTITYCHART_H

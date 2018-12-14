@@ -4,6 +4,8 @@
 #include <QObject>
 #include "protoMessageStructs.h"
 
+enum class TIMELINE_EVENT_KIND{UNKNOWN, PORT_LIFECYCLE, CPU_UTILISATION, WORKLOAD};
+
 namespace MEDEA {
 
 class Event : public QObject
@@ -19,7 +21,10 @@ public:
     const qint64& getTimeMS() const;
     const QString& getName() const;
 
-    virtual QString getID() const;
+    QString getID() const;
+
+    virtual QString getEventID() const;
+    virtual TIMELINE_EVENT_KIND getKind() const;
 
 private:
     qint64 time_;

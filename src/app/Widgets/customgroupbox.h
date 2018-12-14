@@ -17,9 +17,7 @@ public:
     virtual void setTitle(QString title);
     QString getTitle();
 
-
     void setCheckable(bool checkable);
-
     void setChecked(bool checked);
     bool isChecked();
 

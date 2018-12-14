@@ -38,6 +38,9 @@ public:
     void clearTimelineChart();
     void updateTimelineChart();
 
+    void setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds);
+    const QList<TIMELINE_EVENT_KIND>& getActiveEventKinds();
+
 signals:
     void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);
     void seriesLegendHovered(TIMELINE_SERIES_KIND kind);
@@ -59,7 +62,7 @@ public slots:
     void updateChartHoverDisplay();
     
 private:
-    void constructChartForEvent(QString ID, QString label);
+    MEDEA::EventSeries* constructChartForEvent(TIMELINE_EVENT_KIND kind, QString ID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
@@ -80,17 +83,27 @@ private:
     QWidget* _bottomFillerWidget;
     QWidget* _hoverWidget;
 
+    /*
+    QToolBar* axisToolbar;
+    QAction* allEntitiesAction;
+    QAction* selectedEntityAction;
+    */
+
+    QList<TIMELINE_EVENT_KIND> _activeEventKinds;
     QHash<TIMELINE_SERIES_KIND, QAction*> _legendActions;
     QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
 
     QHash<int, EntitySet*> itemEntitySets;
-    QHash<int, EntityChart*> itemChartWidgets;
+    QHash<int, EntityChart*> itemEntityCharts;
+
+    qint64 lastRequestedFromTime;
+    qint64 lastRequestedToTime;
+    qint64 lastDataUpdatedTime;
 
     // MEDEA::Event related widgets/series
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
     QHash<QString, MEDEA::EventSeries*> eventSeries;
-
 };
 
 #endif // TIMELINECHARTVIEW_H

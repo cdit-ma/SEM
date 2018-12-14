@@ -208,6 +208,17 @@ void TimelineChart::setInitialRange(bool reset, double min, double max)
     if (reset) {
         setRange(0, 100);
     } else {
+        if (rangeSet)
+            return;
+        /*
+        qDebug() << "min: " << min;
+        qDebug() << "max: " << max;
+        QDateTime minDT = QDateTime::fromMSecsSinceEpoch(ceil(min + 1.0));
+        QDateTime maxDT = QDateTime::fromMSecsSinceEpoch(ceil(max + 1.0));
+        setRange(minDT.toMSecsSinceEpoch(), maxDT.toMSecsSinceEpoch());
+        qDebug() << "minTime: " << minDT.toString("hh:mm:ss:zzz");
+        qDebug() << "maxTime: " << maxDT.toString("hh:mm:ss:zzz");
+        */
         setRange(min, max);
     }
     rangeSet = !reset;
@@ -462,9 +473,10 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     QRect visibleRect = visibleRegion().boundingRect();
     painter.fillRect(visibleRect, backgroundColor);
 
-    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
+    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, 0);
 
-    /*QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
+    /*visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
+    QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
     painter.setPen(topLinePen);
     painter.drawLine(topLine);*/
 
@@ -488,6 +500,11 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     }
     default: {
         //painter.fillRect(hoveredChartRect, backgroundHighlightColor);
+        if (!hoveredChartRect.isNull()) {
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(backgroundHighlightColor);
+            painter.drawRect(hoveredChartRect);
+        }
         if (hovered) {
             painter.setPen(hoverLinePen);
             painter.drawLine(cursorPoint.x(), rect().top(), cursorPoint.x(), rect().bottom());

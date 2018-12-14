@@ -106,7 +106,7 @@ void OverlaySplitter::widgetMinimised(bool minimised)
  */
 bool OverlaySplitter::eventFilter(QObject* object, QEvent* event)
 {
-    if (event->type() == QEvent::MouseMove) {
+    if (event->type() == QEvent::MouseMove || event->type() == QEvent::MouseButtonDblClick) {
         emit mouseEventReceived((QMouseEvent*)event);
     }
     return QSplitter::eventFilter(object, event);

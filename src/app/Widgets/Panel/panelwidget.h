@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QRadioButton>
+#include <QCheckBox>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
@@ -36,6 +37,9 @@ public:
 
     bool isMinimised();
 
+    void constructEventsView();
+    void constructCPUEventsView();
+
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
@@ -51,9 +55,11 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
-    void reloadExperimentRun();
     void requestExperimentRuns(QString name);
-    void experimentRunIDSelected(quint32 ID);
+    void requestExperimentState(quint32 ID);
+    //void requestEvents(QStringList names);
+    void requestEvents(quint32 ID, QString name);
+    void reloadEvents();
 
 public slots:
     void themeChanged();
@@ -68,12 +74,12 @@ public slots:
     void popOutActiveTab();
 
     void requestData(bool clear = true);
-    void timeRangeChanged(qint64 from, qint64 to);
 
     void handleTimeout();
     void playPauseToggled(bool checked);
 
     void populateRunsGroupBox(QList<ExperimentRun> runs);
+    void populateNamesGroupBox(QStringList names);
 
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
@@ -83,17 +89,23 @@ private:
     void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
 
     void setupChartInputDialog();
-    void showChartInputDialog();
+    void setChartInputDialogVisible(bool visible);
+    void sendEventsRequest();
+
+    void connectChartViewToAggreagtionProxy(TimelineChartView* view);
 
     HoverPopup* chartInputPopup;
     QToolBar* toolbar;
-    QLineEdit* lineEdit;
+    QLineEdit* nameLineEdit;
+    QLineEdit* filterLineEdit;
     QGroupBox* nameGroupBox;
     QGroupBox* runsGroupBox;
+    QGroupBox* filtersGroupBox;
     QAction* okAction;
     QAction* cancelAction;
-    quint32 currentExperimentRunID;
+
     QList<QRadioButton*> runButtons;
+    QList<QCheckBox*> nameButtons;
 
     ViewController* viewController = 0;
 
@@ -110,7 +122,6 @@ private:
 
     QAction* requestDataAction = 0;
     QAction* refreshDataAction = 0;
-    TimelineChartView* lifecycleView = 0;
 
     QAction* tabsMenuAction = 0;
     QMenu* tabsMenu = 0;

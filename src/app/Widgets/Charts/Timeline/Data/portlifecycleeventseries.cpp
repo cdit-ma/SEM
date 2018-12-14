@@ -1,5 +1,31 @@
 #include "portlifecycleeventseries.h"
 
+<<<<<<< HEAD
+#include <QDateTime>
+#include <QDebug>
+
+
+/**
+ * @brief PortLifecycleEventSeries::PortLifecycleEventSeries
+ * @param path
+ * @param parent
+ */
+PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent)
+    : QObject(parent)
+{
+    port_path = path;
+}
+
+
+/**
+ * @brief PortLifecycleEventSeries::getPortPath
+ * @return
+ */
+QString PortLifecycleEventSeries::getPortPath()
+{
+    return port_path;
+}
+=======
 
 int PortLifeCycleSeries::series_ID = 0;
 
@@ -61,3 +87,4 @@ const QList<PortLifeCycle*> &PortLifeCycleSeries::getConstPortEvents()
     return portEvents_;
 }
 
+>>>>>>> feature-hub

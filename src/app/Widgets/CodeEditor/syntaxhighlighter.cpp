@@ -94,9 +94,12 @@ void SyntaxHighlighter::themeChanged()
 {
     highlightingRules.clear();
 
-    quotationFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
-    singleLineCommentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
-    multiLineCommentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
+    //auto textColor = Theme::theme()->getTextColor(ColorRole::DISABLED);
+    auto textColor = Theme::theme()->getAltTextColor();
+
+    quotationFormat.setForeground(textColor);
+    singleLineCommentFormat.setForeground(textColor);
+    multiLineCommentFormat.setForeground(textColor);
 
 
     //singleLineCommentFormat.setForeground(Theme::theme()->getHighlightColor());

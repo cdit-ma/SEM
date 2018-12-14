@@ -1,5 +1,4 @@
 #include "cpuutilisationeventseries.h"
-#include "../Events/cpuutilisationevent.h"
 
 
 /**
@@ -52,8 +51,8 @@ QString CPUUtilisationEventSeries::getHoveredDataString(qint64 fromTimeMS, qint6
         for (int i = 0; i < numberOfItemsToDisplay; i++) {
             auto event = (CPUUtilisationEvent*)(*current);
             stream << "Host: " << hostname_ << "\n"
-                   << "Utilisation: " << event->getUtilisation() << "% "
-                   << "at " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss:zzz") << "\n\n";
+                   << "Utilisation: " << (event->getUtilisation() * 100) << "%\n"
+                   << "At: " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss:zzz") << "\n\n";
             current++;
         }
         if (count > 10) {
