@@ -51,7 +51,7 @@ public:
 
     QList<QVariant> getValidValues();
 signals:
-    void dataChanged(QVariant data);
+    void dataChanged();
 private:
     void addParentData(Data* data);
     void removeParentData(Data* data);

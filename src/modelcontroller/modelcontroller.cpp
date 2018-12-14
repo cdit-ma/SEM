@@ -1270,8 +1270,6 @@ void ModelController::destructEntities(QList<Entity*> entities)
     QSet<Entity*> nodes;
     QSet<Entity*> edges;
 
-    qCritical() << "Calculating Destruct Map";
-    
     for(auto entity : entities){
         if(entity){
             if(entity->isNode()){
@@ -1309,12 +1307,15 @@ void ModelController::destructEntities(QList<Entity*> entities)
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
         
-        auto action = getNewAction(GRAPHML_KIND::NODE);
-        action.entity_id = node->getID();
-        action.parent_id = node->getParentNodeID();
-        action.Action.type = ACTION_TYPE::DESTRUCTED;
-        action.xml = exportGraphML(entity);
-        addActionToStack(action);
+        //Don't do this
+        if(!isModelAction(MODEL_ACTION::DESTRUCTING)){
+            auto action = getNewAction(GRAPHML_KIND::NODE);
+            action.entity_id = node->getID();
+            action.parent_id = node->getParentNodeID();
+            action.Action.type = ACTION_TYPE::DESTRUCTED;
+            action.xml = exportGraphML(entity);
+            addActionToStack(action);
+        }
 
         destructNode_(node);
     }
@@ -1623,12 +1624,11 @@ void ModelController::setupModel()
             set_persistent_node(child);
         }
         
-        auto label_data = model->getData("label");
-        if(label_data){
-            connect(label_data, &Data::dataChanged, [=](QVariant label){
-                emit ProjectNameChanged(label.toString());
-            });
-        }
+        connect(model, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
+            if(key_name == "label"){
+                emit ProjectNameChanged(value.toString());
+            }
+        });
 
         storeNode(model, -1, true, false);
     }

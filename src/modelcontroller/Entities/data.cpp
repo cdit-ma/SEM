@@ -55,11 +55,8 @@ void Data::registerParent(Entity* parent){
 
     if(parent){
         setParent(parent);
-        //Revalidate
-        if(!revalidateData()){
-            //Fake the validity
-            updateChildren(true);
-        }
+        revalidateData();
+        updateChildren(true);
     }
 };
 
@@ -89,21 +86,18 @@ bool Data::isProtected() const
     return parent_datas.size() || is_protected;
 }
 
-bool Data::_setValue(QVariant value, bool validate){
-    bool success = true;
+bool Data::_setValue(QVariant new_value, bool validate){
     if(key && validate){
-        success = key->setData(this, value);
+        return key->setData(this, new_value);
     }else{
-        success = _setData(value);
+        return _setData(new_value);
     }
-    return success;
 }
 
 bool Data::_setData(QVariant new_value){
     //Check if the data changed
     bool data_changed = new_value != value;
     this->value = new_value;
-
     updateChildren(data_changed);
     return data_changed;
 }
@@ -203,8 +197,6 @@ void Data::addParentData(Data* data){
     if(data && !parent_datas.contains(data)){
         bool was_protected = isProtected();
         parent_datas += data;
-
-        connect(data, &Data::dataChanged, this, &Data::setValue);
         
         const auto& new_value = data->getValue();
         
@@ -221,7 +213,6 @@ void Data::addParentData(Data* data){
 void Data::removeParentData(Data* data){
     if(data && parent_datas.contains(data)){
         parent_datas.remove(data);
-        disconnect(data, &Data::dataChanged, this, &Data::setValue);
         
         setValue("");
         if(parent){
@@ -259,15 +250,19 @@ void Data::updateChildren(bool changed)
         parent->_dataChanged(this);
     }
 
-    if(value.isValid()){
-        emit dataChanged(value);
+    for(auto data : child_datas){
+        data->setValue(value);
+    }
+
+    if(changed){
+        emit dataChanged();
     }
 }
 
 
 void Data::addValidValue(QVariant value){
     if(!valid_values_.contains(value)){
-        //valid_values_.append(value);
+        valid_values_.append(value);
     }
 }
 
