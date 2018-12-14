@@ -82,7 +82,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experimentRunID);
-        experimentRunID_ = experimentRunID;
+        setSelectedExperimentRunID(experimentRunID);
 
         auto& results = requester_.GetExperimentState(request);
         QStringList names;
@@ -98,7 +98,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        emit setChartUserInputDialogVisible(false);
+        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -112,9 +112,9 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(quint32 ID, QString componentName)
 {
-    experimentRunID_ = ID;
     componentNames_.clear();
     componentNames_.append(componentName);
+    setSelectedExperimentRunID(ID);
     ReloadRunningExperiments();
 }
 
@@ -124,21 +124,16 @@ void AggregationProxy::RequestEvents(quint32 ID, QString componentName)
  */
 void AggregationProxy::ReloadRunningExperiments()
 {
+    if (!hasSelectedExperimentID_) {
+        emit setChartUserInputDialogVisible(true);
+        return;
+    }
+
     emit clearPreviousEvents();
 
-    AggServer::PortLifecycleRequest portLifecycleRequest;
-    portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-
-    AggServer::WorkloadRequest workloadRequest;
-    workloadRequest.set_experiment_run_id(experimentRunID_);
-
-    AggServer::CPUUtilisationRequest cpuUtilisationRequest;
-    cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
-
-    /*for (auto name : componentNames_) {
-        portLifecycleRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
-        workloadRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
-    }*/
+    /*
+     *  construct and send requests here
+     */
 
     emit receivedAllEvents();
 }
@@ -197,107 +192,5 @@ const QString AggregationProxy::getQString(const std::string &string)
 void AggregationProxy::setSelectedExperimentRunID(quint32 ID)
 {
     experimentRunID_ = ID;
-    ReloadRunningExperiments();
+    hasSelectedExperimentID_ = true;
 }
-
-
-/**
- * @brief AggregationProxy::convertPort
- * @param port
- * @return
- */
-Port AggregationProxy::convertPort(const AggServer::Port port)
-{
-    Port portStruct;
-    portStruct.kind = getPortKind(port.kind());
-    portStruct.name = getQString(port.name());
-    portStruct.path = getQString(port.path());
-    portStruct.middleware = getQString(port.middleware());
-    portStruct.graphml_id = getQString(port.graphml_id());
-    return portStruct;
-}
-
-
-/**
- * @brief AggregationProxy::getLifeCycleType
- * @param type
- * @return
- */
-LifecycleType AggregationProxy::getLifeCycleType(const AggServer::LifecycleType type)
-{
-    switch (type) {
-    case AggServer::LifecycleType::CONFIGURE:
-        return LifecycleType::CONFIGURE;
-    case AggServer::LifecycleType::ACTIVATE:
-        return LifecycleType::ACTIVATE;
-    case AggServer::LifecycleType::PASSIVATE:
-        return LifecycleType::PASSIVATE;
-    case AggServer::LifecycleType::TERMINATE:
-        return LifecycleType::TERMINATE;
-    default:
-        return LifecycleType::NO_TYPE;
-    }
-}
-
-
-/**
- * @brief AggregationProxy::getPortKind
- * @param kind
- * @return
- */
-Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
-{
-    switch (kind) {
-    case AggServer::Port_Kind::Port_Kind_PERIODIC:
-        return Port::Kind::PERIODIC;
-    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
-        return Port::Kind::PUBLISHER;
-    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
-        return Port::Kind::SUBSCRIBER;
-    case AggServer::Port_Kind::Port_Kind_REQUESTER:
-        return Port::Kind::REQUESTER;
-    case AggServer::Port_Kind::Port_Kind_REPLIER:
-        return Port::Kind::REPLIER;
-    default:
-        return Port::Kind::NO_KIND;
-    }
-}
-
-
-/**
- * @brief AggregationProxy::convertWorkerInstance
- * @param inst
- * @return
- */
-WorkerInstance AggregationProxy::convertWorkerInstance(const AggServer::WorkerInstance inst)
-{
-    WorkerInstance workerInst;
-    workerInst.name = getQString(inst.name());
-    workerInst.path = getQString(inst.path());
-    workerInst.graphml_id = getQString(inst.graphml_id());
-    return workerInst;
-}
-
-
-/**
- * @brief AggregationProxy::getWorkloadEventType
- * @param type
- * @return
- */
-/*WorkloadEvent::WorkloadEventType AggregationProxy::getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type)
-{
-    switch (type) {
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
-        return WorkloadEvent::WorkloadEventType::STARTED;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
-        return WorkloadEvent::WorkloadEventType::FINISHED;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
-        return WorkloadEvent::WorkloadEventType::MESSAGE;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
-        return WorkloadEvent::WorkloadEventType::WARNING;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
-        return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
-    default:
-        return WorkloadEvent::WorkloadEventType::UNKNOWN;
-    }
-}*/
