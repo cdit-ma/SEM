@@ -436,7 +436,7 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
  */
 void TimelineChartView::viewItemConstructed(ViewItem* item)
 {
-    //addEntitySet(item);
+    addEntitySet(item);
 }
 
 
@@ -447,7 +447,7 @@ void TimelineChartView::viewItemConstructed(ViewItem* item)
  */
 void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
 {
-    //removeEntitySet(ID);
+    removeEntitySet(ID);
 }
 
 
@@ -601,47 +601,52 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
 
     switch (kind) {
     case TIMELINE_EVENT_KIND::PORT_LIFECYCLE: {
-        series = new PortLifecycleEventSeries(ID, this);
+        //series = new PortLifecycleEventSeries(ID, this);
         label += "_" + ID;
         break;
     }
     case TIMELINE_EVENT_KIND::WORKLOAD: {
-        series = new WorkloadEventSeries(ID, this);
+        //series = new WorkloadEventSeries(ID, this);
         label += "_" + ID;
         break;
     }
     case TIMELINE_EVENT_KIND::CPU_UTILISATION:
-        series = new CPUUtilisationEventSeries(ID, this);
+        //series = new CPUUtilisationEventSeries(ID, this);
         break;
     default:
-        return 0;
+        series = new MEDEA::EventSeries(this);
+        break;
     }
 
-    eventSeries[ID] = series;
+    if (series) {
 
-    EntityChart* chart = new EntityChart(0, this);
-    _timelineChart->addEntityChart(chart);
-    eventEntityCharts[ID] = chart;
-    chart->addEventSeries(series);
+        eventSeries[ID] = series;
 
-    EntitySet* set = new EntitySet(label, this);
-    _entityAxis->appendEntity(set);
-    eventEntitySets[ID] = set;
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->setEntityChartHovered(chart, hovered);
-    });
+        EntityChart* chart = new EntityChart(0, this);
+        _timelineChart->addEntityChart(chart);
+        eventEntityCharts[ID] = chart;
+        chart->addEventSeries(series);
 
-    // set the initial visibility states of each individual series in the charts
-    for (auto& action : _legendActions.values()) {
-        auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
-        chart->setSeriesKindVisible(kind, action->isChecked());
+        EntitySet* set = new EntitySet(label, this);
+        _entityAxis->appendEntity(set);
+        eventEntitySets[ID] = set;
+        set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+        set->themeChanged(Theme::theme());
+        connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+        connect(set, &EntitySet::hovered, [=] (bool hovered) {
+            _timelineChart->setEntityChartHovered(chart, hovered);
+        });
+
+        // set the initial visibility states of each individual series in the charts
+        for (auto& action : _legendActions.values()) {
+            auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+            chart->setSeriesKindVisible(kind, action->isChecked());
+        }
+
+        connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
+        connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
     }
 
-    connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
-    connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
     return series;
 }
 

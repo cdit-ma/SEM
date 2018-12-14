@@ -43,7 +43,6 @@ public:
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
-    void testEventSeries();
 
     void constructBigDataChart();
     void constructCustomChartView();

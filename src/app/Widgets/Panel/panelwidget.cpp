@@ -150,19 +150,6 @@ void PanelWidget::constructEventsView()
 }
 
 
-/**
- * @brief PanelWidget::constructCPUEventsView
- */
-void PanelWidget::constructCPUEventsView()
-{
-    TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_EVENT_KIND::CPU_UTILISATION});
-    connectChartViewToAggreagtionProxy(view);
-    defaultActiveAction = addTab("Utilisation", view);
-    defaultActiveAction->trigger();
-}
-
-
 void PanelWidget::testDataSeries()
 {
     QList<QPointF> points;
@@ -235,23 +222,6 @@ void PanelWidget::testNewTimelineView()
     if (viewController) {
         connect(viewController, &ViewController::vc_viewItemConstructed, view, &TimelineChartView::viewItemConstructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, view, &TimelineChartView::viewItemDestructed);
-    }
-}
-
-
-void PanelWidget::testEventSeries()
-{
-    TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::CPU_UTILISATION});
-    defaultActiveAction = addTab("Events", view);
-    defaultActiveAction->trigger();
-
-    if (viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
     }
 }
 
@@ -350,10 +320,7 @@ void PanelWidget::setViewController(ViewController *vc)
     connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
     constructEventsView();
-    constructCPUEventsView();
-
-    //testNewTimelineView();
-    //testEventSeries();
+    testNewTimelineView();
 }
 
 
@@ -984,13 +951,13 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
         for (auto kind : view->getActiveEventKinds()) {
             switch (kind) {
             case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
+                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             case TIMELINE_EVENT_KIND::WORKLOAD:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
+                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             case TIMELINE_EVENT_KIND::CPU_UTILISATION:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             }
         }
