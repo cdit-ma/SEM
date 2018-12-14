@@ -1269,32 +1269,30 @@ void ModelController::destructEntities(QList<Entity*> entities)
 {
     QSet<Entity*> nodes;
     QSet<Entity*> edges;
+
+    qCritical() << "Calculating Destruct Map";
     
     for(auto entity : entities){
         if(entity){
             if(entity->isNode()){
                 auto node = (Node*) entity;
                 nodes += node;
-
-                const auto& nested_nodes = node->getNestedDependants();
-                std::for_each(nested_nodes.begin(), nested_nodes.end(), [&nodes](Node* node){nodes += node;});
+                for(auto node : node->getNestedDependants()){
+                    nodes += node;
+                }
             }else if(entity->isEdge()){
                 auto edge = (Edge*) entity;
                 edges += edge;
             }
         }
     }
-
-    //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
-
     //Get all the edges
     for(auto n : sorted_nodes){
         for(auto edge : ((Node*)n)->getAllEdges()){
             edges += edge;
         }
     }
-    
     if(edges.size()){
         //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
@@ -1304,11 +1302,10 @@ void ModelController::destructEntities(QList<Entity*> entities)
         
 
         std::for_each(edges.begin(), edges.end(), [this](Entity* edge){
-            qCritical() << "Destructing: " << edge;
             destructEdge_((Edge*)edge);}
             );
     }
-
+    
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
         
@@ -1319,7 +1316,6 @@ void ModelController::destructEntities(QList<Entity*> entities)
         action.xml = exportGraphML(entity);
         addActionToStack(action);
 
-        qCritical() << "Destructing: " << node;
         destructNode_(node);
     }
 }

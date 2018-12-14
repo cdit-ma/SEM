@@ -328,12 +328,6 @@ private:
 
     KIND kind;
     bool ignorePosition;
-
-    
-
-    
-
-
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);

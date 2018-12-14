@@ -27,7 +27,7 @@ int launchMEDEA(int argc, char *argv[]){
         //Construct a QApplication
         QApplication a(argc, argv);
         //Fixes MacOS QIcon resolution.
-        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+        //a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 
         //Initialize images
         Q_INIT_RESOURCE(images);

@@ -735,21 +735,27 @@ QSet<Node *> Node::getImplementations() const
 QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> dependants;
+    getNestedDependants_(dependants);
+    return dependants;
+}
 
+void Node::getNestedDependants_(QSet<Node*>& dependants){
     //All our children are dependants
-    for(auto child : getAllChildren()){
-        dependants += child;
-        dependants += child->getNestedDependants();
+    for(auto child : getOrderedChildNodes()){
+        if(!dependants.contains(child)){
+            dependants += child;
+            child->getNestedDependants_(dependants);
+        }
     }
 
     for(auto dependant : getDependants()){
-        dependants += dependant;
-        dependants += dependant->getNestedDependants();
+        if(!dependants.contains(dependant)){
+            dependants += dependant;
+            dependant->getNestedDependants_(dependants);
+        }
     }
-    
-
-    return dependants;
 }
+
 
 /**
  * @brief Node::getDependants - Gets the Dependants.

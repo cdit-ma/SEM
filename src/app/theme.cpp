@@ -11,8 +11,6 @@
 #include <QApplication>
 #include "../modelcontroller/entityfactory.h"
 #include <QPainter>
-#include <QPixmapCache>
-
 
 Theme::Theme() : QObject(0)
 {
@@ -129,7 +127,7 @@ void Theme::roundQSize(QSize& size)
 
     //Scale the request image size to a width = factor
     size.setWidth(factor);
-    size.setHeight((double) factor * ((double)size.width() / (double)size.height()));
+    size.setHeight(factor);
 }
 
 IconPair Theme::getIconPair(const QString& prefix, const QString& alias)
@@ -378,7 +376,7 @@ QIcon Theme::getIcon(const QString& prefix, const QString& alias)
         bool is_off_tinted = tintIcon(off_rn);
         bool is_on_tinted = tintIcon(on_rn);
 
-        auto icon_size = getLargeIconSize();
+        auto icon_size = getLargeIconSize() * 2;
 
         //Handle Off State
         {
@@ -417,7 +415,6 @@ QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintCo
 {
     //Get the name of the pixmap url
     auto pixmap_url = getPixmapResourceName(resourceName, size, tintColor);
-
     {
         QReadLocker lock(&lock_);
         if(pixmapLookup.contains(pixmap_url)){
@@ -646,18 +643,6 @@ QMovie* Theme::getGif(const QString& path, const QString& name){
 
 QString Theme::getTabbedWidgetStyleSheet()
 {
-    /*
-    return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getSharpCornerRadius() % "; border: 1px solid " % getDisabledBackgroundColorHex() % ";}"
-           "QTabBar::tab:top{ padding: 5px 10px; margin: 5px 1px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; }"
-           "QTabBar::tab:right{ padding: 10px 5px; margin: 1px 5px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; }"
-           //"QTabBar::tab:selected{ background:" % getPressedColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
-           "QTabBar::tab:selected{ border-width: 2px; background:" % getBackgroundColorHex() % "; font-weight: bold; padding: 5px; margin: 1px; }"
-           "QTabBar::tab:hover{ background:" % getHighlightColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
-           "QTabBar, QTabWidget::tab-bar{ alignment: center; qproperty-drawBase: 0; border: 0px; }"
-           "QTabWidget::pane, QTabBar::pane{ border-bottom: 2px solid red; background:" % getBackgroundColorHex() % ";}"
-           ;
-           */
-
     return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getCornerRadius() % "; border: 1px solid " % getBackgroundColorHex() % ";}"
            "QTabBar::tab:top{ border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; margin: 1px 0px; padding: 5px 10px; }"
            "QTabBar::tab:right{ border-top-right-radius: 0px; border-bottom-right-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"

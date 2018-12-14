@@ -124,6 +124,7 @@ class Node : public Entity
         QSet<Node*> getImplementations() const;
         virtual QSet<Node*> getDependants() const;
         QSet<Node*> getNestedDependants();
+        
 
         
         
@@ -192,6 +193,8 @@ class Node : public Entity
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
         
         
+    protected:
+        void getNestedDependants_(QSet<Node*>& set);
     private:
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);

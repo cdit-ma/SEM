@@ -267,7 +267,7 @@ void Data::updateChildren(bool changed)
 
 void Data::addValidValue(QVariant value){
     if(!valid_values_.contains(value)){
-        valid_values_.append(value);
+        //valid_values_.append(value);
     }
 }
 
