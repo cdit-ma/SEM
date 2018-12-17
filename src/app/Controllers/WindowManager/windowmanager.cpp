@@ -187,8 +187,8 @@ void WindowManager::constructInnerDockWidget(ViewController* vc, BaseDockWidget*
                 connect(action, &QAction::triggered, panel, &PanelWidget::setVisible);
                 connect(panel, &PanelWidget::closeTriggered, [=](){ action->setChecked(false); });
                 // initially hide the panel
-                action->setChecked(false);
-                panel->setVisible(false);
+                //action->setChecked(false);
+                //panel->setVisible(false);
             }
         }
     }

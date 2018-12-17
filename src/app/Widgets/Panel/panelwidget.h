@@ -38,6 +38,7 @@ public:
     bool isMinimised();
 
     void constructEventsView();
+    void constructWorkloadEventsView();
 
     void testDataSeries();
     void testWidgets();

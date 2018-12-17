@@ -436,7 +436,7 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
  */
 void TimelineChartView::viewItemConstructed(ViewItem* item)
 {
-    //addEntitySet(item);
+    addEntitySet(item);
 }
 
 
@@ -447,7 +447,7 @@ void TimelineChartView::viewItemConstructed(ViewItem* item)
  */
 void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
 {
-    //removeEntitySet(ID);
+    removeEntitySet(ID);
 }
 
 
