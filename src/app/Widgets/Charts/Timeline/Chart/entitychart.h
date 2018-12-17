@@ -3,7 +3,6 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -64,7 +63,6 @@ protected:
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
-    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);

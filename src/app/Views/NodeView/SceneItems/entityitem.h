@@ -241,6 +241,9 @@ signals:
     void req_hovered(EntityItem*, bool);
     void req_expanded(EntityItem*, bool);
 
+    void hoveredChanged();
+    void selectionChanged();
+
     //Inform of changes
     void sizeChanged();
     void positionChanged();
@@ -325,12 +328,6 @@ private:
 
     KIND kind;
     bool ignorePosition;
-
-    
-
-    
-
-
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);

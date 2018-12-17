@@ -43,7 +43,7 @@ MEDEA::ExternalServerDelegate::ExternalServerDelegate(EntityFactoryBroker& broke
     broker.AttachData(in_, "label", QVariant::String, ProtectedState::PROTECTED, "Requests");
     broker.AttachData(in_, "middleware", QVariant::String, ProtectedState::PROTECTED);
 
-    LinkData(this, "middleware", in_, "middleware", true);
+    Data::LinkData(this, "middleware", in_, "middleware", true);
 
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ExternalServerDelegate::MiddlewareUpdated);
     connect(data_external, &Data::dataChanged, this, &MEDEA::ExternalServerDelegate::MiddlewareUpdated);
@@ -109,7 +109,7 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
         for(auto node : elements){
             getFactoryBroker().AttachData(node, topic_key, ProtectedState::UNPROTECTED);
         }
-        LinkData(this, "topic_name", in_, "topic_name", true);
+        Data::LinkData(this, "topic_name", in_, "topic_name", true);
     }
 
     //Add Data
@@ -120,19 +120,19 @@ void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
                 getFactoryBroker().AttachData(node, "tao_server_kind", QVariant::String, ProtectedState::UNPROTECTED, "kind");
                 getFactoryBroker().AttachData(node, "tao_naming_service_endpoint", QVariant::String, ProtectedState::UNPROTECTED, "corbaloc:iiop:IP:PORT");
             }
-            LinkData(this, "tao_server_name", in_, "tao_server_name", true);
-            LinkData(this, "tao_naming_service_endpoint", in_, "tao_naming_service_endpoint", true);
-            LinkData(this, "tao_server_kind", in_, "tao_server_kind", true);
+            Data::LinkData(this, "tao_server_name", in_, "tao_server_name", true);
+            Data::LinkData(this, "tao_naming_service_endpoint", in_, "tao_naming_service_endpoint", true);
+            Data::LinkData(this, "tao_server_kind", in_, "tao_server_kind", true);
         }else if(middleware == "QPID"){
             for(auto node : elements){
                 getFactoryBroker().AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
             }
-            LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
+            Data::LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
         }else if(middleware == "ZMQ"){
             for(auto node : elements){
                 getFactoryBroker().AttachData(node, "zmq_server_address", QVariant::String, ProtectedState::UNPROTECTED, "tcp://IP:PORT");
             }
-            LinkData(this, "zmq_server_address", in_, "zmq_server_address", true);
+            Data::LinkData(this, "zmq_server_address", in_, "zmq_server_address", true);
         }
     }else{
         for(auto node : elements){

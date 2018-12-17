@@ -40,7 +40,9 @@ private slots:
     void updateEdge();
     void srcAncestorVisibilityChanged();
     void dstAncestorVisibilityChanged();
+    void repaint();
 private:
+    void updateEdgeOpacity();
     void sourceIconHover(bool handle, const QPointF& pos);
     void targetIconHover(bool handle, const QPointF& pos);
     void moveHover(bool handle, const QPointF& pos);
@@ -81,6 +83,8 @@ private:
     QPainterPath dstArrow;
 
     bool srcCurveEntersCenterLeft;
+
+    qreal inactive_opacity_ = 0.50;
 
     QMarginsF margins;
     EDGE_KIND kind;

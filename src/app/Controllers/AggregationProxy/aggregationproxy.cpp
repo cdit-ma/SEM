@@ -2,6 +2,8 @@
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
 
+#include "../SettingsController/settingscontroller.h"
+
 #include <iostream>
 #include <QtConcurrent>
 
@@ -9,9 +11,40 @@
 /**
  * @brief AggregationProxy::AggregationProxy
  */
-AggregationProxy::AggregationProxy() :
-    requester_("tcp://192.168.111.249:12345")
+AggregationProxy::AggregationProxy()
 {
+    auto settings = SettingsController::settings();
+    connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value) {
+        if (key == SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT) {
+            SetServerEndpoint(value.toString());
+        }
+    });
+
+    SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT).toString());
+}
+
+
+/**
+ * @brief AggregationProxy::~AggregationProxy
+ */
+AggregationProxy::~AggregationProxy()
+{
+    if (requester_) {
+        delete requester_;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::SetServerEndpoint
+ * @param endpoint
+ */
+void AggregationProxy::SetServerEndpoint(QString endpoint)
+{
+    if (requester_) {
+        delete requester_;
+    }
+    requester_ = new AggServer::Requester(endpoint.toStdString());
 }
 
 
@@ -30,6 +63,9 @@ void AggregationProxy::RequestRunningExperiments()
  */
 void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
+    if (!GotRequester())
+        return;
+
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     QList<ExperimentRun> runs;
@@ -38,7 +74,7 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experimentName.toStdString());
 
-        auto& results = requester_.GetExperimentRuns(request);
+        auto& results = requester_->GetExperimentRuns(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "Requesting experiment with name: " << experimentName;
@@ -61,7 +97,6 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -77,6 +112,9 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
  */
 void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 {
+    if (!GotRequester())
+        return;
+
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
@@ -85,7 +123,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         request.set_experiment_run_id(experimentRunID);
         setSelectedExperimentRunID(experimentRunID);
 
-        auto& results = requester_.GetExperimentState(request);
+        auto& results = requester_->GetExperimentState(request);
         QStringList names;
         qDebug() << "[Experiment State] Results: " << results->components_size();
         qDebug() << "--------------------------------------------------------------------------------";
@@ -99,7 +137,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        emit setChartUserInputDialogVisible(false);
+        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -134,8 +172,9 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
+
     /*for (auto name : componentNames_) {
-        portLifecycleRequest.mutable_component_names()->AddAllocated(&constructStdStringFromQString(name));
+        portLifecycleRequest.mutable_component_names()->AddAllocated(&name.toStdString());
     }*/
 
     SendPortLifecycleRequest(portLifecycleRequest);
@@ -153,17 +192,6 @@ std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::constructTimestam
 {
     google::protobuf::Timestamp timestamp = google::protobuf::util::TimeUtil::MillisecondsToTimestamp(milliseconds);
     return std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp(timestamp));
-}
-
-
-/**
- * @brief AggregationProxy::constructStdStringFromQString
- * @param s
- * @return
- */
-std::string AggregationProxy::constructStdStringFromQString(QString s)
-{
-    return s.toLocal8Bit().constData();
 }
 
 
@@ -202,15 +230,33 @@ void AggregationProxy::setSelectedExperimentRunID(quint32 ID)
 
 
 /**
+ * @brief AggregationProxy::GotRequester
+ * @return
+ */
+bool AggregationProxy::GotRequester()
+{
+    if (!requester_) {
+        //Got no requester
+        NotificationManager::manager()->AddNotification("No Aggregation Requester", "Icons", "buildingPillared", Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+        return false;
+    }
+    return true;
+}
+
+
+/**
  * @brief AggregationProxy::SendPortLifecycleRequest
  * @param request
  */
 void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
 {
+    if (!GotRequester())
+        return;
+
     auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-        auto results = requester_.GetPortLifecycle(request);
+        auto results = requester_->GetPortLifecycle(request);
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
         qDebug() << "--------------------------------------------------------------------------------";

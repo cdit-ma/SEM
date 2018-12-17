@@ -15,6 +15,7 @@ class JenkinsMonitor : public Monitor
     Q_OBJECT
 public:
     JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name, int build_number, QWidget * parent = 0);
+    ~JenkinsMonitor();
     QString GetJobName() const;
     int getBuildNumber() const;
 signals:

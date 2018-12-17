@@ -24,14 +24,14 @@ MEDEA::DeploymentContainer::DeploymentContainer(EntityFactoryBroker &broker, boo
         return;
     }
 
-    /* //To be readded once docker deployment is supported in re
+    //Don't allow late joiner flag to be modified
     broker.AttachData(this, "is_late_joiner", QVariant::Bool, ProtectedState::PROTECTED, false);
-    auto data_docker = broker.AttachData(this, "is_docker", QVariant::Bool, ProtectedState::PROTECTED, false);
+    auto data_docker = broker.AttachData(this, "is_docker", QVariant::Bool, ProtectedState::UNPROTECTED, false);
     connect(data_docker, &Data::dataChanged, this, &MEDEA::DeploymentContainer::TypeUpdated);
-    TypeUpdated();*/
 
     broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
     broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+    TypeUpdated();
 }
 
 bool MEDEA::DeploymentContainer::canAcceptEdge(EDGE_KIND edge_kind, Node *destination) {
@@ -52,8 +52,6 @@ bool MEDEA::DeploymentContainer::canAcceptEdge(EDGE_KIND edge_kind, Node *destin
 }
 
 void MEDEA::DeploymentContainer::TypeUpdated(){
-    /* To be readded once docker deployment is supported in re
     auto is_docker = getDataValue("is_docker").toBool();
     getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (is_docker ? "docker" : "servers"));
-    */
 }

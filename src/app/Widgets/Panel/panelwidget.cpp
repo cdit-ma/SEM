@@ -59,6 +59,8 @@ PanelWidget::PanelWidget(QWidget *parent)
     if (defaultActiveAction) {
         defaultActiveAction->trigger();
     }
+
+
 }
 
 
@@ -151,7 +153,7 @@ void PanelWidget::constructEventsView()
 
 
 /**
- * @brief PanelWidget::constructCPUEventsView
+ * @brief PanelWidget::constructPortLifecycleEventsView
  */
 void PanelWidget::constructPortLifecycleEventsView()
 {
@@ -773,6 +775,7 @@ void PanelWidget::setupLayout()
     connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
     });
+    refreshDataAction->setVisible(false);
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
@@ -849,7 +852,7 @@ void PanelWidget::setupChartInputDialog()
     nameLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     nameLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
 
-    connect(nameLineEdit, &QLineEdit::returnPressed, [=]() {
+    connect(nameLineEdit, &QLineEdit::textChanged, [=]() {
         emit requestExperimentRuns(nameLineEdit->text().trimmed());
     });
 
@@ -904,11 +907,15 @@ void PanelWidget::setupChartInputDialog()
 
     chartInputPopup = new HoverPopup(this);
 
-    connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
+    /*connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
     connect(okAction, &QAction::triggered, [=]() {
         sendEventsRequest();
-    });
+    });*/
+    
+    connect(okAction, &QAction::triggered, chartInputPopup, &QDialog::accept);
+    connect(cancelAction, &QAction::triggered, chartInputPopup, &QDialog::reject);
 
+    connect(chartInputPopup, &QDialog::accepted, this, &PanelWidget::sendEventsRequest);
 
     chartInputPopup->setWidget(holderWidget);
     chartInputPopup->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -926,6 +933,9 @@ void PanelWidget::setChartInputDialogVisible(bool visible)
         chartInputPopup->activateWindow();
         nameLineEdit->setFocus();
         nameLineEdit->selectAll();
+        if (nameLineEdit->text().isEmpty()) {
+            emit requestExperimentRuns("");
+        }
     }
 }
 
@@ -941,18 +951,19 @@ void PanelWidget::sendEventsRequest()
             names.append(button->text());
         }
     }*/
-    quint32 ID;
+
     for (auto button : runButtons) {
         if (button->isChecked()) {
-            ID = button->property("ID").toUInt();
-            break;
+            quint32 ID = button->property("ID").toUInt();
+            emit requestEvents(ID, filterLineEdit->text().trimmed());
+            if (!isVisible()) {
+                show();
+            }
+            return;
         }
     }
-    emit requestEvents(ID, filterLineEdit->text().trimmed());
-    if (!isVisible()) {
-        show();
-    }
-    chartInputPopup->hide();
+
+    //emit reloadEvents();
 }
 
 

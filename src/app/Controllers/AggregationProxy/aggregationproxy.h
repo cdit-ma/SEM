@@ -15,6 +15,8 @@ class AggregationProxy : public QObject
 
 public:
     explicit AggregationProxy();
+    ~AggregationProxy();
+    void SetServerEndpoint(QString endpoint);
 
     void RequestRunningExperiments();
     void RequestExperimentRuns(QString experimentName = "");
@@ -23,8 +25,6 @@ public:
     void ReloadRunningExperiments();
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
-    static std::string constructStdStringFromQString(QString s);
-
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
     static const QString getQString(const std::string &string);
 
@@ -41,7 +41,8 @@ signals:
 public slots:
     void setSelectedExperimentRunID(quint32 ID);
 
-private:    
+private:
+    bool GotRequester();
     void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
 
     Port convertPort(const AggServer::Port port);
@@ -52,7 +53,8 @@ private:
     quint32 experimentRunID_;
     QStringList componentNames_;
 
-    AggServer::Requester requester_;
+
+    AggServer::Requester* requester_ = 0;
 
 };
 

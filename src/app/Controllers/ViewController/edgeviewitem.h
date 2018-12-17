@@ -20,6 +20,8 @@ public:
     int getSourceID();
     int getDestinationID();
     void disconnectEdge();
+protected:
+    void Disconnect();
 private:
     NodeViewItem* source;
     NodeViewItem* destination;

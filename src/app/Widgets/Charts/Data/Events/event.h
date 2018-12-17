@@ -2,7 +2,7 @@
 #define MEDEAEVENT_H
 
 #include <QObject>
-#include "protoMessageStructs.h"
+#include "protomessagestructs.h"
 
 enum class TIMELINE_EVENT_KIND{UNKNOWN, PORT_LIFECYCLE, CPU_UTILISATION, WORKLOAD};
 
