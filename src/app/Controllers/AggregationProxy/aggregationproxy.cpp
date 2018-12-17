@@ -2,6 +2,8 @@
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
 
+#include "../SettingsController/settingscontroller.h"
+
 #include <iostream>
 #include <QtConcurrent>
 
@@ -9,11 +11,30 @@
 /**
  * @brief AggregationProxy::AggregationProxy
  */
-AggregationProxy::AggregationProxy() :
-    requester_("tcp://192.168.111.249:12345")
+AggregationProxy::AggregationProxy()
 {
+    auto settings = SettingsController::settings();
+    connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value){
+        if(key == SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT){
+            SetServerEndpoint(value.toString());
+        }
+    });
+
+    SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT).toString());
 }
 
+AggregationProxy::~AggregationProxy(){
+    if(requester_){
+        delete requester_;
+    }
+}
+
+void AggregationProxy::SetServerEndpoint(QString endpoint){
+    if(requester_){
+        delete requester_;
+    }
+    requester_ = new AggServer::Requester(endpoint.toStdString());
+}
 
 /**
  * @brief AggregationProxy::RequestRunningExperiments
@@ -30,6 +51,10 @@ void AggregationProxy::RequestRunningExperiments()
  */
 void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
+    if(!requester_){
+        //Got no requester
+        return;
+    }
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     QList<ExperimentRun> runs;
@@ -38,7 +63,7 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experimentName.toStdString());
 
-        auto& results = requester_.GetExperimentRuns(request);
+        auto& results = requester_->GetExperimentRuns(request);
 
         qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "Requesting experiment with name: " << experimentName;
@@ -76,6 +101,10 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
  */
 void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 {
+    if(!requester_){
+        //Got no requester
+        return;
+    }
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
@@ -84,7 +113,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         request.set_experiment_run_id(experimentRunID);
         setSelectedExperimentRunID(experimentRunID);
 
-        auto& results = requester_.GetExperimentState(request);
+        auto& results = requester_->GetExperimentState(request);
         QStringList names;
         qDebug() << "[Experiment State] Results: " << results->components_size();
         qDebug() << "--------------------------------------------------------------------------------";

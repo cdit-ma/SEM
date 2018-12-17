@@ -14,6 +14,8 @@ class AggregationProxy : public QObject
 
 public:
     explicit AggregationProxy();
+    ~AggregationProxy();
+    void SetServerEndpoint(QString endpoint);
 
     void RequestRunningExperiments();
     void RequestExperimentRuns(QString experimentName = "");
@@ -43,7 +45,8 @@ private:
     quint32 experimentRunID_;
     QStringList componentNames_;
 
-    AggServer::Requester requester_;
+
+    AggServer::Requester* requester_ = 0;
 
 };
 

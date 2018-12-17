@@ -59,6 +59,8 @@ PanelWidget::PanelWidget(QWidget *parent)
     if (defaultActiveAction) {
         defaultActiveAction->trigger();
     }
+
+
 }
 
 
@@ -835,7 +837,7 @@ void PanelWidget::setupChartInputDialog()
     nameLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     nameLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
 
-    connect(nameLineEdit, &QLineEdit::returnPressed, [=]() {
+    connect(nameLineEdit, &QLineEdit::textChanged, [=]() {
         emit requestExperimentRuns(nameLineEdit->text().trimmed());
     });
 
@@ -890,10 +892,19 @@ void PanelWidget::setupChartInputDialog()
 
     chartInputPopup = new HoverPopup(this);
 
+    
+
     connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
     connect(okAction, &QAction::triggered, [=]() {
         sendEventsRequest();
     });
+
+    
+    connect(okAction, &QAction::triggered, chartInputPopup, &QDialog::accept);
+    connect(cancelAction, &QAction::triggered, chartInputPopup, &QDialog::reject);
+
+    connect(chartInputPopup, &QDialog::accepted, this, &PanelWidget::sendEventsRequest);
+
 
 
     chartInputPopup->setWidget(holderWidget);
@@ -934,6 +945,7 @@ void PanelWidget::sendEventsRequest()
             break;
         }
     }
+    qCritical() << ID;
     emit requestEvents(ID, filterLineEdit->text().trimmed());
     if (!isVisible()) {
         show();

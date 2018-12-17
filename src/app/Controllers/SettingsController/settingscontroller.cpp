@@ -103,10 +103,9 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH, SETTING_TYPE::FILE, "General", "Runtime Environment", "RE configure script path", "Icons", "file");
     createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
-    
 
-    
-    
+
+    createSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT, SETTING_TYPE::STRING, "Charts", "Aggregation Server", "Aggregation Server Endpoint", "Icons", "cloudCircle");
 
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
@@ -219,6 +218,9 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
     _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
     _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
+
+
+    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://192.168.111.249:12345");
 
     
 
