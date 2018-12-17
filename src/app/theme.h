@@ -13,6 +13,7 @@
 #include <QFuture>
 #include <QProxyStyle>
 #include <QFont>
+#include <QCache>
 
 #include "../modelcontroller/nodekinds.h"
 #include "Controllers/SettingsController/settingscontroller.h"
@@ -28,7 +29,7 @@
 typedef QPair<QString, QString> IconPair;
 Q_DECLARE_METATYPE(IconPair); 
 
-enum class ThemePreset{LIGHT_THEME, DARK_THEME, SOLARIZED_DARK_THEME, SOLARIZED_LIGHT_THEME};
+enum class ThemePreset{XMAS_THEME, LIGHT_THEME, DARK_THEME, SOLARIZED_DARK_THEME, SOLARIZED_LIGHT_THEME};
 enum class ColorRole{NONE, NORMAL, DISABLED, SELECTED};
 
 
@@ -98,6 +99,7 @@ public:
     void setMenuIconColor(ColorRole role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
     void setIconToggledImage(const QString& prefix, const QString& alias, const QString& toggledOnPrefix, const QString& toggledOnAlias, const QString& toggledOffPrefix, const QString& toggleOffAlias, bool ignore_toggle_coloring = true);
+    void setInactiveEdgeOpacity(qreal opacity);
 
     void setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias);
 
@@ -125,6 +127,8 @@ public:
     QString getCornerRadius();
     QString getSharpCornerRadius();
 
+    qreal getInactiveEdgeOpacity();
+
     // Default StyleSheets
     QString getWindowStyleSheet(bool show_background_image);
     QString getScrollBarStyleSheet();
@@ -147,6 +151,7 @@ public:
     QString getLineEditStyleSheet(QString widget_name="QLineEdit");
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+    QString getSliderStyleSheet();
 
     QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
@@ -162,7 +167,6 @@ signals:
 public slots:
     void settingChanged(SETTINGS setting, QVariant value);
 private:
-    void clearIconMap();
     void preloadImages();
 
 struct ImageLoad{
@@ -185,7 +189,6 @@ struct ImageLoad{
     void setFont(QFont size);
 
     QImage getImage(const QString& resource_name);
-    QColor getTintColor(const QString& resource_name);
 
     static IconPair SplitImagePath(const QString& path);
 
@@ -197,9 +200,11 @@ struct ImageLoad{
     QSet<QString> image_names;
 
     QHash<QString, QMovie*> gifLookup;
+
     QHash<QString, QImage> imageLookup;
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QIcon> iconLookup;
+
 
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QColor> pixmapTintLookup;
@@ -218,8 +223,7 @@ struct ImageLoad{
         ColorRole off_disabled = ColorRole::DISABLED;
     };
 
-    QHash<QString, QPair<IconPair, IconPair> > iconToggledLookup;
-    QHash<QString, IconToggle > iconToggledLookup2;
+    QHash<QString, IconToggle > iconToggledLookup;
     QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
@@ -237,33 +241,31 @@ struct ImageLoad{
     QColor backgroundColor;
     QColor altBackgroundColor;
     QColor disabledBackgroundColor;
-    QColor iconColor;
-    QColor selectedItemBorderColor;
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
 
     QSize icon_size = QSize(16,16);
+
+    qreal inactive_opacity_ = 0.50;
 
     QFont font;
 
     QReadWriteLock lock_;
     QReadWriteLock pixmap_lock_;
 
-
+    ThemePreset current_theme = ThemePreset::XMAS_THEME;
     bool themeChanged = false;
     bool valid = false;
+    QFuture<void> entity_icons_load_future;
 public:
-    static QString QColorToHex(const QColor color);
+    static QString QColorToHex(const QColor& color);
     static Theme* theme();
-    static void teardownTheme();
-    static QSize roundQSize(QSize size);
-    static IconPair getIconPair(QString prefix, QString alias);
+    static void roundQSize(QSize& size);
+    static IconPair getIconPair(const QString& prefix, const QString& alias);
 
     static void UpdateActionIcon(QAction* action, Theme* theme = 0);
     static void StoreActionIcon(QAction* action, QString alias, QString name);
     static void StoreActionIcon(QAction* action, IconPair icon);
-private:
-    static Theme* themeSingleton;
 };
 
 

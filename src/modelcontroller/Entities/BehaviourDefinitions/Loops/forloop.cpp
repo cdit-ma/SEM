@@ -52,7 +52,7 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
     broker.AttachData(variable_, "label", QVariant::String, ProtectedState::UNPROTECTED, "i");
     broker.AttachData(variable_, "value", QVariant::String, ProtectedState::UNPROTECTED, 0);
 
-    auto variable_type = broker.AttachData(variable_, "type", QVariant::String, ProtectedState::UNPROTECTED);
+    auto variable_type = broker.AttachData(variable_, "type", QVariant::String, ProtectedState::UNPROTECTED, "Integer");
     variable_type->addValidValues(TypeKey::GetValidNumberTypes());
 
     //Setup Expression
@@ -82,12 +82,18 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
 
     //Bind Value changing
     auto data_variable_label = variable_->getData("label");
+    auto data_variable_type = variable_->getData("type");
     auto data_variable_value = variable_->getData("value");
     auto data_expression_label = expression_->getData("label");
     auto data_iteration_label = iteration_->getData("label");
 
+    Data::LinkData(variable_, KeyName::Type, expression_->GetLhs(), KeyName::InnerType, true);
+    Data::LinkData(variable_, KeyName::Type, iteration_->GetLhs(), KeyName::InnerType, true);
+
+
     //Update Label on data Change
     connect(data_variable_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
+    connect(data_variable_type, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
     connect(data_variable_value, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
     connect(data_expression_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
     connect(data_iteration_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);

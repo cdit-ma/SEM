@@ -20,26 +20,26 @@ int launchMEDEA(int argc, char *argv[]){
     }
     #endif
 
+    QScopedPointer<ViewController> view_controller;
+
     int result = 0;
     try{
         //Construct a QApplication
         QApplication a(argc, argv);
+        //Fixes MacOS QIcon resolution.
+        //a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 
         //Initialize images
         Q_INIT_RESOURCE(images);
         Q_INIT_RESOURCE(workers);
 
+        //Initialize important singletons
         Theme::theme();
-
-        //Fixes MacOS QIcon resolution.
-        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-
-        //Construct a SettingsController and ViewController
-        auto settings_controller = SettingsController::settings();
+        SettingsController::settings();
         
-        auto view_controller = new ViewController();
+        view_controller.reset(new ViewController());
         
-        auto window = WindowManager::manager()->constructMainWindow(view_controller);
+        auto window = WindowManager::manager()->constructMainWindow(view_controller.data());
         if (argc == 2) {
             QString projectPath = QString::fromUtf8(argv[1]);
             if(!projectPath.isEmpty()){
@@ -53,10 +53,6 @@ int launchMEDEA(int argc, char *argv[]){
         std::cerr << "MEDEA Exception: " << ex.what() << std::endl;
         result  = 1;
     }
-
-    //Teardown singletons
-    SettingsController::teardownSettings();
-    Theme::teardownTheme();
     return result;
 }
 

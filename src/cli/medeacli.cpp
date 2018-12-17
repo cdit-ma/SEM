@@ -60,14 +60,17 @@ int main(int argc, char** argv){
 
     error_count += setup_success;
 
-    auto import_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    for(auto file_path : import_projects){
-        auto success = controller->importProjects({Utils::readTextFile(file_path)});
-        qInfo() << "Importing Project:" << file_path << (success ? "[SUCCESS]" : "[FAIL]");
-        error_count += success;
+
+    if(import_projects.size()){
+        auto import_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        for(auto file_path : import_projects){
+            auto success = controller->importProjects({Utils::readTextFile(file_path)});
+            qInfo() << "Importing Project:" << file_path << (success ? "[SUCCESS]" : "[FAIL]");
+            error_count += success;
+        }
+        auto import_end = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qInfo() << "Importing: " << import_projects.size() << " Projects took: " << (import_end - import_start) << " MS";
     }
-    auto import_end = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qInfo() << "Importing: " << import_projects.size() << " Projects took: " << (import_end - import_start) << " MS";
     
 
     //Export Model as graphml

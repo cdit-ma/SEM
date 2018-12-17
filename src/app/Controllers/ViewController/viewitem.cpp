@@ -46,10 +46,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
-    if(_parent){
-        _parent->removeChild(this);
-        _parent = 0;
-    }
+    Disconnect();
 
     while(child_nodes_.size()){
         removeChild(*child_nodes_.begin());
@@ -175,13 +172,17 @@ const IconPair& ViewItem::getIcon() const
     }
 }
 
-void ViewItem::destruct()
-{
-    /*if(_parent){
+void ViewItem::Disconnect(){
+    if(_parent){
         _parent->removeChild(this);
         _parent = 0;
-    }*/
-    
+    }
+}
+
+void ViewItem::destruct()
+{
+    Disconnect();
+
     if(hasRegisteredObjects()){
         emit destructing(ID);
     }else{
@@ -205,6 +206,7 @@ void ViewItem::addChild(ViewItem *child)
         if(set.size() > pre_size){
             child->setParentViewItem(this);
             connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
+            connect(child, &ViewItem::nestedNotificationsChanged, this, &ViewItem::nestedNotificationsChanged);
             childAdded(child);
         }
     }

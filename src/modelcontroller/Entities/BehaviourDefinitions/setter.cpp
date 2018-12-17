@@ -71,7 +71,7 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     broker.AttachData(operator_, "value", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(operator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
 
-    LinkData(operator_, "label", operator_, "value", true);
+    Data::LinkData(operator_, "label", operator_, "value", true);
 
     broker.RemoveData(operator_, "type");
     broker.RemoveData(operator_, "inner_type");
@@ -94,9 +94,8 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     connect(data_operator, &Data::dataChanged, this, &Setter::updateLabel);
 
     updateLabel();
-    TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
-    TypeKey::BindInnerAndOuterTypes(lhs_, this, true);
-    TypeKey::BindInnerAndOuterTypes(rhs_, this, true);
+    TypeKey::BindTypes(lhs_, rhs_, true, true);
+    TypeKey::BindTypes(lhs_, this, true, true);
 }
 
 bool Setter::canAdoptChild(Node* child)
