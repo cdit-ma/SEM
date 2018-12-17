@@ -14,7 +14,7 @@
 AggregationProxy::AggregationProxy()
 {
     auto settings = SettingsController::settings();
-    connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value){
+    connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value) {
         if(key == SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT){
             SetServerEndpoint(value.toString());
         }
@@ -23,18 +23,30 @@ AggregationProxy::AggregationProxy()
     SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT).toString());
 }
 
-AggregationProxy::~AggregationProxy(){
-    if(requester_){
+
+/**
+ * @brief AggregationProxy::~AggregationProxy
+ */
+AggregationProxy::~AggregationProxy()
+{
+    if (requester_) {
         delete requester_;
     }
 }
 
-void AggregationProxy::SetServerEndpoint(QString endpoint){
-    if(requester_){
+
+/**
+ * @brief AggregationProxy::SetServerEndpoint
+ * @param endpoint
+ */
+void AggregationProxy::SetServerEndpoint(QString endpoint)
+{
+    if (requester_) {
         delete requester_;
     }
     requester_ = new AggServer::Requester(endpoint.toStdString());
 }
+
 
 /**
  * @brief AggregationProxy::RequestRunningExperiments
@@ -51,10 +63,9 @@ void AggregationProxy::RequestRunningExperiments()
  */
 void AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
-    if(!requester_){
-        //Got no requester
+    if (!GotRequester())
         return;
-    }
+
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     QList<ExperimentRun> runs;
@@ -101,10 +112,9 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
  */
 void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 {
-    if(!requester_){
-        //Got no requester
+    if (!GotRequester())
         return;
-    }
+
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
@@ -181,17 +191,6 @@ std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::constructTimestam
 
 
 /**
- * @brief AggregationProxy::constructStdStringFromQString
- * @param s
- * @return
- */
-std::string AggregationProxy::constructStdStringFromQString(QString s)
-{
-    return s.toLocal8Bit().constData();
-}
-
-
-/**
  * @brief AggregationProxy::getQDateTime
  * @param time
  * @return
@@ -222,4 +221,19 @@ void AggregationProxy::setSelectedExperimentRunID(quint32 ID)
 {
     experimentRunID_ = ID;
     hasSelectedExperimentID_ = true;
+}
+
+
+/**
+ * @brief AggregationProxy::GotRequester
+ * @return
+ */
+bool AggregationProxy::GotRequester()
+{
+    if (!requester_) {
+        //Got no requester
+        NotificationManager::manager()->AddNotification("No Aggregation Requester", "Icons", "buildingPillared", Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+        return false;
+    }
+    return true;
 }
