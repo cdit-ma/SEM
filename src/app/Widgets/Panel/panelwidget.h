@@ -38,12 +38,11 @@ public:
     bool isMinimised();
 
     void constructEventsView();
-    void constructCPUEventsView();
+    void constructPortLifecycleEventsView();
 
     void testDataSeries();
     void testWidgets();
     void testNewTimelineView();
-    void testEventSeries();
 
     void constructBigDataChart();
     void constructCustomChartView();

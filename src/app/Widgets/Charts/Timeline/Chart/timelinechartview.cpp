@@ -436,7 +436,7 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
  */
 void TimelineChartView::viewItemConstructed(ViewItem* item)
 {
-    //addEntitySet(item);
+    addEntitySet(item);
 }
 
 
@@ -447,7 +447,7 @@ void TimelineChartView::viewItemConstructed(ViewItem* item)
  */
 void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
 {
-    //removeEntitySet(ID);
+    removeEntitySet(ID);
 }
 
 
@@ -605,16 +605,9 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
         label += "_" + ID;
         break;
     }
-    case TIMELINE_EVENT_KIND::WORKLOAD: {
-        series = new WorkloadEventSeries(ID, this);
-        label += "_" + ID;
-        break;
-    }
-    case TIMELINE_EVENT_KIND::CPU_UTILISATION:
-        series = new CPUUtilisationEventSeries(ID, this);
-        break;
     default:
-        return 0;
+        series = new MEDEA::EventSeries(this);
+        break;
     }
 
     eventSeries[ID] = series;
