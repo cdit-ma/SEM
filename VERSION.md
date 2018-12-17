@@ -1,11 +1,13 @@
-# MEDEA v3.2.5
+# MEDEA v3.3.0
 ## New Features:
-* Updated re_gen to v3.2.5
-* Added new DeploymentContainer entity to support containerised deployment. 
- * ComponentInstances/ComponentAssemblies/LoggingProfile can be deployed to DeploymentContainers, which are mapped to an unique instance of re_node_manager.
- * DeploymentContainers should be deployed to HardwareNode/HardwareClusters, in a many-one relationship
-* Updated Connect menu to show edge direction title label
-* Updated some older icons
+* Optimized image loading to reduce memory footprint
+* Updated re_gen to v3.2.10
+* Added docker mode for deployment containers
+* Updated Welcome screen
 
 ## Validation:
-* Added a check for undeployed DeploymentContainers
+* Added more checks for invalid characters in labels
+
+## Resolved JIRA Tickets:
+* MED-456
+* REGEN-86

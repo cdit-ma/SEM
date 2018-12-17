@@ -87,14 +87,14 @@ protected:
     void removeData(const QString& keyName);
     virtual void childAdded(ViewItem* child);
     virtual void childRemoved(ViewItem* child);
+
+    virtual void Disconnect();
     
 
     ViewController* getController();
 private:
     void destruct();
-
 private:
-
     ViewItem* _parent = 0;
     DataTableModel* table_model_ = 0;
 

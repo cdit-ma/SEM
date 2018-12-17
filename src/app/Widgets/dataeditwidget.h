@@ -50,13 +50,7 @@ private:
 
     SETTING_TYPE type;
     QWidget* editWidget_1 = 0;
-    QWidget* editWidget_2 = 0;;
-    
-    
-    
     QToolBar* toolbar = 0;
-    
-
     QLabel* label = 0;
     QAction* icon_action = 0;
     QAction* button_action = 0;

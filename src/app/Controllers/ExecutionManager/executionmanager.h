@@ -22,9 +22,11 @@ public:
     ExecutionManager(ViewController* view_controller);
     bool HasJava();
     bool HasRe();
+    bool HasRegen();
 
     //Functional runners
     void CheckForRe(QString re_configure_path);
+    void CheckForRegen(QString re_gen_path);
     void CheckForJava();
 
     
@@ -47,12 +49,15 @@ signals:
 
     void GotJava(bool ready);
     void GotRe(bool ready);
+    void GotRegen(bool ready);
 private:
-    
     void CheckForRe_(QString configure_script_path);
+    void CheckForRegen_(QString configure_script_path);
     void ValidateModel_(QString model_path);
     void CheckForJava_();
     void ExecuteModel_(QString document_path, QString output_directory, int duration);
+
+    QString GetSaxonPath();
 
     bool GenerateProject_(QString document_path, QString output_directory);
     QString GenerateWorkload(QString document_path, QString output_directory, int id);
@@ -69,7 +74,6 @@ private:
     ViewController* view_controller_= 0;
     
     QProcessEnvironment re_configured_env_;
-    QString saxon_jar_path_;
     QString transforms_path_;
 
     QFuture<void> configure_thread;
@@ -78,11 +82,13 @@ private:
     QFuture<void> execute_model_thread;
     QFuture<bool> generate_project_thread;
     QFuture<void> generate_code_thread;
+    QFuture<void> regen_thread;
 
     QReadWriteLock lock_;
     
     bool got_java_ = false;
     bool got_re_ = false;
+    bool got_regen_ = false;
 };
 
 

@@ -3,6 +3,7 @@
 #include "entitychart.h"
 #include "../Axis/axiswidget.h"
 #include "../../Series/barseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../../../theme.h"
 
 #include <QScrollBar>
@@ -609,6 +610,7 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     }
 
     if (series) {
+
         eventSeries[ID] = series;
 
         EntityChart* chart = new EntityChart(0, this);

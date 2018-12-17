@@ -43,7 +43,7 @@ MEDEA::ExternalPubSubDelegate::ExternalPubSubDelegate(EntityFactoryBroker& broke
     broker.AttachData(in_, "label", QVariant::String, ProtectedState::PROTECTED, "Events");
     broker.AttachData(in_, "middleware", QVariant::String, ProtectedState::PROTECTED);
 
-    LinkData(this, "middleware", in_, "middleware", true);
+    Data::LinkData(this, "middleware", in_, "middleware", true);
 
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
     connect(data_external, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
@@ -109,7 +109,7 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
         for(auto node : elements){
             getFactoryBroker().AttachData(node, topic_key, ProtectedState::UNPROTECTED);
         }
-        LinkData(this, "topic_name", in_, "topic_name", true);
+        Data::LinkData(this, "topic_name", in_, "topic_name", true);
     }
     bool allow_inputs = true;
 
@@ -121,7 +121,7 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
                 getFactoryBroker().RemoveData(node, "zmq_publisher_address");
                 getFactoryBroker().RemoveData(node, "qpid_broker");
             }
-            LinkData(this, "dds_domain_id", in_, "dds_domain_id", true);
+            Data::LinkData(this, "dds_domain_id", in_, "dds_domain_id", true);
             
         }else if(middleware == "ZMQ"){
             for(auto node : elements){
@@ -130,14 +130,14 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
                 getFactoryBroker().RemoveData(node, "qpid_broker");
             }
             allow_inputs = false;
-            LinkData(this, "zmq_publisher_address", in_, "zmq_publisher_address", true);
+            Data::LinkData(this, "zmq_publisher_address", in_, "zmq_publisher_address", true);
         }else if(middleware == "QPID"){
             for(auto node : elements){
                 getFactoryBroker().AttachData(node, "qpid_broker", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
                 getFactoryBroker().RemoveData(node, "zmq_publisher_address");
                 getFactoryBroker().RemoveData(node, "dds_domain_id");
             }
-            LinkData(this, "qpid_broker", in_, "qpid_broker", true);
+            Data::LinkData(this, "qpid_broker", in_, "qpid_broker", true);
         }
     }else{
         for(auto node : elements){

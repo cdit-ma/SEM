@@ -10,6 +10,7 @@
 #include <QStringBuilder>
 #include <QThread>
 #include <QXmlStreamReader>
+#include <QCoreApplication>
 
 #include "version.h"
 
@@ -60,12 +61,12 @@ QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
     this->application_dir = application_dir;
-
     controller_thread = new QThread();
     moveToThread(controller_thread);
 
-    connect(this, &ModelController::InitiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
-    connect(this, &ModelController::InitiateTeardown, controller_thread, &QThread::quit, Qt::QueuedConnection);
+    connect(this, &ModelController::InitiateTeardown, controller_thread, &QThread::quit);
+    connect(controller_thread, &QThread::finished, this, &ModelController::deleteLater);
+    connect(controller_thread, &QThread::finished, controller_thread, &QThread::deleteLater);
     controller_thread->start();
 
     entity_factory = EntityFactory::getNewFactory();
@@ -78,7 +79,14 @@ lock_(QReadWriteLock::Recursive)
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
     qRegisterMetaType<QSet<EDGE_DIRECTION> >("QSet<EDGE_DIRECTION>");
     qRegisterMetaType<DataUpdate>("DataUpdate");
+}
 
+
+ModelController::~ModelController()
+{
+    setModelAction(MODEL_ACTION::DESTRUCTING);
+    destructEntities({workerDefinitions, model});
+    delete entity_factory;
 }
 
 void ModelController::ConnectViewController(ViewControllerInterface* view_controller){
@@ -140,12 +148,6 @@ bool ModelController::SetupController(const QString& file_path)
     return success;
 }
 
-ModelController::~ModelController()
-{
-    setModelAction(MODEL_ACTION::DESTRUCTING);
-    destructEntities({workerDefinitions, model});
-    delete entity_factory;
-}
 
 /**
  * @brief NewController::loadWorkerDefinitions Loads in both the compiled in WorkerDefinitions and Externally defined worker defintions.
@@ -635,6 +637,7 @@ void ModelController::destructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE
             }
         }
     }
+    qCritical() << "DESTRUCTING: " << edges.size() << " Edges";
     destructEntities(edges);
     emit ActionFinished();
 }
@@ -1267,51 +1270,53 @@ void ModelController::destructEntities(QList<Entity*> entities)
 {
     QSet<Entity*> nodes;
     QSet<Entity*> edges;
-    
+
     for(auto entity : entities){
         if(entity){
             if(entity->isNode()){
                 auto node = (Node*) entity;
                 nodes += node;
-
-                const auto& nested_nodes = node->getNestedDependants();
-                std::for_each(nested_nodes.begin(), nested_nodes.end(), [&nodes](Node* node){nodes += node;});
+                for(auto node : node->getNestedDependants()){
+                    nodes += node;
+                }
             }else if(entity->isEdge()){
                 auto edge = (Edge*) entity;
                 edges += edge;
             }
         }
     }
-
-    //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
-
     //Get all the edges
     for(auto n : sorted_nodes){
         for(auto edge : ((Node*)n)->getAllEdges()){
             edges += edge;
         }
     }
-    
     if(edges.size()){
         //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(edges.toList(), true);
         addActionToStack(action);
+        
 
-        std::for_each(edges.begin(), edges.end(), [this](Entity* edge){destructEdge_((Edge*)edge);});
+        std::for_each(edges.begin(), edges.end(), [this](Entity* edge){
+            destructEdge_((Edge*)edge);}
+            );
     }
-
+    
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
         
-        auto action = getNewAction(GRAPHML_KIND::NODE);
-        action.entity_id = node->getID();
-        action.parent_id = node->getParentNodeID();
-        action.Action.type = ACTION_TYPE::DESTRUCTED;
-        action.xml = exportGraphML(entity);
-        addActionToStack(action);
+        //Don't do this
+        if(!isModelAction(MODEL_ACTION::DESTRUCTING)){
+            auto action = getNewAction(GRAPHML_KIND::NODE);
+            action.entity_id = node->getID();
+            action.parent_id = node->getParentNodeID();
+            action.Action.type = ACTION_TYPE::DESTRUCTED;
+            action.xml = exportGraphML(entity);
+            addActionToStack(action);
+        }
 
         destructNode_(node);
     }
@@ -1504,7 +1509,7 @@ bool ModelController::canDeleteNode(Node *node)
                 }
                 break;
             }
-                
+            case NODE_KIND::EXTERNAL_TYPE:
             case NODE_KIND::FUNCTION_CALL:
             case NODE_KIND::PORT_REQUESTER_IMPL:
             case NODE_KIND::PORT_PUBLISHER_IMPL:
@@ -1620,12 +1625,11 @@ void ModelController::setupModel()
             set_persistent_node(child);
         }
         
-        auto label_data = model->getData("label");
-        if(label_data){
-            connect(label_data, &Data::dataChanged, [=](QVariant label){
-                emit ProjectNameChanged(label.toString());
-            });
-        }
+        connect(model, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
+            if(key_name == "label"){
+                emit ProjectNameChanged(value.toString());
+            }
+        });
 
         storeNode(model, -1, true, false);
     }
@@ -2291,7 +2295,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     if(UPDATE_PROGRESS){
         ProgressUpdated_("Constructing Nodes");
     }
-    QQueue<Node*> implicitly_constructed_nodes;
+    QList<Node*> implicitly_constructed_nodes;
 
     //Reset any delete nodes
     for(auto id : node_ids){
@@ -2337,7 +2341,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
         
         if(!parent_node){
-            qCritical() << "ImportGraphML: Node with ID:" << id << " Gas a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
+            qCritical() << "ImportGraphML: Node with ID:" << id << " Has a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
             error_count ++;
             continue;
         }
@@ -2427,12 +2431,16 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             if(got_parent || is_model){
                 entity->setID(node->getID());
             }else{
+                for(auto child : node->getChildren()){
+                    if(child->isImplicitlyConstructed()){
+                        implicitly_constructed_nodes.removeAll(child);
+                    }
+                }
+
                 //Destroy!
                 entity_factory->DestructEntity(node);
                 node = 0;
             }
-
-            
         }
 
         if(!node){
@@ -2448,7 +2456,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     }
 
     while(implicitly_constructed_nodes.size()){
-        auto node = implicitly_constructed_nodes.dequeue();
+        auto node = implicitly_constructed_nodes.takeFirst();
         storeNode(node, -1, false, false);
     }
 

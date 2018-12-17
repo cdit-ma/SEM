@@ -3,7 +3,6 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Series/cpuutilisationeventseries.h"
 
 #include <QWidget>
 #include <QPen>

@@ -56,7 +56,7 @@ void DataTableWidget::activeItem_IconChanged()
 {
     if(activeItem){
         auto icon_path = activeItem->getIcon();
-        entity_button->setIcon(Theme::theme()->getIcon(icon_path));//.pixmap(24,24);
+        entity_button->setIcon(Theme::theme()->getIcon(icon_path));
     }else{
         entity_button->setIcon(QIcon());
     }

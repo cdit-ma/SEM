@@ -33,6 +33,10 @@ JenkinsMonitor::JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name
     Refresh();
 }
 
+JenkinsMonitor::~JenkinsMonitor(){
+//    refresh_timer->stop();
+}
+
 void JenkinsMonitor::ConsoleUpdated(){
     auto current_text = text_browser->toPlainText();
     auto new_text = console_watcher->result();

@@ -2,6 +2,7 @@
 #include "../../../../theme.h"
 #include "../../Series/barseries.h"
 #include "../../Series/stateseries.h"
+#include "../../Data/Events/cpuutilisationevent.h"
 
 #include <QPainter>
 #include <QPainter>

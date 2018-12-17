@@ -17,15 +17,11 @@ public:
 
 signals:
     void actionTriggered(QAction*);
-
-private slots:
+private:
     void themeChanged();
     void recentProjectsUpdated();
-protected:
-    void refreshSize();
-    bool eventFilter(QObject *object, QEvent *event);
 private:
-    QToolButton* getButton(QAction* action);
+    QToolButton* getButton(QAction* action, Qt::ToolButtonStyle style = Qt::ToolButtonTextBesideIcon);
 
     ActionController* action_controller = 0;
     QToolButton* recent_project_label = 0;
