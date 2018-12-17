@@ -99,7 +99,21 @@ TEST(IntOp, Big) {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
     EXPECT_TRUE(result == 0);
-    EXPECT_GT(ms.count(), 100);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(IntOp, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000000000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.IntOp(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
 }
 
 TEST(FloatOp, Big) {
@@ -113,5 +127,131 @@ TEST(FloatOp, Big) {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
     EXPECT_TRUE(result == 0);
-    EXPECT_GT(ms.count(), 100);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(FloatOp, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000000000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.FloatOp(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(Whetstone, Big) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 100000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.Whetstone(run_count);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(Whetstone, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 100000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.Whetstone(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(Dhrystone, Big) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 10000000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.Dhrystone(run_count);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(Dhrystone, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 10000000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.Dhrystone(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(MWIP, Big) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.MWIP(run_count);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(MWIP, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.MWIP(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(DWIP, Big) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.MWIP(run_count);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
+}
+
+TEST(DWIP, BigThreaded) {
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
+    double run_count = 1000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto result = worker.MWIP(run_count, 2, true);
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    EXPECT_TRUE(result == 0);
+    EXPECT_GT(ms.count(), 50);
 }
