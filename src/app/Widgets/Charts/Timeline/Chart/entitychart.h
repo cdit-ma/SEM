@@ -64,7 +64,6 @@ protected:
 private:
     void paintSeries(QPainter& painter, TIMELINE_SERIES_KIND kind);
     void paintCPUUtilisationEventSeries(QPainter& painter);
-    void paintLifeCycleSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);

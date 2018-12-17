@@ -158,7 +158,7 @@ void PanelWidget::constructCPUEventsView()
     TimelineChartView* view = new TimelineChartView(this);
     view->setActiveEventKinds({TIMELINE_EVENT_KIND::CPU_UTILISATION});
     connectChartViewToAggreagtionProxy(view);
-    defaultActiveAction = addTab("Utilisation", view);
+    defaultActiveAction = addTab("CPUUtilisation", view);
     defaultActiveAction->trigger();
 }
 
@@ -333,7 +333,7 @@ void PanelWidget::setViewController(ViewController *vc)
     connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
     testNewTimelineView();
-    constructEventsView();
+    //constructEventsView();
     constructCPUEventsView();
 }
 
