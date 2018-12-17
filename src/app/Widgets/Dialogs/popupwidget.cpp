@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <QPainter>
 #include "../../theme.h"
+#include <QKeyEvent>
 
 /**
  * @brief PopupWidget::PopupWidget
@@ -97,4 +98,17 @@ void PopupWidget::paintEvent(QPaintEvent* event)
     painter.setPen(QPen(border_color, penWidth));
     painter.setBrush(background_color);
     painter.drawRoundedRect(rect().adjusted(penWidth, penWidth, -penWidth, -penWidth), 4, 4);
+}
+
+
+void PopupWidget::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
+        accept();
+        return;
+    }else if(event->key() == Qt::Key_Escape){
+        reject();
+        return;
+    }
+    QDialog::keyPressEvent(event);
 }

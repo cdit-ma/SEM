@@ -66,8 +66,8 @@ void IconPicker::setupLayout()
 {
     auto theme = Theme::theme();
 
-    auto icon_size = QSize(64,64);
-    auto column_count = 6;
+    auto icon_size = theme->getLargeIconSize();
+    auto column_count = 8;
 
     int row = 0;
     int column = column_count;

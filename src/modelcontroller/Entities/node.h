@@ -19,6 +19,7 @@ class Node : public Entity
     Q_OBJECT
     friend class Edge;
     friend class EntityFactoryBroker;
+    friend class Key;
     
     public:
         enum class EdgeRule{
@@ -33,7 +34,6 @@ class Node : public Entity
     protected:
         //Static Helper Functions
         static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
-        static void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup);
         
         //Constuctor
         Node(EntityFactoryBroker& factory, NODE_KIND node_kind, bool is_temp_node);
@@ -124,6 +124,7 @@ class Node : public Entity
         QSet<Node*> getImplementations() const;
         virtual QSet<Node*> getDependants() const;
         QSet<Node*> getNestedDependants();
+        
 
         
         
@@ -192,6 +193,8 @@ class Node : public Entity
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
         
         
+    protected:
+        void getNestedDependants_(QSet<Node*>& set);
     private:
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);

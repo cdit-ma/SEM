@@ -238,16 +238,15 @@ HTTPResult ProcessRunner::HTTPPostMulti(QNetworkRequest request, QHttpMultiPart*
 {
     HTTPResult result;
 
-    QNetworkAccessManager* network_access_manager = GetNetworkAccessManager();
+    auto network_access_manager = GetNetworkAccessManager();
 
     if(network_access_manager && request.url().isValid()){
+        QScopedPointer<QNetworkReply> reply(network_access_manager->post(request, post_data));
         //Post to the URL from the networkManager.
-        QNetworkReply* reply =  network_access_manager->post(request, post_data);
-        result = WaitForNetworkReply(reply);
-        //Free up the memory of the Network Reply
-        delete reply;
-        delete post_data;
+        result = WaitForNetworkReply(reply.data());
     }
+    delete post_data;
+    
     return result;
 }
 

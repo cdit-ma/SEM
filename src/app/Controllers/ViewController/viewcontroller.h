@@ -124,6 +124,7 @@ signals:
     void vc_showWelcomeScreen(bool);
     void GotJava(bool);
     void GotRe(bool);
+    void GotRegen(bool);
     void GotJenkins(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);

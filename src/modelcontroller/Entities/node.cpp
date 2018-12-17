@@ -735,21 +735,27 @@ QSet<Node *> Node::getImplementations() const
 QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> dependants;
+    getNestedDependants_(dependants);
+    return dependants;
+}
 
+void Node::getNestedDependants_(QSet<Node*>& dependants){
     //All our children are dependants
-    for(auto child : getAllChildren()){
-        dependants += child;
-        dependants += child->getNestedDependants();
+    for(auto child : getOrderedChildNodes()){
+        if(!dependants.contains(child)){
+            dependants += child;
+            child->getNestedDependants_(dependants);
+        }
     }
 
     for(auto dependant : getDependants()){
-        dependants += dependant;
-        dependants += dependant->getNestedDependants();
+        if(!dependants.contains(dependant)){
+            dependants += dependant;
+            dependant->getNestedDependants_(dependants);
+        }
     }
-    
-
-    return dependants;
 }
+
 
 /**
  * @brief Node::getDependants - Gets the Dependants.
@@ -924,15 +930,6 @@ QSet<NODE_KIND> Node::getImplKinds() const{
     return impl_kinds_;
 }
 
-void Node::LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
-    auto source_data = source->getData(source_key);
-    auto destination_data = destination->getData(destination_key);
-
-    if(source_data && destination_data){
-        source_data->linkData(destination_data, setup);
-    }
-}
-
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
     if(!definition || !instance){
         return;
@@ -1098,7 +1095,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     for(const auto& definition_key : bind_values.keys()){
         for(const auto& instance_key : bind_values[definition_key]){
-            LinkData(definition, definition_key, instance, instance_key, setup);
+            Data::LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 

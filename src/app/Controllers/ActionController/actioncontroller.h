@@ -31,6 +31,7 @@ public:
     QList<QAction*> getAllActions();
     QList<QAction*> getNodeViewActions();
 private:
+    bool gotRegenAndJava();
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 signals:
     void recentProjectsUpdated();
@@ -44,6 +45,7 @@ private slots:
     void jenkinsValidated(bool success);
     void gotJava(bool java);
     void gotRe(bool re);
+    void gotRegen(bool regen);
 
     void selectionChanged(int selectionSize);
     void actionFinished();
@@ -190,6 +192,7 @@ public:
     bool got_valid_jenkins = false;
     bool got_java = false;
     bool got_re = false;
+    bool got_regen = false;
 
     QMenu* menu_file;
     QMenu* menu_file_recentProjects;

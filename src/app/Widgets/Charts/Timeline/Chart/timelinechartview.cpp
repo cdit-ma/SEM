@@ -608,31 +608,34 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
         break;
     }
 
-    eventSeries[ID] = series;
+    if (series) {
 
-    EntityChart* chart = new EntityChart(0, this);
-    _timelineChart->addEntityChart(chart);
-    eventEntityCharts[ID] = chart;
-    chart->addEventSeries(series);
+        eventSeries[ID] = series;
 
-    EntitySet* set = new EntitySet(label, this);
-    _entityAxis->appendEntity(set);
-    eventEntitySets[ID] = set;
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->setEntityChartHovered(chart, hovered);
-    });
+        EntityChart* chart = new EntityChart(0, this);
+        _timelineChart->addEntityChart(chart);
+        eventEntityCharts[ID] = chart;
+        chart->addEventSeries(series);
 
-    // set the initial visibility states of each individual series in the charts
-    for (auto& action : _legendActions.values()) {
-        auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
-        chart->setSeriesKindVisible(kind, action->isChecked());
+        EntitySet* set = new EntitySet(label, this);
+        _entityAxis->appendEntity(set);
+        eventEntitySets[ID] = set;
+        set->setMinimumHeight(MIN_ENTITY_HEIGHT);
+        set->themeChanged(Theme::theme());
+        connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+        connect(set, &EntitySet::hovered, [=] (bool hovered) {
+            _timelineChart->setEntityChartHovered(chart, hovered);
+        });
+
+        // set the initial visibility states of each individual series in the charts
+        for (auto& action : _legendActions.values()) {
+            auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+            chart->setSeriesKindVisible(kind, action->isChecked());
+        }
+
+        connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
+        connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
     }
-
-    connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
-    connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
 
     return series;
 }

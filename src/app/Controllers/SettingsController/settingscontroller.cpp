@@ -9,13 +9,8 @@
 #include "../../theme.h"
 #include "../../Widgets/Dialogs/appsettings.h"
 
-SettingsController* SettingsController::settingsSingleton = 0;
-
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
-    //Register the settings key.
-    //qRegisterMetaType<SETTINGS>("SETTINGS");
-    //qRegisterMetaType<SETTING_TYPE>("SETTING_TYPE");
     intializeSettings();
 
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
@@ -27,7 +22,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     
 
     //Place defaults in case nothing is set.
-    emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
+    emit settingChanged(SETTINGS::THEME_SETTHEME_XMASTHEME, true);
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
 
     loadSettingsFromFile();
@@ -104,9 +99,13 @@ void SettingsController::intializeSettings()
 {
     //General
     createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
+    createSetting(SETTINGS::GENERAL_REGEN_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "re_gen Path", "Icons", "folder");
+
     createSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH, SETTING_TYPE::FILE, "General", "Runtime Environment", "RE configure script path", "Icons", "file");
     createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
-    
+
+
+    createSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT, SETTING_TYPE::STRING, "Charts", "Aggregation Server", "Aggregation Server Endpoint", "Icons", "cloudCircle");
 
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
@@ -166,7 +165,11 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
     createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
+    createSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, SETTING_TYPE::PERCENTAGE, "Theme", "Size", "Set Inactive Edge Opacity", "Icons", "torch");
+    
 
+    
+    createSetting(SETTINGS::THEME_SETTHEME_XMASTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Christmas Theme");
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
     createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Solarised Dark Theme");
@@ -214,9 +217,15 @@ void SettingsController::intializeSettings()
 
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
     _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
+    _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
+
+
+    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://192.168.111.249:12345");
+
+    
+
 
     _getSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION)->setDefaultValue(3);
-    
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
     
@@ -229,6 +238,8 @@ void SettingsController::intializeSettings()
     
     _getSetting(SETTINGS::THEME_SIZE_FONTSIZE)->setDefaultValue(font);
     _getSetting(SETTINGS::THEME_SIZE_ICONSIZE)->setDefaultValue(16);
+    _getSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY)->setDefaultValue(33);
+
     _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);
     _getSetting(SETTINGS::TOOLBAR_SEARCH)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_UNDO)->setDefaultValue(true);
@@ -395,17 +406,8 @@ void SettingsController::saveSettings()
 
 SettingsController *SettingsController::settings()
 {
-    if(!settingsSingleton){
-        settingsSingleton = new SettingsController();
-    }
-    return settingsSingleton;
-}
-
-void SettingsController::teardownSettings()
-{
-    if(settingsSingleton){
-        delete settingsSingleton;
-    }
+    static SettingsController controller;
+    return &controller;
 }
 
 void SettingsController::initializeSettings()
