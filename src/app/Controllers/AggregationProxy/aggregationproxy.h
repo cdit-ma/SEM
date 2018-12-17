@@ -6,7 +6,7 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
-#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
+#include "../../Widgets/Charts/Data/Events/protomessagestructs.h"
 
 class AggregationProxy : public QObject
 {

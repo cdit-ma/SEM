@@ -319,7 +319,7 @@ void PanelWidget::setViewController(ViewController *vc)
     connect(this, &PanelWidget::requestEvents, &viewController->getAggregationProxy(), &AggregationProxy::RequestEvents);
     connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
-    constructEventsView();
+    //constructEventsView();
     testNewTimelineView();
 }
 
@@ -758,6 +758,7 @@ void PanelWidget::setupLayout()
     connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData(false);
     });
+    refreshDataAction->setVisible(false);
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
