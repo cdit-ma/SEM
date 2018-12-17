@@ -1,5 +1,7 @@
 syntax="proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package NodeManager;
 message ControlMessage{
     enum Type{
@@ -14,7 +16,7 @@ message ControlMessage{
     }
 
     Type type = 1;
-    double time_stamp = 2;
+    google.protobuf.Timestamp timestamp = 2;
     string host_name = 3;
     repeated Node nodes = 4;
     string experiment_id = 5;
