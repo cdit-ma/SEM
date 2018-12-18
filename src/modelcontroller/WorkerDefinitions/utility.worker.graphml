@@ -106,7 +106,7 @@
                 <node id="utilityworker::marker">
                     <data key="kind">Function</data>
                     <data key="label">Marker</data>
-                    <data key="operation">Log</data>
+                    <data key="operation">Marker</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">flag</data>
                     <data key="description">Logs a marker message to the database.</data>

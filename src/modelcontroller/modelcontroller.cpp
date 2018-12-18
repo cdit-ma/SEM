@@ -637,7 +637,6 @@ void ModelController::destructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE
             }
         }
     }
-    qCritical() << "DESTRUCTING: " << edges.size() << " Edges";
     destructEntities(edges);
     emit ActionFinished();
 }
