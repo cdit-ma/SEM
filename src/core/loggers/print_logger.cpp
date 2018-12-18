@@ -111,6 +111,8 @@ void Print::Logger::LogWorkerEvent(const Worker& worker, const std::string& func
         stream << "[" << GetWorkloadName(event);
         if(event == WorkloadEvent::MESSAGE && message_log_level != -1){
             stream << "|" << message_log_level;
+        }else if(event == WorkloadEvent::MARKER){
+            stream << "|" << work_id;
         }
         stream << "] (" << function_name << ")";
 

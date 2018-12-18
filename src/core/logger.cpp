@@ -8,7 +8,7 @@ int Logger::GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_leve
         case WorkloadEvent::WARNING:
             return 2;
         case WorkloadEvent::MARKER:
-            return 3;
+            return 5;
         case WorkloadEvent::MESSAGE:{
             if(message_log_level < 0){
                 //Default is 3
