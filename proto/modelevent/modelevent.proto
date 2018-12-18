@@ -85,6 +85,7 @@ message WorkloadEvent{
         MESSAGE = 2;
         WARNING = 3;
         ERROR = 4;
+        MARKER = 5;
     }
     Info info = 1;
     Type event_type = 2;
