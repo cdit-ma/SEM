@@ -100,6 +100,7 @@ message NodeManagerRegistrationReply{
     string heartbeat_endpoint = 2;
     string master_publisher_endpoint = 3;
     string master_registration_endpoint = 4;
+    string experiment_logger_endpoint = 5;
 }
 
 message NodeManagerDeregistrationRequest{
@@ -240,6 +241,7 @@ message Logger{
         MODEL = 1;
         CLIENT = 2;
         SERVER = 3;
+        EXPERIMENT = 4;
     }
     
     Type type = 1;
