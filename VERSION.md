@@ -1,13 +1,11 @@
-# MEDEA v3.3.0
+# MEDEA v3.3.1
 ## New Features:
-* Optimized image loading to reduce memory footprint
-* Updated re_gen to v3.2.10
-* Added docker mode for deployment containers
-* Updated Welcome screen
+* Optimized Termination code for ModelController
 
-## Validation:
-* Added more checks for invalid characters in labels
+## Workers:
+* Added extra parameters to CPU_Worker to allow access to multi-threaded workload
+* Added new Marker function to Utility_Worker which logs into the database significant points of execution
 
 ## Resolved JIRA Tickets:
-* MED-456
-* REGEN-86
+* MED-453
+* MED-462
