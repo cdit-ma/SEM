@@ -24,7 +24,7 @@ Environment::Environment(const std::string& ip_address,
         manager_port_range_min_(port_range_min + 10000),
         manager_port_range_max_(port_range_max + 10000)
 {
-    //Ensure that ports arent allocated out of 16bit port max
+    //Ensure that ports aren't allocated out of 16bit port max
     assert(manager_port_range_max_ < 65535);
 
     //Bail out if ranges are illegal

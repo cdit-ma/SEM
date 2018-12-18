@@ -7,6 +7,7 @@
 #include <proto/controlmessage/helper.h>
 #include "node.h"
 #include "container.h"
+#include "logger.h"
 
 DeploymentRegister::DeploymentRegister(Execution& execution, const std::string& environment_manager_ip_address, const std::string& registration_port, 
                                         const std::string& qpid_broker_address, const std::string& tao_naming_server_address,
@@ -143,6 +144,11 @@ std::unique_ptr<NodeManager::NodeManagerRegistrationReply> DeploymentRegister::H
                 reply->add_types(NodeManager::NodeManagerRegistrationReply::MASTER);
             }
             catch(const std::exception& ex){
+                throw;
+            }
+            try {
+                reply->set_experiment_logger_endpoint(container.GetExperimentLogger().GetPublisherEndpoint());
+            } catch(const std::exception& ex) {
                 throw;
             }
         }

@@ -6,6 +6,9 @@
 
 using namespace EnvironmentManager;
 
+const std::string Logger::MODEL_LOGGER_ID{"model_logger"};
+const std::string Logger::EXPERIMENT_LOGGER_ID{"experiment_logger"};
+
 Logger::Logger(Environment& environment, Container& parent, const NodeManager::Logger& logger) :
                 parent_(parent), environment_(environment){
     id_ = logger.id();
@@ -22,7 +25,8 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
         }
         break;    
     }
-    case Type::Model:{
+    case Type::Model:{        static const std::string MODEL_LOGGER_NAME;
+
         mode_ = TranslateProtoMode(logger.mode());
         break;
     }
@@ -32,7 +36,8 @@ Logger::Logger(Environment& environment, Container& parent, const NodeManager::L
         for(const auto& client_id : logger.client_ids()){
             AddConnectedClientId(client_id);
         }
-        AddConnectedClientId("model_logger");
+        AddConnectedClientId(MODEL_LOGGER_ID);
+        AddConnectedClientId(EXPERIMENT_LOGGER_ID);
         break;
     }
     default:{
@@ -80,7 +85,7 @@ std::string Logger::GetPublisherPort(){
                 if(GetContainer().GetDeployedComponentCount() == 0){
                     throw std::runtime_error("No assigned port for logger with no deployed components");
                 }
-                publisher_port_ = publisher_port_ = environment_.GetPort(GetNode().GetIp());
+                publisher_port_ = environment_.GetPort(GetNode().GetIp());
                 break;
             }
             default:{
@@ -179,7 +184,8 @@ std::unique_ptr<NodeManager::Logger> Logger::GetProto(const bool full_update){
                     logger_pb->set_publisher_port(GetPublisherPort());
                     break;
                 }
-                case Type::Model:{
+                case Type::Model:
+                case Type::Experiment:{
                     logger_pb->set_mode(TranslateInternalMode(mode_));
                     logger_pb->set_publisher_address(GetNode().GetIp());
                     logger_pb->set_publisher_port(GetPublisherPort());
