@@ -617,11 +617,12 @@ void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
         button->deleteLater();
     }
 
-    if (runs.isEmpty())
-        return;
-
     // hiding it first, resizes the widget immediately
     runsGroupBox->hide();
+    chartInputPopup->adjustSize();
+
+    if (runs.isEmpty())
+        return;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -881,12 +882,15 @@ void PanelWidget::setupChartInputDialog()
     cancelAction = toolbar->addAction("Cancel");
     okAction = toolbar->addAction("Ok");
 
-    QWidget* holderWidget = new QWidget(this);
+    holderWidget = new QWidget(this);
+    holderWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
     QVBoxLayout* popupLayout = new QVBoxLayout(holderWidget);
+    popupLayout->setSizeConstraint(QLayout::SetMinimumSize);
     popupLayout->setMargin(5);
     popupLayout->setSpacing(5);
     popupLayout->addWidget(nameGroupBox);
-    popupLayout->addWidget(runsGroupBox);
+    popupLayout->addWidget(runsGroupBox, 1);
     popupLayout->addWidget(filtersGroupBox);
     popupLayout->addWidget(toolbar);
 
@@ -899,7 +903,6 @@ void PanelWidget::setupChartInputDialog()
     
     connect(okAction, &QAction::triggered, chartInputPopup, &QDialog::accept);
     connect(cancelAction, &QAction::triggered, chartInputPopup, &QDialog::reject);
-
     connect(chartInputPopup, &QDialog::accepted, this, &PanelWidget::sendEventsRequest);
 
     chartInputPopup->setWidget(holderWidget);

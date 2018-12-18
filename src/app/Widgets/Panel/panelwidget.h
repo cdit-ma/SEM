@@ -99,6 +99,7 @@ private:
     QGroupBox* nameGroupBox;
     QGroupBox* runsGroupBox;
     QGroupBox* filtersGroupBox;
+    QWidget* holderWidget;
     QAction* okAction;
     QAction* cancelAction;
 
