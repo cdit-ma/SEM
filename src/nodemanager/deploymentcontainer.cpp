@@ -310,7 +310,6 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
 }
 
 void DeploymentContainer::HandleActivate(){
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
     for(const auto& c : components_){
         c.second->Activate();
     }
@@ -321,7 +320,6 @@ void DeploymentContainer::HandleActivate(){
 }
 
 void DeploymentContainer::HandlePassivate(){
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
     for(const auto& c : components_){
         c.second->Passivate();
     }
@@ -332,7 +330,6 @@ void DeploymentContainer::HandlePassivate(){
 }
 
 void DeploymentContainer::HandleTerminate(){
-    HandlePassivate();
     std::lock_guard<std::mutex> component_lock(component_mutex_);
     
     for(const auto& p : components_){
@@ -341,7 +338,6 @@ void DeploymentContainer::HandleTerminate(){
             component->Terminate();
         }
     }
-    
 
     for(const auto& p : logan_clients_){
         auto& logan_client = p.second;
@@ -352,7 +348,6 @@ void DeploymentContainer::HandleTerminate(){
     
     components_.clear();
     logan_clients_.clear();
-
 
     if(logan_logger_){
         logan_logger_.reset();
