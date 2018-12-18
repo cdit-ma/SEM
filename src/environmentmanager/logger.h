@@ -19,6 +19,7 @@ class Logger{
             Model = 1,
             Client = 2,
             Server = 3,
+            Experiment = 4,
         };
         enum class Mode{
             Off = 0,
@@ -63,6 +64,9 @@ class Logger{
         bool IsDirty();
 
         std::unique_ptr<NodeManager::Logger> GetProto(const bool full_update);
+
+        static const std::string MODEL_LOGGER_ID;
+        static const std::string EXPERIMENT_LOGGER_ID;
     private:
         Container& parent_;
         Environment& environment_;

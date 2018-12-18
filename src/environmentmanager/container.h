@@ -34,6 +34,7 @@ public:
 
     Component& GetComponent(const std::string& component_id);
     Logger& GetLogger(const std::string& logger_id);
+    Logger& GetExperimentLogger();
     Port& GetPort(const std::string& port_id);
 
     void AddComponent(const NodeManager::Component& component_pb);
@@ -45,7 +46,7 @@ public:
     std::vector<std::string> GetLoganServerIds() const;
 
 
-            bool HasOrbPort() const;
+    bool HasOrbPort() const;
     std::string GetOrbPort() const;
     std::string AssignOrbPort();
     void SetOrbPort(const std::string& orb_port);

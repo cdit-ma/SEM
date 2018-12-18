@@ -221,11 +221,15 @@ void Container::SetOrbPort(const std::string& orb_port) {
 }
 
 void Container::AddModelLogger() {
-    loggers_.emplace("model_logger", std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Off)));
+    loggers_.emplace(Logger::MODEL_LOGGER_ID, std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Model, Logger::Mode::Off)));
 }
 
 EnvironmentManager::Logger& Container::GetModelLogger(){
-    return GetLogger("model_logger");
+    return GetLogger(Logger::MODEL_LOGGER_ID);
+}
+
+EnvironmentManager::Logger& Container::GetExperimentLogger(){
+    return GetLogger(Logger::EXPERIMENT_LOGGER_ID);
 }
 
 Logger &Container::GetLogger(const std::string &logger_id) {
@@ -234,6 +238,7 @@ Logger &Container::GetLogger(const std::string &logger_id) {
 
 void Container::SetNodeManagerMaster() {
     is_node_manager_master_ = true;
+    loggers_.emplace(Logger::EXPERIMENT_LOGGER_ID, std::unique_ptr<Logger>(new Logger(environment_, *this, Logger::Type::Experiment, Logger::Mode::Live)));
 }
 
 bool Container::IsNodeManagerMaster() const {
