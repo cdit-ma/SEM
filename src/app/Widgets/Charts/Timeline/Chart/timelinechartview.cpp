@@ -524,7 +524,6 @@ void TimelineChartView::updateChartHoverDisplay()
 
     // adjust the hover display's position to make sure that it is fully visible
     if (_hoverDisplay->isVisible()) {
-        _hoverDisplay->adjustSize();
         auto globalPos = mapToGlobal(pos());
         auto hoverPos = mapTo(this, cursor().pos());
         if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {

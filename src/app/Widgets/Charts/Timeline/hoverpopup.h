@@ -11,13 +11,13 @@ public:
     explicit HoverPopup(QWidget* parent = 0);
 
     void setBorderColor(QColor color);
-    void adjustSize();
 
 public slots:
     void themeChanged();
 
 protected:
     void paintEvent(QPaintEvent* event);
+    void adjustChildrenSize(QString widgetName = "", Qt::FindChildOptions options = Qt::FindChildrenRecursively);
 
 private:
     QColor _backgroundColor;
@@ -26,4 +26,4 @@ private:
 
 };
 
-#endif //HOVERPOPUP_H
+#endif // HOVERPOPUP_H
