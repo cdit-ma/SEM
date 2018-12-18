@@ -1,9 +1,7 @@
-# Runtime Environment v3.3.0
-* Updated logging to be OFF by default.
-* Added support for OFF logging mode in MEDEA
-* Added Dockerfile for building re environment containers
-* Added flag to purge temporary directories on runtime nodes in cleanup_re.groovy
+# Runtime Environment v3.3.1
+* Updated CPU Worker to have new threading options
+* Added new ExperimentState Logging from the ExecutionManager (For AggregationServer)
 
 ## Resolved JIRA Tickets:
-* RE-404
-* RE-405
+* RE-406
+* RE-409
