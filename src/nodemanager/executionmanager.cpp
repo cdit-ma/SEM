@@ -9,11 +9,14 @@ ExecutionManager::ExecutionManager(
                             const std::string& experiment_name,
                             const std::string& master_publisher_endpoint,
                             const std::string& master_registration_endpoint,
-                            const std::string& master_heartbeat_endpoint):
+                            const std::string& master_heartbeat_endpoint,
+                            const std::string& experiment_logger_endpoint
+                            ):
     execution_(execution),
     experiment_name_(experiment_name),
     master_publisher_endpoint_(master_publisher_endpoint),
-    master_registration_endpoint_(master_registration_endpoint)
+    master_registration_endpoint_(master_registration_endpoint),
+    experiment_logger_endpoint_(experiment_logger_endpoint) 
 {
     //Register our Termination Function
     execution_.AddTerminateCallback(std::bind(&ExecutionManager::Terminate, this));
@@ -21,6 +24,8 @@ ExecutionManager::ExecutionManager(
     //Setup our writer
     proto_writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
     proto_writer_->BindPublisherSocket(master_publisher_endpoint_);
+
+    experiment_logger_ = std::unique_ptr<Logan::ExperimentLogger>(new Logan::ExperimentLogger(experiment_name_, experiment_logger_endpoint_, ::Logger::Mode::LIVE));
 
     //Starting our HeartBeat Requester with the EnvironmentManager
     requester_ = std::unique_ptr<EnvironmentRequest::HeartbeatRequester>(new EnvironmentRequest::HeartbeatRequester(master_heartbeat_endpoint, std::bind(&ExecutionManager::HandleExperimentUpdate, this, std::placeholders::_1)));
@@ -286,6 +291,34 @@ std::unique_ptr<NodeManager::ControlMessage> ExecutionManager::ConstructStateCon
     return message;
 }
 
+Logger::LifeCycleEvent TranslateLifecycle(const NodeManager::ControlMessage::Type& state){
+    switch(state){
+        case NodeManager::ControlMessage::ACTIVATE:
+            return Logger::LifeCycleEvent::ACTIVATED;
+        case NodeManager::ControlMessage::CONFIGURE:
+            return Logger::LifeCycleEvent::CONFIGURED;
+        case NodeManager::ControlMessage::PASSIVATE:
+            return Logger::LifeCycleEvent::PASSIVATED;
+        case NodeManager::ControlMessage::TERMINATE:
+            return Logger::LifeCycleEvent::TERMINATED;
+        default:
+            throw std::runtime_error("Unhandled State");
+    }
+}
+
+void ExecutionManager::PushStateChange(const NodeManager::ControlMessage::Type& state){
+    PushControlMessage("*", ConstructStateControlMessage(state));
+    try{
+        std::cerr << "* Experiment State Change: [" << NodeManager::ControlMessage::Type_Name(state) << "]" << std::endl;
+        auto lifecycle_event = TranslateLifecycle(state);
+        if(experiment_logger_){
+            experiment_logger_->LogLifecycleEvent(lifecycle_event);
+        }
+    }catch(const std::exception& ex){
+
+    }
+}
+
 void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future){
     using namespace NodeManager;
 
@@ -306,7 +339,9 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         std::cout << "-------------[Execution]------------" << std::endl;
         
         std::cout << "* Activating Deployment" << std::endl;
-        PushControlMessage("*", ConstructStateControlMessage(ControlMessage::ACTIVATE));
+        
+        PushStateChange(ControlMessage::ACTIVATE);
+        
 
         if(terminate_future.valid()){
             std::future_status status = std::future_status::ready;
@@ -322,12 +357,10 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
                 }
             }
         }
-        std::cout << "* Passivating Deployment" << std::endl;
-        PushControlMessage("*", ConstructStateControlMessage(ControlMessage::PASSIVATE));
+        PushStateChange(ControlMessage::PASSIVATE);
     }
-    
-    std::cout << "* Terminating Deployment" << std::endl;
-    PushControlMessage("*", ConstructStateControlMessage(ControlMessage::TERMINATE));
+
+    PushStateChange(ControlMessage::TERMINATE);
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     {

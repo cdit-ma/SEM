@@ -11,6 +11,7 @@
 #include <zmq/protowriter/protowriter.h>
 #include <zmq/protoreplier/protoreplier.hpp>
 #include <util/execution.hpp>
+#include <core/loggers/experiment_logger.h>
 
 namespace zmq{class ProtoWriter;};
 
@@ -34,7 +35,9 @@ class ExecutionManager{
                             const std::string& experiment_name,
                             const std::string& master_publisher_endpoint,
                             const std::string& master_registration_endpoint,
-                            const std::string& master_heartbeat_endpoint);
+                            const std::string& master_heartbeat_endpoint,
+                            const std::string& experiment_logger_endpoint
+                            );
         ~ExecutionManager();
     private:
         static const std::string GetSlaveKey(const std::string& ip, const std::string& container_id);
@@ -54,6 +57,7 @@ class ExecutionManager{
         void ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future);
         
         void PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message);
+        void PushStateChange(const NodeManager::ControlMessage::Type& state);
         static std::unique_ptr<NodeManager::ControlMessage> ConstructStateControlMessage(NodeManager::ControlMessage::Type type);
 
         //These need slave_state_mutex_ Mutex
@@ -66,11 +70,12 @@ class ExecutionManager{
         
         void HandleSlaveStateChange();
 
-        std::string experiment_name_;
-        std::string master_ip_addr_;
-        std::string master_publisher_endpoint_;
-        std::string master_registration_endpoint_;
-        std::string environment_manager_endpoint_;
+        const std::string experiment_name_;
+        const std::string master_ip_addr_;
+        const std::string master_publisher_endpoint_;
+        const std::string master_registration_endpoint_;
+        const std::string environment_manager_endpoint_;
+        const std::string experiment_logger_endpoint_;
 
         std::mutex execution_mutex_;
         std::future<void> execution_future_;
@@ -93,6 +98,8 @@ class ExecutionManager{
         Execution& execution_;
         std::unique_ptr<zmq::ProtoReplier> slave_registration_handler_;
         std::unique_ptr<EnvironmentRequest::HeartbeatRequester> requester_;
+
+        std::unique_ptr<Logan::ExperimentLogger> experiment_logger_;
 };
 
 #endif //EXECUTIONMANAGER_H

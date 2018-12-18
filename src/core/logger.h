@@ -2,7 +2,7 @@
 #define CORE_LOGGER_H
 
 #include <string>
-
+#include <chrono>
 
 #ifdef _WIN32
     #define GET_FUNC __FUNCTION__
@@ -62,6 +62,8 @@ class Logger{
         virtual void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event) = 0;
         virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
         virtual void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str = "") = 0;
+        
+        static std::chrono::milliseconds GetCurrentTime();
 };
 
 namespace std {

@@ -24,6 +24,7 @@ std::string to_lower(std::string str){
 }
 
 DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+    Activatable(Activatable::Class::DEPLOYMENT_CONTAINER),
     experiment_name_(experiment_name),
     library_path_(library_path),
     host_name_(host_name)
@@ -309,6 +310,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
 }
 
 void DeploymentContainer::HandleActivate(){
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
     for(const auto& c : components_){
         c.second->Activate();
     }
@@ -319,6 +321,7 @@ void DeploymentContainer::HandleActivate(){
 }
 
 void DeploymentContainer::HandlePassivate(){
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
     for(const auto& c : components_){
         c.second->Passivate();
     }

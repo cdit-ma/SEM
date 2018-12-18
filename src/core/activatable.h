@@ -18,6 +18,7 @@ public:
         COMPONENT,
         PORT,
         WORKER,
+        DEPLOYMENT_CONTAINER
     };
     enum class Transition{
         NO_TRANSITION = 0,

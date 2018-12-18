@@ -85,6 +85,7 @@ int main(int argc, char **argv){
     std::string master_publisher_endpoint;
     std::string master_registration_endpoint;
     std::string master_heartbeat_endpoint;
+    std::string experiment_logger_endpoint;
     bool is_master = false;
     bool is_slave = false;
 
@@ -115,9 +116,11 @@ int main(int argc, char **argv){
         
         if(is_master){
             master_heartbeat_endpoint = reply->heartbeat_endpoint();
+            experiment_logger_endpoint = reply->experiment_logger_endpoint();
         }
         master_registration_endpoint = reply->master_registration_endpoint();
         master_publisher_endpoint = reply->master_publisher_endpoint();
+        
     }catch(const std::exception& ex){
         std::cerr << "* Failed to Register with EnvironmentManager: " << ex.what() << std::endl;
         return 1;
@@ -145,7 +148,7 @@ int main(int argc, char **argv){
 
     if(is_master){
         try{
-            execution_manager = std::unique_ptr<ExecutionManager>(new ExecutionManager(execution, execution_duration, experiment_name, master_publisher_endpoint, master_registration_endpoint, master_heartbeat_endpoint));
+            execution_manager = std::unique_ptr<ExecutionManager>(new ExecutionManager(execution, execution_duration, experiment_name, master_publisher_endpoint, master_registration_endpoint, master_heartbeat_endpoint, experiment_logger_endpoint));
         }catch(const std::exception& ex){
             std::cerr << "* Failed to construct ExecutionManager: " << ex.what() << std::endl;
             return 1;

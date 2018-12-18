@@ -174,6 +174,9 @@ void Logan::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger:
             }
             break;
         }
+        case Activatable::Class::DEPLOYMENT_CONTAINER:{
+            break;
+        }
         default:{
             return;
         }
@@ -203,15 +206,12 @@ void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessag
     PushMessage(std::move(event_pb)); 
 }
 
-std::chrono::milliseconds Logan::Logger::GetCurrentTime(){
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-}
-
 void Logan::Logger::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
     if(writer_){
         writer_->PushMessage("ModelEvent*", std::move(message));
     }
 }
+
 const std::string& Logan::Logger::GetExperimentName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return experiment_name_;

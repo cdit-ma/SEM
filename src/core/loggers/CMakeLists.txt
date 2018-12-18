@@ -4,11 +4,13 @@ project(${PROJ_NAME})
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/logan_logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/print_logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/experiment_logger.cpp
     )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/logan_logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/print_logger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/experiment_logger.h
     )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
