@@ -36,7 +36,8 @@ class Logger{
             FINISHED = 1,
             MESSAGE = 2,
             WARNING = 3,
-            ERROR = 4
+            ERROR = 4,
+            MARKER = 5
         };
 
         enum class UtilizationEvent{

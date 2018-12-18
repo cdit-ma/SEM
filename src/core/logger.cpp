@@ -7,6 +7,8 @@ int Logger::GetWorkloadLogLevel(const WorkloadEvent& event, int message_log_leve
             return 1;
         case WorkloadEvent::WARNING:
             return 2;
+        case WorkloadEvent::MARKER:
+            return 3;
         case WorkloadEvent::MESSAGE:{
             if(message_log_level < 0){
                 //Default is 3
@@ -56,6 +58,7 @@ const std::string Logger::GetWorkloadName(const WorkloadEvent& event){
         case WorkloadEvent::MESSAGE: return "MESSAGE";
         case WorkloadEvent::WARNING: return "WARNING";
         case WorkloadEvent::ERROR: return "ERROR";
+        case WorkloadEvent::MARKER: return "MARKER";
     }
     return std::string();
 }

@@ -10,6 +10,7 @@ class Utility_Worker : public Worker{
         Utility_Worker(const BehaviourContainer& component, const std::string& inst_name);
         ~Utility_Worker();
 
+        void Marker(const std::string& marker_name, int64_t mark_id);
         void Log(const std::string format_str, int log_level, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         

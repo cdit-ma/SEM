@@ -37,6 +37,10 @@ void Utility_Worker::Log(const std::string str_format, int log_level, ...){
     Worker::Log(GET_FUNC, Logger::WorkloadEvent::MESSAGE, get_new_work_id(), message, log_level);
 }
 
+void Utility_Worker::Marker(const std::string& marker_name, int64_t mark_id){
+    Worker::Log(GET_FUNC, Logger::WorkloadEvent::MARKER, mark_id, marker_name);
+}
+
 void Utility_Worker::USleep(int microseconds){
     auto id = get_new_work_id();
     Worker::Log(GET_FUNC, Logger::WorkloadEvent::STARTED, id, "Sleeping for: " + std::to_string(microseconds) + " us");
