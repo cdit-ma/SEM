@@ -2800,10 +2800,11 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
 
     if(canChangeIndex(unordered_items)){
         properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_INDEX);
+        properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_ROW);
     }
 
     if(canChangeRow(unordered_items)){
-        properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_ROW);
+        ///properties.insert(SELECTION_PROPERTIES::CAN_CHANGE_ROW);
     }
 
     if(unordered_items.count() == 1){

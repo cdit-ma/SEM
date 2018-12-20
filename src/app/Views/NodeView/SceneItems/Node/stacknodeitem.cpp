@@ -9,6 +9,7 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
+    addRequiredData("column_count");
 
     reloadRequiredData();
     this->orientation = orientation;
@@ -23,6 +24,22 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     addHoverFunction(EntityRect::BODY, std::bind(&StackNodeItem::bodyHover, this, std::placeholders::_1, std::placeholders::_2));
 
     cell_spacing = getGridSize();
+    RecalculateCells();
+}
+
+void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data){
+    if(isDataRequired(key_name)){
+        if(key_name == "column_count"){
+            SetColumnLimit(data.toInt());
+        }
+    }
+
+    BasicNodeItem::dataChanged(key_name, data);
+}
+
+void StackNodeItem::SetColumnLimit(int column_limit){
+    column_limit_ = column_limit;
+
     RecalculateCells();
 }
 
@@ -197,7 +214,6 @@ void StackNodeItem::updateCells(){
             cell.children.append(child);
 
             if(inserted){
-                
                 row_cols.insert(index.first, index.second);
                 cell.index = index;
                 cell.orientation = getCellOrientation(index);
@@ -277,35 +293,64 @@ void StackNodeItem::updateCells(){
                 }
                 
                 cell_cr = QRectF(cell_cr_top_left, cell_cr_top_left);
+                QRectF cell_row_cr = cell_cr;
 
                 auto cell_spacing = getCellSpacing(index);
                 
+                int current_cell_row_count = 0;
                 //Deal with the children within the cell
-                for(int i = 0; i < child_count; i++){
+                for(int i = 0; i < child_count; i++, current_cell_row_count++){
                     auto child = cell.children[i];
                     auto child_rect = child->currentRect();
                     
                     auto cell_offset = cell_spacing;
 
-                    if(i == 0 && !cell_info.render_prefix_icon){
+                    if(current_cell_row_count == 0 && !cell_info.render_prefix_icon){
                         cell_offset = 0;
                     }
 
                     QPointF child_pos;
 
                     if(cell.orientation == Qt::Vertical){
-                        child_pos = QPointF(cell_cr.left(), cell_cr.bottom());
+                        child_pos = QPointF(cell_row_cr.left(), cell_row_cr.bottom());
                         child_pos.ry() += cell_offset;
                     }else if(cell.orientation == Qt::Horizontal){
-                        child_pos = QPointF(cell_cr.right(), cell_cr.top());
+                        child_pos = QPointF(cell_row_cr.right(), cell_row_cr.top());
                         child_pos.rx() += cell_offset;
                     }
-                    
+
                     child_rect.moveTopLeft(child_pos);
-                    cell_cr |= child_rect;
+                    cell_row_cr |= child_rect;
+
+                    if(column_limit_ > 0 && current_cell_row_count + 1 == column_limit_){
+                        QRectF prev_rect =  cell_row_cr;
+
+                        if(cell.orientation == Qt::Vertical){
+                            QPointF new_row_rect_pos;
+                            new_row_rect_pos.setX(prev_rect.right() + cell_offset);
+                            new_row_rect_pos.setY(prev_rect.top());
+                            
+                            cell_row_cr = QRectF(new_row_rect_pos, new_row_rect_pos);
+                        }else if(cell.orientation == Qt::Horizontal){
+                            QPointF new_row_rect_pos;
+                            new_row_rect_pos.setX(prev_rect.left());
+                            new_row_rect_pos.setY(prev_rect.bottom() + cell_offset);
+                            
+                            cell_row_cr = QRectF(new_row_rect_pos, new_row_rect_pos);
+                        }
+
+                        cell_cr |= prev_rect;
+                        //Drop the row
+                        current_cell_row_count = -1;
+                    }
+
+                    
+                    
+
                     cell.child_offsets[child] = child_pos;
                     child->setPos(child_pos);
                 }
+                cell_cr |= cell_row_cr;
 
                 if(child_count && cell_info.render_prefix_icon ){
                     //Add an extra space at the end if we need to render

@@ -31,3 +31,4 @@ const QString KeyName::Version = "version";
 const QString KeyName::WorkerID = "workerID";
 const QString KeyName::X = "x";
 const QString KeyName::Y = "y";
+const QString KeyName::ColumnCount = "column_count";

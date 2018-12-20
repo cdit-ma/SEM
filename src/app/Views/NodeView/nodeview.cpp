@@ -788,7 +788,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item = new DefaultNodeItem(item, parentNode);
                 break;
             case NODE_KIND::SHARED_DATATYPES:
-                node_item = new DefaultNodeItem(item, parentNode);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetColumnLimit(5);
+                    node_item = stack_item;
+                    emit setData(item->getID(), "column_count", 5);
+                }
+                //node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("version");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
@@ -889,7 +895,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
             case NODE_KIND::AGGREGATE:
-                node_item = new StackNodeItem(item, parentNode);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetColumnLimit(3);
+                    node_item = stack_item;
+                    emit setData(item->getID(), "column_count", 3);
+                }
                 node_item->setSecondaryTextKey("namespace");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
@@ -923,7 +934,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:
-                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetColumnLimit(3);
+                    node_item = stack_item;
+                    emit setData(item->getID(), "column_count", 3);
+                }
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;

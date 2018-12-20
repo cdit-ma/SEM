@@ -18,6 +18,8 @@ public:
     QPointF getElementPosition(BasicNodeItem *child);
 
     QPointF GetGridAlignedTopLeft() const;
+    
+    void SetColumnLimit(int column_limit);
 
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
 
@@ -36,8 +38,9 @@ public:
     void RecalculateCells();
 
     Qt::Orientation getCellOrientation(const CellIndex& index);
-
+    void dataChanged(const QString& key_name, const QVariant& data);
 protected:
+    
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 public:
@@ -80,6 +83,8 @@ private:
         bool render_suffix_icon = false;
         bool render_gap_icons = false;
         bool render_hover_icon = false;
+
+        
         
         
 
@@ -131,7 +136,7 @@ private:
         int prefix_gap_index = -1;
         int suffix_gap_index = -1;
     };
-
+    int column_limit_ = -1;
 
 
     bool sub_areas_dirty = true;
