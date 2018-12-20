@@ -22,7 +22,6 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     
 
     //Place defaults in case nothing is set.
-    emit settingChanged(SETTINGS::THEME_SETTHEME_XMASTHEME, true);
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
 
     loadSettingsFromFile();
@@ -170,7 +169,6 @@ void SettingsController::intializeSettings()
     
 
     
-    createSetting(SETTINGS::THEME_SETTHEME_XMASTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Christmas Theme");
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
     createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Solarised Dark Theme");

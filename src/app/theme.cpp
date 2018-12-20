@@ -458,12 +458,6 @@ QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintCo
         //Construct a Pixmap from the image.
         pixmap = QPixmap::fromImage(image);
 
-        if(current_theme == ThemePreset::XMAS_THEME && pixmap_url.endsWith("XMAS")){
-            auto hat_pixmap = _getPixmap(getResourceName("Icons", "santaHat"), pixmap.size());
-            QPainter painter(&pixmap);
-            painter.drawPixmap(pixmap.rect(), hat_pixmap, hat_pixmap.rect());
-        }
-
         {
             QWriteLocker lock(&lock_);
             if(!pixmapLookup.contains(pixmap_url)){
@@ -499,13 +493,6 @@ QString Theme::getPixmapResourceName(QString resource_name, QSize size, QColor t
         resource_name += QColorToHex(tintColor);
     }
 
-    if(current_theme == ThemePreset::XMAS_THEME){
-        //Overlay some christmas shit
-        const auto& hat_name = getResourceName("Icons", "santaHat");
-        if(resource_name != hat_name && (resource_name.contains("EntityIcon") || resource_name.contains("medea")) && !resource_name.contains("Edge")){
-            resource_name += "_XMAS";
-        }
-    }
     return resource_name;
 }
 
@@ -1101,11 +1088,6 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         setAspectBackgroundColor(VIEW_ASPECT::HARDWARE, color);
         break;
     }
-    
-    case SETTINGS::THEME_SETTHEME_XMASTHEME:{
-        resetTheme(ThemePreset::XMAS_THEME);
-        break;
-    }
     case SETTINGS::THEME_SETTHEME_DARKTHEME:{
         resetTheme(ThemePreset::DARK_THEME);
         break;
@@ -1296,7 +1278,6 @@ void Theme::resetTheme(ThemePreset themePreset){
     emit changeSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, 50);
 
     switch(themePreset){
-        case ThemePreset::XMAS_THEME:
         case ThemePreset::DARK_THEME:{
             QColor bgColor = QColor(70,70,70);
             emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);

@@ -247,7 +247,7 @@ struct ImageLoad{
     QReadWriteLock lock_;
     QReadWriteLock pixmap_lock_;
 
-    ThemePreset current_theme = ThemePreset::XMAS_THEME;
+    ThemePreset current_theme = ThemePreset::DARK_THEME;
     bool themeChanged = false;
     bool valid = false;
     QFuture<void> entity_icons_load_future;
