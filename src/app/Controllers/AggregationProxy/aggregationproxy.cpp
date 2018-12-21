@@ -101,7 +101,7 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         notification->setDescription(ex.what());
     }
 
-    emit requstedExperimentRuns(runs);
+    emit requestedExperimentRuns(runs);
 
 }
 
@@ -124,16 +124,26 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         setSelectedExperimentRunID(experimentRunID);
 
         auto& results = requester_->GetExperimentState(request);
-        QStringList names;
-        qDebug() << "[Experiment State] Results: " << results->components_size();
+        qDebug() << "[Experiment State] Nodes: " << results->nodes_size();
+        qDebug() << "[Experiment State] Components: " << results->components_size();
+        qDebug() << "[Experiment State] Workers: " << results->workers_size();
         qDebug() << "--------------------------------------------------------------------------------";
 
+        QStringList hostnames, componentNames, workerNames;
+        for (const auto& node : results->nodes()) {
+            auto name = getQString(node.hostname());
+            hostnames.append(name);
+        }
         for (const auto& component : results->components()) {
             auto name = getQString(component.name());
-            names.append(name);
+            componentNames.append(name);
+        }
+        for (const auto& worker : results->workers()) {
+            auto name = getQString(worker.name());
+            workerNames.append(name);
         }
 
-        emit requstedComponentNames(names);
+        emit requestedExperimentState(hostnames, componentNames, workerNames);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -146,15 +156,26 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 
 /**
  * @brief AggregationProxy::RequestEvents
- * @param ID
+ * @param nodeHostname
  * @param componentName
+ * @param workerName
  */
-void AggregationProxy::RequestEvents(quint32 ID, QString componentName)
+void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    componentNames_.clear();
-    componentNames_.append(componentName);
-    setSelectedExperimentRunID(ID);
-    ReloadRunningExperiments();
+    // set request paramenters here
+    qDebug() << "node: " << nodeHostname;
+    qDebug() << "component: " << componentName;
+    qDebug() << "worker: " << workerName;
+
+    emit clearPreviousEvents();
+
+    AggServer::PortLifecycleRequest portLifecycleRequest;
+    portLifecycleRequest.set_experiment_run_id(experimentRunID_);
+    portLifecycleRequest.add_component_names(componentName.toStdString());
+
+    SendPortLifecycleRequest(portLifecycleRequest);
+
+    emit receivedAllEvents();
 }
 
 

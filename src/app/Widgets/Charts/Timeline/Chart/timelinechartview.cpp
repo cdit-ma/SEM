@@ -182,6 +182,9 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         verticalScrollValue = _scrollArea->verticalScrollBar()->value();
     });
 
+    auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
+    setMinimumWidth(_entityAxis->minimumWidth() + minTimeAxisWidth + SPACING * 2);
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChartView::themeChanged);
     themeChanged();
 }
@@ -524,7 +527,6 @@ void TimelineChartView::updateChartHoverDisplay()
 
     // adjust the hover display's position to make sure that it is fully visible
     if (_hoverDisplay->isVisible()) {
-        _hoverDisplay->adjustSize();
         auto globalPos = mapToGlobal(pos());
         auto hoverPos = mapTo(this, cursor().pos());
         if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {

@@ -8,15 +8,10 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QStackedWidget>
-#include <QDateTime>
-
-#include <QLineEdit>
-#include <QGroupBox>
-#include <QRadioButton>
-#include <QCheckBox>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
+#include "../Charts/Timeline/chartinputpopup.h"
 
 namespace QtCharts{
     class QLineSeries;
@@ -54,11 +49,7 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
-    void requestExperimentRuns(QString name);
-    void requestExperimentState(quint32 ID);
-    //void requestEvents(QStringList names);
-    void requestEvents(quint32 ID, QString name);
-    void reloadEvents();
+    void reloadTimelineEvents();
 
 public slots:
     void themeChanged();
@@ -77,9 +68,6 @@ public slots:
     void handleTimeout();
     void playPauseToggled(bool checked);
 
-    void populateRunsGroupBox(QList<ExperimentRun> runs);
-    void populateNamesGroupBox(QStringList names);
-
 private:
     void removeTab(QAction* tabAction, bool deleteWidget = true);
     void activateNewTab(QAction* previouslyActivatedTab);
@@ -87,26 +75,10 @@ private:
     void setupLayout();
     void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
 
-    void setupChartInputDialog();
-    void setChartInputDialogVisible(bool visible);
-    void sendEventsRequest();
-
     void connectChartViewToAggreagtionProxy(TimelineChartView* view);
 
-    HoverPopup* chartInputPopup;
-    QToolBar* toolbar;
-    QLineEdit* nameLineEdit;
-    QLineEdit* filterLineEdit;
-    QGroupBox* nameGroupBox;
-    QGroupBox* runsGroupBox;
-    QGroupBox* filtersGroupBox;
-    QAction* okAction;
-    QAction* cancelAction;
-
-    QList<QRadioButton*> runButtons;
-    QList<QCheckBox*> nameButtons;
-
     ViewController* viewController = 0;
+    ChartInputPopup* chartPopup = 0;
 
     QToolBar* tabBar = 0;
     QToolBar* titleBar = 0;

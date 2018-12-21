@@ -1,7 +1,8 @@
 #include "popupwidget.h"
+#include "../../theme.h"
+
 #include <QVBoxLayout>
 #include <QPainter>
-#include "../../theme.h"
 #include <QKeyEvent>
 
 /**
@@ -25,7 +26,7 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
         break;
     case TYPE::SPLASH:
         setAttribute(Qt::WA_ShowWithoutActivating);
-        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
+        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint); // | Qt::WindowSystemMenuHint);
         break;
     case TYPE::POPUP:
         setWindowFlags(windowFlags() | Qt::Popup);
@@ -101,6 +102,10 @@ void PopupWidget::paintEvent(QPaintEvent* event)
 }
 
 
+/**
+ * @brief PopupWidget::keyPressEvent
+ * @param event
+ */
 void PopupWidget::keyPressEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
