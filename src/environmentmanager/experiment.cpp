@@ -6,6 +6,7 @@
 #include <proto/controlmessage/helper.h>
 #include <algorithm>
 #include <numeric>
+#include <google/protobuf/util/time_util.h>
 
 using namespace EnvironmentManager;
 
@@ -331,6 +332,11 @@ std::unique_ptr<NodeManager::EnvironmentMessage> Experiment::GetProto(const bool
                     }
                 }
             }
+
+            using namespace google::protobuf::util;
+            auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+            auto timestamp = TimeUtil::MillisecondsToTimestamp(current_time.count());
+            control_message->mutable_timestamp()->Swap(&timestamp);
 
             auto attrs = control_message->mutable_attributes();
             NodeManager::SetStringAttribute(attrs, "master_ip_address", GetMasterIp());
