@@ -44,6 +44,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     runsLayout->setSpacing(2);
     runsLayout->setContentsMargins(1, 5, 1, 1);
 
+    /*
     nodesGroupBox_ = new QGroupBox("Filter Events By Node(s):", this);
     QVBoxLayout* nodesLayout = new QVBoxLayout(nodesGroupBox_);
     nodesLayout->setMargin(0);
@@ -62,6 +63,17 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     workerLayout->setSpacing(2);
     workerLayout->setContentsMargins(1, 5, 1, 1);
 
+    filterMenu_ = new QMenu(this);
+    filterMenu_->addAction("Nodes")->setProperty(FILTER, (uint)NODE_FILTER);
+    filterMenu_->addAction("Components")->setProperty(FILTER, (uint)COMPONENT_FILTER);
+    filterMenu_->addAction("Workers")->setProperty(FILTER, (uint)WORKER_FILTER);
+    connect(filterMenu_, &QMenu::triggered, this, &ChartInputPopup::filterMenuTriggered);
+
+    /*for (auto action : filterMenu_->actions()) {
+        action->setCheckable(true);
+    }*
+    */
+
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -70,14 +82,11 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     filterMenu_ = new QMenu(this);
-    filterMenu_->addAction("Nodes")->setProperty(FILTER, (uint)NODE_FILTER);
-    filterMenu_->addAction("Components")->setProperty(FILTER, (uint)COMPONENT_FILTER);
-    filterMenu_->addAction("Workers")->setProperty(FILTER, (uint)WORKER_FILTER);
     connect(filterMenu_, &QMenu::triggered, this, &ChartInputPopup::filterMenuTriggered);
 
-    for (auto action : filterMenu_->actions()) {
-        action->setCheckable(true);
-    }
+    nodesGroupBox_ = constructFilterWidgets(FILTER_KEY::NODE_FILTER, "Nodes");
+    componentsGroupBox_ = constructFilterWidgets(FILTER_KEY::COMPONENT_FILTER, "Components");
+    workersGroupBox_ = constructFilterWidgets(FILTER_KEY::WORKER_FILTER, "Workers");
 
     filterAction_ = toolbar_->addAction("Filters");
     filterAction_->setMenu(filterMenu_);
@@ -135,19 +144,15 @@ void ChartInputPopup::themeChanged()
 
     experimentNameLineEdit_->setStyleSheet(theme->getLineEditStyleSheet());
 
+    for (auto radioButton : findChildren<QRadioButton*>()) {
+        radioButton->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
+    }
+
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
                          "QGroupBox{color: lightGray; margin-top: 15px;}" +
                          "QGroupBox::title{subcontrol-origin: margin;}";
 
-    experimentNameGroupBox_->setStyleSheet(groupBoxStyle);
-    experimentRunsGroupBox_->setStyleSheet(groupBoxStyle);
-    nodesGroupBox_->setStyleSheet(groupBoxStyle);
-    componentsGroupBox_->setStyleSheet(groupBoxStyle);
-    workersGroupBox_->setStyleSheet(groupBoxStyle);
-
-    for (auto radioButton : findChildren<QRadioButton*>()) {
-        radioButton->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-    }
+    setStyleSheet(styleSheet() + groupBoxStyle);
 }
 
 
@@ -190,15 +195,15 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     // clear previous experimentRun widgets
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
 
+    // hiding it first, resizes the widget immediately
+    experimentRunsGroupBox_->hide();
+    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
+    filterAction_->setEnabled(false);
+
     if (runs.isEmpty()) {
         recenterPopup();
         return;
     }
-
-    // clear experimentStateResponse lists
-    nodes_.clear();
-    components_.clear();
-    workers_.clear();
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -210,7 +215,6 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         experimentRunsGroupBox_->layout()->addWidget(button);
         connect(button, &QRadioButton::toggled, [=](bool checked) {
-            filterAction_->setEnabled(true);
             if (checked) {
                 selectedExperimentRunID_ = ID;
                 emit requestExperimentState(ID);
@@ -219,6 +223,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     }
 
     experimentRunsGroupBox_->show();
+    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
     recenterPopup();
 }
@@ -235,11 +240,27 @@ void ChartInputPopup::receivedExperimentState(QStringList nodeHostnames, QString
     nodes_ = nodeHostnames;
     components_ = componentNames;
     workers_ = workerNames;
+
+    // if the corresponding filter section is visible, clear then re-populate it
+    for (auto action : filterMenu_->actions()) {
+        auto filter = (FILTER_KEY) action->property(FILTER).toUInt();
+        bool showAction = !getFilterList(filter).isEmpty();
+        action->setVisible(showAction);
+        if (showAction) {
+            filterAction_->setEnabled(true);
+            filterMenuTriggered(action);
+        } else if (action->isChecked()) {
+            action->toggled(false);
+            adjustChildrenSize("", Qt::FindDirectChildrenOnly);
+        }
+    }
 }
 
 
 /**
  * @brief ChartInputPopup::filterMenuTriggered
+ * This should onle be called when there is a selected experiment run.
+ * The filter action/menu should be disabled other wise.
  * @param action
  */
 void ChartInputPopup::filterMenuTriggered(QAction* action)
@@ -248,22 +269,18 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
         return;
 
     auto filter = (FILTER_KEY) action->property(FILTER).toUInt();
-    clearGroupBox(filter);
-
-    switch (filter) {
-    case FILTER_KEY::NODE_FILTER:
-        populateNodes();
-        break;
-    case FILTER_KEY::COMPONENT_FILTER:
-        populateComponents();
-        break;
-    case FILTER_KEY::WORKER_FILTER:
-        populateWorkers();
-        break;
-    default:
-        return;
+    if (action->isChecked()) {
+        auto groupBox = getFilterGroupBox(filter);
+        if (!groupBox)
+            return;
+        // hiding then showing the groupbox here stops the glitching
+        groupBox->hide();
+        clearGroupBox(filter);
+        populateGroupBox(filter);
+        groupBox->show();
     }
 
+    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
     recenterPopup();
 }
@@ -278,19 +295,6 @@ void ChartInputPopup::accept()
         emit requestEvents(selectedNode_, selectedComponent_, selectedWorker_);
     }
     PopupWidget::accept();
-
-    /*
-    if (experimentRunsGroupBox_->layout()) {
-        auto buttons = experimentRunsGroupBox_->findChildren<QRadioButton*>();
-        for (auto button : buttons) {
-            if (button->isChecked()) {
-                emit requestEvents(button->property("ID").toUInt()); //, componentNameLineEdit_->text().trimmed());
-                break;
-            }
-        }
-    }
-    PopupWidget::accept();
-    */
 }
 
 
@@ -304,71 +308,26 @@ void ChartInputPopup::reject()
 
 
 /**
- * @brief ChartInputPopup::populateNodes
+ * @brief ChartInputPopup::populateGroupBox
+ * @param filter
  */
-void ChartInputPopup::populateNodes()
+void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
-    if (nodes_.isEmpty() || !nodesGroupBox_->layout())
+    QGroupBox* groupBox = getFilterGroupBox(filter);
+    if (!groupBox)
         return;
 
-    for (auto node : nodes_) {
-        QRadioButton* button = new QRadioButton(node, this);
-        nodesGroupBox_->layout()->addWidget(button);
-        button->setProperty("ID", node);
+    auto filterList = getFilterList(filter);
+    for (auto text : filterList) {
+        QRadioButton* button = new QRadioButton(text, this);
+        groupBox->layout()->addWidget(button);
+        button->setProperty("ID", text);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         connect(button, &QRadioButton::toggled, [=](bool checked) {
             if (checked)
-                selectedNode_ = button->text();
+                getSelectedFilter(filter) = button->text();
         });
     }
-
-    nodesGroupBox_->show();
-}
-
-
-/**
- * @brief ChartInputPopup::populateComponents
- */
-void ChartInputPopup::populateComponents()
-{
-    if (components_.isEmpty() || !componentsGroupBox_->layout())
-        return;
-
-    for (auto component : components_) {
-        QRadioButton* button = new QRadioButton(component, this);
-        componentsGroupBox_->layout()->addWidget(button);
-        button->setProperty("ID", component);
-        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        connect(button, &QRadioButton::toggled, [=](bool checked) {
-            if (checked)
-                selectedComponent_ = button->text();
-        });
-    }
-
-    componentsGroupBox_->show();
-}
-
-
-/**
- * @brief ChartInputPopup::populateWorkers
- */
-void ChartInputPopup::populateWorkers()
-{
-    if (workers_.isEmpty() || !workersGroupBox_->layout())
-        return;
-
-    for (auto worker : workers_) {
-        QRadioButton* button = new QRadioButton(worker, this);
-        workersGroupBox_->layout()->addWidget(button);
-        button->setProperty("ID", worker);
-        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        connect(button, &QRadioButton::toggled, [=](bool checked) {
-            if (checked)
-                selectedWorker_ = button->text();
-        });
-    }
-
-    workersGroupBox_->show();
 }
 
 
@@ -378,31 +337,19 @@ void ChartInputPopup::populateWorkers()
  */
 void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
-    QGroupBox* groupBox = 0;
+    QGroupBox* groupBox = getFilterGroupBox(filter);
+
     switch (filter) {
-    case FILTER_KEY::RUNS_FILTER: {
-        groupBox = experimentRunsGroupBox_;
+    case FILTER_KEY::RUNS_FILTER:
         selectedExperimentRunID_ = -1;
         break;
-    }
-    case FILTER_KEY::NODE_FILTER: {
-        groupBox = nodesGroupBox_;
-        selectedNode_ = "";
-        break;
-    }
-    case FILTER_KEY::COMPONENT_FILTER: {
-        groupBox = componentsGroupBox_;
-        selectedComponent_ = "";
-        break;
-    }
-    case FILTER_KEY::WORKER_FILTER: {
-        groupBox = workersGroupBox_;
-        selectedWorker_ = "";
-        break;
-    }
     default:
-        return;
+        getSelectedFilter(filter) = "";
+        break;
     }
+
+    if (!groupBox)
+        return;
 
     auto buttons = groupBox->findChildren<QRadioButton*>();
     while (!buttons.isEmpty()) {
@@ -410,10 +357,6 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
         groupBox->layout()->removeWidget(button);
         button->deleteLater();
     }
-
-    // hiding it first, resizes the widget immediately
-    groupBox->hide();
-    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
 }
 
 
@@ -423,7 +366,93 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
 void ChartInputPopup::recenterPopup()
 {
     // re-center position
-    //auto newSize = experimentRunsGroupBox_->sizeHint() / 2.0;
     auto newSize = sizeHint() / 2.0;
     move(originalCenterPos_.x() - newSize.width(), originalCenterPos_.y() - newSize.height());
+}
+
+
+/**
+ * @brief ChartInputPopup::getSelectedFilter
+ * @param filter
+ * @return
+ */
+QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
+{
+    switch (filter) {
+    case FILTER_KEY::NODE_FILTER:
+        return selectedNode_;
+    case FILTER_KEY::COMPONENT_FILTER:
+        return selectedComponent_;
+    case FILTER_KEY::WORKER_FILTER:
+        return selectedWorker_;
+    default:
+        return QString();
+    }
+}
+
+
+/**
+ * @brief ChartInputPopup::getFilterList
+ * @param filter
+ * @return
+ */
+QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
+{
+    switch (filter) {
+    case FILTER_KEY::NODE_FILTER:
+        return nodes_;
+    case FILTER_KEY::COMPONENT_FILTER:
+        return components_;
+    case FILTER_KEY::WORKER_FILTER:
+        return workers_;
+    default:
+        return QStringList();
+    }
+}
+
+
+/**
+ * @brief ChartInputPopup::getFilterGroupBox
+ * @param filter
+ * @return
+ */
+QGroupBox *ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter)
+{
+    switch (filter) {
+    case FILTER_KEY::RUNS_FILTER:
+        return experimentRunsGroupBox_;
+    case FILTER_KEY::NODE_FILTER:
+        return nodesGroupBox_;
+    case FILTER_KEY::COMPONENT_FILTER:
+        return componentsGroupBox_;
+    case FILTER_KEY::WORKER_FILTER:
+        return workersGroupBox_;
+    default:
+        return 0;
+    }
+}
+
+
+/**
+ * @brief ChartInputPopup::constructFilterWidgets
+ * @param filter
+ * @return
+ */
+QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY filter, QString filterName)
+{
+    QGroupBox* groupBox = new QGroupBox("Filter Events By " + filterName + ":", this);
+    groupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    groupBox->show();
+
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->setMargin(0);
+    layout->setSpacing(2);
+    layout->setContentsMargins(1, 5, 1, 1);
+
+    QAction* action = filterMenu_->addAction(filterName);
+    action->setProperty(FILTER, (uint)filter);
+    action->setCheckable(true);
+    connect(action, &QAction::toggled, groupBox, &QGroupBox::setVisible);
+
+    return groupBox;
 }

@@ -36,12 +36,14 @@ public slots:
     void reject();
 
 private:
-    void populateNodes();
-    void populateComponents();
-    void populateWorkers();
-
+    void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
     void recenterPopup();
+
+    QString& getSelectedFilter(FILTER_KEY filter);
+    QStringList& getFilterList(FILTER_KEY filter);
+    QGroupBox* getFilterGroupBox(FILTER_KEY filter);
+    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
 
     QGroupBox* experimentNameGroupBox_;
     QGroupBox* experimentRunsGroupBox_;
