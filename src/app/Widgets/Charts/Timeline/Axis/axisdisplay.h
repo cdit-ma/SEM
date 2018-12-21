@@ -41,8 +41,8 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    void paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF rect);
-    void paintVertical(QPainter &painter, QVector<QLineF> &tickLines, QRectF rect);
+    void paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect);
+    void paintVertical(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect);
 
     void displayedMinChanged(double min);
     void displayedMaxChanged(double max);

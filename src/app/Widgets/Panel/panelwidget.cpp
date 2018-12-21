@@ -316,12 +316,13 @@ void PanelWidget::setViewController(ViewController *vc)
     // connect to AggregationProxy
     if (chartPopup) {
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, chartPopup, &ChartInputPopup::setPopupVisible);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::requstedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentState, chartPopup, &ChartInputPopup::receivedExperimentState);
         connect (chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
         connect (chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
         connect (chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
     }
-    connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
+    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
     //constructEventsView();
     testNewTimelineView();
@@ -547,7 +548,7 @@ void PanelWidget::popOutActiveTab()
  */
 void PanelWidget::requestData(bool clear)
 {
-    emit reloadEvents();
+    emit reloadTimelineEvents();
 }
 
 

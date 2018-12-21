@@ -48,11 +48,7 @@ signals:
     void minimiseTriggered(bool checked);
     void closeTriggered();
 
-    void requestExperimentRuns(QString name);
-    void requestExperimentState(quint32 ID);
-    //void requestEvents(QStringList names);
-    void requestEvents(quint32 ID, QString name);
-    void reloadEvents();
+    void reloadTimelineEvents();
 
 public slots:
     void themeChanged();

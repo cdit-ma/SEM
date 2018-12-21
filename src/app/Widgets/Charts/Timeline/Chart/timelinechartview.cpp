@@ -182,6 +182,9 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         verticalScrollValue = _scrollArea->verticalScrollBar()->value();
     });
 
+    auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
+    setMinimumWidth(_entityAxis->minimumWidth() + minTimeAxisWidth + SPACING * 2);
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChartView::themeChanged);
     themeChanged();
 }
