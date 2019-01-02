@@ -33,6 +33,7 @@ AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) 
     }
     
     //Setup Data
+    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
     broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }

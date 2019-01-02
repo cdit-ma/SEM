@@ -20,6 +20,7 @@ Namespace::Namespace(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     }
 
     //Setup Data
+    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 5);
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
 }

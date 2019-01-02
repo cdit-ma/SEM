@@ -1079,6 +1079,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     if(bind_index){
         bind_values[KeyName::Index] += KeyName::Index;
     }
+    bind_values[KeyName::ColumnCount] += KeyName::ColumnCount;
 
     for(const auto& key_name : required_instance_keys){
         if(bind_values.contains(key_name)){

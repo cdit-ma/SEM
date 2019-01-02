@@ -19,8 +19,8 @@ public:
 
     QPointF GetGridAlignedTopLeft() const;
     
-    void SetColumnLimit(int column_limit);
-
+    void SetColumnCount(int column_limit);
+    void SetUseColumnCount(int row, int col, bool use_column_count);
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
 
     void SetRenderCellText(int row, int col, bool render, QString label = "");
@@ -58,12 +58,17 @@ private:
     
     
     
+    int getCellColumnCount(const CellIndex& index);
     QMarginsF getCellMargin(const CellIndex& index);
     qreal getDefaultCellSpacing() const;
     qreal getCellSpacing(const CellIndex& index);
+
+    bool getCellRenderPrefixIcon(const CellIndex& index);
+    bool getCellRenderSuffixIcon(const CellIndex& index);
+    bool getCellRenderGapIcon(const CellIndex& index);
     
 
-    QRectF GetGapIconRect(const Qt::Orientation orientation, const QRectF& prev_rect, const QRectF& current_rect);
+    QRectF GetGapIconRect(const CellIndex& index, int child_index, const QRectF& prev_rect, const QRectF& current_rect);
 
     Qt::Orientation orientation;
 
@@ -98,7 +103,9 @@ private:
         QPair<QString, QString> gap_icon;
         QPair<QString, QString> hovered_icon;
         QSize icon_size;
-
+        
+        bool use_column_count = false;
+        
         qreal minimum_height = 0;
         qreal minimum_width = 0;
 
@@ -136,7 +143,7 @@ private:
         int prefix_gap_index = -1;
         int suffix_gap_index = -1;
     };
-    int column_limit_ = -1;
+    int column_count_ = -1;
 
 
     bool sub_areas_dirty = true;

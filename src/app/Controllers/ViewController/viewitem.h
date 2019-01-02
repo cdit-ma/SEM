@@ -105,7 +105,8 @@ private:
 
     QHash<QString, QVariant> _data;
     QSet<QString> protected_keys;
-    QSet<QString> permanent_protected_keys;
+    static const QSet<QString> permanent_protected_keys;
+    static const QSet<QString> permanent_editable_keys;
 
 
     int ID;
