@@ -29,8 +29,8 @@ public:
 
 signals:
     void setChartUserInputDialogVisible(bool visible);
-    void requstedExperimentRuns(QList<ExperimentRun> runs);
-    void requstedComponentNames(QStringList names);
+    void requestedExperimentRuns(QList<ExperimentRun> runs);
+    void requestedComponentNames(QStringList names);
 
     void receivedCPUUtilisationEvent(CPUUtilisationEvent* event);
 
