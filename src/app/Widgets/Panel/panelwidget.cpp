@@ -326,7 +326,7 @@ void PanelWidget::setViewController(ViewController *vc)
 
     // connect panel to the AggregationProxy
     connect(&viewController->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &PanelWidget::setChartInputDialogVisible);
-    connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedExperimentRuns, this, &PanelWidget::populateRunsGroupBox);
+    connect(&viewController->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, this, &PanelWidget::populateRunsGroupBox);
     //connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedComponentNames, this, &PanelWidget::populateNamesGroupBox);
 
     connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);

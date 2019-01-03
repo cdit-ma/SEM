@@ -101,7 +101,7 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         notification->setDescription(ex.what());
     }
 
-    emit requstedExperimentRuns(runs);
+    emit requestedExperimentRuns(runs);
 
 }
 
@@ -133,7 +133,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
             names.append(name);
         }
 
-        emit requstedComponentNames(names);
+        emit requestedComponentNames(names);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
