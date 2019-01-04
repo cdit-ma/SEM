@@ -117,7 +117,7 @@ private:
         }
 
         bool render_always(){
-            return minimum_width > 0 || minimum_height > 0 || render_suffix_icon;
+            return minimum_width > 0 || minimum_height > 0 || render_prefix_icon || render_suffix_icon;
         }
     };
 
