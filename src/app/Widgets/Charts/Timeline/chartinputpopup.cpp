@@ -163,7 +163,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     // clear previous experimentRun widgets
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
 
-    // hiding the groupbox first, resizes the widget immediately
+    // hiding it first, resizes the widget immediately
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     filterAction_->setEnabled(false);
 
