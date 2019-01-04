@@ -51,6 +51,7 @@ message ProcessStatus{
 
 	google.protobuf.Duration cpu_time = 11;
 	State state = 12;
+	google.protobuf.Timestamp start_time = 13;
 }
 
 message ProcessInfo{
