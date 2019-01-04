@@ -147,7 +147,6 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -162,20 +161,14 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    // set request paramenters here
     qDebug() << "node: " << nodeHostname;
     qDebug() << "component: " << componentName;
     qDebug() << "worker: " << workerName;
 
-    emit clearPreviousEvents();
+    // store request paramenters here
+    componentName_ = componentName;
 
-    AggServer::PortLifecycleRequest portLifecycleRequest;
-    portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-    portLifecycleRequest.add_component_names(componentName.toStdString());
-
-    SendPortLifecycleRequest(portLifecycleRequest);
-
-    emit receivedAllEvents();
+    ReloadRunningExperiments();
 }
 
 
@@ -193,11 +186,7 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-
-    /*for (auto name : componentNames_) {
-        portLifecycleRequest.mutable_component_names()->AddAllocated(&name.toStdString());
-    }*/
-
+    portLifecycleRequest.add_component_names(componentName_.toStdString());
     SendPortLifecycleRequest(portLifecycleRequest);
 
     emit receivedAllEvents();

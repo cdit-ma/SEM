@@ -29,6 +29,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=](QString text) {
+        hideGroupBoxes();
         emit requestExperimentRuns(text.trimmed());
     });
 
@@ -54,9 +55,9 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     filterMenu_ = new QMenu(this);
     connect(filterMenu_, &QMenu::triggered, this, &ChartInputPopup::filterMenuTriggered);
 
-    nodesGroupBox_ = constructFilterWidgets(FILTER_KEY::NODE_FILTER, "Nodes");
+    //nodesGroupBox_ = constructFilterWidgets(FILTER_KEY::NODE_FILTER, "Nodes");
     componentsGroupBox_ = constructFilterWidgets(FILTER_KEY::COMPONENT_FILTER, "Components");
-    workersGroupBox_ = constructFilterWidgets(FILTER_KEY::WORKER_FILTER, "Workers");
+    //workersGroupBox_ = constructFilterWidgets(FILTER_KEY::WORKER_FILTER, "Workers");
 
     filterAction_ = toolbar_->addAction("Filters");
     filterAction_->setMenu(filterMenu_);
@@ -79,12 +80,12 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     mainLayout->setSpacing(5);
     mainLayout->addWidget(experimentNameGroupBox_);
     mainLayout->addWidget(experimentRunsGroupBox_, 1);
-    mainLayout->addWidget(nodesGroupBox_, 1);
+    //mainLayout->addWidget(nodesGroupBox_, 1);
     mainLayout->addWidget(componentsGroupBox_, 1);
-    mainLayout->addWidget(workersGroupBox_, 1);
+    //mainLayout->addWidget(workersGroupBox_, 1);
     mainLayout->addWidget(toolbar_);
 
-    hideFilters();
+    hideGroupBoxes();
 
     setWidget(holderWidget);
     setVisible(false);
@@ -163,7 +164,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
 
     // hiding the groupbox first, resizes the widget immediately
-    hideFilters();
+    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     filterAction_->setEnabled(false);
 
     if (runs.isEmpty()) {
@@ -260,6 +261,7 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ != -1) {
         emit requestEvents(selectedNode_, selectedComponent_, selectedWorker_);
     }
+    hideGroupBoxes();
     PopupWidget::accept();
 }
 
@@ -269,7 +271,7 @@ void ChartInputPopup::accept()
  */
 void ChartInputPopup::reject()
 {
-    hideFilters();
+    hideGroupBoxes();
     PopupWidget::reject();
 }
 
@@ -328,6 +330,21 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
 
 
 /**
+ * @brief ChartInputPopup::hideGroupBoxes
+ */
+void ChartInputPopup::hideGroupBoxes()
+{
+    // hide all the filter groupboxes whenever this popup is closed or the search has changed
+    for (auto key : getFilterKeys()) {
+        auto groupBox = getFilterGroupBox(key);
+        if (groupBox)
+            groupBox->hide();
+    }
+    updateGeometry();
+}
+
+
+/**
  * @brief ChartInputPopup::recenterPopup
  */
 void ChartInputPopup::recenterPopup()
@@ -335,20 +352,6 @@ void ChartInputPopup::recenterPopup()
     // re-center position
     auto newSize = sizeHint() / 2.0;
     move(originalCenterPos_.x() - newSize.width(), originalCenterPos_.y() - newSize.height());
-}
-
-
-/**
- * @brief ChartInputPopup::hideFilters
- */
-void ChartInputPopup::hideFilters()
-{
-    experimentRunsGroupBox_->hide();
-    nodesGroupBox_->hide();
-    componentsGroupBox_->hide();
-    workersGroupBox_->hide();
-    //adjustChildrenSize("", Qt::FindDirectChildrenOnly);
-    updateGeometry();
 }
 
 

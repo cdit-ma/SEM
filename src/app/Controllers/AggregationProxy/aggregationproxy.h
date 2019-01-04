@@ -52,6 +52,7 @@ private:
 
     bool hasSelectedExperimentID_ = false;
     quint32 experimentRunID_;
+    QString componentName_;
 
     AggServer::Requester* requester_ = 0;
 

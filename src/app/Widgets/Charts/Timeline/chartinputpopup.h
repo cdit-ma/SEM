@@ -16,6 +16,11 @@ class ChartInputPopup : public HoverPopup
 
 public:
     enum FILTER_KEY{RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
+
+    static QList<FILTER_KEY> getFilterKeys() {
+        return {RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
+    }
+
     explicit ChartInputPopup(QWidget* parent = 0);
 
 signals:
@@ -38,19 +43,19 @@ public slots:
 private:
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
+    void hideGroupBoxes();
     void recenterPopup();
-    void hideFilters();
 
     QString& getSelectedFilter(FILTER_KEY filter);
     QStringList& getFilterList(FILTER_KEY filter);
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
 
-    QGroupBox* experimentNameGroupBox_;
-    QGroupBox* experimentRunsGroupBox_;
-    QGroupBox* nodesGroupBox_;
-    QGroupBox* componentsGroupBox_;
-    QGroupBox* workersGroupBox_;
+    QGroupBox* experimentNameGroupBox_ = 0;
+    QGroupBox* experimentRunsGroupBox_ = 0;
+    QGroupBox* nodesGroupBox_ = 0;
+    QGroupBox* componentsGroupBox_ = 0;
+    QGroupBox* workersGroupBox_ = 0;
 
     QLineEdit* experimentNameLineEdit_;
 
