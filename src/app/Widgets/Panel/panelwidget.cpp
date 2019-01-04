@@ -35,7 +35,6 @@ PanelWidget::PanelWidget(QWidget *parent)
     defaultActiveAction = 0;
 
     setupLayout();
-    setupChartInputDialog();
 
     //testDataSeries();
     //testNewTimelineView();
@@ -322,21 +321,23 @@ void PanelWidget::constructSizeTestTab()
 
 void PanelWidget::setViewController(ViewController *vc)
 {
+    if (!vc)
+        return;
+
     viewController = vc;
 
-    // connect panel to the AggregationProxy
-    connect(&viewController->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &PanelWidget::setChartInputDialogVisible);
-    connect(&viewController->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, this, &PanelWidget::populateRunsGroupBox);
-    //connect(&viewController->getAggregationProxy(), &AggregationProxy::requstedComponentNames, this, &PanelWidget::populateNamesGroupBox);
-
-    connect(this, &PanelWidget::requestExperimentRuns, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-    //connect(this, &PanelWidget::requestExperimentState, &viewController->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-    connect(this, &PanelWidget::requestEvents, &viewController->getAggregationProxy(), &AggregationProxy::RequestEvents);
-    connect(this, &PanelWidget::reloadEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
+    // connect to AggregationProxy
+    if (chartPopup) {
+        connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, chartPopup, &ChartInputPopup::setPopupVisible);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentState, chartPopup, &ChartInputPopup::receivedExperimentState);
+        connect (chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
+        connect (chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+        connect (chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
+    }
+    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
     testNewTimelineView();
-
-    //constructEventsView();
     constructCPUEventsView();
 }
 
@@ -389,20 +390,6 @@ void PanelWidget::themeChanged()
             updateIcon(action, path, name, false);
         }
     }
-
-    toolbar->setIconSize(theme->getIconSize());
-    toolbar->setStyleSheet(theme->getToolBarStyleSheet());
-    nameLineEdit->setStyleSheet(theme->getLineEditStyleSheet());
-    filterLineEdit->setStyleSheet(theme->getLineEditStyleSheet());
-    okAction->setIcon(theme->getIcon("Icons", "tick"));
-    cancelAction->setIcon(theme->getIcon("Icons", "cross"));
-
-    auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
-                         "QGroupBox{color: lightGray; margin-top: 15px;}" +
-                         "QGroupBox::title{subcontrol-origin: margin;}";
-    nameGroupBox->setStyleSheet(groupBoxStyle);
-    runsGroupBox->setStyleSheet(groupBoxStyle);
-    filtersGroupBox->setStyleSheet(groupBoxStyle);
 }
 
 
@@ -574,7 +561,7 @@ void PanelWidget::popOutActiveTab()
  */
 void PanelWidget::requestData(bool clear)
 {
-    emit reloadEvents();
+    emit reloadTimelineEvents();
 }
 
 
@@ -617,79 +604,6 @@ void PanelWidget::playPauseToggled(bool checked)
         minDateTime.setMSecsSinceEpoch(QDateTime::currentMSecsSinceEpoch() - 5000);
         timer->start();
     }
-}
-
-
-/**
- * @brief PanelWidget::populateRunsGroupBox
- * @param runs
- */
-void PanelWidget::populateRunsGroupBox(QList<ExperimentRun> runs)
-{
-    while (!runButtons.isEmpty()) {
-        auto button = runButtons.takeFirst();
-        runsGroupBox->layout()->removeWidget(button);
-        button->deleteLater();
-    }
-
-    if (runs.isEmpty())
-        return;
-
-    // hiding it first, resizes the widget immediately
-    runsGroupBox->hide();
-
-    for (auto run : runs) {
-        auto ID = run.experiment_run_id;
-        QString text = run.experiment_name + "[" + QString::number(ID) + "] - started at " +
-                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString(DATETIME_FORMAT);
-
-        QRadioButton* button = new QRadioButton(text, this);
-        button->setProperty("ID", ID);
-        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        /*connect(button, &QRadioButton::toggled, [=]() {
-            if (button->isChecked()) {
-                emit requestExperimentState(ID);
-            }
-        });*/
-
-        runsGroupBox->layout()->addWidget(button);
-        runButtons.append(button);
-    }
-
-    runsGroupBox->show();
-    chartInputPopup->adjustSize();
-}
-
-
-/**
- * @brief PanelWidget::populateNamesGroupBox
- * @param names
- */
-void PanelWidget::populateNamesGroupBox(QStringList names)
-{
-    /*
-    while (!nameButtons.isEmpty()) {
-        auto button = nameButtons.takeFirst();
-        nameGroupBox->layout()->removeWidget(button);
-        button->deleteLater();
-    }
-
-    if (names.isEmpty())
-        return;
-
-    // hiding it first, resizes the widget immediately
-    nameGroupBox->hide();
-
-    for (auto name : names) {
-        QCheckBox* button = new QCheckBox(name, this);
-        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        nameGroupBox->layout()->addWidget(button);
-        nameButtons.append(button);
-    }
-
-    nameGroupBox->show();
-    chartInputPopup->adjustSize();
-    */
 }
 
 
@@ -817,6 +731,8 @@ void PanelWidget::setupLayout()
     connect(closeAction, &QAction::triggered, this, &PanelWidget::closePanel);
     connect(snapShotAction, &QAction::triggered, this, &PanelWidget::snapShotPanel);
     connect(playPauseAction, &QAction::toggled, this, &PanelWidget::playPauseToggled);
+
+    chartPopup = new ChartInputPopup(this);
 }
 
 
@@ -836,134 +752,6 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
         }
         action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
     }
-}
-
-
-/**
- * @brief PanelWidget::setupChartInputDialog
- */
-void PanelWidget::setupChartInputDialog()
-{
-    nameLineEdit = new QLineEdit(this);
-    nameLineEdit->setFixedHeight(40);
-    nameLineEdit->setMinimumWidth(400);
-    nameLineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
-    nameLineEdit->setPlaceholderText("Enter experiment name...");
-    nameLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    nameLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
-
-    connect(nameLineEdit, &QLineEdit::textChanged, [=]() {
-        emit requestExperimentRuns(nameLineEdit->text().trimmed());
-    });
-
-    nameGroupBox = new QGroupBox("Visualise Events For Experiment:");
-    QVBoxLayout* topLayout = new QVBoxLayout(nameGroupBox);
-    topLayout->setMargin(0);
-    topLayout->setContentsMargins(1, 5, 1, 1);
-    topLayout->addWidget(nameLineEdit);
-
-    runsGroupBox = new QGroupBox("Select Experiment Run:", this);
-    QVBoxLayout* midLayout = new QVBoxLayout(runsGroupBox);
-    midLayout->setMargin(0);
-    midLayout->setSpacing(2);
-    midLayout->setContentsMargins(1, 5, 1, 1);
-
-    filterLineEdit = new QLineEdit(this);
-    filterLineEdit->setFixedHeight(40);
-    filterLineEdit->setMinimumWidth(400);
-    filterLineEdit->setFont(QFont(font().family(), 10, QFont::ExtraLight));
-    filterLineEdit->setPlaceholderText("Enter component name...");
-    filterLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    filterLineEdit->setAttribute(Qt::WA_MacShowFocusRect, false);
-
-    connect(filterLineEdit, &QLineEdit::returnPressed, [=]() {
-        sendEventsRequest();
-    });
-
-    filtersGroupBox = new QGroupBox("Filter Events By Component(s):", this);
-    QVBoxLayout* bottomLayout = new QVBoxLayout(filtersGroupBox);
-    bottomLayout->setMargin(0);
-    bottomLayout->setContentsMargins(1, 5, 1, 1);    
-    bottomLayout->addWidget(filterLineEdit);
-    filtersGroupBox->hide();
-
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    toolbar = new QToolBar(this);
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toolbar->addWidget(spacerWidget);
-    cancelAction = toolbar->addAction("Cancel");
-    okAction = toolbar->addAction("Ok");
-
-    QWidget* holderWidget = new QWidget(this);
-    QVBoxLayout* popupLayout = new QVBoxLayout(holderWidget);
-    popupLayout->setMargin(5);
-    popupLayout->setSpacing(5);
-    popupLayout->addWidget(nameGroupBox);
-    popupLayout->addWidget(runsGroupBox);
-    popupLayout->addWidget(filtersGroupBox);
-    popupLayout->addWidget(toolbar);
-
-    chartInputPopup = new HoverPopup(this);
-
-    /*connect(cancelAction, &QAction::triggered, chartInputPopup, &HoverPopup::hide);
-    connect(okAction, &QAction::triggered, [=]() {
-        sendEventsRequest();
-    });*/
-    
-    connect(okAction, &QAction::triggered, chartInputPopup, &QDialog::accept);
-    connect(cancelAction, &QAction::triggered, chartInputPopup, &QDialog::reject);
-
-    connect(chartInputPopup, &QDialog::accepted, this, &PanelWidget::sendEventsRequest);
-
-    chartInputPopup->setWidget(holderWidget);
-    chartInputPopup->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    chartInputPopup->setVisible(false);
-}
-
-
-/**
- * @brief PanelWidget::showChartInputDialog
- */
-void PanelWidget::setChartInputDialogVisible(bool visible)
-{
-    chartInputPopup->setVisible(visible);
-    if (visible) {
-        chartInputPopup->activateWindow();
-        nameLineEdit->setFocus();
-        nameLineEdit->selectAll();
-        if (nameLineEdit->text().isEmpty()) {
-            emit requestExperimentRuns("");
-        }
-    }
-}
-
-
-/**
- * @brief PanelWidget::sendEventsRequest
- */
-void PanelWidget::sendEventsRequest()
-{
-    /*QStringList names;
-    for (auto button : nameButtons) {
-        if (button->isChecked()) {
-            names.append(button->text());
-        }
-    }*/
-
-    for (auto button : runButtons) {
-        if (button->isChecked()) {
-            quint32 ID = button->property("ID").toUInt();
-            emit requestEvents(ID, filterLineEdit->text().trimmed());
-            if (!isVisible()) {
-                show();
-            }
-            return;
-        }
-    }
-
-    //emit reloadEvents();
 }
 
 
