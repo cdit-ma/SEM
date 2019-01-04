@@ -187,7 +187,7 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::WorkloadRequest workloadRequest;
     workloadRequest.set_experiment_run_id(experimentRunID_);
-    //workloadRequest.add
+    workloadRequest.add_component_names(componentName_.toStdString());
     SendWorkloadRequest(workloadRequest);
 
     emit receivedAllEvents();

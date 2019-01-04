@@ -338,8 +338,6 @@ void PanelWidget::setViewController(ViewController *vc)
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
     testNewTimelineView();
-
-    //constructEventsView();
     constructWorkloadEventsView();
 }
 
