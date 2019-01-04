@@ -51,11 +51,11 @@ private:
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
 
-    QGroupBox* experimentNameGroupBox_;
-    QGroupBox* experimentRunsGroupBox_;
-    QGroupBox* nodesGroupBox_;
-    QGroupBox* componentsGroupBox_;
-    QGroupBox* workersGroupBox_;
+    QGroupBox* experimentNameGroupBox_ = 0;
+    QGroupBox* experimentRunsGroupBox_ = 0;
+    QGroupBox* nodesGroupBox_ = 0;
+    QGroupBox* componentsGroupBox_ = 0;
+    QGroupBox* workersGroupBox_ = 0;
 
     QLineEdit* experimentNameLineEdit_;
 
