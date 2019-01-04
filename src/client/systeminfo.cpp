@@ -106,6 +106,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfo::GetSystemStatus(const int 
             process_status->set_disk_read_kilobytes(get_monitored_process_disk_read_kB(pid));
             process_status->set_disk_written_kilobytes(get_monitored_process_disk_written_kB(pid));
             process_status->set_disk_total_kilobytes(get_monitored_process_disk_total_kB(pid));
+            process_status->set_allocated_start_time(convert_timestamp(get_monitored_process_start_time(pid)).release());
         }
     }
 
