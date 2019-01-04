@@ -160,12 +160,13 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    // set request paramenters here
     qDebug() << "node: " << nodeHostname;
     qDebug() << "component: " << componentName;
     qDebug() << "worker: " << workerName;
 
+    // store request paramenters here
     nodeHostname_ = nodeHostname;
+
     ReloadRunningExperiments();
 }
 

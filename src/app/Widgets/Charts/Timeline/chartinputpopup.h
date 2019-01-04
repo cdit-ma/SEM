@@ -16,7 +16,8 @@ class ChartInputPopup : public HoverPopup
 
 public:
     enum FILTER_KEY{RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
-    QList<FILTER_KEY> getFilterKeys() {
+
+    static QList<FILTER_KEY> getFilterKeys() {
         return {RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
     }
 
