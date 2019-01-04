@@ -85,10 +85,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     mainLayout->addWidget(workersGroupBox_, 1);
     mainLayout->addWidget(toolbar_);
 
-    experimentRunsGroupBox_->hide();
-    nodesGroupBox_->hide();
-    componentsGroupBox_->hide();
-    workersGroupBox_->hide();
+    hideGroupBoxes();
 
     setWidget(holderWidget);
     setVisible(false);
@@ -133,9 +130,6 @@ void ChartInputPopup::themeChanged()
  */
 void ChartInputPopup::setPopupVisible(bool visible)
 {
-    // hide all the filter groupboxes
-    hide();
-    hideGroupBoxes();
     setVisible(visible);
 
     if (visible) {
@@ -170,7 +164,6 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
 
     // hiding it first, resizes the widget immediately
-    experimentRunsGroupBox_->hide();
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     filterAction_->setEnabled(false);
 
@@ -268,6 +261,7 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ != -1) {
         emit requestEvents(selectedNode_, selectedComponent_, selectedWorker_);
     }
+    hideGroupBoxes();
     PopupWidget::accept();
 }
 
@@ -277,6 +271,7 @@ void ChartInputPopup::accept()
  */
 void ChartInputPopup::reject()
 {
+    hideGroupBoxes();
     PopupWidget::reject();
 }
 
@@ -344,6 +339,7 @@ void ChartInputPopup::hideGroupBoxes()
         if (groupBox)
             groupBox->hide();
     }
+    updateGeometry();
 }
 
 
