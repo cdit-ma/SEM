@@ -9,6 +9,7 @@
 #include <zmq/zmqutils.hpp>
 #include <regex>
 #include <functional>
+#include <google/protobuf/util/time_util.h>
 
 using namespace EnvironmentManager;
 Environment::Environment(const std::string& ip_address,
@@ -270,6 +271,10 @@ void Environment::RemoveExperimentInternal(const std::string& experiment_name){
         auto remove_experiment_message = std::unique_ptr<NodeManager::EnvironmentMessage>(new NodeManager::EnvironmentMessage());
         remove_experiment_message->set_type(NodeManager::EnvironmentMessage::SHUTDOWN_EXPERIMENT);
         remove_experiment_message->mutable_control_message()->set_experiment_id(experiment_name);
+        using namespace google::protobuf::util;
+        auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        auto timestamp = TimeUtil::MillisecondsToTimestamp(current_time.count());
+        remove_experiment_message->mutable_control_message()->mutable_timestamp()->Swap(&timestamp);
         update_publisher_->PushMessage(std::move(remove_experiment_message));
     }
 }
