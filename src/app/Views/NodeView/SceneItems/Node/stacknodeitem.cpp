@@ -114,21 +114,25 @@ Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index){
     return orientation;
 }
 
+bool StackNodeItem::allowIcons(){
+    return isReadOnly() == false && getNodeViewItem()->isInstance() == false;
+}
+
 bool StackNodeItem::getCellRenderPrefixIcon(const CellIndex& index){
-    if(!isReadOnly()){
+    if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_prefix_icon;
     }
     return false;
 }
 
 bool StackNodeItem::getCellRenderSuffixIcon(const CellIndex& index){
-    if(!isReadOnly()){
+    if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_suffix_icon;
     }
     return false;
 }
 bool StackNodeItem::getCellRenderGapIcon(const CellIndex& index){
-    if(!isReadOnly()){
+    if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_gap_icons;
     }
     return false;
@@ -485,27 +489,25 @@ void StackNodeItem::updateCells(){
 
                 auto& cell = cells[index];
                 if(!cell.allocated){
+                    //Ignore non used cells
                     continue;
                 }
-                
+
                 auto& cell_info = SetupCellInfo(index.first, index.second);
                 auto row_rect = getRowRect(index.first);
-                auto margin = getCellMargin(index);
                 const auto& column_count = getCellColumnCount(index);
 
                 auto& cell_br = cell.bounding_rect;
                 auto& cell_cr = cell.child_rect;
 
-                const auto cell_cr_max = cell_br - cell_info.margin;
-
-                //Update the cell's bounding Rect to stretch
+                //Update the cell's bounding Rect to stretch to fill the row_rect
                 if(orientation == Qt::Vertical){
                     cell_br.setWidth(row_rect.width());
                 }else if(orientation == Qt::Horizontal){
                     cell_br.setHeight(row_rect.height());
                 }
                 
-                //Recalculate the child rect to be the bounding rect - margins
+                //Recalculate the cell's child rect to reflect changes in the bounding rect
                 cell_cr = cell_br - cell_info.margin;
 
                 //Update the overall rect
@@ -514,127 +516,74 @@ void StackNodeItem::updateCells(){
                 //Reset the gap rects
                 cell.child_gap_rects.clear();
 
-                auto icon_size = smallIconSize();
-                bool cell_gap_suitable = cell_info.spacing >= icon_size.width();
-                
-                const auto& boundary_rect = cell_br;
+                auto cell_gap_suitable = cell_info.spacing >= smallIconSize().width();
+                //If the gap fits our icon, use the minimal
+                const auto& boundary_rect = cell_gap_suitable ? cell_cr : cell_br;
 
-                //Calculate the gap rectangles
-                QRectF prev_header_rect = cell_cr;
-                
-                
-                //Anchor on the left or the top of the cell rect
-                if(cell.orientation == Qt::Vertical || column_count > 0){
-                    prev_header_rect.setTop(boundary_rect.top());
-                    prev_header_rect.setBottom(boundary_rect.top());
-                }else if(cell.orientation == Qt::Horizontal){
-                    prev_header_rect.setLeft(boundary_rect.left());
-                    prev_header_rect.setRight(boundary_rect.left());
+                const auto& child_count = cell.children.size();
+                auto gap_count = child_count;
+                if(cell_info.render_prefix_icon || cell_info.render_suffix_icon){
+                    gap_count ++;
                 }
+                cell.prefix_gap_index = cell_info.render_prefix_icon ? 0 : -1;
+                cell.suffix_gap_index = cell_info.render_suffix_icon ? gap_count -1 : -1;
+                
+                QRectF last_rect = QRectF(boundary_rect.topLeft(), boundary_rect.topLeft());
+                QRectF current_rect = boundary_rect;
 
-                QRectF prev_item_rect = prev_header_rect;
-
-                if(cell_info.render_icons()){
-                    auto cell_count = cell.children.count();
-                    const auto& column_count = getCellColumnCount(index);
-                    int current_cell_row = 0;
-                    int current_cell_row_count = 0;
-
-                    //Calculate The gap icons to the left of the item
-                    for(int i = 0; i < cell_count ; i++, current_cell_row_count++){
-                        auto child = cell.children[i];
+                const auto use_vertical_layout = cell.orientation == Qt::Vertical || column_count > 0;
+                
+                for(int i = 0; i < gap_count; i++){
+                    QRectF next_rect;
+                    CellIconRect cell_icon_rect;
+                    
+                    bool is_last = i == child_count;
+                    bool is_first = i == 0;
+                    
+                    if(is_last){
+                        current_rect = QRectF(boundary_rect.bottomRight(), boundary_rect.bottomRight());
+                        next_rect = current_rect;
+                        if(is_first && cell.orientation == Qt::Horizontal){
+                            //In horizontal stretch land
+                            current_rect.setBottomRight(last_rect.bottomRight());
+                        }
+                    }else{
+                        const auto& child = cell.children.at(i);
                         auto header_rect = child->headerRect();
                         auto child_rect = child->currentRect();
                         header_rect.moveTopLeft(cell.child_offsets[child]);
                         child_rect.moveTopLeft(cell.child_offsets[child]);
+                        current_rect = header_rect;
+                        cell_icon_rect.index = child->getSortOrder();
 
-                        auto render_icon_gap = getCellRenderGapIcon(index);
-
-                        if(current_cell_row_count == 0){
-                            if(i == 0){
-                                render_icon_gap = getCellRenderPrefixIcon(index);
-                            }
-                            
-                            if(cell.orientation == Qt::Vertical || column_count > 0){
-                                prev_item_rect.setLeft(cell.child_rect.left());
-                                prev_item_rect.setRight(cell.child_rect.right());
-
-                                header_rect.setLeft(cell.child_rect.left());
-                                header_rect.setRight(cell.child_rect.left());
-                            }else if(cell.orientation == Qt::Horizontal){
-                                prev_item_rect.setTop(header_rect.top());
-                                prev_item_rect.setBottom(header_rect.bottom());
-                            }
-
-                            if(i == 0 && render_icon_gap){
-                                cell.prefix_gap_index = 0;
-                            }
-                        }
-                        
-                        if(render_icon_gap){
-                            CellIconRect cell_icon_rect;
-                            cell_icon_rect.index = child->getSortOrder();
-                            
-                            auto& gap_rect = cell_icon_rect.gap_rect;
-                            gap_rect = GetGapIconRect(index, i, prev_item_rect, header_rect);
-
-                            if(gap_rect.isValid()){
-                                auto& icon_rect = cell_icon_rect.icon_rect;
-                                icon_rect.setSize(smallIconSize());
-                                icon_rect.moveCenter(gap_rect.center());
-                                cell.child_gap_rects.append(cell_icon_rect);
-                            }
-                        }
-
-                        if(column_count > 0 && current_cell_row_count + 1 == column_count){
-                            current_cell_row_count = -1;
-                            current_cell_row ++;
-                        }
-
-                        prev_header_rect = header_rect;
-                        prev_item_rect = child_rect;
-                    }
-
-                    bool needs_prefix = getCellRenderPrefixIcon(index) && cell_count == 0;
-                    //If we haven't got any children we should use the prefix over the suffix, and it wouldn't have been allocated in the above loop
-                    if(getCellRenderSuffixIcon(index) || needs_prefix){
-                        CellIconRect cell_icon_rect;
-                        cell_icon_rect.index = -1;
-                        QRectF header_rect = prev_header_rect;
-
-                        //Lock it to the right
-                        if(cell.orientation == Qt::Vertical || column_count > 0){
-                            if(cell_count == 0){
-                                prev_header_rect.setBottom(boundary_rect.top());
-                                prev_header_rect.setLeft(boundary_rect.left());
-                            }else{
-
-                                prev_header_rect.setBottom(boundary_rect.bottom() - (2 * getCellSpacing(cell.index)));
-                                prev_header_rect.setLeft(boundary_rect.left());
-                            }
-                            header_rect.setTop(boundary_rect.bottom());
-                            header_rect.setBottom(boundary_rect.bottom());
-                            header_rect.setRight(boundary_rect.right());
-                        }else if(cell.orientation == Qt::Horizontal){
-                            header_rect.setRight(boundary_rect.right());
-                            header_rect.setLeft(boundary_rect.right());
-                        }
-                        
-                        auto& gap_rect = cell_icon_rect.gap_rect;
-                        gap_rect = GetGapIconRect(index, cell_count, prev_header_rect, header_rect);
-
-                        if(gap_rect.isValid()){
-                            auto& icon_rect = cell_icon_rect.icon_rect;
-                            icon_rect.setSize(icon_size);
-                            icon_rect.moveCenter(gap_rect.center());
-                            if(needs_prefix){
-                                cell.prefix_gap_index = 0;
-                            }else{
-                                cell.suffix_gap_index = cell.child_gap_rects.size();
-                            }
-                            cell.child_gap_rects.append(cell_icon_rect);
+                        if(use_vertical_layout){
+                            next_rect = child_rect;
+                        }else{
+                            next_rect = header_rect;
                         }
                     }
+
+                    //If we are first or last, update the current_rect to be full width
+                    if((is_first || is_last) && use_vertical_layout){
+                        current_rect.setLeft(boundary_rect.left());
+                        current_rect.setRight(boundary_rect.right());
+                    }
+
+                    //If we are last, update the previous_rect to be full width
+                    if(is_last && use_vertical_layout){
+                        last_rect.setLeft(boundary_rect.left());
+                        last_rect.setRight(boundary_rect.right());
+                    }
+
+                    auto& gap_rect = cell_icon_rect.gap_rect;
+                    gap_rect = GetGapIconRect(index, i, last_rect, current_rect);
+                    if(gap_rect.isValid()){
+                        auto& icon_rect = cell_icon_rect.icon_rect;
+                        icon_rect.setSize(smallIconSize());
+                        icon_rect.moveCenter(gap_rect.center());
+                        cell.child_gap_rects.append(cell_icon_rect);
+                    }
+                    last_rect = next_rect;
                 }
             }
         }
@@ -732,7 +681,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                 bool render_gap = getCellRenderGapIcon(index);
                 bool render_suffix = getCellRenderSuffixIcon(index);
 
-                if(render_prefix || render_gap || render_suffix){
+                if(true){
                     auto cell_icon_count = cell.child_gap_rects.count();
                     for(int i = 0; i < cell_icon_count; i ++){
                         auto is_prefix = cell.prefix_gap_index == i;
@@ -741,7 +690,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         const auto& cell_icon_rect = cell.child_gap_rects[i];
                         const auto& icon_rect = cell_icon_rect.icon_rect;
 
-                        if(is_suffix){
+                        /*if(is_suffix){
                             if(!render_suffix){
                                 continue;
                             }
@@ -751,7 +700,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                             }
                         }else if(!render_gap){
                             continue;
-                        }
+                        }*/
 
                         auto& icon = is_prefix ? p_cell.prefix_icon : is_suffix ? p_cell.suffix_icon : p_cell.gap_icon;
 
@@ -765,8 +714,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         painter->drawEllipse(icon_rect);
 
                         paintPixmap(painter, lod, icon_rect, icon_path.first, icon_path.second, icon_color);
-                        painter->setPen(Qt::red);
-                        painter->drawText(icon_rect, QString::number(i));
                     }
                 }
             }
@@ -844,8 +791,8 @@ QRectF StackNodeItem::GetGapIconRect(const CellIndex& index, int child_index, co
     }
                             
     if(orientation == Qt::Vertical || use_vertical_layout){
-        gap_rect.setTopRight(prev_rect.bottomRight());
-        gap_rect.setBottomLeft(current_rect.topLeft());
+        gap_rect.setTopLeft(prev_rect.bottomLeft());
+        gap_rect.setBottomRight(current_rect.topRight());
     }else if(orientation == Qt::Horizontal){
         gap_rect.setTopLeft(prev_rect.topRight());
         gap_rect.setBottomRight(current_rect.bottomLeft());

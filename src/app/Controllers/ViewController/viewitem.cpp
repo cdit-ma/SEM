@@ -115,7 +115,6 @@ bool ViewItem::hasData(const QString& keyName) const
 
 bool ViewItem::isDataProtected(const QString& key_name) const
 {
-
     if(isReadOnly() && !permanent_editable_keys.contains(key_name)){
         return true;
     }else{

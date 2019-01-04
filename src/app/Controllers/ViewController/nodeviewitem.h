@@ -28,6 +28,8 @@ public:
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
+    bool isInstance() const;
+
     QSet<EdgeViewItem*> getEdges() const;
     QSet<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
     

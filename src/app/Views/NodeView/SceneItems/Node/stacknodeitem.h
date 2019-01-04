@@ -63,6 +63,7 @@ private:
     qreal getDefaultCellSpacing() const;
     qreal getCellSpacing(const CellIndex& index);
 
+    bool allowIcons();
     bool getCellRenderPrefixIcon(const CellIndex& index);
     bool getCellRenderSuffixIcon(const CellIndex& index);
     bool getCellRenderGapIcon(const CellIndex& index);

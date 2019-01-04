@@ -775,8 +775,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("database");
                 node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
                 break;
-                case NODE_KIND::DEPLOYMENT_CONTAINER:
-                    node_item = new DeploymentContainerNodeItem(item, parentNode);
+            case NODE_KIND::DEPLOYMENT_CONTAINER:
+                node_item = new DeploymentContainerNodeItem(item, parentNode);
                     break;
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parentNode);
@@ -805,7 +805,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     node_item = stack_item;
                 }
-                //node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("version");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
@@ -846,7 +845,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::PORT_REQUEST_DELEGATE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
-
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
                 break;
@@ -1133,7 +1131,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         if(node_kind == NODE_KIND::COMPONENT_IMPL || node_kind == NODE_KIND::CLASS){
                             stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
-                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
+                            stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                             stack_item->SetCellSpacing(0, 0, 10);
                         }else{
                             stack_item->SetRenderCellArea(0, -1, true, true);
@@ -1145,8 +1143,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellArea(0, 0, true);
                             stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
 
-                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellPrefixIcon(0, 0, true, "Icons", "arrowDownRightLong");
+                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                             stack_item->SetRenderCellHoverIcons(0, 0, true, "Icons", "plus");
                             
@@ -1176,8 +1174,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     }else{
                         if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INSTANCE){
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                            stack_item->SetRenderCellPrefixIcon(0, 0, true, "Icons", "eye");
-                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "cross");
                         }
                     }
                 }

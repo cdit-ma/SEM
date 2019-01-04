@@ -67,6 +67,10 @@ bool NodeViewItem::isNodeOfType(NODE_TYPE type) const
     return node_types.contains(type);
 }
 
+bool NodeViewItem::isInstance() const{
+    return node_types.contains(NODE_TYPE::INSTANCE);
+}
+
 void NodeViewItem::childAdded(ViewItem* child){
     if(child && child->isNode()){
         auto node = (NodeViewItem*) child;
