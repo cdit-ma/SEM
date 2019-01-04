@@ -147,7 +147,6 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -162,10 +161,12 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    // set request paramenters here
     qDebug() << "node: " << nodeHostname;
     qDebug() << "component: " << componentName;
     qDebug() << "worker: " << workerName;
+
+    // store request paramenters here
+    ReloadRunningExperiments();
 }
 
 

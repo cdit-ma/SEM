@@ -29,6 +29,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=](QString text) {
+        hideGroupBoxes();
         emit requestExperimentRuns(text.trimmed());
     });
 
@@ -43,36 +44,6 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     runsLayout->setMargin(0);
     runsLayout->setSpacing(2);
     runsLayout->setContentsMargins(1, 5, 1, 1);
-
-    /*
-    nodesGroupBox_ = new QGroupBox("Filter Events By Node(s):", this);
-    QVBoxLayout* nodesLayout = new QVBoxLayout(nodesGroupBox_);
-    nodesLayout->setMargin(0);
-    nodesLayout->setSpacing(2);
-    nodesLayout->setContentsMargins(1, 5, 1, 1);
-
-    componentsGroupBox_ = new QGroupBox("Filter Events By Component(s):", this);
-    QVBoxLayout* compLayout = new QVBoxLayout(componentsGroupBox_);
-    compLayout->setMargin(0);
-    compLayout->setSpacing(2);
-    compLayout->setContentsMargins(1, 5, 1, 1);
-
-    workersGroupBox_ = new QGroupBox("Filter Events By Worker(s):", this);
-    QVBoxLayout* workerLayout = new QVBoxLayout(workersGroupBox_);
-    workerLayout->setMargin(0);
-    workerLayout->setSpacing(2);
-    workerLayout->setContentsMargins(1, 5, 1, 1);
-
-    filterMenu_ = new QMenu(this);
-    filterMenu_->addAction("Nodes")->setProperty(FILTER, (uint)NODE_FILTER);
-    filterMenu_->addAction("Components")->setProperty(FILTER, (uint)COMPONENT_FILTER);
-    filterMenu_->addAction("Workers")->setProperty(FILTER, (uint)WORKER_FILTER);
-    connect(filterMenu_, &QMenu::triggered, this, &ChartInputPopup::filterMenuTriggered);
-
-    /*for (auto action : filterMenu_->actions()) {
-        action->setCheckable(true);
-    }*
-    */
 
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -162,6 +133,9 @@ void ChartInputPopup::themeChanged()
  */
 void ChartInputPopup::setPopupVisible(bool visible)
 {
+    // hide all the filter groupboxes
+    hide();
+    hideGroupBoxes();
     setVisible(visible);
 
     if (visible) {
@@ -356,6 +330,19 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
         auto button = buttons.takeFirst();
         groupBox->layout()->removeWidget(button);
         button->deleteLater();
+    }
+}
+
+
+/**
+ * @brief ChartInputPopup::hideGroupBoxes
+ */
+void ChartInputPopup::hideGroupBoxes()
+{
+    for (auto key : getFilterKeys()) {
+        auto groupBox = getFilterGroupBox(key);
+        if (groupBox)
+            groupBox->hide();
     }
 }
 
