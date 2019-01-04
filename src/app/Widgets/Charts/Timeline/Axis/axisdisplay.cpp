@@ -32,8 +32,10 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     if (_orientation == Qt::Horizontal) {
         _spacing = SPACING;
         setMinimumHeight(_textHeight + _tickLength + _spacing * 2);
-        if (_valueType == VALUE_TYPE::DATETIME)
+        if (_valueType == VALUE_TYPE::DATETIME) {
             setMinimumHeight((_textHeight + _tickLength) * 2 + _spacing * 2);
+            setMinimumWidth(fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT)));
+        }
     } else {
         _spacing = SPACING * 2;
         setMinimumWidth(slider->width());
@@ -105,7 +107,7 @@ void AxisDisplay::setTickVisible(bool visible)
  */
 void AxisDisplay::setTickCount(int ticks)
 {
-    _tickCount = qMax(2, ticks);
+    _tickCount = qMax(1, ticks);
     update();
 }
 
@@ -235,9 +237,10 @@ void AxisDisplay::updateDisplayedMax(double maxRatio)
  */
 void AxisDisplay::resizeEvent(QResizeEvent* event)
 {
-    //qDebug() << "AXIS DISPLAY: " << this->width();
-    //qDebug() << "axis displayed range: " << _displayedRange;
-
+    if (_orientation == Qt::Horizontal) {
+        if (minimumWidth() > 0)
+            setTickCount(width() / minimumWidth() / 3.0);
+    }
     // update tick label locations
     QWidget::resizeEvent(event);
     update();
@@ -258,12 +261,12 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
     painter.setPen(_labelColor);
 
     QVector<QLineF> tickLines;
-    QRectF painteRect = rect(); //getAdjustedRect();
+    QRectF& paintRect = (QRectF)rect(); //getAdjustedRect();
 
     if (_orientation == Qt::Horizontal) {
-        paintHorizontal(painter, tickLines, painteRect);
+        paintHorizontal(painter, tickLines, paintRect);
     } else {
-        paintVertical(painter, tickLines, painteRect);
+        paintVertical(painter, tickLines, paintRect);
     }
 
     // display the hovered value
@@ -273,8 +276,8 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
         double x = 0, y = 0, w = 0;
 
         if (_orientation == Qt::Horizontal) {
-            w = fontMetrics().width(hoveredStr) + _spacing * 2.0;
-            y = _slider->getAlignment() == Qt::AlignTop ? painteRect.top() : painteRect.top() + offset;
+            w = qMin(paintRect.width() - 1, fontMetrics().width(hoveredStr) + _spacing * 2.0);
+            y = _slider->getAlignment() == Qt::AlignTop ? paintRect.top() : paintRect.top() + offset;
             x = _hoveredPos - w / 2.0;
             if (x < 0) {
                 x = 0;
@@ -317,7 +320,7 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
  * @param tickLines
  * @param rect
  */
-void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF rect)
+void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect)
 {
     double rectWidth = rect.width() / _tickCount;
     double lineLength = _tickLength;
@@ -330,17 +333,21 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
     if (_slider->getAlignment() == Qt::AlignTop) {
         tickY = rect.bottom() - _penWidth / 2.0;
         lineLength = -_tickLength;
-        startPoint = QPointF(startPoint.x(), rect.top());
+        startPoint.setY(rect.top());
         dateRectCenter.setY(rect.center().y() - rectSize.height() / 2.0);
     }
     _axisLine.setLine(rect.left(), tickY, rect.right(), tickY);
+
+    if (_tickCount == 1) {
+        startPoint.setX(0);
+        dateRectCenter.setX(rect.center().x());
+    }
 
     QRectF textRect;
     QDate prevDate;
 
     /*
      * TODO - Clean up hovered date/time display and paint methods; move slot outside of this class
-     * Work on this on MONDAY (17/9)
      */
 
     for (int i = 0; i <= _tickCount; i++) {
@@ -350,7 +357,10 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         // tickX has to be an int so that the hovered value matches the displayed value
         int tickX = textRect.center().x();
         double value = (double)tickX / width() * _displayedRange + _displayedMin;
-        if (i == 0) {
+        if (_tickCount == 1) {
+            tickX = dateRectCenter.x();
+            value = _displayedMin + _displayedRange / 2.0;
+        } else if (i == 0) {
             tickX = _penWidth / 2.0;
             value = _displayedMin;
             textRect = textRect.adjusted(_displayedMinTextWidth + _penWidth, 0, 0, 0);
@@ -382,7 +392,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
  * @param tickLines
  * @param rect
  */
-void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, QRectF rect)
+void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect)
 {
     double rectHeight = rect.height() / _tickCount;
     double lineLength = _tickLength;
@@ -393,7 +403,7 @@ void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, Q
     if (_slider->getAlignment() == Qt::AlignLeft) {
         tickX = rect.right();
         lineLength = -_tickLength;
-        startPoint = QPointF(rect.left(), startPoint.y());
+        startPoint.setX(rect.left());
     }
     _axisLine.setLine(tickX, rect.top(), tickX, rect.bottom());
 

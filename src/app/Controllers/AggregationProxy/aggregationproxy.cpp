@@ -124,20 +124,29 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         setSelectedExperimentRunID(experimentRunID);
 
         auto& results = requester_->GetExperimentState(request);
-        QStringList names;
-        qDebug() << "[Experiment State] Results: " << results->components_size();
+        qDebug() << "[Experiment State] Nodes: " << results->nodes_size();
+        qDebug() << "[Experiment State] Components: " << results->components_size();
+        qDebug() << "[Experiment State] Workers: " << results->workers_size();
         qDebug() << "--------------------------------------------------------------------------------";
 
+        QStringList hostnames, componentNames, workerNames;
+        for (const auto& node : results->nodes()) {
+            auto name = getQString(node.hostname());
+            hostnames.append(name);
+        }
         for (const auto& component : results->components()) {
             auto name = getQString(component.name());
-            names.append(name);
+            componentNames.append(name);
+        }
+        for (const auto& worker : results->workers()) {
+            auto name = getQString(worker.name());
+            workerNames.append(name);
         }
 
-        emit requestedComponentNames(names);
+        emit requestedExperimentState(hostnames, componentNames, workerNames);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        //emit setChartUserInputDialogVisible(false);
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
@@ -146,14 +155,20 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 
 /**
  * @brief AggregationProxy::RequestEvents
- * @param ID
+ * @param nodeHostname
  * @param componentName
+ * @param workerName
  */
-void AggregationProxy::RequestEvents(quint32 ID, QString componentName)
+void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    componentNames_.clear();
-    componentNames_.append(componentName);
-    setSelectedExperimentRunID(ID);
+    qDebug() << "node: " << nodeHostname;
+    qDebug() << "component: " << componentName;
+    qDebug() << "worker: " << workerName;
+
+    // store request paramenters here
+    componentName_ = componentName;
+    workerName_ = workerName;
+
     ReloadRunningExperiments();
 }
 
@@ -172,10 +187,7 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::WorkloadRequest workloadRequest;
     workloadRequest.set_experiment_run_id(experimentRunID_);
-    /*for (auto name : componentNames_) {
-        workloadRequest.mutable_component_names()->AddAllocated(&name.toStdString());
-    }*/
-
+    //workloadRequest.add
     SendWorkloadRequest(workloadRequest);
 
     emit receivedAllEvents();

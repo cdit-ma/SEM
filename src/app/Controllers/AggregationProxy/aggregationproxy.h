@@ -20,7 +20,7 @@ public:
     void RequestRunningExperiments();
     void RequestExperimentRuns(QString experimentName = "");
     void RequestExperimentState(quint32 experimentRunID);
-    void RequestEvents(quint32 ID, QString componentName);
+    void RequestEvents(QString nodeHostname, QString componentName, QString workerName);
     void ReloadRunningExperiments();
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
@@ -30,7 +30,7 @@ public:
 signals:
     void setChartUserInputDialogVisible(bool visible);
     void requestedExperimentRuns(QList<ExperimentRun> runs);
-    void requestedComponentNames(QStringList names);
+    void requestedExperimentState(QStringList nodeHostname, QStringList componentName, QStringList workerName);
 
     void receivedWorkloadEvent(WorkloadEvent* event);
 
@@ -49,7 +49,8 @@ private:
 
     bool hasSelectedExperimentID_ = false;
     quint32 experimentRunID_;
-    QStringList componentNames_;
+    QString componentName_;
+    QString workerName_;
 
     AggServer::Requester* requester_ = 0;
 

@@ -2,7 +2,6 @@
 #define POPUPWIDGET_H
 
 #include <QDialog>
-#include <QFrame>
 
 class PopupWidget : public QDialog
 {
@@ -19,6 +18,7 @@ protected:
     Q_INVOKABLE void adjustSize();
     void paintEvent(QPaintEvent* event);
     void keyPressEvent(QKeyEvent *event);
+
 private:
     void themeChanged();
 

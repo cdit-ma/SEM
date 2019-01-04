@@ -30,20 +30,6 @@ void HoverPopup::setBorderColor(QColor color)
 
 
 /**
- * @brief HoverPopup::adjustSize
- */
-void HoverPopup::adjustSize()
-{
-    if (layout()) {
-        for (QWidget* w : layout()->findChildren<QWidget*>()) {
-            w->adjustSize();
-        }
-    }
-    QWidget::adjustSize();
-}
-
-
-/**
  * @brief HoverPopup::themeChanged
  */
 void HoverPopup::themeChanged()
@@ -69,4 +55,18 @@ void HoverPopup::paintEvent(QPaintEvent* event)
     painter.setPen(QPen(_borderColor, penWidth, Qt::SolidLine, Qt::RoundCap));
     painter.setBrush(_backgroundColor);
     painter.drawRoundedRect(rect().adjusted(penWidth, penWidth, -penWidth, -penWidth), 6, 6);
+}
+
+
+/**
+ * @brief HoverPopup::adjustChildrenSize
+ * @param widgetName
+ * @param options
+ */
+void HoverPopup::adjustChildrenSize(QString widgetName, Qt::FindChildOptions options)
+{
+    for (QWidget* w : findChildren<QWidget*>(widgetName, options)) {
+        w->adjustSize();
+    }
+    QWidget::adjustSize();
 }
