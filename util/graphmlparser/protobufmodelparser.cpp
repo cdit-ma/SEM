@@ -245,7 +245,6 @@ bool ProtobufModelParser::PreProcess(){
 
         auto data_value = graphml_parser_->GetDataValue(attribute_id, "value");
         if(data_sources.size() == 1){
-            
             data_value = graphml_parser_->GetDataValue(*(data_sources.begin()), "value");
         }
         attribute_value_map_[attribute_id] = data_value;
