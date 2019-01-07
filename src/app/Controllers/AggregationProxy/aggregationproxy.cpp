@@ -185,9 +185,10 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::CPUUtilisationRequest cpuUtilisationRequest;
     cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    cpuUtilisationRequest.add_node_ids(nodeHostname_.toStdString());
-    SendCPUUtilisationRequest(cpuUtilisationRequest);
+    if (!nodeHostname_.isEmpty())
+        cpuUtilisationRequest.add_node_ids(nodeHostname_.toStdString());
 
+    SendCPUUtilisationRequest(cpuUtilisationRequest);
     emit receivedAllEvents();
 }
 
