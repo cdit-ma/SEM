@@ -115,7 +115,16 @@ Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index){
 }
 
 bool StackNodeItem::allowIcons(){
-    return isReadOnly() == false && getNodeViewItem()->isInstance() == false;
+    if(isReadOnly()){
+        return false;
+    }else{
+        if(getNodeViewItem()->isInstance()){
+            static const QSet<NODE_KIND> valid_kinds({NODE_KIND::FUNCTION});
+            return valid_kinds.contains(getNodeKind());
+        }else{
+            return true;
+        }
+    }
 }
 
 bool StackNodeItem::getCellRenderPrefixIcon(const CellIndex& index){
@@ -131,6 +140,7 @@ bool StackNodeItem::getCellRenderSuffixIcon(const CellIndex& index){
     }
     return false;
 }
+
 bool StackNodeItem::getCellRenderGapIcon(const CellIndex& index){
     if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_gap_icons;
@@ -543,7 +553,7 @@ void StackNodeItem::updateCells(){
                     if(is_last){
                         current_rect = QRectF(boundary_rect.bottomRight(), boundary_rect.bottomRight());
                         next_rect = current_rect;
-                        if(is_first && cell.orientation == Qt::Horizontal){
+                        if(!is_first && cell.orientation == Qt::Horizontal){
                             //In horizontal stretch land
                             current_rect.setBottomRight(last_rect.bottomRight());
                         }
@@ -681,7 +691,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                 bool render_gap = getCellRenderGapIcon(index);
                 bool render_suffix = getCellRenderSuffixIcon(index);
 
-                if(true){
+                if(render_prefix || render_gap || render_suffix){
                     auto cell_icon_count = cell.child_gap_rects.count();
                     for(int i = 0; i < cell_icon_count; i ++){
                         auto is_prefix = cell.prefix_gap_index == i;
@@ -690,7 +700,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         const auto& cell_icon_rect = cell.child_gap_rects[i];
                         const auto& icon_rect = cell_icon_rect.icon_rect;
 
-                        /*if(is_suffix){
+                        if(is_suffix){
                             if(!render_suffix){
                                 continue;
                             }
@@ -700,7 +710,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                             }
                         }else if(!render_gap){
                             continue;
-                        }*/
+                        }
 
                         auto& icon = is_prefix ? p_cell.prefix_icon : is_suffix ? p_cell.suffix_icon : p_cell.gap_icon;
 

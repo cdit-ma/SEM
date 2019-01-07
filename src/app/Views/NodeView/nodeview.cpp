@@ -818,14 +818,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::COMPONENT_IMPL:
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     node_item = stack_item;
                 }
                 break;
             case NODE_KIND::CLASS:
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     node_item = stack_item;
                 }
                 break;
@@ -926,7 +924,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:
                 {
-                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                     stack_item->SetUseColumnCount(0, 0, true);
                     node_item = stack_item;
                 }
@@ -1132,7 +1130,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                            stack_item->SetCellSpacing(0, 0, 10);
                         }else{
                             stack_item->SetRenderCellArea(0, -1, true, true);
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);

@@ -48,7 +48,7 @@ public:
 
 protected:
     void nestedVisualEdgeKindsChanged();
-    void setNodeTypes(QSet<NODE_TYPE> types);
+    void setNodeTypes(const QSet<NODE_TYPE>& types);
     void childAdded(ViewItem* child);
     void childRemoved(ViewItem* child);
 

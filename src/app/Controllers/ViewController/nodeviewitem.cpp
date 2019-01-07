@@ -243,6 +243,6 @@ const QSet<EDGE_DIRECTION>& NodeViewItem::getNestedVisualEdgeKindDirections(EDGE
     return nested_edge_kinds[kind];
 }
 
-void NodeViewItem::setNodeTypes(QSet<NODE_TYPE> types){
+void NodeViewItem::setNodeTypes(const QSet<NODE_TYPE>& types){
     node_types = types;
 }
