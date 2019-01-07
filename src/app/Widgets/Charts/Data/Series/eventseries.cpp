@@ -35,7 +35,7 @@ void MEDEA::EventSeries::clear()
  */
 void MEDEA::EventSeries::addEvent(qint64 time)
 {
-    addEvent(new Event(time));
+    //addEvent(new Event(time));
 }
 
 
@@ -73,7 +73,7 @@ void MEDEA::EventSeries::addEvents(QList<Event*>& events)
  * @brief MEDEA::EventSeries::getEvents
  * @return
  */
-const QList<MEDEA::Event *> &MEDEA::EventSeries::getEvents()
+const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents()
 {
     return events_;
 }

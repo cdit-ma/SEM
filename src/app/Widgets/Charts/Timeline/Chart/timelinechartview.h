@@ -11,6 +11,7 @@
 #include "entitychart.h"
 
 #include "../../Data/Series/eventseries.h"
+#include "../../Data/Series/memoryutilisationeventseries.h"
 
 #include <QWidget>
 #include <QToolBar>

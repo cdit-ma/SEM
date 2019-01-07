@@ -161,11 +161,13 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    qDebug() << "node: " << nodeHostname;
-    qDebug() << "component: " << componentName;
-    qDebug() << "worker: " << workerName;
+    //qDebug() << "node: " << nodeHostname;
+    //qDebug() << "component: " << componentName;
+    //qDebug() << "worker: " << workerName;
 
     // store request paramenters here
+    nodeHostname_ = nodeHostname;
+
     ReloadRunningExperiments();
 }
 
@@ -182,10 +184,12 @@ void AggregationProxy::ReloadRunningExperiments()
 
     emit clearPreviousEvents();
 
-    /*
-     *  construct and send requests here
-     */
+    AggServer::MemoryUtilisationRequest memoryUtilisationRequest;
+    memoryUtilisationRequest.set_experiment_run_id(experimentRunID_);
+    if (!nodeHostname_.isEmpty())
+        memoryUtilisationRequest.add_node_ids(nodeHostname_.toStdString());
 
+    SendMemoryUtilisationRequest(memoryUtilisationRequest);
     emit receivedAllEvents();
 }
 
@@ -248,4 +252,40 @@ bool AggregationProxy::GotRequester()
         return false;
     }
     return true;
+}
+
+
+/**
+ * @brief AggregationProxy::SendMemoryUtilisationRequest
+ * @param request
+ */
+void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request)
+{
+    if (!GotRequester())
+         return;
+
+     auto notification = NotificationManager::manager()->AddNotification("Requesting Memory Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+     try {
+         auto results = requester_->GetMemoryUtilisation(request);
+
+         qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
+         qDebug() << "--------------------------------------------------------------------------------";
+
+         for (const auto& node : results->nodes()) {
+             auto hostname = getQString(node.node_info().hostname());
+             for (const auto& e : node.events()) {
+                 auto utilisation = e.memory_utilisation();
+                 auto time = getQDateTime(e.time());
+                 MemoryUtilisationEvent* event = new MemoryUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
+                 emit receivedMemoryUtilisationEvent(event);
+             }
+         }
+
+         notification->setSeverity(Notification::Severity::SUCCESS);
+
+     } catch (const std::exception& ex) {
+         notification->setSeverity(Notification::Severity::ERROR);
+         notification->setDescription(ex.what());
+     }
 }

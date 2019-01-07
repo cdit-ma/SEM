@@ -151,6 +151,19 @@ void PanelWidget::constructEventsView()
 }
 
 
+/**
+ * @brief PanelWidget::constructMemoryEventsView
+ */
+void PanelWidget::constructMemoryEventsView()
+{
+    TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveEventKinds({TIMELINE_EVENT_KIND::MEMORY_UTILISATION});
+    connectChartViewToAggreagtionProxy(view);
+    defaultActiveAction = addTab("Memory", view);
+    defaultActiveAction->trigger();
+}
+
+
 void PanelWidget::testDataSeries()
 {
     QList<QPointF> points;
@@ -324,8 +337,8 @@ void PanelWidget::setViewController(ViewController *vc)
     }
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
-    //constructEventsView();
     testNewTimelineView();
+    constructMemoryEventsView();
 }
 
 
@@ -759,6 +772,9 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
                 break;
             case TIMELINE_EVENT_KIND::CPU_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+                break;
+            case TIMELINE_EVENT_KIND::MEMORY_UTILISATION:
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             }
         }

@@ -316,6 +316,9 @@ void TimelineChartView::setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds)
         case TIMELINE_EVENT_KIND::CPU_UTILISATION:
             _legendActions.value(TIMELINE_SERIES_KIND::CPU_UTILISATION)->setVisible(true);
             break;
+        case TIMELINE_EVENT_KIND::MEMORY_UTILISATION:
+            _legendActions.value(TIMELINE_SERIES_KIND::MEMORY_UTILISATION)->setVisible(true);
+            break;
         }
     }
 }
@@ -403,6 +406,11 @@ void TimelineChartView::themeChanged()
         case TIMELINE_SERIES_KIND::CPU_UTILISATION: {
             actionIcon = theme->getIcon("ToggleIcons", "utilisationLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
+            break;
+        }
+        case TIMELINE_SERIES_KIND::MEMORY_UTILISATION: {
+            actionIcon = theme->getIcon("ToggleIcons", "memoryLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
             break;
         }
         default:
@@ -561,7 +569,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
     if (!event)
         return;
 
-    auto series = constructChartForEvent(event->getKind(), event->getEventID(), event->getName());
+    auto series = constructChartForEvent(event->getKind(), event->getID(), event->getName());
 
     if (series) {
         series->addEvent(event);
@@ -602,6 +610,10 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     MEDEA::EventSeries* series = 0;
 
     switch (kind) {
+    case TIMELINE_EVENT_KIND::MEMORY_UTILISATION: {
+        series = new MemoryUtilisationEventSeries(label, this);
+        break;
+    }
     default:
         series = new MEDEA::EventSeries(this);
         break;

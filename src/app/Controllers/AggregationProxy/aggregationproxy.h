@@ -6,7 +6,7 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
-#include "../../Widgets/Charts/Data/Events/protomessagestructs.h"
+#include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -33,6 +33,8 @@ signals:
     void requestedExperimentRuns(QList<ExperimentRun> runs);
     void requestedExperimentState(QStringList nodeHostname, QStringList componentName, QStringList workerName);
 
+    void receivedMemoryUtilisationEvent(MemoryUtilisationEvent* event);
+
     void clearPreviousEvents();
     void receivedAllEvents();
 
@@ -41,9 +43,11 @@ public slots:
 
 private:
     bool GotRequester();
+    void SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request);
 
     bool hasSelectedExperimentID_ = false;
     quint32 experimentRunID_;
+    QString nodeHostname_;
 
     AggServer::Requester* requester_ = 0;
 

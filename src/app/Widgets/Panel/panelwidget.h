@@ -33,6 +33,7 @@ public:
     bool isMinimised();
 
     void constructEventsView();
+    void constructMemoryEventsView();
 
     void testDataSeries();
     void testWidgets();
