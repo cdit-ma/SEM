@@ -1,11 +1,7 @@
-# MEDEA v3.3.1
+# MEDEA v3.3.2
 ## New Features:
-* Optimized Termination code for ModelController
-
-## Workers:
-* Added extra parameters to CPU_Worker to allow access to multi-threaded workload
-* Added new Marker function to Utility_Worker which logs into the database significant points of execution
+* Added new data 'column_count' to allow the user to grid align Aggregate, Enums
+* Moved 'SharedDataType' and 'Namespace' entities to use grid alignment, customizable with 'column_count'
 
 ## Resolved JIRA Tickets:
-* MED-453
-* MED-462
+* MED-467
