@@ -186,9 +186,10 @@ void AggregationProxy::ReloadRunningExperiments()
 
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-    portLifecycleRequest.add_component_names(componentName_.toStdString());
-    SendPortLifecycleRequest(portLifecycleRequest);
+    if (!componentName_.isEmpty())
+        portLifecycleRequest.add_component_names(componentName_.toStdString());
 
+    SendPortLifecycleRequest(portLifecycleRequest);
     emit receivedAllEvents();
 }
 
