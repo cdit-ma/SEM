@@ -834,7 +834,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
                 node_item = new DefaultNodeItem(item, parentNode);
-                node_item->setSecondaryTextKey("replicate_count");
+                node_item->setSecondaryTextKey("replicate_value");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
@@ -951,8 +951,20 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::VARIABLE:
                 node_item = new StackNodeItem(item, parentNode);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+
+                switch(item->getViewAspect()){
+                    case VIEW_ASPECT::ASSEMBLIES:{
+                        node_item->setSecondaryTextKey("value");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                        break;
+                    }
+                    default:{
+                        node_item->setSecondaryTextKey("type");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                        break;
+                    }
+                }
+                
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
