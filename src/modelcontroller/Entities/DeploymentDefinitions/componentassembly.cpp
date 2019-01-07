@@ -27,18 +27,17 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
         return;
     }
 
-    auto frequency = broker.ConstructChildNode(*this, NODE_KIND::VARIABLE);
-    frequency->setLabelFunctional(false);
-    broker.AttachData(frequency, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "copyX");
-    broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Replication");
-    broker.AttachData(frequency, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
-    auto value_data = frequency->getData("value");
-
+    auto replication = broker.ConstructChildNode(*this, NODE_KIND::VARIABLE);
+    replication->setLabelFunctional(false);
+    broker.AttachData(replication, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(replication, "icon", QVariant::String, ProtectedState::PROTECTED, "copyX");
+    broker.AttachData(replication, "label", QVariant::String, ProtectedState::PROTECTED, "Replication");
+    broker.AttachData(replication, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
+    auto replication_value_data = broker.AttachData(replication, "value", QVariant::String, ProtectedState::UNPROTECTED, "1");
 
     broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
     auto replicate_data = broker.AttachData(this, "replicate_value", QVariant::String, ProtectedState::PROTECTED, 1);
-    value_data->linkData(replicate_data, true);
+    replication_value_data->linkData(replicate_data, true);
 }
 
 
