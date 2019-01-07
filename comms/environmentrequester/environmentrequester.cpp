@@ -6,12 +6,17 @@
 #include <iostream>
 
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
-EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address){
+EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint,
+        const std::string& experiment_name,
+        const std::string& node_ip_address,
+        const std::string& container_id)
+{
     const int retry_ms = 1000;
     NodeManager::NodeManagerRegistrationRequest request;
 
     request.mutable_id()->set_experiment_name(experiment_name);
     request.mutable_id()->set_ip_address(node_ip_address);
+    request.set_container_id(container_id);
 
 
     auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));
@@ -27,12 +32,12 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
             retry_count++;
         }catch(const zmq::RMIException& ex){
             std::cerr << "* RMI Exception: " << ex.what() << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
             retry_count++;
         }catch(const std::exception& ex){
-            std::cerr << "Exception in EnvironmentRequester::TryRegisterNodeManager" << ex.what() << std::endl;
-            throw;
+            std::cerr << "* Exception in EnvironmentRequester::TryRegisterNodeManager" << ex.what() << std::endl;
+            retry_count++;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_ms));
     }
     throw zmq::TimeoutException("TryRegisterNodeManager failed after three attempts.");
 }
@@ -62,7 +67,7 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
             retry_count++;
         }catch(const std::exception& ex){
             std::cerr << "Exception in EnvironmentRequester::TryRegisterLoganServer" << ex.what() << std::endl;
-            throw;
+            retry_count++;
         }
     }
     throw zmq::TimeoutException("TryRegisterLoganServer failed after three attempts.");

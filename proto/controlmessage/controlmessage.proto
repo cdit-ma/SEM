@@ -1,5 +1,7 @@
 syntax="proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package NodeManager;
 message ControlMessage{
     enum Type{
@@ -14,12 +16,42 @@ message ControlMessage{
     }
 
     Type type = 1;
-    double time_stamp = 2;
+    google.protobuf.Timestamp timestamp = 2;
     string host_name = 3;
     repeated Node nodes = 4;
     string experiment_id = 5;
     map<string, Attribute> attributes = 6;
-    repeated ExternalPort external_ports = 7;
+}
+
+message Experiment {
+    string name = 1;
+    repeated Cluster clusters = 2;
+    repeated ExternalPort external_ports = 3;
+}
+message Cluster {
+    Info info = 1;
+    repeated Node nodes = 2;
+    repeated Container containers = 3;
+    repeated Logger loggers = 4;
+}
+
+message Node{
+    Info info = 1;
+    string ip_address = 2;
+    repeated Container containers = 3;
+}
+
+message Container {
+    enum ContainerType {
+        GENERIC = 0;
+        DOCKER = 1;
+    }
+    Info info = 1;
+    ContainerType type = 2;
+    repeated Component components = 3;
+    repeated Logger loggers = 4;
+    bool implicit = 5;
+    bool is_late_joiner = 6;
 }
 
 enum Middleware{
@@ -42,7 +74,7 @@ message AggregationServerRegistrationRequest{
 }
 
 message AggregationServerRegistrationReply{
-    string heartbeat_endpoint = 1;
+    string publisher_endpoint = 1;
 }
 
 message LoganRegistrationRequest{
@@ -56,6 +88,7 @@ message LoganRegistrationReply{
 
 message NodeManagerRegistrationRequest{
     RequestId id = 1;
+    string container_id = 2;
 }
 
 message NodeManagerRegistrationReply{
@@ -67,29 +100,42 @@ message NodeManagerRegistrationReply{
     string heartbeat_endpoint = 2;
     string master_publisher_endpoint = 3;
     string master_registration_endpoint = 4;
+    string experiment_logger_endpoint = 5;
 }
 
 message NodeManagerDeregistrationRequest{
     RequestId id = 1;
+    string container_id = 2;
 }
 
 message NodeManagerDeregistrationReply{
 }
-
 
 message HardwareId{
     string host_name = 1;
     string ip_address = 2;
 }
 
+
+message ContainerId{
+    string id = 1;
+    bool is_master = 2;
+    bool is_docker = 3;
+}
+
+message NodeDeployment{
+    HardwareId id = 1;
+    repeated ContainerId container_ids = 2;
+    bool has_logan_server = 3;
+}
+
 message RegisterExperimentRequest{
     RequestId id = 1;
-    ControlMessage control_message = 2;
+    Experiment experiment = 2;
 }
 
 message RegisterExperimentReply{
-    repeated HardwareId node_managers = 1;
-    repeated HardwareId logan_servers = 2;
+    repeated NodeDeployment deployments = 1;
 }
 
 message EnvironmentMessage{
@@ -115,26 +161,6 @@ message Info{
     string id = 2;
     string type = 3;
     repeated string namespaces = 4;
-}
-
-message Node{
-    enum NodeType{
-        NO_NODE_TYPE = 0;
-        HARDWARE_NODE = 1;
-        HARDWARE_CLUSTER = 2;
-        DOCKER_CLUSTER = 3;
-        DOCKER_NODE = 4;
-        OPEN_CL = 5;
-        OPENSTACK = 6;
-    }
-    Info info = 1;
-    NodeType type = 2;
-    repeated Node nodes = 3;
-    repeated Component components = 4;
-    map<string, Attribute> attributes = 5;
-
-    repeated Logger loggers = 6;
-
 }
 
 message ExternalPort{
@@ -215,6 +241,7 @@ message Logger{
         MODEL = 1;
         CLIENT = 2;
         SERVER = 3;
+        EXPERIMENT = 4;
     }
     
     Type type = 1;
@@ -235,17 +262,22 @@ message Logger{
     repeated string processes = 10;
 }
 
+message SlaveId{
+    string ip_address = 1;
+    string container_id = 2;
+}
 
 message SlaveStartupRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
 }
 
 message SlaveStartupReply{
-    Node configuration = 1;
+    string host_name = 1;
+    Container configuration = 2;
 }
 
 message SlaveConfiguredRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
     bool success = 2;
     repeated string error_messages = 3;
 }
@@ -256,7 +288,7 @@ message SlaveConfiguredReply{
 
 
 message SlaveTerminatedRequest{
-    string slave_ip = 1;
+    SlaveId id = 1;
 }
 
 message SlaveTerminatedReply{
@@ -296,4 +328,25 @@ message MEDEAInterfaceReply{
     repeated string experiment_names = 1;
 
     repeated ExternalPort external_ports = 2;
+}
+
+message InspectExperimentRequest{
+    string experiment_name = 1;
+}
+
+message InspectExperimentReply{
+    EnvironmentMessage environment_message = 1;
+}
+
+message SlaveHeartbeatRequest{
+    enum Type{
+        HEARBEAT = 0;
+        END_HEARTBEAT = 1;
+    }
+    SlaveId id = 1;
+    Type type = 2;
+}
+
+message SlaveHeartbeatReply{
+
 }

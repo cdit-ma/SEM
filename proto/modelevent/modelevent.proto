@@ -20,13 +20,16 @@
 
 syntax="proto3";
 
-package re_common;
+import "google/protobuf/timestamp.proto";
+
+package ModelEvent;
 
 message Info{
-    string hostname = 1;
-    double timestamp = 2;
-    uint64 uid = 3;
-    string experiment_name = 4;
+    google.protobuf.Timestamp timestamp = 1;
+    string hostname = 2;
+    string experiment_name = 3;
+    string container_name = 4;
+    string container_id = 5;
 }
 
 message Component{
@@ -72,6 +75,7 @@ message LifecycleEvent{
 
     Component component = 3;
     Port port = 4;
+    Worker worker = 5;
 }
 
 message WorkloadEvent{
@@ -81,6 +85,7 @@ message WorkloadEvent{
         MESSAGE = 2;
         WARNING = 3;
         ERROR = 4;
+        MARKER = 5;
     }
     Info info = 1;
     Type event_type = 2;

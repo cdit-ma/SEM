@@ -8,7 +8,8 @@ class GraphmlParserInt{
     public:
         GraphmlParserInt(const std::string& filename){};
         
-        virtual std::vector<std::string> FindNodes(const std::string& kind, const std::string& parent_id = "") = 0;
+        virtual std::vector<std::string> FindNodesOfKind(const std::string& kind, const std::string& parent_id = "") = 0;
+        virtual std::vector<std::string> FindNodesOfKinds(const std::vector<std::string>& kinds, const std::string& parent_id = "") = 0;
         virtual std::vector<std::string> FindEdges(const std::string& kind = "") = 0;
         virtual std::vector<std::string> FindImmediateChildren(const std::string& kind, const std::string& parent_id) = 0;
 

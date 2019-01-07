@@ -41,11 +41,12 @@ namespace zmq{
             ProtoReceiver();
             ~ProtoReceiver();
 
-            void Start();
             void Connect(const std::string& address);
+            void Disconnect(const std::string& address);
             void Filter(const std::string& topic_filter);
+            void Unfilter(const std::string& topic_filter);
             void SetBatchMode(size_t batch_size);
-            void Terminate();
+            
             
             int GetRxCount(); 
             template<class ProtoType>
@@ -55,14 +56,16 @@ namespace zmq{
             void ProcessMessage(const zmq::message_t& proto_type, const zmq::message_t& proto_data);
 
             void ProtoConverter();
-            void ZmqReceiver();
+            void ZmqReceiver(std::unique_ptr<zmq::socket_t> inproc_socket);
 
-            //RecieverThread helper functions
-            bool Connect_(const std::string& address);
-            bool Filter_(const std::string& topic_filter);
         private:
+            std::unique_ptr<zmq::socket_t> GetSubSocket();
+            std::unique_ptr<zmq::socket_t> GetInprocSocket();
+            void SendInprocMessage(const std::string& function, const std::string& args);
             ProtoRegister proto_register_;
             
+            const std::string inproc_address_;
+
             std::mutex zmq_mutex_;
             std::unique_ptr<zmq::context_t> context_;
             std::set<std::string> addresses_;

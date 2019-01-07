@@ -33,7 +33,10 @@ namespace EnvironmentRequest{
     std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
     std::unique_ptr<NodeManager::LoganRegistrationReply> TryRegisterLoganServer(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
 
-    std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint, const std::string& experiment_name, const std::string& node_ip_address);
+    std::unique_ptr<NodeManager::NodeManagerRegistrationReply> TryRegisterNodeManager(const std::string& environment_manager_endpoint,
+            const std::string& experiment_name,
+            const std::string& node_ip_address,
+            const std::string& container_id);
     
 };
 
