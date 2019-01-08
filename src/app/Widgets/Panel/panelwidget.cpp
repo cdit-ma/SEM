@@ -217,6 +217,7 @@ void PanelWidget::testWidgets()
 void PanelWidget::testNewTimelineView()
 {
     TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveEventKinds({TIMELINE_EVENT_KIND::UNKNOWN});
     defaultActiveAction = addTab("Entities", view);
     defaultActiveAction->trigger();
 
@@ -759,6 +760,9 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
                 break;
             case TIMELINE_EVENT_KIND::CPU_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+                break;
+            case TIMELINE_EVENT_KIND::MEMORY_UTILISATION:
+                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             }
         }
