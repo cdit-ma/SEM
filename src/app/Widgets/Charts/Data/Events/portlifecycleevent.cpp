@@ -33,10 +33,10 @@ const LifecycleType& PortLifecycleEvent::getType() const
 
 
 /**
- * @brief PortLifecycleEvent::getEventID
+ * @brief PortLifecycleEvent::getID
  * @return
  */
-QString PortLifecycleEvent::getEventID() const
+QString PortLifecycleEvent::getID() const
 {
     return port_.graphml_id;
 }

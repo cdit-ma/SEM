@@ -13,13 +13,12 @@ public:
     const Port& getPort() const;
     const LifecycleType& getType() const;
 
-    QString getEventID() const;
+    QString getID() const;
     TIMELINE_EVENT_KIND getKind() const;
 
 private:    
     Port port_;
     LifecycleType type_;
-
 };
 
 #endif // PORTLIFECYCLEEVENT_H
