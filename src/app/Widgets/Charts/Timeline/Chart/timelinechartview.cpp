@@ -569,7 +569,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
     if (!event)
         return;
 
-    auto series = constructChartForEvent(event->getKind(), event->getEventID(), event->getName());
+    auto series = constructChartForEvent(event->getKind(), event->getID(), event->getName());
 
     if (series) {
         series->addEvent(event);

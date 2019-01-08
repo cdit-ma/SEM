@@ -13,7 +13,7 @@ public:
     const double& getUtilisation() const;
     const QString& getHostname() const;
 
-    QString getEventID() const;
+    QString getID() const;
     TIMELINE_EVENT_KIND getKind() const;
 
 private:
