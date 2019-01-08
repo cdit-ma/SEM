@@ -317,6 +317,13 @@ void TimelineChartView::setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds)
         case TIMELINE_EVENT_KIND::CPU_UTILISATION:
             _legendActions.value(TIMELINE_SERIES_KIND::CPU_UTILISATION)->setVisible(true);
             break;
+        default: {
+            // NOTE: this case is temporary - only added it for the model entities chart
+            _legendActions.value(TIMELINE_SERIES_KIND::STATE)->setVisible(true);
+            _legendActions.value(TIMELINE_SERIES_KIND::NOTIFICATION)->setVisible(true);
+            _legendActions.value(TIMELINE_SERIES_KIND::BAR)->setVisible(true);
+            break;
+        }
         }
     }
 }
