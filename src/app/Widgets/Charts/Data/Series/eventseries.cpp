@@ -3,10 +3,11 @@
 int MEDEA::EventSeries::eventSeries_ID = 0;
 
 /**
- * @brief MEDEA::EventSeries::BaseSeries
+ * @brief MEDEA::EventSeries::EventSeries
  * @param parent
+ * @param kind
  */
-MEDEA::EventSeries::EventSeries(QObject* parent, TIMELINE_SERIES_KIND kind)
+MEDEA::EventSeries::EventSeries(QObject* parent, TIMELINE_DATA_KIND kind)
     : QObject(parent)
 {
     kind_ = kind;
@@ -26,16 +27,6 @@ void MEDEA::EventSeries::clear()
         (*i)->deleteLater();
         i = events_.erase(i);
     }
-}
-
-
-/**
- * @brief MEDEA::EventSeries::addEvent
- * @param time
- */
-void MEDEA::EventSeries::addEvent(qint64 time)
-{
-    //addEvent(new Event(time));
 }
 
 
@@ -73,7 +64,7 @@ void MEDEA::EventSeries::addEvents(QList<Event*>& events)
  * @brief MEDEA::EventSeries::getEvents
  * @return
  */
-const QList<MEDEA::Event *> &MEDEA::EventSeries::getEvents()
+const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents()
 {
     return events_;
 }
@@ -110,22 +101,35 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 
 
 /**
+ * @brief MEDEA::EventSeries::getID
+ * @return
+ */
+const QString MEDEA::EventSeries::getID() const
+{
+    return QString::number(eventSeriesID_);
+}
+
+
+/**
  * @brief MEDEA::EventSeries::getKind
  * @return
  */
-const TIMELINE_SERIES_KIND& MEDEA::EventSeries::getKind() const
+const TIMELINE_DATA_KIND& MEDEA::EventSeries::getKind() const
 {
     return kind_;
 }
 
 
 /**
- * @brief MEDEA::EventSeries::getID
+ * @brief MEDEA::EventSeries::getHoveredDataString
+ * @param timeRangeMS
+ * @param numberOfItemsToDisplay
+ * @param displayFormat
  * @return
  */
-QString MEDEA::EventSeries::getID() const
+QString MEDEA::EventSeries::getHoveredDataString(QPair<qint64, qint64> timeRangeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
-    return QString::number(eventSeriesID_);
+    return getHoveredDataString(timeRangeMS.first, timeRangeMS.second, numberOfItemsToDisplay, displayFormat);
 }
 
 
@@ -163,11 +167,6 @@ QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTim
         stream << "... (more omitted)";
 
     return hoveredData.trimmed();
-
-    /*return "Hovered range: " +
-            QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString(displayFormat) +
-            ", " +
-            QDateTime::fromMSecsSinceEpoch(toTimeMS).toString(displayFormat);*/
 }
 
 
@@ -189,4 +188,3 @@ int MEDEA::EventSeries::getDefaultNumberOfItemsToDisplay()
 {
     return 10;
 }
-

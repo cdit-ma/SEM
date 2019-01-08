@@ -21,6 +21,8 @@
 
 enum class VALUE_TYPE{DOUBLE, DATETIME};
 
+
+
 class AxisWidget;
 class TimelineChart;
 class TimelineChartView : public QWidget
@@ -38,12 +40,12 @@ public:
     void clearTimelineChart();
     void updateTimelineChart();
 
-    void setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds);
-    const QList<TIMELINE_EVENT_KIND>& getActiveEventKinds();
+    void setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds);
+    const QList<TIMELINE_DATA_KIND>& getActiveEventKinds();
 
 signals:
-    void toggleSeriesLegend(TIMELINE_SERIES_KIND kind, bool checked);
-    void seriesLegendHovered(TIMELINE_SERIES_KIND kind);
+    void toggleSeriesLegend(TIMELINE_DATA_KIND kind, bool checked);
+    void seriesLegendHovered(TIMELINE_DATA_KIND kind);
 
 public slots:
     void themeChanged();
@@ -62,7 +64,7 @@ public slots:
     void updateChartHoverDisplay();
     
 private:
-    MEDEA::EventSeries* constructChartForEvent(TIMELINE_EVENT_KIND kind, QString ID, QString label);
+    MEDEA::EventSeries* constructChartForEvent(TIMELINE_DATA_KIND kind, QString ID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
@@ -89,9 +91,9 @@ private:
     QAction* selectedEntityAction;
     */
 
-    QList<TIMELINE_EVENT_KIND> _activeEventKinds;
-    QHash<TIMELINE_SERIES_KIND, QAction*> _legendActions;
-    QHash<TIMELINE_SERIES_KIND, QPushButton*> _hoverDisplayButtons;
+    QList<TIMELINE_DATA_KIND> _activeEventKinds;
+    QHash<TIMELINE_DATA_KIND, QAction*> _legendActions;
+    QHash<TIMELINE_DATA_KIND, QPushButton*> _hoverDisplayButtons;
 
     QHash<int, EntitySet*> itemEntitySets;
     QHash<int, EntityChart*> itemEntityCharts;

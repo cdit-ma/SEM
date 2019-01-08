@@ -144,7 +144,7 @@ bool PanelWidget::isMinimised()
 void PanelWidget::constructEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_EVENT_KIND::PORT_LIFECYCLE, TIMELINE_EVENT_KIND::WORKLOAD, TIMELINE_EVENT_KIND::CPU_UTILISATION});
+    view->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE, TIMELINE_DATA_KIND::WORKLOAD, TIMELINE_DATA_KIND::CPU_UTILISATION, TIMELINE_DATA_KIND::MEMORY_UTILISATION});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
@@ -217,7 +217,7 @@ void PanelWidget::testWidgets()
 void PanelWidget::testNewTimelineView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_EVENT_KIND::UNKNOWN});
+    view->setActiveEventKinds({TIMELINE_DATA_KIND::DATA});
     defaultActiveAction = addTab("Entities", view);
     defaultActiveAction->trigger();
 
@@ -325,7 +325,7 @@ void PanelWidget::setViewController(ViewController *vc)
     }
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
-    //constructEventsView();
+    constructEventsView();
     testNewTimelineView();
 }
 
@@ -752,16 +752,16 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
     if (view && viewController) {
         for (auto kind : view->getActiveEventKinds()) {
             switch (kind) {
-            case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
+            case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
-            case TIMELINE_EVENT_KIND::WORKLOAD:
+            case TIMELINE_DATA_KIND::WORKLOAD:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
-            case TIMELINE_EVENT_KIND::CPU_UTILISATION:
+            case TIMELINE_DATA_KIND::CPU_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
-            case TIMELINE_EVENT_KIND::MEMORY_UTILISATION:
+            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 break;
             }
