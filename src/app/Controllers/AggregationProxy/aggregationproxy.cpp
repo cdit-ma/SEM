@@ -270,10 +270,10 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
     try {
         auto results = requester_->GetWorkload(request);
 
-        qDebug() << "[Workload Request] Result size#: " << results.get()->events_size();
+        qDebug() << "[Workload Request] Result size#: " << results->events_size();
         qDebug() << "--------------------------------------------------------------------------------";
 
-        for (auto item : results.get()->events()) {
+        for (auto item : results->events()) {
             auto workerInst = convertWorkerInstance(item.worker_inst());
             auto type = getWorkloadEventType(item.type());
             auto workloadID = item.workload_id();

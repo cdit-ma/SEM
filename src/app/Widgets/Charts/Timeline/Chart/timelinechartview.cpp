@@ -404,7 +404,7 @@ void TimelineChartView::themeChanged()
         }
         case TIMELINE_SERIES_KIND::WORKLOAD: {
             actionIcon = theme->getIcon("ToggleIcons", "workloadLegendToggle");
-            buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
+            buttonIcon = theme->getIcon("Icons", "spannerTwoTone");
             break;
         }
         case TIMELINE_SERIES_KIND::CPU_UTILISATION: {
@@ -568,7 +568,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
     if (!event)
         return;
 
-    auto series = constructChartForEvent(event->getKind(), event->getEventID(), event->getName());
+    auto series = constructChartForEvent(event->getKind(), event->getID(), event->getName());
 
     if (series) {
         series->addEvent(event);

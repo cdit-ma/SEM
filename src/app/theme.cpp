@@ -1328,7 +1328,6 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
     setIconToggledImage("ToggleIcons", "barHover", "Icons", "chartTwoTone", "Icons", "chartTwoTone");
     setIconToggledImage("ToggleIcons", "portLifecycleHover", "Icons", "plugTwoTone", "Icons", "plugTwoTone");
-    setIconToggledImage("ToggleIcons", "workloadHover", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
     setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "connect", "Icons", "connect");
 }
 
