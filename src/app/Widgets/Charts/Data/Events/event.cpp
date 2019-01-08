@@ -2,6 +2,7 @@
 
 int MEDEA::Event::event_ID = 0;
 
+
 /**
  * @brief MEDEA::Event::Event
  * @param time
@@ -21,10 +22,11 @@ MEDEA::Event::Event(qint64 time, QString name, QObject *parent)
  * @brief MEDEA::Event::getID
  * @return
  */
-QString MEDEA::Event::getID() const
+QString MEDEA::Event::getEventID() const
 {
     return QString::number(eventID_);
 }
+
 
 
 /**
@@ -51,9 +53,9 @@ const QString& MEDEA::Event::getName() const
  * @brief MEDEA::Event::getID
  * @return
  */
-QString MEDEA::Event::getEventID() const
+QString MEDEA::Event::getID() const
 {
-    return getID();
+    return getEventID();
 }
 
 
