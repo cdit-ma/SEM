@@ -4,27 +4,25 @@
 #include <QObject>
 #include "protomessagestructs.h"
 
-enum class TIMELINE_EVENT_KIND{UNKNOWN, PORT_LIFECYCLE, CPU_UTILISATION, WORKLOAD};
+enum class TIMELINE_EVENT_KIND{UNKNOWN, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION};
 
 namespace MEDEA {
 
 class Event : public QObject
 {
-    friend class EventSeries;
     Q_OBJECT
 
-protected:
+public:
     // time should be in milliseconds since epoch
     explicit Event(qint64 time, QString name = "no_name", QObject* parent = 0);
 
-public:
     const qint64& getTimeMS() const;
     const QString& getName() const;
 
-    QString getID() const;
+    QString getEventID() const;
 
-    virtual QString getEventID() const;
-    virtual TIMELINE_EVENT_KIND getKind() const;
+    virtual QString getID() const = 0;
+    virtual TIMELINE_EVENT_KIND getKind() const = 0;
 
 private:
     qint64 time_;

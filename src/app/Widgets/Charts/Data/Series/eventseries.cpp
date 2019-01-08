@@ -35,7 +35,7 @@ void MEDEA::EventSeries::clear()
  */
 void MEDEA::EventSeries::addEvent(qint64 time)
 {
-    addEvent(new Event(time));
+    //addEvent(new Event(time));
 }
 
 
