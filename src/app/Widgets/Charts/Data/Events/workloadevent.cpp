@@ -75,13 +75,12 @@ const QString& WorkloadEvent::getArgs() const
 
 
 /**
- * @brief WorkloadEvent::getEventID
+ * @brief WorkloadEvent::getID
  * @return
  */
-QString WorkloadEvent::getEventID() const
+QString WorkloadEvent::getID() const
 {
     return workerInstance_.graphml_id + workloadID_;
-
 }
 
 

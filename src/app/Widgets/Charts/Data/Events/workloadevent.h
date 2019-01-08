@@ -26,7 +26,7 @@ public:
     const QString& getFunctionName() const;
     const QString& getArgs() const;
 
-    QString getEventID() const;
+    QString getID() const;
     TIMELINE_EVENT_KIND getKind() const;
 
 private:

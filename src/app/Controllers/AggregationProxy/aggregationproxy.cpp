@@ -161,9 +161,9 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
 {
-    qDebug() << "node: " << nodeHostname;
-    qDebug() << "component: " << componentName;
-    qDebug() << "worker: " << workerName;
+    //qDebug() << "node: " << nodeHostname;
+    //qDebug() << "component: " << componentName;
+    //qDebug() << "worker: " << workerName;
 
     // store request paramenters here
     componentName_ = componentName;
