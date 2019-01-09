@@ -7,8 +7,7 @@ lib
 bin
 .sql
 .idea
-cmake-build-release
-cmake-build-debug
+cmake-build-*
 
 scripts/configure.bat
 build.bat
