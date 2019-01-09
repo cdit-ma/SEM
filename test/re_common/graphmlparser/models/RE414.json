@@ -1,0 +1,213 @@
+{
+  "name": "replication",
+  "clusters": [
+    {
+      "info": {
+        "name": "cherry224",
+        "id": "310"
+      },
+      "nodes": [
+        {
+          "info": {
+            "name": "cranberry01",
+            "id": "311"
+          },
+          "ipAddress": "192.168.111.82",
+          "containers": [
+            {
+              "info": {
+                "name": "cranberry01",
+                "id": "311_0"
+              },
+              "components": [
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "289_0_0",
+                    "type": "D"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "291_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "A",
+                    "C"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "289_0_1",
+                    "type": "D"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "291_0_1",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0,
+                    1
+                  ],
+                  "location": [
+                    "A",
+                    "C"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "293_0",
+                    "type": "B"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "291_0_0",
+                        "291_0_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0
+                  ],
+                  "location": [
+                    "A"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "289_1_0",
+                    "type": "D"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "291_1_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1,
+                    0
+                  ],
+                  "location": [
+                    "A",
+                    "C"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "289_1_1",
+                    "type": "D"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "291_1_1",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1,
+                    1
+                  ],
+                  "location": [
+                    "A",
+                    "C"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "293_1",
+                    "type": "B"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_1",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "291_1_0",
+                        "291_1_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1
+                  ],
+                  "location": [
+                    "A"
+                  ]
+                }
+              ],
+              "implicit": true
+            }
+          ]
+        }
+      ],
+      "containers": [
+        {
+          "info": {
+            "name": "cherry224",
+            "id": "310_0"
+          },
+          "implicit": true
+        }
+      ]
+    }
+  ]
+}
+

@@ -189,48 +189,26 @@
 							<data key="2">ASSEMBLIES</data>
 							<data key="3">0</data>
 							<graph id="g17">
-								<node id="300">
+								<node id="289">
 									<data key="1">ComponentAssembly</data>
 									<data key="2">ComponentAssembly</data>
 									<data key="3">0</data>
 									<data key="258"></data>
-									<data key="260">69</data>
-									<data key="261">80</data>
+									<data key="260">30</data>
+									<data key="261">65</data>
 									<data key="262">true</data>
 									<data key="264">2</data>
-									<graph id="g300">
-										<node id="302">
+									<graph id="g289">
+										<node id="293">
 											<data key="1">ComponentInstance</data>
 											<data key="2">ComponentInstance</data>
 											<data key="3">0</data>
-											<data key="21">receiver</data>
-											<data key="258"></data>
-											<data key="260">100</data>
-											<data key="261">60</data>
-											<data key="262">true</data>
-											<graph id="g302">
-												<node id="304">
-													<data key="1">SubscriberPortInstance</data>
-													<data key="2">SubscriberPort</data>
-													<data key="3">0</data>
-													<data key="21">Aggregate</data>
-													<data key="36">0</data>
-													<data key="262">true</data>
-													<data key="263">ZMQ</data>
-												</node>
-											</graph>
-										</node>
-										<node id="306">
-											<data key="1">ComponentInstance</data>
-											<data key="2">ComponentInstance_1</data>
-											<data key="3">1</data>
 											<data key="21">sender</data>
 											<data key="258"></data>
 											<data key="260">10</data>
-											<data key="261">59.999999999999986</data>
-											<data key="262">true</data>
-											<graph id="g306">
-												<node id="308">
+											<data key="261">75</data>
+											<graph id="g293">
+												<node id="296">
 													<data key="1">PublisherPortInstance</data>
 													<data key="2">PublisherPort</data>
 													<data key="3">0</data>
@@ -240,7 +218,15 @@
 												</node>
 											</graph>
 										</node>
-										<node id="301">
+										<node id="302">
+											<data key="1">PublisherPortDelegate</data>
+											<data key="2">PublisherPortDelegate</data>
+											<data key="3">1</data>
+											<data key="21">Aggregate</data>
+											<data key="260">80</data>
+											<data key="261">85</data>
+										</node>
+										<node id="290">
 											<data key="1">Variable</data>
 											<data key="2">Replication</data>
 											<data key="3">2</data>
@@ -252,8 +238,58 @@
 											<data key="28">copyX</data>
 											<data key="36">1</data>
 											<data key="37">1</data>
+										</node>
+									</graph>
+								</node>
+								<node id="291">
+									<data key="1">ComponentAssembly</data>
+									<data key="2">ComponentAssembly_1</data>
+									<data key="3">1</data>
+									<data key="258"></data>
+									<data key="260">200</data>
+									<data key="261">70</data>
+									<data key="262">true</data>
+									<data key="264">2</data>
+									<graph id="g291">
+										<node id="298">
+											<data key="1">ComponentInstance</data>
+											<data key="2">ComponentInstance</data>
+											<data key="3">0</data>
+											<data key="21">receiver</data>
+											<data key="258"></data>
+											<data key="260">84.99999999999997</data>
+											<data key="261">55</data>
+											<graph id="g298">
+												<node id="300">
+													<data key="1">SubscriberPortInstance</data>
+													<data key="2">SubscriberPort</data>
+													<data key="3">0</data>
+													<data key="21">Aggregate</data>
+													<data key="36">0</data>
+													<data key="263">ZMQ</data>
+												</node>
+											</graph>
+										</node>
+										<node id="306">
+											<data key="1">SubscriberPortDelegate</data>
+											<data key="2">SubscriberPortDelegate</data>
+											<data key="3">1</data>
+											<data key="21">Aggregate</data>
 											<data key="260">10</data>
-											<data key="261">30</data>
+											<data key="261">75</data>
+										</node>
+										<node id="292">
+											<data key="1">Variable</data>
+											<data key="2">Replication</data>
+											<data key="3">2</data>
+											<data key="20">2</data>
+											<data key="21">Integer</data>
+											<data key="22">Integer</data>
+											<data key="23"></data>
+											<data key="27">Icons</data>
+											<data key="28">copyX</data>
+											<data key="36">1</data>
+											<data key="37">1</data>
 										</node>
 									</graph>
 								</node>
@@ -3271,12 +3307,6 @@
 				</node>
 			</graph>
 		</node>
-		<edge id="338" source="300" target="325">
-			<data key="1">Edge_Deployment</data>
-		</edge>
-		<edge id="323" source="308" target="304">
-			<data key="1">Edge_Assembly</data>
-		</edge>
 		<edge id="322" source="275" target="277">
 			<data key="1">Edge_Aggregate</data>
 		</edge>
@@ -3295,19 +3325,40 @@
 		<edge id="316" source="280" target="277">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="315" source="306" target="274">
-			<data key="1">Edge_Definition</data>
+		<edge id="311" source="291" target="325">
+			<data key="1">Edge_Deployment</data>
 		</edge>
-		<edge id="314" source="302" target="278">
-			<data key="1">Edge_Definition</data>
+		<edge id="310" source="289" target="325">
+			<data key="1">Edge_Deployment</data>
 		</edge>
-		<edge id="309" source="308" target="275">
-			<data key="1">Edge_Definition</data>
+		<edge id="309" source="306" target="300">
+			<data key="1">Edge_Assembly</data>
 		</edge>
-		<edge id="307" source="304" target="279">
-			<data key="1">Edge_Definition</data>
+		<edge id="308" source="302" target="306">
+			<data key="1">Edge_Assembly</data>
+		</edge>
+		<edge id="307" source="306" target="277">
+			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="305" source="296" target="302">
+			<data key="1">Edge_Assembly</data>
+		</edge>
+		<edge id="304" source="302" target="277">
+			<data key="1">Edge_Aggregate</data>
 		</edge>
 		<edge id="303" source="283" target="279">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="301" source="300" target="279">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="299" source="298" target="278">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="297" source="296" target="275">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="295" source="293" target="274">
 			<data key="1">Edge_Definition</data>
 		</edge>
 		<edge id="294" source="286" target="280">

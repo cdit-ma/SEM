@@ -1,0 +1,153 @@
+{
+ "name": "replication",
+ "clusters": [
+  {
+   "info": {
+    "name": "cherry224",
+    "id": "324"
+   },
+   "nodes": [
+    {
+     "info": {
+      "name": "cranberry01",
+      "id": "325"
+     },
+     "ipAddress": "192.168.111.82",
+     "containers": [
+      {
+       "info": {
+        "name": "cranberry01",
+        "id": "325_0"
+       },
+       "components": [
+        {
+         "info": {
+          "name": "ComponentInstance",
+          "id": "293_0",
+          "type": "sender"
+         },
+         "ports": [
+          {
+           "info": {
+            "name": "PublisherPort",
+            "id": "296_0",
+            "type": "Aggregate"
+           },
+           "kind": "PUBLISHER",
+           "middleware": "ZMQ",
+           "connectedPorts": [
+            "300_0",
+            "300_1"
+           ]
+          }
+         ],
+         "replicateIndices": [
+          0
+         ],
+         "location": [
+          "ComponentAssembly"
+         ]
+        },
+        {
+         "info": {
+          "name": "ComponentInstance",
+          "id": "293_1",
+          "type": "sender"
+         },
+         "ports": [
+          {
+           "info": {
+            "name": "PublisherPort",
+            "id": "296_1",
+            "type": "Aggregate"
+           },
+           "kind": "PUBLISHER",
+           "middleware": "ZMQ",
+           "connectedPorts": [
+            "300_0",
+            "300_1"
+           ]
+          }
+         ],
+         "replicateIndices": [
+          1
+         ],
+         "location": [
+          "ComponentAssembly"
+         ]
+        },
+        {
+         "info": {
+          "name": "ComponentInstance",
+          "id": "298_0",
+          "type": "receiver"
+         },
+         "ports": [
+          {
+           "info": {
+            "name": "SubscriberPort",
+            "id": "300_0",
+            "type": "Aggregate"
+           },
+           "kind": "SUBSCRIBER",
+           "middleware": "ZMQ",
+           "connectedPorts": [
+            "296_0",
+            "296_1"
+           ]
+          }
+         ],
+         "replicateIndices": [
+          0
+         ],
+         "location": [
+          "ComponentAssembly_1"
+         ]
+        },
+        {
+         "info": {
+          "name": "ComponentInstance",
+          "id": "298_1",
+          "type": "receiver"
+         },
+         "ports": [
+          {
+           "info": {
+            "name": "SubscriberPort",
+            "id": "300_1",
+            "type": "Aggregate"
+           },
+           "kind": "SUBSCRIBER",
+           "middleware": "ZMQ",
+           "connectedPorts": [
+            "296_0",
+            "296_1"
+           ]
+          }
+         ],
+         "replicateIndices": [
+          1
+         ],
+         "location": [
+          "ComponentAssembly_1"
+         ]
+        }
+       ],
+       "implicit": true
+      }
+     ]
+    }
+   ],
+   "containers": [
+    {
+     "info": {
+      "name": "cherry224",
+      "id": "324_0"
+     },
+     "implicit": true
+    }
+   ]
+  }
+ ]
+}
+

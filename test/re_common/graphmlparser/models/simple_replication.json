@@ -1,0 +1,148 @@
+{
+  "name": "replication",
+  "clusters": [
+    {
+      "info": {
+        "name": "cherry224",
+        "id": "324"
+      },
+      "nodes": [
+        {
+          "info": {
+            "name": "cranberry01",
+            "id": "325"
+          },
+          "ipAddress": "192.168.111.82",
+          "containers": [
+            {
+              "info": {
+                "name": "cranberry01",
+                "id": "325_0"
+              },
+              "components": [
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "302_0",
+                    "type": "receiver"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "304_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "308_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0
+                  ],
+                  "location": [
+                    "ComponentAssembly"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance_1",
+                    "id": "306_0",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "308_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "304_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0
+                  ],
+                  "location": [
+                    "ComponentAssembly"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance",
+                    "id": "302_1",
+                    "type": "receiver"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "304_1",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "308_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1
+                  ],
+                  "location": [
+                    "ComponentAssembly"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "ComponentInstance_1",
+                    "id": "306_1",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "308_1",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "304_1"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1
+                  ],
+                  "location": [
+                    "ComponentAssembly"
+                  ]
+                }
+              ],
+              "implicit": true
+            }
+          ]
+        }
+      ],
+      "containers": [
+        {
+          "info": {
+            "name": "cherry224",
+            "id": "324_0"
+          },
+          "implicit": true
+        }
+      ]
+    }
+  ]
+}
