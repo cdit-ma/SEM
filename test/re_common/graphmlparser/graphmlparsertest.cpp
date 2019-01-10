@@ -119,3 +119,33 @@ TEST(GraphmlParser, RE414) {
 
     EXPECT_TRUE(same) << diffs;
 }
+
+TEST(GraphmlParser, RE414_uneven_depth) {
+    using namespace google::protobuf::util;
+    auto out = ProtobufModelParser::ParseModel("models/RE414_uneven_depth.graphml", "replication");
+
+    NodeManager::Experiment expected;
+    std::ifstream infile {"models/RE414_uneven_depth.json"};
+    std::string expected_string {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
+    JsonStringToMessage(expected_string, &expected);
+
+
+    // Set up protobuf message differ
+    std::string diffs;
+    MessageDifferencer differ;
+    // Treat connected ports as set s.t. ordering doesn't ruin an otherwise successful match
+    auto connected_ports_field_descriptor = expected.GetDescriptor()
+            ->FindFieldByLowercaseName("clusters")->message_type()
+            ->FindFieldByLowercaseName("nodes")->message_type()
+            ->FindFieldByLowercaseName("containers")->message_type()
+            ->FindFieldByLowercaseName("components")->message_type()
+            ->FindFieldByLowercaseName("ports")->message_type()
+            ->FindFieldByLowercaseName("connected_ports");
+
+    differ.TreatAsSet(connected_ports_field_descriptor);
+    differ.ReportDifferencesToString(&diffs);
+
+    auto same = differ.Compare(expected, *out);
+
+    EXPECT_TRUE(same) << diffs;
+}

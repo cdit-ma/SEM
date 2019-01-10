@@ -1,0 +1,237 @@
+{
+  "name": "replication",
+  "clusters": [
+    {
+      "info": {
+        "name": "cherry224",
+        "id": "334"
+      },
+      "nodes": [
+        {
+          "info": {
+            "name": "cranberry01",
+            "id": "335"
+          },
+          "ipAddress": "192.168.111.82",
+          "containers": [
+            {
+              "info": {
+                "name": "cranberry01",
+                "id": "335_0"
+              },
+              "components": [
+                {
+                  "info": {
+                    "name": "sender",
+                    "id": "293_0_0_0_0",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_0_0_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "311_0_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "s1",
+                    "s2",
+                    "s3"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "sender",
+                    "id": "293_0_1_0_0",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_0_1_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "311_0_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "s1",
+                    "s2",
+                    "s3"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "receiver",
+                    "id": "309_0_0_0",
+                    "type": "receiver"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "311_0_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_0_0_0_0",
+                        "295_0_1_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "r1",
+                    "r2"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "sender",
+                    "id": "293_1_0_0_0",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_1_0_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "311_1_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "s1",
+                    "s2",
+                    "s3"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "sender",
+                    "id": "293_1_1_0_0",
+                    "type": "sender"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "PublisherPort",
+                        "id": "295_1_1_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "PUBLISHER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "311_1_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1,
+                    1,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "s1",
+                    "s2",
+                    "s3"
+                  ]
+                },
+                {
+                  "info": {
+                    "name": "receiver",
+                    "id": "309_1_0_0",
+                    "type": "receiver"
+                  },
+                  "ports": [
+                    {
+                      "info": {
+                        "name": "SubscriberPort",
+                        "id": "311_1_0_0",
+                        "type": "Aggregate"
+                      },
+                      "kind": "SUBSCRIBER",
+                      "middleware": "ZMQ",
+                      "connectedPorts": [
+                        "295_1_0_0_0",
+                        "295_1_1_0_0"
+                      ]
+                    }
+                  ],
+                  "replicateIndices": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "location": [
+                    "top",
+                    "r1",
+                    "r2"
+                  ]
+                }
+              ],
+              "implicit": true
+            }
+          ]
+        }
+      ],
+      "containers": [
+        {
+          "info": {
+            "name": "cherry224",
+            "id": "334_0"
+          },
+          "implicit": true
+        }
+      ]
+    }
+  ]
+}
+
