@@ -1322,16 +1322,16 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "chart", "Icons", "chart");
     setIconToggledImage("ToggleIcons", "portLifecycleLegendToggle", "Icons", "plug", "Icons", "plug");
     setIconToggledImage("ToggleIcons", "workloadLegendToggle", "Icons", "spanner", "Icons", "spanner");
-    setIconToggledImage("ToggleIcons", "utilisationLegendToggle", "Icons", "connect", "Icons", "connect");
-    setIconToggledImage("ToggleIcons", "memoryLegendToggle", "Icons", "cpu", "Icons", "cpu");
+    setIconToggledImage("ToggleIcons", "utilisationLegendToggle", "Icons", "cpu", "Icons", "cpu");
+    setIconToggledImage("ToggleIcons", "memoryLegendToggle", "Icons", "memoryCard", "Icons", "memoryCard");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
     setIconToggledImage("ToggleIcons", "barHover", "Icons", "chartTwoTone", "Icons", "chartTwoTone");
     setIconToggledImage("ToggleIcons", "portLifecycleHover", "Icons", "plugTwoTone", "Icons", "plugTwoTone");
     setIconToggledImage("ToggleIcons", "workloadHover", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
-    setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "connect", "Icons", "connect");
-    setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryTwoTone", "Icons", "memoryTwoTone");
+    setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "cpuTwoTone", "Icons", "cpuTwoTone");
+    setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
 }
 
 void Theme::setupAliasIcons(){

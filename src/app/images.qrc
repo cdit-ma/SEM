@@ -398,6 +398,7 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-        <file alias="memoryTwoTone">Resources/Icons/memoryTwoTone.png</file>
+        <file alias="cpuTwoTone">Resources/Icons/cpuTwoTone.png</file>
+        <file alias="memoryCardTwoTone">Resources/Icons/memoryCardTwoTone.png</file>
     </qresource>
 </RCC>
