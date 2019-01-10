@@ -41,6 +41,7 @@ EntityChart::EntityChart(ViewItem* item, QWidget* parent)
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
     themeChanged();
 
+    _hoveredSeriesKind = TIMELINE_DATA_KIND::DATA;
     _seriesKindVisible[TIMELINE_DATA_KIND::LINE] = true;
 }
 
@@ -298,6 +299,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     }
 
     _hoveredSeriesKind = kind;
+    updateSeriesPixmaps();
     update();
 }
 
@@ -361,11 +363,7 @@ void EntityChart::themeChanged()
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
 
-    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::STARTED, theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::FINISHED, theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::MESSAGE, theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189)));
-    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::WARNING, theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _workloadEventTypePixmaps.insert(WorkloadEvent::WorkloadEventType::ERROR_EVENT, theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
+    updateSeriesPixmaps();
 }
 
 
@@ -1135,6 +1133,36 @@ void EntityChart::setRange(double min, double max)
     _displayedMin = min;
     _displayedMax = max;
     update();
+}
+
+
+/**
+ * @brief EntityChart::updateSeriesPixmaps
+ */
+void EntityChart::updateSeriesPixmaps()
+{
+    Theme* theme = Theme::theme();
+
+    switch (_hoveredSeriesKind) {
+    case TIMELINE_DATA_KIND::DATA:
+    case TIMELINE_DATA_KIND::WORKLOAD: {
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        break;
+    }
+    default: {
+        QColor pixmapColor = theme->getBackgroundColor();
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), pixmapColor);
+        break;
+    }
+    }
 }
 
 
