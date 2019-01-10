@@ -42,6 +42,7 @@ EntityChart::EntityChart(ViewItem* item, QWidget* parent)
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
     themeChanged();
 
+    _hoveredSeriesKind = TIMELINE_DATA_KIND::DATA;
     _seriesKindVisible[TIMELINE_DATA_KIND::LINE] = true;
 }
 
@@ -361,6 +362,8 @@ void EntityChart::themeChanged()
     _highlightPen = QPen(theme->getHighlightColor(), HIGHLIGHT_PEN_WIDTH);
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
+
+    updateSeriesPixmaps();
 
     _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor()));
     _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
@@ -1143,6 +1146,36 @@ void EntityChart::setRange(double min, double max)
     _displayedMin = min;
     _displayedMax = max;
     update();
+}
+
+
+/**
+ * @brief EntityChart::updateSeriesPixmaps
+ */
+void EntityChart::updateSeriesPixmaps()
+{
+    Theme* theme = Theme::theme();
+
+    switch (_hoveredSeriesKind) {
+    case TIMELINE_DATA_KIND::DATA:
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+        _lifeCycleTypePixmaps[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
+        _lifeCycleTypePixmaps[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
+        _lifeCycleTypePixmaps[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        _lifeCycleTypePixmaps[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        _lifeCycleTypePixmaps[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
+        break;
+    }
+    default: {
+        QColor pixmapColor = theme->getBackgroundColor();
+        _lifeCycleTypePixmaps[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), pixmapColor);
+        _lifeCycleTypePixmaps[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), pixmapColor);
+        _lifeCycleTypePixmaps[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), pixmapColor);
+        _lifeCycleTypePixmaps[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), pixmapColor);
+        _lifeCycleTypePixmaps[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), pixmapColor);
+        break;
+    }
+    }
 }
 
 

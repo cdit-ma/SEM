@@ -81,6 +81,8 @@ private:
     void setRange(double min, double max);
     void rangeChanged();
 
+    void updateSeriesPixmaps();
+
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
 
