@@ -14,7 +14,7 @@ public:
     const QString& getHostname() const;
 
     QString getID() const;
-    TIMELINE_EVENT_KIND getKind()const ;
+    TIMELINE_DATA_KIND getKind()const ;
 
 private:
     QString hostname_;

@@ -7,7 +7,7 @@
  * @param item
  */
 MEDEA::StateSeries::StateSeries(ViewItem* item)
-    : DataSeries(item, TIMELINE_SERIES_KIND::STATE)
+    : DataSeries(item, TIMELINE_DATA_KIND::STATE)
 {
 }
 

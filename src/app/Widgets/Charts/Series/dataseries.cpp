@@ -13,7 +13,7 @@ int MEDEA::DataSeries::series_ID = 0;
  * @param item
  * @param kind
  */
-MEDEA::DataSeries::DataSeries(ViewItem* item, TIMELINE_SERIES_KIND kind)
+MEDEA::DataSeries::DataSeries(ViewItem* item, TIMELINE_DATA_KIND kind)
     : EventSeries(item, kind)
 {
     _viewItem = item;
@@ -91,7 +91,7 @@ void MEDEA::DataSeries::addPoints(QList<QPointF> points)
         newMaxX = qMax(p.x(), newMaxX);
         newMinY = qMin(p.y(), newMinY);
         newMaxY = qMax(p.y(), newMaxY);
-        addEvent(p.x());
+        //addEvent(p.x());
     }
 
     if (newMinX != _minX) {
@@ -154,7 +154,7 @@ ViewItem* MEDEA::DataSeries::getViewItem()
  */
 bool MEDEA::DataSeries::isStateSeries()
 {
-    return getKind() == TIMELINE_SERIES_KIND::STATE;
+    return getKind() == TIMELINE_DATA_KIND::STATE;
 }
 
 
@@ -164,7 +164,7 @@ bool MEDEA::DataSeries::isStateSeries()
  */
 bool MEDEA::DataSeries::isNotificationSeries()
 {
-    return getKind() == TIMELINE_SERIES_KIND::NOTIFICATION;
+    return getKind() == TIMELINE_DATA_KIND::NOTIFICATION;
 }
 
 
@@ -174,7 +174,7 @@ bool MEDEA::DataSeries::isNotificationSeries()
  */
 bool MEDEA::DataSeries::isLineSeries()
 {
-    return getKind() == TIMELINE_SERIES_KIND::LINE;
+    return getKind() == TIMELINE_DATA_KIND::LINE;
 }
 
 
@@ -184,7 +184,7 @@ bool MEDEA::DataSeries::isLineSeries()
  */
 bool MEDEA::DataSeries::isBarSeries()
 {
-    return getKind() == TIMELINE_SERIES_KIND::BAR;
+    return getKind() == TIMELINE_DATA_KIND::BAR;
 }
 
 

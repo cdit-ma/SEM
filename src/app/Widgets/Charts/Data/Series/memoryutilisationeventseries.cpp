@@ -7,7 +7,7 @@
  * @param parent
  */
 MemoryUtilisationEventSeries::MemoryUtilisationEventSeries(QString hostname, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::MEMORY_UTILISATION)
+    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::MEMORY_UTILISATION)
 {
     hostname_ = hostname;
 }

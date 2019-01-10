@@ -50,7 +50,7 @@ QString MemoryUtilisationEvent::getID() const
  * @brief MemoryUtilisationEvent::getKind
  * @return
  */
-TIMELINE_EVENT_KIND MemoryUtilisationEvent::getKind() const
+TIMELINE_DATA_KIND MemoryUtilisationEvent::getKind() const
 {
-    return TIMELINE_EVENT_KIND::MEMORY_UTILISATION;
+    return TIMELINE_DATA_KIND::MEMORY_UTILISATION;
 }
