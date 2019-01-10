@@ -7,7 +7,7 @@
  * @param item
  */
 MEDEA::BarSeries::BarSeries(ViewItem *item)
-    : DataSeries(item, TIMELINE_SERIES_KIND::BAR)
+    : DataSeries(item, TIMELINE_DATA_KIND::BAR)
 {
 
 }

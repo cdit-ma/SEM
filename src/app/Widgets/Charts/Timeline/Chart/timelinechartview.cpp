@@ -99,13 +99,13 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _hoverDisplay->setWidget(_hoverWidget);
 
     /*
-     * HOVER AND LEGEND TIMELINE_SERIES_KIND WIDGETS
+     * HOVER AND LEGEND TIMELINE_DATA_KIND WIDGETS
      */
-    for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
-        if (kind == TIMELINE_SERIES_KIND::BASE || kind == TIMELINE_SERIES_KIND::DATA || kind == TIMELINE_SERIES_KIND::LINE)
+    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
+        if (kind == TIMELINE_DATA_KIND::DATA || kind == TIMELINE_DATA_KIND::LINE)
             continue;
         // construct legend widgets
-        QAction* action = _legendToolbar->addAction(GET_TIMELINE_SERIES_KIND_STRING(kind));
+        QAction* action = _legendToolbar->addAction(GET_TIMELINE_DATA_KIND_STRING(kind));
         action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
@@ -113,11 +113,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         _legendActions[kind] = action;
         QWidget* actionWidget = _legendToolbar->widgetForAction(action);
         actionWidget->installEventFilter(this);
-        actionWidget->setProperty("TIMELINE_SERIES_KIND", (uint)kind);
+        actionWidget->setProperty("TIMELINE_DATA_KIND", (uint)kind);
         connect(action, &QAction::toggled, [=](bool checked){
             actionWidget->setProperty("checked", checked);
             emit toggleSeriesLegend(kind, checked);
-            emit seriesLegendHovered(checked ? kind : TIMELINE_SERIES_KIND::DATA);
+            emit seriesLegendHovered(checked ? kind : TIMELINE_DATA_KIND::DATA);
         });
         // construct hover display widgets
         QPushButton* button = new QPushButton(this);
@@ -220,9 +220,9 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
         if (!watched->property("checked").toBool())
             return false;
-        TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA;
+        TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA;
         if (event->type() == QEvent::HoverEnter) {
-            kind = (TIMELINE_SERIES_KIND) watched->property("TIMELINE_SERIES_KIND").toUInt();
+            kind = (TIMELINE_DATA_KIND) watched->property("TIMELINE_DATA_KIND").toUInt();
         }
         emit seriesLegendHovered(kind);
         return true;
@@ -301,26 +301,29 @@ void TimelineChartView::updateTimelineChart()
  * @brief TimelineChartView::setActiveEventKinds
  * @param kinds
  */
-void TimelineChartView::setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds)
+void TimelineChartView::setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds)
 {
     _activeEventKinds = kinds;
 
     for (auto kind : kinds) {
         switch (kind) {
-        case TIMELINE_EVENT_KIND::PORT_LIFECYCLE:
-            _legendActions.value(TIMELINE_SERIES_KIND::PORT_LIFECYCLE)->setVisible(true);
+        case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+            _legendActions.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE)->setVisible(true);
             break;
-        case TIMELINE_EVENT_KIND::WORKLOAD:
-            _legendActions.value(TIMELINE_SERIES_KIND::WORKLOAD)->setVisible(true);
+        case TIMELINE_DATA_KIND::WORKLOAD:
+            _legendActions.value(TIMELINE_DATA_KIND::WORKLOAD)->setVisible(true);
             break;
-        case TIMELINE_EVENT_KIND::CPU_UTILISATION:
-            _legendActions.value(TIMELINE_SERIES_KIND::CPU_UTILISATION)->setVisible(true);
+        case TIMELINE_DATA_KIND::CPU_UTILISATION:
+            _legendActions.value(TIMELINE_DATA_KIND::CPU_UTILISATION)->setVisible(true);
+            break;
+        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+            _legendActions.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION)->setVisible(true);
             break;
         default: {
             // NOTE: this case is temporary - only added it for the model entities chart
-            _legendActions.value(TIMELINE_SERIES_KIND::STATE)->setVisible(true);
-            _legendActions.value(TIMELINE_SERIES_KIND::NOTIFICATION)->setVisible(true);
-            _legendActions.value(TIMELINE_SERIES_KIND::BAR)->setVisible(true);
+            _legendActions.value(TIMELINE_DATA_KIND::STATE)->setVisible(true);
+            _legendActions.value(TIMELINE_DATA_KIND::NOTIFICATION)->setVisible(true);
+            _legendActions.value(TIMELINE_DATA_KIND::BAR)->setVisible(true);
             break;
         }
         }
@@ -332,7 +335,7 @@ void TimelineChartView::setActiveEventKinds(QList<TIMELINE_EVENT_KIND> kinds)
  * @brief TimelineChartView::getActiveEventKinds
  * @return
  */
-const QList<TIMELINE_EVENT_KIND> &TimelineChartView::getActiveEventKinds()
+const QList<TIMELINE_DATA_KIND> &TimelineChartView::getActiveEventKinds()
 {
     return _activeEventKinds;
 }
@@ -379,37 +382,42 @@ void TimelineChartView::themeChanged()
                                  "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
-    for (auto kind : GET_TIMELINE_SERIES_KINDS()) {
+    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
         QIcon actionIcon, buttonIcon;
         switch (kind) {
-        case TIMELINE_SERIES_KIND::STATE: {
+        case TIMELINE_DATA_KIND::STATE: {
             actionIcon = theme->getIcon("ToggleIcons", "stateLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "stateHover");
             break;
         }
-        case TIMELINE_SERIES_KIND::NOTIFICATION: {
+        case TIMELINE_DATA_KIND::NOTIFICATION: {
             actionIcon = theme->getIcon("ToggleIcons", "notificationLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "notificationHover");
             break;
         }
-        case TIMELINE_SERIES_KIND::BAR: {
+        case TIMELINE_DATA_KIND::BAR: {
             actionIcon = theme->getIcon("ToggleIcons", "barLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "barHover");
             break;
         }
-        case TIMELINE_SERIES_KIND::PORT_LIFECYCLE: {
+        case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
             actionIcon = theme->getIcon("ToggleIcons", "portLifecycleLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
         }
-        case TIMELINE_SERIES_KIND::WORKLOAD: {
+        case TIMELINE_DATA_KIND::WORKLOAD: {
             actionIcon = theme->getIcon("ToggleIcons", "workloadLegendToggle");
             buttonIcon = theme->getIcon("Icons", "spannerTwoTone");
             break;
         }
-        case TIMELINE_SERIES_KIND::CPU_UTILISATION: {
+        case TIMELINE_DATA_KIND::CPU_UTILISATION: {
             actionIcon = theme->getIcon("ToggleIcons", "utilisationLegendToggle");
             buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
+            break;
+        }
+        case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
+            actionIcon = theme->getIcon("ToggleIcons", "memoryLegendToggle");
+            buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
             break;
         }
         default:
@@ -491,7 +499,7 @@ void TimelineChartView::updateChartHoverDisplay()
     if (_timelineChart->isPanning())
         return;
 
-    QHash<TIMELINE_SERIES_KIND, QString> hoveredData;
+    QHash<TIMELINE_DATA_KIND, QString> hoveredData;
 
     for (auto entityChart : _timelineChart->getEntityCharts()) {
         if (!entityChart || !entityChart->isHovered())
@@ -504,13 +512,11 @@ void TimelineChartView::updateChartHoverDisplay()
             auto kind = s->getKind();
             auto action = _legendActions.value(kind, 0);
             if (action && action->isChecked()) {
-                if (hoveredKinds.contains(kind)) {
-                    auto range = entityChart->getHoveredTimeRange(kind);
-                    auto hoveredInfo = s->getHoveredDataString(range.first, range.second, HOVER_DISPLAY_ITEM_COUNT, DATETIME_FORMAT);
-                    if (!hoveredInfo.isEmpty()) {
-                        hoveredData[kind] += hoveredInfo + "\n";
-                    }
-                }
+                if (!hoveredKinds.contains(kind))
+                    continue;
+                auto hoveredInfo = s->getHoveredDataString(entityChart->getHoveredTimeRange(kind), HOVER_DISPLAY_ITEM_COUNT, DATETIME_FORMAT);
+                if (!hoveredInfo.isEmpty())
+                    hoveredData[kind] += hoveredInfo + "\n";
             }
         }
     }
@@ -518,6 +524,7 @@ void TimelineChartView::updateChartHoverDisplay()
     if (hoveredData.isEmpty())
         return;
 
+    //int childrenHeight = SPACING;
     for (auto kind : _hoverDisplayButtons.keys()) {
         auto button = _hoverDisplayButtons.value(kind, 0);
         if (button) {
@@ -526,27 +533,30 @@ void TimelineChartView::updateChartHoverDisplay()
             if (hasData) {
                 auto data = hoveredData.value(kind);
                 button->setText(data.trimmed());
+                //childrenHeight += button->height() + SPACING;
             }
         }
     }
 
-    _hoverDisplay->setVisible(!hoveredData.isEmpty());
-
     // adjust the hover display's position to make sure that it is fully visible
-    if (_hoverDisplay->isVisible()) {
-        auto globalPos = mapToGlobal(pos());
-        auto hoverPos = mapTo(this, cursor().pos());
-        if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {
-            hoverPos.setX(hoverPos.x() - _hoverDisplay->width() - 25);
-        } else {
-            hoverPos.setX(hoverPos.x() + 25);
-        }
-        auto bottom = globalPos.y() + height() - _dateTimeAxis->height();
-        if ((hoverPos.y() + _hoverDisplay->height()) > bottom) {
-            hoverPos.setY(bottom - _hoverDisplay->height());
-        }
-        _hoverDisplay->move(hoverPos);
+    auto globalPos = mapToGlobal(pos());
+    auto hoverPos = mapTo(this, cursor().pos()) - QPoint(0, _hoverDisplay->height() / 2.0);
+    if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {
+        hoverPos.setX(hoverPos.x() - _hoverDisplay->width() - 25);
+    } else {
+        hoverPos.setX(hoverPos.x() + 25);
     }
+
+    auto bottom = globalPos.y() + height() - _dateTimeAxis->height();
+    if ((hoverPos.y() + _hoverDisplay->height()) > bottom) {
+        hoverPos.setY(bottom - _hoverDisplay->height());
+    } else if (hoverPos.y() < globalPos.y()){
+        hoverPos.setY(globalPos.y());
+    }
+
+    //_hoverDisplay->resize(_hoverDisplay->width(), childrenHeight);
+    _hoverDisplay->move(hoverPos);
+    _hoverDisplay->show();
 }
 
 
@@ -601,7 +611,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
  * @param label
  * @return
  */
-MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIND kind, QString ID, QString label)
+MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_DATA_KIND kind, QString ID, QString label)
 {
     if (eventSeries.contains(ID))
         return eventSeries.value(ID);
@@ -609,7 +619,7 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
     MEDEA::EventSeries* series = 0;
 
     switch (kind) {
-    case TIMELINE_EVENT_KIND::WORKLOAD:
+    case TIMELINE_DATA_KIND::WORKLOAD:
         series = new WorkloadEventSeries(ID, this);
         break;
     default:
@@ -638,7 +648,7 @@ MEDEA::EventSeries* TimelineChartView::constructChartForEvent(TIMELINE_EVENT_KIN
 
         // set the initial visibility states of each individual series in the charts
         for (auto& action : _legendActions.values()) {
-            auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+            auto kind = _legendActions.key(action, TIMELINE_DATA_KIND::DATA);
             chart->setSeriesKindVisible(kind, action->isChecked());
         }
 
@@ -800,7 +810,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     // set the initial visibility states of the chart and each individual series in the chart
     seriesChart->setVisible(showSeries);
     for (auto& action : _legendToolbar->actions()) {
-        auto kind = _legendActions.key(action, TIMELINE_SERIES_KIND::DATA);
+        auto kind = _legendActions.key(action, TIMELINE_DATA_KIND::DATA);
         seriesChart->setSeriesKindVisible(kind, action->isChecked());
     }
 
@@ -833,7 +843,7 @@ void TimelineChartView::removeEntitySet(int ID)
  * @param seed
  * @return
  */
-inline uint qHash(TIMELINE_SERIES_KIND key, uint seed)
+inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }

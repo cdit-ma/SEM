@@ -27,7 +27,7 @@ public:
     const QString& getArgs() const;
 
     QString getID() const;
-    TIMELINE_EVENT_KIND getKind() const;
+    TIMELINE_DATA_KIND getKind() const;
 
 private:
     WorkerInstance workerInstance_;

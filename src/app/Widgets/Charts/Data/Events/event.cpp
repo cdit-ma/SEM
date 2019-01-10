@@ -63,7 +63,7 @@ QString MEDEA::Event::getID() const
  * @brief MEDEA::Event::getKind
  * @return
  */
-TIMELINE_EVENT_KIND MEDEA::Event::getKind() const
+TIMELINE_DATA_KIND MEDEA::Event::getKind() const
 {
-    return TIMELINE_EVENT_KIND::UNKNOWN;
+    return TIMELINE_DATA_KIND::DATA;
 }

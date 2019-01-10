@@ -10,7 +10,7 @@
  * @param parent
  */
 WorkloadEventSeries::WorkloadEventSeries(QString workloadPath, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::WORKLOAD)
+    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::WORKLOAD)
 {
     workloadPath_ = workloadPath;
 }

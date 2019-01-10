@@ -6,7 +6,7 @@
  * @param item
  */
 MEDEA::NotificationSeries::NotificationSeries(ViewItem* item)
-    : DataSeries(item, TIMELINE_SERIES_KIND::NOTIFICATION)
+    : DataSeries(item, TIMELINE_DATA_KIND::NOTIFICATION)
 {
 }
 

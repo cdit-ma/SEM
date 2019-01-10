@@ -88,7 +88,7 @@ QString WorkloadEvent::getID() const
  * @brief WorkloadEvent::getKind
  * @return
  */
-TIMELINE_EVENT_KIND WorkloadEvent::getKind() const
+TIMELINE_DATA_KIND WorkloadEvent::getKind() const
 {
-    return TIMELINE_EVENT_KIND::WORKLOAD;
+    return TIMELINE_DATA_KIND::WORKLOAD;
 }
