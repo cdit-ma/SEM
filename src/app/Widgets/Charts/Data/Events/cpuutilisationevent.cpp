@@ -50,7 +50,7 @@ QString CPUUtilisationEvent::getID() const
  * @brief CPUUtilisationEvent::getKind
  * @return
  */
-TIMELINE_EVENT_KIND CPUUtilisationEvent::getKind() const
+TIMELINE_DATA_KIND CPUUtilisationEvent::getKind() const
 {
-    return TIMELINE_EVENT_KIND::CPU_UTILISATION;
+    return TIMELINE_DATA_KIND::CPU_UTILISATION;
 }

@@ -7,7 +7,7 @@
  * @param parent
  */
 CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString hostname, QObject *parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::CPU_UTILISATION)
+    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::CPU_UTILISATION)
 {
     hostname_ = hostname;
 }

@@ -14,7 +14,7 @@ class DataSeries : public EventSeries
     Q_OBJECT
 
 protected:
-    explicit DataSeries(ViewItem* item = 0, TIMELINE_SERIES_KIND kind = TIMELINE_SERIES_KIND::DATA);
+    explicit DataSeries(ViewItem* item = 0, TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA);
     ~DataSeries();
 
     void addPoint(QPointF point);
