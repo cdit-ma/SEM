@@ -39,7 +39,7 @@
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
         <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
-        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file> 
+        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
         <file alias="ExternalAssembly">Resources/EntityIcons/ExternalAssembly.png</file>
@@ -95,14 +95,14 @@
         <file alias="Workload">Resources/EntityIcons/Workload.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
-	<file alias="barChart">Resources/Icons/barChart.png</file>
-	<file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
-	<file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
-	<file alias="chartDark">Resources/Icons/chartDark.png</file>
-	<file alias="chartTwoTone">Resources/Icons/chartTwoTone.png</file>
-	<file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
-	<file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
-	<file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+        <file alias="barChart">Resources/Icons/barChart.png</file>
+        <file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
+        <file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
+        <file alias="chartDark">Resources/Icons/chartDark.png</file>
+        <file alias="chartTwoTone">Resources/Icons/chartTwoTone.png</file>
+        <file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
+        <file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
+        <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
         <file alias="alignVertical">Resources/Icons/alignVertical.png</file>
         <file alias="amd">Resources/Icons/amd.png</file>
@@ -398,5 +398,6 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+        <file alias="memoryTwoTone">Resources/Icons/memoryTwoTone.png</file>
     </qresource>
 </RCC>

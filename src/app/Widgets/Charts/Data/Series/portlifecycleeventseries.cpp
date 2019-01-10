@@ -10,7 +10,7 @@
  * @param parent
  */
 PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_SERIES_KIND::PORT_LIFECYCLE)
+    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::PORT_LIFECYCLE)
 {
     port_path = path;
 }

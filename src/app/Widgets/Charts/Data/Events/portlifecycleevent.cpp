@@ -46,7 +46,7 @@ QString PortLifecycleEvent::getID() const
  * @brief PortLifecycleEvent::getKind
  * @return
  */
-TIMELINE_EVENT_KIND PortLifecycleEvent::getKind() const
+TIMELINE_DATA_KIND PortLifecycleEvent::getKind() const
 {
-    return TIMELINE_EVENT_KIND::PORT_LIFECYCLE;
+    return TIMELINE_DATA_KIND::PORT_LIFECYCLE;
 }
