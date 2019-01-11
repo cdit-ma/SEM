@@ -3,13 +3,21 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
 #include <proto/controlmessage/helper.h>
 
 #include "graphmlparser.h"
 std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModel(const std::string& filename, const std::string& experiment_id){
-    ProtobufModelParser parser(filename, experiment_id);
+    std::ifstream model_stream(filename);
+    ProtobufModelParser parser(model_stream, experiment_id);
+    return std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment(parser.GetExperiment()));
+}
+
+std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModelString(const std::string& model_string, const std::string& experiment_id) {
+    std::istringstream model_stream{model_string};
+    ProtobufModelParser parser(model_stream, experiment_id);
     return std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment(parser.GetExperiment()));
 }
 
@@ -25,9 +33,9 @@ std::string ProtobufModelParser::GetDeploymentJSON(const NodeManager::Experiment
     return output;
 }
 
-ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
+ProtobufModelParser::ProtobufModelParser(std::istream& model_stream, const std::string& experiment_id){
     experiment_id_ = experiment_id;
-    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
+    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(model_stream));
     PreProcess();
     Process();
 }

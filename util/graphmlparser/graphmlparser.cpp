@@ -3,11 +3,11 @@
 
 #include <iostream>
 
-GraphmlParser::GraphmlParser(const std::string& filename) : GraphmlParserInt(filename){
-    auto result = doc.load_file(filename.c_str());
+GraphmlParser::GraphmlParser(std::istream& model_stream) : GraphmlParserInt(model_stream){
+    auto result = doc.load(model_stream);
     legal_parse = result.status == pugi::status_ok;;
     if(!legal_parse){
-        throw std::runtime_error("GraphmlParser:Parse(" + filename + ") Error: " + result.description());
+        throw std::runtime_error("GraphmlParser:Parse("") Error: ");
     }
 
     //Pre fill attribute map

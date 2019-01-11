@@ -10,9 +10,10 @@
 class ProtobufModelParser{
     public:
         static std::unique_ptr<NodeManager::Experiment> ParseModel(const std::string& filename, const std::string& experiment_id);
+        static std::unique_ptr<NodeManager::Experiment> ParseModelString(const std::string& filename, const std::string& experiment_id);
         static std::string GetDeploymentJSON(const NodeManager::Experiment& experiment);
     private:
-        ProtobufModelParser(const std::string& filename, const std::string& experiment_id);
+        ProtobufModelParser(std::istream& model_stream, const std::string& experiment_id);
         // Parser
         std::unique_ptr<GraphmlParserInt> graphml_parser_;
 
