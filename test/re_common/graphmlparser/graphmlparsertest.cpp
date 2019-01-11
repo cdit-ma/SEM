@@ -7,6 +7,8 @@
 #include <util/graphmlparser/protobufmodelparser.h>
 #include <google/protobuf/util/json_util.h>
 #include <fstream>
+#include <cmrc/cmrc.hpp>
+CMRC_DECLARE(test_models);
 
 TEST(GraphmlParser, FileNotFound) {
 
@@ -23,9 +25,12 @@ TEST(GraphmlParser, FileNotFound) {
 TEST(GraphmlParser, Deterministic) {
     using namespace google::protobuf::util;
 
-    //Current working dir is re/bin/test, get model from re/bin/test/models (copied by cmake).
-    auto out = ProtobufModelParser::ParseModel("models/model.graphml", "simple_test");
-    auto out2 = ProtobufModelParser::ParseModel("models/model.graphml", "simple_test");
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/model.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+
+    auto out = ProtobufModelParser::ParseModelString(model_string, "simple_test");
+    auto out2 = ProtobufModelParser::ParseModelString(model_string, "simple_test");
 
     // The same model parsed twice should result in exactly the same output.
     std::string diffs;
@@ -40,9 +45,13 @@ TEST(GraphmlParser, Deterministic) {
 TEST(GraphmlParser, ExperimentID) {
     using namespace google::protobuf::util;
 
-    auto out = ProtobufModelParser::ParseModel("models/model.graphml", "simple_test");
-    auto out_same = ProtobufModelParser::ParseModel("models/model.graphml", "simple_test");
-    auto out_different = ProtobufModelParser::ParseModel("models/model.graphml", "not_simple_test");
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/model.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+
+    auto out = ProtobufModelParser::ParseModelString(model_string, "simple_test");
+    auto out_same = ProtobufModelParser::ParseModelString(model_string, "simple_test");
+    auto out_different = ProtobufModelParser::ParseModelString(model_string, "not_simple_test");
 
     // Should be different with a differing experiment id.
     EXPECT_FALSE(MessageDifferencer::Equals(*out, *out_different));
@@ -53,11 +62,15 @@ TEST(GraphmlParser, ExperimentID) {
 // Should replicate out to 2x sender + 2x receiver. Each sender should be connected to its paired receiver and nothing else.
 TEST(GraphmlParser, SimpleReplication) {
     using namespace google::protobuf::util;
-    auto out = ProtobufModelParser::ParseModel("models/simple_replication.graphml", "replication");
 
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/simple_replication.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+
+    auto expected_file = cmrc::test_models::get_filesystem().open("models/simple_replication.json");
+    std::string expected_string{expected_file.begin(), expected_file.end()};
     NodeManager::Experiment expected;
-    std::ifstream infile {"models/simple_replication.json"};
-    std::string expected_string {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
     JsonStringToMessage(expected_string, &expected);
 
     std::string diffs;
@@ -73,11 +86,15 @@ TEST(GraphmlParser, SimpleReplication) {
 // Should replicate out to 2x sender + 2x receiver. Each sender should be connected to both receivers.
 TEST(GraphmlParser, ComplexReplication) {
     using namespace google::protobuf::util;
-    auto out = ProtobufModelParser::ParseModel("models/complex_replication.graphml", "replication");
 
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/complex_replication.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+
+    auto expected_file = cmrc::test_models::get_filesystem().open("models/complex_replication.json");
+    std::string expected_string{expected_file.begin(), expected_file.end()};
     NodeManager::Experiment expected;
-    std::ifstream infile {"models/complex_replication.json"};
-    std::string expected_string {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
     JsonStringToMessage(expected_string, &expected);
 
     std::string diffs;
@@ -92,13 +109,16 @@ TEST(GraphmlParser, ComplexReplication) {
 // See RE-414 on cdit-ma jira
 TEST(GraphmlParser, RE414) {
     using namespace google::protobuf::util;
-    auto out = ProtobufModelParser::ParseModel("models/RE414.graphml", "replication");
 
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/RE414.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+
+    auto expected_file = cmrc::test_models::get_filesystem().open("models/RE414.json");
+    std::string expected_string{expected_file.begin(), expected_file.end()};
     NodeManager::Experiment expected;
-    std::ifstream infile {"models/RE414.json"};
-    std::string expected_string {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
     JsonStringToMessage(expected_string, &expected);
-
 
     // Set up protobuf message differ
     std::string diffs;
@@ -122,13 +142,16 @@ TEST(GraphmlParser, RE414) {
 
 TEST(GraphmlParser, RE414_uneven_depth) {
     using namespace google::protobuf::util;
-    auto out = ProtobufModelParser::ParseModel("models/RE414_uneven_depth.graphml", "replication");
 
+    // Get model from resource fs (copied by cmrs).
+    auto model_file = cmrc::test_models::get_filesystem().open("models/RE414_uneven_depth.graphml");
+    std::string model_string{model_file.begin(), model_file.end()};
+    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+
+    auto expected_file = cmrc::test_models::get_filesystem().open("models/RE414_uneven_depth.json");
+    std::string expected_string{expected_file.begin(), expected_file.end()};
     NodeManager::Experiment expected;
-    std::ifstream infile {"models/RE414_uneven_depth.json"};
-    std::string expected_string {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
     JsonStringToMessage(expected_string, &expected);
-
 
     // Set up protobuf message differ
     std::string diffs;
