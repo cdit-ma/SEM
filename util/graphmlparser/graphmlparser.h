@@ -10,22 +10,23 @@
 class GraphmlParser : public GraphmlParserInt{
 
     public:
-        GraphmlParser(const std::string& filename);
-        std::vector<std::string> FindNodesOfKind(const std::string& kind, const std::string& parent_id = "");
+        explicit GraphmlParser(std::istream& model_stream);
 
-        std::vector<std::string> FindNodesOfKinds(const std::vector<std::string>& kinds, const std::string& parent_id = "");
+        std::vector<std::string> FindNodesOfKind(const std::string& kind, const std::string& parent_id = "") override;
 
-        std::vector<std::string> FindEdges(const std::string& kind = "");
+        std::vector<std::string> FindNodesOfKinds(const std::vector<std::string>& kinds, const std::string& parent_id = "") override;
 
-        std::vector<std::string> FindImmediateChildren(const std::string& kind, const std::string& parent_id);
+        std::vector<std::string> FindEdges(const std::string& kind = "") override;
 
-        std::string GetAttribute(const std::string& id, const std::string& attribute_name);
-        std::string GetDataValue(const std::string& id, const std::string& key_name);
-        std::string GetParentNode(const std::string& id, int depth);
-        std::string GetParentNode(const std::string& id);
+        std::vector<std::string> FindImmediateChildren(const std::string& kind, const std::string& parent_id) override;
 
-        std::string GetSharedParent(const std::string& left_child_id, const std::string& right_child_id);
-        int GetHeightToParent(const std::string& child_id, const std::string& parent_id);
+        std::string GetAttribute(const std::string& id, const std::string& attribute_name) override;
+        std::string GetDataValue(const std::string& id, const std::string& key_name) override;
+        std::string GetParentNode(const std::string& id, int depth) override;
+        std::string GetParentNode(const std::string& id) override;
+
+        std::string GetSharedParent(const std::string& left_child_id, const std::string& right_child_id) override;
+        int GetHeightToParent(const std::string& child_id, const std::string& parent_id) override;
 
     private:
         bool legal_parse = false;

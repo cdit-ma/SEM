@@ -3,13 +3,21 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
 #include <proto/controlmessage/helper.h>
 
 #include "graphmlparser.h"
 std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModel(const std::string& filename, const std::string& experiment_id){
-    ProtobufModelParser parser(filename, experiment_id);
+    std::ifstream model_stream(filename);
+    ProtobufModelParser parser(model_stream, experiment_id);
+    return std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment(parser.GetExperiment()));
+}
+
+std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModelString(const std::string& model_string, const std::string& experiment_id) {
+    std::istringstream model_stream{model_string};
+    ProtobufModelParser parser(model_stream, experiment_id);
     return std::unique_ptr<NodeManager::Experiment>(new NodeManager::Experiment(parser.GetExperiment()));
 }
 
@@ -25,9 +33,9 @@ std::string ProtobufModelParser::GetDeploymentJSON(const NodeManager::Experiment
     return output;
 }
 
-ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
+ProtobufModelParser::ProtobufModelParser(std::istream& model_stream, const std::string& experiment_id){
     experiment_id_ = experiment_id;
-    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(filename));
+    graphml_parser_ = std::unique_ptr<GraphmlParser>(new GraphmlParser(model_stream));
     PreProcess();
     Process();
 }
@@ -654,6 +662,9 @@ void ProtobufModelParser::Process(){
     CalculateReplication();
 }
 
+// Manual inspection of test models and test expected output is recommended when modifying this function.
+// Find these in re/tests/re_common/graphmlparser/models.
+// Each <test>.graphml file maps to the expected output contained in <test>.json
 void ProtobufModelParser::CalculateReplication(){
     //Calculate the connections taking into account replication!
     for(const auto& m : assembly_map_){
@@ -687,27 +698,40 @@ void ProtobufModelParser::CalculateReplication(){
                         //If we are an inter_assembly edge, we need to connect every outeventport instance to every ineventport instance
                         if(ac.inter_assembly){
                             //Connect to all!
+                            // We dont actually want to connect to all, see model RE414 in test/re_common/graphmlparser/models.
+                            // Only replicate connection if all parents down to and including shared parent have matching replication indices.
                             for(auto target_component_instance_proto : component_replications_[target_component_id]){
                                 const auto& target_replicate_indices = target_component_instance_proto->replicate_indices();
                                 auto t_unique = GetUniqueSuffix({target_replicate_indices.begin(), target_replicate_indices.end()});
                                 auto t_uid = ac.target_id + t_unique;
 
-                                auto shared_parent_id = graphml_parser_->GetSharedParent(ac.source_id, ac.target_id);
-                                auto source_height = graphml_parser_->GetHeightToParent(ac.source_id, shared_parent_id) - 1;
-                                auto target_height = graphml_parser_->GetHeightToParent(ac.target_id, shared_parent_id) - 1;
 
+                                auto shared_parent_id = graphml_parser_->GetSharedParent(ac.source_id, ac.target_id);
+                                auto source_height = graphml_parser_->GetHeightToParent(ac.source_id, shared_parent_id) - 2;
+                                auto target_height = graphml_parser_->GetHeightToParent(ac.target_id, shared_parent_id) - 2;
+
+                                // Get the location of our shared parent in our replicate indices list.
                                 auto source_index = source_replicate_indices.size() - source_height;
                                 auto target_index = target_replicate_indices.size() - target_height;
 
-                                if(source_index > 0 && target_index > 0){
-                                    auto source_replicate_index = source_replicate_indices[source_index];
-                                    auto target_replicate_index = target_replicate_indices[target_index];
+                                // Our shared parent should be the same,
+                                // therefore the index in our replicate indices that we want to check up till should be the same.
+                                assert(source_index == target_index);
 
-                                    if(source_replicate_index != target_replicate_index){
-                                        continue;
+                                // Check that our parents match all the way down to our shared parent.
+                                bool non_matching_parents = false;
+                                for(int ii = 0; ii <source_index; ii++) {
+                                    if(source_replicate_indices[ii] != target_replicate_indices[ii]){
+                                        non_matching_parents = true;
                                     }
                                 }
+                                // Have to check outside of loop s.t. we continue the right loop.
+                                if(non_matching_parents) {
+                                    continue;
+                                }
 
+                                // If our parent replications up to our shared parent match,
+                                // find the target port instance and add both ends of the connection
                                 NodeManager::Port* target_port_instance_proto = nullptr;
                                 if(port_replicate_id_map_.count(t_uid)){
                                     target_port_instance_proto = port_replicate_id_map_[t_uid];
@@ -715,8 +739,6 @@ void ProtobufModelParser::CalculateReplication(){
                                     std::cerr << "Cant Find Target Port: " << t_uid << std::endl;
                                     continue;
                                 }
-
-                                //Append the connection to our list
                                 if(source_port_instance_proto && target_port_instance_proto){
                                     source_port_instance_proto->add_connected_ports(t_uid);
                                     target_port_instance_proto->add_connected_ports(s_uid);
