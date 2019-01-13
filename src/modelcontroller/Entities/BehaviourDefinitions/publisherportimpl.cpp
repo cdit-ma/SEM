@@ -17,7 +17,7 @@ void PublisherPortImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 PublisherPortImpl::PublisherPortImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     addImplsDefinitionKind(NODE_KIND::PORT_PUBLISHER);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
 
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
@@ -38,7 +38,7 @@ bool PublisherPortImpl::canAdoptChild(Node *child)
     auto child_kind = child->getNodeKind();
     
     switch(child_kind){
-        case NODE_KIND::AGGREGATE_INSTANCE:{
+        case NODE_KIND::AGGREGATE_INST:{
             if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }

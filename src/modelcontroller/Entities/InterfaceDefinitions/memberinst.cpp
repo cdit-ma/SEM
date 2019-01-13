@@ -1,20 +1,19 @@
-#include "memberinstance.h"
-#include "aggregateinstance.h"
+#include "memberinst.h"
+#include "aggregateinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
-#include "../Keys/typekey.h"
+#include "../keys/typekey.h"
 
-const NODE_KIND node_kind = NODE_KIND::MEMBER_INSTANCE;
+const NODE_KIND node_kind = NODE_KIND::MEMBER_INST;
 const QString kind_string = "Member Instance";
 
-void MemberInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+void MemberInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
-        return new MemberInstance(broker, is_temp_node);
+        return new MemberInst(broker, is_temp_node);
     });
 }
 
-MemberInstance::MemberInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
+MemberInst::MemberInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::MEMBER);
     setChainableDefinition();
@@ -31,10 +30,10 @@ MemberInstance::MemberInstance(EntityFactoryBroker& broker, bool is_temp) : Data
 }
 
 
-void MemberInstance::parentSet(Node* parent){
+void MemberInst::parentSet(Node* parent){
     if(parent->getNodeKind() == NODE_KIND::AGGREGATE){
         setLabelFunctional(true);
     }
-    AggregateInstance::ParentSet(this);
+    AggregateInst::ParentSet(this);
     DataNode::parentSet(parent);
 }

@@ -971,10 +971,10 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_types = true;
 
     switch(instance_kind){
-        case NODE_KIND::MEMBER_INSTANCE:
-        case NODE_KIND::VECTOR_INSTANCE:
-        case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE || instance_parent_kind == NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE){
+        case NODE_KIND::MEMBER_INST:
+        case NODE_KIND::VECTOR_INST:
+        case NODE_KIND::AGGREGATE_INST:{
+            if(instance_parent_kind == NODE_KIND::AGGREGATE_INST || instance_parent_kind == NODE_KIND::VECTOR_INST || instance_parent_kind == NODE_KIND::INPUT_PARAMETER_GROUP_INST){
                 bind_index = true;
             }
             break;
@@ -987,14 +987,14 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         switch(instance_kind){
             case NODE_KIND::PORT_REPLIER:
             case NODE_KIND::PORT_REQUESTER:
-            case NODE_KIND::COMPONENT_INSTANCE:{
+            case NODE_KIND::COMPONENT_INST:{
                 bind_labels = false;
                 break;
             }
-            case NODE_KIND::MEMBER_INSTANCE:
-            case NODE_KIND::AGGREGATE_INSTANCE:
-            case NODE_KIND::VECTOR_INSTANCE:
-            case NODE_KIND::ENUM_INSTANCE:{
+            case NODE_KIND::MEMBER_INST:
+            case NODE_KIND::AGGREGATE_INST:
+            case NODE_KIND::VECTOR_INST:
+            case NODE_KIND::ENUM_INST:{
                 if(instance_parent_kind == NODE_KIND::AGGREGATE){
                     bind_labels = false;
                 }

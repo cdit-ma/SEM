@@ -25,6 +25,7 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::HEADER);
+    setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
 
     if(is_temp){
         //Break out early for temporary entities

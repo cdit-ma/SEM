@@ -19,14 +19,14 @@ ContextMenu::ContextMenu(ViewController *vc){
     
 
     //Setup the complex relationship nodes
-    connect_node_edge_kinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::COMPONENT_INST] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::VECTOR_INST] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::MEMBER_INSTANCE] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::AGGREGATE_INST] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::MEMBER_INST] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER_IMPL] = EDGE_KIND::DEFINITION;
     
-    connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::ENUM_INST] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::CLASS_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::FUNCTION_CALL] = EDGE_KIND::DEFINITION;

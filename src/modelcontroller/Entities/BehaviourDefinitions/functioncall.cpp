@@ -17,8 +17,8 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
     
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INST);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INST);
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
 
     if(is_temp){
@@ -41,8 +41,8 @@ bool FunctionCall::canAdoptChild(Node* child)
 {
     auto child_kind = child->getNodeKind();
     switch(child_kind){
-        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
-        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
             if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }

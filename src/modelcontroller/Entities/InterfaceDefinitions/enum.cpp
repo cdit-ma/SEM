@@ -16,7 +16,7 @@ void Enum::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 Enum::Enum(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     
     //Setup State
-    addInstanceKind(NODE_KIND::ENUM_INSTANCE);
+    addInstanceKind(NODE_KIND::ENUM_INST);
     setAcceptsNodeKind(NODE_KIND::ENUM_MEMBER);
 
     if(is_temp){

@@ -1487,7 +1487,7 @@ bool ModelController::canDeleteNode(Node *node)
         auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
         switch(node_kind){
-            case NODE_KIND::ATTRIBUTE_INSTANCE:
+            case NODE_KIND::ATTRIBUTE_INST:
                 if(parent_node_kind == NODE_KIND::PORT_PERIODIC){
                     return false;
                 }
@@ -1501,7 +1501,7 @@ bool ModelController::canDeleteNode(Node *node)
             case NODE_KIND::CLASS_INSTANCE:{
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
                  switch(parent_node_kind){
-                    case NODE_KIND::COMPONENT_INSTANCE:
+                    case NODE_KIND::COMPONENT_INST:
                         return false;
                     default:
                         break;
@@ -1514,11 +1514,11 @@ bool ModelController::canDeleteNode(Node *node)
             case NODE_KIND::PORT_PUBLISHER_IMPL:
             case NODE_KIND::PORT_REPLIER:
             case NODE_KIND::PORT_REQUESTER:
-            case NODE_KIND::COMPONENT_INSTANCE:
+            case NODE_KIND::COMPONENT_INST:
                 // These node kinds can be destroyed at any time
                 break;
-            case NODE_KIND::ENUM_INSTANCE:
-            case NODE_KIND::AGGREGATE_INSTANCE:{
+            case NODE_KIND::ENUM_INST:
+            case NODE_KIND::AGGREGATE_INST:{
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
                 switch(parent_node_kind){
@@ -1526,9 +1526,9 @@ bool ModelController::canDeleteNode(Node *node)
                     case NODE_KIND::VECTOR:
                     case NODE_KIND::VARIABLE:
                     case NODE_KIND::INPUT_PARAMETER_GROUP:
-                    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+                    case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
                     case NODE_KIND::RETURN_PARAMETER_GROUP:
-                    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
+                    case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
                         break;
                     default:
                         return false;
@@ -2714,7 +2714,7 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
         }
     }
 
-    static const QSet<NODE_KIND> instance_kinds = {NODE_KIND::MEMBER_INSTANCE, NODE_KIND::VECTOR_INSTANCE, NODE_KIND::AGGREGATE_INSTANCE, NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE, NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE, NODE_KIND::FUNCTION, NODE_KIND::FUNCTION_CALL, NODE_KIND::ENUM_INSTANCE};
+    static const QSet<NODE_KIND> instance_kinds = {NODE_KIND::MEMBER_INST, NODE_KIND::VECTOR_INST, NODE_KIND::AGGREGATE_INST, NODE_KIND::INPUT_PARAMETER_GROUP_INST, NODE_KIND::RETURN_PARAMETER_GROUP_INST, NODE_KIND::FUNCTION, NODE_KIND::FUNCTION_CALL, NODE_KIND::ENUM_INST};
 
     for(auto child : instance->getChildren(0)){
         auto node_kind = child->getNodeKind();
@@ -2809,7 +2809,7 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     if(unordered_items.count() == 1){
         bool all_okay = true;
         QSet<NODE_TYPE> code_type = {NODE_TYPE::BEHAVIOUR_CONTAINER, NODE_TYPE::BEHAVIOUR_ELEMENT};
-        QSet<NODE_KIND> code_kinds = {NODE_KIND::COMPONENT, NODE_KIND::COMPONENT_INSTANCE, NODE_KIND::COMPONENT_IMPL};
+        QSet<NODE_KIND> code_kinds = {NODE_KIND::COMPONENT, NODE_KIND::COMPONENT_INST, NODE_KIND::COMPONENT_IMPL};
         for(auto item : unordered_items){
             if(item->isNode()){
                 auto node = (Node*) item;

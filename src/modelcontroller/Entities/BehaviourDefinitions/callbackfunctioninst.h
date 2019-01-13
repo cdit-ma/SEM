@@ -1,21 +1,22 @@
-#ifndef MEDEA_FUNCTION_H
-#define MEDEA_FUNCTION_H
+
+#ifndef MEDEA_CALLBACKFUNCTION_INST_H
+#define MEDEA_CALLBACKFUNCTION_INST_H
+
 #include "../node.h"
-#include "containernode.h"
+
 
 class EntityFactoryRegistryBroker;
 namespace MEDEA{
-    class Function :  public Node{
+    class CallbackFunctionInst : public Node{
         friend class ::EntityFactory;
+        
         public:
             static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
         protected:
-            Function(EntityFactoryBroker& factory, bool is_temp_node);
-            QSet<Node*> getDependants() const;
-            void parentSet(Node* parent);
+            CallbackFunctionInst(EntityFactoryBroker& factory, bool is_temp_node);
         public:
             bool canAdoptChild(Node* child);
     };
 };
 
-#endif // MEDEA_FUNCTION_H
+#endif // MEDEA_CALLBACKFUNCTION_INST_H

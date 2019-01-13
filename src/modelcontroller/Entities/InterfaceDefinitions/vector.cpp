@@ -2,7 +2,7 @@
 #include "../Keys/typekey.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "aggregateinstance.h"
+#include "aggregateinst.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR;
 const QString kind_string = "Vector";
@@ -14,11 +14,11 @@ void Vector::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    addInstanceKind(NODE_KIND::VECTOR_INSTANCE);   
+    addInstanceKind(NODE_KIND::VECTOR_INST);   
     
     setAcceptsNodeKind(NODE_KIND::MEMBER);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INST);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -71,7 +71,7 @@ void Vector::updateVectorIcon(Node* node){
     switch(child_kind){
         case NODE_KIND::NONE:
             break;
-        case NODE_KIND::AGGREGATE_INSTANCE:
+        case NODE_KIND::AGGREGATE_INST:
             icon += "_AggregateInstance";
             break;
         default:
@@ -106,6 +106,6 @@ void Vector::BindVectorTypes(Node* vector, Node* child, bool bind){
 }
 
 void Vector::parentSet(Node* parent){
-    AggregateInstance::ParentSet(this);
+    AggregateInst::ParentSet(this);
     DataNode::parentSet(parent);
 }

@@ -827,7 +827,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     node_item = stack_item;
                 }
                 break;
-            case NODE_KIND::COMPONENT_INSTANCE:
+            case NODE_KIND::COMPONENT_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
@@ -890,7 +890,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setTertiaryTextKey("value");
                 node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
                 break;
-            case NODE_KIND::ATTRIBUTE_INSTANCE:
+            case NODE_KIND::ATTRIBUTE_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
 
@@ -922,7 +922,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("namespace");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
-            case NODE_KIND::AGGREGATE_INSTANCE:
+            case NODE_KIND::AGGREGATE_INST:
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                     stack_item->SetUseColumnCount(0, 0, true);
@@ -937,7 +937,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
             case NODE_KIND::MEMBER:
-            case NODE_KIND::MEMBER_INSTANCE:
+            case NODE_KIND::MEMBER_INST:
                 node_item = new MemberNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
                 
@@ -982,7 +982,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
                 break;
             }
-            case NODE_KIND::ENUM_INSTANCE:
+            case NODE_KIND::ENUM_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
                 
@@ -1073,9 +1073,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
             
             case NODE_KIND::INPUT_PARAMETER_GROUP:
-            case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+            case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
-            case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
+            case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
             case NODE_KIND::CLASS_INSTANCE:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
@@ -1104,7 +1104,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setExpandEnabled(false);
                 break;
             case NODE_KIND::VECTOR:
-            case NODE_KIND::VECTOR_INSTANCE:
+            case NODE_KIND::VECTOR_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
@@ -1181,7 +1181,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         stack_item->SetUseColumnCount(1, 2, true);
                         stack_item->SetCellSpacing(1, 2, 10);
                     }else{
-                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INSTANCE){
+                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INST){
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                         }
                     }

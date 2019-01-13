@@ -1,28 +1,24 @@
-#include "vectorinstance.h"
+#include "vectorinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "aggregateinstance.h"
+#include "aggregateinst.h"
 
-const NODE_KIND node_kind = NODE_KIND::VECTOR_INSTANCE;
+const NODE_KIND node_kind = NODE_KIND::VECTOR_INST;
 const QString kind_string = "Vector Instance";
 
-void VectorInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+void VectorInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
-        return new VectorInstance(broker, is_temp_node);
+        return new VectorInst(broker, is_temp_node);
     });
 }
 
-VectorInstance::VectorInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    //Setup State
-    //setDataProducer(true);
-    //setDataReceiver(true);
-
+VectorInst::VectorInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     addInstancesDefinitionKind(NODE_KIND::VECTOR);
     setChainableDefinition();
 
-    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INST);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INST);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -36,7 +32,7 @@ VectorInstance::VectorInstance(EntityFactoryBroker& broker, bool is_temp) : Data
     broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
 }
 
-bool VectorInstance::canAdoptChild(Node *child)
+bool VectorInst::canAdoptChild(Node *child)
 {
    
     if(getChildrenCount() > 0){
@@ -45,7 +41,7 @@ bool VectorInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-void VectorInstance::parentSet(Node* parent){
-    AggregateInstance::ParentSet(this);
+void VectorInst::parentSet(Node* parent){
+    AggregateInst::ParentSet(this);
     DataNode::parentSet(parent);
 }
