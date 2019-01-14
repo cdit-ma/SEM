@@ -432,13 +432,13 @@ void MainWindow::setupInnerWindow()
     setDockWidgetIcon(dockwidget_Assemblies, "EntityIcons", "AssemblyDefinitions", theme);
     setDockWidgetIcon(dockwidget_Hardware, "EntityIcons", "HardwareDefinitions", theme);
 
-    /*//Uncomment for Workers View Aspect
+    //Uncomment for Workers View Aspect
     auto dockwidget_Workers = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::WORKERS), this);
     dockwidget_Workers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
     setDockWidgetIcon(dockwidget_Workers, "EntityIcons", "WorkerDefinitions", theme);
     dockwidget_Workers->setIconVisible(false);
     dockwidget_Workers->setProtected(true);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);*/
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);
 
     //Set Icon Visibility
     dockwidget_Interfaces->setIconVisible(false);

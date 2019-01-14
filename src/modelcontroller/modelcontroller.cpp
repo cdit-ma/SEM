@@ -1498,7 +1498,7 @@ bool ModelController::canDeleteNode(Node *node)
 
         if(node->getDefinition()){
             switch(node_kind){
-            case NODE_KIND::CLASS_INSTANCE:{
+            case NODE_KIND::CLASS_INST:{
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
                  switch(parent_node_kind){
                     case NODE_KIND::COMPONENT_INST:
@@ -1510,6 +1510,7 @@ bool ModelController::canDeleteNode(Node *node)
             }
             case NODE_KIND::EXTERNAL_TYPE:
             case NODE_KIND::FUNCTION_CALL:
+            case NODE_KIND::CALLBACK_FUNCTION_INST:
             case NODE_KIND::PORT_REQUESTER_IMPL:
             case NODE_KIND::PORT_PUBLISHER_IMPL:
             case NODE_KIND::PORT_REPLIER:

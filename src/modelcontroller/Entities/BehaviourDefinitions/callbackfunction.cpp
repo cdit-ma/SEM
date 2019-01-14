@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::CALLBACK_FUNCTION;
-const QString kind_string = "CallbackFunction";
+const QString kind_string = "Callback Function";
 
 void MEDEA::CallbackFunction::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
@@ -15,6 +15,7 @@ void MEDEA::CallbackFunction::RegisterWithEntityFactory(::EntityFactoryRegistryB
 MEDEA::CallbackFunction::CallbackFunction(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    setChainableDefinition();
     addInstanceKind(NODE_KIND::CALLBACK_FUNCTION_INST);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
@@ -29,9 +30,7 @@ MEDEA::CallbackFunction::CallbackFunction(::EntityFactoryBroker& broker, bool is
 
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
-
     broker.AttachData(this, "operation", QVariant::String, ProtectedState::UNPROTECTED, "Function");
-
     broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
 }
@@ -52,4 +51,29 @@ bool MEDEA::CallbackFunction::CallbackFunction::canAdoptChild(Node* child)
             break;
     }
     return Node::canAdoptChild(child);
+}
+
+QSet<Node*> MEDEA::CallbackFunction::getDependants() const{
+    static std::function<QSet<Node*> (const Node*)> getRecursiveInstances = [](const Node* node){
+        QSet<Node*> instances;
+
+        for(auto child : node->getInstances()){
+            if(!instances.contains(child)){
+                instances += child;
+                instances += getRecursiveInstances(child);
+            }
+        }
+        return instances;
+    };
+
+    return getRecursiveInstances(this);
+}
+
+void MEDEA::CallbackFunction::parentSet(Node* parent){
+
+    auto src_data = parent->getData("label");
+    auto dst_data = getData("class");
+    if(src_data && dst_data){
+        src_data->linkData(dst_data, true);
+    }
 }

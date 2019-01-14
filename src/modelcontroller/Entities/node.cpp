@@ -1004,11 +1004,11 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
-            case NODE_KIND::CLASS_INSTANCE:{
+            case NODE_KIND::CLASS_INST:{
                 bind_values[KeyName::Version] += KeyName::Version;
                 required_instance_keys.insert(KeyName::Version);
 
-                if(definition_kind == NODE_KIND::CLASS_INSTANCE){
+                if(definition_kind == NODE_KIND::CLASS_INST){
                     bind_labels = true;
                 }else{
                     copy_values[KeyName::Value] += KeyName::Value;
@@ -1019,7 +1019,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             }
-            case NODE_KIND::FUNCTION_CALL:
+            case NODE_KIND::CALLBACK_FUNCTION_INST:
+            case NODE_KIND::FUNCTION_CALL: 
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::WorkerID] += KeyName::WorkerID;
                     bind_values[KeyName::Operation] += KeyName::Operation;
@@ -1032,6 +1033,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 required_instance_keys.insert(KeyName::IsVariadic);
                 required_instance_keys.insert(KeyName::Description);
                 break;
+            case NODE_KIND::CALLBACK_FUNCTION:
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values[KeyName::Operation] += KeyName::Operation;
@@ -1336,9 +1338,15 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
 
     //If i am an instance nothing should be cosntructable
-    if((isInstance() && getDefinition()) || isReadOnly()){
+    const auto is_valid_instance = isInstance() && getDefinition();
+    if(is_valid_instance && !IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE)){
         node_kinds.clear();
     }
+
+    if(isReadOnly()){
+        node_kinds.clear();
+    }
+
     return node_kinds;
 }
 

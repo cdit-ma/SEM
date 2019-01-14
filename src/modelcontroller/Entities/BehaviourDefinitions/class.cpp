@@ -17,13 +17,13 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     
-    addInstanceKind(NODE_KIND::CLASS_INSTANCE);
+    addInstanceKind(NODE_KIND::CLASS_INST);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
     setAcceptsNodeKind(NODE_KIND::TRANSITION_FUNCTION);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     setAcceptsNodeKind(NODE_KIND::HEADER);
     setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
 

@@ -22,7 +22,7 @@ ComponentInst::ComponentInst(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER_INST);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_PERIODIC_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_REPLIER_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER_INST);

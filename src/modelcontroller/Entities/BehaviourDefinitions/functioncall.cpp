@@ -68,11 +68,11 @@ QSet<Node*> FunctionCall::getListOfValidAncestorsForChildrenDefinitions(){
 
 QSet<Node*> FunctionCall::getParentNodesForValidDefinition(){
     QSet<Node*> parents;
-    //Need to look at the CLASS_INSTANCE children contained with in the ComponentImpl/Class
+    //Need to look at the CLASS_INST children contained with in the ComponentImpl/Class
     auto component = getTopBehaviourContainer();
     if(component){
         parents << component;
-        for(auto node : component->getChildrenOfKind(NODE_KIND::CLASS_INSTANCE, 0)){
+        for(auto node : component->getChildrenOfKind(NODE_KIND::CLASS_INST, 0)){
             parents << node;
         }
     }

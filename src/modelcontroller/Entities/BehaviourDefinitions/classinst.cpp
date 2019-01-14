@@ -2,7 +2,7 @@
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
+const NODE_KIND node_kind = NODE_KIND::CLASS_INST;
 const QString kind_string = "Class Instance";
 
 void MEDEA::ClassInst::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
@@ -20,7 +20,8 @@ MEDEA::ClassInst::ClassInst(::EntityFactoryBroker& broker, bool is_temp) : Node(
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INST);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -51,7 +52,7 @@ bool MEDEA::ClassInst::ClassInst::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
     case EDGE_KIND::DEFINITION:{
         switch(dst->getNodeKind()){
             case NODE_KIND::CLASS:
-            case NODE_KIND::CLASS_INSTANCE:{
+            case NODE_KIND::CLASS_INST:{
                 if(parent_node_kind == NODE_KIND::COMPONENT_INST){
                     auto parent_node_def = parent_node->getDefinition(true);
                     bool in_ancestor = false;

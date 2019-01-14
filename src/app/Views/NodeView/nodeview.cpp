@@ -759,7 +759,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
             
             //Ignore Functions contained within Class Instances
-            if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INSTANCE){
+            if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INST){
                 return;
             }
 
@@ -936,6 +936,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("class");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
+            case NODE_KIND::CALLBACK_FUNCTION_INST:
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("class");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
+                break;
             case NODE_KIND::MEMBER:
             case NODE_KIND::MEMBER_INST:
                 node_item = new MemberNodeItem(item, parentNode);
@@ -1076,7 +1081,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
             case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
-            case NODE_KIND::CLASS_INSTANCE:
+            case NODE_KIND::CLASS_INST:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);

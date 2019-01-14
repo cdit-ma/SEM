@@ -71,7 +71,7 @@ enum class NODE_KIND
         OPENCL_DEVICE,
         DEPLOYMENT_CONTAINER,
         CLASS,
-        CLASS_INSTANCE,
+        CLASS_INST,
         FUNCTION,
         TRANSITION_FUNCTION,
 

@@ -85,7 +85,7 @@ void MEDEA::TransitionFunction::parentSet(Node* parent){
         setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER_IMPL, false);
     }
 
-    if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INSTANCE){
+    if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INST){
         auto operation = getData("operation");
         auto label = getData("label");
         if(operation && label){

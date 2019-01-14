@@ -2,7 +2,7 @@
 #include "aggregateinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../keys/typekey.h"
+#include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::MEMBER_INST;
 const QString kind_string = "Member Instance";

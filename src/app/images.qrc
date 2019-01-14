@@ -11,6 +11,7 @@
         <file alias="AttributeImpl">Resources/EntityIcons/AttributeImpl.png</file>
         <file alias="AttributeInstance">Resources/EntityIcons/AttributeInstance.png</file>
         <file alias="BehaviourDefinitions">Resources/EntityIcons/BehaviourDefinitions.png</file>
+        <file alias="CallbackFunction">Resources/EntityIcons/CallbackFunction.png</file>
         <file alias="Class">Resources/EntityIcons/Class.png</file>
         <file alias="ClassInstance">Resources/EntityIcons/ClassInstance.png</file>
         <file alias="Code">Resources/EntityIcons/Code.png</file>
