@@ -4,7 +4,6 @@
 #include "hoverpopup.h"
 #include "../Data/Events/protoMessageStructs.h"
 
-#include <QScrollArea>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QToolBar>
@@ -28,6 +27,8 @@ signals:
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
     void requestEvents(QString node, QString component, QString worker);
+
+    void setChartTitle(QString title);
 
 public slots:
     void themeChanged();
@@ -53,28 +54,27 @@ private:
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName, bool addToFilterMenu = true, bool scrollable = false);
 
+    QLineEdit* experimentNameLineEdit_;
+
     QGroupBox* experimentNameGroupBox_ = 0;
     QGroupBox* experimentRunsGroupBox_ = 0;
     QGroupBox* nodesGroupBox_ = 0;
     QGroupBox* componentsGroupBox_ = 0;
     QGroupBox* workersGroupBox_ = 0;
 
-    QWidget* scrollWidget;
-    QScrollArea* scroll;
-
     QHash<FILTER_KEY, QLayout*> groupBoxLayouts;
-
-    QLineEdit* experimentNameLineEdit_;
 
     QToolBar* toolbar_;
     QAction* okAction_;
     QAction* cancelAction_;
     QAction* filterAction_;
     QMenu* filterMenu_;
+    QWidget* scrollWidget;
 
     QPointF originalCenterPos_;
 
     qint32 selectedExperimentRunID_;
+    QString experimentName_;
     QString selectedNode_;
     QString selectedComponent_;
     QString selectedWorker_;

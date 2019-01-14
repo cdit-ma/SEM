@@ -319,9 +319,10 @@ void PanelWidget::setViewController(ViewController *vc)
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, chartPopup, &ChartInputPopup::setPopupVisible);
         connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
         connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentState, chartPopup, &ChartInputPopup::receivedExperimentState);
-        connect (chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-        connect (chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-        connect (chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
+        connect(chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
+        connect(chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+        connect(chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
+        //connect(chartPopup, &ChartInputPopup::setChartTitle, this, &PanelWidget::setActiveTabTitle);
     }
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
@@ -368,7 +369,6 @@ void PanelWidget::themeChanged()
     minimiseAction->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
 
-    requestDataAction->setIcon(theme->getIcon("Icons", "reload"));
     refreshDataAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     for (auto action : tabBar->actions()) {
@@ -432,6 +432,24 @@ void PanelWidget::tabMenuTriggered(QAction* action)
             tabsActionGroup->setVisible(false);
             minimiseAction->triggered(true);
             minimiseAction->setChecked(true);
+        }
+    }
+}
+
+
+/**
+ * @brief PanelWidget::setActiveTabTitle
+ * @param title
+ */
+void PanelWidget::setActiveTabTitle(QString title)
+{
+    if (tabsActionGroup) {
+        auto activeAction = tabsActionGroup->checkedAction();
+        if (activeAction) {
+            activeAction->setText(title);
+            activeAction->setToolTip(title);
+            int maxWidth = qMax(fontMetrics().width(title) + 40, TAB_WIDTH);
+            tabBar->widgetForAction(activeAction)->setFixedWidth(maxWidth);
         }
     }
 }
@@ -545,9 +563,8 @@ void PanelWidget::popOutActiveTab()
 
 /**
  * @brief PanelWidget::requestData
- * @param clear
  */
-void PanelWidget::requestData(bool clear)
+void PanelWidget::requestData()
 {
     emit reloadTimelineEvents();
 }
@@ -669,15 +686,10 @@ void PanelWidget::setupLayout()
         playPauseAction->setChecked(false);
     }
 
-    requestDataAction = titleBar->addAction("Request/Reload Data");
-    connect(requestDataAction, &QAction::triggered, [=]() {
-        requestData(true);
-    });
     refreshDataAction = titleBar->addAction("Refresh Data");
     connect(refreshDataAction, &QAction::triggered, [=]() {
-        requestData(false);
+        requestData();
     });
-    refreshDataAction->setVisible(false);
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");

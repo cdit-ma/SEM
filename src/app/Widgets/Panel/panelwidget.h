@@ -55,6 +55,7 @@ public slots:
     void activeTabChanged();
 
     void tabMenuTriggered(QAction* action);
+    void setActiveTabTitle(QString title);
 
     void minimisePanel(bool checked);
     void closePanel();
@@ -62,7 +63,7 @@ public slots:
     void popOutPanel();
     void popOutActiveTab();
 
-    void requestData(bool clear = true);
+    void requestData();
 
     void handleTimeout();
     void playPauseToggled(bool checked);
@@ -90,7 +91,6 @@ private:
     QAction* popOutActiveTabAction = 0;
     QAction* playPauseAction = 0;
 
-    QAction* requestDataAction = 0;
     QAction* refreshDataAction = 0;
 
     QAction* tabsMenuAction = 0;

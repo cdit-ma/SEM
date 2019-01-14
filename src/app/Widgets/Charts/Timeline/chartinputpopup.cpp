@@ -1,13 +1,16 @@
 #include "chartinputpopup.h"
 #include "../../../theme.h"
 
+#include <QScrollArea>
 #include <QVBoxLayout>
 #include <QRadioButton>
 #include <QToolButton>
 #include <QDateTime>
 
+#define MIN_WIDTH 400
 #define FILTER "filter"
-#define FILTER_WIDGET_NAME "filterWidget"
+#define GROUPBOX_ITEM_SPACING 3
+#define GROUPBOX_MAX_HEIGHT 300
 
 
 /**
@@ -23,7 +26,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
     experimentNameLineEdit_ = new QLineEdit(this);
     experimentNameLineEdit_->setFixedHeight(40);
-    experimentNameLineEdit_->setMinimumWidth(400);
+    experimentNameLineEdit_->setMinimumWidth(MIN_WIDTH);
     experimentNameLineEdit_->setFont(QFont(font().family(), 10, QFont::ExtraLight));
     experimentNameLineEdit_->setPlaceholderText("Enter experiment name...");
     experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -47,7 +50,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     toolbar_ = new QToolBar(this);
-    toolbar_->setMinimumWidth(400);
+    toolbar_->setMinimumWidth(MIN_WIDTH);
     toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     filterMenu_ = new QMenu(this);
@@ -184,6 +187,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
         groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
         connect(button, &QRadioButton::toggled, [=](bool checked) {
             if (checked) {
+                //experimentName_ = run.experiment_name + "[" + QString::number(ID) + "]";
                 selectedExperimentRunID_ = ID;
                 emit requestExperimentState(ID);
             }
@@ -258,6 +262,7 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
 void ChartInputPopup::accept()
 {
     if (selectedExperimentRunID_ != -1) {
+        //emit setChartTitle(experimentName_);
         emit requestEvents(selectedNode_, selectedComponent_, selectedWorker_);
     }
     hideGroupBoxes();
@@ -372,8 +377,7 @@ void ChartInputPopup::recenterPopup()
  */
 void ChartInputPopup::resizePopup()
 {
-    //scroll->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()));
-    experimentRunsGroupBox_->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()) + 40);
+    experimentRunsGroupBox_->setFixedHeight(qMin(GROUPBOX_MAX_HEIGHT, scrollWidget->sizeHint().height()) + 38);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
 }
@@ -460,26 +464,25 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
     if (scrollable) {
 
         scrollWidget = new QWidget(this);
-        scrollWidget->setObjectName(FILTER_WIDGET_NAME);
         scrollWidget->setStyleSheet("background: rogba(0,0,0,0);");
         scrollWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
         QVBoxLayout* scrollLayout = new QVBoxLayout(scrollWidget);
         scrollLayout->setMargin(0);
-        scrollLayout->setSpacing(2);
+        scrollLayout->setSpacing(GROUPBOX_ITEM_SPACING);
         scrollLayout->setContentsMargins(1, 5, 1, 1);
 
-        scroll = new QScrollArea(this);
+        QScrollArea* scroll = new QScrollArea(this);
         scroll->setWidget(scrollWidget);
         scroll->setWidgetResizable(true);
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        qDebug() << "contents margin: " << scroll->contentsMargins();
 
         layout->addWidget(scroll);
-        //groupBox->setMaximumHeight(300);
         groupBoxLayouts[filter] = scrollLayout;
 
     } else {
-        layout->setSpacing(2);
+        layout->setSpacing(GROUPBOX_ITEM_SPACING);
         layout->setContentsMargins(1, 5, 1, 1);
         groupBoxLayouts[filter] = layout;
     }
