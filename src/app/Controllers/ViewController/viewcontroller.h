@@ -19,6 +19,9 @@
 #include "../../../modelcontroller/viewcontrollerint.h"
 #include "../JenkinsManager/jenkinsmanager.h"
 #include "../../Controllers/AggregationProxy/aggregationproxy.h"
+
+#include "../../Widgets/Charts/Data/Events/event.h"
+
 #undef ERROR
 #include <QTimer>
 
@@ -139,6 +142,7 @@ signals:
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
 
+    void vc_viewItemInChart(ViewItem* item, TIMELINE_DATA_KIND dataKind);
     
 public slots:
     void incrementSelectedKey(QString key_name);

@@ -175,7 +175,16 @@ void ContextMenu::themeChanged(){
             edge_menu->setStyleSheet(main_menu->styleSheet());
         }
     }
+
+
+    // update chart menu icons
+    chart_data_kind_menu->setIcon(theme->getIcon("Icons", "chart"));
+    for (auto action : chart_data_kind_menu->actions()) {
+        action->setIcon(theme->getIcon("ToggleIcons", action->text()));
+    }
 }
+
+
 
 void ContextMenu::update_edge_menu(QMenu* parent_menu, QMenu* menu, QList<ViewItem*> connect_source_items, QList<ViewItem*> connect_target_items, QList<ViewItem*> disconnect_items){
     if(menu && menu_requires_update(menu)){
@@ -852,7 +861,8 @@ QWidgetAction* ContextMenu::get_load_more_action(QMenu* parent){
 
 
 
-void ContextMenu::setupMenus(){
+void ContextMenu::setupMenus()
+{
     main_menu = construct_menu("", 0);
 
     deploy_menu = construct_menu("Deploy", main_menu);
@@ -1014,6 +1024,29 @@ void ContextMenu::setupMenus(){
     add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
 
+
+    // setup chart menu
+    chart_data_kind_menu = construct_menu("View In Chart", main_menu);
+    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
+        if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE ||
+            kind == TIMELINE_DATA_KIND::WORKLOAD ||
+            kind == TIMELINE_DATA_KIND::CPU_UTILISATION ||
+            kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION)
+        {
+            auto action = chart_data_kind_menu->addAction(GET_TIMELINE_DATA_KIND_STRING(kind));
+            action->setProperty("dataKind", (uint)kind);
+        }
+    }
+    // connect chart menu
+    connect(chart_data_kind_menu, &QMenu::triggered, [=](QAction* action) {
+        if (view_controller) {
+            auto item = view_controller->getSelectionController()->getActiveSelectedItem();
+            if (item)
+                emit view_controller->vc_viewItemInChart(item, (TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
+        }
+    });
+
+
     //Setup the main_menu
     main_menu->addMenu(add_node_menu);
     main_menu->addAction(action_controller->edit_delete->constructSubAction(true));
@@ -1026,6 +1059,10 @@ void ContextMenu::setupMenus(){
     main_menu->addAction(action_controller->model_getCodeForComponent->constructSubAction(true));
     main_menu->addSeparator();
     main_menu->addAction(action_controller->toolbar_replicateCount->constructSubAction(true));
+    main_menu->addSeparator();
+    //main_menu->addAction(action_controller->chart_viewInChart->constructSubAction(true));
+    main_menu->addMenu(chart_data_kind_menu);
+    main_menu->addSeparator();
     main_menu->addAction(action_controller->view_viewInNewWindow->constructSubAction(true));
     main_menu->addAction(action_controller->toolbar_wiki->constructSubAction(true));
 }

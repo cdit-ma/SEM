@@ -1316,14 +1316,14 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "dataLabelToggle", "Icons", "radioButtonChecked", "Icons", "radioButtonUnchecked");
 
     setIconToggledImage("ToggleIcons", "chartToggle", "Icons", "chartDark", "Icons", "barChart");
-    setIconToggledImage("ToggleIcons", "stateLegendToggle", "Icons", "circleHalo", "Icons", "circleHalo");
-    setIconToggledImage("ToggleIcons", "notificationLegendToggle", "Icons", "bell", "Icons", "bell");
-    setIconToggledImage("ToggleIcons", "lineLegendToggle", "Icons", "connect", "Icons", "connect");
-    setIconToggledImage("ToggleIcons", "barLegendToggle", "Icons", "chart", "Icons", "chart");
-    setIconToggledImage("ToggleIcons", "portLifecycleLegendToggle", "Icons", "plug", "Icons", "plug");
-    setIconToggledImage("ToggleIcons", "workloadLegendToggle", "Icons", "spanner", "Icons", "spanner");
-    setIconToggledImage("ToggleIcons", "utilisationLegendToggle", "Icons", "cpu", "Icons", "cpu");
-    setIconToggledImage("ToggleIcons", "memoryLegendToggle", "Icons", "memoryCard", "Icons", "memoryCard");
+    setIconToggledImage("ToggleIcons", "State", "Icons", "circleHalo", "Icons", "circleHalo");
+    setIconToggledImage("ToggleIcons", "Notification", "Icons", "bell", "Icons", "bell");
+    setIconToggledImage("ToggleIcons", "Line", "Icons", "connect", "Icons", "connect");
+    setIconToggledImage("ToggleIcons", "Bar", "Icons", "chart", "Icons", "chart");
+    setIconToggledImage("ToggleIcons", "PortLifecycle", "Icons", "plug", "Icons", "plug");
+    setIconToggledImage("ToggleIcons", "Workload", "Icons", "spanner", "Icons", "spanner");
+    setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
+    setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");

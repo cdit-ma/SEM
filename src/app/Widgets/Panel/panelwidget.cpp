@@ -780,5 +780,6 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
         }
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
+        connect(viewController, &ViewController::vc_viewItemInChart, view, &TimelineChartView::viewEventsForItem);
     }
 }

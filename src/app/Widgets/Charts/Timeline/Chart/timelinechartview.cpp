@@ -383,52 +383,39 @@ void TimelineChartView::themeChanged()
                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
-        QIcon actionIcon, buttonIcon;
+        QIcon buttonIcon;
         switch (kind) {
-        case TIMELINE_DATA_KIND::STATE: {
-            actionIcon = theme->getIcon("ToggleIcons", "stateLegendToggle");
+        case TIMELINE_DATA_KIND::STATE:
             buttonIcon = theme->getIcon("ToggleIcons", "stateHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::NOTIFICATION: {
-            actionIcon = theme->getIcon("ToggleIcons", "notificationLegendToggle");
+        case TIMELINE_DATA_KIND::NOTIFICATION:
             buttonIcon = theme->getIcon("ToggleIcons", "notificationHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::BAR: {
-            actionIcon = theme->getIcon("ToggleIcons", "barLegendToggle");
+        case TIMELINE_DATA_KIND::BAR:
             buttonIcon = theme->getIcon("ToggleIcons", "barHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-            actionIcon = theme->getIcon("ToggleIcons", "portLifecycleLegendToggle");
+        case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::WORKLOAD: {
-            actionIcon = theme->getIcon("ToggleIcons", "workloadLegendToggle");
+
+        case TIMELINE_DATA_KIND::WORKLOAD:
             buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::CPU_UTILISATION: {
-            actionIcon = theme->getIcon("ToggleIcons", "utilisationLegendToggle");
+        case TIMELINE_DATA_KIND::CPU_UTILISATION:
             buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
             break;
-        }
-        case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
-            actionIcon = theme->getIcon("ToggleIcons", "memoryLegendToggle");
+        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
             buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
             break;
-        }
         default:
             continue;
         }
-        auto action = _legendActions.value(kind, 0);
-        if (action)
-            action->setIcon(actionIcon);
         auto button = _hoverDisplayButtons.value(kind, 0);
         if (button)
             button->setIcon(buttonIcon);
+        auto action = _legendActions.value(kind, 0);
+        if (action)
+            action->setIcon(theme->getIcon("ToggleIcons", GET_TIMELINE_DATA_KIND_STRING(kind)));
     }
 }
 
@@ -603,6 +590,22 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
             _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
         }
     }
+}
+
+
+/**
+ * @brief TimelineChartView::viewEventsForItem
+ * @param item
+ * @param kind
+ */
+void TimelineChartView::viewEventsForItem(ViewItem *item, TIMELINE_DATA_KIND kind)
+{
+    if (!item)
+        return;
+
+    // DO WORK HERE
+    qDebug() << "View Item In Chart: " << item->getData("label").toString();
+    qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
 }
 
 

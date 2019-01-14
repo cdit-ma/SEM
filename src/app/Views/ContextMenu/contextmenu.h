@@ -99,6 +99,8 @@ private:
     QMenu* dock_add_node_menu = 0;
     QMenu* dock_deploy_menu = 0;
 
+    QMenu* chart_data_kind_menu = 0;
+
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
     QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     

@@ -60,7 +60,9 @@ public slots:
 
     void clearSeriesEvents();
     void receivedRequestedEvent(MEDEA::Event* event);
-    
+
+    void viewEventsForItem(ViewItem* item, TIMELINE_DATA_KIND kind);
+
     void updateChartHoverDisplay();
     
 private:

@@ -42,57 +42,47 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
 void ActionController::connectViewController(ViewController *controller)
 {
-
-    if(viewController){
+    if (viewController) {
         connect(controller, &ViewController::ActionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::GotJenkins, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::GotJava, this, &ActionController::gotJava);
         connect(controller, &ViewController::GotRe, this, &ActionController::gotRe);
         connect(controller, &ViewController::GotRegen, this, &ActionController::gotRegen);
-
-        connect(controller, &ViewController::UndoRedoUpdated, this, &ActionController::updateUndoRedo);
-
-        
-
+        connect(controller, &ViewController::UndoRedoUpdated, this, &ActionController::updateUndoRedo);  
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);
         connect(controller, &ViewController::vc_removeProjectFromRecentProjects, this, &ActionController::removeRecentProject);
 
-
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
-    
         connect(file_openProject, &QAction::triggered, viewController, &ViewController::OpenProject);
         connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
         connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::importProjects);
         connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
-
-        connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
-
-        
-
-        
+        connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
 
         connect(edit_undo, &QAction::triggered, viewController, &ViewController::Undo);
         connect(edit_redo, &QAction::triggered, viewController, &ViewController::Redo);
         connect(edit_cut, &QAction::triggered, viewController, &ViewController::cut);
         connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
-        
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
-        connect(view_fitView, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(true);});
-        connect(view_fitAllViews, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(false);});
-
         connect(edit_alignHorizontal, &QAction::triggered, viewController, &ViewController::alignSelectionHorizontal);
         connect(edit_alignVertical, &QAction::triggered, viewController, &ViewController::alignSelectionVertical);
-
-
-        connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
         connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::editLabel);
-        connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
+        connect(edit_expand, &QAction::triggered, viewController, &ViewController::expandSelection);
+        connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
 
+        connect(edit_incrementIndex, &QAction::triggered, [=](){viewController->incrementSelectedKey("index");});
+        connect(edit_decrementIndex, &QAction::triggered, [=](){viewController->decrementSelectedKey("index");});
+        connect(edit_incrementRow, &QAction::triggered, [=](){viewController->incrementSelectedKey("row");});
+        connect(edit_decrementRow, &QAction::triggered, [=](){viewController->decrementSelectedKey("row");});
+
+        connect(view_fitView, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(true);});
+        connect(view_fitAllViews, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(false);});
+        connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
         connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
         connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
@@ -100,56 +90,37 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
         connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::selectAndCenterConnectedEntities);
 
-
+        connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
         connect(toolbar_wiki, &QAction::triggered, viewController, &ViewController::showWikiForSelectedItem);
+        connect(toolbar_addDDSQOSProfile, &QAction::triggered, viewController, &ViewController::constructDDSQOSProfile);
+
         connect(help_wiki, &QAction::triggered, viewController, &ViewController::showWiki);
         connect(help_reportBug, &QAction::triggered, viewController, &ViewController::reportBug);
         connect(help_aboutQt, &QAction::triggered, viewController, &ViewController::aboutQt);
         connect(help_aboutMedea, &QAction::triggered, viewController, &ViewController::aboutMEDEA);
-
-
-        connect(edit_expand, &QAction::triggered, viewController, &ViewController::expandSelection);
-        connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
-
-
 
         connect(jenkins_importNodes, &QAction::triggered, viewController, &ViewController::RequestJenkinsNodes);
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::RequestJenkinsBuildJob);
         connect(jenkins_showBrowser, &QAction::triggered, viewController, &ViewController::showExecutionMonitor);
         connect(jenkins_listJobs, &QAction::triggered, viewController, &ViewController::ListJenkinsJobs);
 
-
-
-        connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
-
-        connect(toolbar_addDDSQOSProfile, &QAction::triggered, viewController, &ViewController::constructDDSQOSProfile);
-
         connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateProjectWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
-        connect(model_queryRunningExperiments, &QAction::triggered, viewController, &ViewController::QueryRunningExperiments);
+        connect(model_queryRunningExperiments, &QAction::triggered, viewController, &ViewController::QueryRunningExperiments);    
+        connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
 
-        
-
-        
-        
-        connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
+        connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
-
-        connect(edit_incrementIndex, &QAction::triggered, [=](){viewController->incrementSelectedKey("index");});
-        connect(edit_decrementIndex, &QAction::triggered, [=](){viewController->decrementSelectedKey("index");});
-
-        connect(edit_incrementRow, &QAction::triggered, [=](){viewController->incrementSelectedKey("row");});
-        connect(edit_decrementRow, &QAction::triggered, [=](){viewController->decrementSelectedKey("row");});
     }
 }
 
 void ActionController::connectSelectionController()
 {
-    if(selectionController){
+    if (selectionController) {
         connect(selectionController, &SelectionController::selectionChanged, this, &ActionController::selectionChanged);
         connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionForward()));
         connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionBackward()));
@@ -158,11 +129,9 @@ void ActionController::connectSelectionController()
         connect(view_zoomIn, &QAction::triggered, selectionController, &SelectionController::zoomIn);
         connect(view_zoomOut, &QAction::triggered, selectionController, &SelectionController::zoomOut);
         
-        
         connect(edit_clearSelection, SIGNAL(triggered(bool)), selectionController, SIGNAL(clearSelection()));
     }
 }
-
 
 RootAction *ActionController::createRootAction(QString category, QString name, QString hashKey, QString iconPath, QString aliasPath)
 {
@@ -217,7 +186,8 @@ void ActionController::clearRecentProjects()
 }
 
 
-void ActionController::addRecentProject(QString file_path){
+void ActionController::addRecentProject(QString file_path)
+{
     FileHandler::sanitizeFilePath(file_path);
     auto project_list = recentProjectKeys;
 
@@ -234,7 +204,8 @@ void ActionController::addRecentProject(QString file_path){
     SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, project_list);
 }
 
-void ActionController::removeRecentProject(QString file_path){
+void ActionController::removeRecentProject(QString file_path)
+{
     FileHandler::sanitizeFilePath(file_path);
     auto project_list = recentProjectKeys;
     if(project_list.removeAll(file_path)){
@@ -339,12 +310,15 @@ void ActionController::selectionChanged(int selection_size)
     
         //Selection based.
         toolbar_wiki->setEnabled(got_selection);
+
         edit_expand->setEnabled(got_selection);
         edit_contract->setEnabled(got_selection);
 
-
         edit_clearSelection->setEnabled(got_selection);
         view_centerOn->setEnabled(got_selection);
+
+        chart_viewInChart->setEnabled(got_selection);
+
         
         //Single Selection
         edit_selectAll->setEnabled(got_single_selection);
@@ -620,6 +594,8 @@ QList<QAction *> ActionController::getNodeViewActions()
 
 void ActionController::setupActions()
 {
+    chart_viewInChart = createRootAction("Chart", "View In Chart", "", "Icons", "chart");
+
     file_newProject = createRootAction("Project", "New Project", "", "Icons", "file");
     file_newProject->setToolTip("Construct a new project.");
     file_newProject->setShortcutContext(Qt::ApplicationShortcut);
@@ -637,7 +613,6 @@ void ActionController::setupActions()
     file_saveProject->setShortcutContext(Qt::ApplicationShortcut);
     file_saveProject->setShortcut(QKeySequence::Save);
 
-
     file_saveAsProject = createRootAction("Project", "Save Project As", "", "Icons", "floppyDisk");
     file_saveAsProject->setToolTip("Save current project into a different file.");
     file_saveAsProject->setShortcutContext(Qt::ApplicationShortcut);
@@ -648,16 +623,11 @@ void ActionController::setupActions()
     file_closeProject->setShortcutContext(Qt::ApplicationShortcut);
     file_closeProject->setShortcut(QKeySequence::Close);
 
-
     file_importGraphML = createRootAction("Project", "Import Project", "", "Icons", "clipboardDown");
     file_importGraphML->setToolTip("Import Project into current project.");
     file_importGraphML->setShortcutContext(Qt::ApplicationShortcut);
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 
-
-    
-
-  
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
     edit_undo->setToolTip("Undo last model change.");
     edit_undo->setShortcutContext(Qt::ApplicationShortcut);
@@ -667,7 +637,6 @@ void ActionController::setupActions()
     edit_redo->setToolTip("Redo last undo.");
     edit_redo->setShortcutContext(Qt::ApplicationShortcut);
     edit_redo->setShortcut(QKeySequence::Redo);
-
 
     edit_cut = createRootAction("Edit", "Cut", "", "Icons", "scissors");
     edit_cut->setToolTip("Cut selection.");
@@ -693,19 +662,15 @@ void ActionController::setupActions()
     edit_renameActiveSelection->setToolTip("Rename the selected entity.");
     edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
 
-
     edit_search = createRootAction("Edit", "Search", "Root_Search", "Icons", "zoom");
     edit_search->setToolTip("Search model.");
     edit_search->setShortcutContext(Qt::ApplicationShortcut);
     edit_search->setShortcut(QKeySequence::Find);
 
-
     edit_goto = createRootAction("Edit", "Goto", "Root_Search", "Icons", "crosshair");
     edit_goto->setToolTip("Goto a particular ID");
     edit_goto->setShortcutContext(Qt::ApplicationShortcut);
     edit_goto->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-
-
 
     //edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
     //edit_sort->setToolTip("Sort selection.");
@@ -715,7 +680,6 @@ void ActionController::setupActions()
 
     edit_alignHorizontal = createRootAction("Edit", "Align Horizontally", "", "Icons", "alignHorizontal");
     edit_alignHorizontal->setToolTip("Align selection horizontally.");
-
 
     edit_CycleActiveSelectionForward = createRootAction("Selection", "Cycle Next Selected Item", "", "Icons", "arrowHeadRight");
     edit_CycleActiveSelectionForward->setToolTip("Cycle between active selected entities.");
@@ -738,8 +702,6 @@ void ActionController::setupActions()
     
     edit_incrementRow = createRootAction("View", "Increment Row", "", "Icons", "plus");
     edit_decrementRow = createRootAction("View", "Decrement Row", "", "Icons", "lineHorizontal");
-
-    
 
     view_fitView = createRootAction("View", "Fit View", "", "Icons", "screenResize");
     view_fitView->setToolTip("Center all entities in active view.");
@@ -778,11 +740,9 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setToolTip("Popout selected entity's Implementation.");
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
     view_viewConnections->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
-
 
     view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Icons", "popOut");
     view_viewInNewWindow->setToolTip("Popout selected entity.");
@@ -796,8 +756,6 @@ void ActionController::setupActions()
     model_validateModel->setToolTip("Validate the current project.");
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
-
-    
 
     model_queryRunningExperiments = createRootAction("Model", "Query Running Experiment", "", "Icons", "shieldTick");
     model_queryRunningExperiments->setToolTip("Query Running Experiments.");
@@ -814,8 +772,6 @@ void ActionController::setupActions()
     dock_deploy->setShortcutContext(Qt::ApplicationShortcut);
     dock_deploy->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
-    
-
     model_getCodeForComponent = createRootAction("Model", "Generate Code for Component", "", "Icons", "bracketsAngled");
     model_getCodeForComponent->setToolTip("Generate the C++ Impl code for the selected Component");
     model_getCodeForComponent->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_G));
@@ -831,17 +787,10 @@ void ActionController::setupActions()
     model_reloadWorkerDefinitions = createRootAction("Model", "Reload Worker Definitions", "", "Icons", "reload");
     model_reloadWorkerDefinitions->setToolTip("Reloads the Worker Definitions for this version of MEDEA.");
 
-    
-    
-
-
-
-
     jenkins_importNodes = createRootAction("Jenkins", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
     jenkins_importNodes->setToolTip("Imports the nodes from the Jenkins Server.");
     jenkins_importNodes->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_importNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
-
 
     jenkins_executeJob = createRootAction("Jenkins", "Launch: Jenkins Job", "", "Icons", "jobBuild");
     jenkins_executeJob->setToolTip("Executes the current project on the Jenkins Server.");
@@ -850,15 +799,10 @@ void ActionController::setupActions()
 
     jenkins_listJobs = createRootAction("Jenkins", "Launch other Jenkins Job", "", "Icons", "jobBuild");
     jenkins_listJobs->setToolTip("Builds a Jenkins Job.");
-    
-
 
     jenkins_showBrowser = createRootAction("Jenkins", "Show Jenkins Execution Monitor", "", "Icons", "bracketsAngled");
     jenkins_showBrowser->setToolTip("Shows Jenkins Execution Monitor.");
     jenkins_showBrowser->setShortcutContext(Qt::ApplicationShortcut);
-
-
-    
 
     help_shortcuts = createRootAction("Help", "App Shortcuts", "", "Icons", "keyboard");
 
@@ -869,7 +813,6 @@ void ActionController::setupActions()
     help_wiki->setShortcutContext(Qt::ApplicationShortcut);
     help_wiki->setShortcut(QKeySequence::HelpContents);
 
-
     help_aboutMedea = createRootAction("Help", "About", "", "Icons", "circleInfo");
     help_aboutQt = createRootAction("Help", "About Qt", "", "Icons", "qt");
 
@@ -877,9 +820,6 @@ void ActionController::setupActions()
     options_settings->setToolTip("Show application settings.");
     options_settings->setShortcutContext(Qt::ApplicationShortcut);
     options_settings->setShortcut(QKeySequence(Qt::Key_F10));
-    
-
-
 
     file_exit = createRootAction("Project", "Exit", "", "Icons", "arrowIntoBox");
 
@@ -889,10 +829,6 @@ void ActionController::setupActions()
     toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
     toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
     toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
-   
-
-
-
 
     toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
@@ -902,7 +838,6 @@ void ActionController::setupActions()
     toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");
 
     toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
-
 
     view_actions.append(edit_cut);
     view_actions.append(edit_copy);
@@ -930,17 +865,14 @@ void ActionController::setupActions()
     view_actions.append(view_viewImplInNewWindow);
     view_actions.append(view_viewConnections);
     view_actions.append(view_viewInNewWindow);
-    
-    
-    
 
     view_actions.append(model_getCodeForComponent);
 
     for(auto action : view_actions){
         action->setShortcutContext(Qt::WidgetShortcut);
     }
-
 }
+
 void ActionController::setupMainMenu()
 {
     menu_file = new QMenu("File");
@@ -964,8 +896,6 @@ void ActionController::setupMainMenu()
     menu_file->addSeparator();
     menu_file->addAction(file_importGraphML);
     
-    
-
     menu_file->addSeparator();
     menu_file->addAction(file_exit);
 
@@ -999,7 +929,6 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_incrementRow);
     menu_edit->addAction(edit_decrementRow);
     
-
      // View Menu
     menu_view->addAction(view_fitView);
     menu_view->addAction(view_fitAllViews);
@@ -1028,15 +957,12 @@ void ActionController::setupMainMenu()
     menu_model->addSeparator();
     menu_model->addAction(model_queryRunningExperiments);
     
-
     // Jenkins Menu
-
     menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
     menu_jenkins->addAction(jenkins_showBrowser);
     menu_jenkins->addAction(jenkins_listJobs);
     
-
     // Options Menu
     menu_options->addAction(options_settings);
 
@@ -1051,7 +977,6 @@ void ActionController::setupMainMenu()
 void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
-
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));
@@ -1075,11 +1000,6 @@ void ActionController::setupApplicationToolbar()
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     toolbar_validate = applicationToolbar->addAction(model_validateModel->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
-
-
-    
-
-    
 
     SettingsController* s = SettingsController::settings();
     foreach(SETTINGS key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
@@ -1107,9 +1027,13 @@ void ActionController::setupContextToolbar()
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
+
+    // add chart action here
+    contextToolbar->addAction(chart_viewInChart);
+    contextToolbar->addSeperator();
+
     contextToolbar->addAction(view_viewInNewWindow->constructSubAction());
     contextToolbar->addAction(toolbar_wiki);
-
 }
 
 void ActionController::setupRecentProjects()

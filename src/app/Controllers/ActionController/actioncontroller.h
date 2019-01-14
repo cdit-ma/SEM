@@ -17,24 +17,23 @@ class ViewController;
 class ActionController : public QObject
 {
     Q_OBJECT
+
 public:
     enum ACTION{};
     explicit ActionController(ViewController* vc);
 
     void connectSelectionController();
-
     void connectViewController(ViewController* controller);
 
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
-    QList<RootAction*> getRecentProjectActions();
 
+    QList<RootAction*> getRecentProjectActions();
     QList<QAction*> getAllActions();
     QList<QAction*> getNodeViewActions();
-private:
-    bool gotRegenAndJava();
-    RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+
 signals:
     void recentProjectsUpdated();
+
 private slots:
     void showShortcutDialog();
     void clearRecentProjects();
@@ -56,10 +55,10 @@ private slots:
     void updateJenkinsActions();
     void updateReActions();
     void updateUndoRedo();
+    void updateActions();
 
     QAction* getSettingAction(SETTINGS key);
 
-    void updateActions();
 public:
     SelectionController* selectionController;
     ViewController* viewController;
@@ -71,7 +70,6 @@ public:
 
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;
-
     ActionGroup* recentProjects;
 
     QAction* toggleDock;
@@ -95,15 +93,16 @@ public:
     QAction* toolbar_expand;
     QAction* toolbar_validate;
 
+    RootAction* dock_addPart;
+    RootAction* dock_deploy;
+
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
-    RootAction* file_importGraphML;
-    
-    
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
     RootAction* file_closeProject;
+    RootAction* file_importGraphML;
     RootAction* file_exit;
 
     RootAction* edit_undo;
@@ -116,10 +115,6 @@ public:
     RootAction* edit_search;
     RootAction* edit_goto;
     
-
-    RootAction* dock_addPart;
-    RootAction* dock_deploy;
-
     //RootAction* edit_sort;
     RootAction* edit_clearSelection;
     RootAction* edit_selectAll;
@@ -133,15 +128,11 @@ public:
     
     RootAction* edit_incrementIndex;
     RootAction* edit_decrementIndex;
-
     RootAction* edit_incrementRow;
     RootAction* edit_decrementRow;
-    
-    
 
     RootAction* view_fitView;
     RootAction* view_fitAllViews;
-
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
     RootAction* view_viewDefnInNewWindow;
@@ -151,8 +142,6 @@ public:
     RootAction* view_viewInNewWindow;
     RootAction* view_zoomIn;
     RootAction* view_zoomOut;
-
-
 
     RootAction* model_validateModel;
     RootAction* model_selectModel;
@@ -174,20 +163,20 @@ public:
     RootAction* jenkins_executeJob;
     RootAction* jenkins_listJobs;
     RootAction* jenkins_showBrowser;
-    RootAction* toolbar_contextToolbar;
 
+    RootAction* toolbar_contextToolbar;
     RootAction* toolbar_addChild;
     RootAction* toolbar_connect;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
-    
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
 
-
     RootAction* toolbar_addDDSQOSProfile;
     RootAction* toolbar_removeDDSQOSProfile;
+
+    RootAction* chart_viewInChart;
 
     bool got_valid_jenkins = false;
     bool got_java = false;
@@ -205,9 +194,6 @@ public:
 
     ShortcutDialog* shortcutDialog;
 
-
-
-
     QSignalMapper* recentProjectMapper;
     QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
@@ -216,6 +202,8 @@ public:
     QList<QAction*> view_actions;
 
 private:
+    bool gotRegenAndJava();
+    RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 
     void createRecentProjectAction(QString fileName);
     void recentProjectsChanged();
