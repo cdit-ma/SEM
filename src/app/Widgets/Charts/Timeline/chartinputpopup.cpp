@@ -372,7 +372,8 @@ void ChartInputPopup::recenterPopup()
  */
 void ChartInputPopup::resizePopup()
 {
-    scroll->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()));
+    //scroll->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()));
+    experimentRunsGroupBox_->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()) + 40);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
 }
@@ -474,7 +475,7 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
         layout->addWidget(scroll);
-        groupBox->setMaximumHeight(300);
+        //groupBox->setMaximumHeight(300);
         groupBoxLayouts[filter] = scrollLayout;
 
     } else {
