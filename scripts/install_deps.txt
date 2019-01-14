@@ -1,4 +1,5 @@
-#Install required build tools
+#Build Deps
+#UBUNTU
 apt-get update && apt-get install -y \
     git \
     cmake \
@@ -6,6 +7,11 @@ apt-get update && apt-get install -y \
     wget \
     ninja-build \
     openjdk-11-jre-headless
+
+#Build Deps
+#CENTOS
+sudo yum install epel-release git wget java-1.8.0-openjdk ninja-build cmake3
+sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 
 #Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
@@ -39,6 +45,7 @@ wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.
     rm protobuf-cpp-3.6.0.tar.gz protobuf-3.6.0 -rf
 
 #Install pugixml
+#may need to recursively touch files in extracted pugi directory on centos("find  -type f  -exec touch {} +")
 wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q && \
     tar xf pugixml-1.8.tar.gz && \
     mkdir pugixml-1.8/build && \
