@@ -42,7 +42,7 @@ wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.
 wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q && \
     tar xf pugixml-1.8.tar.gz && \
     mkdir pugixml-1.8/build && \
-    cd /pugixml-1.8/build && \
+    cd pugixml-1.8/build && \
     cmake -G Ninja .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON && \
     sudo cmake --build . --target install && \
     cd ~ && \
