@@ -126,10 +126,12 @@ void AxisSlider::zoom(double factor)
     double delta = (_actualMax - _actualMin) * (1 - factor);
     double scaledMin = _actualMin + delta;
     double scaledMax = _actualMax - delta;
-    if (factor > 1) {
+
+    /*if (factor > 1) {
         if (scaledMin < 0 || scaledMax > _sliderRange)
             return;
-    }
+    }*/
+
     moveSliders(scaledMin, scaledMax);
 
     /*if (factor > 1) {

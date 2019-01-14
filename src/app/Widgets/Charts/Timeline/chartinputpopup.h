@@ -4,6 +4,7 @@
 #include "hoverpopup.h"
 #include "../Data/Events/protoMessageStructs.h"
 
+#include <QScrollArea>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QToolBar>
@@ -45,17 +46,23 @@ private:
     void clearGroupBox(FILTER_KEY filter);
     void hideGroupBoxes();
     void recenterPopup();
+    void resizePopup();
 
     QString& getSelectedFilter(FILTER_KEY filter);
     QStringList& getFilterList(FILTER_KEY filter);
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
-    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
+    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName, bool addToFilterMenu = true, bool scrollable = false);
 
     QGroupBox* experimentNameGroupBox_ = 0;
     QGroupBox* experimentRunsGroupBox_ = 0;
     QGroupBox* nodesGroupBox_ = 0;
     QGroupBox* componentsGroupBox_ = 0;
     QGroupBox* workersGroupBox_ = 0;
+
+    QWidget* scrollWidget;
+    QScrollArea* scroll;
+
+    QHash<FILTER_KEY, QLayout*> groupBoxLayouts;
 
     QLineEdit* experimentNameLineEdit_;
 

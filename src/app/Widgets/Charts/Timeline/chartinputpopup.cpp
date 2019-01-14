@@ -7,6 +7,7 @@
 #include <QDateTime>
 
 #define FILTER "filter"
+#define FILTER_WIDGET_NAME "filterWidget"
 
 
 /**
@@ -39,11 +40,8 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     topLayout->setContentsMargins(1, 5, 1, 1);
     topLayout->addWidget(experimentNameLineEdit_);
 
-    experimentRunsGroupBox_ = new QGroupBox("Select Experiment Run:", this);
-    QVBoxLayout* runsLayout = new QVBoxLayout(experimentRunsGroupBox_);
-    runsLayout->setMargin(0);
-    runsLayout->setSpacing(2);
-    runsLayout->setContentsMargins(1, 5, 1, 1);
+    experimentRunsGroupBox_ = constructFilterWidgets(FILTER_KEY::RUNS_FILTER, "Runs", false, true);
+    experimentRunsGroupBox_->setTitle("Select Experiment Run:");
 
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -120,7 +118,10 @@ void ChartInputPopup::themeChanged()
                          "QGroupBox{color: lightGray; margin-top: 15px;}" +
                          "QGroupBox::title{subcontrol-origin: margin;}";
 
-    setStyleSheet(styleSheet() + groupBoxStyle);
+    auto scrollbarStyle =  "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
+                           "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
+
+    setStyleSheet(styleSheet() + groupBoxStyle + scrollbarStyle);
 }
 
 
@@ -164,7 +165,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
 
     // hiding it first, resizes the widget immediately
-    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
+    resizePopup();
     filterAction_->setEnabled(false);
 
     if (runs.isEmpty()) {
@@ -180,7 +181,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
         QRadioButton* button = new QRadioButton(text, this);
         button->setProperty("ID", ID);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        experimentRunsGroupBox_->layout()->addWidget(button);
+        groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
         connect(button, &QRadioButton::toggled, [=](bool checked) {
             if (checked) {
                 selectedExperimentRunID_ = ID;
@@ -190,8 +191,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     }
 
     experimentRunsGroupBox_->show();
-    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
-    updateGeometry();
+    resizePopup();
     recenterPopup();
 }
 
@@ -218,7 +218,7 @@ void ChartInputPopup::receivedExperimentState(QStringList nodeHostnames, QString
             filterMenuTriggered(action);
         } else if (action->isChecked()) {
             action->toggled(false);
-            adjustChildrenSize("", Qt::FindDirectChildrenOnly);
+            resizePopup();
         }
     }
 }
@@ -247,8 +247,7 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
         groupBox->show();
     }
 
-    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
-    updateGeometry();
+    resizePopup();
     recenterPopup();
 }
 
@@ -289,7 +288,7 @@ void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
     auto filterList = getFilterList(filter);
     for (auto text : filterList) {
         QRadioButton* button = new QRadioButton(text, this);
-        groupBox->layout()->addWidget(button);
+        groupBoxLayouts[filter]->addWidget(button);
         button->setProperty("ID", text);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         connect(button, &QRadioButton::toggled, [=](bool checked) {
@@ -297,6 +296,8 @@ void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
                 getSelectedFilter(filter) = button->text();
         });
     }
+
+    resizePopup();
 }
 
 
@@ -320,11 +321,23 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
     if (!groupBox)
         return;
 
+    /*
     auto buttons = groupBox->findChildren<QRadioButton*>();
     while (!buttons.isEmpty()) {
         auto button = buttons.takeFirst();
         groupBox->layout()->removeWidget(button);
         button->deleteLater();
+    }
+    */
+
+    auto layout = groupBoxLayouts.value(filter, 0);
+    if (layout) {
+        auto buttons = groupBox->findChildren<QRadioButton*>();
+        while (!buttons.isEmpty()) {
+            auto button = buttons.takeFirst();
+            layout->removeWidget(button);
+            button->deleteLater();
+        }
     }
 }
 
@@ -351,6 +364,17 @@ void ChartInputPopup::recenterPopup()
     // re-center position
     auto newSize = sizeHint() / 2.0;
     move(originalCenterPos_.x() - newSize.width(), originalCenterPos_.y() - newSize.height());
+}
+
+
+/**
+ * @brief ChartInputPopup::resizePopup
+ */
+void ChartInputPopup::resizePopup()
+{
+    scroll->setFixedHeight(qMin(300, scrollWidget->sizeHint().height()));
+    adjustChildrenSize("", Qt::FindDirectChildrenOnly);
+    updateGeometry();
 }
 
 
@@ -399,7 +423,7 @@ QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
  * @param filter
  * @return
  */
-QGroupBox *ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter)
+QGroupBox* ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
     switch (filter) {
     case FILTER_KEY::RUNS_FILTER:
@@ -419,23 +443,52 @@ QGroupBox *ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter
 /**
  * @brief ChartInputPopup::constructFilterWidgets
  * @param filter
+ * @param filterName
+ * @param addToFilterMenu
+ * @param scrollable
  * @return
  */
-QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY filter, QString filterName)
+QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY filter, QString filterName, bool addToFilterMenu, bool scrollable)
 {
     QGroupBox* groupBox = new QGroupBox("Filter Events By " + filterName + ":", this);
     groupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    groupBox->show();
 
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->setMargin(0);
-    layout->setSpacing(2);
-    layout->setContentsMargins(1, 5, 1, 1);
 
-    QAction* action = filterMenu_->addAction(filterName);
-    action->setProperty(FILTER, (uint)filter);
-    action->setCheckable(true);
-    connect(action, &QAction::toggled, groupBox, &QGroupBox::setVisible);
+    if (scrollable) {
+
+        scrollWidget = new QWidget(this);
+        scrollWidget->setObjectName(FILTER_WIDGET_NAME);
+        scrollWidget->setStyleSheet("background: rogba(0,0,0,0);");
+        scrollWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+
+        QVBoxLayout* scrollLayout = new QVBoxLayout(scrollWidget);
+        scrollLayout->setMargin(0);
+        scrollLayout->setSpacing(2);
+        scrollLayout->setContentsMargins(1, 5, 1, 1);
+
+        scroll = new QScrollArea(this);
+        scroll->setWidget(scrollWidget);
+        scroll->setWidgetResizable(true);
+        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+        layout->addWidget(scroll);
+        groupBox->setMaximumHeight(300);
+        groupBoxLayouts[filter] = scrollLayout;
+
+    } else {
+        layout->setSpacing(2);
+        layout->setContentsMargins(1, 5, 1, 1);
+        groupBoxLayouts[filter] = layout;
+    }
+
+    if (addToFilterMenu) {
+        QAction* action = filterMenu_->addAction(filterName);
+        action->setProperty(FILTER, (uint)filter);
+        action->setCheckable(true);
+        connect(action, &QAction::toggled, groupBox, &QGroupBox::setVisible);
+    }
 
     return groupBox;
 }

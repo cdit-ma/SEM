@@ -64,7 +64,8 @@ public slots:
     void updateChartHoverDisplay();
     
 private:
-    MEDEA::EventSeries* constructChartForEvent(TIMELINE_DATA_KIND kind, QString ID, QString label);
+    MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA_KIND kind, QString ID, QString label);
+    EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);

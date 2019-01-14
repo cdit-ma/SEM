@@ -43,6 +43,18 @@ static QString GET_TIMELINE_DATA_KIND_STRING(TIMELINE_DATA_KIND kind)
     }
 }
 
+static QString GET_TIMELINE_DATA_KIND_STRING_SUFFIX(TIMELINE_DATA_KIND kind)
+{
+    switch (kind) {
+    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+        return "_cpu";
+    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        return "_mem";
+    default:
+        return "";
+    }
+}
+
 namespace MEDEA {
 
 class Event : public QObject
