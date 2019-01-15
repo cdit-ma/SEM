@@ -6,12 +6,13 @@ apt-get update && apt-get install -y \
     build-essential \
     wget \
     ninja-build \
-    openjdk-11-jre-headless
+    openjdk-11-jre-headless \
+    ccache
 
 #Build Deps
 #CENTOS
 sudo yum install epel-release git wget java-1.8.0-openjdk gcc gcc-c++
-sudo yum install  ninja-build cmake3
+sudo yum install  ninja-build cmake3 ccache
 sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 
 #Install Boost
