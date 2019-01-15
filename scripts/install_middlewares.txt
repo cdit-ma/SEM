@@ -28,7 +28,7 @@ wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connex
 sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q -P /opt/ && \
     sudo tar xf /opt/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -C /opt/ && \
     sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/Makefile.Build_DCPS_ISO_Cpp_Lib \
-    -q -P /opt/HDE/x86_64.linux/custom_lib/ && \
+    -q -O /opt/HDE/x86_64.linux/custom_lib/Makefile.Build_DCPS_ISO_Cpp_Lib && \
     cd /opt && \
     sudo sed -i "s|@@INSTALLDIR@@|$PWD|g" HDE/x86_64.linux/release.com && \
     cd /opt/HDE/x86_64.linux/custom_lib && \
