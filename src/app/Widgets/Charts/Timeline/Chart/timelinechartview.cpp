@@ -596,16 +596,16 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 /**
  * @brief TimelineChartView::viewEventsForItem
  * @param item
- * @param kind
+ * @param kinds
  */
-void TimelineChartView::viewEventsForItem(ViewItem *item, TIMELINE_DATA_KIND kind)
+void TimelineChartView::viewEventsForItem(ViewItem* item, QList<TIMELINE_DATA_KIND> kinds)
 {
     if (!item)
         return;
 
     // DO WORK HERE
     qDebug() << "View Item In Chart: " << item->getData("label").toString();
-    qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
+
 }
 
 

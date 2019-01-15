@@ -7,6 +7,7 @@
 #include <comms/aggregationrequester/aggregationrequester.h>
 
 #include "../../Widgets/Charts/Data/Events/protomessagestructs.h"
+#include "../../Widgets/Charts/Data/Events/event.h"
 
 class AggregationProxy : public QObject
 {
@@ -17,6 +18,7 @@ public:
     ~AggregationProxy();
 
     void SetServerEndpoint(QString endpoint);
+    void SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
     void RequestRunningExperiments();
     void RequestExperimentRuns(QString experimentName = "");
@@ -44,6 +46,8 @@ private:
 
     bool hasSelectedExperimentID_ = false;
     quint32 experimentRunID_;
+
+    QList<TIMELINE_DATA_KIND> requestEventKinds_;
 
     AggServer::Requester* requester_ = 0;
 

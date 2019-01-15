@@ -142,7 +142,7 @@ signals:
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
 
-    void vc_viewItemInChart(ViewItem* item, TIMELINE_DATA_KIND dataKind);
+    void vc_viewItemInChart(ViewItem* item, QList<TIMELINE_DATA_KIND> dataKinds);
     
 public slots:
     void incrementSelectedKey(QString key_name);

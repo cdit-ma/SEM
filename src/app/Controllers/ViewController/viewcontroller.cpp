@@ -80,12 +80,8 @@ ViewController::ViewController(){
     connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);
 
-
-    
     connect(jenkins_manager, &JenkinsManager::JobQueued, this, &ViewController::RefreshExecutionMonitor);
     
-    
-
     connect(execution_manager, &ExecutionManager::GotWorkloadCode, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 

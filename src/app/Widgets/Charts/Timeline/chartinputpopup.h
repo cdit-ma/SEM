@@ -3,6 +3,7 @@
 
 #include "hoverpopup.h"
 #include "../Data/Events/protoMessageStructs.h"
+#include "../Data/Events/event.h"
 
 #include <QGroupBox>
 #include <QLineEdit>
@@ -27,6 +28,8 @@ signals:
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
     void requestEvents(QString node, QString component, QString worker);
+
+    void setRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
     void setChartTitle(QString title);
 

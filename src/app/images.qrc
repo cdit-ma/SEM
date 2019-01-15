@@ -400,5 +400,8 @@
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
         <file alias="cpuTwoTone">Resources/Icons/cpuTwoTone.png</file>
         <file alias="memoryCardTwoTone">Resources/Icons/memoryCardTwoTone.png</file>
+        <file alias="tickWhite">Resources/Icons/tickWhite.png</file>
+        <file alias="checkbox">Resources/Icons/checkbox.png</file>
+        <file alias="checkboxChecked">Resources/Icons/checkboxChecked.png</file>
     </qresource>
 </RCC>

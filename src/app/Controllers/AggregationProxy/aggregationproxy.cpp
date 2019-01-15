@@ -49,6 +49,19 @@ void AggregationProxy::SetServerEndpoint(QString endpoint)
 
 
 /**
+ * @brief AggregationProxy::SetRequestEventKinds
+ * @param kinds
+ */
+void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
+{
+    for (auto kind : kinds) {
+        qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
+    }
+    requestEventKinds_ = kinds;
+}
+
+
+/**
  * @brief AggregationProxy::RequestRunningExperiments
  */
 void AggregationProxy::RequestRunningExperiments()
@@ -185,6 +198,22 @@ void AggregationProxy::ReloadRunningExperiments()
     /*
      *  construct and send requests here
      */
+
+    for (auto kind : requestEventKinds_) {
+        qDebug() << "Request: " << GET_TIMELINE_DATA_KIND_STRING(kind);
+        switch (kind) {
+        case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+            break;
+        case TIMELINE_DATA_KIND::WORKLOAD:
+            break;
+        case TIMELINE_DATA_KIND::CPU_UTILISATION:
+            break;
+        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+            break;
+        default:
+            break;
+        }
+    }
 
     emit receivedAllEvents();
 }

@@ -476,7 +476,6 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
         scroll->setWidget(scrollWidget);
         scroll->setWidgetResizable(true);
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        qDebug() << "contents margin: " << scroll->contentsMargins();
 
         layout->addWidget(scroll);
         groupBoxLayouts[filter] = scrollLayout;

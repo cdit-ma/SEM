@@ -9,9 +9,9 @@
 #include <QStyleFactory>
 #include <QLabel>
 #include <QLineEdit>
+#include <QCheckBox>
 #include <QWidgetAction>
 
-#define MENU_ICON_SIZE 32
 
 ContextMenu::ContextMenu(ViewController *vc){
     view_controller = vc;
@@ -177,10 +177,41 @@ void ContextMenu::themeChanged(){
     }
 
 
-    // update chart menu icons
+    // update chart menu and icons
     chart_data_kind_menu->setIcon(theme->getIcon("Icons", "chart"));
+    chart_data_kind_menu->setStyleSheet(main_menu->styleSheet() +
+                                        "QCheckBox {"
+                                        "color:" + theme->getTextColorHex() + ";"
+                                        "margin: 2px;"
+                                        "padding: 4px 8px;"
+                                        "border-radius:" + theme->getSharpCornerRadius() + ";"
+                                        "}"
+                                        "QCheckBox:hover {"
+                                        "color:" + theme->getTextColorHex(ColorRole::SELECTED) + ";"
+                                        "background:" + theme->getHighlightColorHex() + ";"
+                                        "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                                        "}"
+                                        "QCheckBox::indicator {"
+                                        "width:" + QString::number(icon_size.width() - 10) + "px;"
+                                        "height:" + QString::number(icon_size.width() - 10) + "px;"
+                                        "}"
+                                        "QCheckBox::indicator:unchecked {"
+                                        "image: url(:/Images/Icons/checkbox);"
+                                        "}"
+                                        "QCheckBox::indicator:checked {"
+                                        "image: url(:/Images/Icons/checkboxChecked);"
+                                        "}");
+
     for (auto action : chart_data_kind_menu->actions()) {
-        action->setIcon(theme->getIcon("ToggleIcons", action->text()));
+        auto widgetAction = qobject_cast<QWidgetAction*>(action);
+        if (widgetAction && widgetAction->defaultWidget()) {
+            auto checkbox = (QCheckBox*)widgetAction->defaultWidget();
+            checkbox->setIcon(theme->getIcon("ToggleIcons", checkbox->text()));
+            checkbox->setIconSize(icon_size);
+            widgetAction->setIcon(theme->getIcon("Icons", "tick"));
+        } else {
+            action->setIcon(theme->getIcon("Icons", action->property("iconName").toString()));
+        }
     }
 }
 
@@ -1025,6 +1056,7 @@ void ContextMenu::setupMenus()
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
 
 
+
     // setup chart menu
     chart_data_kind_menu = construct_menu("View In Chart", main_menu);
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
@@ -1033,18 +1065,34 @@ void ContextMenu::setupMenus()
             kind == TIMELINE_DATA_KIND::CPU_UTILISATION ||
             kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION)
         {
-            auto action = chart_data_kind_menu->addAction(GET_TIMELINE_DATA_KIND_STRING(kind));
-            action->setProperty("dataKind", (uint)kind);
+            auto text = GET_TIMELINE_DATA_KIND_STRING(kind);
+            auto checkbox = new QCheckBox(text);
+            auto widgetAction = new QWidgetAction(this);
+            widgetAction->setDefaultWidget(checkbox);
+            widgetAction->setProperty("dataKind", (uint)kind);
+            widgetAction->setCheckable(true);
+            chart_data_kind_menu->addAction(widgetAction);
+            connect(checkbox, &QCheckBox::toggled, widgetAction, &QAction::setChecked);
         }
     }
+    chart_data_kind_menu->addAction("Apply")->setProperty("iconName", "tick");
+
     // connect chart menu
-    connect(chart_data_kind_menu, &QMenu::triggered, [=](QAction* action) {
+    connect(chart_data_kind_menu, &QMenu::triggered, [=]() {
         if (view_controller) {
             auto item = view_controller->getSelectionController()->getActiveSelectedItem();
-            if (item)
-                emit view_controller->vc_viewItemInChart(item, (TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
+            if (item) {
+                QList<TIMELINE_DATA_KIND> checkedKinds;
+                for (auto action : chart_data_kind_menu->actions()) {
+                    if (action->isCheckable() && action->isChecked())
+                        checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
+                }
+                view_controller->getAggregationProxy().SetRequestEventKinds(checkedKinds);
+                emit view_controller->vc_viewItemInChart(item, checkedKinds);
+            }
         }
     });
+
 
 
     //Setup the main_menu
