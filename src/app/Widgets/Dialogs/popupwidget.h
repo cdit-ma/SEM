@@ -11,6 +11,7 @@ public:
     enum class TYPE{DIALOG, POPUP, TOOL, SPLASH};
     explicit PopupWidget(PopupWidget::TYPE type, QWidget* parent = 0);
 
+    QWidget* getWidget();
     void setWidget(QWidget* widget);
     void setBackgroundOpacity(qreal opactiy);
 
@@ -21,6 +22,8 @@ protected:
 
 private:
     void themeChanged();
+
+    QWidget* widget_ = 0;
 
     QColor background_color;
     QColor border_color;

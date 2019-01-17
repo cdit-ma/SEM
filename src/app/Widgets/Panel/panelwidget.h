@@ -30,6 +30,8 @@ public:
     QAction* addTab(QString title, QString iconPath = "", QString iconName = "");
     QAction* addTab(QString title, QWidget* widget, QString iconPath = "", QString iconName = "");
 
+    void addEventsTab();
+
     bool isMinimised();
 
     void constructEventsView();

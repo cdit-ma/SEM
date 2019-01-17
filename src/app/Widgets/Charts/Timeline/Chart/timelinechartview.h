@@ -61,7 +61,7 @@ public slots:
     void clearSeriesEvents();
     void receivedRequestedEvent(MEDEA::Event* event);
 
-    void viewEventsForItem(ViewItem* item, QList<TIMELINE_DATA_KIND> kinds);
+    void viewEventsForItems(QVector<ViewItem *> items);
 
     void updateChartHoverDisplay();
     

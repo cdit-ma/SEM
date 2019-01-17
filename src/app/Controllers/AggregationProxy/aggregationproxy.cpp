@@ -57,6 +57,10 @@ void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
     for (auto kind : kinds) {
         qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
     }
+
+    if (kinds.isEmpty()) {
+        kinds = GET_TIMELINE_DATA_KINDS();
+    }
     requestEventKinds_ = kinds;
 }
 

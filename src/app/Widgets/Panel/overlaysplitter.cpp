@@ -9,7 +9,7 @@
 
 //#define WIDGET_MIN_HEIGHT 800
 #define WIDGET_MIN_HEIGHT 400
-#define HANDLE_WIDTH 5
+#define HANDLE_WIDTH 8
 
 /**
  * @brief OverlaySplitter::OverlaySplitter

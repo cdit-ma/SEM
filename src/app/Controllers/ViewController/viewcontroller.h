@@ -142,7 +142,7 @@ signals:
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
 
-    void vc_viewItemInChart(ViewItem* item, QList<TIMELINE_DATA_KIND> dataKinds);
+    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems);
     
 public slots:
     void incrementSelectedKey(QString key_name);
@@ -230,7 +230,7 @@ public slots:
     void editLabel();
     void editReplicationCount();
 
-    
+    void viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds);
 
     void setControllerReady(bool ready);
     void openURL(QString url);

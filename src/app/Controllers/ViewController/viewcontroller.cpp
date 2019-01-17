@@ -1140,6 +1140,19 @@ void ViewController::editReplicationCount()
 }
 
 
+void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
+{
+    if (!selectionController || selectionController->getSelectionCount() == 0)
+        return;
+
+    if (!dataKinds.isEmpty()) {
+        proxy.SetRequestEventKinds(dataKinds);
+        emit proxy.setChartUserInputDialogVisible(true);
+        emit vc_viewItemsInChart(selectionController->getSelection());
+    }
+}
+
+
 
 void ViewController::TeardownController()
 {   

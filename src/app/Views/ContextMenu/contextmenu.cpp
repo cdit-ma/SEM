@@ -1075,21 +1075,31 @@ void ContextMenu::setupMenus()
             connect(checkbox, &QCheckBox::toggled, widgetAction, &QAction::setChecked);
         }
     }
-    chart_data_kind_menu->addAction("Apply")->setProperty("iconName", "tick");
+    chart_data_kind_menu->addSeparator();
+    chart_data_kind_menu->addAction("Apply Selection")->setProperty("iconName", "tick");
 
     // connect chart menu
     connect(chart_data_kind_menu, &QMenu::triggered, [=]() {
         if (view_controller) {
-            auto item = view_controller->getSelectionController()->getActiveSelectedItem();
+            QList<TIMELINE_DATA_KIND> checkedKinds;
+            for (auto action : chart_data_kind_menu->actions()) {
+                if (action->isCheckable() && action->isChecked())
+                    checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
+            }
+            view_controller->viewSelectionChart(checkedKinds);
+            /*auto item = view_controller->getSelectionController()->getActiveSelectedItem();
             if (item) {
                 QList<TIMELINE_DATA_KIND> checkedKinds;
                 for (auto action : chart_data_kind_menu->actions()) {
                     if (action->isCheckable() && action->isChecked())
                         checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
                 }
-                view_controller->getAggregationProxy().SetRequestEventKinds(checkedKinds);
-                emit view_controller->vc_viewItemInChart(item, checkedKinds);
-            }
+                if (!checkedKinds.isEmpty()) {
+                    view_controller->getAggregationProxy().SetRequestEventKinds(checkedKinds);
+                    emit view_controller->getAggregationProxy().setChartUserInputDialogVisible(true);
+                    emit view_controller->vc_viewItemInChart(item, checkedKinds);
+                }
+            }*/
         }
     });
 

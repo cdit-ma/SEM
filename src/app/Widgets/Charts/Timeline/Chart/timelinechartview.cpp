@@ -594,17 +594,16 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 
 
 /**
- * @brief TimelineChartView::viewEventsForItem
- * @param item
- * @param kinds
+ * @brief TimelineChartView::viewEventsForItems
+ * @param items
  */
-void TimelineChartView::viewEventsForItem(ViewItem* item, QList<TIMELINE_DATA_KIND> kinds)
+void TimelineChartView::viewEventsForItems(QVector<ViewItem*> items)
 {
-    if (!item)
+    if (items.isEmpty())
         return;
 
     // DO WORK HERE
-    qDebug() << "View Item In Chart: " << item->getData("label").toString();
+    //qDebug() << "View Item In Chart: " << item->getData("label").toString();
 
 }
 

@@ -39,6 +39,43 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
 
 
 /**
+ * @brief PopupWidget::getWidget
+ * @return
+ */
+QWidget* PopupWidget::getWidget()
+{
+    return widget_;
+}
+
+
+/**
+ * @brief PopupWidget::setWidget
+ * @param widget
+ */
+void PopupWidget::setWidget(QWidget* widget)
+{
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setSpacing(0);
+    layout->setMargin(5);
+    layout->addWidget(widget);
+    widget_ = widget;
+}
+
+
+/**
+ * @brief PopupWidget::setBackgroundOpacity
+ * @param opactiy
+ */
+void PopupWidget::setBackgroundOpacity(qreal opactiy)
+{
+    this->opacity = opactiy;
+    background_color.setAlphaF(opactiy);
+    border_color.setAlphaF(opactiy);
+    update();
+}
+
+
+/**
  * @brief PopupWidget::adjustSize
  */
 void PopupWidget::adjustSize()
@@ -57,32 +94,6 @@ void PopupWidget::themeChanged()
     background_color.setAlphaF(opacity);
     border_color = theme->getTextColor();
     border_color.setAlphaF(opacity);
-    update();
-}
-
-
-/**
- * @brief PopupWidget::setWidget
- * @param widget
- */
-void PopupWidget::setWidget(QWidget* widget)
-{
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setSpacing(0);
-    layout->setMargin(5);
-    layout->addWidget(widget);
-}
-
-
-/**
- * @brief PopupWidget::setBackgroundOpacity
- * @param opactiy
- */
-void PopupWidget::setBackgroundOpacity(qreal opactiy)
-{
-    this->opacity = opactiy;
-    background_color.setAlphaF(opactiy);
-    border_color.setAlphaF(opactiy);
     update();
 }
 

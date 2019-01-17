@@ -50,7 +50,10 @@ PanelWidget::PanelWidget(QWidget *parent)
 
     timer = new QTimer(this);
     timer->setInterval(2000);
-    connect(timer, &QTimer::timeout, this, &PanelWidget::handleTimeout);
+    //connect(timer, &QTimer::timeout, this, &PanelWidget::handleTimeout);
+
+    tabsActionGroup = new QActionGroup(this);
+    tabsActionGroup->setExclusive(true);
 
     setAttribute(Qt::WA_NoMousePropagation);
 
@@ -326,8 +329,8 @@ void PanelWidget::setViewController(ViewController *vc)
     }
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
-    constructEventsView();
-    testNewTimelineView();
+    //constructEventsView();
+    //testNewTimelineView();
 }
 
 
@@ -388,12 +391,12 @@ void PanelWidget::activeTabChanged()
 {
     QAction* activeTabAction = qobject_cast<QAction*>(sender());
     if (activeTabAction) {
-        QWidget* tabWidget = tabWidgets.value(activeTabAction, 0);
+        /*QWidget* tabWidget = tabWidgets.value(activeTabAction, 0);
         // TODO - This is temporary; testing live data stream
         if (tabWidget) {
             playPauseAction->setVisible(activeTabAction->text() == "Test");
             tabStack->setCurrentWidget(tabWidget);
-        }
+        }*/
     }
 }
 
@@ -461,13 +464,13 @@ void PanelWidget::setActiveTabTitle(QString title)
  */
 void PanelWidget::minimisePanel(bool checked)
 {
-    if (!checked) {
+    /*if (!checked) {
         // if all the tabs are currently hidden, don't allow the panel to be maximised
         if (hiddenTabs == tabsActionGroup->actions().count()) {
             minimiseAction->setChecked(true);
             return;
         }
-    }
+    }*/
     tabStack->setVisible(!checked);
     emit minimiseTriggered(checked);
 }
@@ -684,12 +687,15 @@ void PanelWidget::setupLayout()
         playPauseAction = titleBar->addAction("Play/Pause Data Stream");
         playPauseAction->setCheckable(true);
         playPauseAction->setChecked(false);
+        playPauseAction->setVisible(false);
     }
 
     refreshDataAction = titleBar->addAction("Refresh Data");
     connect(refreshDataAction, &QAction::triggered, [=]() {
         requestData();
     });
+
+    refreshDataAction->setVisible(false); // hide for now
     titleBar->addSeparator();
 
     snapShotAction = titleBar->addAction("Take Chart Snapshot");
@@ -700,19 +706,18 @@ void PanelWidget::setupLayout()
 
     tabsMenuAction = titleBar->addAction("Tabs");
     tabsMenuAction->setMenu(tabsMenu);
+    tabsMenuAction->setVisible(false); // hide for now
 
     QToolButton* menuButton = (QToolButton*) titleBar->widgetForAction(tabsMenuAction);
     menuButton->setPopupMode(QToolButton::InstantPopup);
 
-    titleBar->addSeparator();
+    //titleBar->addSeparator();
 
-    // Panel actions
-    {
-        minimiseAction = titleBar->addAction("Minimise/Maximise");
-        minimiseAction->setCheckable(true);
-        popOutAction = titleBar->addAction("Show Panel Dialog");
-        closeAction = titleBar->addAction("Close");
-    }
+    minimiseAction = titleBar->addAction("Minimise/Maximise");
+    minimiseAction->setCheckable(true);
+
+    popOutAction = titleBar->addAction("Show Panel Dialog");
+    closeAction = titleBar->addAction("Close");
 
     // TODO: Not using this action currently - hide for now
     popOutAction->setVisible(false);
@@ -780,6 +785,6 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
         }
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        connect(viewController, &ViewController::vc_viewItemInChart, view, &TimelineChartView::viewEventsForItem);
+        connect(viewController, &ViewController::vc_viewItemsInChart, view, &TimelineChartView::viewEventsForItems);
     }
 }

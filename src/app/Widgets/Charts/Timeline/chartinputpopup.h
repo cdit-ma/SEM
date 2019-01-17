@@ -3,8 +3,8 @@
 
 #include "hoverpopup.h"
 #include "../Data/Events/protoMessageStructs.h"
-#include "../Data/Events/event.h"
 
+#include <QVBoxLayout>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QToolBar>
@@ -23,13 +23,12 @@ public:
     }
 
     explicit ChartInputPopup(QWidget* parent = 0);
+    void enableFilters();
 
 signals:
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
     void requestEvents(QString node, QString component, QString worker);
-
-    void setRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
     void setChartTitle(QString title);
 
@@ -52,12 +51,17 @@ private:
     void recenterPopup();
     void resizePopup();
 
+    void setupFilterWidgets();
+
     QString& getSelectedFilter(FILTER_KEY filter);
     QStringList& getFilterList(FILTER_KEY filter);
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
-    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName, bool addToFilterMenu = true, bool scrollable = false);
 
-    QLineEdit* experimentNameLineEdit_;
+    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
+    QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
+
+    QLineEdit* experimentNameLineEdit_ = 0;
+    QWidget* experimentRunsScrollWidget_ = 0;
 
     QGroupBox* experimentNameGroupBox_ = 0;
     QGroupBox* experimentRunsGroupBox_ = 0;
@@ -67,12 +71,13 @@ private:
 
     QHash<FILTER_KEY, QLayout*> groupBoxLayouts;
 
-    QToolBar* toolbar_;
-    QAction* okAction_;
-    QAction* cancelAction_;
-    QAction* filterAction_;
-    QMenu* filterMenu_;
-    QWidget* scrollWidget;
+    QToolBar* toolbar_ = 0;
+    QAction* okAction_ = 0;
+    QAction* cancelAction_ = 0;
+    QAction* filterAction_ = 0;
+    QMenu* filterMenu_ = 0;
+
+    bool filtersEnabled_ = false;
 
     QPointF originalCenterPos_;
 
