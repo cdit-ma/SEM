@@ -9,7 +9,7 @@ namespace cditma{
   std::once_flag request_qpid;
   std::once_flag request_tao;
   const std::string& GetQpidBrokerAddress();
-  const std::string& GetTaoNameserverAddress();
+  const std::string& GetTaoNamingServerAddress();
 };
 
 int main(int argc, char **argv)
