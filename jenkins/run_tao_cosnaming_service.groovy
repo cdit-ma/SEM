@@ -16,7 +16,6 @@ pipeline{
                 script{
                     def endpoint = "iiop://${env.IP_ADDRESS}:${params.port}"
                     print("TAO Endpoint: corbaloc:iiop:${env.IP_ADDRESS}:${params.port}")
-                    
 
                     if(utils.runScript("${env.TAO_ROOT}/orbsvcs/Naming_Service/tao_cosnaming -ORBEndpoint ${endpoint}") != 0){
                         error('Running TAO naming service failed.')
