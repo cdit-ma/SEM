@@ -13,7 +13,6 @@ endif()
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
-    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
 add_executable(${PROJ_NAME} ${SOURCE})

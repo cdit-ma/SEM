@@ -20,12 +20,12 @@ int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 
-    boost::program_options::options_description desc("Test Options");
-    desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
+    boost::program_options::options_description options("Test Options");
+    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
 
-    boost::program_options::variables_map vm;
 
     try{
+        boost::program_options::variables_map vm;
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
         boost::program_options::notify(vm);
     }catch(...){
