@@ -11,14 +11,31 @@
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
 
-const std::string broker("127.0.0.1:5672");
+
+
+std::once_flag request_qpid_address_;
+
+const std::string& GetBrokerAddress()
+{
+    static std::string broker_endpoint;
+
+    std::call_once(request_qpid_address_, [&broker_endpoint](){
+        std::cerr << "Requesting Endpoint from environmenManager" << std::endl;
+        broker_endpoint = "127.0.0.1:5672";
+     });
+    return broker_endpoint;
+}
+ 
+
+
+
 
 bool setup_port(Port& port, const std::string& broker, const std::string& topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
     if(b && t){
-        b->set_String(broker);
+        b->set_String(GetBrokerAddress());
         t->set_String(topic_name);
         return true;
     }
