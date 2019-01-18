@@ -10,62 +10,16 @@
 #include <core/ports/libportexport.h>
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
-#include <boost/program_options.hpp>
 
-#include <comms/environmentcontroller/environmentcontroller.h>
-
-std::string environment_manager_endpoint;
-std::once_flag request_qpid_address_;
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-
-    boost::program_options::options_description options("Test Options");
-    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
-
-    try{
-        boost::program_options::variables_map vm;
-        boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options).allow_unregistered().run(), vm);
-        boost::program_options::notify(vm);
-    }catch(...){
-        environment_manager_endpoint = "127.0.0.1:20000";
-        std::cerr << "* Environment-manager flag not set, trying: " << environment_manager_endpoint << std::endl;
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-const std::string& GetBrokerAddress()
-{
-    static std::string broker_endpoint;
-
-    std::call_once(request_qpid_address_, [](){
-        try{
-            EnvironmentManager::EnvironmentController controller(environment_manager_endpoint);
-            broker_endpoint = controller.GetQpidBrokerEndpoint();
-        }catch(const std::exception& ex){
-            std::cerr << ex.what() << std::endl;
-        }
-    });
-    
-    if(broker_endpoint.size()){
-        return broker_endpoint;
-    }
-
-    throw std::runtime_error("No Environment Manager Around");
-}
- 
-
-
-
+//Include main and env passing magic
+#include "../../../core/test_main.h"
 
 bool setup_port(Port& port, const std::string& topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
     if(b && t){
-        b->set_String(GetBrokerAddress());
+        b->set_String(cditma::GetQpidBrokerAddress());
         t->set_String(topic_name);
         return true;
     }
