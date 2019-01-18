@@ -1,8 +1,30 @@
 #ifndef PROTOMESSAGESTRUCTS_H
 #define PROTOMESSAGESTRUCTS_H
 
-#include <QString>
 #include <QVector>
+#include <QString>
+#include <QStringList>
+
+
+/*
+ * REQUESTS
+ */
+
+struct Request {
+    QVector<qint64> time_interval;
+    quint32 experimentRunID;
+};
+
+
+struct EventRequest : Request {
+    QStringList component_instance_paths;
+    QStringList component_names;
+};
+
+
+struct PortLifecycleRequest : EventRequest {
+    QStringList port_paths;
+};
 
 
 /*
@@ -99,7 +121,6 @@ struct Experiment {
     QString name;
     QVector<ExperimentRun> runs;
 };
-
 
 
 #endif // PROTOMESSAGESTRUCTS_H

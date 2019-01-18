@@ -11,6 +11,7 @@
 #include "entitychart.h"
 
 #include "../../Data/Series/eventseries.h"
+#include "../../Data/Series/portlifecycleeventseries.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -60,8 +61,7 @@ public slots:
 
     void clearSeriesEvents();
     void receivedRequestedEvent(MEDEA::Event* event);
-
-    void viewEventsForItems(QVector<ViewItem *> items);
+    void receivedRequestedEvents(QList<MEDEA::Event*> events);
 
     void updateChartHoverDisplay();
     

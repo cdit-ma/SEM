@@ -3059,11 +3059,24 @@ bool ModelController::gotInstances(Node* node){
 }
 
 
-int ModelController::getDefinition(int id)
+int ModelController::getDefinition(int ID)
 {
     QReadLocker lock(&lock_);
-    auto def = getDefinition(entity_factory->GetNode(id));
+    auto def = getDefinition(entity_factory->GetNode(ID));
     return def ? def->getID() : -1;
+}
+
+QList<int> ModelController::getInstances(int ID)
+{
+    QList<int> instanceIDs;
+    auto node = entity_factory->GetNode(ID);
+    auto definition = node ? node->getDefinition(true) : 0;
+    if (definition) {
+        for (auto inst : definition->getInstances()) {
+            instanceIDs.append(inst->getID());
+        }
+    }
+    return instanceIDs;
 }
 
 int ModelController::getImplementation(int id)

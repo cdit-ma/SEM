@@ -565,8 +565,6 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
     if (!event)
         return;
 
-    return;
-
     auto series = constructSeriesForEventKind(event->getKind(), event->getID(), event->getName());
 
     if (series) {
@@ -594,17 +592,46 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 
 
 /**
- * @brief TimelineChartView::viewEventsForItems
- * @param items
+ * @brief TimelineChartView::receivedRequestedEvents
+ * @param events
  */
-void TimelineChartView::viewEventsForItems(QVector<ViewItem*> items)
+void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
 {
-    if (items.isEmpty())
+    // NOTE - At the moment, there is one series per kind per entity chart
+    if (events.isEmpty())
         return;
 
-    // DO WORK HERE
-    //qDebug() << "View Item In Chart: " << item->getData("label").toString();
+    QSet<MEDEA::EventSeries*> updatedSeries;
+    qint64 minTime = INT64_MAX, maxTime = INT64_MIN;
 
+    // before storing newly requested data, clear corresponding series (if there is one)
+    for (auto event : events) {
+        auto series = constructSeriesForEventKind(event->getKind(), event->getID(), event->getName());
+        if (series) {
+            if (!updatedSeries.contains(series)) {
+                series->clear();
+                updatedSeries.insert(series);
+            }
+            series->addEvent(event);
+            minTime = qMin(series->getMinTimeMS(), minTime);
+            maxTime = qMax(series->getMaxTimeMS(), maxTime);
+        }
+    }
+
+    auto timelineRange = _timelineChart->getRange();
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setInitialRange(false, minTime, maxTime);
+    } else {
+        if (minTime <= timelineRange.first)
+            _timelineChart->setMin(minTime);
+        if (maxTime >= timelineRange.second)
+            _timelineChart->setMax(maxTime);
+    }
+
+    // if the timeline chart's range was changed, update the date/time axis' range
+    if (timelineRange != _timelineChart->getRange()) {
+        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+    }
 }
 
 
@@ -617,7 +644,6 @@ void TimelineChartView::viewEventsForItems(QVector<ViewItem*> items)
  */
 MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA_KIND kind, QString ID, QString label)
 {
-    return 0;
     if (eventSeries.contains(ID)) {
         for (auto s : eventSeries.values(ID)) {
             if (kind == s->getKind())
@@ -628,10 +654,12 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
     MEDEA::EventSeries* series = 0;
 
     switch (kind) {
-    /*case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
         series = new PortLifecycleEventSeries(ID, this);
+        label += "_" + ID;
         break;
-    case TIMELINE_DATA_KIND::WORKLOAD:
+    }
+    /*case TIMELINE_DATA_KIND::WORKLOAD:
         series = new WorkloadEventSeries(ID, this);
         break;
     case TIMELINE_DATA_KIND::CPU_UTILISATION:
@@ -664,7 +692,6 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
  */
 EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label)
 {
-    return 0;
     if (!series)
         return 0;
 

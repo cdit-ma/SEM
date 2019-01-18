@@ -104,7 +104,7 @@ ViewController::ViewController(){
 }
 
 void ViewController::QueryRunningExperiments(){
-    QtConcurrent::run(&proxy, &AggregationProxy::RequestRunningExperiments);
+    QtConcurrent::run(&proxy, &AggregationProxy::RequestExperiments);
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){
@@ -533,14 +533,15 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> 
         case NODE_KIND::PORT_PERIODIC_INST:
             validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
             break;
+        case NODE_KIND::CLASS:
+        case NODE_KIND::CLASS_INSTANCE:
+            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+            break;
         case NODE_KIND::HARDWARE_NODE: {
             validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
             validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);
             break;
         }
-        case NODE_KIND::WORKER_DEFINITIONS:
-            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
-            break;
         default:
             break;
         }
@@ -1098,6 +1099,17 @@ NodeViewItem *ViewController::getNodesDefinition(int ID)
     return 0;
 }
 
+QList<NodeViewItem *> ViewController::getNodesInstances(int ID)
+{
+    QList<NodeViewItem*> instances;
+    if (controller) {
+        for (auto instID : controller->getInstances(ID)) {
+            instances.append(getNodeViewItem(instID));
+        }
+    }
+    return instances;
+}
+
 NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem *node2)
 {
     NodeViewItem* parent = 0;
@@ -1216,9 +1228,8 @@ void ViewController::editReplicationCount()
 void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
-        proxy.SetRequestEventKinds(dataKinds);
+        emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);
         emit proxy.setChartUserInputDialogVisible(true);
-        emit vc_viewItemsInChart(selectionController->getSelection());
     }
 }
 
@@ -1234,7 +1245,6 @@ void ViewController::TeardownController()
         
         ResetViewItems();
         
-
         disconnect(controller);
         controller->disconnect(this);
         emit controller->InitiateTeardown();

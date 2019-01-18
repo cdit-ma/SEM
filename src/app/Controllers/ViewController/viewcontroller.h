@@ -97,6 +97,7 @@ public:
     QSet<TIMELINE_DATA_KIND> getValidChartDataKinds(QSet<NODE_KIND> nodeKinds);
     QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
 
+    QList<NodeViewItem*> getNodesInstances(int ID);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -146,7 +147,7 @@ signals:
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
 
-    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems);
+    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
     
 public slots:
     void incrementSelectedKey(QString key_name);
@@ -242,8 +243,6 @@ public slots:
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
-
-    
 
 private:
     void SettingChanged(SETTINGS key, QVariant value);

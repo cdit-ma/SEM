@@ -35,6 +35,7 @@ public:
     bool isMinimised();
 
     void constructEventsView();
+    void constructPortLifecycleEventsView();
 
     void testDataSeries();
     void testWidgets();

@@ -154,6 +154,19 @@ void PanelWidget::constructEventsView()
 }
 
 
+/**
+ * @brief PanelWidget::constructPortLifecycleEventsView
+ */
+void PanelWidget::constructPortLifecycleEventsView()
+{
+    TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE});
+    connectChartViewToAggreagtionProxy(view);
+    defaultActiveAction = addTab("PortLifecycle", view);
+    defaultActiveAction->trigger();
+}
+
+
 void PanelWidget::testDataSeries()
 {
     QList<QPointF> points;
@@ -318,19 +331,30 @@ void PanelWidget::setViewController(ViewController *vc)
     viewController = vc;
 
     // connect to AggregationProxy
-    if (chartPopup) {
+    /*if (chartPopup) {
+        connect(vc, &ViewController::vc_viewItemsInChart, chartPopup, &ChartInputPopup::receivedSelectedViewItems);
+
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, chartPopup, &ChartInputPopup::setPopupVisible);
         connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
         connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentState, chartPopup, &ChartInputPopup::receivedExperimentState);
+
         connect(chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
         connect(chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-        connect(chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
+        //connect(chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
         //connect(chartPopup, &ChartInputPopup::setChartTitle, this, &PanelWidget::setActiveTabTitle);
-    }
-    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadRunningExperiments);
 
-    //constructEventsView();
+        connect(chartPopup, &ChartInputPopup::setExperimentRunID, &vc->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
+        connect(chartPopup, &ChartInputPopup::requestPortLifecycleEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
+    }*/
+
+    if (chartPopup) {
+        chartPopup->setViewController(viewController);
+    }
+    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
+
     //testNewTimelineView();
+    constructEventsView();
+    //constructPortLifecycleEventsView();
 }
 
 
@@ -771,6 +795,7 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::WORKLOAD:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
@@ -785,6 +810,6 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
         }
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        connect(viewController, &ViewController::vc_viewItemsInChart, view, &TimelineChartView::viewEventsForItems);
+        //connect(viewController, &ViewController::vc_viewItemsInChart, view, &TimelineChartView::viewEventsForItems);
     }
 }

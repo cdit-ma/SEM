@@ -62,6 +62,7 @@ protected:
 
 private:
     void paintSeries(QPainter& painter, TIMELINE_DATA_KIND kind);
+    void paintPortLifecycleEventSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
@@ -79,6 +80,8 @@ private:
     void setMax(double max);
     void setRange(double min, double max);
     void rangeChanged();
+
+    void updateSeriesPixmaps();
 
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
@@ -148,6 +151,8 @@ private:
     }
     QHash<TIMELINE_DATA_KIND, Series> series_;
     */
+
+    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
 
     QHash<TIMELINE_DATA_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> _seriesList;

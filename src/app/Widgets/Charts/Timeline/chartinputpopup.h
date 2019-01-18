@@ -2,7 +2,10 @@
 #define CHARTINPUTPOPUP_H
 
 #include "hoverpopup.h"
+#include "../Data/Events/event.h"
 #include "../Data/Events/protoMessageStructs.h"
+#include "../../../Controllers/ViewController/nodeviewitem.h"
+#include "../../../Controllers/ViewController/viewcontroller.h"
 
 #include <QVBoxLayout>
 #include <QGroupBox>
@@ -23,14 +26,21 @@ public:
     }
 
     explicit ChartInputPopup(QWidget* parent = 0);
+
+    void setViewController(ViewController* controller);
     void enableFilters();
 
 signals:
+    void setChartTitle(QString title);
+    void setExperimentRunID(quint32 experimentRnID);
+    void setEventKinds(QList<TIMELINE_DATA_KIND> kinds);
+
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
-    void requestEvents(QString node, QString component, QString worker);
+    void requestAllEvents();
+    //void requestEvents(QString node, QString component, QString worker);
 
-    void setChartTitle(QString title);
+    void requestPortLifecycleEvents(PortLifecycleRequest request);
 
 public slots:
     void themeChanged();
@@ -39,12 +49,16 @@ public slots:
     void populateExperimentRuns(QList<ExperimentRun> runs);
 
     void receivedExperimentState(QStringList nodeHostnames, QStringList componentNames, QStringList workerNames);
+    void receivedSelectedViewItems(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
+
     void filterMenuTriggered(QAction* action);
 
     void accept();
     void reject();
 
 private:
+    QString getItemLabel(ViewItem* item);
+
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
     void hideGroupBoxes();
@@ -87,9 +101,23 @@ private:
     QString selectedComponent_;
     QString selectedWorker_;
 
+    QStringList selectedNodes_;
+    QStringList selectedComponents_;
+    QStringList selectedWorkers_;
+    QStringList selectedComponentInstancePaths_;
+    QStringList selectedPortInstancePaths_;
+    QStringList selectedWorkloadInstancePaths_;
+
     QStringList nodes_;
     QStringList components_;
     QStringList workers_;
+
+    QList<TIMELINE_DATA_KIND> eventKinds_;
+    QStringList portPaths_;
+    QStringList compNames_;
+    QStringList compInstPaths_;
+
+    ViewController* viewController_ = 0;
 };
 
 #endif // CHARTINPUTPOPUP_H

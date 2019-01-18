@@ -93,6 +93,33 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
 
 /**
+ * @brief ChartInputPopup::setViewController
+ * @param controller
+ */
+void ChartInputPopup::setViewController(ViewController* controller)
+{
+    viewController_ = controller;
+
+    if (controller) {
+        connect(controller, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
+
+        connect(&controller->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &ChartInputPopup::setPopupVisible);
+        connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, this, &ChartInputPopup::populateExperimentRuns);
+        connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentState, this, &ChartInputPopup::receivedExperimentState);
+
+        connect(this, &ChartInputPopup::setExperimentRunID, &controller->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
+        connect(this, &ChartInputPopup::setEventKinds, &controller->getAggregationProxy(), &AggregationProxy::SetRequestEventKinds);
+
+        connect(this, &ChartInputPopup::requestExperimentRuns, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
+        connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+        connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+        connect(this, &ChartInputPopup::requestPortLifecycleEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
+        connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
+    }
+}
+
+
+/**
  * @brief ChartInputPopup::enableFilters
  * NOTE - If this is called before setWidget() has been called, the groupboxes aren't put in the right layout`
  */
@@ -196,6 +223,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
                     emit requestExperimentState(ID);
                 }
                 selectedExperimentRunID_ = ID;
+                emit setExperimentRunID(ID);
             }
         });
     }
@@ -238,6 +266,94 @@ void ChartInputPopup::receivedExperimentState(QStringList nodeHostnames, QString
 
 
 /**
+ * @brief ChartInputPopup::receivedSelectedViewItems
+ * @param selectedItems
+ * @param dataKinds
+ */
+void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds)
+{
+    // at this point, all selected node items should have a valid chart data kind to show
+    // all selected items are from a single aspect - the active aspect
+
+    if (!viewController_ || dataKinds.isEmpty())
+        return;
+
+    eventKinds_ = dataKinds;
+    portPaths_.clear();
+    compNames_.clear();
+    compInstPaths_.clear();
+
+    // send a separate filtered request per selected node item
+    for (auto item : selectedItems) {
+
+        if (!item || !item->isNode())
+            continue;
+
+        auto nodeItem = (NodeViewItem*) item;
+        auto label = getItemLabel(nodeItem);
+
+        switch (nodeItem->getNodeKind()) {
+        case NODE_KIND::COMPONENT:
+        case NODE_KIND::COMPONENT_IMPL:
+            // can send port/workload requests
+            compNames_.append(label);
+            break;
+        case NODE_KIND::COMPONENT_INSTANCE:
+            // can send port/workload requests
+            compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
+            break;
+        case NODE_KIND::PORT_REPLIER:
+        case NODE_KIND::PORT_REPLIER_IMPL:
+        case NODE_KIND::PORT_REQUESTER:
+        case NODE_KIND::PORT_REQUESTER_IMPL:
+        case NODE_KIND::PORT_PERIODIC: {
+            // can send port requests
+            for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                if (instItem) {
+                    auto compInstItem = instItem->getParentItem();
+                    if (compInstItem)
+                        portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                }
+            }
+            break;
+        }
+        case NODE_KIND::PORT_REPLIER_INST:
+        case NODE_KIND::PORT_REQUESTER_INST:
+        case NODE_KIND::PORT_PERIODIC_INST: {
+            // can send port requests
+            auto compInstItem = nodeItem->getParentItem();
+            if (compInstItem) {
+                portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+            }
+            break;
+        }
+        case NODE_KIND::CLASS:
+        case NODE_KIND::CLASS_INSTANCE:
+            // can send workload requests
+            break;
+        case NODE_KIND::HARDWARE_NODE:
+            // can send cpu/mem requests
+            break;
+        default:
+            break;
+        }
+    }
+
+    /*
+    for (auto compName : compNames_) {
+        qDebug() << "compName: " << compName;
+    }
+    for (auto compInstPath : compInstPaths_) {
+        qDebug() << "compInstPath: " << compInstPath;
+    }
+    for (auto portPath : portPaths_) {
+        qDebug() << "portPath: " << portPath;
+    }
+    */
+}
+
+
+/**
  * @brief ChartInputPopup::filterMenuTriggered
  * This should only be called when there is a selected experiment run
  * The filter action/menu should be disabled other wise
@@ -270,9 +386,50 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
  */
 void ChartInputPopup::accept()
 {
-    if (selectedExperimentRunID_ != -1) {
-        emit requestEvents(selectedNode_, selectedComponent_, selectedWorker_);
-        //emit setChartTitle(experimentName_);
+    if (selectedExperimentRunID_ == -1)
+        return;
+
+    if (!eventKinds_.isEmpty()) {
+
+        bool hasValidRequests = false;
+        for (auto kind : eventKinds_) {
+            switch (kind) {
+            case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+                if (portPaths_.isEmpty() && compNames_.isEmpty() && compInstPaths_.isEmpty()) {
+                    break;
+                }
+                PortLifecycleRequest request;
+                request.experimentRunID = selectedExperimentRunID_;
+                request.port_paths = portPaths_;
+                request.component_names = compNames_;
+                request.component_instance_paths = compInstPaths_;
+                emit requestPortLifecycleEvents(request);
+                hasValidRequests = true;
+                break;
+            }
+            case TIMELINE_DATA_KIND::WORKLOAD:
+
+                break;
+            case TIMELINE_DATA_KIND::CPU_UTILISATION:
+
+                break;
+            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+
+                break;
+            default:
+                break;
+            }
+        }
+
+        if (!hasValidRequests) {
+            // show empty/inactive chart state
+            NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
+        }
+
+    } else {
+        // request all events for all event kinds
+        emit setEventKinds(GET_TIMELINE_DATA_KINDS());
+        emit requestAllEvents();
     }
 
     hideGroupBoxes();
@@ -287,6 +444,20 @@ void ChartInputPopup::reject()
 {
     hideGroupBoxes();
     PopupWidget::reject();
+}
+
+
+/**
+ * @brief ChartInputPopup::getItemLabel
+ * @param item
+ * @return
+ */
+QString ChartInputPopup::getItemLabel(ViewItem *item)
+{
+    if (item) {
+        return item->getData("label").toString();
+    }
+    return "";
 }
 
 
@@ -353,6 +524,7 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
  */
 void ChartInputPopup::hideGroupBoxes()
 {
+    // hide all the filter groupboxes whenever this popup is closed or the search has changed
     for (auto key : getFilterKeys()) {
         auto groupBox = getFilterGroupBox(key);
         if (groupBox)

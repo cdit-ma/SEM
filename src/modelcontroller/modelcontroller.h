@@ -82,6 +82,8 @@ public:
 
     int getImplementation(int ID);
     int getDefinition(int ID);
+    QList<int> getInstances(int ID);
+
     int getSharedParent(int ID, int ID2);
     bool isProjectSaved();
     int getProjectActionCount();
