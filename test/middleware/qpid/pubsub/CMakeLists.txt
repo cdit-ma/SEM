@@ -4,6 +4,7 @@ project(${PROJ_NAME})
 
 # Find package QPID
 find_package(QPID)
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 if(NOT QPID_FOUND)
 	message(STATUS "Cannot find QPID cannot build project ${PROJ_NAME}")
@@ -21,6 +22,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${QPID_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
 if(MSVC)
     target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
@@ -36,3 +38,4 @@ target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE lib_test_basic_proto)
 target_link_libraries(${PROJ_NAME} PRIVATE qpid_helper)
 target_link_libraries(${PROJ_NAME} PRIVATE ${QPID_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})

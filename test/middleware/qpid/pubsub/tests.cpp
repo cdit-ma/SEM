@@ -10,8 +10,30 @@
 #include <core/ports/libportexport.h>
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
+#include <boost/program_options.hpp>
 
 #include <comms/environmentcontroller/environmentcontroller.h>
+
+std::string environment_manager_endpoint;
+
+int main(int argc, char **argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    boost::program_options::options_description desc("Test Options");
+    desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
+
+    boost::program_options::variables_map vm;
+
+    try{
+        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
+        boost::program_options::notify(vm);
+    }catch(...){
+        std::cerr << "environment-manager flag not set" << std::endl;
+    }
+
+    return RUN_ALL_TESTS();
+}
 
 
 std::once_flag request_qpid_address_;
@@ -22,7 +44,7 @@ const std::string& GetBrokerAddress()
 
     std::call_once(request_qpid_address_, [](){
         try{
-            EnvironmentManager::EnvironmentController controller("tcp://192.168.111.230:20000");
+            EnvironmentManager::EnvironmentController controller(environment_manager_endpoint);
             broker_endpoint = controller.GetQpidBrokerEndpoint();
         }catch(const std::exception& ex){
             std::cerr << ex.what() << std::endl;
