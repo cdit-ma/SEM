@@ -31,6 +31,7 @@ endif()
 
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
 target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
+target_link_libraries(${PROJ_NAME} PRIVATE re_environment_controller_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE lib_test_basic_proto)
 target_link_libraries(${PROJ_NAME} PRIVATE qpid_helper)

@@ -11,6 +11,7 @@
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
 
+#include <re_common/environmentcontroller/environmentcontroller.h>
 
 
 std::once_flag request_qpid_address_;
@@ -19,11 +20,16 @@ const std::string& GetBrokerAddress()
 {
     static std::string broker_endpoint;
 
-    std::call_once(request_qpid_address_, [&broker_endpoint](){
-        std::cerr << "Requesting Endpoint from environmenManager" << std::endl;
-        broker_endpoint = "127.0.0.1:5672";
-     });
-    return broker_endpoint;
+    std::call_once(request_qpid_address_, [](){
+        EnvironmentManager::EnvironmentController controller("tcp://192.168.111.230:20000");
+        broker_endpoint = controller.GetQpidBrokerEndpoint();
+    })
+    
+    if(broker_endpoint.size()){
+        return broker_endpoint;
+    }
+    
+    throw std::runtime_error("No Environment Manager Around");
 }
  
 
