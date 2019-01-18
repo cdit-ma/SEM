@@ -23,26 +23,34 @@ const std::string replier_connect_addr("corbaloc:iiop:" + replier_addr);
 
 
 bool setup_replier_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
-	auto pn = port.GetAttribute("server_name").lock();
 	auto oa = port.GetAttribute("orb_endpoint").lock();
-	if(pn && oa){
+	auto sn = port.GetAttribute("server_name").lock();
+    auto sk = port.GetAttribute("server_kind").lock();
+    auto nse = port.GetAttribute("naming_service_endpoint").lock();
+
+	if(oa && sn && sk && nse){
 		oa->set_String(orb_address);
-		pn->set_String(publisher_name);
+		sn->set_StringList({publisher_name});
+		sk->set_String("TEST_PORT");
+        nse->set_String(cditma::GetTaoNameserverAddress());
+
 		return true;
 	}
 	return false;
 };
 
-bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name, const std::string& publisher_address){
+bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
     auto oa = port.GetAttribute("orb_endpoint").lock();
-	auto pa = port.GetAttribute("server_address").lock();
-	auto pn = port.GetAttribute("server_name").lock();
-	if(pa && pn && oa){
-		//std::cerr << "server_name: " << publisher_name << std::endl;
-		//std::cerr << "server_address: " << publisher_address << std::endl;
+	auto sn = port.GetAttribute("server_name").lock();
+    auto sk = port.GetAttribute("server_kind").lock();
+    auto nse = port.GetAttribute("naming_service_endpoint").lock();
+
+	if(oa && sn && sk && nse){
 		oa->set_String(orb_address);
-		pn->set_String(publisher_name);
-		pa->set_String(publisher_address);
+		sn->set_StringList({publisher_name});
+		sk->set_String("TEST_PORT");
+        nse->set_String(cditma::GetTaoNameserverAddress());
+
 		return true;
 	}
 	return false;
@@ -59,7 +67,7 @@ class tao_RequesterPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = ConstructRequesterPort<tao::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic, ::Basic2Basic>>(port_name, component);
-            EXPECT_TRUE(setup_requester_port(*port, requester_orb_addr, port_name, replier_connect_addr + "/" + port_name));
+            EXPECT_TRUE(setup_requester_port(*port, requester_orb_addr, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -114,7 +122,7 @@ TEST(tao_ReqRep, Basic2Basic_Stable){
 
     
 
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -147,7 +155,7 @@ TEST(tao_ReqRep, LONG_Basic2Basic_Busy){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -180,7 +188,7 @@ TEST(tao_ReqRep, LONG_Basic2Basic_Timeout){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -213,7 +221,7 @@ TEST(tao_ReqRep, Basic2Void_Stable){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -246,7 +254,7 @@ TEST(tao_ReqRep, LONG_Basic2Void_Busy){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -280,7 +288,7 @@ TEST(tao_ReqRep, LONG_Basic2Void_Timeout){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -313,7 +321,7 @@ TEST(tao_ReqRep, Void2Basic_Stable){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
@@ -346,7 +354,7 @@ TEST(tao_ReqRep, LONG_Void2Basic_Busy){
     auto requester_port = ConstructRequesterPort<tao::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_client_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<tao::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type, mw_reply_server_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name, replier_connect_addr + "/" + rep_name));
+    EXPECT_TRUE(setup_requester_port(*requester_port, requester_orb_addr, rep_name));
     EXPECT_TRUE(setup_replier_port(*replier_port, replier_orb_addr, rep_name));
 
     RunTest(*requester_port, *replier_port);
