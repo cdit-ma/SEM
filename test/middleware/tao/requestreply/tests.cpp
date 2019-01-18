@@ -92,11 +92,11 @@ class tao_ReplierPort_FSMTester : public ActivatableFSMTester{
 };
 
 #define TEST_FSM_CLASS tao_RequesterPort_FSMTester
-#include "../../../core/activatablefsmtestcases.h"
+//#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 #define TEST_FSM_CLASS tao_ReplierPort_FSMTester
-#include "../../../core/activatablefsmtestcases.h"
+//#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(tao_ReqRep, Basic2Basic_Stable){
