@@ -29,7 +29,8 @@ int main(int argc, char **argv)
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
         boost::program_options::notify(vm);
     }catch(...){
-        std::cerr << "environment-manager flag not set" << std::endl;
+        environment_manager_endpoint = "127.0.0.1:20000";
+        std::cerr << "* Environment-manager flag not set, trying: " << environment_manager_endpoint << std::endl;
     }
 
     return RUN_ALL_TESTS();
