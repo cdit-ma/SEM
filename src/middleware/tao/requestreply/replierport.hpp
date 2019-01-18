@@ -101,7 +101,7 @@ namespace tao{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     auto base_result = eventport.ProcessRequest(*base_message);
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return delayedTaoCast(tao_result_ptr);
+                    return delayedTaoCast(tao_result_ptr.release());
                 }catch(const CallbackException& ex){
 
                 }catch(const std::exception& ex){
@@ -144,7 +144,7 @@ namespace tao{
                 try{
                     auto base_result = eventport.ProcessRequest();
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return delayedTaoCast(tao_result_ptr);
+                    return delayedTaoCast(tao_result_ptr.release());
                 }catch(const CallbackException& ex){
 
                 }catch(const std::exception& ex){
