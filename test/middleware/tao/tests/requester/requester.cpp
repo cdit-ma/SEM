@@ -5,12 +5,12 @@
 #include <middleware/tao/requestreply/replierport.hpp>
 #include <middleware/tao/requestreply/requesterport.hpp>
 
-const std::string ns_addr("192.168.111.96");
+const std::string ns_addr("192.168.111.82");
 const std::string ns_port("4355");
 
 
 
-const std::string ip_addr("192.168.111.96");
+const std::string ip_addr("192.168.111.82");
 const std::string replier_addr(ip_addr + ":5002");
 const std::string requester_addr(ip_addr + ":5010");
 

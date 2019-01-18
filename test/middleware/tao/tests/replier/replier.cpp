@@ -14,12 +14,12 @@ void signal_handler (int signal_value){
 }
 
 
-const std::string ns_addr("192.168.111.96");
+const std::string ns_addr("192.168.111.82");
 const std::string ns_port("4355");
 
 
 
-const std::string ip_addr("192.168.111.96");
+const std::string ip_addr("192.168.111.82");
 const std::string replier_addr(ip_addr + ":5003");
 const std::string requester_addr(ip_addr + ":5010");
 
