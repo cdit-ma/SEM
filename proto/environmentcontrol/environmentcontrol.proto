@@ -40,18 +40,18 @@ message ListExperimentsReply{
 	repeated string	experiment_names = 1;
 }
 
-message QpidBrokerEndpointRequest{
+message GetQpidBrokerEndpointRequest{
 
 }
 
-message QpidBrokerEndpointReply{
+message GetQpidBrokerEndpointReply{
 	string endpoint = 1;
 }
 
-message TaoCosnamingEndpointRequest{
+message GetTaoCosnamingEndpointRequest{
 
 }
 
-message TaoCosnamingEndpointReply{
+message GetTaoCosnamingEndpointReply{
 	string endpoint = 1;
 }

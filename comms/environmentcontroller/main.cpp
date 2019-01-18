@@ -33,6 +33,8 @@ int main(int argc, char** argv){
     desc.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name), "Name of experiment.");
     desc.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
     desc.add_options()("shutdown-experiment,s", "Shutdown experiment <experiment-name> use with <regex> for regex matching.");
+    desc.add_options()("get-qpid-broker-endpoint,q", "Get the registered qpid broker endpoint.");
+    desc.add_options()("get-tao-cosnaming-endpoint,t", "Get the registered TAO CosNaming endpoint.");
     desc.add_options()("regex,r", "Use Regex Matching for Shutdown experiment.");
     desc.add_options()("add-experiment,a", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path.");
     desc.add_options()("list-experiments,l", "List running experiments.");
@@ -81,7 +83,12 @@ int main(int argc, char** argv){
             std::cout << ExperimentListToJson(experiments) << std::endl;
         }else if(vm.count("inspect-experiment") && vm.count("experiment-name")){
             std::cout << controller.InspectExperiment(experiment_name) << std::endl;
-        }else{
+        }else if(vm.count("get-qpid-broker-endpoint")){
+            std::cout << controller.GetQpidBrokerEndpoint() << std::endl;
+        }else if(vm.count("get-tao-cosnaming-endpoint")){
+            std::cout << controller.GetTaoCosnamingBrokerEndpoint() << std::endl;
+        }
+        else{
             std::cout << desc << std::endl;
             return 1;
         }

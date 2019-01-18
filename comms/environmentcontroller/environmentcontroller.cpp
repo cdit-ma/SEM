@@ -47,6 +47,22 @@ std::vector<std::string> EnvironmentManager::EnvironmentController::ListExperime
     return {experiment_names.begin(), experiment_names.end()};
 }
 
+std::string EnvironmentManager::EnvironmentController::GetQpidBrokerEndpoint(){
+    using namespace EnvironmentControl;
+    GetQpidBrokerEndpointRequest request;
+    auto reply = requester_.SendRequest<GetQpidBrokerEndpointRequest, GetQpidBrokerEndpointReply>("GetQpidBrokerEndpoint", request, 1000);
+    auto reply_pb = reply.get();
+    return reply_pb->endpoint();
+}
+
+std::string EnvironmentManager::EnvironmentController::GetTaoCosnamingBrokerEndpoint(){
+    using namespace EnvironmentControl;
+    GetTaoCosnamingEndpointRequest request;
+    auto reply = requester_.SendRequest<GetTaoCosnamingEndpointRequest, GetTaoCosnamingEndpointReply>("GetTaoCosnamingEndpoint", request, 1000);
+    auto reply_pb = reply.get();
+    return reply_pb->endpoint();
+}
+
 std::string EnvironmentManager::EnvironmentController::InspectExperiment(const std::string &experiment_name) {
     using namespace EnvironmentControl;
 
