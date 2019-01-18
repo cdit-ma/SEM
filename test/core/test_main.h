@@ -17,7 +17,8 @@ int main(int argc, char **argv)
     ::testing::InitGoogleTest(&argc, argv);
     
     boost::program_options::options_description options("Test Options");
-    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&cditma::environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
+    using namespace cditma;
+    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
 
     try{
         boost::program_options::variables_map vm;
