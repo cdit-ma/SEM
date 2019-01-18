@@ -13,6 +13,8 @@ if(NOT QPID_FOUND)
 	return()
 endif()
 
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
+
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
 )
