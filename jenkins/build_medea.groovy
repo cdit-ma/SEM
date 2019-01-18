@@ -9,9 +9,11 @@ import cditma.Utils
 def utils = new Utils(this);
 
 final GIT_CREDENTIAL_ID = "cditma-github-auth"
-final GIT_ID = env.TAG_NAME ? env.TAG_NAME : env.BRANCH_NAME
+final Boolean IS_TAG = env.TAG_NAME
+final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME
 final FILE_NAME = "MEDEA-" + GIT_ID
-final Boolean BUILD_PACKAGE = env.TAG_NAME
+final BUILD_PACKAGE = IS_TAG || GIT_ID.contains("PR-") || GIT_ID.contains("release-")
+final UPLOAD_PACKAGE = IS_TAG
 
 def RELEASE_DESCRIPTION = FILE_NAME
 
@@ -96,32 +98,34 @@ if(BUILD_PACKAGE){
         parallel step_archive
     }
 
-    stage("Release"){
-        node("master"){
-            withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]) {
-                def release_name = "MEDEA " + GIT_ID
-                def git_args = " --user cdit-ma --repo MEDEA --tag " + GIT_ID
+    if(UPLOAD_PACKAGE){
+        stage("Release"){
+            node("master"){
+                withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]) {
+                    def release_name = "MEDEA " + GIT_ID
+                    def git_args = " --user cdit-ma --repo MEDEA --tag " + GIT_ID
 
-                //Write a VERSION.md to be used as the Git Release Description
-                writeFile(file: "VERSION.md", text: RELEASE_DESCRIPTION)
+                    //Write a VERSION.md to be used as the Git Release Description
+                    writeFile(file: "VERSION.md", text: RELEASE_DESCRIPTION)
 
-                def release_success = utils.runScript("github-release release" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
-                if(!release_success){
-                    //Try edit if release fails
-                    release_success = utils.runScript("github-release edit" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
-                }
-
-                if(release_success){
-                    dir("binaries"){
-                        unarchive mapping: ['*' : '.']
-                        for(def file : findFiles(glob: '*')){
-                            def file_path = file.name
-                            //Upload binaries, replacing if they exist
-                            utils.runScript("github-release upload" + git_args + " -R --file \"" + file_path + "\" --name \"" + file_path + "\"")
-                        }
+                    def release_success = utils.runScript("github-release release" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
+                    if(!release_success){
+                        //Try edit if release fails
+                        release_success = utils.runScript("github-release edit" + git_args + " --name \"" + release_name + "\" -d - < VERSION.md") == 0
                     }
-                }else{
-                    error("GitHub Release failed to be created")
+
+                    if(release_success){
+                        dir("binaries"){
+                            unarchive mapping: ['*' : '.']
+                            for(def file : findFiles(glob: '*')){
+                                def file_path = file.name
+                                //Upload binaries, replacing if they exist
+                                utils.runScript("github-release upload" + git_args + " -R --file \"" + file_path + "\" --name \"" + file_path + "\"")
+                            }
+                        }
+                    }else{
+                        error("GitHub Release failed to be created")
+                    }
                 }
             }
         }
