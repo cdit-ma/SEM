@@ -41,6 +41,10 @@ class DeploymentRegister{
         //Aggregation Server functions
         std::unique_ptr<NodeManager::AggregationServerRegistrationReply> HandleAggregationServerRegistration(const NodeManager::AggregationServerRegistrationRequest& request);
 
+        //Test query functions
+        std::unique_ptr<EnvironmentControl::GetQpidBrokerEndpointReply> GetQpidBrokerEndpoint(const EnvironmentControl::GetQpidBrokerEndpointRequest& message);
+        std::unique_ptr<EnvironmentControl::GetTaoCosnamingEndpointReply> GetTaoCosnamingEndpoint(const EnvironmentControl::GetTaoCosnamingEndpointRequest& message);
+
         //Medea query functions
         std::unique_ptr<NodeManager::MEDEAInterfaceReply> HandleMEDEAInterfaceRequest(const NodeManager::MEDEAInterfaceRequest& message);
 
