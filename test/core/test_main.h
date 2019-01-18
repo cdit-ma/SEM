@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     
     boost::program_options::options_description options("Test Options");
     using namespace cditma;
-    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
+    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
 
     try{
         boost::program_options::variables_map vm;
@@ -58,7 +58,7 @@ namespace cditma{
         std::call_once(request_tao, [](){
             try{
                 EnvironmentManager::EnvironmentController controller(environment_manager_endpoint);
-                endpoint = controller.GetTaoNamingServerAddress();
+                endpoint = controller.GetTaoCosnamingBrokerEndpoint();
             }catch(const std::exception& ex){
                 std::cerr << ex.what() << std::endl;
             }
