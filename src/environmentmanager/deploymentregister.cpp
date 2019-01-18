@@ -62,6 +62,13 @@ environment_manager_ip_address_(environment_manager_ip_address)
                 return DeploymentRegister::HandleMEDEAInterfaceRequest(message);});
 
 
+    replier_->RegisterProtoCallback<EnvironmentControl::GetQpidBrokerEndpointRequest, EnvironmentControl::GetQpidBrokerEndpointReply>(
+            "GetQpidBrokerEndpoint", [this](const EnvironmentControl::GetQpidBrokerEndpointRequest& message){return DeploymentRegister::GetQpidBrokerEndpoint(message);});
+
+    replier_->RegisterProtoCallback<EnvironmentControl::GetTaoCosnamingEndpointRequest, EnvironmentControl::GetTaoCosnamingEndpointReply>(
+            "GetTaoCosnamingEndpoint", [this](const EnvironmentControl::GetTaoCosnamingEndpointRequest& message){return DeploymentRegister::GetTaoCosnamingEndpoint(message);});
+
+
     replier_->Start();
 
 
@@ -264,6 +271,7 @@ std::unique_ptr<NodeManager::InspectExperimentReply> DeploymentRegister::HandleI
     return reply;
 }
 
+
 void DeploymentRegister::CleanupTask(){
     while(true){
         std::unique_lock<std::mutex> termination_lock(termination_mutex_);
@@ -279,4 +287,20 @@ void DeploymentRegister::CleanupTask(){
                     std::remove_if(handlers_.begin(), handlers_.end(), [](const std::unique_ptr<DeploymentHandler>& handler){return handler->IsRemovable();}), handlers_.end());
         }
     }
+}
+
+std::unique_ptr<EnvironmentControl::GetQpidBrokerEndpointReply>
+DeploymentRegister::GetQpidBrokerEndpoint(const EnvironmentControl::GetQpidBrokerEndpointRequest &message) {
+    auto reply = std::unique_ptr<EnvironmentControl::GetQpidBrokerEndpointReply>(new EnvironmentControl::GetQpidBrokerEndpointReply());
+
+    reply->set_endpoint(environment_->GetAmqpBrokerAddress());
+    return reply;
+}
+
+std::unique_ptr<EnvironmentControl::GetTaoCosnamingEndpointReply>
+DeploymentRegister::GetTaoCosnamingEndpoint(const EnvironmentControl::GetTaoCosnamingEndpointRequest &message) {
+    auto reply = std::unique_ptr<EnvironmentControl::GetTaoCosnamingEndpointReply>(new EnvironmentControl::GetTaoCosnamingEndpointReply());
+
+    reply->set_endpoint(environment_->GetTaoNamingServiceAddress());
+    return reply;
 }

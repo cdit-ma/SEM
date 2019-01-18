@@ -423,6 +423,9 @@ bool Environment::ExperimentIsDirty(const std::string& experiment_name){
 }
 
 std::string Environment::GetAmqpBrokerAddress(){
+    if(qpid_broker_address_.empty()) {
+        throw std::runtime_error("Qpid broker address not set in environment manager.");
+    }
     return qpid_broker_address_;
 }
 
