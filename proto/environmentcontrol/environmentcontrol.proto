@@ -39,3 +39,19 @@ message ListExperimentsRequest{
 message ListExperimentsReply{
 	repeated string	experiment_names = 1;
 }
+
+message QpidBrokerEndpointRequest{
+
+}
+
+message QpidBrokerEndpointReply{
+	string endpoint = 1;
+}
+
+message TaoCosnamingEndpointRequest{
+
+}
+
+message TaoCosnamingEndpointReply{
+	string endpoint = 1;
+}
