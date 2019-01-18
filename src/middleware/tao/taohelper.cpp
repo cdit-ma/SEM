@@ -225,7 +225,7 @@ void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::s
             auto object = orb->string_to_object(corba_str.c_str());
             orb->register_initial_reference(obj_id.c_str(), object);
         }catch(const CORBA::Exception& e){
-            std::cerr << e.what() << std::endl;
+            std::cerr << e._info() << std::endl;
             throw std::runtime_error("Cannot register_initial_reference: " + obj_id + " = " + corba_str);
         }
     }
