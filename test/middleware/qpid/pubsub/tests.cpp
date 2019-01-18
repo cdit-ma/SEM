@@ -15,6 +15,7 @@
 #include <comms/environmentcontroller/environmentcontroller.h>
 
 std::string environment_manager_endpoint;
+std::once_flag request_qpid_address_;
 
 int main(int argc, char **argv)
 {
@@ -23,10 +24,9 @@ int main(int argc, char **argv)
     boost::program_options::options_description options("Test Options");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "TCP endpoint of Environment Manager to connect to.");
 
-
     try{
         boost::program_options::variables_map vm;
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options).allow_unregistered().run(), vm);
         boost::program_options::notify(vm);
     }catch(...){
         environment_manager_endpoint = "127.0.0.1:20000";
@@ -35,9 +35,6 @@ int main(int argc, char **argv)
 
     return RUN_ALL_TESTS();
 }
-
-
-std::once_flag request_qpid_address_;
 
 const std::string& GetBrokerAddress()
 {
