@@ -17,10 +17,14 @@ public:
 
     QVector<ViewItem*> getSelection();
     QList<int> getSelectionIDs();
+
     int getActiveSelectedID();
     int getSelectionCount();
+
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
+
+    QSet<NODE_KIND> getSelectedNodeKinds();
 
 signals:
     void zoomIn();

@@ -93,6 +93,10 @@ public:
     QSet<NODE_KIND> getValidNodeKinds();
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
+    QSet<NODE_KIND> getValidChartNodeKinds();
+    QSet<TIMELINE_DATA_KIND> getValidChartDataKinds(QSet<NODE_KIND> nodeKinds);
+    QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
+
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -322,5 +326,13 @@ private:
     
     bool showingWelcomeScreen = true;
 };
+
+inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
+Q_DECLARE_METATYPE(TIMELINE_DATA_KIND)
+
+
 
 #endif // VIEWCONTROLLER_H

@@ -53,6 +53,7 @@ private:
     void update_add_node_menu();
     void update_deploy_menu();
 
+    void update_chart_menu();
 
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
@@ -71,9 +72,6 @@ private:
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
     void menu_focussed(QMenu* menu);
-
-
-    
 
 
     QAction* get_no_valid_items_action(QMenu* menu, QString label="No Valid Entities");
@@ -130,5 +128,11 @@ private:
 
     int current_hovered_id = 0;
 };
+
+/*inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
+Q_DECLARE_METATYPE(TIMELINE_DATA_KIND)*/
 
 #endif // CONTEXTMENU_H

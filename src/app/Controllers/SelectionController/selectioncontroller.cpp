@@ -50,6 +50,18 @@ QVector<ViewItem *> SelectionController::getSelection()
     return QVector<ViewItem*>();
 }
 
+QSet<NODE_KIND> SelectionController::getSelectedNodeKinds()
+{
+    QSet<NODE_KIND> selectedNodeKinds;
+    for (auto item : getSelection()) {
+        if (item->isNode()) {
+            auto nodeItem = (NodeViewItem*) item;
+            selectedNodeKinds.insert(nodeItem->getNodeKind());
+        }
+    }
+    return selectedNodeKinds;
+}
+
 QList<int> SelectionController::getSelectionIDs()
 {
     QList<int> selection;
@@ -186,4 +198,5 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 
     }
 }
+
 

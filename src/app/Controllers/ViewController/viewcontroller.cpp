@@ -485,6 +485,79 @@ QSet<EDGE_KIND> ViewController::getCurrentEdgeKinds()
     return edgeKinds;
 }
 
+
+QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
+{
+    QSet<NODE_KIND> chart_valid_node_kinds;
+    chart_valid_node_kinds.insert(NODE_KIND::COMPONENT);
+    chart_valid_node_kinds.insert(NODE_KIND::COMPONENT_IMPL);
+    chart_valid_node_kinds.insert(NODE_KIND::COMPONENT_INSTANCE);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER_IMPL);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REQUESTER);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REQUESTER_IMPL);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_REQUESTER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_PERIODIC);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_PERIODIC_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::WORKER_DEFINITIONS);
+    chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
+    return chart_valid_node_kinds;
+}
+
+QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> nodeKinds)
+{
+    auto validNodeKinds = getValidChartNodeKinds();
+    QSet<TIMELINE_DATA_KIND> validDataKinds;
+
+    for (auto kind : nodeKinds) {
+
+        if (!validNodeKinds.contains(kind))
+            return validDataKinds;
+
+        switch (kind) {
+        case NODE_KIND::COMPONENT:
+        case NODE_KIND::COMPONENT_IMPL:
+        case NODE_KIND::COMPONENT_INSTANCE: {
+            validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
+            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+            break;
+        }
+        case NODE_KIND::PORT_REPLIER:
+        case NODE_KIND::PORT_REPLIER_IMPL:
+        case NODE_KIND::PORT_REPLIER_INST:
+        case NODE_KIND::PORT_REQUESTER:
+        case NODE_KIND::PORT_REQUESTER_IMPL:
+        case NODE_KIND::PORT_REQUESTER_INST:
+        case NODE_KIND::PORT_PERIODIC:
+        case NODE_KIND::PORT_PERIODIC_INST:
+            validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
+            break;
+        case NODE_KIND::HARDWARE_NODE: {
+            validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
+            validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);
+            break;
+        }
+        case NODE_KIND::WORKER_DEFINITIONS:
+            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+            break;
+        default:
+            break;
+        }
+    }
+
+    return validDataKinds;
+}
+
+QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
+{
+    if (selectionController) {
+        return getValidChartDataKinds(selectionController->getSelectedNodeKinds());
+    }
+    return QSet<TIMELINE_DATA_KIND>();
+}
+
+
 QList<QVariant> ViewController::getValidValuesForKey(int ID, QString keyName)
 {
     QList<QVariant> valid_values;
@@ -1142,16 +1215,12 @@ void ViewController::editReplicationCount()
 
 void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
 {
-    if (!selectionController || selectionController->getSelectionCount() == 0)
-        return;
-
-    if (!dataKinds.isEmpty()) {
+    if (selectionController && !dataKinds.isEmpty()) {
         proxy.SetRequestEventKinds(dataKinds);
         emit proxy.setChartUserInputDialogVisible(true);
         emit vc_viewItemsInChart(selectionController->getSelection());
     }
 }
-
 
 
 void ViewController::TeardownController()

@@ -689,6 +689,9 @@ void ContextMenu::update_main_menu(){
 
         add_edge_menu->menuAction()->setVisible(can_add_edge);
         deploy_menu->menuAction()->setVisible(edge_kinds.contains(EDGE_KIND::DEPLOYMENT));
+
+        // show/hide chart menu
+        update_chart_menu();
         
         //Add menu into the set of validated menus to avoid recalculating unnecessarily
         menu_updated(main_menu);
@@ -839,6 +842,31 @@ void ContextMenu::update_deploy_menu(){
         }
     }
 }
+
+void ContextMenu::update_chart_menu()
+{
+    if (!chart_data_kind_menu)
+        return;
+
+    auto valid_data_kinds = view_controller->getValidChartDataKindsForSelection();
+    auto show_menu = valid_data_kinds.count() > 1;
+    chart_data_kind_menu->menuAction()->setVisible(show_menu);
+
+    if (!show_menu)
+        return;
+
+    for (auto action : chart_data_kind_menu->actions()) {
+        auto actionKind = action->property("dataKind");
+        if (actionKind.isValid()) {
+            // NOTE - Apparently hiding the action doesn't necessarily hide its default widget!
+            auto widgetAction = (QWidgetAction*) action;
+            auto visible = valid_data_kinds.contains((TIMELINE_DATA_KIND)actionKind.toUInt());
+            widgetAction->setVisible(visible);
+            widgetAction->defaultWidget()->setVisible(visible);
+        }
+    }
+}
+
 
 QWidgetAction* construct_menu_label(QString label){
     auto action = new QWidgetAction(0); 
@@ -1071,8 +1099,8 @@ void ContextMenu::setupMenus()
             widgetAction->setDefaultWidget(checkbox);
             widgetAction->setProperty("dataKind", (uint)kind);
             widgetAction->setCheckable(true);
-            chart_data_kind_menu->addAction(widgetAction);
             connect(checkbox, &QCheckBox::toggled, widgetAction, &QAction::setChecked);
+            chart_data_kind_menu->addAction(widgetAction);
         }
     }
     chart_data_kind_menu->addSeparator();
@@ -1087,19 +1115,6 @@ void ContextMenu::setupMenus()
                     checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
             }
             view_controller->viewSelectionChart(checkedKinds);
-            /*auto item = view_controller->getSelectionController()->getActiveSelectedItem();
-            if (item) {
-                QList<TIMELINE_DATA_KIND> checkedKinds;
-                for (auto action : chart_data_kind_menu->actions()) {
-                    if (action->isCheckable() && action->isChecked())
-                        checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
-                }
-                if (!checkedKinds.isEmpty()) {
-                    view_controller->getAggregationProxy().SetRequestEventKinds(checkedKinds);
-                    emit view_controller->getAggregationProxy().setChartUserInputDialogVisible(true);
-                    emit view_controller->vc_viewItemInChart(item, checkedKinds);
-                }
-            }*/
         }
     });
 
@@ -1118,9 +1133,10 @@ void ContextMenu::setupMenus()
     main_menu->addSeparator();
     main_menu->addAction(action_controller->toolbar_replicateCount->constructSubAction(true));
     main_menu->addSeparator();
-    //main_menu->addAction(action_controller->chart_viewInChart->constructSubAction(true));
+    main_menu->addAction(action_controller->chart_viewInChart->constructSubAction(true));
     main_menu->addMenu(chart_data_kind_menu);
     main_menu->addSeparator();
     main_menu->addAction(action_controller->view_viewInNewWindow->constructSubAction(true));
     main_menu->addAction(action_controller->toolbar_wiki->constructSubAction(true));
+
 }

@@ -54,6 +54,7 @@ void AggregationProxy::SetServerEndpoint(QString endpoint)
  */
 void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
 {
+    qDebug() << "--------------------------------------------------------------------------------";
     for (auto kind : kinds) {
         qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
     }

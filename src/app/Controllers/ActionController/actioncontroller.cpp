@@ -115,6 +115,12 @@ void ActionController::connectViewController(ViewController *controller)
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
+
+        connect(chart_viewInChart, &QAction::triggered, [=]() {
+            auto kind = chart_viewInChart->property("dataKind");
+            if (kind.isValid())
+                viewController->viewSelectionChart({(TIMELINE_DATA_KIND)kind.toUInt()});
+        });
     }
 }
 
@@ -317,8 +323,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_clearSelection->setEnabled(got_selection);
         view_centerOn->setEnabled(got_selection);
 
-        chart_viewInChart->setEnabled(got_selection);
-
         
         //Single Selection
         edit_selectAll->setEnabled(got_single_selection);
@@ -342,6 +346,15 @@ void ActionController::selectionChanged(int selection_size)
             auto node_kind = node_item->getNodeKind();
             toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
         }
+
+
+        // chart checks - if there is more than 1, show the chart data kind menu
+        auto validChartKinds = viewController->getValidChartDataKindsForSelection();
+        bool showChartAction = validChartKinds.size() == 1;
+        if (showChartAction) {
+            chart_viewInChart->setProperty("dataKind", (uint)(*validChartKinds.begin()));
+        }
+        chart_viewInChart->setEnabled(showChartAction);
     }
 }
 
