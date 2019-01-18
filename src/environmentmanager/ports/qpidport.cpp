@@ -116,6 +116,6 @@ void Port::FillPortPb(NodeManager::Port& port_pb){
         NodeManager::SetStringAttribute(attrs, "broker", broker);
 
         std::string topic_name = topic_names.size() > 0 ? *topic_names.begin() : GetTopic();
-        NodeManager::SetStringAttribute(attrs, "topic_name", broker);
+        NodeManager::SetStringAttribute(attrs, "topic_name", topic_name);
     }
 }
