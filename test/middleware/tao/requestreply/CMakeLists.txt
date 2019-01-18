@@ -16,7 +16,6 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
-    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
 TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../message.idl)
