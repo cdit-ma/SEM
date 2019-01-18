@@ -11,6 +11,9 @@
 #include <middleware/tao/requestreply/replierport.hpp>
 #include <middleware/tao/requestreply/requesterport.hpp>
 
+//Include mains
+#include "../../../core/test_main.h"
+
 const std::string ip_addr("127.0.0.1");
 //const std::string ip_addr("192.168.1.108");
 const std::string replier_addr(ip_addr + ":5000");
