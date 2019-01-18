@@ -11,7 +11,7 @@
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
 
-#include <re_common/environmentcontroller/environmentcontroller.h>
+#include <re_common/comms/environmentcontroller/environmentcontroller.h>
 
 
 std::once_flag request_qpid_address_;
@@ -28,7 +28,7 @@ const std::string& GetBrokerAddress()
     if(broker_endpoint.size()){
         return broker_endpoint;
     }
-    
+
     throw std::runtime_error("No Environment Manager Around");
 }
  
