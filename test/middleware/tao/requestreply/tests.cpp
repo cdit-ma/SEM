@@ -64,7 +64,7 @@ Base::Basic EmptyCallback(Base::Basic& m){
 };
 
 //Define an Requester Port FSM Tester
-class tao_RequesterPort_FSMTester : public ActivatableFSMTester{
+class tao_Req_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -77,7 +77,7 @@ class tao_RequesterPort_FSMTester : public ActivatableFSMTester{
 };
 
 //Define an Replier Port FSM Tester
-class tao_ReplierPort_FSMTester : public ActivatableFSMTester{
+class tao_Rep_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -91,11 +91,11 @@ class tao_ReplierPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-#define TEST_FSM_CLASS tao_RequesterPort_FSMTester
+#define TEST_FSM_CLASS tao_Req_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS tao_ReplierPort_FSMTester
+#define TEST_FSM_CLASS tao_Rep_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
