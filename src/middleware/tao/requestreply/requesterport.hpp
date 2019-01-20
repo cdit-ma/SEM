@@ -132,7 +132,7 @@ void tao::SetupRequester(tao::RequesterPort<BaseReplyType, TaoReplyType, BaseReq
     auto& helper = tao::TaoHelper::get_tao_helper();
     port.orb_ = helper.get_orb(orb_endpoint);
 
-    port.current_naming_service_name_ = port.get_id() + "_" + port.get_name() + "_NS";
+    port.current_naming_service_name_ = port.get_id() + "_NS";
 
     try{
         //Register the naming service unique to this port
