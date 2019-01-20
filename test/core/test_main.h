@@ -35,7 +35,10 @@ int main(int argc, char **argv)
         node_name = "";
         std::cerr << "* Environment-manager flag not set, trying: " << environment_manager_endpoint << std::endl;
     }
-    return RUN_ALL_TESTS();
+
+    auto test_results = RUN_ALL_TESTS();
+    // Specifically return 0 to allow for distinguishing between tests failing and faulty tests
+    return 0;
 }
 
 namespace cditma{
