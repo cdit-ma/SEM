@@ -11,14 +11,15 @@
 #include <middleware/qpid/pubsub/publisherport.hpp>
 #include <middleware/qpid/pubsub/subscriberport.hpp>
 
-const std::string broker("127.0.0.1:5672");
+//Include main and env passing magic
+#include "../../../core/test_main.h"
 
-bool setup_port(Port& port, const std::string& broker, const std::string& topic_name){
+bool setup_port(Port& port, const std::string& topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
     if(b && t){
-        b->set_String(broker);
+        b->set_String(cditma::GetQpidBrokerAddress());
         t->set_String(topic_name);
         return true;
     }
@@ -36,7 +37,7 @@ class qpid_SubPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             component->RegisterCallback<void, Base::Basic>(port_name, EmptyCallback);
             auto port = ConstructSubscriberPort<qpid::SubscriberPort<Base::Basic, ::Basic> >(port_name, component);
-            EXPECT_TRUE(setup_port(*port, broker, port_name));
+            EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -48,7 +49,7 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = ConstructPublisherPort<qpid::PublisherPort<Base::Basic, ::Basic> >(port_name, component);
-        EXPECT_TRUE(setup_port(*port, broker, port_name));
+        EXPECT_TRUE(setup_port(*port, port_name));
         a = port;
         ASSERT_TRUE(a);
     }
@@ -82,8 +83,8 @@ TEST(qpid_PubSub, Basic_Stable){
     qpid::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, broker, test_name));
-    EXPECT_TRUE(setup_port(sub_port, broker, test_name));
+    EXPECT_TRUE(setup_port(pub_port, test_name));
+    EXPECT_TRUE(setup_port(sub_port, test_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -109,8 +110,8 @@ TEST(qpid_PubSub, Basic_Busy){
     qpid::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, broker, test_name));
-    EXPECT_TRUE(setup_port(sub_port, broker, test_name));
+    EXPECT_TRUE(setup_port(pub_port, test_name));
+    EXPECT_TRUE(setup_port(sub_port, test_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }
@@ -135,8 +136,8 @@ TEST(zmq_PubSub, Basic_Terminate){
     qpid::SubscriberPort<base_type, mw_type> sub_port(c, "rx_" + test_name, callback_wrapper);
 
     //Setup Ports
-    EXPECT_TRUE(setup_port(pub_port, broker, test_name));
-    EXPECT_TRUE(setup_port(sub_port, broker, test_name));
+    EXPECT_TRUE(setup_port(pub_port, test_name));
+    EXPECT_TRUE(setup_port(sub_port, test_name));
 
     RunTest(pub_port, sub_port, rx_callback_count);
 }

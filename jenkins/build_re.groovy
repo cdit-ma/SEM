@@ -112,6 +112,8 @@ pipeline{
                                     }
                                         
                                     def tests_list = findFiles glob: glob_str
+
+                                    def environment_manager_flags = "-e ${env.ENVIRONMENT_MANAGER_ADDRESS} -n ${node_name}"
                                     dir("results"){
                                         for(f in tests_list){
                                             def file_path = f.name
@@ -124,7 +126,7 @@ pipeline{
                                                 test_filter = " --gtest_filter=-*LONG_*"
                                             }
 
-                                            if(utils.runScript("../${file_path} --gtest_output=xml:${test_output} ${test_filter}") != 0){
+                                            if(utils.runScript("../${file_path} --gtest_output=xml:${test_output} ${test_filter} ${environment_manager_flags}") != 0){
                                                 error("Running Test: ${file_path} Failed!")
                                             }
                                         }
