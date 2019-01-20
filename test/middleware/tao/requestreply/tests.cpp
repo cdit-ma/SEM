@@ -15,24 +15,18 @@
 #include "../../../core/test_main.h"
 
 const std::string ip_addr("127.0.0.1");
-//const std::string ip_addr("192.168.1.108");
-const std::string replier_addr(ip_addr + ":5000");
-const std::string requester_addr(ip_addr + ":5010");
 
+const std::string replier_addr(ip_addr + ":5000");
+const std::string requester_addr(ip_addr + ":5001");
 const std::string replier_orb_addr("iiop://" + replier_addr);
 const std::string requester_orb_addr("iiop://" + requester_addr);
 
-const std::string replier_connect_addr("corbaloc:iiop:" + replier_addr);
-
-static int port_count = 0;
 
 bool setup_replier_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
 	auto oa = port.GetAttribute("orb_endpoint").lock();
 	auto sn = port.GetAttribute("server_name").lock();
     auto sk = port.GetAttribute("server_kind").lock();
     auto nse = port.GetAttribute("naming_service_endpoint").lock();
-
-    port.set_id(std::to_string(++port_count));
 
 	if(oa && sn && sk && nse){
 		oa->set_String(orb_address);
@@ -46,7 +40,6 @@ bool setup_replier_port(Port& port, const std::string& orb_address, const std::s
 };
 
 bool setup_requester_port(Port& port, const std::string& orb_address, const std::string& publisher_name){
-    port.set_id(std::to_string(++port_count));
     auto oa = port.GetAttribute("orb_endpoint").lock();
 	auto sn = port.GetAttribute("server_name").lock();
     auto sk = port.GetAttribute("server_kind").lock();

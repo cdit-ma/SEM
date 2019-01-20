@@ -166,7 +166,7 @@ tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, T
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
     server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 
-    current_naming_service_name_ = this->get_id() + "_NS";
+    current_naming_service_name_ = this->get_name() + "_NS";
 };
 
 
