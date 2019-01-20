@@ -30,10 +30,9 @@ bool setup_replier_port(Port& port, const std::string& orb_address, const std::s
 
 	if(oa && sn && sk && nse){
 		oa->set_String(orb_address);
-		sn->set_StringList({publisher_name});
+		sn->set_StringList({cditma::GetNodeName(), publisher_name});
 		sk->set_String("TEST_PORT");
         nse->set_String(cditma::GetTaoNamingServerAddress());
-
 		return true;
 	}
 	return false;
@@ -47,7 +46,7 @@ bool setup_requester_port(Port& port, const std::string& orb_address, const std:
 
 	if(oa && sn && sk && nse){
 		oa->set_String(orb_address);
-		sn->set_StringList({publisher_name});
+		sn->set_StringList({cditma::GetNodeName(),publisher_name});
 		sk->set_String("TEST_PORT");
         nse->set_String(cditma::GetTaoNamingServerAddress());
 

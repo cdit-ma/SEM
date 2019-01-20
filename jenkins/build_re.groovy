@@ -113,7 +113,7 @@ pipeline{
                                         
                                     def tests_list = findFiles glob: glob_str
 
-                                    def environment_manager_flags = "-e ${env.ENVIRONMENT_MANAGER_IP_ADDRESS}"
+                                    def environment_manager_flags = "-e ${env.ENVIRONMENT_MANAGER_IP_ADDRESS} -n ${node_name}"
                                     dir("results"){
                                         for(f in tests_list){
                                             def file_path = f.name

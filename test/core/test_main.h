@@ -11,6 +11,9 @@ namespace cditma{
   std::once_flag request_tao;
   const std::string& GetQpidBrokerAddress();
   const std::string& GetTaoNamingServerAddress();
+  const std::string& GetNodeName(){
+      return node_name;
+  }
 };
 
 int main(int argc, char **argv)
