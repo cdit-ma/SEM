@@ -89,11 +89,11 @@ class tao_RP_SM : public ActivatableFSMTester{
 };
 
 #define TEST_FSM_CLASS tao_RQ_FSM
-#include "../../../core/activatablefsmtestcases.h"
+//#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 #define TEST_FSM_CLASS tao_RP_SM
-#include "../../../core/activatablefsmtestcases.h"
+//#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(tao_ReqRep, Basic2Basic_Stable){
