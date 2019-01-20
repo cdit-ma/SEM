@@ -19,23 +19,23 @@
         Terminate() - T
 */
 
-TEST_F(TEST_FSM_CLASS, Valid_C)
+TEST_F(TEST_FSM_CLASS, V_C)
 {
     ASSERT_TRUE(a->Configure());
 };
 
 
-TEST_F(TEST_FSM_CLASS, Invalid_A)
+TEST_F(TEST_FSM_CLASS, I_A)
 {
     ASSERT_FALSE(a->Activate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_P)
+TEST_F(TEST_FSM_CLASS, I_P)
 {
     ASSERT_FALSE(a->Passivate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_T)
+TEST_F(TEST_FSM_CLASS, I_T)
 {
     ASSERT_FALSE(a->Terminate());
 };
@@ -51,25 +51,25 @@ TEST_F(TEST_FSM_CLASS, Invalid_T)
         Passivate() - CP
 */
 
-TEST_F(TEST_FSM_CLASS, Valid_CA)
+TEST_F(TEST_FSM_CLASS, V_CA)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CT)
+TEST_F(TEST_FSM_CLASS, V_CT)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CC)
+TEST_F(TEST_FSM_CLASS, I_CC)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_FALSE(a->Configure());
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CP)
+TEST_F(TEST_FSM_CLASS, V_CP)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -86,28 +86,28 @@ TEST_F(TEST_FSM_CLASS, Valid_CP)
         Configure() - CAC
 */
 
-TEST_F(TEST_FSM_CLASS, Valid_CAP)
+TEST_F(TEST_FSM_CLASS, V_CAP)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
     ASSERT_TRUE(a->Passivate());
 };
 
-TEST_F(TEST_FSM_CLASS, Valid_CAT)
+TEST_F(TEST_FSM_CLASS, V_CAT)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CAA)
+TEST_F(TEST_FSM_CLASS, I_CAA)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
     ASSERT_FALSE(a->Activate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CAC)
+TEST_F(TEST_FSM_CLASS, I_CAC)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -125,7 +125,7 @@ TEST_F(TEST_FSM_CLASS, Invalid_CAC)
         Passivate() - CAPP
 */
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPT)
+TEST_F(TEST_FSM_CLASS, V_CAPT)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -133,7 +133,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPT)
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CAPA)
+TEST_F(TEST_FSM_CLASS, I_CAPA)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -141,7 +141,7 @@ TEST_F(TEST_FSM_CLASS, Invalid_CAPA)
     ASSERT_FALSE(a->Activate());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CAPC)
+TEST_F(TEST_FSM_CLASS, I_CAPC)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -149,7 +149,7 @@ TEST_F(TEST_FSM_CLASS, Invalid_CAPC)
     ASSERT_FALSE(a->Configure());
 };
 
-TEST_F(TEST_FSM_CLASS, Invalid_CAPP)
+TEST_F(TEST_FSM_CLASS, I_CAPP)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -161,7 +161,7 @@ TEST_F(TEST_FSM_CLASS, Invalid_CAPP)
     Extra Tests
 */
 
-TEST_F(TEST_FSM_CLASS, Valid_CAPTCAPT)
+TEST_F(TEST_FSM_CLASS, V_CAPTCAPT)
 {
     ASSERT_TRUE(a->Configure());
     ASSERT_TRUE(a->Activate());
@@ -174,7 +174,7 @@ TEST_F(TEST_FSM_CLASS, Valid_CAPTCAPT)
     ASSERT_TRUE(a->Terminate());
 };
 
-TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10)
+TEST_F(TEST_FSM_CLASS, LONG_V_CAPTx10)
 {
     int count = 10;
     while(count-- > 0){
@@ -185,7 +185,7 @@ TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10)
     }
 };
 
-TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_DELAY)
+TEST_F(TEST_FSM_CLASS, LONG_V_CAPTx10_FIX)
 {
     int sleep_time = 5;
     int count = 10;
@@ -201,7 +201,7 @@ TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_DELAY)
     }
 };
 
-TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_RAN_DELAY)
+TEST_F(TEST_FSM_CLASS, LONG_V_CAPTx10_RAN)
 {
     int min = 1;
     int max = 50;
