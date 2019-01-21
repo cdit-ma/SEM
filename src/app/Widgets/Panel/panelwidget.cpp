@@ -812,7 +812,8 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::WORKLOAD:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
+                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::CPU_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);

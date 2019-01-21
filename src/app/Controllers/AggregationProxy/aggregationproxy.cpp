@@ -65,10 +65,10 @@ void AggregationProxy::SetRequestExperimentRunID(quint32 experimentRunID)
  */
 void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
 {
-    qDebug() << "--------------------------------------------------------------------------------";
     for (auto kind : kinds) {
         qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
     }
+    qDebug() << "--------------------------------------------------------------------------------";
     if (!kinds.isEmpty()) {
         requestEventKinds_ = kinds;
     }
@@ -219,6 +219,8 @@ void AggregationProxy::RequestPortLifecycleEvents(PortLifecycleRequest request)
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
 
+    qDebug() << "Request PortLifecycleEvents";
+
     for (auto compName : request.component_names) {
         qDebug() << "comp: " << compName;
         portLifecycleRequest.add_component_names(compName.toStdString());
@@ -247,6 +249,8 @@ void AggregationProxy::RequestWorkloadEvents(WorkloadRequest request)
 
     AggServer::WorkloadRequest workloadRequest;
     workloadRequest.set_experiment_run_id(experimentRunID_);
+
+    qDebug() << "Request WorkloadEvents";
 
     for (auto compName : request.component_names) {
         qDebug() << "comp: " << compName;
@@ -324,6 +328,7 @@ void AggregationProxy::ResetRequestFilters()
     hasSelectedExperimentID_ = false;
     experimentRunID_ = -1;
     componentName_ = "";
+    workerName_ = "";
 }
 
 
@@ -338,15 +343,17 @@ void AggregationProxy::SendRequests()
     for (auto kind : requestEventKinds_) {
         switch (kind) {
         case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-            AggServer::PortLifecycleRequest portLifecycleRequest;
-            portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-            if (!componentName_.isEmpty())
-                portLifecycleRequest.add_component_names(componentName_.toStdString());
-            SendPortLifecycleRequest(portLifecycleRequest);
+            AggServer::PortLifecycleRequest request;
+            request.set_experiment_run_id(experimentRunID_);
+            SendPortLifecycleRequest(request);
             break;
         }
-        case TIMELINE_DATA_KIND::WORKLOAD:
+        case TIMELINE_DATA_KIND::WORKLOAD: {
+            AggServer::WorkloadRequest request;
+            request.set_experiment_run_id(experimentRunID_);
+            SendWorkloadRequest(request);
             break;
+        }
         case TIMELINE_DATA_KIND::CPU_UTILISATION:
             break;
         case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
