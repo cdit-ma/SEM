@@ -208,21 +208,6 @@ void AggregationProxy::RequestAllEvents()
 
 
 /**
- * @brief AggregationProxy::RequestEvents
- * @param nodeHostname
- * @param componentName
- * @param workerName
- */
-/*void AggregationProxy::RequestEvents(QString nodeHostname, QString componentName, QString workerName)
-{
-    // store request paramenters here
-    componentName_ = componentName;
-    SendRequests();
-    emit receivedAllEvents();
-}*/
-
-
-/**
  * @brief AggregationProxy::RequestPortLifecycleEvents
  * @param request
  */
@@ -248,6 +233,35 @@ void AggregationProxy::RequestPortLifecycleEvents(PortLifecycleRequest request)
     }
 
     SendPortLifecycleRequest(portLifecycleRequest);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestWorkloadEvents
+ * @param request
+ */
+void AggregationProxy::RequestWorkloadEvents(WorkloadRequest request)
+{
+    if (!hasSelectedExperimentID_)
+        return;
+
+    AggServer::WorkloadRequest workloadRequest;
+    workloadRequest.set_experiment_run_id(experimentRunID_);
+
+    for (auto compName : request.component_names) {
+        qDebug() << "comp: " << compName;
+        workloadRequest.add_component_names(compName.toStdString());
+    }
+    for (auto compInstPath : request.component_instance_paths) {
+        qDebug() << "compInstPath: " << compInstPath;
+        workloadRequest.add_component_instance_paths(compInstPath.toStdString());
+    }
+    for (auto workerPath : request.worker_paths) {
+        qDebug() << "workerPath: " << workerPath;
+        workloadRequest.add_worker_paths(workerPath.toStdString());
+    }
+
+    SendWorkloadRequest(workloadRequest);
 }
 
 
@@ -357,11 +371,10 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
 
     try {
         auto results = requester_->GetPortLifecycle(request);
+        QList<MEDEA::Event*> events;
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
         qDebug() << "--------------------------------------------------------------------------------";
-
-        QList<MEDEA::Event*> events;
 
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
@@ -382,6 +395,48 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
 }
 
 
+  /**
+   * @brief AggregationProxy::SendWorkloadRequest
+   * @param request
+   */
+  void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
+  {
+      if (!GotRequester())
+          return;
+
+      auto notification = NotificationManager::manager()->AddNotification("Requesting Workload", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+      try {
+          auto results = requester_->GetWorkload(request);
+          QList<MEDEA::Event*> events;
+
+          qDebug() << "[Workload Request] Result size#: " << results->events_size();
+          qDebug() << "--------------------------------------------------------------------------------";
+
+          for (auto item : results->events()) {
+              auto workerInst = convertWorkerInstance(item.worker_inst());
+              auto type = getWorkloadEventType(item.type());
+              auto workloadID = item.workload_id();
+              auto time = getQDateTime(item.time()).toMSecsSinceEpoch();
+              auto funcName = getQString(item.function_name());
+              auto args = getQString(item.args());
+              auto logLevel = item.log_level();
+              WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
+              events.append(event);
+              //emit receivedWorkloadEvent(event);
+          }
+
+          emit receivedWorkloadEvents(events);
+          notification->setSeverity(Notification::Severity::SUCCESS);
+
+      } catch (const std::exception& ex) {
+          notification->setSeverity(Notification::Severity::ERROR);
+          notification->setDescription(ex.what());
+      }
+  }
+
+
+
 /**
  * @brief AggregationProxy::convertPort
  * @param port
@@ -396,6 +451,21 @@ Port AggregationProxy::convertPort(const AggServer::Port port)
     portStruct.middleware = getQString(port.middleware());
     portStruct.graphml_id = getQString(port.graphml_id());
     return portStruct;
+}
+
+
+/**
+ * @brief AggregationProxy::convertWorkerInstance
+ * @param inst
+ * @return
+ */
+WorkerInstance AggregationProxy::convertWorkerInstance(const AggServer::WorkerInstance inst)
+{
+    WorkerInstance workerInst;
+    workerInst.name = getQString(inst.name());
+    workerInst.path = getQString(inst.path());
+    workerInst.graphml_id = getQString(inst.graphml_id());
+    return workerInst;
 }
 
 
@@ -442,4 +512,27 @@ Port::Kind AggregationProxy::getPortKind(const AggServer::Port_Kind kind)
     default:
         return Port::Kind::NO_KIND;
     }
+}
+
+/**
+ * @brief AggregationProxy::getWorkloadEventType
+ * @param type
+ * @return
+ */
+WorkloadEvent::WorkloadEventType AggregationProxy::getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type)
+{
+    switch (type) {
+      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
+          return WorkloadEvent::WorkloadEventType::STARTED;
+      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
+          return WorkloadEvent::WorkloadEventType::FINISHED;
+      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
+          return WorkloadEvent::WorkloadEventType::MESSAGE;
+      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
+          return WorkloadEvent::WorkloadEventType::WARNING;
+      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
+          return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
+      default:
+          return WorkloadEvent::WorkloadEventType::UNKNOWN;
+      }
 }

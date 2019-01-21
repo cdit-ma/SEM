@@ -36,6 +36,7 @@ public:
 
     void constructEventsView();
     void constructPortLifecycleEventsView();
+    void constructWorkloadEventsView();
 
     void testDataSeries();
     void testWidgets();

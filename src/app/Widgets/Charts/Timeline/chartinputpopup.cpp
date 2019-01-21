@@ -114,6 +114,7 @@ void ChartInputPopup::setViewController(ViewController* controller)
         connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
         connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
         connect(this, &ChartInputPopup::requestPortLifecycleEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
+        connect(this, &ChartInputPopup::requestWorkloadEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestWorkloadEvents);
         connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
     }
 }
@@ -278,10 +279,12 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
     if (!viewController_ || dataKinds.isEmpty())
         return;
 
+    // clear request filters
     eventKinds_ = dataKinds;
-    portPaths_.clear();
     compNames_.clear();
     compInstPaths_.clear();
+    portPaths_.clear();
+    workerPaths_.clear();
 
     // send a separate filtered request per selected node item
     for (auto item : selectedItems) {
@@ -407,9 +410,16 @@ void ChartInputPopup::accept()
                 hasValidRequests = true;
                 break;
             }
-            case TIMELINE_DATA_KIND::WORKLOAD:
-
+            case TIMELINE_DATA_KIND::WORKLOAD: {
+                WorkloadRequest request;
+                request.experimentRunID = selectedExperimentRunID_;
+                request.worker_paths = workerPaths_;
+                request.component_names = compNames_;
+                request.component_instance_paths = compInstPaths_;
+                emit requestWorkloadEvents(request);
+                hasValidRequests = true;
                 break;
+            }
             case TIMELINE_DATA_KIND::CPU_UTILISATION:
 
                 break;

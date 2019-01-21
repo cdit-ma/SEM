@@ -27,6 +27,11 @@ struct PortLifecycleRequest : EventRequest {
 };
 
 
+struct WorkloadRequest : EventRequest {
+    QStringList worker_paths;
+};
+
+
 /*
  * ENUMS
  */

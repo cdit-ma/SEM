@@ -300,6 +300,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     }
 
     _hoveredSeriesKind = kind;
+    updateSeriesPixmaps();
     update();
 }
 
@@ -364,12 +365,6 @@ void EntityChart::themeChanged()
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
 
     updateSeriesPixmaps();
-
-    _lifeCycleTypePixmaps.insert(LifecycleType::NO_TYPE, theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor()));
-    _lifeCycleTypePixmaps.insert(LifecycleType::CONFIGURE, theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::ACTIVATE, theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::PASSIVATE, theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)));
-    _lifeCycleTypePixmaps.insert(LifecycleType::TERMINATE, theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor()));
 }
 
 
@@ -513,6 +508,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
         break;
+    case TIMELINE_DATA_KIND::WORKLOAD:
+        paintWorkloadEventSeries(painter);
+        break;
     default:
         //qWarning("EntityChart::paintSeries - Series kind not handled");
         break;
@@ -521,6 +519,7 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
 
 /**
+<<<<<<< HEAD
  * @brief EntityChart::paintPortLifecycleEventSeries
  * @param painter
  */
@@ -607,6 +606,91 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
             }
             painter.fillRect(rect, color);
             painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+        }
+    }
+}
+
+
+/**
+ * @brief EntityChart::paintWorkloadEventSeries
+ * @param painter
+ */
+void EntityChart::paintWorkloadEventSeries(QPainter &painter)
+{
+    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_DATA_KIND::WORKLOAD, 0);
+    if (!_eventSeries)
+        return;
+
+    double barWidth = 22.0; //BAR_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double current_left = _displayedMin;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = _eventSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > _displayedMin) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    QColor seriesColor = _workloadColor;
+    int y = rect().center().y() - barWidth / 2.0;
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (WorkloadEvent*) buckets[i][0];
+            if (rectHovered(_eventSeries->getKind(), rect))
+                painter.fillRect(rect, _highlightColor);
+            painter.drawPixmap(rect.toRect(), _workloadEventTypePixmaps.value(event->getType()));
+        } else {
+            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
+            painter.setPen(Qt::lightGray);
+            if (rectHovered(_eventSeries->getKind(), rect)) {
+                painter.setPen(_highlightTextColor);
+                color = _highlightColor;
+            }
+            QString countStr = count > 99 ? "99+" : QString::number(count);
+            painter.fillRect(rect, color);
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
 }
@@ -1155,26 +1239,53 @@ void EntityChart::setRange(double min, double max)
 void EntityChart::updateSeriesPixmaps()
 {
     Theme* theme = Theme::theme();
+    QColor pixmapColor = theme->getBackgroundColor();
+
+    bool colorPortPixmaps = false;
+    bool colorWorkerPixmaps = false;
 
     switch (_hoveredSeriesKind) {
-    case TIMELINE_DATA_KIND::DATA:
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+    case TIMELINE_DATA_KIND::DATA: {
+        colorPortPixmaps = true;
+        colorWorkerPixmaps = true;
+        break;
+    }
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+        colorPortPixmaps = true;
+        break;
+    case TIMELINE_DATA_KIND::WORKLOAD:
+        colorWorkerPixmaps = true;
+        break;
+    default:
+        break;
+    }
+
+    if (colorPortPixmaps) {
         _lifeCycleTypePixmaps[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
         _lifeCycleTypePixmaps[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
         _lifeCycleTypePixmaps[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
         _lifeCycleTypePixmaps[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
         _lifeCycleTypePixmaps[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
-        break;
-    }
-    default: {
-        QColor pixmapColor = theme->getBackgroundColor();
+    } else {
         _lifeCycleTypePixmaps[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), pixmapColor);
         _lifeCycleTypePixmaps[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), pixmapColor);
         _lifeCycleTypePixmaps[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), pixmapColor);
         _lifeCycleTypePixmaps[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), pixmapColor);
         _lifeCycleTypePixmaps[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), pixmapColor);
-        break;
     }
+
+    if (colorWorkerPixmaps) {
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+    } else {
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), pixmapColor);
+        _workloadEventTypePixmaps[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), pixmapColor);
     }
 }
 

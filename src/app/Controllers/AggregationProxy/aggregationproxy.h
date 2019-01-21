@@ -6,8 +6,8 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
-#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
+#include "../../Widgets/Charts/Data/Events/workloadevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -27,9 +27,9 @@ public:
     void RequestExperimentRuns(QString experimentName = "");
     void RequestExperimentState(quint32 experimentRunID);
     void RequestAllEvents();
-    //void RequestEvents(QString nodeHostname, QString componentName, QString workerName);
 
     void RequestPortLifecycleEvents(PortLifecycleRequest request);
+    void RequestWorkloadEvents(WorkloadRequest request);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
@@ -43,6 +43,9 @@ signals:
     void receivedPortLifecycleEvent(PortLifecycleEvent* event);
     void receivedPortLifecycleEvents(QList<MEDEA::Event*> events);
 
+    void receivedWorkloadEvent(WorkloadEvent* event);
+    void receivedWorkloadEvents(QList<MEDEA::Event*> events);
+
     void clearPreviousEvents();
     void receivedAllEvents();
 
@@ -52,14 +55,19 @@ private:
 
     void SendRequests();
     void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
+    void SendWorkloadRequest(AggServer::WorkloadRequest& request);
 
     Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
     Port::Kind getPortKind(const AggServer::Port_Kind kind);
 
+    WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance inst);
+    WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
+
     bool hasSelectedExperimentID_ = false;
     quint32 experimentRunID_;
     QString componentName_;
+    QString workerName_;
 
     QList<TIMELINE_DATA_KIND> requestEventKinds_;
 

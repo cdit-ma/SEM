@@ -397,7 +397,6 @@ void TimelineChartView::themeChanged()
         case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
-
         case TIMELINE_DATA_KIND::WORKLOAD:
             buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
             break;
@@ -659,10 +658,10 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
         label += "_" + ID;
         break;
     }
-    /*case TIMELINE_DATA_KIND::WORKLOAD:
+    case TIMELINE_DATA_KIND::WORKLOAD:
         series = new WorkloadEventSeries(ID, this);
         break;
-    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    /*case TIMELINE_DATA_KIND::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(ID, this);
         break;
     case TIMELINE_DATA_KIND::MEMORY_UTILISATION:

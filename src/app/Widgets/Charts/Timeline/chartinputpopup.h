@@ -41,6 +41,7 @@ signals:
     //void requestEvents(QString node, QString component, QString worker);
 
     void requestPortLifecycleEvents(PortLifecycleRequest request);
+    void requestWorkloadEvents(WorkloadRequest request);
 
 public slots:
     void themeChanged();
@@ -113,9 +114,10 @@ private:
     QStringList workers_;
 
     QList<TIMELINE_DATA_KIND> eventKinds_;
-    QStringList portPaths_;
     QStringList compNames_;
     QStringList compInstPaths_;
+    QStringList portPaths_;
+    QStringList workerPaths_;
 
     ViewController* viewController_ = 0;
 };

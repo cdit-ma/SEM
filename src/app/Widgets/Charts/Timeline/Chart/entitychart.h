@@ -3,6 +3,7 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
+#include "../../Data/Series/workloadeventseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -63,6 +64,7 @@ protected:
 private:
     void paintSeries(QPainter& painter, TIMELINE_DATA_KIND kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
+    void paintWorkloadEventSeries(QPainter& painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);
@@ -153,6 +155,7 @@ private:
     */
 
     QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
 
     QHash<TIMELINE_DATA_KIND, bool> _seriesKindVisible;
     QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> _seriesList;
