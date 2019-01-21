@@ -8,6 +8,7 @@
 
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
+#include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -30,6 +31,7 @@ public:
 
     void RequestPortLifecycleEvents(PortLifecycleRequest request);
     void RequestWorkloadEvents(WorkloadRequest request);
+    void RequestCPUUtilisationEvents(CPUUtilisationRequest request);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
@@ -46,6 +48,9 @@ signals:
     void receivedWorkloadEvent(WorkloadEvent* event);
     void receivedWorkloadEvents(QList<MEDEA::Event*> events);
 
+    void receivedCPUUtilisationEvent(CPUUtilisationEvent* event);
+    void receivedCPUUtilisationEvents(QList<MEDEA::Event*> events);
+
     void clearPreviousEvents();
     void receivedAllEvents();
 
@@ -56,6 +61,7 @@ private:
     void SendRequests();
     void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
     void SendWorkloadRequest(AggServer::WorkloadRequest& request);
+    void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
 
     Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
@@ -64,15 +70,16 @@ private:
     WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance inst);
     WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
 
+    AggServer::Requester* requester_ = 0;
+
     bool hasSelectedExperimentID_ = false;
+
     quint32 experimentRunID_;
     QString componentName_;
     QString workerName_;
+    QString nodeHostname_;
 
     QList<TIMELINE_DATA_KIND> requestEventKinds_;
-
-    AggServer::Requester* requester_ = 0;
-
 };
 
 #endif // MEDEA_AGGREGATIONPROXY_H

@@ -138,9 +138,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/notificationseries.cpp
@@ -251,9 +253,11 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/dataseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/stateseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Series/notificationseries.h

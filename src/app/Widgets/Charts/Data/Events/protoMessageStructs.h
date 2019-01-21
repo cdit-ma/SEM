@@ -11,8 +11,8 @@
  */
 
 struct Request {
-    QVector<qint64> time_interval;
     quint32 experimentRunID;
+    QVector<qint64> time_interval;
 };
 
 
@@ -29,6 +29,11 @@ struct PortLifecycleRequest : EventRequest {
 
 struct WorkloadRequest : EventRequest {
     QStringList worker_paths;
+};
+
+
+struct CPUUtilisationRequest : Request {
+    QStringList node_ids;
 };
 
 

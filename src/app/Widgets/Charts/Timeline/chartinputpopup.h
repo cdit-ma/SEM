@@ -42,6 +42,7 @@ signals:
 
     void requestPortLifecycleEvents(PortLifecycleRequest request);
     void requestWorkloadEvents(WorkloadRequest request);
+    void requestCPUUtilisationEvents(CPUUtilisationRequest request);
 
 public slots:
     void themeChanged();
@@ -118,6 +119,7 @@ private:
     QStringList compInstPaths_;
     QStringList portPaths_;
     QStringList workerPaths_;
+    QStringList nodeIDs_;
 
     ViewController* viewController_ = 0;
 };

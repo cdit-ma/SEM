@@ -155,6 +155,7 @@ void PanelWidget::constructEventsView()
 
 
 /**
+<<<<<<< HEAD
  * @brief PanelWidget::constructPortLifecycleEventsView
  */
 void PanelWidget::constructPortLifecycleEventsView()
@@ -176,6 +177,19 @@ void PanelWidget::constructWorkloadEventsView()
     view->setActiveEventKinds({TIMELINE_DATA_KIND::WORKLOAD});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Workload", view);
+    defaultActiveAction->trigger();
+}
+
+
+/**
+ * @brief PanelWidget::constructCPUEventsView
+ */
+void PanelWidget::constructCPUEventsView()
+{
+    TimelineChartView* view = new TimelineChartView(this);
+    view->setActiveEventKinds({TIMELINE_DATA_KIND::CPU_UTILISATION});
+    connectChartViewToAggreagtionProxy(view);
+    defaultActiveAction = addTab("CPUUtilisation", view);
     defaultActiveAction->trigger();
 }
 
@@ -366,9 +380,10 @@ void PanelWidget::setViewController(ViewController *vc)
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
 
     //testNewTimelineView();
-    constructEventsView();
     //constructPortLifecycleEventsView();
     //constructWorkloadEventsView();
+    //constructCPUEventsView();
+    constructEventsView();
 }
 
 
@@ -817,6 +832,7 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
                 break;
             case TIMELINE_DATA_KIND::CPU_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
+                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
                 //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);

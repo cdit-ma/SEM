@@ -115,6 +115,7 @@ void ChartInputPopup::setViewController(ViewController* controller)
         connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
         connect(this, &ChartInputPopup::requestPortLifecycleEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
         connect(this, &ChartInputPopup::requestWorkloadEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestWorkloadEvents);
+        connect(this, &ChartInputPopup::requestCPUUtilisationEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestCPUUtilisationEvents);
         connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
     }
 }
@@ -276,6 +277,8 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
     // at this point, all selected node items should have a valid chart data kind to show
     // all selected items are from a single aspect - the active aspect
 
+    qDebug() << "receivedSelectedViewItems - dataKinds#: " << dataKinds.count();
+
     if (!viewController_ || dataKinds.isEmpty())
         return;
 
@@ -285,6 +288,7 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
     compInstPaths_.clear();
     portPaths_.clear();
     workerPaths_.clear();
+    nodeIDs_.clear();
 
     // send a separate filtered request per selected node item
     for (auto item : selectedItems) {
@@ -336,23 +340,12 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             break;
         case NODE_KIND::HARDWARE_NODE:
             // can send cpu/mem requests
+            nodeIDs_.append(label);
             break;
         default:
             break;
         }
     }
-
-    /*
-    for (auto compName : compNames_) {
-        qDebug() << "compName: " << compName;
-    }
-    for (auto compInstPath : compInstPaths_) {
-        qDebug() << "compInstPath: " << compInstPath;
-    }
-    for (auto portPath : portPaths_) {
-        qDebug() << "portPath: " << portPath;
-    }
-    */
 }
 
 
@@ -420,9 +413,14 @@ void ChartInputPopup::accept()
                 hasValidRequests = true;
                 break;
             }
-            case TIMELINE_DATA_KIND::CPU_UTILISATION:
-
+            case TIMELINE_DATA_KIND::CPU_UTILISATION: {
+                CPUUtilisationRequest request;
+                request.experimentRunID = selectedExperimentRunID_;
+                request.node_ids = nodeIDs_;
+                emit requestCPUUtilisationEvents(request);
+                hasValidRequests = true;
                 break;
+            }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
 
                 break;

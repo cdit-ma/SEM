@@ -3,6 +3,7 @@
 #include "entitychart.h"
 #include "../Axis/axiswidget.h"
 #include "../../Series/barseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../../../theme.h"
 
 #include <QScrollBar>
@@ -617,6 +618,11 @@ void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
         }
     }
 
+    /*qDebug() << "updated#: " << updatedSeries.count();
+    for (auto s : updatedSeries) {
+        qDebug() << "events#: " << s->getEvents().count();
+    }*/
+
     auto timelineRange = _timelineChart->getRange();
     if (!_timelineChart->isRangeSet()) {
         _timelineChart->setInitialRange(false, minTime, maxTime);
@@ -661,10 +667,10 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
     case TIMELINE_DATA_KIND::WORKLOAD:
         series = new WorkloadEventSeries(ID, this);
         break;
-    /*case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    case TIMELINE_DATA_KIND::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(ID, this);
         break;
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    /*case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
         series = new MemoryUtilisationEventSeries(ID, this);
         break;*/
     default:

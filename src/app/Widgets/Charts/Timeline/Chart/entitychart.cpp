@@ -3,6 +3,7 @@
 #include "../../Series/barseries.h"
 #include "../../Series/stateseries.h"
 #include "../../Data/Events/portlifecycleevent.h"
+#include "../../Data/Events/cpuutilisationevent.h"
 
 #include <QPainter>
 #include <QPainter>
@@ -511,6 +512,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
     case TIMELINE_DATA_KIND::WORKLOAD:
         paintWorkloadEventSeries(painter);
         break;
+    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+        paintCPUUtilisationEventSeries(painter);
+        break;
     default:
         //qWarning("EntityChart::paintSeries - Series kind not handled");
         break;
@@ -519,7 +523,6 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
 
 /**
-<<<<<<< HEAD
  * @brief EntityChart::paintPortLifecycleEventSeries
  * @param painter
  */
@@ -693,6 +696,173 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
+}
+
+
+/**
+ * @brief EntityChart::paintCPUUtilisationEventSeries
+ * @param painter
+ */
+void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
+{
+    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
+    if (!_eventSeries)
+         return;
+
+    //qDebug() << "paint series: " << _eventSeries->getEvents().count();
+
+     double barWidth = 10.0; //BAR_WIDTH;
+     double barCount = ceil((double)width() / barWidth);
+
+     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+     barWidth = (double) width() / barCount;
+
+     QVector< QList<MEDEA::Event*> > buckets(barCount);
+     QVector<double> bucket_endTimes;
+     bucket_endTimes.reserve(barCount);
+
+     double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+     double current_left = _displayedMin;
+
+     // set the bucket end times
+     for (int i = 0; i < barCount; i++) {
+         bucket_endTimes.append(current_left + barTimeWidth);
+         current_left = bucket_endTimes.last();
+     }
+
+     const auto& events = _eventSeries->getEvents();
+     auto firstEvent = events.constBegin();
+     auto lastEvent = events.constEnd();
+     auto prevFirst = firstEvent;
+
+     // get the first event inside the visible range
+     for (; firstEvent != events.constEnd(); firstEvent++) {
+         const auto& current_time = (*firstEvent)->getTimeMS();
+         if (current_time > _displayedMin) {
+             break;
+         }
+         prevFirst = firstEvent;
+     }
+
+     /*auto lastEvent = events.constEnd() - 1;
+     auto prevLast = lastEvent;
+
+     // get the last event inside the visible range
+     for (; lastEvent != firstEvent; lastEvent--) {
+         const auto& current_time = (*lastEvent)->getTimeMS();
+         if (current_time <= _displayedMax) {
+             break;
+         }
+         prevLast = lastEvent;
+     }
+
+     //QPointF startingPoint, endPoint;
+     /*if (prevFirst != firstEvent) {
+         auto timeDiff = (*firstEvent)->getTimeMS() - (*prevFirst)->getTimeMS();
+         startingPoint = QPointF(ceil(timeDiff / -barTimeWidth), ((CPUUtilisationEvent*)*prevFirst)->getUtilisation());
+     }
+     if (prevLast != lastEvent) {
+         auto timeDiff = (*prevLast)->getTimeMS() - (*lastEvent)->getTimeMS();
+         endPoint = QPointF(barCount * barWidth + ceil(timeDiff / barTimeWidth), ((CPUUtilisationEvent*)*prevLast)->getUtilisation());
+     }*/
+
+     auto current_bucket = 0;
+     auto current_bucket_ittr = bucket_endTimes.constBegin();
+     auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+     // put the data in the correct bucket
+     //for (;firstEvent != lastEvent + 1; firstEvent++) {
+     for (;firstEvent != lastEvent; firstEvent++) {
+         const auto& current_time = (*firstEvent)->getTimeMS();
+         while (current_bucket_ittr != end_bucket_ittr) {
+             if (current_time > (*current_bucket_ittr)) {
+                 current_bucket_ittr ++;
+                 current_bucket ++;
+             } else {
+                 break;
+             }
+         }
+         if (current_bucket < barCount) {
+             buckets[current_bucket].append(*firstEvent);
+         }
+     }
+
+     auto max = 0.0;
+     for (const auto& data : buckets) {
+         for (auto e : data) {
+             auto event = (CPUUtilisationEvent*) e;
+             max = qMax(max, event->getUtilisation());
+         }
+     }
+     max = 1.0;
+
+     auto availableHeight = height() - barWidth;
+     QColor seriesColor = _utilisationColor;
+     //QList<QRectF> rects;
+
+     /*if (!startingPoint.isNull())
+         rects.append(QRectF(startingPoint.x(), (1 - startingPoint.y() / max) * availableHeight, barWidth, barWidth));*/
+
+     painter.setRenderHint(QPainter::Antialiasing, true);
+
+     for (int i = 0; i < barCount; i++) {
+         int count = buckets[i].count();
+         if (count == 0)
+             continue;
+         /*if (count > 1)
+             qDebug() << "More than one data in bucket: " << i;*/
+         //auto event = (CPUUtilisationEvent*) buckets[i][0];
+         //auto utilisation = event->getUtilisation();
+         auto utilisation = 0.0;
+         for (auto e : buckets[i]) {
+             auto event = (CPUUtilisationEvent*)e;
+             utilisation += event->getUtilisation();
+         }
+         utilisation /= buckets[i].count();
+         double y = (1 - utilisation / max) * availableHeight;
+         QRectF rect(i * barWidth, y, barWidth, barWidth);
+         //painter.setPen(QPen(seriesColor, BAR_WIDTH));
+         painter.setBrush(seriesColor);
+         if (rectHovered(_eventSeries->getKind(), rect)) {
+             //painter.setPen(QPen(_highlightTextColor, BAR_PEN_WIDTH));
+             painter.setBrush(_highlightColor);
+         }
+         painter.drawEllipse(rect);
+         //painter.drawPoint(i * barWidth, y);
+         //rects.append(rect);
+     }
+
+     /*if (!endPoint.isNull())
+         rects.append(QRectF(endPoint.x(), (1 - endPoint.y() / max) * availableHeight, barWidth, barWidth));*/
+
+     /*
+     painter.setRenderHint(QPainter::Antialiasing, true);
+
+     for (int i = 0; i < rects.count() - 1; i++) {
+         auto rect1 = rects.at(i);
+         auto rect2 = rects.at(i + 1);
+         painter.setPen(QPen(seriesColor, 3.0));
+         painter.drawLine(rect1.center(), rect2.center());
+         painter.setPen(QPen(seriesColor, 2));
+         if (rectHovered(_eventSeries->getKind(), rect1)) {
+             painter.setPen(QPen(_highlightTextColor, 2.0));
+             painter.setBrush(_highlightColor);
+         } else {
+             painter.setBrush(seriesColor);
+         }
+         painter.drawEllipse(rect1);
+         painter.setPen(QPen(seriesColor, 2));
+         if (rectHovered(_eventSeries->getKind(), rect2)) {
+             painter.setPen(QPen(_highlightTextColor, 2.0));
+             painter.setBrush(_highlightColor);
+         } else {
+             painter.setBrush(seriesColor);
+         }
+         painter.drawEllipse(rect2);
+     }
+
+     painter.setRenderHint(QPainter::Antialiasing, false);
+     */
 }
 
 
