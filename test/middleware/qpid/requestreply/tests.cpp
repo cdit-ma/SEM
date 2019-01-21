@@ -20,7 +20,7 @@ bool setup_port(Port& port, const std::string& topic_name){
    
     if(b && t){
         b->set_String(cditma::GetQpidBrokerAddress());
-        t->set_String(topic_name);
+        t->set_String(cditma::GetNodeName() + "_" + topic_name);
         return true;
     }
     return false;
