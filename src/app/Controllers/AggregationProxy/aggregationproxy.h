@@ -9,6 +9,7 @@
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
+#include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
 
 class AggregationProxy : public QObject
 {
@@ -32,6 +33,7 @@ public:
     void RequestPortLifecycleEvents(PortLifecycleRequest request);
     void RequestWorkloadEvents(WorkloadRequest request);
     void RequestCPUUtilisationEvents(CPUUtilisationRequest request);
+    void RequestMemoryUtilisationEvents(MemoryUtilisationRequest request);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
@@ -51,6 +53,9 @@ signals:
     void receivedCPUUtilisationEvent(CPUUtilisationEvent* event);
     void receivedCPUUtilisationEvents(QList<MEDEA::Event*> events);
 
+    void receivedMemoryUtilisationEvent(MemoryUtilisationEvent* event);
+    void receivedMemoryUtilisationEvents(QList<MEDEA::Event*> events);
+
     void clearPreviousEvents();
     void receivedAllEvents();
 
@@ -62,6 +67,7 @@ private:
     void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
     void SendWorkloadRequest(AggServer::WorkloadRequest& request);
     void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
+    void SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request);
 
     Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);

@@ -66,6 +66,7 @@ private:
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
+    void paintMemoryUtilisationEventSeries(QPainter &painter);
     void paintNotificationSeries(QPainter &painter);
     void paintStateSeries(QPainter &painter);
     void paintBarSeries(QPainter &painter);

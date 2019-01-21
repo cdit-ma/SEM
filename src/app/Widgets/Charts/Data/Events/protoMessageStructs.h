@@ -37,6 +37,11 @@ struct CPUUtilisationRequest : Request {
 };
 
 
+struct MemoryUtilisationRequest : Request {
+    QStringList node_ids;
+};
+
+
 /*
  * ENUMS
  */

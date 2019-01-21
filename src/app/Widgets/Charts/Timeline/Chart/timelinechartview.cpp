@@ -670,9 +670,9 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
     case TIMELINE_DATA_KIND::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(ID, this);
         break;
-    /*case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
         series = new MemoryUtilisationEventSeries(ID, this);
-        break;*/
+        break;
     default:
         series = new MEDEA::EventSeries(this);
         break;

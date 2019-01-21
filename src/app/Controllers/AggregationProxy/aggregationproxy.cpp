@@ -286,6 +286,25 @@ void AggregationProxy::RequestCPUUtilisationEvents(CPUUtilisationRequest request
 
 
 /**
+ * @brief AggregationProxy::RequestMemoryUtilisationEvents
+ * @param request
+ */
+void AggregationProxy::RequestMemoryUtilisationEvents(MemoryUtilisationRequest request)
+{
+    AggServer::MemoryUtilisationRequest memoryUtilisationRequest;
+    memoryUtilisationRequest.set_experiment_run_id(experimentRunID_);
+    qDebug() << "Request MemoryUtilisationEvents";
+
+    for (auto nodeID : request.node_ids) {
+        qDebug() << "nodeID: " << nodeID;
+        memoryUtilisationRequest.add_node_ids(nodeID.toStdString());
+    }
+
+    SendMemoryUtilisationRequest(memoryUtilisationRequest);
+}
+
+
+/**
  * @brief AggregationProxy::constructTimestampFromMS
  * @param milliseconds
  * @return
@@ -483,19 +502,15 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
 
         for (const auto& node : results->nodes()) {
             auto hostname = getQString(node.node_info().hostname());
-            qDebug() << "host: " << hostname << " - #" << node.events_size();
+            //qDebug() << "host: " << hostname << " - #" << node.events_size();
             for (const auto& e : node.events()) {
                 auto utilisation = e.cpu_utilisation();
-                /*if (node.events_size() < 100)
-                    qDebug() << "utilisation: " << utilisation;*/
                 auto time = getQDateTime(e.time());
                 CPUUtilisationEvent* event = new CPUUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
                 events.append(event);
                 //emit receivedCPUUtilisationEvent(event);
             }
         }
-        qDebug() << "--------------------------------------------------------------------------------";
-
 
         emit receivedCPUUtilisationEvents(events);
         notification->setSeverity(Notification::Severity::SUCCESS);
@@ -504,6 +519,45 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
         notification->setSeverity(Notification::Severity::ERROR);
         notification->setDescription(ex.what());
     }
+}
+
+
+/**
+ * @brief AggregationProxy::SendMemoryUtilisationRequest
+ * @param request
+ */
+void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request)
+{
+    if (!GotRequester())
+         return;
+
+     auto notification = NotificationManager::manager()->AddNotification("Requesting Memory Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+
+     try {
+         auto results = requester_->GetMemoryUtilisation(request);
+         QList<MEDEA::Event*> events;
+
+         qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
+         qDebug() << "--------------------------------------------------------------------------------";
+
+         for (const auto& node : results->nodes()) {
+             auto hostname = getQString(node.node_info().hostname());
+             for (const auto& e : node.events()) {
+                 auto utilisation = e.memory_utilisation();
+                 auto time = getQDateTime(e.time());
+                 MemoryUtilisationEvent* event = new MemoryUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
+                 events.append(event);
+                 //emit receivedMemoryUtilisationEvent(event);
+             }
+         }
+
+         emit receivedMemoryUtilisationEvents(events);
+         notification->setSeverity(Notification::Severity::SUCCESS);
+
+     } catch (const std::exception& ex) {
+         notification->setSeverity(Notification::Severity::ERROR);
+         notification->setDescription(ex.what());
+     }
 }
 
 

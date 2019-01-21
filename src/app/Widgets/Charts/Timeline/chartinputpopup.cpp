@@ -112,11 +112,12 @@ void ChartInputPopup::setViewController(ViewController* controller)
 
         connect(this, &ChartInputPopup::requestExperimentRuns, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
         connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-        connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
+        connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
+
         connect(this, &ChartInputPopup::requestPortLifecycleEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
         connect(this, &ChartInputPopup::requestWorkloadEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestWorkloadEvents);
         connect(this, &ChartInputPopup::requestCPUUtilisationEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestCPUUtilisationEvents);
-        connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
+        connect(this, &ChartInputPopup::requestMemoryUtilisationEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestMemoryUtilisationEvents);
     }
 }
 
@@ -277,18 +278,14 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
     // at this point, all selected node items should have a valid chart data kind to show
     // all selected items are from a single aspect - the active aspect
 
-    qDebug() << "receivedSelectedViewItems - dataKinds#: " << dataKinds.count();
-
     if (!viewController_ || dataKinds.isEmpty())
         return;
 
     // clear request filters
+    resetFilters();
+
+    hasSelection_ = !selectedItems.isEmpty();
     eventKinds_ = dataKinds;
-    compNames_.clear();
-    compInstPaths_.clear();
-    portPaths_.clear();
-    workerPaths_.clear();
-    nodeIDs_.clear();
 
     // send a separate filtered request per selected node item
     for (auto item : selectedItems) {
@@ -385,13 +382,19 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ == -1)
         return;
 
+    // if there is no selection filter, show all data kinds
+    if (!hasSelection_) {
+        resetFilters();
+        eventKinds_ = GET_TIMELINE_DATA_KINDS();
+    }
+
     if (!eventKinds_.isEmpty()) {
 
         bool hasValidRequests = false;
         for (auto kind : eventKinds_) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-                if (portPaths_.isEmpty() && compNames_.isEmpty() && compInstPaths_.isEmpty()) {
+                if (hasSelection_ && portPaths_.isEmpty() && compNames_.isEmpty() && compInstPaths_.isEmpty()) {
                     break;
                 }
                 PortLifecycleRequest request;
@@ -421,9 +424,14 @@ void ChartInputPopup::accept()
                 hasValidRequests = true;
                 break;
             }
-            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
-
+            case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
+                MemoryUtilisationRequest request;
+                request.experimentRunID = selectedExperimentRunID_;
+                request.node_ids = nodeIDs_;
+                emit requestMemoryUtilisationEvents(request);
+                hasValidRequests = true;
                 break;
+            }
             default:
                 break;
             }
@@ -440,6 +448,7 @@ void ChartInputPopup::accept()
         emit requestAllEvents();
     }
 
+    hasSelection_ = false;
     hideGroupBoxes();
     PopupWidget::accept();
 }
@@ -450,6 +459,7 @@ void ChartInputPopup::accept()
  */
 void ChartInputPopup::reject()
 {
+    hasSelection_ = false;
     hideGroupBoxes();
     PopupWidget::reject();
 }
@@ -561,6 +571,20 @@ void ChartInputPopup::resizePopup()
     experimentRunsGroupBox_->setFixedHeight(qMin(GROUPBOX_MAX_HEIGHT, experimentRunsScrollWidget_->sizeHint().height()) + 45);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
+}
+
+
+/**
+ * @brief ChartInputPopup::resetFilters
+ */
+void ChartInputPopup::resetFilters()
+{
+    eventKinds_.clear();
+    compNames_.clear();
+    compInstPaths_.clear();
+    portPaths_.clear();
+    workerPaths_.clear();
+    nodeIDs_.clear();
 }
 
 

@@ -38,11 +38,11 @@ signals:
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
     void requestAllEvents();
-    //void requestEvents(QString node, QString component, QString worker);
 
     void requestPortLifecycleEvents(PortLifecycleRequest request);
     void requestWorkloadEvents(WorkloadRequest request);
     void requestCPUUtilisationEvents(CPUUtilisationRequest request);
+    void requestMemoryUtilisationEvents(MemoryUtilisationRequest request);
 
 public slots:
     void themeChanged();
@@ -64,9 +64,11 @@ private:
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
     void hideGroupBoxes();
+
     void recenterPopup();
     void resizePopup();
 
+    void resetFilters();
     void setupFilterWidgets();
 
     QString& getSelectedFilter(FILTER_KEY filter);
@@ -94,6 +96,7 @@ private:
     QMenu* filterMenu_ = 0;
 
     bool filtersEnabled_ = false;
+    bool hasSelection_ = false;
 
     QPointF originalCenterPos_;
 

@@ -12,6 +12,7 @@
 
 #include "../../Data/Series/eventseries.h"
 #include "../../Data/Series/portlifecycleeventseries.h"
+#include "../../Data/Series/memoryutilisationeventseries.h"
 
 #include <QWidget>
 #include <QToolBar>
