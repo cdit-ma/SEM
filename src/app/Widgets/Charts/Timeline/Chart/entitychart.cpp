@@ -709,11 +709,9 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
  */
 void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
-    if (!_eventSeries)
+    MEDEA::EventSeries* eventSeries = _seriesList.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
+    if (!eventSeries)
          return;
-
-    //qDebug() << "paint series: " << _eventSeries->getEvents().count();
 
      double barWidth = 10.0; //BAR_WIDTH;
      double barCount = ceil((double)width() / barWidth);
@@ -734,7 +732,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
          current_left = bucket_endTimes.last();
      }
 
-     const auto& events = _eventSeries->getEvents();
+     const auto& events = eventSeries->getEvents();
      auto firstEvent = events.constBegin();
      auto lastEvent = events.constEnd();
      auto prevFirst = firstEvent;
@@ -827,7 +825,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
          QRectF rect(i * barWidth, y, barWidth, barWidth);
          //painter.setPen(QPen(seriesColor, BAR_WIDTH));
          painter.setBrush(seriesColor);
-         if (rectHovered(_eventSeries->getKind(), rect)) {
+         if (rectHovered(eventSeries->getKind(), rect)) {
              //painter.setPen(QPen(_highlightTextColor, BAR_PEN_WIDTH));
              painter.setBrush(_highlightColor);
          }
@@ -867,6 +865,8 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 
      painter.setRenderHint(QPainter::Antialiasing, false);
      */
+
+     painter.setRenderHint(QPainter::Antialiasing, false);
 }
 
 
@@ -876,8 +876,8 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* _eventSeries = _seriesList.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
-    if (!_eventSeries)
+    MEDEA::EventSeries* eventSeries = _seriesList.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
+    if (!eventSeries)
         return;
 
     double barWidth = 10.0; //BAR_WIDTH;
@@ -897,7 +897,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
         current_left = bucket_endTimes.last();
     }
 
-    const auto& events = _eventSeries->getEvents();
+    const auto& events = eventSeries->getEvents();
     auto current = events.constBegin();
     auto upper = events.constEnd();
     for (; current != upper; current++) {
@@ -936,22 +936,35 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     }
     max = 1.0;
 
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
     auto availableHeight = height() - barWidth;
     QColor seriesColor = _utilisationColor;
-    QList<QRectF> rects;
+    //QList<QRectF> rects;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
             continue;
-        auto event = (MemoryUtilisationEvent*) buckets[i][0];
-        auto utilisation = event->getUtilisation();
+        //auto event = (MemoryUtilisationEvent*) buckets[i][0];
+        //auto utilisation = event->getUtilisation();
+        auto utilisation = 0.0;
+        for (auto e : buckets[i]) {
+            auto event = (MemoryUtilisationEvent*)e;
+            utilisation += event->getUtilisation();
+        }
+        utilisation /= buckets[i].count();
         double y = (1 - utilisation / max) * availableHeight;
         QRectF rect(i * barWidth, y, barWidth, barWidth);
-        rects.append(rect);
+        //rects.append(rect);
+        painter.setBrush(seriesColor);
+        if (rectHovered(eventSeries->getKind(), rect)) {
+            painter.setBrush(_highlightColor);
+        }
+        painter.drawEllipse(rect);
     }
 
-    painter.setRenderHint(QPainter::Antialiasing, true);
+    /*painter.setRenderHint(QPainter::Antialiasing, true);
 
     for (int i = 0; i < rects.count() - 1; i++) {
         auto rect1 = rects.at(i);
@@ -974,7 +987,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
             painter.setBrush(seriesColor);
         }
         painter.drawEllipse(rect2);
-    }
+    }*/
 
     painter.setRenderHint(QPainter::Antialiasing, false);
 }
