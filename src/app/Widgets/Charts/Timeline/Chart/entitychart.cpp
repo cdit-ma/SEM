@@ -41,11 +41,11 @@ EntityChart::EntityChart(ViewItem* item, QWidget* parent)
     _color_s_notification = 100;
     _color_s_line = 200;
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
-    themeChanged();
-
     _hoveredSeriesKind = TIMELINE_DATA_KIND::DATA;
     _seriesKindVisible[TIMELINE_DATA_KIND::LINE] = true;
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
+    themeChanged();
 }
 
 
@@ -268,6 +268,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     _portLifecycleColor = _backgroundColor;
     _workloadColor = _backgroundColor;
     _utilisationColor = _backgroundColor;
+    _memoryColor = _backgroundColor;
 
     switch (kind) {
     case TIMELINE_DATA_KIND::STATE:
@@ -289,6 +290,9 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     case TIMELINE_DATA_KIND::CPU_UTILISATION:
         _utilisationColor = _defaultUtilisationColor;
         break;
+    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        _memoryColor = _defaultMemoryColor;
+        break;
     default: {
         // clear hovered state
         _stateColor = _defaultStateColor;
@@ -297,6 +301,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
         _portLifecycleColor = _defaultPortLifecycleColor;
         _workloadColor = _defaultWorkloadColor;
         _utilisationColor = _defaultUtilisationColor;
+        _memoryColor = _defaultMemoryColor;
         break;
     }
     }
@@ -348,8 +353,14 @@ void EntityChart::themeChanged()
     _notificationColor = _defaultNotificationColor;
     _lineColor = _defaultLineColor;
 
-    _defaultWorkloadColor = Qt::lightGray;
+    _portLifecycleColor = _defaultPortLifecycleColor;
     _workloadColor = _defaultWorkloadColor;
+
+    _defaultUtilisationColor = QColor(30,144,255);
+    _utilisationColor = _defaultUtilisationColor;
+
+    _defaultMemoryColor = theme->getSeverityColor(Notification::Severity::SUCCESS);
+    _memoryColor = _defaultMemoryColor;
 
     _backgroundColor = theme->getAltBackgroundColor();
     _backgroundColor.setAlphaF(BACKGROUND_OPACITY);
@@ -805,6 +816,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      /*if (!startingPoint.isNull())
          rects.append(QRectF(startingPoint.x(), (1 - startingPoint.y() / max) * availableHeight, barWidth, barWidth));*/
 
+     painter.setPen(_gridPen.color());
      painter.setRenderHint(QPainter::Antialiasing, true);
 
      for (int i = 0; i < barCount; i++) {
@@ -936,10 +948,11 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     }
     max = 1.0;
 
+    painter.setPen(_gridPen.color());
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     auto availableHeight = height() - barWidth;
-    QColor seriesColor = _utilisationColor;
+    QColor seriesColor = _memoryColor;
     //QList<QRectF> rects;
 
     for (int i = 0; i < barCount; i++) {

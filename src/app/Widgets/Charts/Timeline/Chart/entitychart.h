@@ -128,9 +128,11 @@ private:
     QColor _defaultPortLifecycleColor = Qt::gray;
     QColor _defaultWorkloadColor = Qt::gray;
     QColor _defaultUtilisationColor = Qt::lightGray;
+    QColor _defaultMemoryColor = Qt::lightGray;
     QColor _portLifecycleColor = _defaultUtilisationColor;
-    QColor _utilisationColor = _defaultUtilisationColor;
     QColor _workloadColor = _defaultWorkloadColor;
+    QColor _utilisationColor = _defaultUtilisationColor;
+    QColor _memoryColor = _defaultMemoryColor;
 
     int _borderColorDelta;
     int _colorDelta;
