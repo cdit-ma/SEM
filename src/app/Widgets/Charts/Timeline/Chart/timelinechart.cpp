@@ -292,6 +292,8 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
         hoveredChartRect.moveTo(chart->pos());
         chart->setHovered(hovered);
         update();
+    } else {
+        hoveredChartRect = QRectF();
     }
 }
 

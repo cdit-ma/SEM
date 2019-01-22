@@ -53,6 +53,7 @@ public slots:
     void themeChanged();
 
     void entityAxisSizeChanged(QSizeF size);
+    void entitySetClosed(EntitySet* set);
 
     void viewItemConstructed(ViewItem* item);
     void viewItemDestructed(int ID, ViewItem* item);

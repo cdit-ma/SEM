@@ -20,15 +20,30 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     textLabel = new QLabel(label, this);
     textLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
+    toolbar = new QToolBar(this);
+    toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    closeAction = toolbar->addAction("");
+    closeAction->setToolTip("Close " + label + "'s Chart");
+
+    connect(closeAction, &QAction::triggered, [=]() {
+        auto childItr = childrenSets.begin();
+        while (childItr != childrenSets.end()) {
+            emit (*childItr)->closeEntity(*childItr);
+            childItr = childrenSets.erase(childItr);
+        }
+        emit closeEntity(this);
+    });
+
     _tickLength = fontMetrics().height() / 4;
     _axisLineVisible = false;
 
-    QHBoxLayout* labelLayout = new QHBoxLayout(this);
-    labelLayout->setSpacing(CHILD_TAB_WIDTH / 3);
-    labelLayout->setMargin(0);
-    labelLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
-    labelLayout->addWidget(iconLabel);
-    labelLayout->addWidget(textLabel, 1);
+    QHBoxLayout* mainLayout = new QHBoxLayout(this);
+    mainLayout->setSpacing(CHILD_TAB_WIDTH / 3);
+    mainLayout->setMargin(0);
+    mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
+    mainLayout->addWidget(iconLabel);
+    mainLayout->addWidget(textLabel, 1);
+    mainLayout->addWidget(toolbar);
 
     setLabel(label);
     setContentsMargins(0, 0, 0, 0);
@@ -129,6 +144,7 @@ void EntitySet::addChildEntitySet(EntitySet* child)
         connect(child, &EntitySet::childAdded, this, &EntitySet::childEntityAdded);
         connect(child, &EntitySet::childRemoved, this, &EntitySet::childEntityRemoved);
         connect(this, &EntitySet::setChildVisible, child, &EntitySet::setVisible);
+        //connect(this, &EntitySet::closeEntity, child, &EntitySet::deleteLater);
 
         // update allDepthChildrenCount and propagate signal to the ancestor
         childEntityAdded();
@@ -155,8 +171,10 @@ void EntitySet::setHovered(bool hovered)
 {
     if (hovered) {
         textLabel->setStyleSheet("color: " + highlighColorStr + ";");
+        closeAction->setIcon(closeIcon);
     } else {
         textLabel->setStyleSheet("color: " + textColorStr + ";");
+        closeAction->setIcon(QIcon());
     }
 }
 
@@ -184,11 +202,13 @@ void EntitySet::themeChanged(Theme* theme)
 
     textColorStr = theme->getTextColorHex();
     highlighColorStr = theme->getHighlightColorHex();
-    setHovered(false);
 
-    textColorStr = theme->getTextColorHex();
-    highlighColorStr = theme->getHighlightColorHex();
-    setHovered(false);
+    toolbar->setIconSize(theme->getIconSize());
+    toolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                           "QToolButton:!hover{ border: none; background: rgba(0,0,0,0); }");
+
+    closeIcon = theme->getIcon("Icons", "cross");
+    closeAction->setIcon(closeIcon);
 
     if (allDepthChildrenCount <= 0) {
         iconLabel->setPixmap(unExpandablePixmap);
@@ -196,6 +216,8 @@ void EntitySet::themeChanged(Theme* theme)
         QPixmap pixmap = _isExpanded ? expandedPixmap : contractedPixmap;
         iconLabel->setPixmap(pixmap);
     }
+
+    setHovered(false);
 }
 
 

@@ -1,11 +1,9 @@
 #ifndef ENTITYSET_H
 #define ENTITYSET_H
 
-
-
 #include <QWidget>
 #include <QLabel>
-#include <QVBoxLayout>
+#include <QToolBar>
 #include <QHBoxLayout>
 
 #include "../../../../theme.h"
@@ -40,6 +38,8 @@ public:
 signals:
     void childAdded();
     void childRemoved(EntitySet* child);
+
+    void closeEntity(EntitySet* set);
 
     void setChildVisible(bool visible);
     void visibilityChanged(bool visible);
@@ -79,8 +79,13 @@ private:
     QPen _tickPen;
     int _tickLength;
 
+    QToolBar* toolbar;
+    QAction* closeAction;
+    QIcon closeIcon;
+
     QLabel* textLabel;
     QLabel* iconLabel;
+
     QPixmap unExpandablePixmap;
     QPixmap expandedPixmap;
     QPixmap contractedPixmap;
@@ -90,7 +95,6 @@ private:
 
     EntitySet* parentEntitySet = 0;
     QList<EntitySet*> childrenSets;
-    //QHash<int, EntitySet*> childrenHash;
     QList<QtCharts::QAbstractSeries*> seriesList;
 
 };

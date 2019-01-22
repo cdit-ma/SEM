@@ -436,6 +436,43 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 
 
 /**
+ * @brief TimelineChartView::entitySetClosed
+ * @param set
+ */
+void TimelineChartView::entitySetClosed(EntitySet* set)
+{
+    if (!set)
+        return;
+
+    auto ID = eventEntitySets.key(set, "");
+
+    if (ID != "") {
+
+        auto chart = eventEntityCharts.value(ID, 0);
+        if (chart) {
+            //remove/delete series in chart
+            for (auto series : chart->getSeries()) {
+                eventSeries.remove(ID);
+                series->deleteLater();
+            }
+            // remove/delete chart item
+            _timelineChart->removeEntityChart(chart);
+            eventEntityCharts.remove(ID);
+            chart->deleteLater();
+        }
+
+        // remove/delete axis item
+        _entityAxis->removeEntity(set);
+        eventEntitySets.remove(ID);
+        set->deleteLater();
+
+        // clear the timeline chart's hovered rect
+        _timelineChart->setEntityChartHovered(0, false);
+    }
+}
+
+
+/**
  * @brief TimelineChartView::viewItemConstructed
  * @param item
  */
@@ -721,6 +758,7 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     eventEntitySets[ID] = set;
 
     connect(set, &EntitySet::visibilityChanged, chart, &EntityChart::setVisible);
+    connect(set, &EntitySet::closeEntity, this, &TimelineChartView::entitySetClosed);
     connect(set, &EntitySet::hovered, [=] (bool hovered) {
         _timelineChart->setEntityChartHovered(chart, hovered);
     });
