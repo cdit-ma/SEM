@@ -1,35 +1,20 @@
 #include "portlifecycleeventseries.h"
-
-#include <QDateTime>
-#include <QDebug>
-
+#include "../Events/portlifecycleevent.h"
 
 /**
  * @brief PortLifecycleEventSeries::PortLifecycleEventSeries
- * @param path
+ * @param ID
  * @param parent
  */
-PortLifecycleEventSeries::PortLifecycleEventSeries(QString path, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::PORT_LIFECYCLE)
-{
-    port_path = path;
-}
-
-
-/**
- * @brief PortLifecycleEventSeries::getPortPath
- * @return
- */
-const QString &PortLifecycleEventSeries::getPortPath() const
-{
-    return port_path;
-}
+PortLifecycleEventSeries::PortLifecycleEventSeries(QString ID, QObject* parent)
+    : MEDEA::EventSeries(ID, TIMELINE_DATA_KIND::PORT_LIFECYCLE, parent) {}
 
 
 /**
  * @brief PortLifecycleEventSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS
+ * @param numberOfItemsToDisplay
  * @param displayFormat
  * @return
  */
@@ -44,24 +29,23 @@ QString PortLifecycleEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64
     });
 
     int count = std::distance(current, upper);
-    if (count <= 0) {
+    if (count <= 0)
         return "";
-    } else {
-        // display upto the first 10 events
-        QString hoveredData;
-        QTextStream stream(&hoveredData);
-        int displayCount = qMin(count, numberOfItemsToDisplay);
-        for (int i = 0; i < displayCount; i++) {
-            auto event = (PortLifecycleEvent*)(*current);
-            stream << getTypeString(event->getType()) + " - "
-                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
-            current++;
-        }
-        if (count > 10) {
-            stream << "... (more omitted)";
-        }
-        return hoveredData.trimmed();
+
+    QString hoveredData;
+    QTextStream stream(&hoveredData);
+    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+
+    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+        auto event = (PortLifecycleEvent*)(*current);
+        stream << getTypeString(event->getType()) + " - "
+                  + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
+        current++;
     }
+    if (count > numberOfItemsToDisplay)
+        stream << "... (more omitted)";
+
+    return hoveredData.trimmed();
 }
 
 

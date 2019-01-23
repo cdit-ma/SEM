@@ -10,8 +10,9 @@
 #include "../Axis/entityset.h"
 #include "entitychart.h"
 
-#include "../../Data/Series/eventseries.h"
 #include "../../Data/Series/portlifecycleeventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../Data/Series/memoryutilisationeventseries.h"
 
 #include <QWidget>
@@ -53,7 +54,7 @@ public slots:
     void themeChanged();
 
     void entityAxisSizeChanged(QSizeF size);
-    void entitySetClosed(EntitySet* set);
+    void entitySetClosed();
 
     void viewItemConstructed(ViewItem* item);
     void viewItemDestructed(int ID, ViewItem* item);

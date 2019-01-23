@@ -14,10 +14,10 @@ int MEDEA::DataSeries::series_ID = 0;
  * @param kind
  */
 MEDEA::DataSeries::DataSeries(ViewItem* item, TIMELINE_DATA_KIND kind)
-    : EventSeries(item, kind)
+    : EventSeries(QString::number(series_ID++), kind, item)
 {
     _viewItem = item;
-    _ID = series_ID++;
+    //_ID = series_ID++;
 
     _minX = DBL_MAX;
     _maxX = DBL_MIN;

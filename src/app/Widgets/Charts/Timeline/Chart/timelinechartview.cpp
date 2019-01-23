@@ -3,7 +3,6 @@
 #include "entitychart.h"
 #include "../Axis/axiswidget.h"
 #include "../../Series/barseries.h"
-#include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../../../theme.h"
 
 #include <QScrollBar>
@@ -20,6 +19,8 @@
 
 #define HOVER_DISPLAY_ON true
 #define HOVER_DISPLAY_ITEM_COUNT 10
+
+//#define
 
 /**
  * @brief TimelineChartView::TimelineChartView
@@ -437,38 +438,51 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 
 /**
  * @brief TimelineChartView::entitySetClosed
- * @param set
  */
-void TimelineChartView::entitySetClosed(EntitySet* set)
+void TimelineChartView::entitySetClosed()
 {
+    auto set = qobject_cast<EntitySet*>(sender());
     if (!set)
         return;
 
     auto ID = eventEntitySets.key(set, "");
+    if (ID == "")
+        return;
 
-    if (ID != "") {
-
-        auto chart = eventEntityCharts.value(ID, 0);
-        if (chart) {
-            //remove/delete series in chart
-            for (auto series : chart->getSeries()) {
-                eventSeries.remove(ID);
-                series->deleteLater();
-            }
-            // remove/delete chart item
-            _timelineChart->removeEntityChart(chart);
-            eventEntityCharts.remove(ID);
-            chart->deleteLater();
+    auto chart = eventEntityCharts.value(ID, 0);
+    if (chart) {
+        // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
+        // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
+        // remove/delete series in chart
+        auto chartSeries = chart->getSeries();
+        for (auto series : chartSeries) {
+            auto seriesID = series->getID();
+            eventSeries.remove(seriesID);
         }
-
-        // remove/delete axis item
-        _entityAxis->removeEntity(set);
-        eventEntitySets.remove(ID);
-        set->deleteLater();
-
-        // clear the timeline chart's hovered rect
-        _timelineChart->setEntityChartHovered(0, false);
+        auto seriesItr = chartSeries.begin();
+        while (seriesItr != chartSeries.end()) {
+            (*seriesItr)->deleteLater();
+            seriesItr = chartSeries.erase(seriesItr);
+        }
+        // remove/delete chart item
+        _timelineChart->removeEntityChart(chart);
+        eventEntityCharts.remove(ID);
+        chart->deleteLater();
     }
+
+    // remove/delete axis item(s)
+    auto childrenSets = set->getChildrenEntitySets();
+    auto childItr = childrenSets.begin();
+    while (childItr != childrenSets.end()) {
+        (*childItr)->deleteLater();
+        childItr = childrenSets.erase(childItr);
+    }
+    _entityAxis->removeEntity(set);
+    eventEntitySets.remove(ID);
+    set->deleteLater();
+
+    // clear the timeline chart's hovered rect
+    _timelineChart->setEntityChartHovered(0, false);
 }
 
 
@@ -599,6 +613,8 @@ void TimelineChartView::clearSeriesEvents()
  */
 void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 {
+    return;
+
     if (!event)
         return;
 
@@ -634,17 +650,18 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
  */
 void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
 {
-    // NOTE - At the moment, there is one series per kind per entity chart
     if (events.isEmpty())
         return;
 
     QSet<MEDEA::EventSeries*> updatedSeries;
     qint64 minTime = INT64_MAX, maxTime = INT64_MIN;
 
-    // before storing newly requested data, clear corresponding series (if there is one)
     for (auto event : events) {
+        if (!event)
+            continue;
         auto series = constructSeriesForEventKind(event->getKind(), event->getID(), event->getName());
         if (series) {
+            // if there is already a series with the provided ID, clear it first
             if (!updatedSeries.contains(series)) {
                 series->clear();
                 updatedSeries.insert(series);
@@ -654,11 +671,6 @@ void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
             maxTime = qMax(series->getMaxTimeMS(), maxTime);
         }
     }
-
-    /*qDebug() << "updated#: " << updatedSeries.count();
-    for (auto s : updatedSeries) {
-        qDebug() << "events#: " << s->getEvents().count();
-    }*/
 
     auto timelineRange = _timelineChart->getRange();
     if (!_timelineChart->isRangeSet()) {
@@ -688,7 +700,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
 {
     if (eventSeries.contains(ID)) {
         for (auto s : eventSeries.values(ID)) {
-            if (kind == s->getKind())
+            if (s && kind == s->getKind())
                 return s;
         }
     }
@@ -711,8 +723,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
         series = new MemoryUtilisationEventSeries(ID, this);
         break;
     default:
-        series = new MEDEA::EventSeries(this);
-        break;
+        return 0;
     }
 
     if (series) {
@@ -737,14 +748,15 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     if (!series)
         return 0;
 
-    // un-comment this and comment out the line below if we want to paint multiple series with the same event series ID on the same chart
+    // NOTE - At the moment, a new entity chart is constructed per series
+    // un-comment this and comment out the line below if we want to paint multiple series with that share an ID on the same chart
     /*if (eventEntityCharts.contains(ID)) {
         eventEntityCharts.value(ID)->addEventSeries(series);
         return eventEntityCharts.value(ID);
     }*/
 
     // can't use event series ID as the chart ID because multiple event series can share the same ID
-    ID = series->getID();
+    ID = series->getEventSeriesID();
 
     EntityChart* chart = new EntityChart(0, this);
     chart->addEventSeries(series);
@@ -772,7 +784,6 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
     connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
 
-    chart->addEventSeries(series);
     return chart;
 }
 
@@ -797,7 +808,6 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
 
     EntitySet* set = new EntitySet(itemLabel, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    //set->setID(itemID);
     set->themeChanged(Theme::theme());
     itemEntitySets[itemID] = set;
 

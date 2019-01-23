@@ -3,7 +3,8 @@
 
 #include "../Chart/timelinechart.h"
 #include "../../Series/dataseries.h"
-#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Events/workloadevent.h"
+//#include "../../Data/Series/workloadeventseries.h"
 
 #include <QWidget>
 #include <QPen>

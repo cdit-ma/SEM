@@ -1228,9 +1228,6 @@ void ViewController::editReplicationCount()
 void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
-        /*for (auto kind : dataKinds) {
-            qDebug() << "View data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
-        }*/
         emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);
         emit proxy.setChartUserInputDialogVisible(true);
     }

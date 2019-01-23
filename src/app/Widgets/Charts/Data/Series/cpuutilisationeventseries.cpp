@@ -1,26 +1,13 @@
 #include "cpuutilisationeventseries.h"
-
+#include "../Events/cpuutilisationevent.h"
 
 /**
  * @brief CPUUtilisationEventSeries::CPUUtilisationEventSeries
- * @param hostname
+ * @param ID
  * @param parent
  */
-CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString hostname, QObject *parent)
-    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::CPU_UTILISATION)
-{
-    hostname_ = hostname;
-}
-
-
-/**
- * @brief CPUUtilisationEventSeries::getHostname
- * @return
- */
-const QString& CPUUtilisationEventSeries::getHostname() const
-{
-    return hostname_;
-}
+CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString ID, QObject* parent)
+    : MEDEA::EventSeries(ID, TIMELINE_DATA_KIND::CPU_UTILISATION, parent) {}
 
 
 /**
@@ -42,22 +29,22 @@ QString CPUUtilisationEventSeries::getHoveredDataString(qint64 fromTimeMS, qint6
     });
 
     int count = std::distance(current, upper);
-    if (count <= 0) {
+    if (count <= 0)
         return "";
-    } else {
-        QString hoveredData;
-        QTextStream stream(&hoveredData);
-        numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
-        for (int i = 0; i < numberOfItemsToDisplay; i++) {
-            auto event = (CPUUtilisationEvent*)(*current);
-            stream << "Host: " << hostname_ << "\n"
-                   << "Utilisation: " << (event->getUtilisation() * 100) << "%\n"
-                   << "At: " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss:zzz") << "\n\n";
+
+    QString hoveredData;
+    QTextStream stream(&hoveredData);
+    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+
+    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+        auto event = (CPUUtilisationEvent*)(*current);
+        stream << "Host: " << event->getHostname() << "\n"
+               << "Utilisation: " << (event->getUtilisation() * 100) << "%\n"
+               << "At: " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss:zzz") << "\n\n";
             current++;
-        }
-        if (count > 10) {
-            stream << "... (more omitted)";
-        }
-        return hoveredData.trimmed();
     }
+    if (count > numberOfItemsToDisplay)
+        stream << "... (more omitted)";
+
+    return hoveredData.trimmed();
 }

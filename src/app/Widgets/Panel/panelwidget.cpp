@@ -371,26 +371,10 @@ void PanelWidget::setViewController(ViewController *vc)
 
     viewController = vc;
 
-    // connect to AggregationProxy
-    /*if (chartPopup) {
-        connect(vc, &ViewController::vc_viewItemsInChart, chartPopup, &ChartInputPopup::receivedSelectedViewItems);
-
-        connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, chartPopup, &ChartInputPopup::setPopupVisible);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, chartPopup, &ChartInputPopup::populateExperimentRuns);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::requestedExperimentState, chartPopup, &ChartInputPopup::receivedExperimentState);
-
-        connect(chartPopup, &ChartInputPopup::requestExperimentRuns, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-        connect(chartPopup, &ChartInputPopup::requestExperimentState, &vc->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-        //connect(chartPopup, &ChartInputPopup::requestEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestEvents);
-        //connect(chartPopup, &ChartInputPopup::setChartTitle, this, &PanelWidget::setActiveTabTitle);
-
-        connect(chartPopup, &ChartInputPopup::setExperimentRunID, &vc->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
-        connect(chartPopup, &ChartInputPopup::requestPortLifecycleEvents, &vc->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
-    }*/
-
     if (chartPopup) {
         chartPopup->setViewController(viewController);
     }
+
     connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
 
     //testNewTimelineView();
@@ -838,25 +822,20 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
         for (auto kind : view->getActiveEventKinds()) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
-                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvent, view, &TimelineChartView::receivedRequestedEvent);
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::WORKLOAD:
-                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvent, view, &TimelineChartView::receivedRequestedEvent);
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::CPU_UTILISATION:
-                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
-                //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvent, view, &TimelineChartView::receivedRequestedEvent);
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             }
         }
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
-        //connect(viewController, &ViewController::vc_viewItemsInChart, view, &TimelineChartView::viewEventsForItems);
     }
 }

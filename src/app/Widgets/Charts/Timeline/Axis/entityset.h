@@ -33,18 +33,20 @@ public:
     void addChildEntitySet(EntitySet* child);
     void setParentEntitySet(EntitySet* parent);
 
+    QList<EntitySet*>& getChildrenEntitySets();
+
     void setHovered(bool hovered);
 
 signals:
     void childAdded();
     void childRemoved(EntitySet* child);
 
-    void closeEntity(EntitySet* set);
-
     void setChildVisible(bool visible);
     void visibilityChanged(bool visible);
 
     void hovered(bool state);
+
+    void closeEntity();
 
 public slots:
     void themeChanged(Theme *theme);

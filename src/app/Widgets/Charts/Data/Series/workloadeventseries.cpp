@@ -1,35 +1,20 @@
 #include "workloadeventseries.h"
-
-#include <QDateTime>
-#include <QTextStream>
+#include "../Events/workloadevent.h"
 
 /**
  * @brief WorkloadEventSeries::WorkloadEventSeries
- * @param workerInstID
- * @param workloadID
+ * @param ID
  * @param parent
  */
-WorkloadEventSeries::WorkloadEventSeries(QString workloadPath, QObject* parent)
-    : MEDEA::EventSeries(parent, TIMELINE_DATA_KIND::WORKLOAD)
-{
-    workloadPath_ = workloadPath;
-}
-
-
-/**
- * @brief WorkloadEventSeries::getWorkloadPath
- * @return
- */
-const QString& WorkloadEventSeries::getWorkloadPath() const
-{
-    return workloadPath_;
-}
+WorkloadEventSeries::WorkloadEventSeries(QString ID, QObject* parent)
+    : MEDEA::EventSeries(ID, TIMELINE_DATA_KIND::WORKLOAD, parent) {}
 
 
 /**
  * @brief WorkloadEventSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS
+ * @param numberOfItemsToDisplay
  * @param displayFormat
  * @return
  */
@@ -44,45 +29,26 @@ QString WorkloadEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTi
     });
 
     int count = std::distance(current, upper);
-    if (count <= 0) {
+    if (count <= 0)
         return "";
-    } else {
-        // display upto the first 10 events
-        QString hoveredData;
-        QTextStream stream(&hoveredData);
-        int displayCount = qMin(count, numberOfItemsToDisplay);
-        for (int i = 0; i < displayCount; i++) {
-            auto event = (WorkloadEvent*)(*current);
-            stream << "[" + event->getFunctionName() + "] - "
-                      + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
-            if (!event->getArgs().isEmpty()) {
-                stream << event->getArgs().trimmed() + "\n\n";
-            } else {
-                stream << "\n";
-            }
-            current++;
-        }
-        if (count > 10) {
-            stream << "... (more omitted)";
-        }
-        return hoveredData.trimmed();
-    }
 
+    QString hoveredData;
+    QTextStream stream(&hoveredData);
+    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
 
-    /*if (count <= 0) {
-        return "";
-    } else if (count == 1) {
-        // args + function name
+    for (int i = 0; i < numberOfItemsToDisplay; i++) {
         auto event = (WorkloadEvent*)(*current);
-        if (event) {
-            return "[" + event->getFunctionName() + "] - "
-                    //+ QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, h:mm:ss:zzz A")
-                    + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss:zzz")
-                    + "\n" + event->getArgs();
+        stream << "[" + event->getFunctionName() + "] - "
+                  + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) + "\n";
+        if (!event->getArgs().isEmpty()) {
+            stream << event->getArgs().trimmed() + "\n\n";
         } else {
-            return "";
+            stream << "\n";
         }
-    } else {
-        return QString::number(count);
-    }*/
+        current++;
+    }
+    if (count > numberOfItemsToDisplay)
+        stream << "... (more omitted)";
+
+    return hoveredData.trimmed();
 }

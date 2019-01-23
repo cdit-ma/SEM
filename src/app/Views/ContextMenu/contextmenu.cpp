@@ -1111,7 +1111,7 @@ void ContextMenu::setupMenus()
         if (view_controller) {
             QList<TIMELINE_DATA_KIND> checkedKinds;
             for (auto action : chart_data_kind_menu->actions()) {
-                if (action->isCheckable() && action->isChecked())
+                if (action->isVisible() && action->isCheckable() && action->isChecked())
                     checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
             }
             view_controller->viewSelectionChart(checkedKinds);

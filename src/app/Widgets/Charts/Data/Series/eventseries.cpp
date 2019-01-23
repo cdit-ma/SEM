@@ -4,16 +4,19 @@ int MEDEA::EventSeries::eventSeries_ID = 0;
 
 /**
  * @brief MEDEA::EventSeries::EventSeries
- * @param parent
+ * @param ID
  * @param kind
+ * @param parent
  */
-MEDEA::EventSeries::EventSeries(QObject* parent, TIMELINE_DATA_KIND kind)
+MEDEA::EventSeries::EventSeries(QString ID, TIMELINE_DATA_KIND kind, QObject* parent)
     : QObject(parent)
 {
+    ID_ = ID;
     kind_ = kind;
+    eventSeriesID_ = eventSeries_ID++;
+
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
-    eventSeriesID_ = eventSeries_ID++;
 }
 
 
@@ -27,6 +30,9 @@ void MEDEA::EventSeries::clear()
         (*i)->deleteLater();
         i = events_.erase(i);
     }
+    // reset the time range
+    minTime_ = QDateTime::currentMSecsSinceEpoch();
+    maxTime_ = 0;
 }
 
 
@@ -101,12 +107,22 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 
 
 /**
+ * @brief MEDEA::EventSeries::getEventSeriesID
+ * @return
+ */
+QString MEDEA::EventSeries::getEventSeriesID() const
+{
+    return QString::number(eventSeriesID_);
+}
+
+
+/**
  * @brief MEDEA::EventSeries::getID
  * @return
  */
-const QString MEDEA::EventSeries::getID() const
+const QString& MEDEA::EventSeries::getID() const
 {
-    return QString::number(eventSeriesID_);
+    return ID_;
 }
 
 

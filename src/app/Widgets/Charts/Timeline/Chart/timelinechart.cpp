@@ -210,15 +210,6 @@ void TimelineChart::setInitialRange(bool reset, double min, double max)
     } else {
         if (rangeSet)
             return;
-        /*
-        qDebug() << "min: " << min;
-        qDebug() << "max: " << max;
-        QDateTime minDT = QDateTime::fromMSecsSinceEpoch(ceil(min + 1.0));
-        QDateTime maxDT = QDateTime::fromMSecsSinceEpoch(ceil(max + 1.0));
-        setRange(minDT.toMSecsSinceEpoch(), maxDT.toMSecsSinceEpoch());
-        qDebug() << "minTime: " << minDT.toString("hh:mm:ss:zzz");
-        qDebug() << "maxTime: " << maxDT.toString("hh:mm:ss:zzz");
-        */
         setRange(min, max);
     }
     rangeSet = !reset;

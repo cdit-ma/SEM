@@ -25,14 +25,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     closeAction = toolbar->addAction("");
     closeAction->setToolTip("Close " + label + "'s Chart");
 
-    connect(closeAction, &QAction::triggered, [=]() {
-        auto childItr = childrenSets.begin();
-        while (childItr != childrenSets.end()) {
-            emit (*childItr)->closeEntity(*childItr);
-            childItr = childrenSets.erase(childItr);
-        }
-        emit closeEntity(this);
-    });
+    connect(closeAction, &QAction::triggered, this, &EntitySet::closeEntity);
 
     _tickLength = fontMetrics().height() / 4;
     _axisLineVisible = false;
@@ -144,7 +137,6 @@ void EntitySet::addChildEntitySet(EntitySet* child)
         connect(child, &EntitySet::childAdded, this, &EntitySet::childEntityAdded);
         connect(child, &EntitySet::childRemoved, this, &EntitySet::childEntityRemoved);
         connect(this, &EntitySet::setChildVisible, child, &EntitySet::setVisible);
-        //connect(this, &EntitySet::closeEntity, child, &EntitySet::deleteLater);
 
         // update allDepthChildrenCount and propagate signal to the ancestor
         childEntityAdded();
@@ -160,6 +152,16 @@ void EntitySet::setParentEntitySet(EntitySet* parent)
 {
     if (parent)
         parentEntitySet = parent;
+}
+
+
+/**
+ * @brief EntitySet::getChildrenEntitySets
+ * @return
+ */
+QList<EntitySet*> &EntitySet::getChildrenEntitySets()
+{
+    return childrenSets;
 }
 
 
