@@ -142,8 +142,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     selectedEntityAction = axisToolbar->addAction("Selected Entity");
     axisToolbar->addWidget(stretchWidget);*/
 
-    QWidget* mainWidget = new QWidget(this);
-    QHBoxLayout* scrollLayout = new QHBoxLayout(mainWidget);
+    QWidget* scrollWidget = new QWidget(this);
+    QHBoxLayout* scrollLayout = new QHBoxLayout(scrollWidget);
     scrollLayout->setMargin(0);
     scrollLayout->setSpacing(0);
     scrollLayout->addWidget(_timelineChart, 1);
@@ -151,7 +151,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     //scrollLayout->addWidget(axisToolbar);
 
     _scrollArea = new QScrollArea(this);
-    _scrollArea->setWidget(mainWidget);
+    _scrollArea->setWidget(scrollWidget);
     _scrollArea->setWidgetResizable(true);
     _scrollArea->setLayoutDirection(Qt::RightToLeft);
     _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -170,7 +170,15 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     /*
      * MAIN LAYOUT
      */
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    emptyLabel_ = new QLabel("<i>No Charts To Display</i>", this);
+    emptyLabel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    emptyLabel_->setAlignment(Qt::AlignCenter);
+
+    mainWidget_ = new QWidget(this);
+    mainWidget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mainWidget_->setVisible(false);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget_);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
@@ -178,6 +186,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
     mainLayout->addWidget(_scrollArea, 1);
     mainLayout->addLayout(bottomLayout);
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0,0,0,0);
+    layout->addWidget(mainWidget_);
+    layout->addWidget(emptyLabel_);
 
     _scrollArea->verticalScrollBar()->setTracking(true);
     connect(_scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, [=]() {
@@ -384,6 +397,11 @@ void TimelineChartView::themeChanged()
                                  "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
+    for (auto action : _legendToolbar->actions()) {
+        auto widget = _legendToolbar->widgetForAction(action);
+        widget->setMinimumSize(theme->getLargeIconSize());
+    }
+
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
         QIcon buttonIcon;
         switch (kind) {
@@ -418,6 +436,9 @@ void TimelineChartView::themeChanged()
         if (action)
             action->setIcon(theme->getIcon("ToggleIcons", GET_TIMELINE_DATA_KIND_STRING(kind)));
     }
+
+    emptyLabel_->setFont(QFont(theme->getFont().family(), 12));
+    emptyLabel_->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getAltTextColorHex() + ";");
 }
 
 
@@ -428,11 +449,16 @@ void TimelineChartView::themeChanged()
 void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 {
     qreal chartHeight = height() - _dateTimeAxis->height() - _legendToolbar->height() - SPACING * 3;
+
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
+
     _topFillerWidget->setFixedWidth(size.width());
     _bottomFillerWidget->setFixedWidth(size.width());
+
+    auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
+    setMinimumWidth(size.width() + minTimeAxisWidth + SPACING * 2);
 }
 
 
@@ -442,47 +468,9 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 void TimelineChartView::entitySetClosed()
 {
     auto set = qobject_cast<EntitySet*>(sender());
-    if (!set)
-        return;
-
-    auto ID = eventEntitySets.key(set, "");
-    if (ID == "")
-        return;
-
-    auto chart = eventEntityCharts.value(ID, 0);
-    if (chart) {
-        // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
-        // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
-        // remove/delete series in chart
-        auto chartSeries = chart->getSeries();
-        for (auto series : chartSeries) {
-            auto seriesID = series->getID();
-            eventSeries.remove(seriesID);
-        }
-        auto seriesItr = chartSeries.begin();
-        while (seriesItr != chartSeries.end()) {
-            (*seriesItr)->deleteLater();
-            seriesItr = chartSeries.erase(seriesItr);
-        }
-        // remove/delete chart item
-        _timelineChart->removeEntityChart(chart);
-        eventEntityCharts.remove(ID);
-        chart->deleteLater();
+    if (set) {
+        removeChart(eventEntitySets.key(set, ""));
     }
-
-    // remove/delete axis item(s)
-    auto childrenSets = set->getChildrenEntitySets();
-    auto childItr = childrenSets.begin();
-    while (childItr != childrenSets.end()) {
-        (*childItr)->deleteLater();
-        childItr = childrenSets.erase(childItr);
-    }
-    _entityAxis->removeEntity(set);
-    eventEntitySets.remove(ID);
-    set->deleteLater();
-
-    // clear the timeline chart's hovered rect
-    _timelineChart->setEntityChartHovered(0, false);
 }
 
 
@@ -608,43 +596,6 @@ void TimelineChartView::clearSeriesEvents()
 
 
 /**
- * @brief TimelineChartView::receivedRequestedEvent
- * @param event
- */
-void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
-{
-    return;
-
-    if (!event)
-        return;
-
-    auto series = constructSeriesForEventKind(-1, event->getKind(), event->getID(), event->getName());
-
-    if (series) {
-        series->addEvent(event);
-        // TODO: Don't need this once we have the start/end time of the experiment
-        // update this timeline chart's range
-        auto timelineRange = _timelineChart->getRange();
-        auto seriesRange = series->getTimeRangeMS();
-        if (!_timelineChart->isRangeSet()) {
-            _timelineChart->setInitialRange(false, seriesRange.first, seriesRange.second);
-        } else {
-            if (seriesRange.first <= timelineRange.first) {
-                _timelineChart->setMin(seriesRange.first);
-            }
-            if (seriesRange.second >= timelineRange.second) {
-                _timelineChart->setMax(seriesRange.second);
-            }
-        }
-        // if the timeline chart's range was changed, update the date/time axis' range
-        if (timelineRange != _timelineChart->getRange()) {
-            _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
-        }
-    }
-}
-
-
-/**
  * @brief TimelineChartView::receivedRequestedEvents
  * @param experimentRunID
  * @param events
@@ -673,6 +624,8 @@ void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<M
         }
     }
 
+    // TODO: Don't need this once we have the start/end time of the experiment
+    // update this timeline chart's range
     auto timelineRange = _timelineChart->getRange();
     if (!_timelineChart->isRangeSet()) {
         _timelineChart->setInitialRange(false, minTime, maxTime);
@@ -700,10 +653,18 @@ void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<M
  */
 MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label)
 {
-    if (eventSeries.contains(ID)) {
+    /*if (eventSeries.contains(ID)) {
         for (auto s : eventSeries.values(ID)) {
             auto expID = s->property(EXPERIMENT_RUN_ID).toUInt();
             if (expID == experimentRunID && s->getKind() == kind)
+                return s;
+        }
+    }*/
+
+    ID += QString::number(experimentRunID);
+    if (eventSeries.contains(ID)) {
+        for (auto s : eventSeries.values(ID)) {
+            if (s && s->getKind() == kind)
                 return s;
         }
     }
@@ -791,7 +752,72 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
     connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
 
+    if (mainWidget_->isHidden()) {
+        mainWidget_->show();
+        emptyLabel_->hide();
+    }
+
     return chart;
+}
+
+
+/**
+ * @brief TimelineChartView::removeChart
+ * @param ID
+ */
+void TimelineChartView::removeChart(QString ID)
+{
+    // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
+    // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
+
+    auto chart = eventEntityCharts.value(ID, 0);
+    if (chart) {
+        // remove the chart's series from the hash
+        auto chartSeries = chart->getSeries();
+        for (auto series : chartSeries) {
+            const auto key = eventSeries.key(series);
+            auto& values = eventSeries.values(key);
+            if (values.size() == 1) {
+                eventSeries.remove(key);
+            } else {
+                values.removeAll(series);
+            }
+        }
+        // delete the chart's series
+        auto seriesItr = chartSeries.begin();
+        while (seriesItr != chartSeries.end()) {
+            (*seriesItr)->deleteLater();
+            seriesItr = chartSeries.erase(seriesItr);
+        }
+        // remove/delete chart item
+        _timelineChart->removeEntityChart(chart);
+        eventEntityCharts.remove(ID);
+        chart->deleteLater();
+    }
+
+    auto set = eventEntitySets.value(ID, 0);
+    if (set) {
+        // remove/delete entity set's children sets
+        auto childrenSets = set->getChildrenEntitySets();
+        auto childItr = childrenSets.begin();
+        while (childItr != childrenSets.end()) {
+            (*childItr)->deleteLater();
+            childItr = childrenSets.erase(childItr);
+        }
+        // remove/delete entity set
+        _entityAxis->removeEntity(set);
+        eventEntitySets.remove(ID);
+        set->deleteLater();
+
+        // clear the timeline chart's hovered rect
+        _timelineChart->setEntityChartHovered(0, false);
+
+        // update the timeline's range
+    }
+
+    // if there are no more charts, show empty label
+    mainWidget_->setVisible(!eventEntityCharts.isEmpty());
+    emptyLabel_->setVisible(eventEntityCharts.isEmpty());
 }
 
 

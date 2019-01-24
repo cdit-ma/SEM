@@ -163,6 +163,11 @@ void TimelineChart::removeEntityChart(EntityChart* chart)
     if (chart) {
         _layout->removeWidget(chart);
         _entityCharts.removeAll(chart);
+
+        // if the timeline is now empty, reset its range
+        if (_entityCharts.isEmpty()) {
+            setInitialRange(true);
+        }
     }
 }
 

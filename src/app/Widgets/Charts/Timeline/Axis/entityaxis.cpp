@@ -20,7 +20,7 @@ EntityAxis::EntityAxis(QWidget *parent)
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityAxis::themeChanged);
     themeChanged();
 
-    setMinimumWidth(100);
+    setMinimumWidth(140);
 }
 
 

@@ -21,10 +21,7 @@
 #include <QScrollArea>
 #include <QDateTime>
 
-
 enum class VALUE_TYPE{DOUBLE, DATETIME};
-
-
 
 class AxisWidget;
 class TimelineChart;
@@ -38,7 +35,7 @@ public:
     // this is just a tester function
     QList<QPointF> generateRandomNumbers(int count = 10, double timeIncrementPx = -1, int minIncrement = 5, int maxIncrement = 500);
 
-    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject *watched, QEvent* event);
 
     void clearTimelineChart();
     void updateTimelineChart();
@@ -63,7 +60,6 @@ public slots:
     void displayedMaxChanged(double max);
 
     void clearSeriesEvents();
-    void receivedRequestedEvent(MEDEA::Event* event);
     void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
     void updateChartHoverDisplay();
@@ -72,12 +68,17 @@ private:
     MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
     EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
 
+    void removeChart(QString ID);
+
     EntitySet* addEntitySet(ViewItem* item);
     void removeEntitySet(int ID);
 
     bool scrollbarVisible = false;
     bool showHoverLine = false;
     double verticalScrollValue = 0.0;
+
+    QLabel* emptyLabel_ = 0;
+    QWidget* mainWidget_ = 0;
 
     TimelineChart* _timelineChart;
     EntityAxis* _entityAxis;
