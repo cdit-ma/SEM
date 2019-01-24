@@ -64,12 +64,12 @@ public slots:
 
     void clearSeriesEvents();
     void receivedRequestedEvent(MEDEA::Event* event);
-    void receivedRequestedEvents(QList<MEDEA::Event*> events);
+    void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
     void updateChartHoverDisplay();
     
 private:
-    MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA_KIND kind, QString ID, QString label);
+    MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
     EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
 
     EntitySet* addEntitySet(ViewItem* item);

@@ -431,7 +431,8 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
             //emit receivedPortLifecycleEvent(event);
         }
 
-        emit receivedPortLifecycleEvents(events);
+        //emit receivedPortLifecycleEvents(events);
+        emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -472,7 +473,8 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
             //emit receivedWorkloadEvent(event);
         }
 
-        emit receivedWorkloadEvents(events);
+        //emit receivedWorkloadEvents(events);
+        emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -512,7 +514,8 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
             }
         }
 
-        emit receivedCPUUtilisationEvents(events);
+        //emit receivedCPUUtilisationEvents(events);
+        emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
@@ -551,7 +554,8 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
              }
          }
 
-         emit receivedMemoryUtilisationEvents(events);
+         //emit receivedMemoryUtilisationEvents(events);
+         emit receivedEvents(experimentRunID_, events);
          notification->setSeverity(Notification::Severity::SUCCESS);
 
      } catch (const std::exception& ex) {

@@ -20,7 +20,7 @@
 #define HOVER_DISPLAY_ON true
 #define HOVER_DISPLAY_ITEM_COUNT 10
 
-//#define
+#define EXPERIMENT_RUN_ID "experimentRunID"
 
 /**
  * @brief TimelineChartView::TimelineChartView
@@ -618,7 +618,7 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
     if (!event)
         return;
 
-    auto series = constructSeriesForEventKind(event->getKind(), event->getID(), event->getName());
+    auto series = constructSeriesForEventKind(-1, event->getKind(), event->getID(), event->getName());
 
     if (series) {
         series->addEvent(event);
@@ -646,9 +646,10 @@ void TimelineChartView::receivedRequestedEvent(MEDEA::Event* event)
 
 /**
  * @brief TimelineChartView::receivedRequestedEvents
+ * @param experimentRunID
  * @param events
  */
-void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
+void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events)
 {
     if (events.isEmpty())
         return;
@@ -659,7 +660,7 @@ void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
     for (auto event : events) {
         if (!event)
             continue;
-        auto series = constructSeriesForEventKind(event->getKind(), event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRunID, event->getKind(), event->getID(), event->getName());
         if (series) {
             // if there is already a series with the provided ID, clear it first
             if (!updatedSeries.contains(series)) {
@@ -691,16 +692,18 @@ void TimelineChartView::receivedRequestedEvents(QList<MEDEA::Event*> events)
 
 /**
  * @brief TimelineChartView::constructSeriesForEventKind
+ * @param experimentRunID
  * @param kind
  * @param ID
  * @param label
  * @return
  */
-MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA_KIND kind, QString ID, QString label)
+MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label)
 {
     if (eventSeries.contains(ID)) {
         for (auto s : eventSeries.values(ID)) {
-            if (s && kind == s->getKind())
+            auto expID = s->property(EXPERIMENT_RUN_ID).toUInt();
+            if (expID == experimentRunID && s->getKind() == kind)
                 return s;
         }
     }
@@ -727,6 +730,8 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(TIMELINE_DATA
     }
 
     if (series) {
+        // this needs to be set before the chart is constructed
+        series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         // construct a chart for the new series
         constructChartForSeries(series, ID, label + GET_TIMELINE_DATA_KIND_STRING_SUFFIX(kind));
         eventSeries.insertMulti(ID, series);
@@ -762,6 +767,8 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     chart->addEventSeries(series);
     _timelineChart->addEntityChart(chart);
     eventEntityCharts[ID] = chart;
+
+    label = "[" + series->property(EXPERIMENT_RUN_ID).toString() + "] " + label;
 
     EntitySet* set = new EntitySet(label, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);

@@ -25,6 +25,9 @@
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
 
+int PanelWidget::tab_ID = 0;
+
+
 /**
  * @brief PanelWidget::PanelWidget
  * @param parent
@@ -61,8 +64,6 @@ PanelWidget::PanelWidget(QWidget *parent)
     if (defaultActiveAction) {
         defaultActiveAction->trigger();
     }
-
-
 }
 
 
@@ -90,6 +91,9 @@ QAction* PanelWidget::addTab(QString title, QString iconPath, QString iconName)
 QAction* PanelWidget::addTab(QString title, QWidget* widget, QString iconPath, QString iconName)
 {
     if (widget) {
+
+        //title = "Chart_" + QString::number(tabID_);
+        title = "Events";
 
         QAction* action = tabBar->addAction(title);
         action->setToolTip(title);
@@ -819,7 +823,7 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
 void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
 {
     if (view && viewController) {
-        for (auto kind : view->getActiveEventKinds()) {
+        /*for (auto kind : view->getActiveEventKinds()) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvents, view, &TimelineChartView::receivedRequestedEvents);
@@ -834,7 +838,8 @@ void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
                 connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
                 break;
             }
-        }
+        }*/
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedEvents, view, &TimelineChartView::receivedRequestedEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
     }

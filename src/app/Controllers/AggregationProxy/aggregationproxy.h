@@ -56,6 +56,8 @@ signals:
     void receivedMemoryUtilisationEvent(MemoryUtilisationEvent* event);
     void receivedMemoryUtilisationEvents(QList<MEDEA::Event*> events);
 
+    void receivedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
+
     void clearPreviousEvents();
     void receivedAllEvents();
 

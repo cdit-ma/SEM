@@ -124,6 +124,9 @@ private:
     QList<QPointF> sampleDataPoints;
     QList<QPointF> nextDataPoints;
     int dataIndex;
+
+    int tabID_;
+    static int tab_ID;
 };
 
 #endif // PANELWIDGET_H
