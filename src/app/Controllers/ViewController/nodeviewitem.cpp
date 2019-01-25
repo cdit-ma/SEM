@@ -67,6 +67,10 @@ bool NodeViewItem::isNodeOfType(NODE_TYPE type) const
     return node_types.contains(type);
 }
 
+bool NodeViewItem::isInstance() const{
+    return node_types.contains(NODE_TYPE::INSTANCE);
+}
+
 void NodeViewItem::childAdded(ViewItem* child){
     if(child && child->isNode()){
         auto node = (NodeViewItem*) child;
@@ -239,6 +243,6 @@ const QSet<EDGE_DIRECTION>& NodeViewItem::getNestedVisualEdgeKindDirections(EDGE
     return nested_edge_kinds[kind];
 }
 
-void NodeViewItem::setNodeTypes(QSet<NODE_TYPE> types){
+void NodeViewItem::setNodeTypes(const QSet<NODE_TYPE>& types){
     node_types = types;
 }

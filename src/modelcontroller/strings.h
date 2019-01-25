@@ -7,6 +7,7 @@
 namespace KeyName{
     extern const QString Class;
     extern const QString Column;
+    extern const QString ColumnCount;
     extern const QString Description;
     extern const QString Frequency;
     extern const QString Icon;

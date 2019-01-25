@@ -1543,7 +1543,7 @@ void ViewController::NodeTypesChanged(int id)
     auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto node_types = controller->getNodesTypes(id);
+            const auto& node_types = controller->getNodesTypes(id);
             node_item->setNodeTypes(node_types);
         }
     }

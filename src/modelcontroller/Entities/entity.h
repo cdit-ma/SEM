@@ -58,8 +58,8 @@ public:
 
     QString toString() const;
     void setImplicitlyConstructed(bool implicitly_constructed = true);
-protected:
     void setLabelFunctional(bool functional = true);
+protected:
     Key* getKey(const QString& key_name) const;
 signals:
     void dataChanged(int ID, QString key_name, QVariant data, bool is_protected);
