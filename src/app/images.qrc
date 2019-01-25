@@ -403,5 +403,6 @@
         <file alias="tickWhite">Resources/Icons/tickWhite.png</file>
         <file alias="checkbox">Resources/Icons/checkbox.png</file>
         <file alias="checkboxChecked">Resources/Icons/checkboxChecked.png</file>
+        <file alias="clearList">Resources/Icons/clearList.png</file>
     </qresource>
 </RCC>

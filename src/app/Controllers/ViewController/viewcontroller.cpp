@@ -500,12 +500,19 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::PORT_REQUESTER_INST);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_PERIODIC);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_PERIODIC_INST);
-    chart_valid_node_kinds.insert(NODE_KIND::WORKER_DEFINITIONS);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_PUBLISHER);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_PUBLISHER_IMPL);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_PUBLISHER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_IMPL);
+    chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::CLASS_INSTANCE);
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
     return chart_valid_node_kinds;
 }
 
-QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> nodeKinds)
+
+QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForNodeKinds(QSet<NODE_KIND> nodeKinds)
 {
     auto validNodeKinds = getValidChartNodeKinds();
     QSet<TIMELINE_DATA_KIND> validDataKinds;
@@ -513,7 +520,7 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> 
     for (auto kind : nodeKinds) {
 
         if (!validNodeKinds.contains(kind))
-            return validDataKinds;
+            return QSet<TIMELINE_DATA_KIND>();
 
         switch (kind) {
         case NODE_KIND::COMPONENT:
@@ -531,9 +538,14 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> 
         case NODE_KIND::PORT_REQUESTER_INST:
         case NODE_KIND::PORT_PERIODIC:
         case NODE_KIND::PORT_PERIODIC_INST:
+        case NODE_KIND::PORT_PUBLISHER:
+        case NODE_KIND::PORT_PUBLISHER_IMPL:
+        case NODE_KIND::PORT_PUBLISHER_INST:
+        case NODE_KIND::PORT_SUBSCRIBER:
+        case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+        case NODE_KIND::PORT_SUBSCRIBER_INST:
             validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
             break;
-        case NODE_KIND::CLASS:
         case NODE_KIND::CLASS_INSTANCE:
             validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
             break;
@@ -550,12 +562,27 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKinds(QSet<NODE_KIND> 
     return validDataKinds;
 }
 
+
 QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
 {
+    QSet<TIMELINE_DATA_KIND> validDataKinds;
+
     if (selectionController) {
-        return getValidChartDataKinds(selectionController->getSelectedNodeKinds());
+        auto selectedKinds = selectionController->getSelectedNodeKinds();
+        if (selectedKinds.contains(NODE_KIND::CLASS_INSTANCE)) {
+            // check if the ClassInstance is a Worker - if not, return an empty set
+            for (auto item : selectionController->getSelection()) {
+                if (!item->isNode())
+                    continue;
+                auto nodeItem = (NodeViewItem*) item;
+                if ((nodeItem->getNodeKind() == NODE_KIND::CLASS_INSTANCE) && !nodeItem->getData("version").isValid())
+                    return validDataKinds;
+            }
+        }
+        validDataKinds = getValidChartDataKindsForNodeKinds(selectedKinds);
     }
-    return QSet<TIMELINE_DATA_KIND>();
+
+    return validDataKinds;
 }
 
 

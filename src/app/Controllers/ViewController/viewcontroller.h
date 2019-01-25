@@ -94,7 +94,7 @@ public:
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
     QSet<NODE_KIND> getValidChartNodeKinds();
-    QSet<TIMELINE_DATA_KIND> getValidChartDataKinds(QSet<NODE_KIND> nodeKinds);
+    QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForNodeKinds(QSet<NODE_KIND> nodeKinds);
     QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
 
     QList<NodeViewItem*> getNodesInstances(int ID);

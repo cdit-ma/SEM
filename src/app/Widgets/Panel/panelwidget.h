@@ -68,6 +68,7 @@ public slots:
     void snapShotPanel();
     void popOutPanel();
     void popOutActiveTab();
+    void clearActiveTab();
 
     void requestData();
 
@@ -91,12 +92,12 @@ private:
 
     QAction* minimiseAction = 0;
     QAction* closeAction = 0;
-    QAction* popOutAction = 0;
-
     QAction* snapShotAction = 0;
+    QAction* popOutAction = 0;
     QAction* popOutActiveTabAction = 0;
-    QAction* playPauseAction = 0;
+    QAction* clearActiveTabAction = 0;
 
+    QAction* playPauseAction = 0;
     QAction* refreshDataAction = 0;
 
     QAction* tabsMenuAction = 0;

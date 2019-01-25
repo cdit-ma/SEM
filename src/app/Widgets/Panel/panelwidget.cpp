@@ -423,11 +423,11 @@ void PanelWidget::themeChanged()
     playPauseAction->setIcon(theme->getIcon("ToggleIcons", "playPause"));
     snapShotAction->setIcon(theme->getIcon("Icons", "camera"));
     popOutActiveTabAction->setIcon(theme->getIcon("Icons", "popOut"));
+    clearActiveTabAction->setIcon(theme->getIcon("Icons", "clearList"));
     tabsMenuAction->setIcon(theme->getIcon("Icons", "list"));
     popOutAction->setIcon(theme->getIcon("Icons", "arrowLineLeft"));
     minimiseAction->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
-
     refreshDataAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     for (auto action : tabBar->actions()) {
@@ -621,6 +621,24 @@ void PanelWidget::popOutActiveTab()
 
 
 /**
+ * @brief PanelWidget::clearActiveTab
+ */
+void PanelWidget::clearActiveTab()
+{
+    QAction* activeTab = tabsActionGroup->checkedAction();
+    if (!activeTab)
+        return;
+
+    auto widget = tabWidgets.value(activeTab, 0);
+    if (widget) {
+        auto view = qobject_cast<TimelineChartView*>(widget);
+        if (view)
+            view->clearTimelineChart();
+    }
+}
+
+
+/**
  * @brief PanelWidget::requestData
  */
 void PanelWidget::requestData()
@@ -766,8 +784,10 @@ void PanelWidget::setupLayout()
 
     QToolButton* menuButton = (QToolButton*) titleBar->widgetForAction(tabsMenuAction);
     menuButton->setPopupMode(QToolButton::InstantPopup);
-
     //titleBar->addSeparator();
+
+    clearActiveTabAction = titleBar->addAction("Clear Charts");
+    connect(clearActiveTabAction, &QAction::triggered, this, &PanelWidget::clearActiveTab);
 
     minimiseAction = titleBar->addAction("Minimise/Maximise");
     minimiseAction->setCheckable(true);

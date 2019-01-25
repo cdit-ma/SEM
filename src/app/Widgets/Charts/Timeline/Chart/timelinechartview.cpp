@@ -300,6 +300,9 @@ void TimelineChartView::clearTimelineChart()
 
     _timelineChart->setInitialRange(true);
     _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+
+    mainWidget_->setVisible(false);
+    emptyLabel_->setVisible(true);
 }
 
 
@@ -793,6 +796,23 @@ void TimelineChartView::removeChart(QString ID)
         _timelineChart->removeEntityChart(chart);
         eventEntityCharts.remove(ID);
         chart->deleteLater();
+
+        // clear the timeline chart's hovered rect
+        _timelineChart->setEntityChartHovered(0, false);
+
+        // update the timeline's range
+        if (!_timelineChart->getEntityCharts().isEmpty()) {
+            auto minTime = INT64_MAX, maxTime = INT64_MIN;
+            for (auto chart : _timelineChart->getEntityCharts()) {
+                for (auto series : chart->getSeries()) {
+                    minTime = qMin(series->getMinTimeMS(), minTime);
+                    maxTime = qMax(series->getMaxTimeMS(), maxTime);
+                }
+            }
+            _timelineChart->setMin(minTime);
+            _timelineChart->setMax(maxTime);
+            _dateTimeAxis->setRange(minTime, maxTime, true);
+        }
     }
 
     auto set = eventEntitySets.value(ID, 0);
@@ -808,11 +828,6 @@ void TimelineChartView::removeChart(QString ID)
         _entityAxis->removeEntity(set);
         eventEntitySets.remove(ID);
         set->deleteLater();
-
-        // clear the timeline chart's hovered rect
-        _timelineChart->setEntityChartHovered(0, false);
-
-        // update the timeline's range
     }
 
     // if there are no more charts, show empty label

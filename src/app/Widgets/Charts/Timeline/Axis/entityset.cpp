@@ -31,7 +31,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     _axisLineVisible = false;
 
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
-    mainLayout->setSpacing(CHILD_TAB_WIDTH / 3);
+    mainLayout->setSpacing(3); //CHILD_TAB_WIDTH / 3);
     mainLayout->setMargin(0);
     mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
     mainLayout->addWidget(iconLabel);
@@ -174,6 +174,10 @@ void EntitySet::setHovered(bool hovered)
     if (hovered) {
         textLabel->setStyleSheet("color: " + highlighColorStr + ";");
         closeAction->setIcon(closeIcon);
+        /*auto mappedCursor = mapFromGlobal(cursor().pos());
+        if (geometry().contains(mappedCursor)) {
+            closeAction->setVisible(true);
+        }*/
     } else {
         textLabel->setStyleSheet("color: " + textColorStr + ";");
         closeAction->setIcon(QIcon());
@@ -206,7 +210,7 @@ void EntitySet::themeChanged(Theme* theme)
     highlighColorStr = theme->getHighlightColorHex();
 
     toolbar->setIconSize(theme->getIconSize());
-    toolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+    toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ margin: 0px; padding: 0px; }"
                            "QToolButton:!hover{ border: none; background: rgba(0,0,0,0); }");
 
     closeIcon = theme->getIcon("Icons", "cross");

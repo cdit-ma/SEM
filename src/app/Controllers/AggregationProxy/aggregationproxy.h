@@ -44,6 +44,7 @@ signals:
     void requestedExperimentRuns(QList<ExperimentRun> runs);
     void requestedExperimentState(QStringList nodeHostname, QStringList componentName, QStringList workerName);
 
+    /*
     void receivedPortLifecycleEvent(PortLifecycleEvent* event);
     void receivedPortLifecycleEvents(QList<MEDEA::Event*> events);
 
@@ -55,6 +56,7 @@ signals:
 
     void receivedMemoryUtilisationEvent(MemoryUtilisationEvent* event);
     void receivedMemoryUtilisationEvents(QList<MEDEA::Event*> events);
+    */
 
     void receivedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 

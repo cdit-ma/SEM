@@ -161,7 +161,6 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
     auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
 
     try {
-
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experimentRunID);
 
@@ -200,7 +199,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestAllEvents()
 {
-    emit clearPreviousEvents();
+    //emit clearPreviousEvents();
     SendRequests();
     emit receivedAllEvents();
 }
@@ -395,8 +394,12 @@ void AggregationProxy::SendRequests()
             SendCPUUtilisationRequest(request);
             break;
         }
-        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
+            AggServer::MemoryUtilisationRequest request;
+            request.set_experiment_run_id(experimentRunID_);
+            SendMemoryUtilisationRequest(request);
             break;
+        }
         default:
             break;
         }

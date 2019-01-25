@@ -295,7 +295,6 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
 
         auto nodeItem = (NodeViewItem*) item;
         auto label = getItemLabel(nodeItem);
-
         switch (nodeItem->getNodeKind()) {
         case NODE_KIND::COMPONENT:
         case NODE_KIND::COMPONENT_IMPL:
@@ -310,30 +309,53 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
         case NODE_KIND::PORT_REPLIER_IMPL:
         case NODE_KIND::PORT_REQUESTER:
         case NODE_KIND::PORT_REQUESTER_IMPL:
-        case NODE_KIND::PORT_PERIODIC: {
+        case NODE_KIND::PORT_PUBLISHER:
+        case NODE_KIND::PORT_PUBLISHER_IMPL:
+        case NODE_KIND::PORT_SUBSCRIBER:
+        case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+        case NODE_KIND::PORT_PERIODIC:
             // can send port requests
-            for (auto instItem : viewController_->getNodesInstances(item->getID())) {
-                if (instItem) {
-                    auto compInstItem = instItem->getParentItem();
-                    if (compInstItem)
-                        portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+            if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
+                for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                    if (instItem) {
+                        auto compInstItem = instItem->getParentItem();
+                        if (compInstItem)
+                            portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                    }
                 }
             }
             break;
-        }
         case NODE_KIND::PORT_REPLIER_INST:
         case NODE_KIND::PORT_REQUESTER_INST:
-        case NODE_KIND::PORT_PERIODIC_INST: {
+        case NODE_KIND::PORT_PUBLISHER_INST:
+        case NODE_KIND::PORT_SUBSCRIBER_INST:
+        case NODE_KIND::PORT_PERIODIC_INST:
             // can send port requests
-            auto compInstItem = nodeItem->getParentItem();
-            if (compInstItem) {
-                portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+            if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
+                auto compInstItem = nodeItem->getParentItem();
+                if (compInstItem)
+                    portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
             }
             break;
-        }
-        case NODE_KIND::CLASS:
         case NODE_KIND::CLASS_INSTANCE:
             // can send workload requests
+            if (dataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
+                // a ClassInstance can be a child of either a CompImpl or CompInst
+                auto parentNodeKind = nodeItem->getParentNodeKind();
+                if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
+                    for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                        if (instItem) {
+                            auto compInstItem = instItem->getParentItem();
+                            if (compInstItem)
+                                workerPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                        }
+                    }
+                } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
+                    auto compInstItem = nodeItem->getParentItem();
+                    if (compInstItem)
+                        workerPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                }
+            }
             break;
         case NODE_KIND::HARDWARE_NODE:
             // can send cpu/mem requests
@@ -382,28 +404,24 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ == -1)
         return;
 
-    // if there is no selection filter, show all data kinds
+    // if there is no selection, show all the data for the selected experiment run
     if (!hasSelection_) {
         resetFilters();
-        eventKinds_ = GET_TIMELINE_DATA_KINDS();
     }
 
     if (!eventKinds_.isEmpty()) {
 
-        bool hasValidRequests = false;
+        bool hasValidRequests = true;
+
         for (auto kind : eventKinds_) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-                if (hasSelection_ && portPaths_.isEmpty() && compNames_.isEmpty() && compInstPaths_.isEmpty()) {
-                    break;
-                }
                 PortLifecycleRequest request;
                 request.experimentRunID = selectedExperimentRunID_;
                 request.port_paths = portPaths_;
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
                 emit requestPortLifecycleEvents(request);
-                hasValidRequests = true;
                 break;
             }
             case TIMELINE_DATA_KIND::WORKLOAD: {
@@ -413,7 +431,6 @@ void ChartInputPopup::accept()
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
                 emit requestWorkloadEvents(request);
-                hasValidRequests = true;
                 break;
             }
             case TIMELINE_DATA_KIND::CPU_UTILISATION: {
@@ -421,7 +438,6 @@ void ChartInputPopup::accept()
                 request.experimentRunID = selectedExperimentRunID_;
                 request.node_ids = nodeIDs_;
                 emit requestCPUUtilisationEvents(request);
-                hasValidRequests = true;
                 break;
             }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
@@ -429,22 +445,20 @@ void ChartInputPopup::accept()
                 request.experimentRunID = selectedExperimentRunID_;
                 request.node_ids = nodeIDs_;
                 emit requestMemoryUtilisationEvents(request);
-                hasValidRequests = true;
                 break;
             }
             default:
+                hasValidRequests = false;
                 break;
             }
         }
 
         if (!hasValidRequests) {
-            // show empty/inactive chart state
             NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
         }
 
     } else {
         // request all events for all event kinds
-        emit setEventKinds(GET_TIMELINE_DATA_KINDS());
         emit requestAllEvents();
     }
 

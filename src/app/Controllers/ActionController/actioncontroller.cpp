@@ -347,7 +347,6 @@ void ActionController::selectionChanged(int selection_size)
             toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
         }
 
-
         // chart checks - if there is more than 1, show the chart data kind menu
         auto validChartKinds = viewController->getValidChartDataKindsForSelection();
         bool showChartAction = validChartKinds.size() == 1;
