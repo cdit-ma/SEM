@@ -29,6 +29,7 @@ Enum::Enum(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, 
     //Setup Data
     broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
 }
 
 void Enum::DataAdded(Data* data){

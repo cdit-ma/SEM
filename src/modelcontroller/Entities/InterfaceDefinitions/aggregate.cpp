@@ -33,6 +33,7 @@ Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     }
 
     // Setup Data
+    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
     broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);

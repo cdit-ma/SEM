@@ -18,7 +18,9 @@ public:
     QPointF getElementPosition(BasicNodeItem *child);
 
     QPointF GetGridAlignedTopLeft() const;
-
+    
+    void SetColumnCount(int column_limit);
+    void SetUseColumnCount(int row, int col, bool use_column_count);
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
 
     void SetRenderCellText(int row, int col, bool render, QString label = "");
@@ -36,8 +38,9 @@ public:
     void RecalculateCells();
 
     Qt::Orientation getCellOrientation(const CellIndex& index);
-
+    void dataChanged(const QString& key_name, const QVariant& data);
 protected:
+    
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 public:
@@ -55,12 +58,18 @@ private:
     
     
     
+    int getCellColumnCount(const CellIndex& index);
     QMarginsF getCellMargin(const CellIndex& index);
     qreal getDefaultCellSpacing() const;
     qreal getCellSpacing(const CellIndex& index);
+
+    bool allowIcons();
+    bool getCellRenderPrefixIcon(const CellIndex& index);
+    bool getCellRenderSuffixIcon(const CellIndex& index);
+    bool getCellRenderGapIcon(const CellIndex& index);
     
 
-    QRectF GetGapIconRect(const Qt::Orientation orientation, const QRectF& prev_rect, const QRectF& current_rect);
+    QRectF GetGapIconRect(const CellIndex& index, int child_index, const QRectF& prev_rect, const QRectF& current_rect);
 
     Qt::Orientation orientation;
 
@@ -80,6 +89,8 @@ private:
         bool render_suffix_icon = false;
         bool render_gap_icons = false;
         bool render_hover_icon = false;
+
+        
         
         
 
@@ -93,7 +104,9 @@ private:
         QPair<QString, QString> gap_icon;
         QPair<QString, QString> hovered_icon;
         QSize icon_size;
-
+        
+        bool use_column_count = false;
+        
         qreal minimum_height = 0;
         qreal minimum_width = 0;
 
@@ -105,7 +118,7 @@ private:
         }
 
         bool render_always(){
-            return minimum_width > 0 || minimum_height > 0 || render_suffix_icon;
+            return minimum_width > 0 || minimum_height > 0 || render_prefix_icon || render_suffix_icon;
         }
     };
 
@@ -131,7 +144,7 @@ private:
         int prefix_gap_index = -1;
         int suffix_gap_index = -1;
     };
-
+    int column_count_ = -1;
 
 
     bool sub_areas_dirty = true;

@@ -219,6 +219,7 @@
         <file alias="dotsStriked">Resources/Icons/dotsStriked.png</file>
         <file alias="dotsVertical">Resources/Icons/dotsVertical.png</file>
         <file alias="drop">Resources/Icons/drop.png</file>
+        <file alias="dropPin">Resources/Icons/dropPin.png</file>
         <file alias="ear">Resources/Icons/ear.png</file>
         <file alias="exclamation">Resources/Icons/exclamation.png</file>
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>

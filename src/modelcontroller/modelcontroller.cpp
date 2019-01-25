@@ -637,7 +637,6 @@ void ModelController::destructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE
             }
         }
     }
-    qCritical() << "DESTRUCTING: " << edges.size() << " Edges";
     destructEntities(edges);
     emit ActionFinished();
 }
@@ -1276,8 +1275,8 @@ void ModelController::destructEntities(QList<Entity*> entities)
             if(entity->isNode()){
                 auto node = (Node*) entity;
                 nodes += node;
-                for(auto node : node->getNestedDependants()){
-                    nodes += node;
+                for(auto child : node->getNestedDependants()){
+                    nodes += child;
                 }
             }else if(entity->isEdge()){
                 auto edge = (Edge*) entity;

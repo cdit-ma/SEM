@@ -39,11 +39,11 @@ bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         return false;
     }
     
-    QSet<NODE_KIND> valid_dst_kinds = {NODE_KIND::ATTRIBUTE_INSTANCE, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
+    const static QSet<NODE_KIND> valid_dst_kinds = {NODE_KIND::ATTRIBUTE_INSTANCE, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::VARIABLE};
 
     switch(edge_kind){
     case EDGE_KIND::DATA:{
-        if(!valid_dst_kinds.contains(dst->getNodeKind())){
+        if(!valid_dst_kinds.contains(dst->getNodeKind()) || dst->getViewAspect() != VIEW_ASPECT::ASSEMBLIES){
             return false;
         }
         break;
