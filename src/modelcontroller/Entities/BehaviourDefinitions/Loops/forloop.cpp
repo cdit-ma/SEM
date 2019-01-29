@@ -64,6 +64,8 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
     broker.AttachData(expression_->GetComparator(), "label", QVariant::String, ProtectedState::UNPROTECTED, "<");
     broker.AttachData(expression_->GetRhs(), "value", QVariant::String, ProtectedState::UNPROTECTED, "?");
 
+    
+
 
     //Setup Itteration element
     broker.AttachData(iteration_, "icon", QVariant::String, ProtectedState::PROTECTED, "reload");
@@ -79,6 +81,11 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
         broker.AttachData(child, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
         broker.AttachData(child, "index", QVariant::Int, ProtectedState::PROTECTED);
     }
+
+
+    //Set Comparator/iteration LHS inner_type to match the initial type of i (Integer)
+    broker.AttachData(expression_->GetLhs(), "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
+    broker.AttachData(iteration_->GetLhs(), "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
 
     //Bind Value changing
     auto data_variable_label = variable_->getData("label");
