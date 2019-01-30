@@ -179,7 +179,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
         QString text = run.experiment_name + "[" + QString::number(ID) + "] - started at " +
-                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss:zzz");
+                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
 
         QRadioButton* button = new QRadioButton(text, this);
         button->setProperty("ID", ID);

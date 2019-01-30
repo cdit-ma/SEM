@@ -176,7 +176,7 @@ QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTim
  */
 QString MEDEA::EventSeries::getDefaultDisplayFormat()
 {
-    return "MMM d, hh:mm:ss:zzz";
+    return "MMM d, hh:mm:ss.zzz";
 }
 
 
