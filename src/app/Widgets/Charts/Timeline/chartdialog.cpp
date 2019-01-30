@@ -26,6 +26,7 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, chartView_, &TimelineChartView::receivedRequestedEvents);
         connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearSeriesEvents);
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, chartView_, &TimelineChartView::updateTimelineChart);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, this, &ChartDialog::receivedNewData);
     } else {
         qWarning("ChartDialog - ViewController is null");
     }

@@ -14,6 +14,9 @@ class ChartDialog : public QFrame
 public:
     explicit ChartDialog(ViewController* vc, QWidget* parent = 0);
 
+signals:
+    void receivedNewData();
+
 public slots:
     void themeChanged();
 
