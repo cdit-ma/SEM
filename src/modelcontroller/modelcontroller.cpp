@@ -2400,8 +2400,13 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             
             if(requires_parenting || implicitly_created){
                 //If the node is not attached to a parent, or it was implicilty constructed, set the data ahead of time
-                for(auto key_name : entity->getKeys()){
-                    auto value = entity->getDataValue(key_name);
+                for(const auto& key_name : entity->getKeys()){
+                    const auto& value = entity->getDataValue(key_name);
+                    
+                    //Don't overwrite implicitly set data with a blank value
+                    if(implicitly_created && node->gotData(key_name) && value == ""){
+                        continue;
+                    }
                     //TODO: WORK OUT IF WE SHOULD ALLOW DATA WE DON'T IMPICILTLY CREATE
                     setData_(node, key_name, value, false);
                 }
