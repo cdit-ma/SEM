@@ -5,7 +5,7 @@
 #include "../../Series/lineseries.h"
 #include "../../Series/stateseries.h"
 #include "../../Series/notificationseries.h"
-#include "../../Timeline/hoverpopup.h"
+#include "../../Timeline/Chart/hoverpopup.h"
 #include "../Axis/entityaxis.h"
 #include "../Axis/entityset.h"
 #include "entitychart.h"

@@ -93,6 +93,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
      * HOVER LAYOUT
      */
     _hoverWidget = new QWidget(this);
+    _hoverWidget->setStyleSheet("background: rgba(0,0,0,0);");
+
     QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
     hoverLayout->setSpacing(SPACING * 2);
     hoverLayout->setMargin(SPACING);
@@ -199,6 +201,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 
     auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
     setMinimumWidth(_entityAxis->minimumWidth() + minTimeAxisWidth + SPACING * 2);
+
+    setObjectName("TimelineChartView");
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChartView::themeChanged);
     themeChanged();
@@ -372,8 +376,8 @@ void TimelineChartView::themeChanged()
     handleColor.setAlphaF(1 - OPACITY);
     highlightColor.setAlphaF(handleColor.alphaF());
 
-    setStyleSheet("QWidget{ background: rgba(0,0,0,0); }"
-                  "QScrollBar:vertical {"
+    // NOTE - we want
+    setStyleSheet("QScrollBar:vertical {"
                   "width:" + QString::number(SCROLLBAR_WIDTH) + ";"
                   "background:" + Theme::QColorToHex(bgColor) + ";"
                   "border-radius:" + theme->getCornerRadius() + ";"
@@ -389,7 +393,6 @@ void TimelineChartView::themeChanged()
                   "padding: 0px;"
                   "}"
                   "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}");
-    //"QScrollBar::handle:active{ background: " + Theme::QColorToHex(highlightColor) + ";}");
 
     _timelineChart->setStyleSheet("background: " + Theme::QColorToHex(bgColor) + ";");
 

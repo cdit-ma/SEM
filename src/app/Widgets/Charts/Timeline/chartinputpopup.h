@@ -1,7 +1,7 @@
 #ifndef CHARTINPUTPOPUP_H
 #define CHARTINPUTPOPUP_H
 
-#include "hoverpopup.h"
+#include "Chart/hoverpopup.h"
 #include "../Data/Events/event.h"
 #include "../Data/Events/protoMessageStructs.h"
 #include "../../../Controllers/ViewController/nodeviewitem.h"

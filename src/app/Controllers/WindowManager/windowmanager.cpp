@@ -154,6 +154,24 @@ InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title, 
     return dock;
 }
 
+DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartDialog* dialog, QWidget *parent, Qt::DockWidgetArea area)
+{
+    if (!dialog)
+        return 0;
+
+    auto dockWidget = new DefaultDockWidget(title, parent, area);
+    dockWidget->setWidget(dialog);
+    addDockWidget(dockWidget);
+
+    // add actions to the dock widget's title bar for clearAll and screenshot
+    QAction* snapShotAction = dockWidget->addAction("Take Snapshot", "Icons", "camera", Qt::AlignCenter);
+    QAction* clearChartsAction = dockWidget->addAction("Clear Charts", "Icons", "clearList", Qt::AlignCenter);
+    connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
+    connect(clearChartsAction, &QAction::triggered, dialog, &ChartDialog::clear);
+
+    return dockWidget;
+}
+
 void WindowManager::constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title)
 {
     if (parentDockWidget) {

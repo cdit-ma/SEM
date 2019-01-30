@@ -10,6 +10,7 @@
 #include "../../Widgets/Dialogs/popupwidget.h"
 #include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
+#include "../../Widgets/Charts/Timeline/chartdialog.h"
 
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -348,6 +349,7 @@ void MainWindow::setupDockIcons(){
     setDockWidgetIcon(dockwidget_Search, "Icons", "zoomInPage", theme);
     setDockWidgetIcon(dockwidget_Notification, "Icons", "bell", theme);
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
+    setDockWidgetIcon(dockwidget_Charts, "Icons", "barChart", theme);
 
     theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
 
@@ -477,10 +479,12 @@ void MainWindow::setupInnerWindow()
 
 
     // TESTING INNER DOCK WIDGETS
+    /*
     WindowManager::manager()->constructInnerDockWidget(view_controller, dockwidget_Behaviour, "Inner Dock Widget");
     dockwidget_Interfaces->req_Visible(dockwidget_Interfaces->getID(), false);
     dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
     dockwidget_Hardware->req_Visible(dockwidget_Hardware->getID(), false);
+    */
 }
 
 
@@ -596,15 +600,22 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setIconVisible(true);
     dockwidget_Notification->setProtected(true);
 
+    // Charts Panel
+    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", new ChartDialog(view_controller, dockwidget_Charts), this);
+    dockwidget_Charts->setIconVisible(true);
+    dockwidget_Charts->setProtected(true);
+
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Notification);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Qos);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Charts);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(dockwidget_Qos, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
+    innerWindow->setDockWidgetVisibility(dockwidget_Charts, false);
     
     // Tab the search and notifications
     innerWindow->tabifyDockWidget(dockwidget_Search, dockwidget_Notification);

@@ -125,8 +125,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/hoverpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartinputpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/hoverpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechart.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/entitychart.cpp
@@ -241,8 +242,9 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/hoverpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartinputpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/hoverpopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechart.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/entitychart.h

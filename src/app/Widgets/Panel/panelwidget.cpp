@@ -159,8 +159,6 @@ void PanelWidget::constructEventsView()
 
 
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @brief PanelWidget::constructPortLifecycleEventsView
  */
 void PanelWidget::constructPortLifecycleEventsView()

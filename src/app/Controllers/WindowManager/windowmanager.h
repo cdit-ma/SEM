@@ -6,6 +6,8 @@
 #include <QAction>
 #include <QSet>
 
+#include "../../Widgets/Charts/Timeline/chartdialog.h"
+
 //Forward Class Declarations
 class BaseDockWidget;
 class DefaultDockWidget;
@@ -59,6 +61,7 @@ public:
     ToolDockWidget* constructToolDockWidget(QString title, QWidget* parent);
     InvisibleDockWidget* constructInvisibleDockWidget(QString title, QWidget* parent);
 
+    DefaultDockWidget* constructChartDockWidget(QString title, ChartDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     void constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title = "");
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);
