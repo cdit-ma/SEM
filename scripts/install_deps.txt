@@ -7,12 +7,13 @@ apt-get update && apt-get install -y \
     wget \
     ninja-build \
     openjdk-11-jre-headless \
-    ccache
+    ccache \
+    ntpdate
 
 #Build Deps
 #CENTOS
-sudo yum install epel-release git wget java-1.8.0-openjdk gcc gcc-c++
-sudo yum install  ninja-build cmake3 ccache
+sudo yum install epel-release git wget java-1.8.0-openjdk gcc gcc-c++ ntpdate
+sudo yum install ninja-build cmake3 ccache
 sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 
 #Install Boost
