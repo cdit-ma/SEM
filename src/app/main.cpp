@@ -1,10 +1,12 @@
 #include <QApplication>
 #include <QString>
+#include <QCommandLineParser>
 
 #include "Controllers/ViewController/viewcontroller.h"
 #include "Controllers/WindowManager/windowmanager.h"
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
+#include "../modelcontroller/version.h"
 
 #include <iostream>
 #ifdef _WIN32
@@ -26,12 +28,34 @@ int launchMEDEA(int argc, char *argv[]){
     try{
         //Construct a QApplication
         QApplication a(argc, argv);
+
         //Fixes MacOS QIcon resolution.
-        //a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 
         //Initialize images
         Q_INIT_RESOURCE(images);
         Q_INIT_RESOURCE(workers);
+
+        //Setup QApplication
+        a.setApplicationName("MEDEA");
+        a.setApplicationVersion(APP_VERSION());
+        a.setOrganizationName("CDIT-MA");
+        a.setOrganizationDomain("https://github.com/cdit-ma/");
+
+        //Handle Command line options
+        QCommandLineParser parser;
+        parser.addHelpOption();
+        parser.addVersionOption();
+        parser.addPositionalArgument("file", "Open a graphml project");
+        parser.process(a);
+
+        auto project_paths = parser.positionalArguments();
+
+
+        //Initialize images
+        Q_INIT_RESOURCE(images);
+        Q_INIT_RESOURCE(workers);
+
 
         //Initialize important singletons
         Theme::theme();
@@ -40,11 +64,8 @@ int launchMEDEA(int argc, char *argv[]){
         view_controller.reset(new ViewController());
         
         auto window = WindowManager::manager()->constructMainWindow(view_controller.data());
-        if (argc == 2) {
-            QString projectPath = QString::fromUtf8(argv[1]);
-            if(!projectPath.isEmpty()){
-                view_controller->OpenExistingProject(projectPath);
-            }
+        if (project_paths.size() == 1) {
+            view_controller->OpenExistingProject(project_paths.first());
         }
         a.setActiveWindow(window);
 

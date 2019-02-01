@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     QCommandLineOption open_options({"o", "open"}, "Open a graphml project.", "The graphml file path");
     QCommandLineOption import_options({"i", "import"}, "Import graphml project(s).", "The graphml file path");
     QCommandLineOption export_options({"e", "export"}, "Export project as a graphml file.", "The graphml file path");
-    QCommandLineOption function_export_options({"f", "functional"}, "Functionally export, stripping out visual information.");
+    QCommandLineOption function_export_options({"r", "human-readible"}, "Export <data> using the Key's name as the ID");
 
     parser.addOption(open_options);
     parser.addOption(import_options);
@@ -40,7 +40,7 @@ int main(int argc, char** argv){
     bool got_values = parser.isSet(open_options) || parser.isSet(import_options);
 
     if(!got_values){
-        //parser.showVersion();
+        parser.showVersion();
         parser.showHelp(1);
     }
     

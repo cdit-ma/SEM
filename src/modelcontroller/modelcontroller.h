@@ -207,7 +207,7 @@ private:
     bool importGraphML(const QString& document, Node* parent = 0);
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(const QList<int>& ids, bool all_edges = false);
-    QString exportGraphML(const QList<Entity*>& entities, bool all_edges = false, bool functional_export = false);
+    QString exportGraphML(const QList<Entity*>& entities, bool all_edges = false, bool c = false);
     QString exportGraphML(Entity* entity);
 
 

@@ -184,8 +184,8 @@ QString ModelController::exportGraphML(Entity* entity){
     return exportGraphML(QList<Entity*>{entity}, true);
 }
 
-QString ModelController::exportGraphML(const QList<Entity*>& selection, bool all_edges, bool functional_export){
-    return GraphmlPrinter::ToGraphml(selection, all_edges, true);
+QString ModelController::exportGraphML(const QList<Entity*>& selection, bool all_edges, bool human_readible){
+    return GraphmlPrinter::ToGraphml(selection, all_edges, human_readible);
 }
 
 
@@ -1751,7 +1751,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
 QString ModelController::getProjectAsGraphML(bool functional_export)
 {
     lock_.lockForRead();
-    QString data = exportGraphML(QList<Entity*>{model}, true, functional_export);
+    auto data = exportGraphML({model}, true, functional_export);
     lock_.unlock();
     return data;
 }
