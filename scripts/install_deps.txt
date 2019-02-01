@@ -71,3 +71,6 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
 #Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
     sudo chown cdit-ma /mnt/Jenkins/
+
+#Disable CentOS Firewall
+sudo systemctl stop firewalld
