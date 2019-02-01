@@ -171,9 +171,9 @@ private:
     bool canDeleteNode(Node* node);
 
     void loadWorkerDefinitions();
-    QList<Entity *> getOrderedEntities(QList<int> ids);
+    QList<Entity *> getOrderedEntities(const QList<int>& ids);
     QList<Entity *> getOrderedEntities(QList<Entity *> entities);
-    QList<Entity*> getUnorderedEntities(QList<int> IDs);
+    QList<Entity*> getUnorderedEntities(const QList<int>& ids);
 
     QHash<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
 
@@ -206,8 +206,8 @@ private:
 
     bool importGraphML(const QString& document, Node* parent = 0);
     //Exports a Selection of Containers to export into GraphML
-    QString exportGraphML(QList<int> ids, bool all_edges = false);
-    QString exportGraphML(QList<Entity*> entities, bool all_edges = false, bool functional_export = false);
+    QString exportGraphML(const QList<int>& ids, bool all_edges = false);
+    QString exportGraphML(const QList<Entity*>& entities, bool all_edges = false, bool functional_export = false);
     QString exportGraphML(Entity* entity);
 
 

@@ -28,6 +28,7 @@
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
+#include "graphmlprinter.h"
 
 inline QPair<bool, QString> readFile(const QString& filePath)
 {
@@ -175,7 +176,7 @@ void ModelController::loadWorkerDefinitions()
     }
 }
 
-QString ModelController::exportGraphML(QList<int> ids, bool all_edges){
+QString ModelController::exportGraphML(const QList<int>& ids, bool all_edges){
     return exportGraphML(getOrderedEntities(ids), all_edges);
 }
 
@@ -183,100 +184,8 @@ QString ModelController::exportGraphML(Entity* entity){
     return exportGraphML(QList<Entity*>{entity}, true);
 }
 
-QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges, bool functional_export){
-    QSet<Key*> keys;
-
-    QSet<Node*> top_nodes;
-    QSet<Node*> all_nodes;
-    QSet<Edge*> edges;
-    
-    //Get the entities
-    for(auto entity : selection){
-        if(entity->isNode()){
-            auto node = (Node*) entity;
-
-            top_nodes += node;
-            all_nodes += node;
-            all_nodes += node->getAllChildren();
-            
-            edges += node->getAllEdges();
-        
-        }else if(entity->isEdge()){
-            edges += (Edge*) entity;
-        }
-    }
-
-    std::for_each(all_nodes.begin(), all_nodes.end(), [&keys](Node* n){keys += n->getKeys();});
-    std::for_each(edges.begin(), edges.end(), [&keys](Edge* e){keys += e->getKeys();});
-
-    QString xml;
-    QTextStream stream(&xml);
-
-
-    stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    stream << "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
-    
-    
-    auto key_list = keys.toList();
-    std::sort(key_list.begin(), key_list.end(), GraphML::SortByID);
-    
-    //Define the key graphml
-    for(auto key : key_list){
-        key->ToGraphmlStream(stream, 1);
-    }
-
-    {
-        stream << "\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
-        for(auto entity : top_nodes){
-            entity->ToGraphmlStream(stream, 2);
-        }
-        
-        //Sort the edges to be lowest to highest IDS for determinism
-        auto edge_list = edges.toList();
-        std::sort(edge_list.begin(), edge_list.end(), [](const Entity* e1, const Entity* e2){
-            return e1->getID() > e2->getID();
-        });
-
-        for(auto entity : edge_list){
-            auto edge = (Edge*) entity;
-
-            auto src = edge->getSource();
-            auto dst = edge->getDestination();
-            //Only export the edge if we contain both sides, unless we should export all
-            bool export_edge = all_edges;
-            
-            if(!export_edge){
-                bool contains_src = all_nodes.contains(src);
-                bool contains_dst = all_nodes.contains(dst);
-                if(contains_src && contains_dst){
-                    export_edge = true;
-                }else{
-                    //If we don't contain both
-                    switch(edge->getEdgeKind()){
-                        case EDGE_KIND::AGGREGATE:
-                        case EDGE_KIND::ASSEMBLY:
-                        case EDGE_KIND::DEPLOYMENT:{
-                            export_edge = true;
-                            break;
-                        }
-                        case EDGE_KIND::DEFINITION:{
-                            export_edge = contains_src;
-                            break;
-                        }
-                        default:
-                            break;
-                    }
-                }
-            }
-            if(export_edge){
-                edge->ToGraphmlStream(stream, 2);
-            }
-        }
-        stream << "\t</graph>\n";
-    }
-
-    stream << "</graphml>";
-    return xml;
+QString ModelController::exportGraphML(const QList<Entity*>& selection, bool all_edges, bool functional_export){
+    return GraphmlPrinter::ToGraphml(selection, all_edges, true);
 }
 
 
@@ -941,7 +850,7 @@ QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> 
     return node_map;
 }
 
-QList<Entity*> ModelController::getOrderedEntities(QList<int> ids){
+QList<Entity*> ModelController::getOrderedEntities(const QList<int>& ids){
     return getOrderedEntities(getUnorderedEntities(ids));
 }
 
@@ -1179,9 +1088,9 @@ QList<int> ModelController::getIDs(QList<Node *> nodes)
 }
 
 
-QList<Entity *> ModelController::getUnorderedEntities(QList<int> ids){
+QList<Entity *> ModelController::getUnorderedEntities(const QList<int>& ids){
     QList<Entity*> entities;
-    for(auto id : ids){
+    for(const auto& id : ids){
         auto entity = entity_factory->GetEntity(id);
         if(entity){
             entities << entity;
@@ -1342,8 +1251,6 @@ bool ModelController::reverseAction(HistoryAction action)
         case GRAPHML_KIND::NODE:
         case GRAPHML_KIND::EDGE:{
             if(!entity){
-                //qCritical() << " NO ENTITY WITH ID: " << action.entity_id  << "INSIDE: " << action.parent_id;
-                //qCritical() << action.xml;
                 return false;
             }
             destructEntities({entity});
@@ -1606,7 +1513,7 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
                 action.Action.type = ACTION_TYPE::CONSTRUCTED;
                 action.entity_id = node->getID();
                 action.parent_id = node->getParentNodeID();
-                action.xml = node->toGraphML();
+                action.xml = GraphmlPrinter::ToGraphml(*node);
                 addActionToStack(action);
             }
         }else{
