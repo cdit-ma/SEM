@@ -83,7 +83,7 @@ sudo ln -s /lib64/librt.so.1 /usr/lib/librt.so && \
     export ACE_ROOT=$PWD && \
     export TAO_ROOT=$ACE_ROOT/TAO && \
     export LD_LIBRARY_PATH=$ACE_ROOT/lib:$LD_LIBRARY_PATH && \
-    echo -e "#define __cpu_set_t_defined\n#define ACE_HAS_CPU_SET_T\n#include \"ace/config-linux.h\"" > $ACE_ROOT/ace/config.h && \
+    echo -e "#include \"ace/config-linux.h\"" > $ACE_ROOT/ace/config.h && \
     echo -e "include \$(ACE_ROOT)/include/makeinclude/platform_linux.GNU" > $ACE_ROOT/include/makeinclude/platform_macros.GNU && \
     find . -name "GNUmakefile*" -delete && \
     cd $TAO_ROOT && \
