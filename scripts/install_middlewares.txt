@@ -22,7 +22,8 @@ wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connex
     sudo mkdir /opt/RTI && \
     chmod +x rti_connext_dds-5.3.0-eval-x64Linux3gcc4.8.2.run && \
     sudo ./rti_connext_dds-5.3.0-eval-x64Linux3gcc4.8.2.run && \
-    rm -rf rti*
+    rm -rf rti* && \
+    cd ~
 
 # OpenSplice
 sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q -P /opt/ && \
@@ -71,8 +72,8 @@ sudo ln -s /lib/x86_64-linux-gnu/librt.so.1 /usr/lib/librt.so && \
     $ACE_ROOT/bin/mwc.pl TAO_ACE.mwc -type gnuace && \
     make CXXFLAGS="-fpermissive" CFLAGS="-fpermissive" -j8 && \
     sudo mv /home/cdit-ma/ACE_wrappers /opt/ACE_6.5.0/ && \
-    cd ~
-
+    cd ~ && \
+    rm -rf ACE*
 
 # ACE_TAO
 # CENTOS
@@ -90,5 +91,6 @@ sudo ln -s /lib64/librt.so.1 /usr/lib/librt.so && \
     $ACE_ROOT/bin/mwc.pl TAO_ACE.mwc -type gnuace && \
     make CXXFLAGS="-fpermissive" CFLAGS="-fpermissive" -j8 && \
     sudo mv /home/cdit-ma/ACE_wrappers /opt/ACE_6.5.0/ && \
-    cd ~
+    cd ~ && \
+    rm -rf ACE*
 
