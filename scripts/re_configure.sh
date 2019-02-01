@@ -29,19 +29,27 @@ LD_LIBRARY_PATH=$RE_LIB_PATH:$LD_LIBRARY_PATH
 #PATH=$CLFFT_ROOT/bin:$PATH
 #LD_LIBRARY_PATH=$CLFFT_ROOT/lib64:$LD_LIBRARY_PATH
 
-export LD_LIBRARY_PATH
-
 # OSPL
 . /opt/HDE/x86_64.linux/release.com
 
-# RTI-Ubuntu
-. /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash
-RTI_DDS_HOST="x64Linux3gcc5.4.0"
+#RTI-Ubuntu
+#RTI_DDS_HOST="x64Linux3gcc5.4.0"
 
 #RTI-Centos
-#. /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc4.8.2.bash
 #RTI_DDS_HOST="x64Linux3gcc4.8.2"
 
-#RTI-Either
-export RTI_DDS_HOST
+#RTI-MacOSX
+#RTI_DDS_HOST="x64Darwin16clang8.0"
+
+# RTI-ALL
+#. /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_$RTI_DDS_HOST.bash
+#export RTI_DDS_HOST
+
+#ACE/TAO - Either
+#ACE_ROOT=/opt/ACE_6.5.0/
+#TAO_ROOT=$ACE_ROOT/TAO
+#LD_LIBRARY_PATH=$ACE_ROOT/lib:$LD_LIBRARY_PATH
+
+
+export LD_LIBRARY_PATH
 
