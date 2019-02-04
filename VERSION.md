@@ -1,12 +1,6 @@
-# MEDEA v3.3.2
+# MEDEA v3.3.4
 ## New Features:
-* Added new data 'column_count' to allow the user to grid align Aggregate, Enums
-* Moved 'SharedDataType' and 'Namespace' entities to use grid alignment, customizable with 'column_count'
-* Updated and added new 'Replication' attribute inside ComponentAssembly which replaces the old 'replication_count' data element
-  * The Replication attribute can be connected to DeploymentAttributes (Of numeric types) and other 'Replication' attributes.
-  * The 'value' can also be set hard coding the replication to that number
-  * Values less than 0 effectively disables the ComponentAssembly
+* Added a new human-readable flag ('r') mode to medea_cli which exports the Models Data keys using the key_name as it's ID to help improve readability of the exported mode.
 
 ## Resolved JIRA Tickets:
-* MED-467
-* MED-355
+* MED-506
