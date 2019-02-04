@@ -26,6 +26,8 @@ set(HEADERS
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}"/kdis")
+
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)
 target_link_libraries(${PROJ_NAME} PUBLIC re_loggers)

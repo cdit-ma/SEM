@@ -14,11 +14,8 @@ class Dis_Worker_Impl{
         void Connect(const std::string& ip_address, const int port);
         void Disconnect();
     private:
-        std::unique_ptr<KDIS::NETWORK::Connection> connection_;
-};
-
-class Dis_EventSubscriber : public KDIS::NETWORK::ConnectionSubscriber{
-
+        void ProcessEvents(const std::string& ip_address, const int port);
+        
 };
 
 #endif //WORKERS_DIS_DISWORKER_IMPL_H
