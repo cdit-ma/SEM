@@ -995,9 +995,12 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             case NODE_KIND::AGGREGATE_INSTANCE:
             case NODE_KIND::VECTOR_INSTANCE:
             case NODE_KIND::ENUM_INSTANCE:{
-                if(instance_parent_kind == NODE_KIND::AGGREGATE){
+                static const QSet<NODE_KIND> unbound_labels{NODE_KIND::AGGREGATE, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+                if(unbound_labels.contains(instance_parent_kind)){
                     bind_labels = false;
                 }
+
+
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::Description] += KeyName::Description;
                     required_instance_keys.insert(KeyName::Description);
