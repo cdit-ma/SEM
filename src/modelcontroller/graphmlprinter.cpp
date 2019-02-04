@@ -30,7 +30,7 @@ namespace helper{
     };
 };
 
-QString GraphmlPrinter::ToGraphml(const QList<Entity*>& selection, bool all_edges, bool human_readible){
+QString GraphmlPrinter::ToGraphml(const QList<Entity*>& selection, bool all_edges, bool human_readable){
     //Definition list of Entities
     QSet<Key*> keys;
     QSet<Node*> top_nodes;
@@ -70,14 +70,14 @@ QString GraphmlPrinter::ToGraphml(const QList<Entity*>& selection, bool all_edge
     
     //Export all Keys at the top
     for(auto key : key_list){
-        ToGraphmlStream(*key, stream, 1, human_readible);
+        ToGraphmlStream(*key, stream, 1, human_readable);
     }
 
     {
 
         stream << "\n\t<graph edgedefault=\"directed\" id=\"g0\">\n";
         for(auto node : top_nodes){
-            ToGraphmlStream(*node, stream, 2, human_readible);
+            ToGraphmlStream(*node, stream, 2, human_readable);
         }
         
         //Sort the edges to be lowest to highest IDS for determinism
@@ -119,7 +119,7 @@ QString GraphmlPrinter::ToGraphml(const QList<Entity*>& selection, bool all_edge
                 }
             }
             if(export_edge){
-                ToGraphmlStream(*edge, stream, 2, human_readible);
+                ToGraphmlStream(*edge, stream, 2, human_readable);
             }
         }
         stream << "\t</graph>\n";
@@ -135,61 +135,61 @@ QString GraphmlPrinter::ToGraphml(const Node& node){
     return xml;
 }
 
-void GraphmlPrinter::ToGraphmlStream(const Node& node, QTextStream& stream, int indent_depth, bool human_readible){
+void GraphmlPrinter::ToGraphmlStream(const Node& node, QTextStream& stream, int indent_depth, bool human_readable){
     const auto tab = QString("\t").repeated(indent_depth);
     
     stream << tab;
     stream << "<node id=\"" << node.getID() << "\">\n";
 
-    DatasToGraphmlStream(node, stream, indent_depth + 1, human_readible);
+    DatasToGraphmlStream(node, stream, indent_depth + 1, human_readable);
 
     const auto& children = node.getChildren(0);
     //Children are in a <graph>
     if(children.size()){
         stream << tab << "\t<graph id=\"g" << node.getID() << "\">\n";
         for(auto child : children){
-            ToGraphmlStream(*child, stream, indent_depth + 2, human_readible);
+            ToGraphmlStream(*child, stream, indent_depth + 2, human_readable);
         }
         stream << tab << "\t</graph>\n";
     }
     stream << tab << "</node>\n";
 }
 
-void GraphmlPrinter::DatasToGraphmlStream(const Entity& entity, QTextStream& stream, int indent_depth, bool human_readible){
+void GraphmlPrinter::DatasToGraphmlStream(const Entity& entity, QTextStream& stream, int indent_depth, bool human_readable){
     auto data_list = entity.getData();
     
     //Sort the Data
     std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
     for(auto data : data_list){
-        ToGraphmlStream(*data, stream, indent_depth, human_readible);
+        ToGraphmlStream(*data, stream, indent_depth, human_readable);
     }
 }
 
-void GraphmlPrinter::ToGraphmlStream(const Edge& edge, QTextStream& stream, int indent_depth, bool human_readible){
+void GraphmlPrinter::ToGraphmlStream(const Edge& edge, QTextStream& stream, int indent_depth, bool human_readable){
     const auto tab = QString("\t").repeated(indent_depth);
     
     stream << tab << "<edge id=\"" << edge.getID() << "\" source=\"" << edge.getSourceID() << "\" target=\"" << edge.getDestinationID() << "\">\n";
-    DatasToGraphmlStream(edge, stream, indent_depth + 1, human_readible);
+    DatasToGraphmlStream(edge, stream, indent_depth + 1, human_readable);
     stream << tab << "</edge>\n";
 }
 
-QString GraphmlPrinter::GetKeyID(const Key& key, bool human_readible){
-    if(human_readible){
+QString GraphmlPrinter::GetKeyID(const Key& key, bool human_readable){
+    if(human_readable){
         //Use the name if we are human readible
         return key.getName();
     }
     return QString::number(key.getID());
 }
 
-void GraphmlPrinter::ToGraphmlStream(const Key& key, QTextStream& stream, int indent_depth, bool human_readible){
+void GraphmlPrinter::ToGraphmlStream(const Key& key, QTextStream& stream, int indent_depth, bool human_readable){
     stream << QString("\t").repeated(indent_depth);
     stream << "<key";
     stream << " attr.name=\"" << key.getName() << "\"";
     stream << " attr.type=\"" << Key::getGraphMLTypeName(key.getType()) << "\"";
-    stream << " id=\"" << GetKeyID(key, human_readible) << "\"/>\n";
+    stream << " id=\"" << GetKeyID(key, human_readable) << "\"/>\n";
 }
 
-void GraphmlPrinter::ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth, bool human_readible){
+void GraphmlPrinter::ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth, bool human_readable){
     const static QString process_key("processes_to_log");
 
     auto data_string = helper::SanitizeString(data.getValue().toString());
@@ -204,7 +204,7 @@ void GraphmlPrinter::ToGraphmlStream(const Data& data, QTextStream& stream, int 
     }
 
     stream << QString("\t").repeated(indent_depth);
-    stream << "<data key=\"" << GetKeyID(key, human_readible) << "\">";
+    stream << "<data key=\"" << GetKeyID(key, human_readable) << "\">";
     stream << data_string;
     stream << "</data>\n";
 }
