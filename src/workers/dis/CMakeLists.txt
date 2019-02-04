@@ -1,11 +1,13 @@
 set(PROJ_NAME dis_worker)
 project(${PROJ_NAME})
 
+set(DIS_VERSION 6)
+add_subdirectory("kdis")
+#find_library(KDIS_LIB kdis)
+set(KDIS_LIB "kdis")
 
-# Try and find an OpenCL Implementation
-find_library(KDIS_LIB kdis)
 
-
+message(STATUS "KDIS_LIB: ${KDIS_LIB}")
 # If OpenCL doesn't exist on this machine we can bail out
 if(NOT KDIS_LIB)
     message(STATUS "Not Found KDIS - Not building kdis_worker")
