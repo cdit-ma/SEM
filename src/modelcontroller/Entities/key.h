@@ -34,13 +34,12 @@ public:
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);
     virtual bool setData(Data* data, QVariant data_value);
-    void ToGraphmlStream(QTextStream& stream, int indend_depth);
+
     QString toString() const;
 protected:
     bool forceDataValue(Data* data, QVariant value);
 signals:
     void validation_failed(int ID, QString error);
-    void validateError(QString, QString, int);
 private:
     const QString key_name_;
     const QVariant::Type key_type_;
