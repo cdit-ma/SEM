@@ -5,19 +5,11 @@ re_gen is a set of XSL transforms to perform code generation on a MEDEA graphml 
 * Saxon
 * Java
 
-## Generating Component code
-* Will generate into $$PWD/components
-* ``java -jar saxon.jar -xsl:g2components.xsl -s:model.graphml``
+## Generating Project code
+* Will generate a CMake compiler project/folder structure in the PWD
+* ``java -jar saxon.jar -xsl:generate_project.xsl -s:model.graphml``
 
-## Generating Datatypes code
-* Will generate into $$PWD/datatypes
-* java -jar saxon.jar -xsl:g2components.xsl -s:model.graphml middlewares=rti,ospl,zmq,qpid
-
-## Generating DDS QoS Artifacts
-* Will generate files into $$PWD/qos
-* ``java -jar saxon.jar -xsl:g2validate.xsl -s:model.graphml``
-
-## Validating Model
-* Will produce a report in std output
-* ``java -jar saxon.jar -xsl:g2validate.xsl -s:model.graphml``
+## Generating Validation report
+* Will produce a report in std out
+* ``java -jar saxon.jar -xsl:generate_validation.xsl -s:model.graphml``
 

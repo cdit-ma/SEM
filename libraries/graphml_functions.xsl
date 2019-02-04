@@ -641,6 +641,7 @@
     <xsl:function name="graphml:get_deployed_component_instances" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)" />
         
+        
         <!-- Get all Component Instances -->
         <xsl:for-each select="graphml:get_nodes_of_kind($model, 'ComponentInstance')">
             <xsl:if test="graphml:is_deployed(.)">

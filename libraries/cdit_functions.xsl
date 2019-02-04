@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v3.3.0'" />
+        <xsl:value-of select="'re_gen-v3.3.3'" />
     </xsl:function>
 
     <!--
@@ -1776,6 +1776,21 @@
         <xsl:sequence select="o:remove_duplicates($required_classes)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_depoyed_component_impls_and_class_defs" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)?" />
+        <xsl:param name="generate_all" as="xs:boolean" />
+
+        <xsl:variable name="required_impls" as="element(gml:node)*">
+            <!-- Get all the Aggregates used by each deployed ComponentImpl -->
+            <xsl:for-each select="graphml:get_deployed_component_instances($model)">
+                <xsl:sequence select="graphml:get_impl(.)"/>
+            </xsl:for-each>
+            <xsl:sequence select="cdit:get_classes_to_build($model, $generate_all)" />
+        </xsl:variable>
+
+        <xsl:sequence select="o:remove_duplicates($required_impls)" />
+    </xsl:function>
+
     <!--
         Gets the required Aggregates to generate for a particular middleware
     -->
@@ -1798,8 +1813,9 @@
 
                     <!-- Get all the Aggregates used by each deployed ComponentImpl -->
                     <xsl:if test="$middleware = 'base'">
-                        <xsl:for-each select="graphml:get_deployed_component_instances($model)">
-                            <xsl:sequence select="cdit:get_required_aggregates(graphml:get_impl(.), false())"/>
+                        <!-- Compile Aggregates used by deployed Class Instances -->
+                        <xsl:for-each select="cdit:get_depoyed_component_impls_and_class_defs($model, $generate_all)">
+                            <xsl:sequence select="cdit:get_required_aggregates(., false())"/>
                         </xsl:for-each>
                     </xsl:if>
                 </xsl:otherwise>
@@ -1818,14 +1834,11 @@
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="generate_all" as="xs:boolean" />
 
-        <xsl:variable name="required_aggregates" select="cdit:get_aggregates_for_middleware($model, $middleware, $generate_all)" />
 
-        <xsl:variable name="required_enum_instances" select="graphml:get_descendant_nodes_of_kind($required_aggregates, 'EnumInstance')" />
-
+        <xsl:variable name="required_impls" select="cdit:get_depoyed_component_impls_and_class_defs($model, $generate_all)" />
+        <xsl:variable name="required_enum_instances" select="graphml:get_descendant_nodes_of_kind($required_impls, 'EnumInstance')" />
         <xsl:sequence select="graphml:get_definitions($required_enum_instances)" />
     </xsl:function>
-
-    
 
     <!--
         Gets the required Pub/Sub Ports Aggregates (Definition) to generate for a particular middleware
