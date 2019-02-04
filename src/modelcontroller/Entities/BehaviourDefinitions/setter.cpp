@@ -93,9 +93,11 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     connect(data_operator, &Data::dataChanged, this, &Setter::operatorChanged);
     connect(data_operator, &Data::dataChanged, this, &Setter::updateLabel);
 
-    updateLabel();
     TypeKey::BindTypes(lhs_, rhs_, true, true);
     TypeKey::BindTypes(lhs_, this, true, true);
+
+    updateLabel();
+    operatorChanged();
 }
 
 bool Setter::canAdoptChild(Node* child)
