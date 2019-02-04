@@ -42,8 +42,6 @@ public:
     QString getKeyName() const;
     QVariant getValue() const;
 
-    void ToGraphmlStream(QTextStream& stream, int indend_depth);
-
     QString toString() const;
 
     void addValidValue(QVariant value);

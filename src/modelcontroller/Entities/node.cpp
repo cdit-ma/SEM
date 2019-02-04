@@ -411,7 +411,7 @@ bool Node::containsChild(Node *child)
     return new_nodes_.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth) const
 {
     auto child_list = getOrderedChildNodes();
 
@@ -496,12 +496,12 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
     return getChildrenOfKinds({kind}, depth);
 }
 
-int Node::getChildrenCount()
+int Node::getChildrenCount() const
 {
     return new_nodes_.size();
 }
 
-int Node::getChildrenOfKindCount(NODE_KIND kind){
+int Node::getChildrenOfKindCount(NODE_KIND kind) const{
     return node_kind_count_.value(kind, 0);
 }
 
@@ -834,30 +834,8 @@ void Node::setParentNode(Node *parent, int branch)
     parentNodeUpdated();
 }
 
-void Node::ToGraphmlStream(QTextStream& stream, int indent_depth){
-    const auto tab = QString("\t").repeated(indent_depth);
-    
-    stream << tab;
-    stream << "<node id=\"" << getID() << "\">\n";
 
-    auto data_list = getData();
-    std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
-    for(auto data : data_list){
-        data->ToGraphmlStream(stream, indent_depth + 1);
-    }
-
-    //Children are in a <graph>
-    if(getChildrenCount() > 0){
-        stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
-        for(auto child : getChildren(0)){
-            child->ToGraphmlStream(stream, indent_depth + 2);
-        }
-        stream << tab << "\t</graph>\n";
-    }
-    stream << tab << "</node>\n";
-}
-
-QList<Node *> Node::getOrderedChildNodes()
+QList<Node *> Node::getOrderedChildNodes() const
 {
     auto child_list = new_nodes_.toList();
     auto index_key = getKey("index");

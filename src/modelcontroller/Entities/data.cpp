@@ -138,44 +138,6 @@ QVariant Data::getValue() const
     return value;
 }
 
-QString SanitizeString(const QString& str){
-    const static QString str_illegal_and("&");
-    const static QString str_safe_and("&amp;");
-    const static QString str_illegal_gt(">");
-    const static QString str_safe_gt("&gt;");
-    const static QString str_illegal_lt("<");
-    const static QString str_safe_lt("&lt;");
-    const static QString str_illegal_dq("\"");
-    const static QString str_safe_dq("&quot;");
-    const static QString str_illegal_sq("\'");
-    const static QString str_safe_sq("&apos;");
-
-    QString sanitized_string = str;
-    sanitized_string.replace(str_illegal_and, str_safe_and);
-    sanitized_string.replace(str_illegal_gt, str_safe_gt);
-    sanitized_string.replace(str_illegal_lt, str_safe_lt);
-    sanitized_string.replace(str_illegal_dq, str_safe_dq);
-    sanitized_string.replace(str_illegal_sq, str_safe_sq);
-    return sanitized_string;
-}
-
-void Data::ToGraphmlStream(QTextStream& stream, int indent_depth){
-    auto data_string = SanitizeString(value.toString());
-
-    const static QString process_key("processes_to_log");
-    if(getKey()->getName() == process_key){
-        const static QString search_str("\n");
-        const static QString replace_str(",");
-        data_string.replace(search_str, replace_str);
-    }
-    stream << QString("\t").repeated(indent_depth);
-    stream << "<data key=\"";
-    stream << getKey()->getID();
-    stream << "\">";
-    stream << data_string;
-    stream << "</data>\n";
-}
-
 QString Data::toString() const
 {
     auto id = getID();
