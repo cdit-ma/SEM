@@ -1,13 +1,9 @@
 # Runtime Environment v3.3.2
-* Updated ComponentAssembly to have Replication be driven via datalinking
+* Add install scripts for centos7 and ubuntu18.04
 
 ## Environment Manager
-* Filled timestamp of all ControlMessages produced by Environment Manager (For AggregationServer)
+* Add testing support.
 
 ## Tests:
-* Added tests for GraphmlParser
+* Improved support for parallel run network tests.
 
-## Resolved JIRA Tickets:
-* RE-414
-* RE-408
-* MED-355
