@@ -4,6 +4,7 @@
 #include <QString>
 #include <QTextStream>
 #include <QList>
+#include <QSet>
 
 class Entity;
 class Node;
@@ -14,15 +15,35 @@ class Key;
 class GraphmlPrinter
 {
     public:
-        static QString ToGraphml(const QList<Entity*>& entities, bool all_edges, bool human_readable=false);
-        static QString ToGraphml(const Node& node);
+        enum class ExportFlags{
+            EXPORT_ALL_EDGES,
+            HUMAN_READABLE_DATA,
+            STRIP_VISUAL_DATA
+        };
+        GraphmlPrinter(const QSet<ExportFlags>& flags);
+        GraphmlPrinter();
+
+        QString ToGraphml(const QList<Entity*>& entities);
+        QString ToGraphml(const Node& node);
+
+        static bool IsKeyVisual(const QString& key_name);
     private:
-        static void ToGraphmlStream(const Node& node, QTextStream& stream, int indent_depth, bool human_readable);
-        static void ToGraphmlStream(const Edge& edge, QTextStream& stream, int indent_depth, bool human_readable);
-        static void ToGraphmlStream(const Key& key, QTextStream& stream, int indent_depth, bool human_readable);
-        static void ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth, bool human_readable);
-        static void DatasToGraphmlStream(const Entity& data, QTextStream& stream, int indent_depth, bool human_readable);
-        static QString GetKeyID(const Key& key, bool human_readable);
+        void ToGraphmlStream(const Node& node, QTextStream& stream, int indent_depth);
+        void ToGraphmlStream(const Edge& edge, QTextStream& stream, int indent_depth);
+        void ToGraphmlStream(const Key& key, QTextStream& stream, int indent_depth);
+        void ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth);
+        void DatasToGraphmlStream(const Entity& data, QTextStream& stream, int indent_depth);
+        QString GetKeyID(const Key& key);
+        bool ExportKey(const Key& key);
+
+        bool IsFlagSet(const ExportFlags& flag) const;
+        
+        const QSet<ExportFlags> flags_;
+};
+
+inline uint qHash(GraphmlPrinter::ExportFlags key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
 };
 
 #endif // GRAPHMLPRINTER_H

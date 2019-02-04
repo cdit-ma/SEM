@@ -176,18 +176,6 @@ void ModelController::loadWorkerDefinitions()
     }
 }
 
-QString ModelController::exportGraphML(const QList<int>& ids, bool all_edges){
-    return exportGraphML(getOrderedEntities(ids), all_edges);
-}
-
-QString ModelController::exportGraphML(Entity* entity){
-    return exportGraphML(QList<Entity*>{entity}, true);
-}
-
-QString ModelController::exportGraphML(const QList<Entity*>& selection, bool all_edges, bool human_readible){
-    return GraphmlPrinter::ToGraphml(selection, all_edges, human_readible);
-}
-
 
 QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
     QList<EDGE_KIND> indices;
@@ -730,7 +718,7 @@ QString ModelController::cut(QList<int> ids)
     auto selection = getOrderedEntities(ids);
     QString data;
     if(canCut(selection)){
-        data = exportGraphML(selection, true);
+        data = GraphmlPrinter({GraphmlPrinter::ExportFlags::EXPORT_ALL_EDGES}).ToGraphml(selection);
         emit triggerAction("Cutting Selection");
         destructEntities(selection);
     }
@@ -770,7 +758,7 @@ bool ModelController::_paste(Node* node, const QString& xml)
 
 bool ModelController::_replicate(QList<Entity *> items)
 {
-    auto xml = exportGraphML(items, true);
+    auto xml = GraphmlPrinter({GraphmlPrinter::ExportFlags::EXPORT_ALL_EDGES}).ToGraphml(items);
     //Paste into the first parent node
     for(auto item : items){
         if(item->isNode()){
@@ -1204,12 +1192,14 @@ void ModelController::destructEntities(QList<Entity*> entities)
         //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
         action.Action.type = ACTION_TYPE::DESTRUCTED;
-        action.xml = exportGraphML(edges.toList(), true);
+
+        action.xml = GraphmlPrinter({GraphmlPrinter::ExportFlags::EXPORT_ALL_EDGES}).ToGraphml(edges.toList());
         addActionToStack(action);
         
 
         std::for_each(edges.begin(), edges.end(), [this](Entity* edge){
-            destructEdge_((Edge*)edge);}
+            destructEdge_((Edge*)edge);
+            }
             );
     }
     
@@ -1222,7 +1212,8 @@ void ModelController::destructEntities(QList<Entity*> entities)
             action.entity_id = node->getID();
             action.parent_id = node->getParentNodeID();
             action.Action.type = ACTION_TYPE::DESTRUCTED;
-            action.xml = exportGraphML(entity);
+            
+            action.xml = GraphmlPrinter().ToGraphml({node});
             addActionToStack(action);
         }
 
@@ -1481,7 +1472,7 @@ QList<EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node *dst)
 
 QString ModelController::_copy(QList<Entity *> selection)
 {
-    return exportGraphML(selection, false);
+    return GraphmlPrinter().ToGraphml(selection);
 }
 
 
@@ -1513,7 +1504,7 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
                 action.Action.type = ACTION_TYPE::CONSTRUCTED;
                 action.entity_id = node->getID();
                 action.parent_id = node->getParentNodeID();
-                action.xml = GraphmlPrinter::ToGraphml(*node);
+                action.xml = GraphmlPrinter().ToGraphml(*node);
                 addActionToStack(action);
             }
         }else{
@@ -1748,12 +1739,19 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
     return success;
 }
 
-QString ModelController::getProjectAsGraphML(bool functional_export)
+QString ModelController::getProjectAsGraphML(bool human_readable, bool functional_export)
 {
-    lock_.lockForRead();
-    auto data = exportGraphML({model}, true, functional_export);
-    lock_.unlock();
-    return data;
+    QReadLocker locker(&lock_);
+    
+    QSet<GraphmlPrinter::ExportFlags> flags;
+    if(human_readable){
+        flags += GraphmlPrinter::ExportFlags::HUMAN_READABLE_DATA;
+    }
+    if(functional_export){
+        flags += GraphmlPrinter::ExportFlags::STRIP_VISUAL_DATA;
+    }
+
+    return GraphmlPrinter(flags).ToGraphml({model});
 }
 
 
@@ -1909,8 +1907,7 @@ void ModelController::ProgressUpdated_(const QString& description){
 }
 
 bool ModelController::isKeyNameVisual(const QString& key_name){
-    static const QSet<QString> visual_key_names({"x", "y", "width", "height", "isExpanded"});
-    return visual_key_names.contains(key_name);
+    return GraphmlPrinter::IsKeyVisual(key_name);
 }
 
 int ModelController::compare_version(const QString& current_version, const QString& compare_version){

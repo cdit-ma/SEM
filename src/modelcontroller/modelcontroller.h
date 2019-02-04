@@ -67,7 +67,7 @@ public:
     void ConnectViewController(ViewControllerInterface* view_controller);
     ModelController(const QString& application_dir);
     ~ModelController();
-    QString getProjectAsGraphML(bool functional_export = false);
+    QString getProjectAsGraphML(bool human_readable = false, bool functional_export = false);
 
     QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
     QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
@@ -205,10 +205,6 @@ private:
     bool isGraphMLValid(const QString& inputGraphML);
 
     bool importGraphML(const QString& document, Node* parent = 0);
-    //Exports a Selection of Containers to export into GraphML
-    QString exportGraphML(const QList<int>& ids, bool all_edges = false);
-    QString exportGraphML(const QList<Entity*>& entities, bool all_edges = false, bool c = false);
-    QString exportGraphML(Entity* entity);
 
 
     HistoryAction getNewAction(GRAPHML_KIND kind);
