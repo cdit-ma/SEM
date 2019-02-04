@@ -2,7 +2,6 @@
 #include "welcomescreenwidget.h"
 
 #include "../../theme.h"
-#include "../../../modelcontroller/version.h"
 #include "../DockWidgets/viewdockwidget.h"
 #include "../DockWidgets/tooldockwidget.h"
 #include "../DockWidgets/invisibledockwidget.h"
@@ -221,11 +220,6 @@ void MainWindow::initializeApplication()
     setDockNestingEnabled(true);
     setDockOptions(QMainWindow::AnimatedDocks);
 
-    //Set QApplication information.
-    QApplication::setApplicationName("MEDEA");
-    QApplication::setApplicationVersion(APP_VERSION());
-    QApplication::setOrganizationName("CDIT-MA");
-    QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Icons", "medeaLogo"));
 
     setCorner(Qt::TopLeftCorner, Qt::TopDockWidgetArea);

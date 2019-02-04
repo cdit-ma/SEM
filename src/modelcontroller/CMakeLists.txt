@@ -169,6 +169,7 @@ set(SOURCE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.cpp
 )
 
 set(HEADERS
@@ -277,6 +278,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.h
 )
 
 

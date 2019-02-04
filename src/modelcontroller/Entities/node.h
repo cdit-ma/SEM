@@ -124,13 +124,6 @@ class Node : public Entity
         QSet<Node*> getImplementations() const;
         virtual QSet<Node*> getDependants() const;
         QSet<Node*> getNestedDependants();
-        
-
-        
-        
-
-        void ToGraphmlStream(QTextStream& stream, int indend_depth);
-   
     
         //Node kind getters
         NODE_KIND getNodeKind() const;
@@ -149,13 +142,13 @@ class Node : public Entity
         //Children Getters
         bool containsChild(Node* child);
         QSet<Node*> getAllChildren();
-        QList<Node *> getChildren(int depth =-1);
+        QList<Node *> getChildren(int depth =-1) const;
         QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
         QList<Node *> getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth =-1);
         QList<Node *> getSiblings();
 
-        int getChildrenCount();
-        int getChildrenOfKindCount(NODE_KIND kind);
+        int getChildrenCount() const;
+        int getChildrenOfKindCount(NODE_KIND kind) const;
 
         //Ancestor Getters
         bool isAncestorOf(GraphML* item);
@@ -196,9 +189,9 @@ class Node : public Entity
     protected:
         void getNestedDependants_(QSet<Node*>& set);
     private:
+        QList<Node*> getOrderedChildNodes() const;
         void AddUUID();
         bool indirectlyConnectedTo(Node* node);
-        QList<Node*> getOrderedChildNodes();
         void setTop(int index = 0);
 
         
@@ -217,9 +210,6 @@ class Node : public Entity
 
         QSet<Node*> instances_;
         QSet<Node*> implementations_;
-
-        //QMultiMap<EDGE_KIND, Edge*> edges_;
-        //QMultiMap<NODE_KIND, Node*> children_;
 
         QSet<Node*> new_nodes_;
         QSet<Edge*> new_edges_;

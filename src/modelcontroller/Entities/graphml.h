@@ -23,12 +23,6 @@ public:
     GRAPHML_KIND getGraphMLKind() const;
     int getID() const; 
 
-    //Pure Virtual
-    QString toGraphML(int indent_depth = 0);
-
-    virtual void ToGraphmlStream(QTextStream& stream, int indent_depth = 0) = 0;
-
-
     virtual QString toString() const = 0;
 private:
     int id = -1;
