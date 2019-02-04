@@ -4,6 +4,10 @@
 #include "gtest/gtest.h"
 
 
+void Sleep(){
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
 TEST(ZMQ_ProtoReceiver, DynamicConnect) {
     int rc_count = 0;
     std::string address = "tcp://127.0.0.1:7001";
@@ -27,21 +31,21 @@ TEST(ZMQ_ProtoReceiver, DynamicConnect) {
         writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
         writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+    Sleep();
 
     EXPECT_EQ(rc_count, 100);
 
-    receiver.Connect(address);
-    
-    
+    receiver.Connect(address);    
  
     for(int i = 0; i < 100; i++){
         writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
         writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    EXPECT_EQ(rc_count, 300);
 
+    Sleep();
+
+    EXPECT_EQ(rc_count, 300);
     receiver.Disconnect(address);
 
     for(int i = 0; i < 100; i++){
@@ -49,8 +53,7 @@ TEST(ZMQ_ProtoReceiver, DynamicConnect) {
         writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-
+    Sleep();
     EXPECT_EQ(rc_count, 400);
     EXPECT_EQ(receiver.GetRxCount(), rc_count);
 }
@@ -74,8 +77,8 @@ TEST(ZMQ_ProtoReceiver, DynamicFilters) {
     for(int i = 0; i < 100; i++){
         writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
+    Sleep();
     EXPECT_EQ(rc_count, 0);
 
     receiver.Filter("A");
@@ -84,7 +87,8 @@ TEST(ZMQ_ProtoReceiver, DynamicFilters) {
         writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
         writer.PushMessage("B", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+    Sleep();
     EXPECT_EQ(rc_count, 100);
     
     receiver.Unfilter("A");
@@ -92,7 +96,7 @@ TEST(ZMQ_ProtoReceiver, DynamicFilters) {
         writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
         writer.PushMessage("B", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    Sleep();
     EXPECT_EQ(rc_count, 100);
     EXPECT_EQ(receiver.GetRxCount(), rc_count);
 }
@@ -115,8 +119,8 @@ TEST(ZMQ_ProtoReceiver, StaticConnect) {
     for(int i = 0; i < 100; i++){
         writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
+    Sleep();
     EXPECT_EQ(rc_count, 100);
     EXPECT_EQ(receiver.GetRxCount(), rc_count);
 }
