@@ -10,12 +10,6 @@ apt-get update && apt-get install -y \
     ccache \
     ntpdate
 
-#Build Deps
-#CENTOS
-sudo yum install epel-release git wget java-1.8.0-openjdk gcc gcc-c++ ntpdate
-sudo yum install ninja-build cmake3 ccache
-sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
-
 #Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
     tar xf boost_1_67_0.tar.gz && \
@@ -51,8 +45,10 @@ wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.
 #may need to recursively touch files in extracted pugi directory on centos("find  -type f  -exec touch {} +")
 wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q && \
     tar xf pugixml-1.8.tar.gz && \
-    mkdir pugixml-1.8/build && \
-    cd pugixml-1.8/build && \
+    cd pugixml-1.8 && \
+    find  -type f  -exec touch {} + && \
+    mkdir build && \
+    cd build && \
     cmake -G Ninja .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON && \
     sudo cmake --build . --target install && \
     cd ~ && \
@@ -71,6 +67,3 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
 #Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
     sudo chown cdit-ma /mnt/Jenkins/
-
-#Disable CentOS Firewall
-sudo systemctl stop firewalld

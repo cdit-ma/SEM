@@ -1,13 +1,7 @@
 # Build Deps
-# UBUNTU
 apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y expect sed python-minimal uuid-dev ruby bison
 
-# Build Deps
-# CENTOS
-sudo yum install libuuid-devel bison sed ruby bzip2 perl-Data-Dumper
-
 # RTI
-# UBUNTU
 #When asked for install location, specify /opt/RTI
 wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connext_dds-5.3.0-eval-x64Linux3gcc5.4.0.run -q && \
     sudo mkdir /opt/RTI && \
@@ -16,18 +10,6 @@ wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connex
     rm -rf rti* && \
     cd /opt/RTI/rti_connext_dds-5.3.0 && \
     sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/rti_license.dat -q
-
-# RTI
-# CENTOS
-#When asked for install location, specify /opt/RTI
-wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connext_dds-5.3.0-eval-x64Linux3gcc4.8.2.run -q && \
-    sudo mkdir /opt/RTI && \
-    chmod +x rti_connext_dds-5.3.0-eval-x64Linux3gcc4.8.2.run && \
-    sudo ./rti_connext_dds-5.3.0-eval-x64Linux3gcc4.8.2.run && \
-    rm -rf rti* && \
-    cd /opt/RTI/rti_connext_dds-5.3.0 && \
-    sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/rti_license.dat -q && \
-    cd ~
 
 # OpenSplice
 sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q -P /opt/ && \
@@ -61,7 +43,6 @@ wget http://192.168.111.1/raid/software_share/Middlewares/QpidPb/qpid-cpp-1.38.0
     sudo rm -rf qpid*
 
 # ACE_TAO 6.5.0 - UNTESTED DON'T USE IN PRODUCTION UNTIL VALIDATED, LIKELY TO BE UNFINISHED CLEANUP
-# UBUNTU
 sudo ln -s /lib/x86_64-linux-gnu/librt.so.1 /usr/lib/librt.so && \
     wget http://192.168.111.1/raid/software_share/Middlewares/ACE+TAO/ACE+TAO-6.5.0.tar.bz2 -q && \
     tar -xf ACE+TAO-6.5.0.tar.bz2 && \
@@ -78,23 +59,3 @@ sudo ln -s /lib/x86_64-linux-gnu/librt.so.1 /usr/lib/librt.so && \
     sudo mv /home/cdit-ma/ACE_wrappers /opt/ACE_6.5.0/ && \
     cd ~ && \
     rm -rf ACE*
-
-# ACE_TAO
-# CENTOS
-sudo ln -s /lib64/librt.so.1 /usr/lib/librt.so && \
-    wget http://192.168.111.1/raid/software_share/Middlewares/ACE+TAO/ACE+TAO-6.5.0.tar.bz2 -q && \
-    tar -xf ACE+TAO-6.5.0.tar.bz2 && \
-    cd ACE_wrappers && \
-    export ACE_ROOT=$PWD && \
-    export TAO_ROOT=$ACE_ROOT/TAO && \
-    export LD_LIBRARY_PATH=$ACE_ROOT/lib:$LD_LIBRARY_PATH && \
-    echo -e "#include \"ace/config-linux.h\"" > $ACE_ROOT/ace/config.h && \
-    echo -e "include \$(ACE_ROOT)/include/makeinclude/platform_linux.GNU" > $ACE_ROOT/include/makeinclude/platform_macros.GNU && \
-    find . -name "GNUmakefile*" -delete && \
-    cd $TAO_ROOT && \
-    $ACE_ROOT/bin/mwc.pl TAO_ACE.mwc -type gnuace && \
-    make CXXFLAGS="-fpermissive" CFLAGS="-fpermissive" -j8 && \
-    sudo mv /home/cdit-ma/ACE_wrappers /opt/ACE_6.5.0/ && \
-    cd ~ && \
-    rm -rf ACE*
-
