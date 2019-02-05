@@ -184,8 +184,10 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
             workerNames.append(name);
         }
 
-        emit requestedExperimentState(hostnames, componentNames, workerNames);
+        //emit requestedExperimentState(hostnames, componentNames, workerNames);
         notification->setSeverity(Notification::Severity::SUCCESS);
+
+        //qDebug() << getQDateTime(results->end_time()).toMSecsSinceEpoch();
 
     } catch (const std::exception& ex) {
         notification->setSeverity(Notification::Severity::ERROR);
@@ -199,7 +201,6 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
  */
 void AggregationProxy::RequestAllEvents()
 {
-    //emit clearPreviousEvents();
     SendRequests();
     emit receivedAllEvents();
 }

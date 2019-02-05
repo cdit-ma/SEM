@@ -1314,6 +1314,8 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "workloadHover", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
     setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "cpuTwoTone", "Icons", "cpuTwoTone");
     setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
+
+    setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }
 
 void Theme::setupAliasIcons(){

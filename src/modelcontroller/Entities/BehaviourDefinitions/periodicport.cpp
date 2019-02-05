@@ -29,7 +29,7 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
 
     auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE);
     broker.AttachData(frequency, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsed");
+    broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsedTwoTone");
     broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Frequency");
     broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);

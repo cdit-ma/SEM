@@ -35,13 +35,10 @@ TimelineChartView::TimelineChartView(QWidget* parent)
      */
     _entityAxis = new EntityAxis(this);
     _entityAxis->setAxisLineVisible(false);
-
-    _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this, VALUE_TYPE::DATETIME);
-    _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
-
     connect(_entityAxis, &EntityAxis::sizeChanged, this, &TimelineChartView::entityAxisSizeChanged);
-    connect(_dateTimeAxis, &AxisWidget::displayedMinChanged, this, &TimelineChartView::displayedMinChanged);
-    connect(_dateTimeAxis, &AxisWidget::displayedMaxChanged, this, &TimelineChartView::displayedMaxChanged);
+
+    _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this, VALUE_TYPE::DATE_TIME);
+    _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
 
     _timelineChart = new TimelineChart(this);
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
@@ -63,7 +60,11 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         }
     });
 
-    // connect the chart's pan and zoom signals to the datetime axis
+    /*
+     *  Connect the PAN and ZOOM signals/slots between the TIMELINE chart and AXIS
+     */
+    connect(_dateTimeAxis, &AxisWidget::displayedMinChanged, _timelineChart, &TimelineChart::setMin);
+    connect(_dateTimeAxis, &AxisWidget::displayedMaxChanged, _timelineChart, &TimelineChart::setMax);
     connect(_timelineChart, &TimelineChart::panned, [=](double dx, double dy) {
         _dateTimeAxis->pan(dx, dy);
     });
@@ -78,7 +79,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     /*
      *  TOP (LEGEND) LAYOUT
      */
-
     _topFillerWidget = new QWidget(this);
     _legendToolbar = new QToolBar(this);
     _legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -133,7 +133,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     /*
      * MID (SCROLL AREA) LAYOUT
      */
-
     /*axisToolbar = new QToolBar(this);
     axisToolbar->setOrientation(Qt::Vertical);
 
@@ -273,6 +272,8 @@ void TimelineChartView::clearTimelineChart()
         chartItr = itemEntityCharts.erase(chartItr);
     }
 
+    qDebug() << "--- CLEAR TIMELINE ---";
+
     /*
      * NOTE:: Only clear the widgets when:
      * New project is triggered or the project is closed
@@ -287,6 +288,19 @@ void TimelineChartView::clearTimelineChart()
         set->deleteLater();
         axisItr_e = eventEntitySets.erase(axisItr_e);
     }
+
+    qDebug() << "Cleared SETS";
+
+    auto seriesItr_e = eventSeries.begin();
+    while (seriesItr_e != eventSeries.end()) {
+        //(*seriesItr_e)->deleteLater();
+        auto series = (*seriesItr_e);
+        series->deleteLater();
+        seriesItr_e = eventSeries.erase(seriesItr_e);
+    }
+
+    qDebug() << "Cleared SERIES";
+
     // clear/delete the entity charts in the timeline chart
     auto chartItr_e = eventEntityCharts.begin();
     while (chartItr_e != eventEntityCharts.end()) {
@@ -296,17 +310,22 @@ void TimelineChartView::clearTimelineChart()
         chartItr_e = eventEntityCharts.erase(chartItr_e);
     }
 
-    auto seriesItr_e = eventSeries.begin();
-    while (seriesItr_e != eventSeries.end()) {
-        (*seriesItr_e)->deleteLater();
-        seriesItr_e = eventSeries.erase(seriesItr_e);
-    }
+    qDebug() << "Cleared CHARTS";
 
     _timelineChart->setInitialRange(true);
-    _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+    _dateTimeAxis->setRange(_timelineChart->getRange(), true);
+
+    qDebug() << "RESET Range";
 
     mainWidget_->setVisible(false);
     emptyLabel_->setVisible(true);
+
+    // clear stored ranges
+    longestExperimentRunDuration_ = {0, INT64_MIN};
+    experimentRunTimeRange_.clear();
+    experimentRunSeriesCount_.clear();
+
+    qDebug() << "------------------------------------------------------";
 }
 
 
@@ -360,6 +379,59 @@ void TimelineChartView::setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds)
 const QList<TIMELINE_DATA_KIND> &TimelineChartView::getActiveEventKinds()
 {
     return _activeEventKinds;
+}
+
+
+/**
+ * @brief TimelineChartView::setTimelineRange
+ * @param min
+ * @param max
+ */
+void TimelineChartView::setTimelineRange(qint64 min, qint64 max)
+{
+    return;
+    if (!_timelineChart->isRangeSet()) {
+        _timelineChart->setInitialRange(false, min, max);
+    } else {
+        _timelineChart->setRange(min, max);
+    }
+    _dateTimeAxis->setRange(min, max, true);
+}
+
+
+/**
+ * @brief TimelineChartView::getTimelineRange
+ * @return
+ */
+QPair<qint64, qint64> TimelineChartView::getTimelineRange()
+{
+    return _timelineChart->getRange();
+}
+
+
+/**
+ * @brief TimelineChartView::toggleTimeDisplay
+ */
+void TimelineChartView::toggleTimeDisplay(TIME_DISPLAY_FORMAT format)
+{
+    auto range = totalTimeRange_;
+    switch (format) {
+    case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
+        range = {0, longestExperimentRunDuration_.second};
+        break;
+    default:
+        break;
+    }
+
+    bool on = format == TIME_DISPLAY_FORMAT::ELAPSED_TIME;
+    for (auto chart : eventEntityCharts) {
+        chart->paintFromExperimentStartTime(on);
+    }
+
+    _dateTimeAxis->toggleDisplayFormat(format);
+    _dateTimeAxis->setRange(range, true);
+    timeDisplayFormat_ = format;
+    update();
 }
 
 
@@ -502,26 +574,6 @@ void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
 
 
 /**
- * @brief TimelineChartView::displayedMinChanged
- * @param min
- */
-void TimelineChartView::displayedMinChanged(double min)
-{
-    _timelineChart->setMin(min);
-}
-
-
-/**
- * @brief TimelineChartView::displayedMaxChanged
- * @param max
- */
-void TimelineChartView::displayedMaxChanged(double max)
-{
-    _timelineChart->setMax(max);
-}
-
-
-/**
  * @brief TimelineChartView::udpateChartHoverDisplay
  */
 void TimelineChartView::updateChartHoverDisplay()
@@ -546,7 +598,7 @@ void TimelineChartView::updateChartHoverDisplay()
             if (action && action->isChecked()) {
                 if (!hoveredKinds.contains(kind))
                     continue;
-                auto hoveredInfo = s->getHoveredDataString(entityChart->getHoveredTimeRange(kind), HOVER_DISPLAY_ITEM_COUNT, DATETIME_FORMAT);
+                auto hoveredInfo = s->getHoveredDataString(entityChart->getHoveredTimeRange(kind), HOVER_DISPLAY_ITEM_COUNT, DATE_TIME_FORMAT);
                 if (!hoveredInfo.isEmpty())
                     hoveredData[kind] += hoveredInfo + "\n";
             }
@@ -614,38 +666,49 @@ void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<M
     QSet<MEDEA::EventSeries*> updatedSeries;
     qint64 minTime = INT64_MAX, maxTime = INT64_MIN;
 
+    qDebug() << "Received EVENTS: " << QString::number(experimentRunID);
+
     for (auto event : events) {
-        if (!event)
+        if (!event) {
+            qDebug() << "EVENT IS NULL";
             continue;
-        auto series = constructSeriesForEventKind(experimentRunID, event->getKind(), event->getID(), event->getName());
-        if (series) {
-            // if there is already a series with the provided ID, clear it first
-            if (!updatedSeries.contains(series)) {
-                series->clear();
-                updatedSeries.insert(series);
-            }
-            series->addEvent(event);
-            minTime = qMin(series->getMinTimeMS(), minTime);
-            maxTime = qMax(series->getMaxTimeMS(), maxTime);
         }
+        auto series = constructSeriesForEventKind(experimentRunID, event->getKind(), event->getID(), event->getName());
+        if (!series) {
+            qDebug() << "SERIES NULL";
+            qWarning("TimelineChartView::receivedRequestedEvents - Series is NULL");
+            continue;
+        }
+        if (!updatedSeries.contains(series)) {
+            qDebug() << "CLEAR Series";
+            // if there is already a series with the provided ID, clear it first
+            series->clear();
+            updatedSeries.insert(series);
+        }
+        //qDebug() << "ADD event";
+        series->addEvent(event);
+        minTime = qMin(event->getTimeMS(), minTime);
+        maxTime = qMax(event->getTimeMS(), maxTime);
     }
 
-    // TODO: Don't need this once we have the start/end time of the experiment
-    // update this timeline chart's range
-    auto timelineRange = _timelineChart->getRange();
-    if (!_timelineChart->isRangeSet()) {
-        _timelineChart->setInitialRange(false, minTime, maxTime);
+    qDebug() << "-----------------------------------";
+
+    // store/update experiment run's range
+    if (experimentRunTimeRange_.contains(experimentRunID)) {
+        auto range = experimentRunTimeRange_.value(experimentRunID);
+        experimentRunTimeRange_[experimentRunID] = {qMin(minTime, range.first), qMax(maxTime, range.second)};
     } else {
-        if (minTime <= timelineRange.first)
-            _timelineChart->setMin(minTime);
-        if (maxTime >= timelineRange.second)
-            _timelineChart->setMax(maxTime);
+        experimentRunTimeRange_[experimentRunID] = {minTime, maxTime};
     }
 
-    // if the timeline chart's range was changed, update the date/time axis' range
-    if (timelineRange != _timelineChart->getRange()) {
-        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+    auto runRange = experimentRunTimeRange_.value(experimentRunID);
+    auto duration = runRange.second - runRange.first;
+    if (duration > longestExperimentRunDuration_.second) {
+        longestExperimentRunDuration_= {experimentRunID, duration};
     }
+
+    experimentRunSeriesCount_[experimentRunID]++;
+    updateTimelineRangeFromExperimentRun(experimentRunID);
 }
 
 
@@ -679,8 +742,9 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 exper
 
     switch (kind) {
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+        auto strList = ID.split("_");
+        label += "_" + strList.first();
         series = new PortLifecycleEventSeries(ID, this);
-        label += "_" + ID;
         break;
     }
     case TIMELINE_DATA_KIND::WORKLOAD:
@@ -730,12 +794,15 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     // can't use event series ID as the chart ID because multiple event series can share the same ID
     ID = series->getEventSeriesID();
 
+    auto experimentRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
+    label = "[" + QString::number(experimentRunID) + "] " + label;
+
     EntityChart* chart = new EntityChart(0, this);
+    chart->setExperimentRunID(experimentRunID);
+    chart->paintFromExperimentStartTime(timeDisplayFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME);
     chart->addEventSeries(series);
     _timelineChart->addEntityChart(chart);
     eventEntityCharts[ID] = chart;
-
-    label = "[" + series->property(EXPERIMENT_RUN_ID).toString() + "] " + label;
 
     EntitySet* set = new EntitySet(label, this);
     set->setMinimumHeight(MIN_ENTITY_HEIGHT);
@@ -771,55 +838,60 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
  * @brief TimelineChartView::removeChart
  * @param ID
  */
-void TimelineChartView::removeChart(QString ID)
+void TimelineChartView::removeChart(QString chartID)
 {
     // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
     // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
 
-    auto chart = eventEntityCharts.value(ID, 0);
+    qDebug() << "======== REMOVE CHART =========";
+
+    auto chart = eventEntityCharts.value(chartID, 0);
     if (chart) {
+        qDebug() << "REMOVE chart series";
         // remove the chart's series from the hash
         auto chartSeries = chart->getSeries();
         for (auto series : chartSeries) {
+            if (!series) {
+                qDebug() << "Series is null";
+                continue;
+            }
             const auto key = eventSeries.key(series);
             auto& values = eventSeries.values(key);
             if (values.size() == 1) {
+                qDebug() << "remove key...";
                 eventSeries.remove(key);
             } else {
+                qDebug() << "remove ALL";
                 values.removeAll(series);
             }
+            /*auto expRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
+            if (experimentRunSeriesCount_.contains(expRunID)) {
+                experimentRunSeriesCount_[expRunID]--;
+                qDebug() << "Removed series - leftover#: " << experimentRunSeriesCount_.value(expRunID);
+                if (experimentRunSeriesCount_.value(expRunID) <= 0)
+                    updateTimelineRangeFromExperimentRun(expRunID);
+            }*/
         }
+        qDebug() << "DELETE chart series";
         // delete the chart's series
         auto seriesItr = chartSeries.begin();
         while (seriesItr != chartSeries.end()) {
             (*seriesItr)->deleteLater();
             seriesItr = chartSeries.erase(seriesItr);
         }
+        qDebug() << "REMOVE and DELETE chart";
         // remove/delete chart item
         _timelineChart->removeEntityChart(chart);
-        eventEntityCharts.remove(ID);
+        eventEntityCharts.remove(chartID);
         chart->deleteLater();
 
         // clear the timeline chart's hovered rect
         _timelineChart->setEntityChartHovered(0, false);
-
-        // update the timeline's range
-        if (!_timelineChart->getEntityCharts().isEmpty()) {
-            auto minTime = INT64_MAX, maxTime = INT64_MIN;
-            for (auto chart : _timelineChart->getEntityCharts()) {
-                for (auto series : chart->getSeries()) {
-                    minTime = qMin(series->getMinTimeMS(), minTime);
-                    maxTime = qMax(series->getMaxTimeMS(), maxTime);
-                }
-            }
-            _timelineChart->setMin(minTime);
-            _timelineChart->setMax(maxTime);
-            _dateTimeAxis->setRange(minTime, maxTime, true);
-        }
     }
 
-    auto set = eventEntitySets.value(ID, 0);
+    auto set = eventEntitySets.value(chartID, 0);
     if (set) {
+        qDebug() << "REMOVE/DELETE children sets";
         // remove/delete entity set's children sets
         auto childrenSets = set->getChildrenEntitySets();
         auto childItr = childrenSets.begin();
@@ -827,15 +899,78 @@ void TimelineChartView::removeChart(QString ID)
             (*childItr)->deleteLater();
             childItr = childrenSets.erase(childItr);
         }
+        qDebug() << "REMOVE/DELETE set";
         // remove/delete entity set
         _entityAxis->removeEntity(set);
-        eventEntitySets.remove(ID);
+        eventEntitySets.remove(chartID);
         set->deleteLater();
     }
+
+    qDebug() << "============================================";
 
     // if there are no more charts, show empty label
     mainWidget_->setVisible(!eventEntityCharts.isEmpty());
     emptyLabel_->setVisible(eventEntityCharts.isEmpty());
+}
+
+
+/**
+ * @brief TimelineChartView::updateTimelineRangeFromExperimentRun
+ * @param experimentRunID
+ */
+void TimelineChartView::updateTimelineRangeFromExperimentRun(quint32 experimentRunID)
+{
+    //return;
+    if (!experimentRunTimeRange_.contains(experimentRunID))
+        return;
+
+    auto minTime = DBL_MAX, maxTime = DBL_MIN;
+    auto seriesCount =  experimentRunSeriesCount_.value(experimentRunID, 0);
+
+    // if there is no more series from the experiment run, recalculate stored ranges
+    if (seriesCount <= 0) {
+        experimentRunSeriesCount_.remove(experimentRunID);
+        experimentRunTimeRange_.remove(experimentRunID);
+        auto removedLongestExperiment = experimentRunID == longestExperimentRunDuration_.first;
+        auto longestDuration = removedLongestExperiment ? INT64_MIN : longestExperimentRunDuration_.second;
+        for (auto id : experimentRunTimeRange_.keys()) {
+            auto val = experimentRunTimeRange_.value(id);
+            minTime = qMin(minTime, (double)val.first);
+            maxTime = qMax(maxTime, (double)val.second);
+            if (removedLongestExperiment) {
+                auto range = val.second - val.first;
+                if (range > longestDuration) {
+                    longestExperimentRunDuration_ = {id, range};
+                }
+            }
+        }
+    } else {
+        auto range = experimentRunTimeRange_.value(experimentRunID);
+        minTime = range.first;
+        maxTime = range.second;
+        if (_timelineChart->isRangeSet()) {
+            auto timelineRange = _timelineChart->getRange();
+            minTime = qMin(timelineRange.first, minTime);
+            maxTime = qMax(timelineRange.second, maxTime);
+        }
+        qDebug() << "Set range from expRunID: " << QString::number(experimentRunID);
+        // if an experiment run's range changes, update its charts data ranges
+        auto expRunRange = experimentRunTimeRange_.value(experimentRunID);
+        for (auto chart : eventEntityCharts) {
+            if (chart->getExperimentRunID() == experimentRunID) {
+                chart->setDataRange(expRunRange);
+            }
+        }
+    }
+
+    if (_timelineChart->isRangeSet()) {
+        _timelineChart->setRange(minTime, maxTime);
+    } else {
+        _timelineChart->setInitialRange(false, minTime, maxTime);
+    }
+
+    _dateTimeAxis->setRange(minTime, maxTime, true);
+    totalTimeRange_ = {(qint64)minTime, (qint64)maxTime};
 }
 
 
@@ -975,7 +1110,7 @@ EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
     }
     // if the timeline chart's range was changed, update the date/time axis' range
     if (timelineRange != _timelineChart->getRange()) {
-        _dateTimeAxis->setRange(_timelineChart->getRange().first, _timelineChart->getRange().second, true);
+        _dateTimeAxis->setRange(_timelineChart->getRange(), true);
     }
 
     connect(this, &TimelineChartView::seriesLegendHovered, seriesChart, &EntityChart::seriesKindHovered);

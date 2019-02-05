@@ -21,6 +21,9 @@ public:
     ViewItem* getViewItem();
     int getViewItemID();
 
+    void setExperimentRunID(quint32 ID);
+    quint32 getExperimentRunID();
+
     void addEventSeries(MEDEA::EventSeries* series);
     void removeEventSeries(TIMELINE_DATA_KIND kind);
     void removeEventSeries(QString ID);
@@ -32,6 +35,7 @@ public:
     const QList<TIMELINE_DATA_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_DATA_KIND kind);
 
+    void setDataRange(QPair<double, double> range);
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
 
@@ -39,6 +43,8 @@ public:
     QList<QPointF> getSeriesPoints(TIMELINE_DATA_KIND seriesKind = TIMELINE_DATA_KIND::DATA);
 
     bool isHovered();
+
+    void paintFromExperimentStartTime(bool on);
 
 signals:
     void dataAdded(QList<QPointF> points);
@@ -91,10 +97,17 @@ private:
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
 
+    quint32 experimentRunID_;
+
+    bool _useDataRange = false;
     bool _containsYRange = false;
     bool _hovered = false;
+    bool _xRangeSet = false;
 
     double _pointWidth = 12;
+
+    double _paintMinX;
+    double _paintMaxX;
 
     double _displayedMin;
     double _displayedMax;

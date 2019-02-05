@@ -32,8 +32,9 @@ public:
 
 signals:
     void setChartTitle(QString title);
-    void setExperimentRunID(quint32 experimentRnID);
-    void setEventKinds(QList<TIMELINE_DATA_KIND> kinds);
+    void selectedExperimentRunID(quint32 experimentRunID);
+    void selectedExperimentRun(ExperimentRun experimentRun);
+    //void setEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
     void requestExperimentRuns(QString experimentName = "");
     void requestExperimentState(quint32 experimentRunID);
@@ -100,7 +101,9 @@ private:
 
     QPointF originalCenterPos_;
 
+    ExperimentRun selectedExperimentRun_;
     qint32 selectedExperimentRunID_;
+
     QString experimentName_;
     QString selectedNode_;
     QString selectedComponent_;

@@ -26,10 +26,13 @@ public:
     void setMax(double max);
 
     void setRange(double min, double max, bool updateDisplay = false);
+    void setRange(QPair<double, double> range, bool updateDisplay = false);
     QPair<double, double> getRange();
 
     void zoom(double factor);
     void pan(double dx, double dy);
+
+    void toggleDisplayFormat(TIME_DISPLAY_FORMAT format);
 
     bool eventFilter(QObject *watched, QEvent *event);
 

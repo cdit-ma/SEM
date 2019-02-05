@@ -495,8 +495,7 @@ void AxisSlider::maxSliderMoved(double max)
 
 /**
  * @brief AxisSlider::moveSliderRects
- * This moves the position of the sliders to the given values without
- * updating the stored min/max values or sending a signal.
+ * This moves the position of the sliders to the given values without updating the stored min/max or sending a signal.
  * @param min
  * @param max
  */
@@ -537,5 +536,5 @@ void AxisSlider::moveSliderRects(double min, double max)
 void AxisSlider::updateSlidersOnSizeChange()
 {
     _sliderRange = _orientation == Qt::Horizontal ? width() : height();
-    moveSliders(_minRatio * _sliderRange, _maxRatio * _sliderRange);
+    moveSliderRects(_minRatio * _sliderRange, _maxRatio * _sliderRange);
 }

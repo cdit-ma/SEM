@@ -1,4 +1,5 @@
 #include "eventseries.h"
+#include <QDebug>
 
 int MEDEA::EventSeries::eventSeries_ID = 0;
 
@@ -21,18 +22,31 @@ MEDEA::EventSeries::EventSeries(QString ID, TIMELINE_DATA_KIND kind, QObject* pa
 
 
 /**
+ * @brief MEDEA::EventSeries::~EventSeries
+ */
+MEDEA::EventSeries::~EventSeries()
+{
+    //clear();
+}
+
+
+/**
  * @brief MEDEA::EventSeries::clear
  */
 void MEDEA::EventSeries::clear()
 {
+    qDebug() << "CLEAR Events";
     auto i = events_.begin();
     while (i != events_.end()) {
-        (*i)->deleteLater();
+        //(*i)->deleteLater();
+        auto event = (*i);
+        event->deleteLater();
         i = events_.erase(i);
     }
     // reset the time range
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
+    qDebug() << "-------------------";
 }
 
 
@@ -45,10 +59,14 @@ void MEDEA::EventSeries::addEvent(Event* event)
     if (event) {
         // update the range
         auto eventTime = event->getTimeMS();
-        if (eventTime < minTime_)
+        if (eventTime < minTime_) {
             minTime_ = eventTime;
-        if (eventTime > maxTime_)
+            emit minChanged(minTime_);
+        }
+        if (eventTime > maxTime_) {
             maxTime_ = eventTime;
+            emit maxChanged(maxTime_);
+        }
         events_.append(event);
     }
 }

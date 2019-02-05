@@ -24,7 +24,9 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     _penWidth = slider->getAxisPenWidth();
     _textHeight = fontMetrics().height();
     _tickLength = _textHeight / 4;
+
     _valueType = type;
+    _axisFormat = TIME_DISPLAY_FORMAT::VALUE;
 
     _displayedMinTextWidth = fontMetrics().width(getCovertedString(_displayedMin));
     _displayedMaxTextWidth = fontMetrics().width(getCovertedString(_displayedMax));
@@ -32,9 +34,10 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     if (_orientation == Qt::Horizontal) {
         _spacing = SPACING;
         setMinimumHeight(_textHeight + _tickLength + _spacing * 2);
-        if (_valueType == VALUE_TYPE::DATETIME) {
+        if (_valueType == VALUE_TYPE::DATE_TIME) {
             setMinimumHeight((_textHeight + _tickLength) * 2 + _spacing * 2);
             setMinimumWidth(fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT)));
+            _axisFormat = TIME_DISPLAY_FORMAT::DATE_TIME;
         }
     } else {
         _spacing = SPACING * 2;
@@ -63,6 +66,8 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     connect(slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisDisplay::themeChanged);
     themeChanged();
+
+    //toggleDisplayFormat();
 }
 
 
@@ -171,6 +176,27 @@ QPair<double, double> AxisDisplay::getDisplayedRange()
 
 
 /**
+ * @brief AxisDisplay::toggleDisplayFormat
+ * @param format
+ */
+void AxisDisplay::toggleDisplayFormat(TIME_DISPLAY_FORMAT format)
+{
+    switch (format) {
+    case TIME_DISPLAY_FORMAT::DATE_TIME:
+        setMinimumHeight(minimumHeight() * 2.0);
+        break;
+    case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
+        setMinimumHeight(minimumHeight() / 2.0);
+        break;
+    default:
+        return;
+    }
+    _axisFormat = format;
+    update();
+}
+
+
+/**
  * @brief AxisDisplay::hoverLineUpdated
  * @param visible
  * @param globalPos
@@ -216,7 +242,6 @@ void AxisDisplay::themeChanged()
 void AxisDisplay::updateDisplayedMin(double minRatio)
 {
     displayedMinChanged(minRatio * _range + _min);
-
 }
 
 
@@ -237,9 +262,12 @@ void AxisDisplay::updateDisplayedMax(double maxRatio)
  */
 void AxisDisplay::resizeEvent(QResizeEvent* event)
 {
-    if (_orientation == Qt::Horizontal) {
-        if (minimumWidth() > 0)
+    if ((_orientation == Qt::Horizontal) && (minimumWidth() > 0)) {
+        if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
+            setTickCount(width() / minimumWidth() / 2.0);
+        } else {
             setTickCount(width() / minimumWidth() / 3.0);
+        }
     }
     // update tick label locations
     QWidget::resizeEvent(event);
@@ -343,6 +371,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         dateRectCenter.setX(rect.center().x());
     }
 
+    bool dateTimeFormat = (_valueType == VALUE_TYPE::DATE_TIME) && (_axisFormat == TIME_DISPLAY_FORMAT::DATE_TIME);
     QRectF textRect;
     QDate prevDate;
 
@@ -357,6 +386,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         // tickX has to be an int so that the hovered value matches the displayed value
         int tickX = textRect.center().x();
         double value = (double)tickX / width() * _displayedRange + _displayedMin;
+
         if (_tickCount == 1) {
             tickX = dateRectCenter.x();
             value = _displayedMin + _displayedRange / 2.0;
@@ -364,7 +394,13 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
             tickX = _penWidth / 2.0;
             value = _displayedMin;
             textRect = textRect.adjusted(_displayedMinTextWidth + _penWidth, 0, 0, 0);
-        } else if (i == _tickCount){
+            if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
+                startPoint += QPointF(rectWidth, 0);
+                continue;
+            }
+        } else if (i == _tickCount) {
+            if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME)
+                return;
             tickX -= _penWidth / 2.0;
             value = _displayedMax;
             textRect = textRect.adjusted(0, 0, -_displayedMaxTextWidth - _penWidth, 0);
@@ -374,7 +410,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         painter.drawText(textRect, getCovertedString(value), QTextOption(_textAlignment));
         startPoint += QPointF(rectWidth, 0);
 
-        if (_valueType == VALUE_TYPE::DATETIME) {
+        if (dateTimeFormat) {
             QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
             if (date != prevDate) {
                 textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
@@ -489,14 +525,102 @@ void AxisDisplay::rangeChanged()
 
 
 /**
+ * @brief AxisDisplay::getElapsedTimeString
+ * @param value
+ * @return
+ */
+QString AxisDisplay::getElapsedTimeString(double value)
+{
+    auto msecs = value - _min;
+    if (msecs <= 0) {
+        return "0ms";
+    } else if (msecs < 1000) {
+        return QString::number((int)msecs) + "ms";
+    }
+
+    auto maxElapedMS = _displayedMax - _min;
+    auto maxElapsedDays = maxElapedMS / 8.64e7;
+    auto maxElapsedHours = maxElapedMS / 3.6e6;
+    auto maxElapsedMins = maxElapedMS / 6e4;
+
+    int d = 0, h = 0, m = 0, s = 0, ms = 0;
+
+    if (maxElapsedDays >= 1) {
+        // if the min displayed elapsed time is a day or more, only show the elapsed days/hours
+        d = msecs / 8.64e7;
+        if (d >= 100)
+            return QString::number(d) + "d";
+        h = (msecs / 3.6e6) - ((int)d * 24);
+    } else if (maxElapsedHours >= 1) {
+        // if the min displayed elapsed time is an hour or more, only show the elapsed hours/mins
+        h = msecs / 3.6e6;
+        if (h >= 10)
+            return QString::number(h) + "h";
+        m = (msecs / 6e4) - (h * 60);
+    } else if (maxElapsedMins >= 1) {
+        // if the min displayed elapsed time is a minute or more, only show the elapsed mins/secs
+        m = msecs / 6e4;
+        s = (msecs / 1e3) - (m * 60);
+    } else {
+        // if it's anything smaller, show the elapsed secs/msecs
+        s = msecs / 1e3;
+        ms = msecs - (s * 1000);
+    }
+
+    QString elapsedTime = "";
+    if (d > 0)
+        elapsedTime = QString::number(d) + "d";
+    if (h > 0)
+        elapsedTime += QString::number(h) + "h";
+    if (m > 0)
+        elapsedTime += QString::number(m) + "m";
+    if (s > 0)
+        elapsedTime += QString::number(s) + "s";
+    if (ms > 0)
+        elapsedTime += QString::number(ms) + "ms";
+
+    return elapsedTime;
+
+    /*
+    if (hours >= 1) {
+        int h = hours;
+        mins -= h * 60;
+        secs -= h * 3600;
+        msecs -= h * 3.6e6;
+        elapsedTime = QString::number(h) + "h";
+    }
+    if (mins >= 1) {
+        int m = qMin(mins, 59.0);
+        secs -= m * 60;
+        msecs -= m * 6e4;
+        elapsedTime += QString::number(m) + "m";
+    }
+    if (secs > 1) {
+        int s = qMin(secs, 59.0);
+        msecs -= s * 1000;
+        elapsedTime += QString::number(s) + "s";
+    }
+    if (msecs > 0) {
+        int ms = qMin(msecs, 999.0);
+        elapsedTime += QString::number(ms) + "ms";
+    }
+
+    return elapsedTime;
+    */
+}
+
+
+/**
  * @brief AxisDisplay::getCovertedString
  * @param value
  * @return
  */
 QString AxisDisplay::getCovertedString(double value)
 {
-    switch (_valueType) {
-    case VALUE_TYPE::DATETIME:
+    switch (_axisFormat) {
+    case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
+        return getElapsedTimeString(value);
+    case TIME_DISPLAY_FORMAT::DATE_TIME:
         return QDateTime::fromMSecsSinceEpoch(value).toString(TIME_FORMAT);
     default:
         return QString::number(value);

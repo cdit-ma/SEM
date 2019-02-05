@@ -8,7 +8,7 @@
 
 #define MIN_WIDTH 400
 #define FILTER "filter"
-#define GROUPBOX_ITEM_SPACING 3
+#define GROUPBOX_ITEM_SPACING 5
 #define GROUPBOX_MAX_HEIGHT 300
 
 
@@ -107,8 +107,8 @@ void ChartInputPopup::setViewController(ViewController* controller)
         connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, this, &ChartInputPopup::populateExperimentRuns);
         connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentState, this, &ChartInputPopup::receivedExperimentState);
 
-        connect(this, &ChartInputPopup::setExperimentRunID, &controller->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
-        connect(this, &ChartInputPopup::setEventKinds, &controller->getAggregationProxy(), &AggregationProxy::SetRequestEventKinds);
+        connect(this, &ChartInputPopup::selectedExperimentRunID, &controller->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
+        //connect(this, &ChartInputPopup::setEventKinds, &controller->getAggregationProxy(), &AggregationProxy::SetRequestEventKinds);
 
         connect(this, &ChartInputPopup::requestExperimentRuns, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
         connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
@@ -212,7 +212,8 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
-        QString text = run.experiment_name + "[" + QString::number(ID) + "] - started at " +
+        //QString text = "[" + QString::number(ID) + "] " + run.experiment_name +
+        QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
                        QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
 
         QRadioButton* button = new QRadioButton(text, this);
@@ -225,8 +226,10 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
                 if (filtersEnabled_) {
                     emit requestExperimentState(ID);
                 }
+                //selectedExperimentRun_ = run;
                 selectedExperimentRunID_ = ID;
-                emit setExperimentRunID(ID);
+                emit selectedExperimentRunID(ID);
+                emit selectedExperimentRun(run);
             }
         });
     }
@@ -411,8 +414,6 @@ void ChartInputPopup::accept()
 
     if (!eventKinds_.isEmpty()) {
 
-        bool hasValidRequests = true;
-
         for (auto kind : eventKinds_) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
@@ -448,13 +449,9 @@ void ChartInputPopup::accept()
                 break;
             }
             default:
-                hasValidRequests = false;
+                NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
                 break;
             }
-        }
-
-        if (!hasValidRequests) {
-            NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
         }
 
     } else {

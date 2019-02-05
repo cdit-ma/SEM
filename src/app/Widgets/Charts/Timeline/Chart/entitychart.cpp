@@ -73,6 +73,26 @@ int EntityChart::getViewItemID()
 
 
 /**
+ * @brief EntityChart::setExperimentRunID
+ * @param ID
+ */
+void EntityChart::setExperimentRunID(quint32 ID)
+{
+    experimentRunID_ = ID;
+}
+
+
+/**
+ * @brief EntityChart::getExperimentRunID
+ * @return
+ */
+quint32 EntityChart::getExperimentRunID()
+{
+    return experimentRunID_;
+}
+
+
+/**
  * @brief EntityChart::addEventSeries
  * @param series
  */
@@ -80,6 +100,12 @@ void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
     if (series) {
         _seriesList[series->getKind()] = series;
+        connect(series, &MEDEA::EventSeries::minChanged, [=](qint64 min) {
+            rangeXChanged(min, _dataMaxX);
+        });
+        connect(series, &MEDEA::EventSeries::maxChanged, [=](qint64 max) {
+            rangeXChanged(_dataMinX, max);
+        });
     }
 }
 
@@ -180,6 +206,18 @@ const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(TIMELINE_DATA_KIND 
 
 
 /**
+ * @brief EntityChart::setDataRange
+ * @param range
+ */
+void EntityChart::setDataRange(QPair<double, double> range)
+{
+    _dataMinX = range.first;
+    _dataMaxX = range.second;
+    paintFromExperimentStartTime(_useDataRange);
+}
+
+
+/**
  * @brief EntityChart::getRangeX
  * @return
  */
@@ -206,6 +244,26 @@ QPair<double, double> EntityChart::getRangeY()
 bool EntityChart::isHovered()
 {
     return _hovered;
+}
+
+
+/**
+ * @brief EntityChart::paintFromExperimentStartTime
+ * @param on
+ */
+void EntityChart::paintFromExperimentStartTime(bool on)
+{
+    if (on) {
+        _paintMinX = _dataMinX;
+        _paintMaxX = _dataMaxX;
+        qDebug() << "ON: " << QDateTime::fromMSecsSinceEpoch(_paintMinX).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(_paintMaxX).toString(DATE_TIME_FORMAT);
+    } else {
+        _paintMinX = _displayedMin;
+        _paintMaxX = _displayedMax;
+        qDebug() << "OFF: " << QDateTime::fromMSecsSinceEpoch(_paintMinX).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(_paintMaxX).toString(DATE_TIME_FORMAT);
+    }
+    _useDataRange = on;
+    update();
 }
 
 
@@ -388,6 +446,7 @@ void EntityChart::themeChanged()
  */
 void EntityChart::rangeXChanged(double min, double max)
 {
+    return;
     bool changed = min < _dataMinX || max > _dataMaxX;
     if (changed) {
         _dataMinX = qMin(min, _dataMinX);
@@ -557,20 +616,19 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-    double current_left = _displayedMin;
+    double barTimeWidth = (_paintMinX - _paintMaxX) / barCount;
+    double current_left = _paintMinX;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
     }
 
     const auto& events = eventSeries->getEvents();
-    //qDebug() << "port events#: " << events.count();
     auto current = events.constBegin();
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _displayedMin) {
+        if (current_time > _paintMinX) {
             break;
         }
     }
@@ -607,10 +665,10 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
             auto event = (PortLifecycleEvent*) buckets[i][0];
             if (rectHovered(eventSeries->getKind(), rect)) {
                 /*
-                    *  TODO - This forces the hover display to only show the hovered item's data/time
-                    *  This can be removed when the date-time axis range has a minimum limit
-                    *  This also needs to be changed when there are multiple series of the same kind
-                    */
+                 *  TODO - This forces the hover display to only show the hovered item's data/time
+                 *  This can be removed when the date-time axis range has a minimum limit
+                 *  This also needs to be changed when there are multiple series of the same kind
+                 */
                 _hoveredSeriesTimeRange[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, _highlightColor);
             }
@@ -649,8 +707,8 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-    double current_left = _displayedMin;
+    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
+    double current_left = _paintMinX;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
@@ -661,7 +719,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _displayedMin) {
+        if (current_time > _paintMinX) {
             break;
         }
     }
@@ -734,8 +792,8 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      QVector<double> bucket_endTimes;
      bucket_endTimes.reserve(barCount);
 
-     double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-     double current_left = _displayedMin;
+     double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
+     double current_left = _paintMinX;
 
      // set the bucket end times
      for (int i = 0; i < barCount; i++) {
@@ -751,40 +809,17 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      // get the first event inside the visible range
      for (; firstEvent != events.constEnd(); firstEvent++) {
          const auto& current_time = (*firstEvent)->getTimeMS();
-         if (current_time > _displayedMin) {
+         if (current_time > _paintMinX) {
              break;
          }
          prevFirst = firstEvent;
      }
-
-     /*auto lastEvent = events.constEnd() - 1;
-     auto prevLast = lastEvent;
-
-     // get the last event inside the visible range
-     for (; lastEvent != firstEvent; lastEvent--) {
-         const auto& current_time = (*lastEvent)->getTimeMS();
-         if (current_time <= _displayedMax) {
-             break;
-         }
-         prevLast = lastEvent;
-     }
-
-     //QPointF startingPoint, endPoint;
-     /*if (prevFirst != firstEvent) {
-         auto timeDiff = (*firstEvent)->getTimeMS() - (*prevFirst)->getTimeMS();
-         startingPoint = QPointF(ceil(timeDiff / -barTimeWidth), ((CPUUtilisationEvent*)*prevFirst)->getUtilisation());
-     }
-     if (prevLast != lastEvent) {
-         auto timeDiff = (*prevLast)->getTimeMS() - (*lastEvent)->getTimeMS();
-         endPoint = QPointF(barCount * barWidth + ceil(timeDiff / barTimeWidth), ((CPUUtilisationEvent*)*prevLast)->getUtilisation());
-     }*/
 
      auto current_bucket = 0;
      auto current_bucket_ittr = bucket_endTimes.constBegin();
      auto end_bucket_ittr = bucket_endTimes.constEnd();
 
      // put the data in the correct bucket
-     //for (;firstEvent != lastEvent + 1; firstEvent++) {
      for (;firstEvent != lastEvent; firstEvent++) {
          const auto& current_time = (*firstEvent)->getTimeMS();
          while (current_bucket_ittr != end_bucket_ittr) {
@@ -811,22 +846,15 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 
      auto availableHeight = height() - barWidth;
      QColor seriesColor = _utilisationColor;
-     //QList<QRectF> rects;
-
-     /*if (!startingPoint.isNull())
-         rects.append(QRectF(startingPoint.x(), (1 - startingPoint.y() / max) * availableHeight, barWidth, barWidth));*/
 
      painter.setPen(_gridPen.color());
      painter.setRenderHint(QPainter::Antialiasing, true);
 
      for (int i = 0; i < barCount; i++) {
          int count = buckets[i].count();
+         //qDebug() << "count: " << count;
          if (count == 0)
              continue;
-         /*if (count > 1)
-             qDebug() << "More than one data in bucket: " << i;*/
-         //auto event = (CPUUtilisationEvent*) buckets[i][0];
-         //auto utilisation = event->getUtilisation();
          auto utilisation = 0.0;
          for (auto e : buckets[i]) {
              auto event = (CPUUtilisationEvent*)e;
@@ -835,15 +863,11 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
          utilisation /= buckets[i].count();
          double y = (1 - utilisation / max) * availableHeight;
          QRectF rect(i * barWidth, y, barWidth, barWidth);
-         //painter.setPen(QPen(seriesColor, BAR_WIDTH));
          painter.setBrush(seriesColor);
          if (rectHovered(eventSeries->getKind(), rect)) {
-             //painter.setPen(QPen(_highlightTextColor, BAR_PEN_WIDTH));
              painter.setBrush(_highlightColor);
          }
          painter.drawEllipse(rect);
-         //painter.drawPoint(i * barWidth, y);
-         //rects.append(rect);
      }
 
      /*if (!endPoint.isNull())
@@ -902,8 +926,8 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
-    double current_left = _displayedMin;
+    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
+    double current_left = _paintMinX;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
@@ -914,7 +938,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _displayedMin) {
+        if (current_time > _paintMinX) {
             break;
         }
     }
@@ -1514,8 +1538,9 @@ double EntityChart::getPointWidth(TIMELINE_DATA_KIND kind)
  */
 void EntityChart::setMin(double min)
 {
+    qDebug() << "Set MIN";
     _displayedMin = min;
-    update();
+    paintFromExperimentStartTime(_useDataRange);
 }
 
 
@@ -1525,8 +1550,9 @@ void EntityChart::setMin(double min)
  */
 void EntityChart::setMax(double max)
 {
+    qDebug() << "Set MAX";
     _displayedMax = max;
-    update();
+    paintFromExperimentStartTime(_useDataRange);
 }
 
 
@@ -1537,9 +1563,10 @@ void EntityChart::setMax(double max)
  */
 void EntityChart::setRange(double min, double max)
 {
+    qDebug() << "Set RANGE";
     _displayedMin = min;
     _displayedMax = max;
-    update();
+    paintFromExperimentStartTime(_useDataRange);
 }
 
 

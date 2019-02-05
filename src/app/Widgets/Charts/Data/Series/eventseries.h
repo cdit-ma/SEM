@@ -14,6 +14,7 @@ class EventSeries : public QObject
 
 public:
     explicit EventSeries(QString ID, TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA, QObject* parent = 0);
+    ~EventSeries();
 
     void clear();
 
@@ -35,6 +36,10 @@ public:
 
     static QString getDefaultDisplayFormat();
     static int getDefaultNumberOfItemsToDisplay();
+
+signals:
+    void minChanged(qint64 min);
+    void maxChanged(qint64 max);
 
 private:
     QString ID_;

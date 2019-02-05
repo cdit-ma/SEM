@@ -11,7 +11,7 @@
 
 enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
-static QString DATETIME_FORMAT = "MMM d, hh:mm:ss.zzz";
+static QString DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
 static QString TIME_FORMAT = "hh:mm:ss.zzz";
 static QString DATE_FORMAT = "MMM d";
 
@@ -50,7 +50,7 @@ public:
     bool isRangeSet();
     bool isPanning();
 
-    qint64 mapPixelToTime(double pixel_x);
+    double getLongestRange();
 
 signals:
     void zoomed(int delta);
@@ -84,10 +84,12 @@ private:
     void hoverRectUpdated(bool repaintRequired = false);
 
     void clearDragMode();
-    double mapToRange(double value);
+    double mapLocalPixelToTime(double pixel);
 
     double _displayMin;
     double _displayMax;
+
+    double longestRange = DBL_MIN;
 
     double axisWidth;
     double pointsWidth;

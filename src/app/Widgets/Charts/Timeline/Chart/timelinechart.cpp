@@ -150,6 +150,9 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
         chart->setPointWidth(pointsWidth);
         chart->installEventFilter(this);
         chart->setRange(_displayMin, _displayMax);
+        connect(chart, &EntityChart::dataRangeXChanged, [=](double min, double max) {
+            longestRange = qMax(longestRange, max - min);
+        });
     }
 }
 
@@ -242,15 +245,13 @@ bool TimelineChart::isPanning()
 
 
 /**
- * @brief TimelineChart::mapPixelToTime
- * @param pixel_x
+ * @brief TimelineChart::getLongestRange
  * @return
  */
-qint64 TimelineChart::mapPixelToTime(double pixel_x)
+double TimelineChart::getLongestRange()
 {
-    auto offset = pixel_x / width();
-    auto delta = _displayMax - _displayMin;
-    return _displayMin + (delta * offset);
+    qDebug() << "longest: " << QString::number((int)longestRange);
+    return longestRange;
 }
 
 
@@ -344,8 +345,8 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
 void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 {
     if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
-        double min = mapToRange(rubberBandRect.left());
-        double max = mapToRange(rubberBandRect.right());
+        double min = mapLocalPixelToTime(rubberBandRect.left());
+        double max = mapLocalPixelToTime(rubberBandRect.right());
 
         // make sure that min < max
         if (min > max) {
@@ -355,8 +356,8 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
         }
 
         // keep min/max within the bounds
-        min = qMax(min, mapToRange(rect().left()));
-        max = qMin(max, mapToRange(rect().right()));
+        min = qMax(min, mapLocalPixelToTime(rect().left()));
+        max = qMin(max, mapLocalPixelToTime(rect().right()));
 
         for (EntityChart* chart : _entityCharts) {
             chart->setRange(min, max);
@@ -392,7 +393,6 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     case PAN: {
         QPointF delta = cursorPoint - panOrigin;
         panOrigin = cursorPoint;
-        qDebug() << "\n";
         emit panned(-delta.x(), 0);
         break;
     }
@@ -562,12 +562,12 @@ void TimelineChart::clearDragMode()
 
 
 /**
- * @brief TimelineChart::mapToRange
- * @param value
+ * @brief TimelineChart::mapLocalPixelToTime
+ * @param pixel
  * @return
  */
-double TimelineChart::mapToRange(double value)
+double TimelineChart::mapLocalPixelToTime(double pixel)
 {
-    double ratio = value / width();
+    double ratio = pixel / width();
     return ratio * (_displayMax - _displayMin) + _displayMin;
 }

@@ -26,6 +26,8 @@ public:
     QPair<double, double> getRange();
     QPair<double, double> getDisplayedRange();
 
+    void toggleDisplayFormat(TIME_DISPLAY_FORMAT format);
+
 public slots:
     void hoverLineUpdated(bool visible, QPointF globalPos = QPointF());
 
@@ -48,14 +50,16 @@ private:
     void displayedMaxChanged(double max);
     void rangeChanged();
 
-    double getValueAtTick(double index);
+    QString getElapsedTimeString(double value);
     QString getCovertedString(double value);
     QRectF getAdjustedRect();
 
     AxisSlider* _slider = 0;
     Qt::Orientation _orientation;
     Qt::Alignment _textAlignment;
+
     VALUE_TYPE _valueType;
+    TIME_DISPLAY_FORMAT _axisFormat;
 
     bool _displayHoverValue = false;
     double _hoveredValue;

@@ -163,14 +163,20 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     dockWidget->setWidget(dialog);
     addDockWidget(dockWidget);
 
-    // add actions to the dock widget's title bar for clearAll and screenshot
-    QAction* snapShotAction = dockWidget->addAction("Take Snapshot", "Icons", "camera", Qt::AlignCenter);
+    // add actions to the dock widget's title bar for clearAll, toggle time display and screenshot
     QAction* clearChartsAction = dockWidget->addAction("Clear Charts", "Icons", "clearList", Qt::AlignCenter);
-    connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
+    QAction* timeAction = dockWidget->addAction("Toggle Time Display", "ToggleIcons", "axisTimeToggle", Qt::AlignCenter);
+    QAction* snapShotAction = dockWidget->addAction("Take Snapshot", "Icons", "camera", Qt::AlignCenter);
+
+    timeAction->setCheckable(true);
+    timeAction->setChecked(false);
+
     connect(clearChartsAction, &QAction::triggered, dialog, &ChartDialog::clear);
+    connect(timeAction, &QAction::triggered, dialog, &ChartDialog::toggleTimelineAxisFormat);
+    connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
 
     // when the charts receive new data, show the charts panel
-    connect(dialog, &ChartDialog::receivedNewData, [=]() {
+    connect(dialog, &ChartDialog::receivedData, [=]() {
         emit dockWidget->req_Visible(dockWidget->getID(), true);
     });
 

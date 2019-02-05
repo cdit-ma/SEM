@@ -173,6 +173,17 @@ void AxisWidget::setRange(double min, double max, bool updateDisplay)
 
 
 /**
+ * @brief AxisWidget::setRange
+ * @param range
+ * @param updateDisplay
+ */
+void AxisWidget::setRange(QPair<double, double> range, bool updateDisplay)
+{
+    setRange(range.first, range.second, updateDisplay);
+}
+
+
+/**
  * @brief AxisWidget::getRange
  * @return
  */
@@ -200,6 +211,16 @@ void AxisWidget::zoom(double factor)
 void AxisWidget::pan(double dx, double dy)
 {
     _slider->pan(dx, dy);
+}
+
+
+/**
+ * @brief AxisWidget::toggleDisplayFormat
+ * @param format
+ */
+void AxisWidget::toggleDisplayFormat(TIME_DISPLAY_FORMAT format)
+{
+    _display->toggleDisplayFormat(format);
 }
 
 

@@ -285,6 +285,9 @@ void EntitySet::childEntityAdded()
  */
 void EntitySet::childEntityRemoved(EntitySet* child)
 {
+    if (!child)
+        return;
+
     int totalChildrenToRemove = 1 + child->getAllDepthChildrenCount();
     allDepthChildrenCount -= totalChildrenToRemove;
     childrenSets.removeAll(child);

@@ -81,9 +81,6 @@ private:
 
     double _minRatio;
     double _maxRatio;
-    double _dataMin;
-    double _dataMax;
-    double _dataRange;
     double _sliderMin;
     double _sliderMax;
     double _sliderRange;
