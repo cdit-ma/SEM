@@ -27,7 +27,7 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     if (vc) {
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, chartView_, &TimelineChartView::receivedRequestedEvents);
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, chartView_, &TimelineChartView::updateTimelineChart);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearSeriesEvents);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearTimelineChart);
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, [=] (bool visible) {
             if (visible)
                 hasSelectedExperimentRun_ = false;

@@ -280,10 +280,10 @@ void PanelWidget::testNewTimelineView()
     defaultActiveAction = addTab("Entities", view);
     defaultActiveAction->trigger();
 
-    if (viewController) {
+    /*if (viewController) {
         connect(viewController, &ViewController::vc_viewItemConstructed, view, &TimelineChartView::viewItemConstructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, view, &TimelineChartView::viewItemDestructed);
-    }
+    }*/
 }
 
 
@@ -841,24 +841,8 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
 void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
 {
     if (view && viewController) {
-        /*for (auto kind : view->getActiveEventKinds()) {
-            switch (kind) {
-            case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedPortLifecycleEvents, view, &TimelineChartView::receivedRequestedEvents);
-                break;
-            case TIMELINE_DATA_KIND::WORKLOAD:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedWorkloadEvents, view, &TimelineChartView::receivedRequestedEvents);
-                break;
-            case TIMELINE_DATA_KIND::CPU_UTILISATION:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedCPUUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
-                break;
-            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
-                connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedMemoryUtilisationEvents, view, &TimelineChartView::receivedRequestedEvents);
-                break;
-            }
-        }*/
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedEvents, view, &TimelineChartView::receivedRequestedEvents);
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearSeriesEvents);
+        connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearTimelineChart);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
     }
 }

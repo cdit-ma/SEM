@@ -43,6 +43,7 @@ void TimelineChart::setMin(double min)
     if (min != _displayMin) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMin(min);
+            chart->setDisplayRange(QPair<double, double>{min, _displayMax});
         }
         _displayMin = min;
     }
@@ -59,6 +60,7 @@ void TimelineChart::setMax(double max)
     if (max != _displayMax) {
         for (EntityChart* chart : _entityCharts) {
             chart->setMax(max);
+            chart->setDisplayRange(QPair<double, double>{_displayMin, max});
         }
         _displayMax = max;
     }
@@ -76,6 +78,7 @@ void TimelineChart::setRange(double min, double max)
     max++;
     for (EntityChart* chart : _entityCharts) {
         chart->setRange(min, max);
+        chart->setDisplayRange(QPair<double, double>{min, max});
     }
     _displayMin = min;
     _displayMax = max;

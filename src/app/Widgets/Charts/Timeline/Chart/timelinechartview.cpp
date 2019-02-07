@@ -414,10 +414,10 @@ QPair<qint64, qint64> TimelineChartView::getTimelineRange()
  */
 void TimelineChartView::toggleTimeDisplay(TIME_DISPLAY_FORMAT format)
 {
-    auto range = totalTimeRange_;
+    auto range = _timelineChart->getRange();
     switch (format) {
     case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
-        range = {0, longestExperimentRunDuration_.second};
+        range = {0, (double)longestExperimentRunDuration_.second};
         break;
     default:
         break;
@@ -553,27 +553,6 @@ void TimelineChartView::entitySetClosed()
 
 
 /**
- * @brief TimelineChartView::viewItemConstructed
- * @param item
- */
-void TimelineChartView::viewItemConstructed(ViewItem* item)
-{
-    addEntitySet(item);
-}
-
-
-/**
- * @brief TimelineChartView::viewItemDestructed
- * @param ID
- * @param item
- */
-void TimelineChartView::viewItemDestructed(int ID, ViewItem* item)
-{
-    removeEntitySet(ID);
-}
-
-
-/**
  * @brief TimelineChartView::udpateChartHoverDisplay
  */
 void TimelineChartView::updateChartHoverDisplay()
@@ -645,15 +624,6 @@ void TimelineChartView::updateChartHoverDisplay()
 
 
 /**
- * @brief TimelineChartView::clearSeriesEvents
- */
-void TimelineChartView::clearSeriesEvents()
-{
-    clearTimelineChart();
-}
-
-
-/**
  * @brief TimelineChartView::receivedRequestedEvents
  * @param experimentRunID
  * @param events
@@ -705,6 +675,8 @@ void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<M
     auto duration = runRange.second - runRange.first;
     if (duration > longestExperimentRunDuration_.second) {
         longestExperimentRunDuration_= {experimentRunID, duration};
+        qDebug() << "Update longest duration: " << duration;
+        qDebug() << "==========================================";
     }
 
     experimentRunSeriesCount_[experimentRunID]++;
@@ -825,6 +797,9 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     connect(this, &TimelineChartView::seriesLegendHovered, chart, &EntityChart::seriesKindHovered);
     connect(this, &TimelineChartView::toggleSeriesLegend, chart, &EntityChart::setSeriesKindVisible);
 
+    //connect(_dateTimeAxis, &AxisWidget::minRatio, chart, &EntityChart::setDisplayMinRatio);
+    //connect(_dateTimeAxis, &AxisWidget::maxRatio, chart, &EntityChart::setDisplayMaxRatio);
+
     if (mainWidget_->isHidden()) {
         mainWidget_->show();
         emptyLabel_->hide();
@@ -920,7 +895,6 @@ void TimelineChartView::removeChart(QString chartID)
  */
 void TimelineChartView::updateTimelineRangeFromExperimentRun(quint32 experimentRunID)
 {
-    //return;
     if (!experimentRunTimeRange_.contains(experimentRunID))
         return;
 
@@ -963,189 +937,17 @@ void TimelineChartView::updateTimelineRangeFromExperimentRun(quint32 experimentR
         }
     }
 
+    // set/update the timeline's range
     if (_timelineChart->isRangeSet()) {
         _timelineChart->setRange(minTime, maxTime);
     } else {
         _timelineChart->setInitialRange(false, minTime, maxTime);
     }
 
-    _dateTimeAxis->setRange(minTime, maxTime, true);
-    totalTimeRange_ = {(qint64)minTime, (qint64)maxTime};
-}
-
-
-/**
- * @brief TimelineChartView::addEntitySet
- * @param item
- * @return
- */
-EntitySet* TimelineChartView::addEntitySet(ViewItem* item)
-{
-    // we only care about node items
-    if (!item || !item->isNode())
-        return 0;
-
-    QString itemLabel = item->getData("label").toString();
-    int itemID = item->getID();
-
-    // check if we already have an entity set for the view item
-    if (itemEntitySets.contains(itemID))
-        return itemEntitySets.value(itemID);
-
-    EntitySet* set = new EntitySet(itemLabel, this);
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    itemEntitySets[itemID] = set;
-
-    int barCount = 120000;
-
-    QList<QPointF> samplePoints;
-    EntityChart* seriesChart = new EntityChart(item, this);
-
-    if (itemLabel == "Model") {
-
-        MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
-        samplePoints = generateRandomNumbers(barCount, 5);
-
-        for (QPointF p : samplePoints) {
-            int count = 5;
-            int val = 0;
-            QVector<double> data;
-            for (int i = 0; i < count; i++) {
-                double y = (double)(rand() % 100);
-                data.insert(0, val + y);
-                val += y;
-            }
-            barSeries->addData(p.x(), data);
-        }
-        seriesChart->addSeries(barSeries);
-
-    } else {
-
-        int random = 1 + rand() % 30;
-        bool filled = false;
-        samplePoints = generateRandomNumbers(barCount);
-
-        if (random % 2 == 0) {
-            MEDEA::StateSeries* stateSeries = new MEDEA::StateSeries(item);
-            for (int i = 1; i < samplePoints.count(); i += 2) {
-                stateSeries->addLine(samplePoints.at(i - 1), samplePoints.at(i));
-            }
-            seriesChart->addSeries(stateSeries);
-            filled = true;
-        }
-        if (random % 5 == 0 || random % 3 == 0) {
-            MEDEA::NotificationSeries* notificationSeries = new MEDEA::NotificationSeries(item);
-            for (QPointF point : samplePoints) {
-                int randomType = rand() % 4;
-                notificationSeries->addTime(point.x(), (MEDEA::NotificationSeries::NOTIFICATION_TYPE) randomType);
-            }
-            seriesChart->addSeries(notificationSeries);
-            filled = true;
-        }
-        if (random % 3 == 0) {
-            MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
-            for (QPointF p : samplePoints) {
-                int count = 1 + rand() % 5;
-                int val = 0;
-                QVector<double> data;
-                for (int i = 0; i < count; i++) {
-                    double y = (double)(rand() % 200);
-                    data.insert(0, val + y);
-                    val += y;
-                }
-                barSeries->addData(p.x(), data);
-            }
-            seriesChart->addSeries(barSeries);
-            filled = true;
-        }
-
-        if (!filled) {
-            MEDEA::BarSeries* barSeries = new MEDEA::BarSeries(item);
-            for (QPointF p : samplePoints) {
-                int count = 1 + rand() % 5;
-                int val = 0;
-                QVector<double> data;
-                for (int i = 0; i < count; i++) {
-                    double y = (double)(rand() % 200);
-                    data.insert(0, val + y);
-                    val += y;
-                }
-                barSeries->addData(p.x(), data);
-            }
-            seriesChart->addSeries(barSeries);
-        }
-    }
-
-    EntitySet* parentSet = addEntitySet(item->getParentItem());
-    bool showSeries = true;
-
-    if (parentSet) {
-        // insert the new set at the end of the parent's tree and connect it to the parent
-        showSeries = parentSet->isExpanded();
-        parentSet->addChildEntitySet(set);
-        int index = _entityAxis->insertEntity(parentSet, set);
-        _timelineChart->insertEntityChart(index, seriesChart);
-    } else {
-        // we only need to set the depth for the top level entity sets
-        set->setDepth(0);
-        _entityAxis->appendEntity(set);
-        _timelineChart->addEntityChart(seriesChart);
-    }
-
-
-
-    // update this timeline chart's range
-    auto timelineRange = _timelineChart->getRange();
-    auto chartRange = seriesChart->getRangeX();
-    if (!_timelineChart->isRangeSet()) {
-        _timelineChart->setInitialRange(false, chartRange.first, chartRange.second);
-    } else {
-        if (chartRange.first <= timelineRange.first) {
-            _timelineChart->setMin(chartRange.first);
-        }
-        if (chartRange.second >= timelineRange.second) {
-            _timelineChart->setMax(chartRange.second);
-        }
-    }
-    // if the timeline chart's range was changed, update the date/time axis' range
-    if (timelineRange != _timelineChart->getRange()) {
+    if (timeDisplayFormat_ == TIME_DISPLAY_FORMAT::DATE_TIME) {
         _dateTimeAxis->setRange(_timelineChart->getRange(), true);
-    }
-
-    connect(this, &TimelineChartView::seriesLegendHovered, seriesChart, &EntityChart::seriesKindHovered);
-    connect(this, &TimelineChartView::toggleSeriesLegend, seriesChart, &EntityChart::setSeriesKindVisible);
-    connect(set, &EntitySet::visibilityChanged, seriesChart, &EntityChart::setVisible);
-    connect(set, &EntitySet::hovered, [=] (bool hovered) {
-        _timelineChart->setEntityChartHovered(seriesChart, hovered);
-    });
-
-    // set the initial visibility states of the chart and each individual series in the chart
-    seriesChart->setVisible(showSeries);
-    for (auto& action : _legendToolbar->actions()) {
-        auto kind = _legendActions.key(action, TIMELINE_DATA_KIND::DATA);
-        seriesChart->setSeriesKindVisible(kind, action->isChecked());
-    }
-
-    itemEntityCharts[itemID] = seriesChart;
-    return set;
-}
-
-
-/**
- * @brief TimelineView::removeEntitySet
- * @param ID
- */
-void TimelineChartView::removeEntitySet(int ID)
-{
-    if (itemEntitySets.contains(ID)) {
-        EntitySet* set = itemEntitySets.take(ID);
-        _entityAxis->removeEntity(set);
-        set->deleteLater();
-        // remove chart from the hash and layout
-        EntityChart* entityChart = itemEntityCharts.take(ID);
-        _timelineChart->removeEntityChart(entityChart);
-        entityChart->deleteLater();
+    } else if (timeDisplayFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
+        _dateTimeAxis->setRange(0, longestExperimentRunDuration_.second, true);
     }
 }
 

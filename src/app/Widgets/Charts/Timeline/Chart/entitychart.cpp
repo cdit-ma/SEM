@@ -100,12 +100,6 @@ void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
     if (series) {
         _seriesList[series->getKind()] = series;
-        connect(series, &MEDEA::EventSeries::minChanged, [=](qint64 min) {
-            rangeXChanged(min, _dataMaxX);
-        });
-        connect(series, &MEDEA::EventSeries::maxChanged, [=](qint64 max) {
-            rangeXChanged(_dataMinX, max);
-        });
     }
 }
 
@@ -126,7 +120,6 @@ void EntityChart::removeEventSeries(TIMELINE_DATA_KIND kind)
  */
 void EntityChart::removeEventSeries(QString ID)
 {
-    return;
     /*
     if (_eventSeries && _eventSeries->getID() == ID) {
         _seriesList.remove(_eventSeries->getKind());
@@ -214,6 +207,56 @@ void EntityChart::setDataRange(QPair<double, double> range)
     _dataMinX = range.first;
     _dataMaxX = range.second;
     paintFromExperimentStartTime(_useDataRange);
+}
+
+
+/**
+ * @brief EntityChart::setDisplayRange
+ * @param range
+ */
+void EntityChart::setDisplayRange(QPair<double, double> range)
+{
+    return;
+    _displayedMin = range.first;
+    _displayedMax = range.second;
+    paintFromExperimentStartTime(_useDataRange);
+}
+
+
+/**
+ * @brief EntityChart::setDisplayMinRatio
+ * @param ratio
+ */
+void EntityChart::setDisplayMinRatio(double ratio)
+{
+    return;
+    _paintMinX *= ratio;
+    update();
+}
+
+
+/**
+ * @brief EntityChart::setDisplayMaxRatio
+ * @param ratio
+ */
+void EntityChart::setDisplayMaxRatio(double ratio)
+{
+    return;
+    _paintMaxX *= ratio;
+    update();
+}
+
+
+/**
+ * @brief EntityChart::setDisplayRangeRatio
+ * @param minRatio
+ * @param maxRatio
+ */
+void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
+{
+    _paintMinX *= minRatio;
+    _paintMaxX *= maxRatio;
+    update();
 }
 
 
@@ -446,7 +489,6 @@ void EntityChart::themeChanged()
  */
 void EntityChart::rangeXChanged(double min, double max)
 {
-    return;
     bool changed = min < _dataMinX || max > _dataMaxX;
     if (changed) {
         _dataMinX = qMin(min, _dataMinX);
@@ -480,7 +522,6 @@ void EntityChart::pointsAdded(QList<QPointF> points)
     if (series) {
         _seriesPoints[series->getKind()].append(points);
         update();
-        //emit dataAdded(points);
     }
 }
 
@@ -616,7 +657,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_paintMinX - _paintMaxX) / barCount;
+    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
     double current_left = _paintMinX;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);

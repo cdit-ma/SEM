@@ -124,10 +124,6 @@ void AxisWidget::setTickVisible(bool visible)
  */
 void AxisWidget::setMin(double min)
 {
-    // make sure that the range is always greater than 0
-    /*if (min > _max)
-        setMax(min * 1.1);*/
-
     _min = min;
     _range = _max - min;
     _display->setMin(min);
@@ -143,10 +139,6 @@ void AxisWidget::setMin(double min)
  */
 void AxisWidget::setMax(double max)
 {
-    // make sure that the range is always greater than 0
-    /*if (max < _min)
-        setMin(max * 0.9);*/
-
     _max = max;
     _range = max - _min;
     _display->setMax(max);
@@ -246,6 +238,7 @@ bool AxisWidget::eventFilter(QObject* watched, QEvent* event)
 void AxisWidget::minRatioChanged(double ratio)
 {
     emit displayedMinChanged(_display->getDisplayedRange().first);
+    emit minRatio(ratio);
 }
 
 
@@ -256,6 +249,7 @@ void AxisWidget::minRatioChanged(double ratio)
 void AxisWidget::maxRatioChanged(double ratio)
 {
     emit displayedMaxChanged(_display->getDisplayedRange().second);
+    emit maxRatio(ratio);
 }
 
 
@@ -265,9 +259,6 @@ void AxisWidget::maxRatioChanged(double ratio)
  */
 void AxisWidget::setDisplayedMin(double min)
 {
-    /*if (min > _displayedMax)
-        setDisplayedMax(min * 1.1);*/
-
     double ratio = _range > 0 ? (min - _min) / _range : 0.0;
     _slider->updateMinRatio(ratio);
 
@@ -282,9 +273,6 @@ void AxisWidget::setDisplayedMin(double min)
  */
 void AxisWidget::setDisplayedMax(double max)
 {
-    /*if (max < _displayedMin)
-        setDisplayedMin(max * 0.9);*/
-
     double ratio = _range > 0 ? (max - _min) / _range : 0.0;
     _slider->updateMaxRatio(ratio);
 

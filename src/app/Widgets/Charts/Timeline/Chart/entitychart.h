@@ -31,18 +31,21 @@ public:
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_DATA_KIND seriesKind);
 
+    bool isHovered();
+
     const QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*>& getSeries();
     const QList<TIMELINE_DATA_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_DATA_KIND kind);
 
-    void setDataRange(QPair<double, double> range);
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
 
-    QColor getSeriesColor();
-    QList<QPointF> getSeriesPoints(TIMELINE_DATA_KIND seriesKind = TIMELINE_DATA_KIND::DATA);
+    void setDataRange(QPair<double, double> range);
+    void setDisplayRange(QPair<double, double> range);
 
-    bool isHovered();
+    void setDisplayMinRatio(double ratio);
+    void setDisplayMaxRatio(double ratio);
+    void setDisplayRangeRatio(double minRatio, double maxRatio);
 
     void paintFromExperimentStartTime(bool on);
 

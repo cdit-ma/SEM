@@ -25,21 +25,6 @@
 enum class VALUE_TYPE{DOUBLE, DATE_TIME};
 enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
 
-/**
- * @brief GET_DATE_TIME_FROM_VALUE
- * This returns value's corresponding date-time in milliseconds based on the time range
- * @param value
- * @param minTime
- * @param timeRange
- * @return
- */
-/*
-double GET_DATE_TIME_FROM_VALUE(double value, double minTime, double timeRange)
-{
-    return value * timeRange + minTime;
-}
-*/
-
 class AxisWidget;
 class TimelineChart;
 class TimelineChartView : public QWidget
@@ -75,13 +60,9 @@ public slots:
     void entityAxisSizeChanged(QSizeF size);
     void entitySetClosed();
 
-    void viewItemConstructed(ViewItem* item);
-    void viewItemDestructed(int ID, ViewItem* item);
-
-    void clearSeriesEvents();
-    void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
-
     void updateChartHoverDisplay();
+
+    void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
     
 private:
     MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
@@ -89,9 +70,6 @@ private:
 
     void removeChart(QString chartID);
     void updateTimelineRangeFromExperimentRun(quint32 experimentRunID = -1);
-
-    EntitySet* addEntitySet(ViewItem* item);
-    void removeEntitySet(int ID);
 
     bool scrollbarVisible = false;
     bool showHoverLine = false;
@@ -111,12 +89,6 @@ private:
     QWidget* _topFillerWidget;
     QWidget* _bottomFillerWidget;
     QWidget* _hoverWidget;
-
-    /*
-    QToolBar* axisToolbar;
-    QAction* allEntitiesAction;
-    QAction* selectedEntityAction;
-    */
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 

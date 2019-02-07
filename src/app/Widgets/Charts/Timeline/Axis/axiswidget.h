@@ -40,6 +40,9 @@ signals:
     void displayedMinChanged(double min);
     void displayedMaxChanged(double max);
 
+    void minRatio(double ratio);
+    void maxRatio(double ratio);
+
 public slots:
     void setDisplayedMin(double min);
     void setDisplayedMax(double max);
