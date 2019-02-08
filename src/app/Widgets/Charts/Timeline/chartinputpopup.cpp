@@ -412,6 +412,8 @@ void ChartInputPopup::accept()
         resetFilters();
     }
 
+    qDebug() << "-----------------------------------------------------------";
+
     if (!eventKinds_.isEmpty()) {
 
         for (auto kind : eventKinds_) {
@@ -458,6 +460,8 @@ void ChartInputPopup::accept()
         // request all events for all event kinds
         emit requestAllEvents();
     }
+
+    qDebug() << "-----------------------------------------------------------";
 
     hasSelection_ = false;
     hideGroupBoxes();

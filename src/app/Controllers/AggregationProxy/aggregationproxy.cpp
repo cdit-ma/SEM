@@ -423,17 +423,15 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
         QList<MEDEA::Event*> events;
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
-        qDebug() << "-----------------------------------------------------------";
+        //qDebug() << "-----------------------------------------------------------";
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
             auto type = getLifeCycleType(item.type());
             auto time = getQDateTime(item.time());
             PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
             events.append(event);
-            //emit receivedPortLifecycleEvent(event);
         }
 
-        //emit receivedPortLifecycleEvents(events);
         emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
@@ -460,7 +458,7 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
         QList<MEDEA::Event*> events;
 
         qDebug() << "[Workload Request] Result size#: " << results->events_size();
-        qDebug() << "-----------------------------------------------------------";
+        //qDebug() << "-----------------------------------------------------------";
         for (auto item : results->events()) {
             auto workerInst = convertWorkerInstance(item.worker_inst());
             auto type = getWorkloadEventType(item.type());
@@ -471,10 +469,8 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
             auto logLevel = item.log_level();
             WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
             events.append(event);
-            //emit receivedWorkloadEvent(event);
         }
 
-        //emit receivedWorkloadEvents(events);
         emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
@@ -501,7 +497,7 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
         QList<MEDEA::Event*> events;
 
         qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
-        qDebug() << "-----------------------------------------------------------";
+        //qDebug() << "-----------------------------------------------------------";
         for (const auto& node : results->nodes()) {
             auto hostname = getQString(node.node_info().hostname());
             //qDebug() << "host: " << hostname << " - #" << node.events_size();
@@ -510,11 +506,9 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
                 auto time = getQDateTime(e.time());
                 CPUUtilisationEvent* event = new CPUUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
                 events.append(event);
-                //emit receivedCPUUtilisationEvent(event);
             }
         }
 
-        //emit receivedCPUUtilisationEvents(events);
         emit receivedEvents(experimentRunID_, events);
         notification->setSeverity(Notification::Severity::SUCCESS);
 
@@ -541,7 +535,7 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
          QList<MEDEA::Event*> events;
 
          qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
-         qDebug() << "-----------------------------------------------------------";
+         //qDebug() << "-----------------------------------------------------------";
          for (const auto& node : results->nodes()) {
              auto hostname = getQString(node.node_info().hostname());
              for (const auto& e : node.events()) {
@@ -549,11 +543,9 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
                  auto time = getQDateTime(e.time());
                  MemoryUtilisationEvent* event = new MemoryUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
                  events.append(event);
-                 //emit receivedMemoryUtilisationEvent(event);
              }
          }
 
-         //emit receivedMemoryUtilisationEvents(events);
          emit receivedEvents(experimentRunID_, events);
          notification->setSeverity(Notification::Severity::SUCCESS);
 

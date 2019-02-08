@@ -508,6 +508,9 @@ void TimelineChartView::updateChartHoverDisplay()
         hoverPos.setX(hoverPos.x() + 25);
     }
 
+    // adjust the hover's size before calculating the y-pos
+    _hoverDisplay->adjustChildrenSize();
+
     auto bottom = globalPos.y() + height() - _dateTimeAxis->height();
     if ((hoverPos.y() + _hoverDisplay->height()) > bottom) {
         hoverPos.setY(bottom - _hoverDisplay->height());
@@ -515,7 +518,6 @@ void TimelineChartView::updateChartHoverDisplay()
         hoverPos.setY(globalPos.y());
     }
 
-    //_hoverDisplay->resize(_hoverDisplay->width(), childrenHeight);
     _hoverDisplay->move(hoverPos);
     _hoverDisplay->show();
 }
