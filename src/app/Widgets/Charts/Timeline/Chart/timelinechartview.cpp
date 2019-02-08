@@ -684,7 +684,7 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
     auto actualRange = _dateTimeAxis->getRange();
     auto actualDist = actualRange.second - actualRange.first;
     minRatio = actualDist > 0 ? (min - actualRange.first) / actualDist : 0.0;
-    minRatio = actualDist > 0 ? (max - actualRange.first) / actualDist : 0.0;
+    maxRatio = actualDist > 0 ? (max - actualRange.first) / actualDist : 0.0;
     for (auto chart : eventEntityCharts) {
         chart->setDisplayRangeRatio(minRatio, maxRatio);
     }
@@ -801,24 +801,6 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
         auto kind = _legendActions.key(action, TIMELINE_DATA_KIND::DATA);
         chart->setSeriesKindVisible(kind, action->isChecked());
     }
-
-    // set the chart range
-    /*switch (timeDisplayFormat_) {
-    case TIME_DISPLAY_FORMAT::DATE_TIME:
-        chart->setRange(totalTimeRange_.first, totalTimeRange_.second);
-        chart->setDisplayRangeRatio(0.0, 1.0);
-        break;
-    case TIME_DISPLAY_FORMAT::ELAPSED_TIME: {
-        auto range = (double)longestExperimentRunDuration_.second;
-        auto startTime = experimentRunTimeRange_.value(chart->getExperimentRunID()).first;
-            chart->setRange(startTime, startTime + range);
-        }
-        _dateTimeAxis->setRange(0, range, updateDisplayRange);
-        break;
-    }
-    default:
-        break;
-    }*/
 
     if (mainWidget_->isHidden()) {
         mainWidget_->show();
@@ -972,6 +954,9 @@ void TimelineChartView::removedDataFromExperimentRun(quint32 experimentRunID)
  */
 void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 {
+    /*
+     * TODO - Refactor so that the total range can be changed without affecting the display range
+     */
     switch (timeDisplayFormat_) {
     case TIME_DISPLAY_FORMAT::DATE_TIME: {
         _timelineChart->setRange(totalTimeRange_.first, totalTimeRange_.second);
@@ -993,10 +978,12 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
     }
 
     if (!rangeSet) {
+        /*for (auto chart : eventEntityCharts) {
+            chart->setDisplayRangeRatio(0.0, 1.0);
+        }*/
         auto range = _dateTimeAxis->getRange();
         _dateTimeAxis->setDisplayRange(range.first, range.second);
         rangeSet = true;
-        qDebug() << "TIMLINE RANGE SET!!!";
     }
 }
 

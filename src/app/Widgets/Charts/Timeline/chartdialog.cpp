@@ -136,7 +136,6 @@ void ChartDialog::clear()
  */
 void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
 {
-    qDebug() << "Exepriment run selected: " << experimentRun.experiment_name;
     selectedExperimentRun_ = experimentRun;
     hasSelectedExperimentRun_ = true;
 }

@@ -41,7 +41,6 @@ TimelineChart::TimelineChart(QWidget* parent)
 void TimelineChart::setRange(double min, double max)
 {
     for (EntityChart* chart : _entityCharts) {
-        qDebug() << "set chart range: " << GET_TIMELINE_DATA_KIND_STRING(chart->getSeries().values().at(0)->getKind());
         chart->setRange(min, max);
         chart->setDisplayRangeRatio(0.0, 1.0);
     }
@@ -252,24 +251,6 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
 void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 {
     if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
-        auto min = rubberBandRect.left();
-        auto max = rubberBandRect.right();
-
-        // make sure that min < max
-        if (min > max) {
-            double temp = max;
-            max = min;
-            min = temp;
-        }
-
-        // keep min/max within the bounds
-        min = qMax(min, 0.0);
-        max = qMin(max, (double)width());
-
-        auto minRatio = min / width();
-        auto maxRatio = max / width();
-        qDebug() << "Ratios: " << minRatio << ", " << maxRatio;
-
         // send a signal to update the axis' displayed range
         emit rubberbandUsed(rubberBandRect.left(), rubberBandRect.right());
     }

@@ -72,7 +72,7 @@ private:
 
     void addedDataFromExperimentRun(quint32 experimentRunID);
     void removedDataFromExperimentRun(quint32 experimentRunID);
-    void updateTimelineRange(bool updateDisplayRange = false);
+    void updateTimelineRange(bool updateDisplayRange = true);
 
     bool rangeSet = false;
     bool scrollbarVisible = false;
