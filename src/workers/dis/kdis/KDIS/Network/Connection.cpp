@@ -100,7 +100,14 @@ void Connection::bindSocket()
     // Set the receive socket to be reusable. Useful if your server has
     // been shut down, and then restarted right away.
     KINT32 yes = 1;
+
     KINT32 iRet = setsockopt( m_iSocket[RECEIVE_SOCK], SOL_SOCKET, SO_REUSEADDR, ( const char * )&yes, sizeof( yes ) );
+    
+    #ifdef __APPLE__
+    // MacOS/X requires an additional call to reuse the port
+    setsockopt(m_iSocket[RECEIVE_SOCK], SOL_SOCKET, SO_REUSEPORT, ( const char * )&yes, sizeof( yes ) );
+    #endif
+
     if( iRet == SOCKET_ERROR )
     {
         THROW_ERROR;

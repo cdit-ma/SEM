@@ -1,7 +1,7 @@
 set(PROJ_NAME dis_worker)
 project(${PROJ_NAME})
 
-set(DIS_VERSION 6)
+set(DIS_VERSION 7)
 add_subdirectory("kdis")
 #find_library(KDIS_LIB kdis)
 set(KDIS_LIB "kdis")

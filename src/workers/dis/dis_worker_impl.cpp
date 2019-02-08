@@ -42,11 +42,13 @@ void Dis_Worker_Impl::SetPduCallback(std::function<void (const KDIS::PDU::Header
 void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> connection){
     //Set max blocking time
     connection->SetBlockingTimeOut(0, 500000);
+    connection->GetPDU_Factory()->AddFilter( new KDIS::UTILS::FactoryFilterExerciseID( 1 ) );
 
     while(terminate_kdis_.load() == false){
         try{
             // Note: GetNextPDU supports PDU Bundling, which Receive does not.
             auto pdu_ptr = connection->GetNextPDU().release();
+            
 
             if(pdu_ptr){
                 {

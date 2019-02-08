@@ -8,7 +8,7 @@
 #include <memory>
 
 void GotPdu(const KDIS::PDU::Header& pdu){
-    std::cerr << "Got PDU: " << std::endl;
+    std::cerr << "Got PDU: " << pdu.GetAsString() << std::endl;
 }
 
 int main(){
@@ -22,10 +22,10 @@ int main(){
     auto port_attr = worker.GetAttribute("port").lock();
     worker.SetPduCallback([=](const KDIS::PDU::Header& pdu){GotPdu(pdu);});
 
-    ip_address_attr->set_String("192.168.111.230");
+    //Multicast bois
+    ip_address_attr->set_String("192.168.111.255");
     port_attr->set_Integer(3000);
-    std::cerr << "worker.Configure" << std::endl;
+
     worker.Configure();
-    std::cerr << "Sleepy" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50000));
 }
