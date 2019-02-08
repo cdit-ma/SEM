@@ -6,6 +6,8 @@ add_subdirectory("kdis")
 #find_library(KDIS_LIB kdis)
 set(KDIS_LIB "kdis")
 
+add_subdirectory("tester")
+
 
 message(STATUS "KDIS_LIB: ${KDIS_LIB}")
 # If OpenCL doesn't exist on this machine we can bail out
@@ -27,6 +29,7 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}"/kdis")
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)

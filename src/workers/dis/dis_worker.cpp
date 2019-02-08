@@ -16,6 +16,10 @@ Dis_Worker::~Dis_Worker(){
     impl_.reset();
 }
 
+void Dis_Worker::SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func){
+    impl_->SetPduCallback(func);
+}
+
 
 void Dis_Worker::HandleConfigure() {
     auto work_id = get_new_work_id();
@@ -34,8 +38,12 @@ void Dis_Worker::HandleConfigure() {
 
     Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id,
             "Connecting DIS Worker: " + ip_address + ":" + std::to_string(port));
-
-    impl_->Connect(ip_address, port);
+    try{
+        impl_->Connect(ip_address, port);
+    }catch(const std::exception& ex){
+        LogException(GET_FUNC, ex, work_id);
+        throw;
+    }
     Worker::HandleConfigure();
 }
 
