@@ -35,7 +35,7 @@ MEDEA::EventSeries::~EventSeries()
  */
 void MEDEA::EventSeries::clear()
 {
-    qDebug() << "CLEAR Events";
+    //qDebug() << "CLEAR Events";
     auto i = events_.begin();
     while (i != events_.end()) {
         //(*i)->deleteLater();
@@ -46,7 +46,7 @@ void MEDEA::EventSeries::clear()
     // reset the time range
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
-    qDebug() << "-------------------";
+    //qDebug() << "-------------------";
 }
 
 

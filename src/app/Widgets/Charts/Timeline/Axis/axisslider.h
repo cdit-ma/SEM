@@ -20,6 +20,9 @@ public:
     Qt::Alignment getAlignment();
     double getAxisPenWidth();
 
+    double getMinRatio();
+    double getMaxRatio();
+
     void setZoomFactor(double factor);
 
 signals:

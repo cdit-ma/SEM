@@ -98,9 +98,8 @@ quint32 EntityChart::getExperimentRunID()
  */
 void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 {
-    if (series) {
+    if (series)
         _seriesList[series->getKind()] = series;
-    }
 }
 
 
@@ -111,20 +110,6 @@ void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 void EntityChart::removeEventSeries(TIMELINE_DATA_KIND kind)
 {
     _seriesList.remove(kind);
-}
-
-
-/**
- * @brief EntityChart::removeEventSeries
- * @param ID
- */
-void EntityChart::removeEventSeries(QString ID)
-{
-    /*
-    if (_eventSeries && _eventSeries->getID() == ID) {
-        _seriesList.remove(_eventSeries->getKind());
-    }
-    */
 }
 
 
@@ -199,38 +184,13 @@ const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(TIMELINE_DATA_KIND 
 
 
 /**
- * @brief EntityChart::setDataRange
- * @param range
- */
-void EntityChart::setDataRange(QPair<double, double> range)
-{
-    _dataMinX = range.first;
-    _dataMaxX = range.second;
-    paintFromExperimentStartTime(_useDataRange);
-}
-
-
-/**
- * @brief EntityChart::setDisplayRange
- * @param range
- */
-void EntityChart::setDisplayRange(QPair<double, double> range)
-{
-    return;
-    _displayedMin = range.first;
-    _displayedMax = range.second;
-    paintFromExperimentStartTime(_useDataRange);
-}
-
-
-/**
  * @brief EntityChart::setDisplayMinRatio
  * @param ratio
  */
 void EntityChart::setDisplayMinRatio(double ratio)
 {
-    return;
-    _paintMinX *= ratio;
+    _minRatio = ratio;
+    _displayMin = (_dataMaxX - _dataMinX) * ratio + _dataMinX;
     update();
 }
 
@@ -241,8 +201,8 @@ void EntityChart::setDisplayMinRatio(double ratio)
  */
 void EntityChart::setDisplayMaxRatio(double ratio)
 {
-    return;
-    _paintMaxX *= ratio;
+    _maxRatio = ratio;
+    _displayMax = (_dataMaxX - _dataMinX) * ratio + _dataMinX;
     update();
 }
 
@@ -254,8 +214,10 @@ void EntityChart::setDisplayMaxRatio(double ratio)
  */
 void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
 {
-    _paintMinX *= minRatio;
-    _paintMaxX *= maxRatio;
+    _minRatio = minRatio;
+    _maxRatio = maxRatio;
+    _displayMin = (_dataMaxX - _dataMinX) * minRatio + _dataMinX;
+    _displayMax = (_dataMaxX - _dataMinX) * maxRatio + _dataMinX;
     update();
 }
 
@@ -287,26 +249,6 @@ QPair<double, double> EntityChart::getRangeY()
 bool EntityChart::isHovered()
 {
     return _hovered;
-}
-
-
-/**
- * @brief EntityChart::paintFromExperimentStartTime
- * @param on
- */
-void EntityChart::paintFromExperimentStartTime(bool on)
-{
-    if (on) {
-        _paintMinX = _dataMinX;
-        _paintMaxX = _dataMaxX;
-        qDebug() << "ON: " << QDateTime::fromMSecsSinceEpoch(_paintMinX).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(_paintMaxX).toString(DATE_TIME_FORMAT);
-    } else {
-        _paintMinX = _displayedMin;
-        _paintMaxX = _displayedMax;
-        qDebug() << "OFF: " << QDateTime::fromMSecsSinceEpoch(_paintMinX).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(_paintMaxX).toString(DATE_TIME_FORMAT);
-    }
-    _useDataRange = on;
-    update();
 }
 
 
@@ -493,7 +435,6 @@ void EntityChart::rangeXChanged(double min, double max)
     if (changed) {
         _dataMinX = qMin(min, _dataMinX);
         _dataMaxX = qMax(max, _dataMaxX);
-        emit dataRangeXChanged(_dataMinX, _dataMaxX);
     }
 }
 
@@ -657,8 +598,8 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
-    double current_left = _paintMinX;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
+    double current_left = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
@@ -669,7 +610,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _paintMinX) {
+        if (current_time > _displayMin) {
             break;
         }
     }
@@ -748,8 +689,8 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
-    double current_left = _paintMinX;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
+    double current_left = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
@@ -760,7 +701,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _paintMinX) {
+        if (current_time > _displayMin) {
             break;
         }
     }
@@ -833,8 +774,8 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      QVector<double> bucket_endTimes;
      bucket_endTimes.reserve(barCount);
 
-     double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
-     double current_left = _paintMinX;
+     double barTimeWidth = (_displayMax - _displayMin) / barCount;
+     double current_left = _displayMin;
 
      // set the bucket end times
      for (int i = 0; i < barCount; i++) {
@@ -850,7 +791,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      // get the first event inside the visible range
      for (; firstEvent != events.constEnd(); firstEvent++) {
          const auto& current_time = (*firstEvent)->getTimeMS();
-         if (current_time > _paintMinX) {
+         if (current_time > _displayMin) {
              break;
          }
          prevFirst = firstEvent;
@@ -893,7 +834,6 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 
      for (int i = 0; i < barCount; i++) {
          int count = buckets[i].count();
-         //qDebug() << "count: " << count;
          if (count == 0)
              continue;
          auto utilisation = 0.0;
@@ -967,8 +907,8 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
-    double barTimeWidth = (_paintMaxX - _paintMinX) / barCount;
-    double current_left = _paintMinX;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
+    double current_left = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucket_endTimes.append(current_left + barTimeWidth);
         current_left = bucket_endTimes.last();
@@ -979,7 +919,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     auto upper = events.constEnd();
     for (; current != upper; current++) {
         const auto& current_time = (*current)->getTimeMS();
-        if (current_time > _paintMinX) {
+        if (current_time > _displayMin) {
             break;
         }
     }
@@ -1085,17 +1025,17 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
 
     // TODO - Calculate lower and upper bounds once in the main paint method???
     const auto& points = series->getConstPoints();
-    auto current = std::lower_bound(points.cbegin(), points.cend(), _displayedMin, [](const QPointF &p, const double &value) {
+    auto current = std::lower_bound(points.cbegin(), points.cend(), _displayMin, [](const QPointF &p, const double &value) {
         return p.x() < value;
     });
-    auto upper = std::upper_bound(points.cbegin(), points.cend(), _displayedMax, [](const double &value, const QPointF &p) {
+    auto upper = std::upper_bound(points.cbegin(), points.cend(), _displayMax, [](const double &value, const QPointF &p) {
         return value < p.x();
     });
 
     // bucket count
     double barWidth = BAR_WIDTH * 1.5;
     double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
     barWidth = (double) width() / barCount;
@@ -1103,7 +1043,7 @@ void EntityChart::paintNotificationSeries(QPainter &painter)
     QVector< QList<QPointF> > buckets(barCount);
     QList<qint64> bucketEndtimes;
 
-    auto currentTime = _displayedMin;
+    auto currentTime = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucketEndtimes.append(currentTime + barTimeWidth);
         currentTime = bucketEndtimes.last();
@@ -1183,7 +1123,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
     // bucket count
     double barWidth = BAR_WIDTH * 2.0;
     double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
     barWidth = (double) width() / barCount;
@@ -1192,7 +1132,7 @@ void EntityChart::paintStateSeries(QPainter &painter)
     QVector<int> buckets(barCount);
     QList<qint64> bucketEndTimes;
 
-    auto currentTime = _displayedMin;
+    auto currentTime = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucketEndTimes.append(currentTime + barTimeWidth);
         currentTime = bucketEndTimes.last();
@@ -1205,14 +1145,14 @@ void EntityChart::paintStateSeries(QPainter &painter)
     const auto& lines = series->getLines();
     QList<QRectF> lineRects;
     for (auto& line : lines) {
-        if (line.x1() > _displayedMax)
+        if (line.x1() > _displayMax)
             continue;
-        if (line.x2() < _displayedMin)
+        if (line.x2() < _displayMin)
             continue;
         lineRects.append(QRectF(QPointF(line.x1(), 0), QPointF(line.x2(), LINE_WIDTH)));
     }
 
-    auto prevX = _displayedMin;
+    auto prevX = _displayMin;
     auto minCount = 100;
     auto maxCount = 0;
 
@@ -1382,8 +1322,8 @@ void EntityChart::paintBarSeries(QPainter &painter)
         return;
 
     const auto& data = series->getConstData2();
-    auto current = data.lowerBound(_displayedMin);
-    auto upper = data.upperBound(_displayedMax);
+    auto current = data.lowerBound(_displayMin);
+    auto upper = data.upperBound(_displayMax);
 
     double barWidth = BAR_WIDTH;
     int barCount = ceil(width() / barWidth);
@@ -1394,9 +1334,9 @@ void EntityChart::paintBarSeries(QPainter &painter)
     // bar/bucket count
     QVector< QList<MEDEA::BarData*> > buckets(barCount);
     QList<double> bucketEndtimes;
-    double barTimeWidth = (_displayedMax - _displayedMin) / barCount;
+    double barTimeWidth = (_displayMax - _displayMin) / barCount;
     
-    auto currentLeft = _displayedMin;
+    auto currentLeft = _displayMin;
     for (int i = 0; i < barCount; i++) {
         bucketEndtimes.append(currentLeft + barTimeWidth);
         currentLeft = bucketEndtimes.last();
@@ -1574,40 +1514,23 @@ double EntityChart::getPointWidth(TIMELINE_DATA_KIND kind)
 
 
 /**
- * @brief EntityChart::setMin
- * @param min
- */
-void EntityChart::setMin(double min)
-{
-    qDebug() << "Set MIN";
-    _displayedMin = min;
-    paintFromExperimentStartTime(_useDataRange);
-}
-
-
-/**
- * @brief EntityChart::setMax
- * @param max
- */
-void EntityChart::setMax(double max)
-{
-    qDebug() << "Set MAX";
-    _displayedMax = max;
-    paintFromExperimentStartTime(_useDataRange);
-}
-
-
-/**
  * @brief EntityChart::setRange
  * @param min
  * @param max
  */
 void EntityChart::setRange(double min, double max)
 {
-    qDebug() << "Set RANGE";
-    _displayedMin = min;
-    _displayedMax = max;
-    paintFromExperimentStartTime(_useDataRange);
+    // added 1ms on either side to include border values
+    min--;
+    max++;
+
+    _dataMinX = min;
+    _dataMaxX = max;
+
+    _displayMin = (_dataMaxX - _dataMinX) * _minRatio + _dataMinX;
+    _displayMax = (_dataMaxX - _dataMinX) * _maxRatio + _dataMinX;
+
+    update();
 }
 
 
@@ -1675,9 +1598,9 @@ void EntityChart::updateSeriesPixmaps()
  */
 qint64 EntityChart::mapPixelToTime(double x)
 {
-    auto timeRange = _displayedMax - _displayedMin;
+    auto timeRange = _displayMax - _displayMin;
     auto ratio = x / width();
-    return _displayedMin + timeRange * ratio;
+    return _displayMin + timeRange * ratio;
 }
 
 
@@ -1688,11 +1611,9 @@ qint64 EntityChart::mapPixelToTime(double x)
  */
 double EntityChart::mapTimeToPixel(double time)
 {
-    //(time - _displayedMin) / (_displayedMax - _displayedMin) * width() = x;
-    auto timeRange = _displayedMax - _displayedMin;
-    auto adjustedTime = time - _displayedMin;
+    auto timeRange = _displayMax - _displayMin;
+    auto adjustedTime = time - _displayMin;
     return adjustedTime / timeRange * width();
-
 }
 
 

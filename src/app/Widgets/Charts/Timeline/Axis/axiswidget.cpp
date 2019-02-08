@@ -62,7 +62,7 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, QWi
 
     // initialise range and tick count
     setRange(0, 100);
-    setDisplayedRange(0, 100);
+    setDisplayRange(0, 100);
     setTickCount(5);
 }
 
@@ -119,52 +119,6 @@ void AxisWidget::setTickVisible(bool visible)
 
 
 /**
- * @brief AxisWidget::setMin
- * @param min
- */
-void AxisWidget::setMin(double min)
-{
-    _min = min;
-    _range = _max - min;
-    _display->setMin(min);
-
-    double ratio = _range > 0 ? (_displayedMin - _min) / _range : 0.0;
-    _slider->updateMinRatio(ratio);
-}
-
-
-/**
- * @brief AxisWidget::setMax
- * @param max
- */
-void AxisWidget::setMax(double max)
-{
-    _max = max;
-    _range = max - _min;
-    _display->setMax(max);
-
-    double ratio = _range > 0 ? (_displayedMax - _min) / _range : 0.0;
-    _slider->updateMaxRatio(ratio);
-}
-
-
-/**
- * @brief AxisWidget::setRange
- * @param min
- * @param max
- * @param updateDisplay
- */
-void AxisWidget::setRange(double min, double max, bool updateDisplay)
-{
-    setMax(max);
-    setMin(min);
-
-    if (updateDisplay)
-        setDisplayedRange(min, max);
-}
-
-
-/**
  * @brief AxisWidget::setRange
  * @param range
  * @param updateDisplay
@@ -176,12 +130,69 @@ void AxisWidget::setRange(QPair<double, double> range, bool updateDisplay)
 
 
 /**
+ * @brief AxisWidget::setRange
+ * @param min
+ * @param max
+ * @param updateDisplay
+ */
+void AxisWidget::setRange(double min, double max, bool updateDisplay)
+{
+    // added 1ms on either side to include border values
+    min--;
+    max++;
+
+    _min = min;
+    _max = max;
+    _range = max - min;
+
+    // set the range
+    _display->setMax(max);
+    _display->setMin(min);
+
+    if (updateDisplay) {
+        setDisplayRange(min, max);
+    } else {
+        // update the slider rects' positions
+        updateMaxSliderRatio(getDisplayedRange().second);
+        updateMinSliderRatio(getDisplayedRange().first);
+    }
+}
+
+
+/**
+ * @brief AxisWidget::setDisplayedRange
+ * @param min
+ * @param max
+ */
+void AxisWidget::setDisplayRange(double min, double max)
+{
+    // set the display range
+    _display->displayedMaxChanged(max);
+    _display->displayedMinChanged(min);
+
+    // update the slider rects' positions
+    updateMaxSliderRatio(max);
+    updateMinSliderRatio(min);
+}
+
+
+/**
  * @brief AxisWidget::getRange
  * @return
  */
 QPair<double, double> AxisWidget::getRange()
 {
     return _display->getRange();
+}
+
+
+/**
+ * @brief AxisWidget::getDisplayedRange
+ * @return
+ */
+QPair<double, double> AxisWidget::getDisplayedRange()
+{
+    return _display->getDisplayedRange();
 }
 
 
@@ -207,12 +218,12 @@ void AxisWidget::pan(double dx, double dy)
 
 
 /**
- * @brief AxisWidget::toggleDisplayFormat
+ * @brief AxisWidget::setDisplayFormat
  * @param format
  */
-void AxisWidget::toggleDisplayFormat(TIME_DISPLAY_FORMAT format)
+void AxisWidget::setDisplayFormat(TIME_DISPLAY_FORMAT format)
 {
-    _display->toggleDisplayFormat(format);
+    _display->setDisplayFormat(format);
 }
 
 
@@ -228,68 +239,6 @@ bool AxisWidget::eventFilter(QObject* watched, QEvent* event)
         return true;
     }
     return QWidget::eventFilter(watched, event);
-}
-
-
-/**
- * @brief AxisWidget::minRatioChanged
- * @param ratio
- */
-void AxisWidget::minRatioChanged(double ratio)
-{
-    emit displayedMinChanged(_display->getDisplayedRange().first);
-    emit minRatio(ratio);
-}
-
-
-/**
- * @brief AxisWidget::maxRatioChanged
- * @param ratio
- */
-void AxisWidget::maxRatioChanged(double ratio)
-{
-    emit displayedMaxChanged(_display->getDisplayedRange().second);
-    emit maxRatio(ratio);
-}
-
-
-/**
- * @brief AxisWidget::setDisplayedMin
- * @param min
- */
-void AxisWidget::setDisplayedMin(double min)
-{
-    double ratio = _range > 0 ? (min - _min) / _range : 0.0;
-    _slider->updateMinRatio(ratio);
-
-    _display->displayedMinChanged(min);
-    _displayedMin = min;
-}
-
-
-/**
- * @brief AxisWidget::setDisplayedMax
- * @param max
- */
-void AxisWidget::setDisplayedMax(double max)
-{
-    double ratio = _range > 0 ? (max - _min) / _range : 0.0;
-    _slider->updateMaxRatio(ratio);
-
-    _display->displayedMaxChanged(max);
-    _displayedMax = max;
-}
-
-
-/**
- * @brief AxisWidget::setDisplayedRange
- * @param min
- * @param max
- */
-void AxisWidget::setDisplayedRange(double min, double max)
-{
-    setDisplayedMax(max);
-    setDisplayedMin(min);
 }
 
 
@@ -316,4 +265,28 @@ void AxisWidget::wheelEvent(QWheelEvent* event)
     }
     zoom(factor);
     QWidget::wheelEvent(event);
+}
+
+
+/**
+ * @brief AxisWidget::updateMinSliderRatio
+ * This updates the slider min rect's position based on min
+ * @param min
+ */
+void AxisWidget::updateMinSliderRatio(double min)
+{
+    double ratio = _range > 0 ? (min - _min) / _range : 0.0;
+    _slider->updateMinRatio(ratio);
+}
+
+
+/**
+ * @brief AxisWidget::updateMaxSliderRatio
+ * This updates the slider min rect's position based on max
+ * @param max
+ */
+void AxisWidget::updateMaxSliderRatio(double max)
+{
+    double ratio = _range > 0 ? (max - _min) / _range : 0.0;
+    _slider->updateMaxRatio(ratio);
 }

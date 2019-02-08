@@ -26,7 +26,6 @@ public:
 
     void addEventSeries(MEDEA::EventSeries* series);
     void removeEventSeries(TIMELINE_DATA_KIND kind);
-    void removeEventSeries(QString ID);
 
     void addSeries(MEDEA::DataSeries* series);
     void removeSeries(TIMELINE_DATA_KIND seriesKind);
@@ -40,18 +39,14 @@ public:
     QPair<double, double> getRangeX();
     QPair<double, double> getRangeY();
 
-    void setDataRange(QPair<double, double> range);
-    void setDisplayRange(QPair<double, double> range);
+    void setRange(double min, double max);
 
     void setDisplayMinRatio(double ratio);
     void setDisplayMaxRatio(double ratio);
     void setDisplayRangeRatio(double minRatio, double maxRatio);
 
-    void paintFromExperimentStartTime(bool on);
-
 signals:
     void dataAdded(QList<QPointF> points);
-    void dataRangeXChanged(double min, double max);
     void setChartVisible(bool visible);
 
 public slots:
@@ -90,11 +85,6 @@ private:
     void setPointWidth(double width);
     double getPointWidth(TIMELINE_DATA_KIND kind);
 
-    void setMin(double min);
-    void setMax(double max);
-    void setRange(double min, double max);
-    void rangeChanged();
-
     void updateSeriesPixmaps();
 
     qint64 mapPixelToTime(double x);
@@ -109,15 +99,15 @@ private:
 
     double _pointWidth = 12;
 
-    double _paintMinX;
-    double _paintMaxX;
-
-    double _displayedMin;
-    double _displayedMax;
+    double _displayMin;
+    double _displayMax;
     double _dataMinX;
     double _dataMaxX;
     double _dataMinY;
     double _dataMaxY;
+
+    double _minRatio = 0.0;
+    double _maxRatio = 1.0;
 
     ViewItem* _viewItem;
 

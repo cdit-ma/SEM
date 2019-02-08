@@ -26,7 +26,7 @@ public:
     QPair<double, double> getRange();
     QPair<double, double> getDisplayedRange();
 
-    void toggleDisplayFormat(TIME_DISPLAY_FORMAT format);
+    void setDisplayFormat(TIME_DISPLAY_FORMAT format);
 
 public slots:
     void hoverLineUpdated(bool visible, QPointF globalPos = QPointF());

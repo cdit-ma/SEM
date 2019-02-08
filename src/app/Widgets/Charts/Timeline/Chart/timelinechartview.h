@@ -20,7 +20,6 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QDateTime>
-#include <QMap>
 
 enum class VALUE_TYPE{DOUBLE, DATE_TIME};
 enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
@@ -34,9 +33,6 @@ class TimelineChartView : public QWidget
 public:
     explicit TimelineChartView(QWidget* parent = 0);
 
-    // this is just a tester function
-    QList<QPointF> generateRandomNumbers(int count = 10, double timeIncrementPx = -1, int minIncrement = 5, int maxIncrement = 500);
-
     bool eventFilter(QObject *watched, QEvent* event);
 
     void clearTimelineChart();
@@ -45,10 +41,7 @@ public:
     void setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds);
     const QList<TIMELINE_DATA_KIND>& getActiveEventKinds();
 
-    void setTimelineRange(qint64 min, qint64 max);
-    QPair<qint64, qint64> getTimelineRange();
-
-    void toggleTimeDisplay(TIME_DISPLAY_FORMAT format);
+    void setTimeDisplayFormat(TIME_DISPLAY_FORMAT format);
 
 signals:
     void toggleSeriesLegend(TIMELINE_DATA_KIND kind, bool checked);
@@ -63,14 +56,25 @@ public slots:
     void updateChartHoverDisplay();
 
     void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
+
+private slots:
+    void minSliderMoved(double ratio);
+    void maxSliderMoved(double ratio);
+
+    void timelineZoomed(int delta);
+    void timelinePanned(double dx, double dy);
+    void timelineRubberbandUsed(double left, double right);
     
 private:
     MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
     EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
-
     void removeChart(QString chartID);
-    void updateTimelineRangeFromExperimentRun(quint32 experimentRunID = -1);
 
+    void addedDataFromExperimentRun(quint32 experimentRunID);
+    void removedDataFromExperimentRun(quint32 experimentRunID);
+    void updateTimelineRange(bool updateDisplayRange = false);
+
+    bool rangeSet = false;
     bool scrollbarVisible = false;
     bool showHoverLine = false;
     double verticalScrollValue = 0.0;
@@ -92,10 +96,6 @@ private:
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 
-    qint64 lastRequestedFromTime;
-    qint64 lastRequestedToTime;
-    qint64 lastDataUpdatedTime;
-
     QList<TIMELINE_DATA_KIND> _activeEventKinds;
     QHash<TIMELINE_DATA_KIND, QAction*> _legendActions;
     QHash<TIMELINE_DATA_KIND, QPushButton*> _hoverDisplayButtons;
@@ -104,9 +104,6 @@ private:
     QHash<quint32, QPair<qint64, qint64>> experimentRunTimeRange_;
     QPair<quint32, qint64> longestExperimentRunDuration_;
     QPair<qint64, qint64> totalTimeRange_;
-
-    QHash<int, EntitySet*> itemEntitySets;
-    QHash<int, EntityChart*> itemEntityCharts;
 
     // MEDEA::Event related widgets/series
     QHash<QString, EntitySet*> eventEntitySets;

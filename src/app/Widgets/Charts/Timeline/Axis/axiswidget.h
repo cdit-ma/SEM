@@ -22,42 +22,34 @@ public:
     void setAxisLineVisible(bool visible);
     void setTickVisible(bool visible);
 
-    void setMin(double min);
-    void setMax(double max);
+    void setDisplayFormat(TIME_DISPLAY_FORMAT format);
 
-    void setRange(double min, double max, bool updateDisplay = false);
     void setRange(QPair<double, double> range, bool updateDisplay = false);
+    void setRange(double min, double max, bool updateDisplay = false);
+    void setDisplayRange(double min, double max);
+
     QPair<double, double> getRange();
+    QPair<double, double> getDisplayedRange();
 
     void zoom(double factor);
     void pan(double dx, double dy);
 
-    void toggleDisplayFormat(TIME_DISPLAY_FORMAT format);
-
-    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject* watched, QEvent* event);
 
 signals:
-    void displayedMinChanged(double min);
-    void displayedMaxChanged(double max);
-
-    void minRatio(double ratio);
-    void maxRatio(double ratio);
-
-public slots:
-    void setDisplayedMin(double min);
-    void setDisplayedMax(double max);
-    void setDisplayedRange(double min, double max);
-
-    void hoverLineUpdated(bool visible, QPointF pos = QPointF());
-
-private slots:
     void minRatioChanged(double ratio);
     void maxRatioChanged(double ratio);
 
+public slots:
+    void hoverLineUpdated(bool visible, QPointF pos = QPointF());
+
 protected:
-    void wheelEvent(QWheelEvent *event);
+    void wheelEvent(QWheelEvent* event);
 
 private:
+    void updateMinSliderRatio(double min);
+    void updateMaxSliderRatio(double max);
+
     AxisSlider* _slider = 0;
     AxisDisplay* _display = 0;
 
@@ -67,8 +59,6 @@ private:
     double _min;
     double _max;
     double _range;
-    double _displayedMin = -1;
-    double _displayedMax = -1;
     double zoomFactor = 1.1;
 
 };

@@ -176,10 +176,10 @@ QPair<double, double> AxisDisplay::getDisplayedRange()
 
 
 /**
- * @brief AxisDisplay::toggleDisplayFormat
+ * @brief AxisDisplay::setDisplayFormat
  * @param format
  */
-void AxisDisplay::toggleDisplayFormat(TIME_DISPLAY_FORMAT format)
+void AxisDisplay::setDisplayFormat(TIME_DISPLAY_FORMAT format)
 {
     switch (format) {
     case TIME_DISPLAY_FORMAT::DATE_TIME:

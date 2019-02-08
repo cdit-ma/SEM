@@ -82,7 +82,7 @@ void ChartDialog::toggleTimelineAxisFormat()
     default:
         break;
     }
-    chartView_->toggleTimeDisplay(displayFormat_);
+    chartView_->setTimeDisplayFormat(displayFormat_);
 }
 
 
@@ -159,8 +159,8 @@ void ChartDialog::updateTimelineRange()
     minTime_ = qMin(minTime, minTime_);
     maxTime_ = maxTime == 0 ? minTime_ + 10000 : qMax(maxTime, maxTime_);
 
-    if (rangeChanged)
-        chartView_->setTimelineRange(minTime_, maxTime_);
+    /*if (rangeChanged)
+        chartView_->setTimelineRange(minTime_, maxTime_);*/
 
     qDebug() << "Update timeline range";
 }

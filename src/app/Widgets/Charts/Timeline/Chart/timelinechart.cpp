@@ -34,54 +34,17 @@ TimelineChart::TimelineChart(QWidget* parent)
 
 
 /**
- * @brief TimelineChart::setMin
- * @param min
- */
-void TimelineChart::setMin(double min)
-{
-    min--;
-    if (min != _displayMin) {
-        for (EntityChart* chart : _entityCharts) {
-            chart->setMin(min);
-            chart->setDisplayRange(QPair<double, double>{min, _displayMax});
-        }
-        _displayMin = min;
-    }
-}
-
-
-/**
- * @brief TimelineChart::setMax
- * @param max
- */
-void TimelineChart::setMax(double max)
-{
-    max++;
-    if (max != _displayMax) {
-        for (EntityChart* chart : _entityCharts) {
-            chart->setMax(max);
-            chart->setDisplayRange(QPair<double, double>{_displayMin, max});
-        }
-        _displayMax = max;
-    }
-}
-
-
-/**
  * @brief TimelineChart::setRange
  * @param min
  * @param max
  */
 void TimelineChart::setRange(double min, double max)
 {
-    min--;
-    max++;
     for (EntityChart* chart : _entityCharts) {
+        qDebug() << "set chart range: " << GET_TIMELINE_DATA_KIND_STRING(chart->getSeries().values().at(0)->getKind());
         chart->setRange(min, max);
-        chart->setDisplayRange(QPair<double, double>{min, max});
+        chart->setDisplayRangeRatio(0.0, 1.0);
     }
-    _displayMin = min;
-    _displayMax = max;
 }
 
 
@@ -152,10 +115,6 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
         _layout->insertWidget(index, chart);
         chart->setPointWidth(pointsWidth);
         chart->installEventFilter(this);
-        chart->setRange(_displayMin, _displayMax);
-        connect(chart, &EntityChart::dataRangeXChanged, [=](double min, double max) {
-            longestRange = qMax(longestRange, max - min);
-        });
     }
 }
 
@@ -169,11 +128,6 @@ void TimelineChart::removeEntityChart(EntityChart* chart)
     if (chart) {
         _layout->removeWidget(chart);
         _entityCharts.removeAll(chart);
-
-        // if the timeline is now empty, reset its range
-        if (_entityCharts.isEmpty()) {
-            setInitialRange(true);
-        }
     }
 }
 
@@ -199,62 +153,12 @@ const QRectF& TimelineChart::getHoverRect()
 
 
 /**
- * @brief TimelineChart::getRange
- * @return
- */
-QPair<double, double> TimelineChart::getRange()
-{
-    return {_displayMin, _displayMax};
-}
-
-
-/**
- * @brief TimelineChart::setInitialRange
- * @param reset
- * @param min
- * @param max
- */
-void TimelineChart::setInitialRange(bool reset, double min, double max)
-{
-    if (reset) {
-        setRange(0, 100);
-    } else {
-        if (rangeSet)
-            return;
-        setRange(min, max);
-    }
-    rangeSet = !reset;
-}
-
-
-/**
- * @brief TimelineChart::isRangeSet
- * @return
- */
-bool TimelineChart::isRangeSet()
-{
-    return rangeSet;
-}
-
-
-/**
  * @brief TimelineChart::isPanning
  * @return
  */
 bool TimelineChart::isPanning()
 {
     return dragMode == DRAG_MODE::PAN || dragMode == DRAG_MODE::RUBBERBAND;
-}
-
-
-/**
- * @brief TimelineChart::getLongestRange
- * @return
- */
-double TimelineChart::getLongestRange()
-{
-    qDebug() << "longest: " << QString::number((int)longestRange);
-    return longestRange;
 }
 
 
@@ -348,8 +252,8 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
 void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 {
     if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
-        double min = mapLocalPixelToTime(rubberBandRect.left());
-        double max = mapLocalPixelToTime(rubberBandRect.right());
+        auto min = rubberBandRect.left();
+        auto max = rubberBandRect.right();
 
         // make sure that min < max
         if (min > max) {
@@ -359,18 +263,15 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
         }
 
         // keep min/max within the bounds
-        min = qMax(min, mapLocalPixelToTime(rect().left()));
-        max = qMin(max, mapLocalPixelToTime(rect().right()));
+        min = qMax(min, 0.0);
+        max = qMin(max, (double)width());
 
-        for (EntityChart* chart : _entityCharts) {
-            chart->setRange(min, max);
-        }
-
-        _displayMin = min;
-        _displayMax = max;
+        auto minRatio = min / width();
+        auto maxRatio = max / width();
+        qDebug() << "Ratios: " << minRatio << ", " << maxRatio;
 
         // send a signal to update the axis' displayed range
-        emit changeDisplayedRange(min, max);
+        emit rubberbandUsed(rubberBandRect.left(), rubberBandRect.right());
     }
 
     // this is only here to demo that the hover axis dislay's position can be set manually
@@ -572,5 +473,5 @@ void TimelineChart::clearDragMode()
 double TimelineChart::mapLocalPixelToTime(double pixel)
 {
     double ratio = pixel / width();
-    return ratio * (_displayMax - _displayMin) + _displayMin;
+    return ratio; // * (_displayMax - _displayMin) + _displayMin;
 }

@@ -74,6 +74,26 @@ double AxisSlider::getAxisPenWidth()
 
 
 /**
+ * @brief AxisSlider::getMinRatio
+ * @return
+ */
+double AxisSlider::getMinRatio()
+{
+    return _minRatio;
+}
+
+
+/**
+ * @brief AxisSlider::getMaxRatio
+ * @return
+ */
+double AxisSlider::getMaxRatio()
+{
+    return _maxRatio;
+}
+
+
+/**
  * @brief AxisSlider::setZoomFactor
  * @param factor
  */
@@ -86,7 +106,7 @@ void AxisSlider::setZoomFactor(double factor)
 /**
  * @brief AxisSlider::updateMinRatio
  * This slot is called when the displayed min of the timeline chart is changed.
- * It updates the relative position of the min slider and the min ratio.
+ * It updates the min ratio and the relative position of the min slider.
  * @param ratio
  */
 void AxisSlider::updateMinRatio(double ratio)
@@ -103,7 +123,7 @@ void AxisSlider::updateMinRatio(double ratio)
 /**
  * @brief AxisSlider::updateMaxRatio
  * This slot is called when the displayed max of the timeline chart is changed.
- * It updates the relative position of the max slider and the max ratio.
+ * It updates the max ratio and the relative position of the max slider.
  * @param ratio
  */
 void AxisSlider::updateMaxRatio(double ratio)
@@ -126,20 +146,7 @@ void AxisSlider::zoom(double factor)
     double delta = (_actualMax - _actualMin) * (1 - factor);
     double scaledMin = _actualMin + delta;
     double scaledMax = _actualMax - delta;
-
-    /*if (factor > 1) {
-        if (scaledMin < 0 || scaledMax > _sliderRange)
-            return;
-    }*/
-
     moveSliders(scaledMin, scaledMax);
-
-    /*if (factor > 1) {
-        // stop zooming out when one of the sliders hit a limit
-        if (_sliderMin == 0 || _sliderMax == _sliderRange)
-            return;
-    }
-    moveSliders(_actualMin + delta, _actualMax - delta);*/
 }
 
 
@@ -172,7 +179,6 @@ void AxisSlider::themeChanged()
     _axisColor = theme->getAltBackgroundColor();
     _axisColor.setAlphaF(0.2);
     _sliderColor = theme->getTextColor();
-    //_sliderColor = theme->getAltTextColor();
 
     QColor midBarColor = theme->getAltBackgroundColor();
     midBarColor.setAlphaF(0.8);
@@ -501,6 +507,10 @@ void AxisSlider::maxSliderMoved(double max)
  */
 void AxisSlider::moveSliderRects(double min, double max)
 {
+    // cap the min/max so that the slider rects stay within the bounds
+    min = qMax(min, 0.0);
+    max = qMin(max, _sliderRange);
+
     // adjust min/max so that the sliders don't surpass each other
     double delta = max - min;
     if (delta < SLIDER_THICKNESS) {
@@ -537,4 +547,13 @@ void AxisSlider::updateSlidersOnSizeChange()
 {
     _sliderRange = _orientation == Qt::Horizontal ? width() : height();
     moveSliderRects(_minRatio * _sliderRange, _maxRatio * _sliderRange);
+
+
+    // TODO - Still need to test this; not sure if it's completely correct
+    if (_sliderMin < _actualMin) {
+        _actualMin = _sliderMin;
+    }
+    if (_sliderMax > _actualMax) {
+        _actualMax = _sliderMax;
+    }
 }
