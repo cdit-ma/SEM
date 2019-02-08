@@ -14,7 +14,6 @@ class EventSeries : public QObject
 
 public:
     explicit EventSeries(QString ID, TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA, QObject* parent = 0);
-    ~EventSeries();
 
     void clear();
 
@@ -55,7 +54,6 @@ private:
 };
 
 }
-
 
 
 #endif // BASESERIES_H

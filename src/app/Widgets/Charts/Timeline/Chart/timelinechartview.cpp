@@ -247,42 +247,16 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  */
 void TimelineChartView::clearTimelineChart()
 {
-    //qDebug() << "--- CLEAR TIMELINE ---";
-
-    // clear/delete the items in the entity axis
-    auto axisItr_e = eventEntitySets.begin();
-    while (axisItr_e != eventEntitySets.end()) {
-        auto set = (*axisItr_e);
-        _entityAxis->removeEntity(set);
-        set->deleteLater();
-        axisItr_e = eventEntitySets.erase(axisItr_e);
+    auto chartItr = eventEntityCharts.begin();
+    while (chartItr != eventEntityCharts.end()) {
+        auto chartID = eventEntityCharts.key(*chartItr, "");
+        removeChart(chartID, false);
+        chartItr = eventEntityCharts.erase(chartItr);
     }
 
-    //qDebug() << "Cleared SETS";
-
-    auto seriesItr_e = eventSeries.begin();
-    while (seriesItr_e != eventSeries.end()) {
-        //(*seriesItr_e)->deleteLater();
-        auto series = (*seriesItr_e);
-        series->deleteLater();
-        seriesItr_e = eventSeries.erase(seriesItr_e);
-    }
-
-    //qDebug() << "Cleared SERIES";
-
-    // clear/delete the entity charts in the timeline chart
-    auto chartItr_e = eventEntityCharts.begin();
-    while (chartItr_e != eventEntityCharts.end()) {
-        auto chart = (*chartItr_e);
-        _timelineChart->removeEntityChart(chart);
-        chart->deleteLater();
-        chartItr_e = eventEntityCharts.erase(chartItr_e);
-    }
-
-    //qDebug() << "Cleared CHARTS";
-
-    mainWidget_->setVisible(false);
-    emptyLabel_->setVisible(true);
+    // show empty label
+    mainWidget_->hide();
+    emptyLabel_->show();
 
     // clear stored ranges
     totalTimeRange_ = {INT64_MAX, INT64_MIN};
@@ -290,8 +264,6 @@ void TimelineChartView::clearTimelineChart()
     experimentRunTimeRange_.clear();
     experimentRunSeriesCount_.clear();
     rangeSet = false;
-
-    //qDebug() << "------------------------------------------------------";
 }
 
 
@@ -565,23 +537,18 @@ void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<M
     //qDebug() << "Received EVENTS: " << QString::number(experimentRunID);
 
     for (auto event : events) {
-        if (!event) {
-            qDebug() << "EVENT IS NULL";
+        if (!event)
             continue;
-        }
         auto series = constructSeriesForEventKind(experimentRunID, event->getKind(), event->getID(), event->getName());
         if (!series) {
-            qDebug() << "SERIES NULL";
             qWarning("TimelineChartView::receivedRequestedEvents - Series is NULL");
             continue;
         }
+        // if there is already a series with the provided ID, clear it first
         if (!updatedSeries.contains(series)) {
-            //qDebug() << "CLEAR Series";
-            // if there is already a series with the provided ID, clear it first
             series->clear();
             updatedSeries.insert(series);
         }
-        //qDebug() << "ADD event";
         series->addEvent(event);
         minTime = qMin(event->getTimeMS(), minTime);
         maxTime = qMax(event->getTimeMS(), maxTime);
@@ -628,7 +595,7 @@ void TimelineChartView::maxSliderMoved(double ratio)
 
 /**
  * @brief TimelineChartView::timelineZoomed
- * @param factor
+ * @param delta
  */
 void TimelineChartView::timelineZoomed(int delta)
 {
@@ -701,15 +668,8 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
  */
 MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label)
 {
-    /*if (eventSeries.contains(ID)) {
-        for (auto s : eventSeries.values(ID)) {
-            auto expID = s->property(EXPERIMENT_RUN_ID).toUInt();
-            if (expID == experimentRunID && s->getKind() == kind)
-                return s;
-        }
-    }*/
-
     ID += QString::number(experimentRunID);
+
     if (eventSeries.contains(ID)) {
         for (auto s : eventSeries.values(ID)) {
             if (s && s->getKind() == kind)
@@ -744,7 +704,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 exper
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         // construct a chart for the new series
         constructChartForSeries(series, ID, label + GET_TIMELINE_DATA_KIND_STRING_SUFFIX(kind));
-        eventSeries.insertMulti(ID, series);
+        eventSeries.insert(ID, series);
     }
 
     return series;
@@ -814,78 +774,66 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
 /**
  * @brief TimelineChartView::removeChart
  * @param ID
+ * @param removeFromHash
  */
-void TimelineChartView::removeChart(QString chartID)
+void TimelineChartView::removeChart(QString ID, bool removeFromHash)
 {
-    // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
     // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
+    // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
+    // ID is the chart's key, which is also the event series ID of the series it contains
 
-    qDebug() << "======== REMOVE CHART =========";
-
-    auto chart = eventEntityCharts.value(chartID, 0);
-    if (chart) {
-        qDebug() << "REMOVE chart series";
-        // remove the chart's series from the hash
-        auto chartSeries = chart->getSeries();
-        for (auto series : chartSeries) {
-            if (!series) {
-                qDebug() << "Series is null";
-                continue;
-            }
-            const auto key = eventSeries.key(series);
-            auto& values = eventSeries.values(key);
-            if (values.size() == 1) {
-                qDebug() << "remove key...";
-                eventSeries.remove(key);
-            } else {
-                qDebug() << "remove ALL";
-                values.removeAll(series);
-            }
-            auto expRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
-            if (experimentRunSeriesCount_.contains(expRunID)) {
-                experimentRunSeriesCount_[expRunID]--;
-            }
-            removedDataFromExperimentRun(expRunID);
+    // remove chart series
+    for (auto series : eventSeries) {
+        if (series->getEventSeriesID() == ID) {
+            auto key = eventSeries.key(series);
+            eventSeries.remove(key, series);
+            series->deleteLater();
+            break;
         }
-        qDebug() << "DELETE chart series";
-        // delete the chart's series
-        auto seriesItr = chartSeries.begin();
-        while (seriesItr != chartSeries.end()) {
-            (*seriesItr)->deleteLater();
-            seriesItr = chartSeries.erase(seriesItr);
-        }
-        qDebug() << "REMOVE and DELETE chart";
-        // remove/delete chart item
-        _timelineChart->removeEntityChart(chart);
-        eventEntityCharts.remove(chartID);
-        chart->deleteLater();
-
-        // clear the timeline chart's hovered rect
-        _timelineChart->setEntityChartHovered(0, false);
     }
 
-    auto set = eventEntitySets.value(chartID, 0);
+    // remove chart
+    auto chart = eventEntityCharts.value(ID, 0);
+    if (chart) {
+        _timelineChart->removeEntityChart(chart);
+        chart->deleteLater();
+        if (removeFromHash) {
+            eventEntityCharts.remove(ID);
+        }
+    }
+
+    // remove entity set
+    auto set = eventEntitySets.value(ID, 0);
     if (set) {
-        qDebug() << "REMOVE/DELETE children sets";
         // remove/delete entity set's children sets
         auto childrenSets = set->getChildrenEntitySets();
-        auto childItr = childrenSets.begin();
-        while (childItr != childrenSets.end()) {
-            (*childItr)->deleteLater();
-            childItr = childrenSets.erase(childItr);
+        if (!childrenSets.isEmpty()) {
+            auto childItr = childrenSets.begin();
+            while (childItr != childrenSets.end()) {
+                (*childItr)->deleteLater();
+                childItr = childrenSets.erase(childItr);
+            }
         }
-        qDebug() << "REMOVE/DELETE set";
-        // remove/delete entity set
         _entityAxis->removeEntity(set);
-        eventEntitySets.remove(chartID);
+        eventEntitySets.remove(ID);
         set->deleteLater();
     }
 
-    qDebug() << "============================================";
+    // check if the timeline range needs updating
+    auto expRunID = chart->getExperimentRunID();
+    if (experimentRunSeriesCount_.contains(expRunID)) {
+        experimentRunSeriesCount_[expRunID]--;
+        removedDataFromExperimentRun(expRunID);
+    }
 
     // if there are no more charts, show empty label
-    mainWidget_->setVisible(!eventEntityCharts.isEmpty());
-    emptyLabel_->setVisible(eventEntityCharts.isEmpty());
+    if (eventEntityCharts.isEmpty()) {
+        mainWidget_->hide();
+        emptyLabel_->show();
+    }
+
+    // clear the timeline chart's hovered rect
+    _timelineChart->setEntityChartHovered(0, false);
 }
 
 

@@ -391,12 +391,6 @@ void MainWindow::setupTools()
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
-    // TODO - Temporary widget where the charts dialog will go
-    /*if (!dockwidget_Charts) {
-        dockwidget_Charts = window_manager->constructToolDockWidget("Charts", this);
-        dockwidget_Charts->setWidget(new QWidget(this));
-    }*/
-
     if(!rightWindow){
         rightWindow = window_manager->constructInvisibleWindow("Right Tools", this);
         rightWindow->setDockNestingEnabled(true);
@@ -482,9 +476,9 @@ void MainWindow::setupInnerWindow()
     /*
     WindowManager::manager()->constructInnerDockWidget(view_controller, dockwidget_Behaviour, "Inner Dock Widget");
     dockwidget_Interfaces->req_Visible(dockwidget_Interfaces->getID(), false);
-    dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
     dockwidget_Hardware->req_Visible(dockwidget_Hardware->getID(), false);
     */
+    dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
 }
 
 

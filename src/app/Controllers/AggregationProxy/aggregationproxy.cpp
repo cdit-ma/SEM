@@ -68,7 +68,7 @@ void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
     for (auto kind : kinds) {
         qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
     }
-    qDebug() << "--------------------------------------------------------------------------------";
+    qDebug() << "-----------------------------------------------------------";
     if (!kinds.isEmpty()) {
         requestEventKinds_ = kinds;
     }
@@ -168,8 +168,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         qDebug() << "[Experiment State] Nodes: " << results->nodes_size();
         qDebug() << "[Experiment State] Components: " << results->components_size();
         qDebug() << "[Experiment State] Workers: " << results->workers_size();
-        qDebug() << "--------------------------------------------------------------------------------";
-
+        qDebug() << "-----------------------------------------------------------";
         QStringList hostnames, componentNames, workerNames;
         for (const auto& node : results->nodes()) {
             auto name = getQString(node.hostname());
@@ -424,8 +423,7 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
         QList<MEDEA::Event*> events;
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
-        qDebug() << "--------------------------------------------------------------------------------";
-
+        qDebug() << "-----------------------------------------------------------";
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
             auto type = getLifeCycleType(item.type());
@@ -462,8 +460,7 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
         QList<MEDEA::Event*> events;
 
         qDebug() << "[Workload Request] Result size#: " << results->events_size();
-        qDebug() << "--------------------------------------------------------------------------------";
-
+        qDebug() << "-----------------------------------------------------------";
         for (auto item : results->events()) {
             auto workerInst = convertWorkerInstance(item.worker_inst());
             auto type = getWorkloadEventType(item.type());
@@ -504,8 +501,7 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
         QList<MEDEA::Event*> events;
 
         qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
-        qDebug() << "--------------------------------------------------------------------------------";
-
+        qDebug() << "-----------------------------------------------------------";
         for (const auto& node : results->nodes()) {
             auto hostname = getQString(node.node_info().hostname());
             //qDebug() << "host: " << hostname << " - #" << node.events_size();
@@ -545,8 +541,7 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
          QList<MEDEA::Event*> events;
 
          qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
-         qDebug() << "--------------------------------------------------------------------------------";
-
+         qDebug() << "-----------------------------------------------------------";
          for (const auto& node : results->nodes()) {
              auto hostname = getQString(node.node_info().hostname());
              for (const auto& e : node.events()) {

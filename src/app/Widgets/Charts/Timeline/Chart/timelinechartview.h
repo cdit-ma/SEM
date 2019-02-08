@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QDateTime>
+#include <QMultiHash>
 
 enum class VALUE_TYPE{DOUBLE, DATE_TIME};
 enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
@@ -68,7 +69,7 @@ private slots:
 private:
     MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
     EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
-    void removeChart(QString chartID);
+    void removeChart(QString ID, bool removeFromHash = true);
 
     void addedDataFromExperimentRun(quint32 experimentRunID);
     void removedDataFromExperimentRun(quint32 experimentRunID);
@@ -108,7 +109,7 @@ private:
     // MEDEA::Event related widgets/series
     QHash<QString, EntitySet*> eventEntitySets;
     QHash<QString, EntityChart*> eventEntityCharts;
-    QHash<QString, MEDEA::EventSeries*> eventSeries;
+    QMultiHash<QString, MEDEA::EventSeries*> eventSeries;
 };
 
 #endif // TIMELINECHARTVIEW_H

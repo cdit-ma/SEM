@@ -219,7 +219,7 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
 
 
-    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://192.168.111.249:12345");
+    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://192.168.111.98:12345");
 
     
 
