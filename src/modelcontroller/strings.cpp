@@ -10,6 +10,8 @@ const QString KeyName::Index = "index";
 const QString KeyName::InnerType = "inner_type";
 const QString KeyName::IsGenericParam = "is_generic_param";
 const QString KeyName::IsGenericParamSrc = "is_generic_param_src";
+const QString KeyName::CppVarType = "cpp_vartype";
+
 
 
 const QString KeyName::IsOptionalParam = "is_optional_param";

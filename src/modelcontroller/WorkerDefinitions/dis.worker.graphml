@@ -15,16 +15,20 @@
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
+    <key attr.name="cpp_vartype" attr.type="string" for="all" id="cpp_vartype"/>
 
     <graph id="G">
         <node id="DIS">
             <data key="kind">Class</data>
             <data key="version">1.0.0</data>
-            <data key="worker">DIS</data>
+            <data key="worker">Dis_Worker</data>
             <data key="label">DIS</data>
             <data key="icon_prefix">Icons</data>
             <data key="icon">circleSegment</data>
             <data key="description">Provides DIS Support</data>
+            <data key="folder">${RE_PATH}/src/workers/dis</data>
+            <data key="file">dis_worker</data>
+            
             <graph id="DIS:">
                 <node id="DIS::got_pdu">
                     <data key="kind">CallbackFunction</data>
@@ -39,10 +43,51 @@
                                     <data key="kind">Member</data>
                                     <data key="label">PDU Header</data>
                                     <data key="inner_type">KDIS::PDU::Header</data>
+                                    <data key="cpp_vartype">CONST_REF</data>
                                     <data key="outer_type" />
                                     <data key="icon">category</data>
                                     <data key="icon_prefix">Icons</data>
                                     <data key="description">The PDU header</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="DIS::header_to_string">
+                    <data key="kind">Function</data>
+                    <data key="label">To String</data>
+                    <data key="operation">PDU2String</data>
+                    <data key="description">Convert DIS Pdu to string</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePlus</data>
+                    <graph id="DIS::header_to_string:">
+                        <node id="DIS::header_to_string::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="DIS::header_to_string::in:">
+                                <node id="DIS::header_to_string::in::data">
+                                    <data key="kind">Member</data>
+                                    <data key="label">PDU Header</data>
+                                    <data key="inner_type">KDIS::PDU::Header</data>
+                                    <data key="cpp_vartype">CONST_REF</data>
+                                    <data key="outer_type" />
+                                    <data key="icon">category</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="description">The PDU header</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="DIS::header_to_string::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="DIS::header_to_string::out:">
+                                <node id="DIS::header_to_string::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">value</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="outer_type" />
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="is_generic_param">true</data>
+                                    <data key="description">The String.</data>
                                 </node>
                             </graph>
                         </node>
@@ -54,6 +99,17 @@
                     <data key="label">DIS PDU Header</data>
                     <data key="kind">ExternalType</data>
                 </node>
+                <node id="DIS::ip_address">
+					<data key="type">String</data>
+					<data key="label">ip_address</data>
+					<data key="kind">Attribute</data>
+				</node>
+				<node id="DIS::port">
+                    <data key="type">Integer</data>
+					<data key="label">port</data>
+					<data key="kind">Attribute</data>
+                    <data key="value">3000</data>
+				</node>
             </graph>
         </node>
     </graph>

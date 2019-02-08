@@ -961,10 +961,13 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bind_values[KeyName::IsGenericParam] += KeyName::IsGenericParam;
     bind_values[KeyName::IsGenericParamSrc] += KeyName::IsGenericParamSrc;
     bind_values[KeyName::IsOptionalParam] += KeyName::IsOptionalParam;
+    bind_values[KeyName::CppVarType] += KeyName::CppVarType;
+    
 
     required_instance_keys += KeyName::IsGenericParam;
     required_instance_keys += KeyName::IsGenericParamSrc;
     required_instance_keys += KeyName::IsOptionalParam;
+    required_instance_keys += KeyName::CppVarType;
 
     bool bind_index = false;
     bool bind_labels = true;
