@@ -42,6 +42,9 @@
                 <xsl:when test="$kind = 'Function'">
                     <xsl:value-of select="cdit:get_function_return_type($entity)" />
                 </xsl:when>
+                <xsl:when test="$kind = 'CallbackFunctionInstance'">
+                    <xsl:value-of select="cdit:get_function_return_type($entity)" />
+                </xsl:when>
                 <xsl:when test="$kind = 'TransitionFunction'">
                     <xsl:value-of select="cdit:get_function_return_type($entity)" />
                 </xsl:when>
@@ -49,7 +52,7 @@
                     <xsl:value-of select="cdit:get_function_return_type($entity)" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="cpp:warning(('cdit:define_workload_function()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
+                    <xsl:value-of select="cpp:warning(('cdit:define_workload_function-1()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -70,11 +73,12 @@
                     <xsl:value-of select="''" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Function' or
-                                $kind = 'ReplierPortImpl'">
+                                $kind = 'ReplierPortImpl' or
+                                $kind = 'CallbackFunctionInstance'">
                     <xsl:value-of select="cdit:get_function_parameters($entity)" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="cpp:warning(('cdit:define_workload_function()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
+                    <xsl:value-of select="cpp:warning(('cdit:define_workload_function-2()', 'Kind:', o:wrap_quote($kind), 'Not Implemented'), 0)" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -513,6 +517,7 @@
         <xsl:variable name="periodic_events" select="graphml:get_child_nodes_of_kind($component_impl, 'PeriodicPort')" />
         <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="rep_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'ReplierPortImpl')" />
+        <xsl:variable name="callback_functions" select="graphml:get_child_nodes_of_kind($component_impl, 'CallbackFunctionInstance')" />
 
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
@@ -566,7 +571,7 @@
         <xsl:value-of select="cpp:declare_function('', $impl_class_type, cpp:const_ref_var_def('std::string', 'name'), ';', $tab + 2)" />
 
         <!-- Protected -->
-        <xsl:if test="count(($sub_ports, $periodic_events, $functions, $transition_functions)) > 0">
+        <xsl:if test="count(($sub_ports, $periodic_events, $functions, $transition_functions, $callback_functions)) > 0">
             <xsl:value-of select="cpp:protected($tab + 1)" />
         </xsl:if>
 
@@ -578,6 +583,13 @@
             <xsl:value-of select="cpp:declare_function('void', $function_name, '', ';', $tab + 2)" />
             <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
         </xsl:for-each>
+
+        <!-- Periodic Event Declarations -->
+        <xsl:for-each select="$callback_functions">
+            <xsl:value-of select="cdit:declare_function(., $tab + 2)" />
+        </xsl:for-each>
+
+        
 
         
         <!-- Transition Function Declarations -->
@@ -682,6 +694,7 @@
         
         <!-- Get the children required for generation -->
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($class, 'Function')" />
+        <xsl:variable name="callback_functions_inst" select="graphml:get_child_nodes_of_kind($class, 'CallbackFunctionInstance')" />
         <xsl:variable name="attributes" select="graphml:get_child_nodes_of_kind($class, 'Attribute')" />
         <xsl:variable name="worker_instances" select="graphml:get_worker_instances($class)" />
         <xsl:variable name="custom_class_instances" select="graphml:get_custom_class_instances($class)" />
@@ -740,6 +753,11 @@
         <!-- Define Functions -->
         <xsl:for-each select="$functions">
             <xsl:value-of select="cdit:define_custom_function(., $qualified_class_type, 0)" />
+        </xsl:for-each>
+
+        <!-- Handle Callback Functions -->
+        <xsl:for-each select="$callback_functions_inst">
+            <xsl:value-of select="cdit:define_workload_function(., $qualified_class_type)" />
         </xsl:for-each>
 
         <!-- Define Attribute Functions -->
@@ -913,6 +931,8 @@
         <xsl:variable name="sub_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'SubscriberPortImpl')" />
         <xsl:variable name="rep_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'ReplierPortImpl')" />
         <xsl:variable name="functions" select="graphml:get_child_nodes_of_kind($component_impl, 'Function')" />
+        <xsl:variable name="callback_functions" select="graphml:get_child_nodes_of_kind($component_impl, 'CallbackFunctionInstance')" />
+        
         <xsl:variable name="transition_functions" select="graphml:get_child_nodes_of_kind($component_impl, 'TransitionFunction')" />
 
 
@@ -1005,6 +1025,11 @@
 
         <!-- Handle Functions -->
         <xsl:for-each select="$functions">
+            <xsl:value-of select="cdit:define_workload_function(., $qualified_impl_class_type)" />
+        </xsl:for-each>
+
+        <!-- Handle Callback Functions -->
+        <xsl:for-each select="$callback_functions">
             <xsl:value-of select="cdit:define_workload_function(., $qualified_impl_class_type)" />
         </xsl:for-each>
     </xsl:function>
@@ -1864,7 +1889,8 @@
                                 $kind = 'IfStatement' or
                                 $kind = 'Function' or
                                 $kind = 'ReplierPortImpl' or
-                                $kind = 'TransitionFunction'
+                                $kind = 'TransitionFunction' or
+                                $kind = 'CallbackFunctionInstance'
                                 ">
                     <xsl:value-of select="cdit:generate_scoped_variables($node, $tab)" />
                     <xsl:for-each select="cdit:get_workflow_child_nodes($node)">

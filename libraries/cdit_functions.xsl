@@ -395,7 +395,7 @@
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
         
         <xsl:choose>    
-            <xsl:when test="$kind = 'Member' or $kind = 'Attribute'">
+            <xsl:when test="$kind = 'Member' or $kind = 'MemberInstance' or $kind = 'Attribute'">
                 <xsl:value-of select="cpp:get_member_type($node)" />
             </xsl:when>
             <xsl:when test="$kind = 'VoidType'">
@@ -578,6 +578,9 @@
 
         <xsl:variable name="suffix">
             <xsl:choose>
+                <xsl:when test="'InputParameterGroupInstance' = $ancestor_kinds and 'CallbackFunctionInstance' = $ancestor_kinds">
+                    <xsl:value-of select="''" />
+                </xsl:when>
                 <xsl:when test="'InputParameterGroupInstance' = $ancestor_kinds or
                                 'PublisherPortImpl' = $ancestor_kinds or
                                 'RequesterPortImpl' = $ancestor_kinds or
@@ -667,7 +670,7 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message>Warning: Unknown Type <xsl:value-of select="o:wrap_quote($type)" /></xsl:message>
-                <xsl:value-of select="''" />
+                <xsl:value-of select="$type" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -981,6 +984,9 @@
                 <xsl:when test="$def_kind = 'PeriodicPort'">
                     <xsl:value-of select="'Periodic'" />
                 </xsl:when>
+                <xsl:when test="$def_kind = 'CallbackFunction'">
+                    <xsl:value-of select="'Cb'" />
+                </xsl:when>
                 <xsl:when test="$def_kind = 'Function'">
                     <xsl:value-of select="'Fn'" />
                 </xsl:when>
@@ -997,9 +1003,9 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="o:join_list(($prefix, $label), '_')" />
+        <xsl:variable name="combined_label" select="o:join_list(($prefix, $label), '_')" />
+        <xsl:value-of select="replace($combined_label, ' ', '_')" />
     </xsl:function>
-    
 
     <xsl:function name="cdit:comment_graphml_node">
         <xsl:param name="element" as="element()" />
@@ -1485,6 +1491,35 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="cdit:get_qualified_cpp_var_type" as="xs:string">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="label" as="xs:string"/>
+        <xsl:param name="modifier" as="xs:string"/>
+
+        <xsl:variable name="modifier_uc" select="upper-case($modifier)" />
+
+        <xsl:choose>
+            <xsl:when test="$modifier_uc = 'VALUE'">
+                <xsl:value-of select="cpp:var_def($type, $label)" />
+            </xsl:when>
+            <xsl:when test="$modifier_uc = 'REF'">
+                <xsl:value-of select="cpp:ref_var_def($type, $label)" />
+            </xsl:when>
+            <xsl:when test="$modifier_uc = 'CONST_REF'">
+                <xsl:value-of select="cpp:const_ref_var_def($type, $label)" />
+            </xsl:when>
+            <xsl:when test="$modifier_uc = 'UNIQUE_PTR'">
+                <xsl:value-of select="cpp:unique_ptr_def($type, $label)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="test">
+                    <xsl:value-of select="o:warning(('cpp:get_qualified_cpp_var_type()', 'cpp_vartype:', o:wrap_quote($modifier), 'Not Implemented'))" />
+                </xsl:variable>
+                <xsl:value-of select="cpp:var_def($type, $label)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!--
         Gets the Qualified CPP Function Parameters for a Function
     -->
@@ -1498,21 +1533,29 @@
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
                 <xsl:variable name="var_label" select="cdit:get_variable_name(.)" />
+                <xsl:variable name="modifier" select="graphml:get_data_value(., 'cpp_vartype')" />
 
-                <xsl:choose>
-                    <xsl:when test="($kind = 'Member' or
-                                    $kind = 'MemberInstance') and
-                                    cpp:is_primitive_type($cpp_type)">
-                        <xsl:value-of select="cpp:var_def($cpp_type, $var_label)" />
-                    </xsl:when>
-                    <xsl:when test="$kind = 'EnumInstance'">
-                        <xsl:value-of select="cpp:var_def($cpp_type, $var_label)" />
-                    </xsl:when>
-                    <xsl:when test="$cpp_type and
-                                    $cpp_type != 'void'" >
-                        <xsl:value-of select="cpp:ref_var_def($cpp_type, $var_label)" />
-                    </xsl:when>
-                </xsl:choose>
+                <xsl:variable name="var_modifier">
+                    <xsl:choose>
+                        <xsl:when test="$modifier != ''">
+                            <xsl:value-of select="$modifier" />
+                        </xsl:when>
+                        <xsl:when test="($kind = 'Member' or
+                                        $kind = 'MemberInstance') and
+                                        cpp:is_primitive_type($cpp_type)">
+                            <xsl:value-of select="VALUE" />
+                        </xsl:when>
+                        <xsl:when test="$kind = 'EnumInstance'">
+                            <xsl:value-of select="VALUE" />
+                        </xsl:when>
+                        <xsl:when test="$cpp_type and
+                                        $cpp_type != 'void'" >
+                            <xsl:value-of select="REF" />
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:value-of select="cdit:get_qualified_cpp_var_type($cpp_type, $var_label, $var_modifier)" />
             </xsl:for-each>
         </xsl:variable>
         <xsl:sequence select="cpp:join_args($resolved_args)" />
