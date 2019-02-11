@@ -1,7 +1,4 @@
 #include "aggregationproxy.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
-
 #include "../SettingsController/settingscontroller.h"
 
 #include <iostream>
@@ -65,10 +62,6 @@ void AggregationProxy::SetRequestExperimentRunID(quint32 experimentRunID)
  */
 void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
 {
-    for (auto kind : kinds) {
-        qDebug() << "Data kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
-    }
-    qDebug() << "-----------------------------------------------------------";
     if (!kinds.isEmpty()) {
         requestEventKinds_ = kinds;
     }
@@ -110,8 +103,6 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
     if (!GotRequester())
         return;
 
-    auto notification = NotificationManager::manager()->AddNotification("Request Experiment Runs", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
     QList<ExperimentRun> runs;
 
     try {
@@ -119,7 +110,6 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
         request.set_experiment_name(experimentName.toStdString());
 
         auto& results = requester_->GetExperimentRuns(request);
-
         /*qDebug() << "--------------------------------------------------------------------------------";
         qDebug() << "Requesting experiment with name: " << experimentName;
         qDebug() << "Results: " << results->experiments_size();
@@ -138,11 +128,8 @@ void AggregationProxy::RequestExperimentRuns(QString experimentName)
             }
         }
 
-        notification->setSeverity(Notification::Severity::SUCCESS);
-
     } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
+        ShowErrorNotification(ex.what());
     }
 
     emit requestedExperimentRuns(runs);
@@ -158,8 +145,6 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
     if (!GotRequester())
         return;
 
-    auto notification = NotificationManager::manager()->AddNotification("Request Experiment State", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
     try {
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experimentRunID);
@@ -169,6 +154,7 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         qDebug() << "[Experiment State] Components: " << results->components_size();
         qDebug() << "[Experiment State] Workers: " << results->workers_size();
         qDebug() << "-----------------------------------------------------------";
+
         QStringList hostnames, componentNames, workerNames;
         for (const auto& node : results->nodes()) {
             auto name = getQString(node.hostname());
@@ -184,13 +170,9 @@ void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
         }
 
         //emit requestedExperimentState(hostnames, componentNames, workerNames);
-        notification->setSeverity(Notification::Severity::SUCCESS);
-
-        //qDebug() << getQDateTime(results->end_time()).toMSecsSinceEpoch();
 
     } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
+        ShowErrorNotification(ex.what());
     }
 }
 
@@ -416,14 +398,13 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
     if (!GotRequester())
         return;
 
-    auto notification = NotificationManager::manager()->AddNotification("Requesting Port Lifecycle", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
     try {
         auto results = requester_->GetPortLifecycle(request);
         QList<MEDEA::Event*> events;
 
         qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
         //qDebug() << "-----------------------------------------------------------";
+
         for (auto item : results.get()->events()) {
             auto port = convertPort(item.port());
             auto type = getLifeCycleType(item.type());
@@ -433,11 +414,9 @@ void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest 
         }
 
         emit receivedEvents(experimentRunID_, events);
-        notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
+        ShowErrorNotification(ex.what(), "Icons", "plug");
     }
 }
 
@@ -451,14 +430,13 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
     if (!GotRequester())
         return;
 
-    auto notification = NotificationManager::manager()->AddNotification("Requesting Workload", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
     try {
         auto results = requester_->GetWorkload(request);
         QList<MEDEA::Event*> events;
 
         qDebug() << "[Workload Request] Result size#: " << results->events_size();
         //qDebug() << "-----------------------------------------------------------";
+
         for (auto item : results->events()) {
             auto workerInst = convertWorkerInstance(item.worker_inst());
             auto type = getWorkloadEventType(item.type());
@@ -472,11 +450,9 @@ void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
         }
 
         emit receivedEvents(experimentRunID_, events);
-        notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
+        ShowErrorNotification(ex.what(), "Icons", "spanner");
     }
 }
 
@@ -490,17 +466,15 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
     if (!GotRequester())
         return;
 
-    auto notification = NotificationManager::manager()->AddNotification("Requesting CPU Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
     try {
         auto results = requester_->GetCPUUtilisation(request);
         QList<MEDEA::Event*> events;
 
         qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
         //qDebug() << "-----------------------------------------------------------";
+
         for (const auto& node : results->nodes()) {
             auto hostname = getQString(node.node_info().hostname());
-            //qDebug() << "host: " << hostname << " - #" << node.events_size();
             for (const auto& e : node.events()) {
                 auto utilisation = e.cpu_utilisation();
                 auto time = getQDateTime(e.time());
@@ -510,11 +484,9 @@ void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationReques
         }
 
         emit receivedEvents(experimentRunID_, events);
-        notification->setSeverity(Notification::Severity::SUCCESS);
 
     } catch (const std::exception& ex) {
-        notification->setSeverity(Notification::Severity::ERROR);
-        notification->setDescription(ex.what());
+        ShowErrorNotification(ex.what(), "Icons", "cpu");
     }
 }
 
@@ -528,14 +500,13 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
     if (!GotRequester())
          return;
 
-     auto notification = NotificationManager::manager()->AddNotification("Requesting Memory Utilisation", "Icons", "buildingPillared", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
-
      try {
          auto results = requester_->GetMemoryUtilisation(request);
          QList<MEDEA::Event*> events;
 
          qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
          //qDebug() << "-----------------------------------------------------------";
+
          for (const auto& node : results->nodes()) {
              auto hostname = getQString(node.node_info().hostname());
              for (const auto& e : node.events()) {
@@ -547,12 +518,22 @@ void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisation
          }
 
          emit receivedEvents(experimentRunID_, events);
-         notification->setSeverity(Notification::Severity::SUCCESS);
 
      } catch (const std::exception& ex) {
-         notification->setSeverity(Notification::Severity::ERROR);
-         notification->setDescription(ex.what());
+         ShowErrorNotification(ex.what(), "Icons", "memoryCard");
      }
+}
+
+
+/**
+ * @brief AggregationProxy::ShowErrorNotification
+ * @param description
+ * @param iconPath
+ * @param iconName
+ */
+void AggregationProxy::ShowErrorNotification(QString description, QString iconPath, QString iconName)
+{
+    NotificationManager::manager()->AddNotification(description, iconPath, iconName, Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
 
 

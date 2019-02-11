@@ -47,7 +47,6 @@ public:
 
 signals:
     void dataAdded(QList<QPointF> points);
-    void setChartVisible(bool visible);
 
 public slots:
     void setHovered(bool visible);

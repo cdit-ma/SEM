@@ -6,6 +6,7 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
@@ -58,6 +59,8 @@ private:
     void SendWorkloadRequest(AggServer::WorkloadRequest& request);
     void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
     void SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request);
+
+    void ShowErrorNotification(QString description, QString iconPath = "Icons", QString iconName = "buildingPillared");
 
     Port convertPort(const AggServer::Port port);
     LifecycleType getLifeCycleType(const AggServer::LifecycleType type);

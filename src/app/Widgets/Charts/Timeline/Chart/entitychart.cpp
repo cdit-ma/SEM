@@ -285,14 +285,6 @@ void EntityChart::setSeriesKindVisible(TIMELINE_DATA_KIND kind, bool visible)
 {
     _seriesKindVisible[kind] = visible;
     update();
-
-    if (visible) {
-        if (!isVisible())
-            emit setChartVisible(true);
-    } else {
-        if (_seriesList.count() == 1 && _seriesList.keys().contains(kind))
-            emit setChartVisible(false);
-    }
 }
 
 

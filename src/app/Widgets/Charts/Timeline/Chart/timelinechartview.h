@@ -40,21 +40,21 @@ public:
     void updateTimelineChart();
 
     void setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds);
-    const QList<TIMELINE_DATA_KIND>& getActiveEventKinds();
-
     void setTimeDisplayFormat(TIME_DISPLAY_FORMAT format);
 
 signals:
-    void toggleSeriesLegend(TIMELINE_DATA_KIND kind, bool checked);
     void seriesLegendHovered(TIMELINE_DATA_KIND kind);
 
 public slots:
     void themeChanged();
 
+    void toggledSeriesLegend(bool checked);
+
     void entityAxisSizeChanged(QSizeF size);
+    void entityChartHovered(EntityChart* chart, bool hovered);
     void entitySetClosed();
 
-    void updateChartHoverDisplay();
+    void updateHoverDisplay();
 
     void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
