@@ -24,6 +24,7 @@ public:
     double getMaxRatio();
 
     void setZoomFactor(double factor);
+    void setPanning(bool panning);
 
 signals:
     void minRatioChanged(double ratio);
@@ -89,6 +90,8 @@ private:
     double _sliderRange;
     double _actualMin;
     double _actualMax;
+
+    bool isPanning = false;
 
 };
 

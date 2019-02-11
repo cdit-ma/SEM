@@ -258,6 +258,7 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
     // this is only here to demo that the hover axis dislay's position can be set manually
     //emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
 
+    emit panning(false);
     clearDragMode();
     QWidget::mouseReleaseEvent(event);
 }
@@ -278,6 +279,7 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
     case PAN: {
         QPointF delta = cursorPoint - panOrigin;
         panOrigin = cursorPoint;
+        emit panning(true);
         emit panned(-delta.x(), 0);
         break;
     }

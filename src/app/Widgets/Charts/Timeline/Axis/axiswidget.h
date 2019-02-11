@@ -22,6 +22,8 @@ public:
     void setAxisLineVisible(bool visible);
     void setTickVisible(bool visible);
 
+    void setPanning(bool panning);
+
     void setDisplayFormat(TIME_DISPLAY_FORMAT format);
 
     void setRange(QPair<double, double> range, bool updateDisplay = false);

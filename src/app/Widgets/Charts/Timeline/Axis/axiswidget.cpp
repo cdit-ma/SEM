@@ -119,6 +119,16 @@ void AxisWidget::setTickVisible(bool visible)
 
 
 /**
+ * @brief AxisWidget::setPanning
+ * @param panning
+ */
+void AxisWidget::setPanning(bool panning)
+{
+    _slider->setPanning(panning);
+}
+
+
+/**
  * @brief AxisWidget::setRange
  * @param range
  * @param updateDisplay

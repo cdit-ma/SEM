@@ -48,11 +48,13 @@ TimelineChartView::TimelineChartView(QWidget* parent)
     _timelineChart->setPointsWidth(POINTS_WIDTH);
     _timelineChart->setAxisYVisible(true);
 
+    connect(_timelineChart, &TimelineChart::panning, _dateTimeAxis, &AxisWidget::setPanning);
+    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+
     connect(_timelineChart, &TimelineChart::zoomed, this, &TimelineChartView::timelineZoomed);
     connect(_timelineChart, &TimelineChart::panned, this, &TimelineChartView::timelinePanned);
     connect(_timelineChart, &TimelineChart::rubberbandUsed, this, &TimelineChartView::timelineRubberbandUsed);
     connect(_timelineChart, &TimelineChart::entityChartHovered, this, &TimelineChartView::entityChartHovered);
-    connect(_timelineChart, &TimelineChart::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
     if (HOVER_DISPLAY_ON) {
         connect(_timelineChart, &TimelineChart::hoverLineUpdated, this, &TimelineChartView::updateHoverDisplay);
     }

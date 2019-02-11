@@ -44,6 +44,8 @@ public:
     bool isPanning();
 
 signals:
+    void panning(bool _panning);
+
     void zoomed(int delta);
     void panned(double dx, double dy);
     void rubberbandUsed(double left, double right);

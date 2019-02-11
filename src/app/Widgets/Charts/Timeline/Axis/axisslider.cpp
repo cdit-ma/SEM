@@ -104,6 +104,17 @@ void AxisSlider::setZoomFactor(double factor)
 
 
 /**
+ * @brief AxisSlider::setPanning
+ * @param panning
+ */
+void AxisSlider::setPanning(bool panning)
+{
+    isPanning = panning;
+    update();
+}
+
+
+/**
  * @brief AxisSlider::updateMinRatio
  * This slot is called when the displayed min of the timeline chart is changed.
  * It updates the min ratio and the relative position of the min slider.
@@ -143,6 +154,12 @@ void AxisSlider::updateMaxRatio(double ratio)
  */
 void AxisSlider::zoom(double factor)
 {
+    // stop zooming out when one of the sliders hit the edge
+    if (factor > 1) {
+        if (_sliderMin == 0 || _sliderMax == _sliderRange)
+            return;
+    }
+
     double delta = (_actualMax - _actualMin) * (1 - factor);
     double scaledMin = _actualMin + delta;
     double scaledMax = _actualMax - delta;
@@ -381,6 +398,7 @@ void AxisSlider::paintEvent(QPaintEvent* event)
     // this keeps the selected slider highlighted when it's being moved even if the cursor is elsewhere
     HIT_RECT hitRect = sliderHitRect == HIT_RECT::NO_SLIDER ? getCursorHitRect(cursorPoint) : sliderHitRect;
     QRectF highlightRect;
+    bool highlightMidRect = isPanning;
 
     switch (hitRect) {
     case HIT_RECT::MIN_SLIDER:
@@ -390,12 +408,18 @@ void AxisSlider::paintEvent(QPaintEvent* event)
         highlightRect = maxRect;
         break;
     case HIT_RECT::MID_SLIDER:
+        highlightMidRect = true;
+        break;
+    default:
+        break;
+    }
+
+    if (highlightMidRect) {
         if (_minSlider == _maxSlider) {
             highlightRect = midRect;
         } else {
             highlightRect = QRectF(minRect.topLeft(), maxRect.bottomRight());
         }
-        break;
     }
 
     if (!highlightRect.isNull()) {
@@ -442,10 +466,7 @@ HIT_RECT AxisSlider::getCursorHitRect(QPointF cursorPos)
  */
 void AxisSlider::moveSliders(double min, double max)
 {
-    // make sure that the min/max stays within the bounds
     if (min <= max) {
-        min = qMax(0.0, min);
-        max = qMin(_sliderRange, max);
         moveSliderRects(min, max);
         minSliderMoved(min);
         maxSliderMoved(max);
@@ -507,26 +528,27 @@ void AxisSlider::maxSliderMoved(double max)
  */
 void AxisSlider::moveSliderRects(double min, double max)
 {
-    // adjust min/max so that the sliders don't surpass each other
-    double delta = max - min;
+    // cap min/max so that they stay within the bounds
+    min = qMax(0.0, min);
+    max = qMin(_sliderRange, max);
+
+    // adjust the min/max so that the sliders don't surpass each other
+    auto delta = max - min;
     if (delta < SLIDER_THICKNESS) {
         max = max + (SLIDER_THICKNESS - delta) / 2.0;
-        if (min <= 0.0)
+        if (max < SLIDER_THICKNESS) {
             max = SLIDER_THICKNESS;
-        if (max >= _sliderRange)
+        } else if (max > _sliderRange) {
             max = _sliderRange;
+        }
         min = max - SLIDER_THICKNESS;
     }
-
-    // cap the min/max so that the slider rects stay within the bounds
-    min = qMax(min, 0.0);
-    max = qMin(max, _sliderRange);
 
     if (_orientation == Qt::Horizontal) {
         _minSlider.moveLeft(min);
         _maxSlider.moveRight(max);
         // need to cap the mid slider's width when the min and max sliders are on top of each other
-        double cappedWidth = qMax(max - min - 2 * SLIDER_THICKNESS, -SLIDER_THICKNESS);
+        auto cappedWidth = qMax(max - min - 2 * SLIDER_THICKNESS, -SLIDER_THICKNESS);
         _midSlider = QRectF(min + SLIDER_THICKNESS, 0, cappedWidth, AXIS_THICKNESS);
     } else {
         _minSlider.moveTop(min);
