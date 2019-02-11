@@ -25,7 +25,8 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     chartView_->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE, TIMELINE_DATA_KIND::WORKLOAD, TIMELINE_DATA_KIND::CPU_UTILISATION, TIMELINE_DATA_KIND::MEMORY_UTILISATION});
 
     if (vc) {
-        connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, chartView_, &TimelineChartView::receivedRequestedEvents);
+        connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, this, &ChartDialog::queryResponseReceived);
+        //connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, chartView_, &TimelineChartView::addChartEvents);
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, chartView_, &TimelineChartView::updateTimelineChart);
         connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearTimelineChart);
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, [=] (bool visible) {
@@ -73,11 +74,9 @@ void ChartDialog::toggleTimelineAxisFormat()
     switch (displayFormat_) {
     case TIME_DISPLAY_FORMAT::DATE_TIME:
         displayFormat_ = TIME_DISPLAY_FORMAT::ELAPSED_TIME;
-        //chartView_->setTimelineRange(minTime_, maxTime_);
         break;
     case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
         displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
-        //chartView_->setTimelineRange(0, maxTime_ - minTime_);
         break;
     default:
         break;
@@ -142,10 +141,24 @@ void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
 
 
 /**
+ * @brief ChartDialog::queryResponseReceived
+ * @param experimentRunID
+ * @param events
+ */
+void ChartDialog::queryResponseReceived(quint32 experimentRunID, QList<MEDEA::Event*> events)
+{
+    auto tooltip = "Experiment name:\t" + selectedExperimentRun_.experiment_name +
+                   "\nJob number#:\t" + QString::number(selectedExperimentRun_.job_num) +
+                   "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(selectedExperimentRun_.start_time).toString(DATE_TIME_FORMAT);
+    chartView_->addChartEvents(experimentRunID, tooltip, events);
+}
+
+
+/**
  * @brief ChartDialog::updateTimelineRange
  */
 void ChartDialog::updateTimelineRange()
-{
+{    
     if (!hasSelectedExperimentRun_)
         return;
 
@@ -156,7 +169,7 @@ void ChartDialog::updateTimelineRange()
     qDebug() << "start: " << minTime << ", end: " << maxTime;
 
     minTime_ = qMin(minTime, minTime_);
-    maxTime_ = maxTime == 0 ? minTime_ + 10000 : qMax(maxTime, maxTime_);
+    maxTime_ = qMax(maxTime, maxTime_);
 
     /*if (rangeChanged)
         chartView_->setTimelineRange(minTime_, maxTime_);*/

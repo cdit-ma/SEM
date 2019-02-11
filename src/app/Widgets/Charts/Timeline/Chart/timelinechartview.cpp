@@ -529,12 +529,33 @@ void TimelineChartView::updateHoverDisplay()
 
 
 /**
- * @brief TimelineChartView::receivedRequestedEvents
+ * @brief TimelineChartView::addChartEvents
+ * @param experimentRunID
+ * @param experimentInfo
+ * @param events
+ */
+void TimelineChartView::addChartEvents(quint32 experimentRunID, QString experimentInfo, QList<MEDEA::Event*> events)
+{
+    addChartEvents(experimentRunID, events);
+
+    for (auto ID : eventEntityCharts.keys()) {
+        auto chart = eventEntityCharts.value(ID);
+        if (!chart || (chart->getExperimentRunID() != experimentRunID))
+            continue;
+        //chart->setToolTip(experimentInfo);
+        if (eventEntitySets.contains(ID))
+            eventEntitySets.value(ID)->setToolTip(experimentInfo);
+    }
+}
+
+
+/**
+ * @brief TimelineChartView::addChartEvents
  * This slot is called when response for a query request for the specified experiment run is received
  * @param experimentRunID
  * @param events
  */
-void TimelineChartView::receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events)
+void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Event*> events)
 {
     if (events.isEmpty())
         return;

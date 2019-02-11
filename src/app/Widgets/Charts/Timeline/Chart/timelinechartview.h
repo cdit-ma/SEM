@@ -56,7 +56,8 @@ public slots:
 
     void updateHoverDisplay();
 
-    void receivedRequestedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
+    void addChartEvents(quint32 experimentRunID, QString experimentInfo, QList<MEDEA::Event*> events);
+    void addChartEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
 private slots:
     void minSliderMoved(double ratio);

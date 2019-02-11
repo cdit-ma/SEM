@@ -26,6 +26,7 @@ public slots:
     void clear();
 
     void experimentRunSelected(ExperimentRun experimentRun);
+    void queryResponseReceived(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
 private:
     void updateTimelineRange();

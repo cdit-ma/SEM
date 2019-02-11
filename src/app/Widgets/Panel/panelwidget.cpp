@@ -841,7 +841,7 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
 void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
 {
     if (view && viewController) {
-        connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedEvents, view, &TimelineChartView::receivedRequestedEvents);
+        //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedEvents, view, &TimelineChartView::addChartEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearTimelineChart);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
     }
