@@ -507,10 +507,6 @@ void AxisSlider::maxSliderMoved(double max)
  */
 void AxisSlider::moveSliderRects(double min, double max)
 {
-    // cap the min/max so that the slider rects stay within the bounds
-    min = qMax(min, 0.0);
-    max = qMin(max, _sliderRange);
-
     // adjust min/max so that the sliders don't surpass each other
     double delta = max - min;
     if (delta < SLIDER_THICKNESS) {
@@ -522,10 +518,16 @@ void AxisSlider::moveSliderRects(double min, double max)
         min = max - SLIDER_THICKNESS;
     }
 
+    // cap the min/max so that the slider rects stay within the bounds
+    min = qMax(min, 0.0);
+    max = qMin(max, _sliderRange);
+
     if (_orientation == Qt::Horizontal) {
         _minSlider.moveLeft(min);
         _maxSlider.moveRight(max);
-        _midSlider = QRectF(_minSlider.topRight(), _maxSlider.bottomLeft());
+        // need to cap the mid slider's width when the min and max sliders are on top of each other
+        double cappedWidth = qMax(max - min - 2 * SLIDER_THICKNESS, -SLIDER_THICKNESS);
+        _midSlider = QRectF(min + SLIDER_THICKNESS, 0, cappedWidth, AXIS_THICKNESS);
     } else {
         _minSlider.moveTop(min);
         _maxSlider.moveBottom(max);

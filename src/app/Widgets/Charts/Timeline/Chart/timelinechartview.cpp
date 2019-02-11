@@ -530,6 +530,7 @@ void TimelineChartView::updateHoverDisplay()
 
 /**
  * @brief TimelineChartView::addChartEvents
+ * This slot is a shortcut to setting the experiment details as the new charts' tooltips
  * @param experimentRunID
  * @param experimentInfo
  * @param events
@@ -542,7 +543,6 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QString experime
         auto chart = eventEntityCharts.value(ID);
         if (!chart || (chart->getExperimentRunID() != experimentRunID))
             continue;
-        //chart->setToolTip(experimentInfo);
         if (eventEntitySets.contains(ID))
             eventEntitySets.value(ID)->setToolTip(experimentInfo);
     }
