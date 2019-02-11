@@ -1392,6 +1392,19 @@
         <xsl:value-of select="$rel_folder" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_worker_instance_from_function" as="element()*">
+        <xsl:param name="function_inst" as="element()"  />
+        <xsl:variable name="worker_instance" select="graphml:get_first_definition($function_inst)" />
+        <xsl:sequence select="graphml:get_parent_node($worker_instance)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_function_parameter_count" as="xs:integer">
+        <xsl:param name="function_inst" as="element()"  />
+        <xsl:variable name="function_def" select="graphml:get_definition($function_inst)" />
+        <xsl:variable name="parameter_parent" select="graphml:get_child_nodes_of_kind($function_def, ('InputParameterGroup', 'InputParameterGroupInstance'))" />
+        
+        <xsl:value-of select="count(graphml:get_child_nodes($parameter_parent))" />
+    </xsl:function>
 
 
     

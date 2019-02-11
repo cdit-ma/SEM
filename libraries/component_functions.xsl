@@ -370,7 +370,7 @@
                 <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_class_type, cdit:get_function_name(.)))" />
                 <xsl:variable name="port_type" select="cpp:join_args(('void', cpp:get_qualified_type(graphml:get_port_aggregate(.)) ))" />
 
-                <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', 'std::placeholders::_1')), '', 0)" />
+                <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', cpp:get_placeholders(1))), '', 0)" />
                 <xsl:variable name="args" select="cpp:join_args((o:wrap_dblquote($port_label), $call_back))" />
                 
                 <xsl:value-of select="cdit:comment_graphml_node(., $tab + 1)" />
@@ -390,7 +390,7 @@
                 <xsl:variable name="port_type" select="cdit:get_server_interface_template_type($server_interface)" />
                 <xsl:variable name="base_request_type" select="cdit:get_qualified_request_type_for_server_interface($server_interface, 'base')" />
                 
-                <xsl:variable name="extra_bind_args" select="if($base_request_type != 'void') then 'std::placeholders::_1' else ''" />
+                <xsl:variable name="extra_bind_args" select="if($base_request_type != 'void') then cpp:get_placeholders(1) else ''" />
                 
                 
                 <xsl:variable name="call_back" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', $extra_bind_args)), '', 0)" />
@@ -673,6 +673,33 @@
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:attach_callback_function">
+        <xsl:param name="callback_function" as="element()" />
+        <xsl:param name="qualified_class_type" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer"/>
+
+
+        <!-- //g_dis->SetPduCallback(std::bind(&CImpl::Cb_Got_PDU, this, std::placeholders::_1)); -->
+
+        <xsl:variable name="worker_inst" select="cdit:get_worker_instance_from_function($callback_function)" />
+        <xsl:variable name="callback_func_def" select="graphml:get_definition($callback_function)" />
+
+        <xsl:variable name="worker_var" select="cdit:get_variable_name($worker_inst)" />
+        <xsl:variable name="register_func" select="graphml:get_data_value($callback_func_def, 'operation')" />
+
+        
+        <xsl:variable name="input_parameter_count" select="cdit:get_function_parameter_count($callback_function)" />
+
+        <xsl:variable name="qualified_function_name" select="cpp:combine_namespaces(($qualified_class_type, cdit:get_function_name($callback_function)))" />
+        
+        <xsl:variable name="register_func" select="graphml:get_data_value($callback_func_def, 'operation')" />
+
+
+        <xsl:variable name="bind_function" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', cpp:get_placeholders($input_parameter_count))), '', 0)" />
+
+        <xsl:value-of select="cpp:invoke_function($worker_var, cpp:arrow(), $register_func, $bind_function, $tab)" />
     </xsl:function>
 
     <!--
@@ -999,6 +1026,19 @@
                 <xsl:value-of select="cdit:define_class_variable(., $tab + 1)" />
                 <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
             </xsl:for-each>
+
+            <!-- Define Custom Class Variables -->
+            <xsl:for-each select="$callback_functions">
+                <xsl:if test="position() = 1">
+                    <xsl:value-of select="cpp:comment('Attach callback functions', $tab + 1)" />
+                </xsl:if>
+                
+                <xsl:value-of select="cdit:attach_callback_function(., $qualified_impl_class_type, $tab + 1)" />
+
+                <xsl:value-of select="if (position() = last()) then o:nl(1) else ''" />
+            </xsl:for-each>
+
+            
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
 

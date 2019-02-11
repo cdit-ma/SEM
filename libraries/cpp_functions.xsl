@@ -988,4 +988,19 @@
         <xsl:variable name="primitive_types" select="'std::string', 'int', 'char', 'bool', 'double', 'float'" as="xs:string*" />
         <xsl:value-of select="$cpp_type = $primitive_types" />
     </xsl:function>
+
+    <!--
+    
+    -->
+    <xsl:function name="cpp:get_placeholders" as="xs:string">
+        <xsl:param name="count" as="xs:integer" />
+
+        <xsl:variable name="args_list" as="xs:string*">
+            <xsl:for-each select="1 to $count">
+                <xsl:value-of select="concat('std::placeholders::_', string(.))" />
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="cpp:join_args($args_list)" />
+    </xsl:function>
+    
 </xsl:stylesheet>
