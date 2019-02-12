@@ -61,3 +61,5 @@ RUN wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q -P /opt
         rm /opt/sigar* -rf
 
 ENV PUGIXML_PATH /usr/local
+
+RUN ldconfig

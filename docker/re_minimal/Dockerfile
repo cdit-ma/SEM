@@ -13,3 +13,6 @@ RUN     cd re && \
         cmake  -G Ninja ..  && \
         cmake --build .  && \
         cd /
+ENV LD_LIBRARY_PATH /re/lib
+
+RUN ldconfig
