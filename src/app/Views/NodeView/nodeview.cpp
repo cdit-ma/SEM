@@ -813,8 +813,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("database");
                 node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
                 break;
-                case NODE_KIND::DEPLOYMENT_CONTAINER:
-                    node_item = new DeploymentContainerNodeItem(item, parentNode);
+            case NODE_KIND::DEPLOYMENT_CONTAINER:
+                node_item = new DeploymentContainerNodeItem(item, parentNode);
                     break;
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parentNode);
@@ -825,19 +825,45 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::IDL:
                 node_item = new DefaultNodeItem(item, parentNode);
                 break;
+            case NODE_KIND::NAMESPACE:{
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                    node_item = stack_item;
+                }
+                node_item->setSecondaryTextKey("namespace");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+                break;
+            }
             case NODE_KIND::SHARED_DATATYPES:
-                node_item = new DefaultNodeItem(item, parentNode);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                    node_item = stack_item;
+                }
                 node_item->setSecondaryTextKey("version");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             case NODE_KIND::COMPONENT:
-                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Vertical);
+                    stack_item->SetRenderCellSuffixIcon(3, 0, true, "Icons", "plus");
+                    node_item = stack_item;
+                }
                 break;
             case NODE_KIND::COMPONENT_IMPL:
-                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    node_item = stack_item;
+                }
                 break;
             case NODE_KIND::CLASS:
-                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    node_item = stack_item;
+                }
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);
@@ -846,7 +872,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
                 node_item = new DefaultNodeItem(item, parentNode);
-                node_item->setSecondaryTextKey("replicate_count");
+                node_item->setSecondaryTextKey("replicate_value");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
@@ -855,7 +881,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::PORT_REQUEST_DELEGATE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
-
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
                 break;
@@ -927,9 +952,22 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
             case NODE_KIND::AGGREGATE:
-                node_item = new StackNodeItem(item, parentNode);
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    node_item = stack_item;
+                }
                 node_item->setSecondaryTextKey("namespace");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+                break;
+            case NODE_KIND::AGGREGATE_INSTANCE:
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    node_item = stack_item;
+                }
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::FUNCTION_CALL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
@@ -951,8 +989,20 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::VARIABLE:
                 node_item = new StackNodeItem(item, parentNode);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+
+                switch(item->getViewAspect()){
+                    case VIEW_ASPECT::ASSEMBLIES:{
+                        node_item->setSecondaryTextKey("value");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                        break;
+                    }
+                    default:{
+                        node_item->setSecondaryTextKey("type");
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                        break;
+                    }
+                }
+                
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
                 node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
@@ -960,11 +1010,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
-            case NODE_KIND::AGGREGATE_INSTANCE:
-                node_item = new StackNodeItem(item, parentNode, Qt::Vertical);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+
+            case NODE_KIND::ENUM:{
+                {
+                    auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                    node_item = stack_item;
+                }
                 break;
+            }
             case NODE_KIND::ENUM_INSTANCE:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
@@ -1124,6 +1179,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         if(node_kind == NODE_KIND::COMPONENT_IMPL || node_kind == NODE_KIND::CLASS){
                             stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
+                            stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                         }else{
                             stack_item->SetRenderCellArea(0, -1, true, true);
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);
@@ -1134,8 +1190,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellArea(0, 0, true);
                             stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
 
-                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellPrefixIcon(0, 0, true, "Icons", "arrowDownRightLong");
+                            stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                             stack_item->SetRenderCellHoverIcons(0, 0, true, "Icons", "plus");
                             
@@ -1144,23 +1200,26 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                         stack_item->SetRenderCellArea(1, 0, true, true);
                         stack_item->SetRenderCellText(1, 0, true, "Attributes");
+                        stack_item->SetUseColumnCount(1, 0, true);
                         stack_item->SetCellSpacing(1, 0, 10);
 
                         stack_item->SetRenderCellArea(1, 1, true, true);
                         stack_item->SetRenderCellText(1, 1, true, "Variables");
-                        //stack_item->SetRenderCellSuffixIcon(1, 1, true, "Icons", "plus");
+                        stack_item->SetUseColumnCount(1, 1, true);
                         stack_item->SetCellSpacing(1, 1, 10);
 
 
                         stack_item->SetRenderCellArea(1, -1, true, true);
                         stack_item->SetRenderCellText(1, -1, true, "Headers");
                         stack_item->SetCellOrientation(1, -1, Qt::Vertical);
+                        stack_item->SetUseColumnCount(1, -1, true);
 
                         stack_item->SetRenderCellArea(1, 2, true, true);
                         stack_item->SetRenderCellText(1, 2, true, "Workers");
+                        stack_item->SetUseColumnCount(1, 2, true);
                         stack_item->SetCellSpacing(1, 2, 10);
                     }else{
-                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP){
+                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INSTANCE){
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                         }
                     }

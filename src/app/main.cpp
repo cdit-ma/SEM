@@ -1,10 +1,12 @@
 #include <QApplication>
 #include <QString>
+#include <QCommandLineParser>
 
 #include "Controllers/ViewController/viewcontroller.h"
 #include "Controllers/WindowManager/windowmanager.h"
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
+#include "../modelcontroller/version.h"
 
 #include <iostream>
 #ifdef _WIN32
@@ -20,31 +22,50 @@ int launchMEDEA(int argc, char *argv[]){
     }
     #endif
 
+    QScopedPointer<ViewController> view_controller;
+
     int result = 0;
     try{
         //Construct a QApplication
         QApplication a(argc, argv);
 
+        //Fixes MacOS QIcon resolution.
+        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
         //Initialize images
         Q_INIT_RESOURCE(images);
         Q_INIT_RESOURCE(workers);
 
+        //Setup QApplication
+        a.setApplicationName("MEDEA");
+        a.setApplicationVersion(APP_VERSION());
+        a.setOrganizationName("CDIT-MA");
+        a.setOrganizationDomain("https://github.com/cdit-ma/");
+
+        //Handle Command line options
+        QCommandLineParser parser;
+        parser.addHelpOption();
+        parser.addVersionOption();
+        parser.addPositionalArgument("file", "Open a graphml project");
+        parser.process(a);
+
+        auto project_paths = parser.positionalArguments();
+
+
+        //Initialize images
+        Q_INIT_RESOURCE(images);
+        Q_INIT_RESOURCE(workers);
+
+
+        //Initialize important singletons
         Theme::theme();
-
-        //Fixes MacOS QIcon resolution.
-        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-
-        //Construct a SettingsController and ViewController
-        auto settings_controller = SettingsController::settings();
+        SettingsController::settings();
         
-        auto view_controller = new ViewController();
+        view_controller.reset(new ViewController());
         
-        auto window = WindowManager::manager()->constructMainWindow(view_controller);
-        if (argc == 2) {
-            QString projectPath = QString::fromUtf8(argv[1]);
-            if(!projectPath.isEmpty()){
-                view_controller->OpenExistingProject(projectPath);
-            }
+        auto window = WindowManager::manager()->constructMainWindow(view_controller.data());
+        if (project_paths.size() == 1) {
+            view_controller->OpenExistingProject(project_paths.first());
         }
         a.setActiveWindow(window);
 
@@ -53,10 +74,6 @@ int launchMEDEA(int argc, char *argv[]){
         std::cerr << "MEDEA Exception: " << ex.what() << std::endl;
         result  = 1;
     }
-
-    //Teardown singletons
-    SettingsController::teardownSettings();
-    Theme::teardownTheme();
     return result;
 }
 

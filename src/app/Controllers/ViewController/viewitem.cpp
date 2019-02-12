@@ -8,6 +8,10 @@
 #include <QStack>
 #include <QQueue>
 
+const QSet<QString> ViewItem::permanent_protected_keys({"ID"});
+const QSet<QString> ViewItem::permanent_editable_keys({"column_count"});
+
+
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
     auto a_kind = a->getData(KeyName::Label).toString();
     auto b_kind = b->getData(KeyName::Label).toString();
@@ -37,8 +41,6 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->ID = ID;
     this->entityKind = entity_kind;
     //Add X/Y
-
-    permanent_protected_keys.insert("ID");
     changeData("ID", ID);
     
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
@@ -46,10 +48,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
-    if(_parent){
-        _parent->removeChild(this);
-        _parent = 0;
-    }
+    Disconnect();
 
     while(child_nodes_.size()){
         removeChild(*child_nodes_.begin());
@@ -116,7 +115,7 @@ bool ViewItem::hasData(const QString& keyName) const
 
 bool ViewItem::isDataProtected(const QString& key_name) const
 {
-    if(isReadOnly()){
+    if(isReadOnly() && !permanent_editable_keys.contains(key_name)){
         return true;
     }else{
         return permanent_protected_keys.contains(key_name) || protected_keys.contains(key_name);
@@ -175,13 +174,17 @@ const IconPair& ViewItem::getIcon() const
     }
 }
 
-void ViewItem::destruct()
-{
-    /*if(_parent){
+void ViewItem::Disconnect(){
+    if(_parent){
         _parent->removeChild(this);
         _parent = 0;
-    }*/
-    
+    }
+}
+
+void ViewItem::destruct()
+{
+    Disconnect();
+
     if(hasRegisteredObjects()){
         emit destructing(ID);
     }else{
@@ -205,6 +208,7 @@ void ViewItem::addChild(ViewItem *child)
         if(set.size() > pre_size){
             child->setParentViewItem(this);
             connect(child, &ViewItem::notificationsChanged, this, &ViewItem::nestedNotificationsChanged);
+            connect(child, &ViewItem::nestedNotificationsChanged, this, &ViewItem::nestedNotificationsChanged);
             childAdded(child);
         }
     }

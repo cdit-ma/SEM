@@ -9,6 +9,7 @@ enum class SETTINGS{
     // GENERAL
     GENERAL_MODEL_PATH,
     GENERAL_RE_CONFIGURE_PATH,
+    GENERAL_REGEN_PATH,
     GENERAL_CMAKE_GENERATOR,
     GENERAL_MEDEA_WIKI_URL,
     GENERAL_AUTOSAVE_DURATION,
@@ -68,6 +69,7 @@ enum class SETTINGS{
     THEME_TEXT_SELECTED_COLOR,
     THEME_ICON_SELECTED_COLOR,
     THEME_VIEW_BORDER_SELECTED_COLOR,
+    THEME_INACTIVE_EDGE_OPACITY,
 
     THEME_ASPECT_BG_INTERFACES_COLOR,
     THEME_ASPECT_BG_BEHAVIOUR_COLOR,
@@ -102,7 +104,8 @@ enum class SETTING_TYPE{
     FILE,
     BUTTON,
     STRINGLIST,
-    BYTEARRAY
+    BYTEARRAY,
+    PERCENTAGE
 };
 
 
@@ -147,10 +150,7 @@ private:
 
 public:
     static SettingsController* settings();
-    static void teardownSettings();
     static void initializeSettings();
-private:
-    static SettingsController* settingsSingleton;
 };
 
 inline uint qHash(SETTINGS key, uint seed)

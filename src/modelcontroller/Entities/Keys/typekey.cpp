@@ -112,34 +112,6 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
 
 #include <QDebug>
 
-void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
-    auto src_inner_type_data = src->getData(KeyName::InnerType);
-    auto src_outer_type_data = src->getData(KeyName::OuterType);
-    auto src_type_data = src->getData(KeyName::Type);
-
-    auto dst_inner_type_data = dst->getData(KeyName::InnerType);
-    auto dst_outer_type_data = dst->getData(KeyName::OuterType);
-    auto dst_type_data = dst->getData(KeyName::Type);
-
-    //Got fully described data
-    if(src_inner_type_data && src_outer_type_data && src_type_data){
-        if(dst_inner_type_data){
-            src_inner_type_data->linkData(dst_inner_type_data, bind);
-        }
-        if(dst_outer_type_data){
-            src_outer_type_data->linkData(dst_outer_type_data, bind);
-        }
-        if(dst_type_data){
-            src_type_data->linkData(dst_type_data, bind);
-        }
-    }else if(src_type_data){
-        if(dst_inner_type_data){
-            src_type_data->linkData(dst_inner_type_data, bind);
-        }else if(dst_type_data){
-            src_type_data->linkData(dst_type_data, bind);
-        }
-    }
-}
 
 void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
     auto namespace_data = node->getData(KeyName::Namespace);
@@ -151,13 +123,19 @@ void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
     }
 }
 
-void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
-    auto src_type_data = src->getData(KeyName::Type);
-    auto dst_type_data = dst->getData(KeyName::Type);
-    
-    if(src_type_data && dst_type_data){
-        src_type_data->linkData(dst_type_data, bind);
+bool TypeKey::BindTypes(Node* src, Node* dst, bool bind_outer, bool bind){
+    //Try bind Inner to Inner
+    auto success = Data::LinkData(src, KeyName::InnerType, dst, KeyName::InnerType, bind);
+    if(!success){
+        //Try Type to Inner
+        success = Data::LinkData(src, KeyName::Type, dst, KeyName::InnerType, bind);
     }
+    if(success && bind_outer){
+        success = Data::LinkData(src, KeyName::OuterType, dst, KeyName::OuterType, bind);
+    }else{
+        success = Data::LinkData(src, KeyName::Type, dst, KeyName::Type, bind);
+    }
+    return success;
 }
 
 bool TypeKey::CompareTypes(Node* node_1, Node* node_2){

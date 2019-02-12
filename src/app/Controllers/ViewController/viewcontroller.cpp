@@ -124,7 +124,6 @@ void ViewController::SettingChanged(SETTINGS key, QVariant value){
 
 void ViewController::AutosaveDurationChanged(int duration_minutes){
     is_autosave_enabled_ = duration_minutes > 0;
-    qCritical() << "Autosave:" << (is_autosave_enabled_ ? "ENABLED " : "DISABLED");
     if(is_autosave_enabled_){
         //Set new timer interval in milliseconds
         autosave_timer_.setInterval(duration_minutes * 60000);
@@ -1151,25 +1150,18 @@ void ViewController::TeardownController()
     if (controller) {
         setControllerReady(false);
         emit selectionController->clearSelection();
-
-         
-       
+        
         emit ProjectFileChanged("");
         emit ProjectModified(false);
         
         ResetViewItems();
+        
 
-        //This will destruct!
         disconnect(controller);
         controller->disconnect(this);
         emit controller->InitiateTeardown();
         controller = 0;
-
-
-
         
-
-
         auto manager = NotificationManager::manager();
         
         // Clear previous validation notification items
@@ -1273,7 +1265,7 @@ bool ViewController::_closeProject(bool show_welcome)
                                 "Do you want to save the changes made to '" + file_path + "'?",
                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                 WindowManager::manager()->getMainWindow());
-            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
+            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", Theme::theme()->getLargeIconSize()));
             msgBox.setButtonText(QMessageBox::Yes, "Save");
             msgBox.setButtonText(QMessageBox::No, "Ignore");
 
@@ -1436,7 +1428,7 @@ void ViewController::NodeTypesChanged(int id)
     auto node_item = getNodeViewItem(id);
     if(node_item){
         if(controller){
-            auto node_types = controller->getNodesTypes(id);
+            const auto& node_types = controller->getNodesTypes(id);
             node_item->setNodeTypes(node_types);
         }
     }

@@ -34,7 +34,7 @@ void EventPort::setPortType(Node* port_type){
     if(!getPortType()){
         this->port_type = port_type;
         //Do binding!
-        TypeKey::BindTypes(port_type, this, true);
+        TypeKey::BindTypes(port_type, this, false, true);
     }
 }
 
@@ -54,7 +54,7 @@ Node* EventPort::getPortType(){
 void EventPort::unsetPortType()
 {
     if(port_type){
-        TypeKey::BindTypes(port_type, this, false);
+        TypeKey::BindTypes(port_type, this, false, false);
         port_type = 0;
     }
 }

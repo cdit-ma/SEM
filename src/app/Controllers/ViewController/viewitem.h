@@ -87,14 +87,14 @@ protected:
     void removeData(const QString& keyName);
     virtual void childAdded(ViewItem* child);
     virtual void childRemoved(ViewItem* child);
+
+    virtual void Disconnect();
     
 
     ViewController* getController();
 private:
     void destruct();
-
 private:
-
     ViewItem* _parent = 0;
     DataTableModel* table_model_ = 0;
 
@@ -105,7 +105,8 @@ private:
 
     QHash<QString, QVariant> _data;
     QSet<QString> protected_keys;
-    QSet<QString> permanent_protected_keys;
+    static const QSet<QString> permanent_protected_keys;
+    static const QSet<QString> permanent_editable_keys;
 
 
     int ID;

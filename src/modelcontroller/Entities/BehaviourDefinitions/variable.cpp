@@ -47,10 +47,10 @@ bool Variable::canAdoptChild(Node* child)
 
 void Variable::childAdded(Node* child){
     DataNode::childAdded(child);
-    TypeKey::BindInnerAndOuterTypes(child, this, true);
+    TypeKey::BindTypes(child, this, true, true);
 }
 
 void Variable::childRemoved(Node* child){
     DataNode::childRemoved(child);
-    TypeKey::BindInnerAndOuterTypes(child, this, false);
+    TypeKey::BindTypes(child, this, true, false);
 }

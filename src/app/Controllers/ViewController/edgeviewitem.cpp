@@ -29,7 +29,6 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString l
 EdgeViewItem::~EdgeViewItem()
 {
     disconnectEdge();
-    
 }
 
 EDGE_KIND EdgeViewItem::getEdgeKind() const
@@ -75,4 +74,9 @@ void EdgeViewItem::disconnectEdge()
         destination->removeEdgeItem(this);
         destination = 0;
     }
+}
+
+void EdgeViewItem::Disconnect(){
+    disconnectEdge();
+    ViewItem::Disconnect();
 }

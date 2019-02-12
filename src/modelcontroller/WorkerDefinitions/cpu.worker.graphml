@@ -22,7 +22,7 @@
     <graph id="G">
         <node id="cpuworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>
@@ -50,6 +50,24 @@
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
                                 </node>
+                                <node id="cpuworker::intop::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::intop::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
                             </graph>
                         </node>
                     </graph>
@@ -72,6 +90,24 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::floatop::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::floatop::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
                                 </node>
                             </graph>
                         </node>
@@ -96,6 +132,24 @@
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
                                 </node>
+                                <node id="cpuworker::whetstone::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::whetstone::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
                             </graph>
                         </node>
                     </graph>
@@ -118,6 +172,24 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::mwip::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::mwip::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
                                 </node>
                             </graph>
                         </node>
@@ -142,6 +214,24 @@
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
                                 </node>
+                                <node id="cpuworker::dhrystone::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::dhrystone::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
                             </graph>
                         </node>
                     </graph>
@@ -164,6 +254,24 @@
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">clockCycle</data>
                                     <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::dmip::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::dmip::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
                                 </node>
                             </graph>
                         </node>

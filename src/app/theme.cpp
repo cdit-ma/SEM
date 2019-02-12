@@ -10,18 +10,10 @@
 #include <QAction>
 #include <QApplication>
 #include "../modelcontroller/entityfactory.h"
-
-
-
-Theme* Theme::themeSingleton = 0;
+#include <QPainter>
 
 Theme::Theme() : QObject(0)
-  //,lock(QReadWriteLock::Recursive)
 {
-    //Set up the default colors
-    iconColor = QColor(70,70,70);
-    selectedItemBorderColor = Qt::blue;
-
     //Get the original settings from the settings.
     setupAliasIcons();
     setupToggledIcons();
@@ -33,6 +25,7 @@ Theme::Theme() : QObject(0)
 
 Theme::~Theme()
 {
+    entity_icons_load_future.waitForFinished();
 }
 
 QColor Theme::white()
@@ -91,8 +84,6 @@ QString Theme::getHighlightColorHex()
 
 QColor Theme::getPressedColor()
 {
-    //return highlightColor.lighter(110);
-    //return highlightColor.lighter(105);
     return highlightColor.darker(105);
 }
 
@@ -121,21 +112,25 @@ void Theme::setActiveWidgetBorderColor(QColor color)
     }
 }
 
-QSize Theme::roundQSize(QSize size)
+inline uint qHash(const QSize &size, uint seed)
+{
+
+    return ::qHash(QPair<int,int>(size.width(), size.height()), seed);
+}
+
+
+void Theme::roundQSize(QSize& size)
 {
     int factor = 1;
     //Bitshift round to power of 2
     while((factor <<= 1 ) <= size.width()>>1);
 
     //Scale the request image size to a width = factor
-    int newWidth = factor;
-    int newHeight = (double) factor * ((double)size.width() / (double)size.height());
-    size.setWidth(newWidth);
-    size.setHeight(newHeight);
-    return size;
+    size.setWidth(factor);
+    size.setHeight(factor);
 }
 
-IconPair Theme::getIconPair(QString prefix, QString alias)
+IconPair Theme::getIconPair(const QString& prefix, const QString& alias)
 {
     return IconPair(prefix, alias);
 }
@@ -165,6 +160,14 @@ void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){
         backgroundColor = color;
+        updateValid();
+    }
+}
+
+void Theme::setInactiveEdgeOpacity(qreal opacity)
+{
+    if(inactive_opacity_ != opacity){
+        inactive_opacity_ = opacity;
         updateValid();
     }
 }
@@ -287,21 +290,13 @@ void Theme::setIconToggledImage(const QString& prefix, const QString& alias, con
         icon_toggle.on_normal = icon_toggle.off_normal;
     }
 
-    iconToggledLookup[name] = QPair<IconPair, IconPair>(toggled_on, toggled_off);
-    iconToggledLookup2[name] = icon_toggle;
+    iconToggledLookup.insert(name, icon_toggle);
 }
 
 QColor Theme::getMainImageColor(const QString& prefix, const QString& alias)
 {
-    QString key = getResourceName(prefix, alias);
-    if(pixmapTintLookup.contains(key)){
-        return pixmapTintLookup[key];
-    }else if(pixmapMainColorLookup.contains(key)){
-        return pixmapMainColorLookup[key];
-    }else{
-        //qCritical() << key << " Doesn't have pixel data?!";
-        return QColor();
-    }
+    const auto& key = getResourceName(prefix, alias);
+    return pixmapMainColorLookup.value(key, QColor());
 }
 
 QColor Theme::getMainImageColor(IconPair path)
@@ -312,7 +307,6 @@ QColor Theme::getMainImageColor(IconPair path)
 
 void Theme::applyTheme()
 {
-    clearIconMap();
     themeChanged = false;
     emit theme_Changed();
 }
@@ -356,23 +350,21 @@ QIcon Theme::getIcon(IconPair icon)
 QIcon Theme::getIcon(const QString& prefix, const QString& alias)
 {
     const auto resource_name = getResourceName(prefix, alias);
-
     {
         QReadLocker lock(&lock_);
         if(iconLookup.contains(resource_name)){
-            return iconLookup[resource_name];
+            return iconLookup.value(resource_name);
         }
     }
 
     QIcon icon;
-    if(prefix.size() && alias.size()){
 
+    if(prefix.size() && alias.size()){
         IconToggle icon_toggle;
 
-
         //Check if we have a toggled Icon
-        if(iconToggledLookup2.contains(resource_name)){
-            icon_toggle = iconToggledLookup2.value(resource_name);
+        if(iconToggledLookup.contains(resource_name)){
+            icon_toggle = iconToggledLookup.value(resource_name);
         }else{
             icon_toggle.off.first = prefix;
             icon_toggle.off.second = alias;
@@ -384,36 +376,36 @@ QIcon Theme::getIcon(const QString& prefix, const QString& alias)
         bool is_off_tinted = tintIcon(off_rn);
         bool is_on_tinted = tintIcon(on_rn);
 
-        QSize blank_size;
+        auto icon_size = getLargeIconSize() * 2;
 
         //Handle Off State
         {
             //Set the default states.
-            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_normal)), QIcon::Normal, QIcon::Off);
+            icon.addPixmap(_getPixmap(off_rn, icon_size, getMenuIconColor(icon_toggle.off_normal)), QIcon::Normal, QIcon::Off);
             
             if(is_off_tinted){
-                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_active)), QIcon::Active, QIcon::Off);
-                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_disabled)), QIcon::Disabled, QIcon::Off);
+                icon.addPixmap(_getPixmap(off_rn, icon_size, getMenuIconColor(icon_toggle.off_active)), QIcon::Active, QIcon::Off);
+                icon.addPixmap(_getPixmap(off_rn, icon_size, getMenuIconColor(icon_toggle.off_disabled)), QIcon::Disabled, QIcon::Off);
             }
         }
 
             
         //Handle On State
         if(icon_toggle.got_toggle){
-            icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(on_rn, icon_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
 
             if(is_on_tinted){
-                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_active)), QIcon::Active, QIcon::On);
-                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
+                icon.addPixmap(_getPixmap(on_rn, icon_size, getMenuIconColor(icon_toggle.on_active)), QIcon::Active, QIcon::On);
+                icon.addPixmap(_getPixmap(on_rn, icon_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
             }
         }else{
-            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
-            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, icon_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, icon_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
         }
 
         {
             QWriteLocker lock(&lock_);
-            iconLookup[resource_name] = icon;
+            iconLookup.insert(resource_name, icon);
         }
     }
     return icon;
@@ -422,39 +414,38 @@ QIcon Theme::getIcon(const QString& prefix, const QString& alias)
 QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintColor)
 {
     //Get the name of the pixmap url
-    QString pixmap_url = getPixmapResourceName(resourceName, size, tintColor);
-
+    auto pixmap_url = getPixmapResourceName(resourceName, size, tintColor);
     {
-        QReadLocker lock(&pixmap_lock_);
-
-         if(pixmapLookup.contains(pixmap_url)){
-            //Get the pixmap from the lookup
+        QReadLocker lock(&lock_);
+        if(pixmapLookup.contains(pixmap_url)){
             return pixmapLookup.value(pixmap_url);
         }
     }
 
     //Get the Image (Load it if it isn't loaded)
     QImage image = getImage(resourceName);
+    QPixmap pixmap;
 
     if(!image.isNull()){
         //Get the size of the original Image
         QSize original_size = image.size();
 
-        //If we haven't got a tint color, get a default tint color (If Any)
-        if(!tintColor.isValid()){
-            tintColor = getTintColor(resourceName);
-        }
-
         //If we have been given a size, which is different to the original size, round it
         if(size.isValid() && size != original_size){
-            size = roundQSize(size);
+            roundQSize(size);
             //Scale the image
             image = image.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         }
 
+        bool tint_icon = tintIcon(original_size);
+
+        if(tint_icon && !tintColor.isValid()){
+            tintColor = getMenuIconColor();
+        }
+
         //Tint the icon if we have to
-        if(tintColor.isValid() && tintIcon(original_size)){
-            //Replace the image with it's alphaChannel
+        if(tint_icon && tintColor.isValid()){
+            //Replace the image with it's alpha channel
             image = image.alphaChannel();
 
             //Replace the colors with the tinted color.
@@ -465,16 +456,16 @@ QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintCo
         }
 
         //Construct a Pixmap from the image.
-        auto pixmap = QPixmap::fromImage(image);
+        pixmap = QPixmap::fromImage(image);
 
         {
-            QWriteLocker lock(&pixmap_lock_);
-            //Store it in the pixmap map
-            pixmapLookup[pixmap_url] = pixmap;
+            QWriteLocker lock(&lock_);
+            if(!pixmapLookup.contains(pixmap_url)){
+                pixmapLookup.insert(pixmap_url, pixmap);
+            }
         }
-        return pixmap;
     }
-    return QPixmap();
+    return pixmap;
 }
 
 QPixmap Theme::getImage(const QString& prefix, const QString& alias, QSize size, QColor tintColor)
@@ -482,19 +473,26 @@ QPixmap Theme::getImage(const QString& prefix, const QString& alias, QSize size,
     return _getPixmap(getResourceName(prefix, alias), size, tintColor);
 }
 
+
 QString Theme::getPixmapResourceName(QString resource_name, QSize size, QColor tintColor)
 {
-
     QSize original_size = pixmapSizeLookup.value(resource_name);
 
     if(size.isValid() && size != original_size){
-        size = roundQSize(size);
-        resource_name = resource_name % '_' % QString::number(size.width()) % '_' % QString::number(size.height());
+        roundQSize(size);
+        resource_name += QString("_%1_%2").arg(size.width()).arg(size.height());
     }
 
-    if(tintColor.isValid()){
-        resource_name = resource_name % '_' % QColorToHex(tintColor);
+    bool tint_pixmap = tintIcon(original_size);
+
+    if(tint_pixmap && !tintColor.isValid()){
+        tintColor = getMenuIconColor();
     }
+
+    if(tint_pixmap && tintColor.isValid()){
+        resource_name += QColorToHex(tintColor);
+    }
+
     return resource_name;
 }
 
@@ -548,9 +546,28 @@ QString Theme::getScrollBarStyleSheet()
            "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
            "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
-
-
             ;
+}
+
+qreal Theme::getInactiveEdgeOpacity(){
+    return inactive_opacity_;   
+}
+
+QString Theme::getSliderStyleSheet()
+{
+    return "QSlider {"
+           "margin: 0px;"
+           "}"
+           "QSlider::groove:horizontal {"
+           "background: " % getBackgroundColorHex() % ";"
+           "border: 1px solid " % getAltBackgroundColorHex() % ";"
+           "}"
+           "QSlider::handle{background: " % getAltBackgroundColorHex() % ";"
+           "width:10px;"
+           "}"
+           "QSlider::handle:active{background: " % getHighlightColorHex() % ";}"
+           "QSlider::sub-page {background: " % getDisabledBackgroundColorHex() % ";border: 1px solid " % getAltBackgroundColorHex() % ";}"
+           ;
 }
 
 QString Theme::getDialogStyleSheet()
@@ -578,7 +595,9 @@ QSize Theme::getLargeIconSize(){
 }
 void Theme::setIconSize(int size){
 
-    auto new_size = roundQSize(QSize(size, size));
+    QSize new_size(size, size);
+
+    roundQSize(new_size);
     if(new_size != icon_size){
         icon_size = new_size;
         updateValid();
@@ -611,18 +630,6 @@ QMovie* Theme::getGif(const QString& path, const QString& name){
 
 QString Theme::getTabbedWidgetStyleSheet()
 {
-    /*
-    return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getSharpCornerRadius() % "; border: 1px solid " % getDisabledBackgroundColorHex() % ";}"
-           "QTabBar::tab:top{ padding: 5px 10px; margin: 5px 1px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; }"
-           "QTabBar::tab:right{ padding: 10px 5px; margin: 1px 5px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; }"
-           //"QTabBar::tab:selected{ background:" % getPressedColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
-           "QTabBar::tab:selected{ border-width: 2px; background:" % getBackgroundColorHex() % "; font-weight: bold; padding: 5px; margin: 1px; }"
-           "QTabBar::tab:hover{ background:" % getHighlightColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
-           "QTabBar, QTabWidget::tab-bar{ alignment: center; qproperty-drawBase: 0; border: 0px; }"
-           "QTabWidget::pane, QTabBar::pane{ border-bottom: 2px solid red; background:" % getBackgroundColorHex() % ";}"
-           ;
-           */
-
     return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getCornerRadius() % "; border: 1px solid " % getBackgroundColorHex() % ";}"
            "QTabBar::tab:top{ border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; margin: 1px 0px; padding: 5px 10px; }"
            "QTabBar::tab:right{ border-top-right-radius: 0px; border-bottom-right-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"
@@ -1021,43 +1028,52 @@ QString Theme::getToolTipStyleSheet()
 void Theme::preloadImages()
 {   
     auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    int load_count = 0;
-
-    //Recurse through all files in the image alias.
-    QDirIterator it(":/Images/", QDirIterator::Subdirectories);
-
     
-    QList<QString> files;
-    {
-        QWriteLocker lock(&lock_);
-        while (it.hasNext()){
-            it.next();
-            if(it.fileInfo().isFile()){
-                //Trim the :/ from the path1
-                QString file_path = it.filePath().mid(2);
-                files << file_path;
-                image_names.insert(file_path);
+    //Recurse through all files in the image alias.
+    QDirIterator it(":/Images", QDirIterator::Subdirectories);
+
+    QList<QString> preload_Icons;
+    QList<QString> preload_EntityIcons;
+
+    while(it.hasNext()){
+        it.next();
+        if(it.fileInfo().isFile()){
+            const auto& file_path = it.filePath().mid(2);
+            image_names.insert(file_path);
+            
+            if(file_path.startsWith("Images/EntityIcons/")){
+                preload_EntityIcons << file_path;
+            }else{
+                preload_Icons << file_path;
             }
         }
     }
 
-
-    auto results = QtConcurrent::blockingMapped(files, &Theme::LoadImage);
-
-    {
-        QWriteLocker lock(&lock_);
+    entity_icons_load_future = QtConcurrent::run([=](){
+        auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        auto results = QtConcurrent::blockingMapped(preload_EntityIcons, &Theme::LoadImage);
+        
         for(const auto& i : results){
+            QWriteLocker lock(&lock_);
             icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
-
             imageLookup[i.resource_name] = i.image;
             pixmapSizeLookup[i.resource_name] = i.image.size();
             pixmapMainColorLookup[i.resource_name] = i.color;
         }
+        auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Preloaded EntityIcons #" << results.count() << " Images in: " <<  time_finish - time_start << "MS";
+    });
+
+    auto results = QtConcurrent::blockingMapped(preload_Icons, &Theme::LoadImage);
+    for(const auto& i : results){
+        icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
+        imageLookup[i.resource_name] = i.image;
+        pixmapSizeLookup[i.resource_name] = i.image.size();
+        pixmapMainColorLookup[i.resource_name] = i.color;
     }
-    
+
     auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Preloaded #" << files.count() << " Images in: " <<  time_finish - time_start << "MS";
-    clearIconMap();
+    qCritical() << "Preloaded #" << preload_Icons.count() << " Images in: " <<  time_finish - time_start << "MS";
     emit theme_Changed();
 }
 
@@ -1068,6 +1084,10 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
     switch(setting){
     case SETTINGS::THEME_BG_COLOR:{
         setBackgroundColor(color);
+        break;
+    }
+    case SETTINGS::THEME_INACTIVE_EDGE_OPACITY:{
+        setInactiveEdgeOpacity(value.toInt() / 100.0);
         break;
     }
     case SETTINGS::THEME_BG_ALT_COLOR:{
@@ -1179,8 +1199,6 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         setSeverityColor(Notification::Severity::SUCCESS, color);
         break;
     }
-
-    
     case SETTINGS::THEME_SETASPECT_COLORBLIND:{
         resetAspectTheme(true);
         break;
@@ -1193,11 +1211,6 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
     }
 }
 
-void Theme::clearIconMap()
-{
-    QWriteLocker lock(&lock_);
-    iconLookup.clear();
-}
 
 QColor Theme::CalculateImageColor(const QImage& image)
 {
@@ -1225,8 +1238,6 @@ QColor Theme::CalculateImageColor(const QImage& image)
             if(r < f && g < f && b < f){
                 continue;
             }
-
-            
 
             if(color_count.contains(pixel)){
                 color_count[pixel] ++;
@@ -1316,6 +1327,7 @@ void Theme::setIconAlias(const QString& prefix, const QString& alias, const QStr
 }
 
 void Theme::resetTheme(ThemePreset themePreset){
+    current_theme = themePreset;
     //Solarized
     QColor base03("#002b36");
     QColor base02("#073642");
@@ -1333,6 +1345,11 @@ void Theme::resetTheme(ThemePreset themePreset){
     QColor blue("#268bd2");
     QColor cyan("#2aa198");
     QColor green("#859900");
+
+    
+    iconLookup.clear();
+
+    emit changeSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, 50);
 
     switch(themePreset){
         case ThemePreset::DARK_THEME:{
@@ -1487,45 +1504,57 @@ void Theme::resetAspectTheme(bool colorBlind)
 
 void Theme::updateValid()
 {
-    bool gotAllColors = true;
-    if(highlightColor.isValid() && backgroundColor.isValid() && altBackgroundColor.isValid() && iconColor.isValid() && disabledBackgroundColor.isValid()){
-        QList<ColorRole> states;
-        states << ColorRole::NORMAL << ColorRole::DISABLED << ColorRole::SELECTED;
+    const static QList<ColorRole> states({ColorRole::NORMAL,ColorRole::DISABLED,ColorRole::SELECTED});
+    themeChanged = true;
 
-        foreach(ColorRole state, states){
-            QColor tColor = textColor[state];
-            QColor iColor = menuIconColor[state];
-
-            if(tColor.isValid() && iColor.isValid()){
-               continue;
-            }else{
-                gotAllColors = false;
-                break;
-            }
-        }
-
-        for(auto aspect : EntityFactory::getViewAspects()){
-            QColor color = aspectColor[aspect];
-
-            if(color.isValid()){
-               continue;
-            }else{
-                gotAllColors = false;
-                break;
-            }
-        }
-        for(auto severity : Notification::getSeverities()){
-            if(!severityColor.contains(severity)){
-                gotAllColors = false;
-                break;
-            }
-        }
-    }else{
-        gotAllColors = false;
+    if(!highlightColor.isValid()){
+        valid = false;
+        return;
     }
 
-    valid = gotAllColors;
-    themeChanged = true;
+    if(!backgroundColor.isValid()){
+        valid = false;
+        return;
+    }
+
+    if(!altBackgroundColor.isValid()){
+        valid = false;
+        return;
+    }
+
+    if(!disabledBackgroundColor.isValid()){
+        valid = false;
+        return;
+    }
+        
+    for(const auto& state : states){
+        auto text_color = textColor.value(state, QColor());
+        auto icon_color = menuIconColor.value(state, QColor());
+
+        if(!text_color.isValid() || !icon_color.isValid()){
+            valid = false;
+            return;
+        }
+    }
+
+    for(const auto& aspect : EntityFactory::getViewAspects()){
+        auto aspect_color = aspectColor.value(aspect, QColor());
+
+        if(!aspect_color.isValid()){
+            valid = false;
+            return;
+        }
+    }
+
+    for(const auto&  severity : Notification::getSeverities()){
+        auto severity_color = severityColor.value(severity, QColor());
+
+        if(!severity_color.isValid()){
+            valid = false;
+            return;
+        }
+    }
+    valid = true;
 }
 
 Theme::ImageLoad Theme::LoadImage(const QString& resource_name){
@@ -1551,29 +1580,20 @@ QImage Theme::getImage(const QString& resource_name)
         }
     }
 
-    if(gotImage(resource_name)){
+    if(!gotImage(resource_name)){
         return QImage();
     }
 
-
     auto i = LoadImage(resource_name);
-    {
-        
-        if(!i.image.isNull()){
-            QWriteLocker lock(&lock_);
-            icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
-            imageLookup[i.resource_name] = i.image;
-            pixmapSizeLookup[i.resource_name] = i.image.size();
-            pixmapMainColorLookup[i.resource_name] = i.color;
-        }
+    if(!i.image.isNull()){
+        QWriteLocker lock(&lock_);
+        icon_prefix_lookup[i.image_path.first].insert(i.image_path.second);
+        imageLookup[i.resource_name] = i.image;
+        pixmapSizeLookup[i.resource_name] = i.image.size();
+        pixmapMainColorLookup[i.resource_name] = i.color;
     }
-    return i.image;
-}
 
-QColor Theme::getTintColor(const QString& resource_name)
-{
-    QReadLocker lock(&lock_);
-    return pixmapTintLookup.value(resource_name, iconColor);
+    return i.image;
 }
 
 
@@ -1601,29 +1621,23 @@ bool Theme::tintIcon(IconPair pair){
 bool Theme::tintIcon(const QString& resource_name){
     return tintIcon(pixmapSizeLookup.value(resource_name, QSize(0, 0)));
 }
+
 bool Theme::tintIcon(QSize size)
 {
     return size.width() > 0 && size.width() % 96 == 0;
 }
 
-QString Theme::QColorToHex(const QColor color)
+QString Theme::QColorToHex(const QColor& color)
 {
     return color.name(QColor::HexArgb);
 }
 
 Theme *Theme::theme()
 {
-    if(!themeSingleton){
-        themeSingleton = new Theme();
-    }
-    return themeSingleton;
+    static Theme theme;
+    return &theme;
 }
 
-void Theme::teardownTheme()
-{
-    delete themeSingleton;
-    themeSingleton = 0;
-}
 
 CustomMenuStyle::CustomMenuStyle(int icon_size) : QProxyStyle("Windows"){
     this->icon_size = icon_size;
@@ -1641,6 +1655,7 @@ int CustomMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option,
 QStringList Theme::getIconPrefixs(){
     return icon_prefix_lookup.keys();
 }
+
 QStringList Theme::getIcons(const QString& icon_prefix){
     QStringList icons;
     if(icon_prefix_lookup.contains(icon_prefix)){

@@ -411,7 +411,7 @@ bool Node::containsChild(Node *child)
     return new_nodes_.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth) const
 {
     auto child_list = getOrderedChildNodes();
 
@@ -496,12 +496,12 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
     return getChildrenOfKinds({kind}, depth);
 }
 
-int Node::getChildrenCount()
+int Node::getChildrenCount() const
 {
     return new_nodes_.size();
 }
 
-int Node::getChildrenOfKindCount(NODE_KIND kind){
+int Node::getChildrenOfKindCount(NODE_KIND kind) const{
     return node_kind_count_.value(kind, 0);
 }
 
@@ -735,21 +735,27 @@ QSet<Node *> Node::getImplementations() const
 QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> dependants;
+    getNestedDependants_(dependants);
+    return dependants;
+}
 
+void Node::getNestedDependants_(QSet<Node*>& dependants){
     //All our children are dependants
-    for(auto child : getAllChildren()){
-        dependants += child;
-        dependants += child->getNestedDependants();
+    for(auto child : getOrderedChildNodes()){
+        if(!dependants.contains(child)){
+            dependants += child;
+            child->getNestedDependants_(dependants);
+        }
     }
 
     for(auto dependant : getDependants()){
-        dependants += dependant;
-        dependants += dependant->getNestedDependants();
+        if(!dependants.contains(dependant)){
+            dependants += dependant;
+            dependant->getNestedDependants_(dependants);
+        }
     }
-    
-
-    return dependants;
 }
+
 
 /**
  * @brief Node::getDependants - Gets the Dependants.
@@ -828,30 +834,8 @@ void Node::setParentNode(Node *parent, int branch)
     parentNodeUpdated();
 }
 
-void Node::ToGraphmlStream(QTextStream& stream, int indent_depth){
-    const auto tab = QString("\t").repeated(indent_depth);
-    
-    stream << tab;
-    stream << "<node id=\"" << getID() << "\">\n";
 
-    auto data_list = getData();
-    std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
-    for(auto data : data_list){
-        data->ToGraphmlStream(stream, indent_depth + 1);
-    }
-
-    //Children are in a <graph>
-    if(getChildrenCount() > 0){
-        stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
-        for(auto child : getChildren(0)){
-            child->ToGraphmlStream(stream, indent_depth + 2);
-        }
-        stream << tab << "\t</graph>\n";
-    }
-    stream << tab << "</node>\n";
-}
-
-QList<Node *> Node::getOrderedChildNodes()
+QList<Node *> Node::getOrderedChildNodes() const
 {
     auto child_list = new_nodes_.toList();
     auto index_key = getKey("index");
@@ -924,15 +908,6 @@ QSet<NODE_KIND> Node::getImplKinds() const{
     return impl_kinds_;
 }
 
-void Node::LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
-    auto source_data = source->getData(source_key);
-    auto destination_data = destination->getData(destination_key);
-
-    if(source_data && destination_data){
-        source_data->linkData(destination_data, setup);
-    }
-}
-
 void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
     if(!definition || !instance){
         return;
@@ -998,9 +973,12 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             case NODE_KIND::AGGREGATE_INSTANCE:
             case NODE_KIND::VECTOR_INSTANCE:
             case NODE_KIND::ENUM_INSTANCE:{
-                if(instance_parent_kind == NODE_KIND::AGGREGATE){
+                static const QSet<NODE_KIND> unbound_labels{NODE_KIND::AGGREGATE, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+                if(unbound_labels.contains(instance_parent_kind)){
                     bind_labels = false;
                 }
+
+
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::Description] += KeyName::Description;
                     required_instance_keys.insert(KeyName::Description);
@@ -1082,6 +1060,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     if(bind_index){
         bind_values[KeyName::Index] += KeyName::Index;
     }
+    bind_values[KeyName::ColumnCount] += KeyName::ColumnCount;
 
     for(const auto& key_name : required_instance_keys){
         if(bind_values.contains(key_name)){
@@ -1098,7 +1077,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     for(const auto& definition_key : bind_values.keys()){
         for(const auto& instance_key : bind_values[definition_key]){
-            LinkData(definition, definition_key, instance, instance_key, setup);
+            Data::LinkData(definition, definition_key, instance, instance_key, setup);
         }
     }
 

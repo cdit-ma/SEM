@@ -13,7 +13,8 @@ class Data : public GraphML
     friend class Key;
     friend class Node;
     friend class Edge;
-
+public:
+    static bool LinkData(Entity* source, const QString &source_key, Entity* destination, const QString &destination_key, bool setup);
 protected:
     Data(EntityFactoryBroker& broker, Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
@@ -41,8 +42,6 @@ public:
     QString getKeyName() const;
     QVariant getValue() const;
 
-    void ToGraphmlStream(QTextStream& stream, int indend_depth);
-
     QString toString() const;
 
     void addValidValue(QVariant value);
@@ -50,7 +49,7 @@ public:
 
     QList<QVariant> getValidValues();
 signals:
-    void dataChanged(QVariant data);
+    void dataChanged();
 private:
     void addParentData(Data* data);
     void removeParentData(Data* data);

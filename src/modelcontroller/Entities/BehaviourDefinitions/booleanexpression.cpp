@@ -45,6 +45,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
     broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
     broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(lhs_, "is_generic_param_src", QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Setup Comparator
     comparator_->setDataReceiver(false);
@@ -59,7 +60,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     broker.AttachData(comparator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
     broker.AttachData(comparator_, "value", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(comparator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
-    LinkData(comparator_, "label", comparator_, "value", true);
+    Data::LinkData(comparator_, "label", comparator_, "value", true);
 
     broker.RemoveData(comparator_, "type");
     broker.RemoveData(comparator_, "inner_type");
@@ -84,7 +85,7 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     
 
     updateLabel();
-    TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
+    TypeKey::BindTypes(lhs_, rhs_, true, true);
 };
 
 bool MEDEA::BooleanExpression::canAdoptChild(Node* child)

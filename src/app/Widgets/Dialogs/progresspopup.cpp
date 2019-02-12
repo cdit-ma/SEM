@@ -11,7 +11,6 @@ ProgressPopup::ProgressPopup():PopupWidget(PopupWidget::TYPE::TOOL, 0){
 }
 
 void ProgressPopup::ProgressUpdated(bool set_visible, QString description){
-    //qCritical() << (set_visible ? "[SHOW]: " + description : "[HIDE]") << QThread::currentThread();
 
     label_text->setText(description);
     auto is_visible = isVisible();
