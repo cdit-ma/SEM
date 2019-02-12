@@ -1512,6 +1512,8 @@ double EntityChart::getPointWidth(TIMELINE_DATA_KIND kind)
  */
 void EntityChart::setRange(double min, double max)
 {
+    //qDebug() << "Update entity range: " << QDateTime::fromMSecsSinceEpoch(min).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(max).toString(TIME_FORMAT);
+
     // added 1ms on either side to include border values
     min--;
     max++;

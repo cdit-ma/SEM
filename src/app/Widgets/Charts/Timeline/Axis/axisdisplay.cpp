@@ -66,8 +66,6 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     connect(slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisDisplay::themeChanged);
     themeChanged();
-
-    //toggleDisplayFormat();
 }
 
 
@@ -525,6 +523,34 @@ void AxisDisplay::rangeChanged()
 
 
 /**
+ * @brief AxisDisplay::getDateTimeString
+ * @param value
+ * @return
+ */
+QString AxisDisplay::getDateTimeString(double value)
+{
+    auto displayFormat = TIME_FORMAT;
+    auto maxElapedMS = _displayedMax - _displayedMin;
+    auto maxElapsedDays = maxElapedMS / 8.64e7;
+    auto maxElapsedHours = maxElapedMS / 3.6e6;
+    auto maxElapsedMins = maxElapedMS / 6e4;
+
+    if (maxElapsedDays >= 1 || maxElapsedHours > 1) {
+        // if the max displayed elapsed time is a day or more, only show the hours/mins
+        displayFormat = "hh:mm";
+    } else if (maxElapsedMins >= 1) {
+        // if the max displayed elapsed time is a minute or more, show the hours/mins/secs
+        displayFormat = "hh:mm:ss";
+    } else {
+        // if it's anything smaller, show all
+        displayFormat = "hh:mm:ss.zzz";
+    }
+
+    return QDateTime::fromMSecsSinceEpoch(value).toString(displayFormat);
+}
+
+
+/**
  * @brief AxisDisplay::getElapsedTimeString
  * @param value
  * @return
@@ -546,19 +572,19 @@ QString AxisDisplay::getElapsedTimeString(double value)
     int d = 0, h = 0, m = 0, s = 0, ms = 0;
 
     if (maxElapsedDays >= 1) {
-        // if the min displayed elapsed time is a day or more, only show the elapsed days/hours
+        // if the max displayed elapsed time is a day or more, only show the elapsed days/hours
         d = msecs / 8.64e7;
         if (d >= 100)
             return QString::number(d) + "d";
         h = (msecs / 3.6e6) - ((int)d * 24);
     } else if (maxElapsedHours >= 1) {
-        // if the min displayed elapsed time is an hour or more, only show the elapsed hours/mins
+        // if the max displayed elapsed time is an hour or more, only show the elapsed hours/mins
         h = msecs / 3.6e6;
         if (h >= 10)
             return QString::number(h) + "h";
         m = (msecs / 6e4) - (h * 60);
     } else if (maxElapsedMins >= 1) {
-        // if the min displayed elapsed time is a minute or more, only show the elapsed mins/secs
+        // if the max displayed elapsed time is a minute or more, only show the elapsed mins/secs
         m = msecs / 6e4;
         s = (msecs / 1e3) - (m * 60);
     } else {
@@ -580,33 +606,6 @@ QString AxisDisplay::getElapsedTimeString(double value)
         elapsedTime += QString::number(ms) + "ms";
 
     return elapsedTime;
-
-    /*
-    if (hours >= 1) {
-        int h = hours;
-        mins -= h * 60;
-        secs -= h * 3600;
-        msecs -= h * 3.6e6;
-        elapsedTime = QString::number(h) + "h";
-    }
-    if (mins >= 1) {
-        int m = qMin(mins, 59.0);
-        secs -= m * 60;
-        msecs -= m * 6e4;
-        elapsedTime += QString::number(m) + "m";
-    }
-    if (secs > 1) {
-        int s = qMin(secs, 59.0);
-        msecs -= s * 1000;
-        elapsedTime += QString::number(s) + "s";
-    }
-    if (msecs > 0) {
-        int ms = qMin(msecs, 999.0);
-        elapsedTime += QString::number(ms) + "ms";
-    }
-
-    return elapsedTime;
-    */
 }
 
 
@@ -621,7 +620,7 @@ QString AxisDisplay::getCovertedString(double value)
     case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
         return getElapsedTimeString(value);
     case TIME_DISPLAY_FORMAT::DATE_TIME:
-        return QDateTime::fromMSecsSinceEpoch(value).toString(TIME_FORMAT);
+        return getDateTimeString(value);
     default:
         return QString::number(value);
     }

@@ -22,9 +22,6 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
     _orientation = orientation;
     _alignment = alignment;
 
-    _minRatio = 0;
-    _maxRatio = 1;
-
     if (orientation == Qt::Horizontal) {
         _minSlider = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
         _maxSlider = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
@@ -35,11 +32,24 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
         _maxSlider = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
     }
 
+    _minRatio = 0;
+    _maxRatio = 1;
+
     setMouseTracking(true);
     updateSlidersOnSizeChange();
 
+    //_actualMin = 0;
+    //_actualMax = _sliderRange;
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisSlider::themeChanged);
     themeChanged();
+
+    qDebug() << "----------------------------------------------";
+    qDebug() << "slider min: " << _sliderMin;
+    qDebug() << "slider max: " << _sliderMax;
+    qDebug() << "_actualMin: " << _actualMin;
+    qDebug() << "_actualMax: " << _actualMax;
+    qDebug() << "----------------------------------------------";
 }
 
 
@@ -161,8 +171,8 @@ void AxisSlider::zoom(double factor)
     }
 
     double delta = (_actualMax - _actualMin) * (1 - factor);
-    double scaledMin = _actualMin + delta;
-    double scaledMax = _actualMax - delta;
+    double scaledMin = qMax(0.0, _actualMin + delta);
+    double scaledMax = qMin(_sliderRange, _actualMax - delta);
     moveSliders(scaledMin, scaledMax);
 }
 
@@ -355,8 +365,8 @@ void AxisSlider::leaveEvent(QEvent *event)
  */
 void AxisSlider::resizeEvent(QResizeEvent* event)
 {
-    updateSlidersOnSizeChange();
     QWidget::resizeEvent(event);
+    updateSlidersOnSizeChange();
 }
 
 
@@ -569,15 +579,13 @@ void AxisSlider::moveSliderRects(double min, double max)
  */
 void AxisSlider::updateSlidersOnSizeChange()
 {
+    auto displayRangeRatio = (_actualMax - _actualMin) / (_sliderMax - _sliderMin);
     _sliderRange = _orientation == Qt::Horizontal ? width() : height();
     moveSliderRects(_minRatio * _sliderRange, _maxRatio * _sliderRange);
 
-
-    // TODO - Still need to test this; not sure if it's completely correct
-    if (_sliderMin < _actualMin) {
-        _actualMin = _sliderMin;
-    }
-    if (_sliderMax > _actualMax) {
-        _actualMax = _sliderMax;
-    }
+    // adjust the actual min/max based on the new sliders' positions
+    auto range = _sliderMax - _sliderMin;
+    auto displayRange = range * displayRangeRatio;
+    _actualMin = _sliderMin + (range - displayRange) / 2.0;
+    _actualMax = _sliderMax - (range - displayRange) / 2.0;
 }

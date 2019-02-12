@@ -216,7 +216,7 @@ void TimelineChartView::clearTimelineChart()
     auto chartItr = eventEntityCharts.begin();
     while (chartItr != eventEntityCharts.end()) {
         auto chartID = eventEntityCharts.key(*chartItr, "");
-        removeChart(chartID, false);
+        removeChart(chartID, true);
         chartItr = eventEntityCharts.erase(chartItr);
     }
 
@@ -533,12 +533,16 @@ void TimelineChartView::updateHoverDisplay()
 /**
  * @brief TimelineChartView::addChartEvents
  * This slot is a shortcut to setting the experiment details as the new charts' tooltips
- * @param experimentRunID
- * @param experimentInfo
+ * @param experimentRun
  * @param events
  */
-void TimelineChartView::addChartEvents(quint32 experimentRunID, QString experimentInfo, QList<MEDEA::Event*> events)
+void TimelineChartView::addChartEvents(ExperimentRun experimentRun, QList<MEDEA::Event*> events)
 {
+    auto experimentInfo = "Experiment name:\t" + experimentRun.experiment_name +
+                          "\nJob number#:\t" + QString::number(experimentRun.job_num) +
+                          "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
+
+    auto experimentRunID = experimentRun.experiment_run_id;
     addChartEvents(experimentRunID, events);
 
     for (auto ID : eventEntityCharts.keys()) {
@@ -589,7 +593,6 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Eve
         experimentRunTimeRange_[experimentRunID] = {minTime, maxTime};
     }
 
-    experimentRunSeriesCount_[experimentRunID]++;
     addedDataFromExperimentRun(experimentRunID);
 }
 
@@ -728,6 +731,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 exper
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         constructChartForSeries(series, ID, label + GET_TIMELINE_DATA_KIND_STRING_SUFFIX(kind));
         eventSeries.insert(ID, series);
+        experimentRunSeriesCount_[experimentRunID]++;
     }
 
     return series;
@@ -802,9 +806,9 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
  * This removes the chart with the specified ID from the timeline
  * It also removes the corresponding axis item and contained series from the timeline and their hashes
  * @param ID
- * @param removeFromHash
+ * @param clearing
  */
-void TimelineChartView::removeChart(QString ID, bool removeFromHash)
+void TimelineChartView::removeChart(QString ID, bool clearing)
 {
     // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
     // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
@@ -825,7 +829,7 @@ void TimelineChartView::removeChart(QString ID, bool removeFromHash)
     if (chart) {
         _timelineChart->removeEntityChart(chart);
         chart->deleteLater();
-        if (removeFromHash) {
+        if (!clearing) {
             eventEntityCharts.remove(ID);
         }
     }
@@ -847,17 +851,18 @@ void TimelineChartView::removeChart(QString ID, bool removeFromHash)
         set->deleteLater();
     }
 
-    // check if the timeline range needs updating
-    auto expRunID = chart->getExperimentRunID();
-    if (experimentRunSeriesCount_.contains(expRunID)) {
-        experimentRunSeriesCount_[expRunID]--;
-        removedDataFromExperimentRun(expRunID);
-    }
-
-    // if there are no more charts, show empty label
-    if (eventEntityCharts.isEmpty()) {
-        mainWidget_->hide();
-        emptyLabel_->show();
+    if (!clearing) {
+        // check if the timeline range needs updating
+        auto expRunID = chart->getExperimentRunID();
+        if (experimentRunSeriesCount_.contains(expRunID)) {
+            experimentRunSeriesCount_[expRunID]--;
+            removedDataFromExperimentRun(expRunID);
+        }
+        // if there are no more charts, show empty label
+        if (eventEntityCharts.isEmpty()) {
+            mainWidget_->hide();
+            emptyLabel_->show();
+        }
     }
 
     // clear the timeline chart's hovered rect
@@ -882,10 +887,8 @@ void TimelineChartView::addedDataFromExperimentRun(quint32 experimentRunID)
     if (duration > longestExperimentRunDuration_.second) {
         longestExperimentRunDuration_= {experimentRunID, duration};
     }
-    if (range.first < totalTimeRange_.first || range.second > totalTimeRange_.second) {
-        totalTimeRange_ = {qMin(range.first, totalTimeRange_.first), qMax(range.second, totalTimeRange_.second)};
-    }
 
+    totalTimeRange_ = {qMin(range.first, totalTimeRange_.first), qMax(range.second, totalTimeRange_.second)};
     updateTimelineRange();
 }
 
@@ -905,26 +908,28 @@ void TimelineChartView::removedDataFromExperimentRun(quint32 experimentRunID)
     experimentRunSeriesCount_.remove(experimentRunID);
     experimentRunTimeRange_.remove(experimentRunID);
 
-    if (experimentRunID != longestExperimentRunDuration_.first)
-        return;
-
     // recalculate the longest experiment run duration and the total range
-    auto longestDuration = INT64_MIN;
     auto min = INT64_MAX;
     auto max = INT64_MIN;
+    auto updateLongestDuration = experimentRunID != longestExperimentRunDuration_.first;
+    if (updateLongestDuration) {
+        longestExperimentRunDuration_.second = INT64_MIN;
+    }
 
     for (auto id : experimentRunTimeRange_.keys()) {
         auto val = experimentRunTimeRange_.value(id);
-        auto range = val.second - val.first;
-        if (range > longestDuration) {
-            longestExperimentRunDuration_ = {id, range};
-        }
         min = qMin(min, val.first);
         max = qMax(max, val.second);
+        if (updateLongestDuration) {
+            auto range = val.second - val.first;
+            if (range > longestExperimentRunDuration_.second) {
+                longestExperimentRunDuration_ = {id, range};
+            }
+        }
     }
 
     totalTimeRange_ = {min, max};
-    updateTimelineChart();
+    updateTimelineRange();
 }
 
 
@@ -959,9 +964,6 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
     }
 
     if (!rangeSet) {
-        /*for (auto chart : eventEntityCharts) {
-            chart->setDisplayRangeRatio(0.0, 1.0);
-        }*/
         auto range = _dateTimeAxis->getRange();
         _dateTimeAxis->setDisplayRange(range.first, range.second);
         rangeSet = true;

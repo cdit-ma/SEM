@@ -56,7 +56,7 @@ public slots:
 
     void updateHoverDisplay();
 
-    void addChartEvents(quint32 experimentRunID, QString experimentInfo, QList<MEDEA::Event*> events);
+    void addChartEvents(ExperimentRun experimentRun, QList<MEDEA::Event*> events);
     void addChartEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
 
 private slots:
@@ -70,7 +70,7 @@ private slots:
 private:
     MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
     EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
-    void removeChart(QString ID, bool removeFromHash = true);
+    void removeChart(QString ID, bool clearing = false);
 
     void addedDataFromExperimentRun(quint32 experimentRunID);
     void removedDataFromExperimentRun(quint32 experimentRunID);

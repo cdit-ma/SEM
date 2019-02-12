@@ -26,18 +26,12 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
 
     if (vc) {
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, this, &ChartDialog::queryResponseReceived);
-        //connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, chartView_, &TimelineChartView::addChartEvents);
         connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, chartView_, &TimelineChartView::updateTimelineChart);
         connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearTimelineChart);
         connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, [=] (bool visible) {
             if (visible)
                 hasSelectedExperimentRun_ = false;
         });
-        /*connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, [=]() {
-            qDebug() << "Received ALL events";
-            emit receivedData();
-            //updateTimelineRange();
-        });*/
     } else {
         qWarning("ChartDialog - ViewController is null");
     }
@@ -49,6 +43,7 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
+    setMinimumWidth(700);
 
     minTime_ = INT64_MAX;
     maxTime_ = INT64_MIN;
@@ -113,7 +108,7 @@ void ChartDialog::snapShot()
     if (fileDialog.exec() != QDialog::Accepted)
         return;
 
-    const QString fileName = fileDialog.selectedFiles().first();
+    const QString& fileName = fileDialog.selectedFiles().first();
     if (!widgetPixmap.save(fileName))
         QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
                              .arg(QDir::toNativeSeparators(fileName)));
@@ -147,10 +142,13 @@ void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
  */
 void ChartDialog::queryResponseReceived(quint32 experimentRunID, QList<MEDEA::Event*> events)
 {
-    auto tooltip = "Experiment name:\t" + selectedExperimentRun_.experiment_name +
-                   "\nJob number#:\t" + QString::number(selectedExperimentRun_.job_num) +
-                   "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(selectedExperimentRun_.start_time).toString(DATE_TIME_FORMAT);
-    chartView_->addChartEvents(experimentRunID, tooltip, events);
+    Q_UNUSED(experimentRunID)
+
+    if (hasSelectedExperimentRun_) {
+        chartView_->addChartEvents(selectedExperimentRun_, events);
+    } else {
+        qWarning("ChartDialog::queryResponseReceived - No experiment run selected");
+    }
 }
 
 

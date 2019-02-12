@@ -50,6 +50,7 @@ private:
     void displayedMaxChanged(double max);
     void rangeChanged();
 
+    QString getDateTimeString(double value);
     QString getElapsedTimeString(double value);
     QString getCovertedString(double value);
     QRectF getAdjustedRect();
