@@ -62,6 +62,9 @@ private:
     VALUE_TYPE _valueType;
     TIME_DISPLAY_FORMAT _axisFormat;
 
+    QString currentDisplayFormat = TIME_FORMAT;
+    bool displayFormatChanged = false;
+
     bool _displayHoverValue = false;
     double _hoveredValue;
     double _hoveredPos;

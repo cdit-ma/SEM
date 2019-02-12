@@ -410,10 +410,22 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
 
         if (dateTimeFormat) {
             QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
-            if (date != prevDate) {
-                textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
-                painter.drawText(textRect, date.toString(DATE_FORMAT), QTextOption(_textAlignment));
+            if (date == prevDate)
+                continue;
+            auto dateStr = date.toString(DATE_FORMAT);
+            textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
+            if (_tickCount != 1) {
+                if (i == 0) {
+                    auto strLengthDiff = fontMetrics().width(dateStr) - _displayedMinTextWidth;
+                    if (strLengthDiff > 0)
+                        textRect.moveRight(textRect.right() + strLengthDiff - 5);
+                } else if (i == _tickCount) {
+                    auto strLengthDiff = fontMetrics().width(dateStr) - _displayedMaxTextWidth;
+                    if (strLengthDiff > 0)
+                        textRect.moveLeft(textRect.left() - strLengthDiff + 5);
+                }
             }
+            painter.drawText(textRect, dateStr, QTextOption(_textAlignment));
             prevDate = date;
         }
     }
@@ -517,7 +529,7 @@ void AxisDisplay::rangeChanged()
             setFixedWidth(maxLength * fontMetrics().width("0") + _tickLength + _spacing * 2);
             _widestTextLength = maxLength;
         }
-    }
+    } 
     update();
 }
 
@@ -545,6 +557,12 @@ QString AxisDisplay::getDateTimeString(double value)
         // if it's anything smaller, show all
         displayFormat = "hh:mm:ss.zzz";
     }
+
+    /*if (displayFormat != currentDisplayFormat) {
+        updateMinMaxTextWidth();
+        currentDisplayFormat = displayFormat;
+        update();
+    }*/
 
     return QDateTime::fromMSecsSinceEpoch(value).toString(displayFormat);
 }
