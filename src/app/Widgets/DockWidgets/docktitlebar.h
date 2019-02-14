@@ -23,9 +23,9 @@ public:
     QList<QAction*> getToolActions();
     void addToolAction(QAction* action, QString iconPath, QString iconName, Qt::Alignment alignment = Qt::AlignRight);
 
-
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
+
 private slots:
     void themeChanged();
     void updateActiveStyle();

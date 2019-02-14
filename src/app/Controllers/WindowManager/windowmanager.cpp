@@ -168,6 +168,10 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     QAction* timeAction = dockWidget->addAction("Toggle Time Display", "ToggleIcons", "axisTimeToggle", Qt::AlignCenter);
     QAction* snapShotAction = dockWidget->addAction("Take Snapshot", "Icons", "camera", Qt::AlignCenter);
 
+    /*QAction* spacerAction = dockWidget->addAction("", "", "", Qt::AlignCenter);
+    spacerAction->setEnabled(false);
+    dockWidget->getTitleBar()->widgetForAction(spacerAction)->setFixedWidth(8);*/
+
     timeAction->setCheckable(true);
     timeAction->setChecked(false);
 
