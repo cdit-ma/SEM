@@ -699,7 +699,7 @@
 
         <xsl:variable name="bind_function" select="cpp:invoke_static_function('std', 'bind', cpp:join_args((cpp:ref_var($qualified_function_name), 'this', cpp:get_placeholders($input_parameter_count))), '', 0)" />
 
-        <xsl:value-of select="cpp:invoke_function($worker_var, cpp:arrow(), $register_func, $bind_function, $tab)" />
+        <xsl:value-of select="concat(cpp:invoke_function($worker_var, cpp:arrow(), $register_func, $bind_function, $tab), cpp:nl())" />
     </xsl:function>
 
     <!--

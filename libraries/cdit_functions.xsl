@@ -520,10 +520,21 @@
         <xsl:param name="external_type" as="element()" />
         <xsl:variable name="inner_type" select="graphml:get_data_value($external_type, 'inner_type')" />
         <xsl:variable name="outer_type" select="graphml:get_data_value($external_type, 'outer_type')" />
-        <xsl:variable name="qualified_inner_type" select="cpp:get_primitive_type($inner_type)" />
         
-
-        <xsl:value-of select="concat($outer_type, o:wrap_angle($qualified_inner_type))" />
+        <xsl:variable name="qualified_type">
+            <xsl:choose>
+                <xsl:when test="$inner_type and $outer_type">
+                    <xsl:value-of select="concat($outer_type, o:wrap_angle(cpp:get_primitive_type($inner_type)))" />
+                </xsl:when>
+                <xsl:when test="$inner_type">
+                    <xsl:value-of select="cpp:get_primitive_type($inner_type)" />
+                </xsl:when>
+                <xsl:when test="$outer_type">
+                    <xsl:value-of select="cpp:get_primitive_type($outer_type)" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="$qualified_type" />
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
