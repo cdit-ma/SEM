@@ -38,18 +38,17 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
     setMouseTracking(true);
     updateSlidersOnSizeChange();
 
-    //_actualMin = 0;
-    //_actualMax = _sliderRange;
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisSlider::themeChanged);
     themeChanged();
 
+    /*
     qDebug() << "----------------------------------------------";
     qDebug() << "slider min: " << _sliderMin;
     qDebug() << "slider max: " << _sliderMax;
     qDebug() << "_actualMin: " << _actualMin;
     qDebug() << "_actualMax: " << _actualMax;
     qDebug() << "----------------------------------------------";
+    */
 }
 
 

@@ -1,8 +1,6 @@
 #ifndef PANELWIDGET_H
 #define PANELWIDGET_H
 
-#include <QtCharts/QChart>
-#include <QtCharts/QChartView>
 #include <QFrame>
 #include <QToolBar>
 #include <QAction>
@@ -12,13 +10,6 @@
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../Charts/Timeline/Chart/timelinechartview.h"
 #include "../Charts/Timeline/chartinputpopup.h"
-
-namespace QtCharts{
-    class QLineSeries;
-    class QCategoryAxis;
-}
-
-using namespace QtCharts;
 
 class PanelWidget : public QFrame
 {
@@ -30,8 +21,6 @@ public:
     QAction* addTab(QString title, QString iconPath = "", QString iconName = "");
     QAction* addTab(QString title, QWidget* widget, QString iconPath = "", QString iconName = "");
 
-    void addEventsTab();
-
     bool isMinimised();
 
     void constructEventsView();
@@ -39,14 +28,6 @@ public:
     void constructWorkloadEventsView();
     void constructCPUEventsView();
     void constructMemoryEventsView();
-
-    void testDataSeries();
-    void testWidgets();
-    void testNewTimelineView();
-
-    void constructBigDataChart();
-    void constructCustomChartView();
-    void constructSizeTestTab();
 
     void setViewController(ViewController* vc);
 
@@ -66,7 +47,6 @@ public slots:
     void minimisePanel(bool checked);
     void closePanel();
     void snapShotPanel();
-    void popOutPanel();
     void popOutActiveTab();
     void clearActiveTab();
 
@@ -110,13 +90,6 @@ private:
     QHash<QAction*, QWidget*> tabWidgets;
 
     QTimer* timer;
-    QChart* testChart;
-    QChartView* testView;
-    QLineSeries* testSeries;
-
-    QChart* chart;
-    QChartView* chartView;
-    QCategoryAxis* categoryAxis;
 
     QAction* defaultActiveAction = 0;
     QDateTime minDateTime;

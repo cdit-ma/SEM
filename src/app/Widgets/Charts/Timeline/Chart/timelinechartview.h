@@ -2,9 +2,6 @@
 #define TIMELINECHARTVIEW_H
 
 #include "../../../../Controllers/ViewController/viewitem.h"
-#include "../../Series/lineseries.h"
-#include "../../Series/stateseries.h"
-#include "../../Series/notificationseries.h"
 #include "../../Timeline/Chart/hoverpopup.h"
 #include "../Axis/entityaxis.h"
 #include "../Axis/entityset.h"

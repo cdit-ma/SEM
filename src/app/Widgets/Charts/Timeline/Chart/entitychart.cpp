@@ -1,7 +1,5 @@
 #include "entitychart.h"
 #include "../../../../theme.h"
-#include "../../Series/barseries.h"
-#include "../../Series/stateseries.h"
 #include "../../Data/Events/portlifecycleevent.h"
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
@@ -20,65 +18,34 @@
 #define BAR_WIDTH 5.0
 #define PRINT_RENDER_TIMES false
 
+
 /**
  * @brief EntityChart::EntityChart
- * @param item
+ * @param experimentRunID
  * @param parent
  */
-EntityChart::EntityChart(ViewItem* item, QWidget* parent)
+EntityChart::EntityChart(quint32 experimentRunID, QWidget* parent)
     : QWidget(parent)
 {
     setMouseTracking(true);
 
-    _viewItem = item;
+    _experimentRunID = experimentRunID;
+    _hoveredSeriesKind = TIMELINE_DATA_KIND::DATA;
+
     _dataMinX = DBL_MAX;
     _dataMaxX = DBL_MIN;
     _dataMinY = DBL_MAX;
     _dataMaxY = DBL_MIN;
 
+    /*
     //_color_s_state = 35;
     _color_s_state = 50;
     _color_s_notification = 100;
     _color_s_line = 200;
-
-    _hoveredSeriesKind = TIMELINE_DATA_KIND::DATA;
-    _seriesKindVisible[TIMELINE_DATA_KIND::LINE] = true;
+    */
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
     themeChanged();
-}
-
-
-/**
- * @brief EntityChart::getViewItem
- * @return
- */
-ViewItem* EntityChart::getViewItem()
-{
-    return _viewItem;
-}
-
-
-/**
- * @brief EntityChart::getViewItemID
- * @return
- */
-int EntityChart::getViewItemID()
-{
-    if (_viewItem) {
-        return _viewItem->getID();
-    }
-    return -1;
-}
-
-
-/**
- * @brief EntityChart::setExperimentRunID
- * @param ID
- */
-void EntityChart::setExperimentRunID(quint32 ID)
-{
-    experimentRunID_ = ID;
 }
 
 
@@ -88,7 +55,7 @@ void EntityChart::setExperimentRunID(quint32 ID)
  */
 quint32 EntityChart::getExperimentRunID()
 {
-    return experimentRunID_;
+    return _experimentRunID;
 }
 
 
@@ -110,45 +77,6 @@ void EntityChart::addEventSeries(MEDEA::EventSeries* series)
 void EntityChart::removeEventSeries(TIMELINE_DATA_KIND kind)
 {
     _seriesList.remove(kind);
-}
-
-
-/**
- * @brief EntityChart::addSeries
- * @param series
- */
-void EntityChart::addSeries(MEDEA::DataSeries* series)
-{
-    if (!series)
-        return;
-
-    _seriesList[series->getKind()] = series;
-    _seriesKindVisible[series->getKind()] = true;
-
-    connect(series, &MEDEA::DataSeries::pointsAdded, this, &EntityChart::pointsAdded);
-    series->pointsAdded((series->getConstPoints()));
-
-    connect(series, &MEDEA::DataSeries::rangeXChanged, this, &EntityChart::rangeXChanged);
-    rangeXChanged(series->getRangeX().first, series->getRangeX().second);
-
-    if (series->isLineSeries() || series->isBarSeries()) {
-        _containsYRange = true;
-        connect(series, &MEDEA::DataSeries::rangeYChanged, this, &EntityChart::rangeYChanged);
-        rangeYChanged(series->getRangeY().first, series->getRangeY().second);
-    }
-}
-
-
-/**
- * @brief EntityChart::removeSeries
- * @param seriesKind
- */
-void EntityChart::removeSeries(TIMELINE_DATA_KIND seriesKind)
-{
-    _seriesList.remove(seriesKind);
-    _mappedPoints.remove(seriesKind);
-    _containsYRange = !_seriesList.value(TIMELINE_DATA_KIND::LINE, 0) || !_seriesList.value(TIMELINE_DATA_KIND::BAR, 0);
-    update();
 }
 
 
@@ -223,26 +151,6 @@ void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
 
 
 /**
- * @brief EntityChart::getRangeX
- * @return
- */
-QPair<double, double> EntityChart::getRangeX()
-{
-    return {_dataMinX, _dataMaxX};
-}
-
-
-/**
- * @brief EntityChart::getRangeY
- * @return
- */
-QPair<double, double> EntityChart::getRangeY()
-{
-    return {_dataMinY, _dataMaxY};
-}
-
-
-/**
  * @brief EntityChart::isHovered
  * @return
  */
@@ -297,24 +205,12 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     if (kind == _hoveredSeriesKind)
         return;
 
-    _stateColor = _backgroundColor;
-    _notificationColor = _backgroundColor;
-    _lineColor = _backgroundColor;
     _portLifecycleColor = _backgroundColor;
     _workloadColor = _backgroundColor;
     _utilisationColor = _backgroundColor;
     _memoryColor = _backgroundColor;
 
     switch (kind) {
-    case TIMELINE_DATA_KIND::STATE:
-        _stateColor = _defaultStateColor;
-        break;
-    case TIMELINE_DATA_KIND::NOTIFICATION:
-        _notificationColor = _defaultNotificationColor;
-        break;
-    case TIMELINE_DATA_KIND::BAR:
-    case TIMELINE_DATA_KIND::LINE:
-        _lineColor = _defaultLineColor;
         break;
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
         _portLifecycleColor = _defaultPortLifecycleColor;
@@ -330,9 +226,6 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
         break;
     default: {
         // clear hovered state
-        _stateColor = _defaultStateColor;
-        _notificationColor = _defaultNotificationColor;
-        _lineColor = _defaultLineColor;
         _portLifecycleColor = _defaultPortLifecycleColor;
         _workloadColor = _defaultWorkloadColor;
         _utilisationColor = _defaultUtilisationColor;
@@ -353,40 +246,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
 void EntityChart::themeChanged()
 {
     Theme* theme = Theme::theme();
-    bool darkTheme = theme->getTextColor() == theme->white();
-
     setFont(theme->getSmallFont());
-
-    int min = darkTheme ? 80 : 50;
-    int r = min + rand() % 160;
-    int g = min + rand() % 160;
-    int b = min + rand() % 160;
-
-    QColor color = QColor(r, g, b);
-    qreal delta = 150;
-
-    _borderColorDelta = darkTheme ? 150 : 50;
-    _colorDelta = darkTheme ? -50 : 50;
-
-    _barColor = color;
-    _pointColor = darkTheme ? color.darker(delta) : color.lighter(delta);
-    _pointBorderColor = darkTheme ? color.lighter(delta) : color.darker(delta);
-
-    _color_v_notification = darkTheme ? 130 : 200;
-    color.setHsv(rand() % 45, _color_s_notification, _color_v_notification);
-    _defaultNotificationColor = color;
-
-    _color_v_line = 150; //darkTheme ? 130 : 180;
-    color.setHsv(150 + rand() % 60, _color_s_line, _color_v_line);
-    _defaultLineColor = color;
-
-    _color_v_state = darkTheme ? 80 : 180;
-    color.setHsv(210 + rand() % 60, _color_s_state, _color_v_state);
-    _defaultStateColor = color;
-
-    _stateColor = _defaultStateColor;
-    _notificationColor = _defaultNotificationColor;
-    _lineColor = _defaultLineColor;
 
     _portLifecycleColor = _defaultPortLifecycleColor;
     _workloadColor = _defaultWorkloadColor;
@@ -404,58 +264,10 @@ void EntityChart::themeChanged()
     _hoveredRectColor = theme->getActiveWidgetBorderColor();
 
     _gridPen = QPen(theme->getAltTextColor(), 0.5);
-    _pointPen = QPen(_pointColor, _pointWidth, Qt::SolidLine, Qt::RoundCap);
-    _pointBorderPen = QPen(_pointBorderColor, _pointWidth + POINT_BORDER * 2, Qt::SolidLine, Qt::RoundCap);
-    _highlightPointPen = QPen(theme->getTextColor(), POINT_BORDER + 1.5, Qt::SolidLine, Qt::RoundCap);
     _hoverLinePen = QPen(theme->getTextColor(), POINT_BORDER, Qt::PenStyle::DotLine);
-    _highlightPen = QPen(theme->getHighlightColor(), HIGHLIGHT_PEN_WIDTH);
 
     _messagePixmap = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
-
     updateSeriesPixmaps();
-}
-
-
-/**
- * @brief EntityChart::rangeXChanged
- * @param min
- * @param max
- */
-void EntityChart::rangeXChanged(double min, double max)
-{
-    bool changed = min < _dataMinX || max > _dataMaxX;
-    if (changed) {
-        _dataMinX = qMin(min, _dataMinX);
-        _dataMaxX = qMax(max, _dataMaxX);
-    }
-}
-
-
-/**
- * @brief EntityChart::rangeYChanged
- * @param min
- * @param max
- */
-void EntityChart::rangeYChanged(double min, double max)
-{
-    if (min < _dataMinY)
-        _dataMinY = min;
-    if (max > _dataMaxY)
-        _dataMaxY = max;
-}
-
-
-/**
- * @brief EntityChart::pointsAdded
- * @param points
- */
-void EntityChart::pointsAdded(QList<QPointF> points)
-{
-    MEDEA::DataSeries* series = qobject_cast<MEDEA::DataSeries*>(sender());
-    if (series) {
-        _seriesPoints[series->getKind()].append(points);
-        update();
-    }
 }
 
 
@@ -526,7 +338,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "Total Series Render Took: " << finish - start << "MS. - " << _viewItem->getData("label").toString();
+        qDebug() << "Total Series Render Took: " << finish - start << "MS.";
 }
 
 
@@ -542,15 +354,6 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
     // draw the points and get intersection point(s) index
     switch (kind) {
-    case TIMELINE_DATA_KIND::STATE:
-        paintStateSeries(painter);
-        break;
-    case TIMELINE_DATA_KIND::NOTIFICATION:
-        paintNotificationSeries(painter);
-        break;
-    case TIMELINE_DATA_KIND::BAR:
-        paintBarSeries(painter);
-        break;
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
         break;
@@ -564,7 +367,7 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
         paintMemoryUtilisationEventSeries(painter);
         break;
     default:
-        //qWarning("EntityChart::paintSeries - Series kind not handled");
+        qWarning("EntityChart::paintSeries - Series kind not handled");
         break;
     }
 }
@@ -1004,306 +807,13 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintNotificationSeries
- * @param painter
- */
-void EntityChart::paintNotificationSeries(QPainter &painter)
-{
-    auto start = QDateTime::currentMSecsSinceEpoch();
-
-    MEDEA::DataSeries* series = (MEDEA::DataSeries*)_seriesList.value(TIMELINE_DATA_KIND::NOTIFICATION, 0);
-    if (!series)
-        return;
-
-    // TODO - Calculate lower and upper bounds once in the main paint method???
-    const auto& points = series->getConstPoints();
-    auto current = std::lower_bound(points.cbegin(), points.cend(), _displayMin, [](const QPointF &p, const double &value) {
-        return p.x() < value;
-    });
-    auto upper = std::upper_bound(points.cbegin(), points.cend(), _displayMax, [](const double &value, const QPointF &p) {
-        return value < p.x();
-    });
-
-    // bucket count
-    double barWidth = BAR_WIDTH * 1.5;
-    double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayMax - _displayMin) / barCount;
-
-    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-    barWidth = (double) width() / barCount;
-
-    QVector< QList<QPointF> > buckets(barCount);
-    QList<qint64> bucketEndtimes;
-
-    auto currentTime = _displayMin;
-    for (int i = 0; i < barCount; i++) {
-        bucketEndtimes.append(currentTime + barTimeWidth);
-        currentTime = bucketEndtimes.last();
-    }
-
-    auto currentBucket = 0;
-    auto currentBucketIttr = bucketEndtimes.constBegin();
-    auto endBucketIttr = bucketEndtimes.constEnd();
-
-    // put the data in the correct bucket
-    for (; current != upper; current++) {
-        auto current_point = (*current);
-        while (currentBucketIttr != endBucketIttr) {
-            if (current_point.x() > (*currentBucketIttr)) {
-                currentBucketIttr++;
-                currentBucket++;
-            } else {
-                break;
-            }
-        }
-        if (currentBucket < barCount) {
-            buckets[currentBucket].append(current_point);
-        }
-    }
-
-    auto max = 0;
-    for (const auto& data : buckets) {
-        max = qMax(max, data.size());
-    }
-
-    QColor seriesColor = _notificationColor;
-    painter.setPen(QPen(seriesColor.lighter(_borderColorDelta), BAR_PEN_WIDTH));
-
-    double dataToPixel = (double) height() / max;
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].size();
-        QRectF rect = QRect(i * barWidth, height() - count * dataToPixel, barWidth, count * dataToPixel);
-        auto color = count == 1 ? seriesColor : seriesColor.darker(100 * (1 + count / (double)max));
-        if (rectHovered(TIMELINE_DATA_KIND::NOTIFICATION, rect)) {
-            color.setHsv(qAbs(color.hue() - 180), 255, 255);
-        }
-        painter.setBrush(color);
-        painter.drawRect(rect);
-    }
-
-    /*
-    QPen defaultPen(_pointBorderColor, 1.5);
-    painter.setBrush(_pointColor);
-
-    for (QPointF p : points) {
-        QRect rect(p.x() - size / 2, p.y() - size / 2, size, size);
-        painter.fillRect(rect, _pointBorderColor);
-        painter.setPen(pointHovered(TIMELINE_DATA_KIND::NOTIFICATION, p, points.indexOf(p)) ?  _highlightPen : defaultPen);
-        painter.drawRoundedRect(rect.adjusted(1, -2, -1, 2), 4, 4);
-        painter.drawPixmap(rect, _messagePixmap);
-    }
-    */
-
-    auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES)
-        qDebug() << "NotificationSeries Render Took: " << finish - start << "MS. Returned: " << points.count() ;
-}
-
-
-/**
- * @brief EntityChart::paintStateSeries
- * @param painter
- */
-void EntityChart::paintStateSeries(QPainter &painter)
-{
-    auto start = QDateTime::currentMSecsSinceEpoch();
-
-    MEDEA::StateSeries* series = (MEDEA::StateSeries*)_seriesList.value(TIMELINE_DATA_KIND::STATE, 0);
-    if (!series)
-        return;
-
-    // bucket count
-    double barWidth = BAR_WIDTH * 2.0;
-    double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (_displayMax - _displayMin) / barCount;
-
-    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-    barWidth = (double) width() / barCount;
-
-    // each bucket contains the number of events still running at that time
-    QVector<int> buckets(barCount);
-    QList<qint64> bucketEndTimes;
-
-    auto currentTime = _displayMin;
-    for (int i = 0; i < barCount; i++) {
-        bucketEndTimes.append(currentTime + barTimeWidth);
-        currentTime = bucketEndTimes.last();
-    }
-
-    auto bucketIndex = 0;
-    auto currentBucket = bucketEndTimes.constBegin();
-    auto endBucket = bucketEndTimes.constEnd();
-
-    const auto& lines = series->getLines();
-    QList<QRectF> lineRects;
-    for (auto& line : lines) {
-        if (line.x1() > _displayMax)
-            continue;
-        if (line.x2() < _displayMin)
-            continue;
-        lineRects.append(QRectF(QPointF(line.x1(), 0), QPointF(line.x2(), LINE_WIDTH)));
-    }
-
-    auto prevX = _displayMin;
-    auto minCount = 100;
-    auto maxCount = 0;
-
-    // increment the correct bucket
-    for (; currentBucket != endBucket; currentBucket++) {
-        auto currentX = *currentBucket;
-        auto currentLineRect = lineRects.begin();
-        QRectF currentBucketRect(QPointF(prevX, 0), QPointF(currentX, height()));
-        while (currentLineRect != lineRects.end()) {
-            if ((*currentLineRect).right() < currentBucketRect.left()) {
-                currentLineRect = lineRects.erase(currentLineRect);
-                if (currentLineRect == lineRects.end())
-                    break;
-            }
-            if (currentBucketRect.intersects(*currentLineRect)) {
-                buckets[bucketIndex]++;
-            }
-            currentLineRect++;
-        }
-        minCount = qMin(buckets[bucketIndex], minCount);
-        maxCount = qMax(buckets[bucketIndex], maxCount);
-        prevX = currentX;
-        bucketIndex++;
-    }
-
-    // draw the buckets from the bottom using a painter path
-    QColor seriesColor = _stateColor;
-
-    /*
-     * TRYING GRADIENTS
-     *
-    QLinearGradient gradient;
-    QRectF gradientRect, prevRect;
-    QColor prevColor;
-
-    painter.setPen(Qt::NoPen);
-
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i];
-        if (count == 0) {
-            if (!prevRect.isNull()) {
-                painter.fillRect(prevRect.center().x(), prevRect.y(), prevRect.width() / 2.0, height(), prevColor);
-                prevRect = QRect();
-            }
-            continue;
-        }
-
-        QRectF rect(i * barWidth, 0, barWidth, height());
-        QColor color = count == 1 ? seriesColor : seriesColor.darker(100 + (25 * (count - 1)));
-        if (prevRect.isNull()) {
-            painter.fillRect(rect.x(), rect.y(), barWidth / 2.0, height(), color);
-            prevRect = rect;
-            prevColor = color;
-            continue;
-        }
-
-        qreal centerY = height() / 2.0;
-        gradientRect.setRect(prevRect.center().x(), 0, barWidth, height());
-        gradient.setStart(gradientRect.x(), centerY);
-        gradient.setFinalStop(gradientRect.right(), centerY);
-        gradient.setColorAt(0, prevColor);
-        gradient.setColorAt(1, color);
-        painter.fillRect(gradientRect, gradient);
-
-        prevRect = rect;
-        prevColor = color;
-    }
-    */
-
-    /*
-     * SAME PAINT METHOD AS BELOW WITHOUT THE RECT HEIGHT
-     */
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i];
-        double y = height() - ((double) (height() - 0.5) * count / maxCount);
-        if (count == 0)
-            continue;
-        QRectF rect(i * barWidth, 0, barWidth, height());
-        QColor color = count == 1 ? seriesColor : seriesColor.darker(100 + (50 * (count - 1)));
-        if (rectHovered(TIMELINE_DATA_KIND::STATE, rect)) {
-            color.setHsv(qAbs(color.hue() - 180), 255, _color_v_state + 75);
-        }
-        painter.fillRect(rect, color);
-    }/*/
-
-    /*
-     * THIS FILLS THE SERIES RECTS THEN PAINTS THE OUTLINE OF THE OVERALL PATH
-     *
-    QPainterPath path;
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i];
-        double y = height() - ((double) (height() - 0.5) * count / maxCount);
-        QRectF rect(i * barWidth, y, barWidth, height() - y);
-        if (i == 0) {
-            path.moveTo(rect.topLeft());
-        } else {
-            path.lineTo(rect.topLeft());
-        }
-        path.lineTo(rect.topRight());
-
-        int colorIncr = 50;
-        QColor color = count == 1 ? seriesColor : seriesColor.darker(100 + (colorIncr * (count - 1)));
-        if (pointHovered(TIMELINE_DATA_KIND::BAR, rect, 10)) {
-            color.setHsv(qAbs(color.hue() - 180), 255, _color_v_state + 75);
-        }
-
-        painter.fillRect(rect, color);
-    }
-
-    // this draws the outline of the path; not including the outlines of the bar rects
-    painter.strokePath(path, QPen(_gridPen.color(), 1));
-    */
-
-    /*
-     * ORIGINAL PAINT METHOD FOR INDIVIDUAL EVENTS
-     *
-    QPen pen(_gridPen.color(), POINT_BORDER);
-    double halfPenWidth = POINT_BORDER / 2.0;
-    int startAngle = 90 * 16;
-    int endAngle = 270 * 16;
-    int spanAngle = 180 * 16;
-
-    for (int i = 1; i < points.size(); i += 2) {
-        QPointF p1 = points.at(i - 1);
-        QPointF p2 = points.at(i);
-        QRectF rect1(p1.x() - size * 0.25, p1.y() - size / 2, size, size);
-        QRectF rect2(p2.x() - size * 0.75, p2.y() - size / 2, size, size);
-        painter.setPen(QPen(_gridPen.color(), LINE_WIDTH));
-        painter.drawLine(p1, p2);
-        painter.setBrush(Qt::white);
-        painter.setPen(pen);
-        if (pointHovered(TIMELINE_DATA_KIND::STATE, p1, i - 1)) {
-            rect1.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
-            painter.setPen(_highlightPen);
-        }
-        painter.drawChord(rect1, startAngle, spanAngle);
-        painter.setBrush(Qt::black);
-        painter.setPen(pen);
-        if (pointHovered(TIMELINE_DATA_KIND::STATE, p2, i)) {
-            rect2.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
-            painter.setPen(_highlightPen);
-        }
-        painter.drawChord(rect2, endAngle, spanAngle);
-    }
-    */
-
-    auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES)
-        qDebug() << "StateSeries Render Took: " << finish - start << "MS. Returned: " << lines.count() * 2;
-}
-
-
-/**
  * @brief EntityChart::paintBarSeries
  * @param painter
  * @param points
  */
 void EntityChart::paintBarSeries(QPainter &painter)
 {
+    /*
     auto start = QDateTime::currentMSecsSinceEpoch();
 
     MEDEA::BarSeries* series = (MEDEA::BarSeries*)_seriesList.value(TIMELINE_DATA_KIND::BAR, 0);
@@ -1389,6 +899,7 @@ void EntityChart::paintBarSeries(QPainter &painter)
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
         qDebug() << "BarSeries Render Took: " << finish - start << "MS. Returned: " << data.count();
+        */
 }
 
 
@@ -1470,50 +981,12 @@ void EntityChart::clearHoveredLists()
 
 
 /**
- * @brief EntityChart::setPointWidth
- * @param width
- */
-void EntityChart::setPointWidth(double width)
-{
-    _pointWidth = width;
-    _pointPen.setWidthF(width);
-    _pointBorderPen.setWidthF(width + POINT_BORDER * 2);
-    update();
-}
-
-
-/**
- * @brief EntityChart::getPointWidth
- * @param kind
- * @return
- */
-double EntityChart::getPointWidth(TIMELINE_DATA_KIND kind)
-{
-    switch (kind) {
-    case TIMELINE_DATA_KIND::NOTIFICATION:
-        //return _pointWidth * 1.15;
-        return _pointWidth;
-    case TIMELINE_DATA_KIND::STATE:
-        return _pointWidth * 1.15 + POINT_BORDER;
-    case TIMELINE_DATA_KIND::LINE:
-        return _pointWidth / 1.5;
-    case TIMELINE_DATA_KIND::BAR:
-        return BAR_WIDTH;
-    default:
-        return _pointWidth;
-    }
-}
-
-
-/**
  * @brief EntityChart::setRange
  * @param min
  * @param max
  */
 void EntityChart::setRange(double min, double max)
 {
-    //qDebug() << "Update entity range: " << QDateTime::fromMSecsSinceEpoch(min).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(max).toString(TIME_FORMAT);
-
     // added 1ms on either side to include border values
     min--;
     max++;

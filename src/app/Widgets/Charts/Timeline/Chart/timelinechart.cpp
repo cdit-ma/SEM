@@ -80,19 +80,6 @@ void TimelineChart::setAxisWidth(double width)
 
 
 /**
- * @brief TimelineChart::setPointsWidth
- * @param width
- */
-void TimelineChart::setPointsWidth(double width)
-{
-    for (EntityChart* chart : _entityCharts) {
-        chart->setPointWidth(width);
-    }
-    pointsWidth = width;
-}
-
-
-/**
  * @brief TimelineChartWidget::addEntityChart
  * @param chart
  */
@@ -112,7 +99,6 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
     if (chart) {
         _entityCharts.append(chart);
         _layout->insertWidget(index, chart);
-        chart->setPointWidth(pointsWidth);
         chart->installEventFilter(this);
     }
 }

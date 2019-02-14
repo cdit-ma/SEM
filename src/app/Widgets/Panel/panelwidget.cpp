@@ -4,29 +4,22 @@
     #define NOMINMAX
 #endif //_WIN32
 
-#include <QGraphicsLinearLayout>
 #include <QVBoxLayout>
 #include <QTimer>
 #include <QDateTime>
-#include <QtCharts/QSplineSeries>
-#include <QtCharts/QScatterSeries>
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
 
 #include "../../theme.h"
-#include "../../Controllers/WindowManager/windowmanager.h"
 #include "../Windows/mainwindow.h"
 #include "../DockWidgets/defaultdockwidget.h"
-#include "../Charts/Timeline/Axis/axiswidget.h"
-#include "../Charts/Series/dataseries.h"
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
 
 int PanelWidget::tab_ID = 0;
-
 
 /**
  * @brief PanelWidget::PanelWidget
@@ -35,22 +28,6 @@ int PanelWidget::tab_ID = 0;
 PanelWidget::PanelWidget(QWidget *parent)
     : QFrame(parent)
 {
-    defaultActiveAction = 0;
-
-    setupLayout();
-
-    //testDataSeries();
-    //testNewTimelineView();
-
-    //testWidgets();
-
-    //constructBigDataChart();
-    //constructCustomChartView();
-    //constructSizeTestTab();
-
-    connect(Theme::theme(), &Theme::theme_Changed, this, &PanelWidget::themeChanged);
-    themeChanged();
-
     timer = new QTimer(this);
     timer->setInterval(2000);
     //connect(timer, &QTimer::timeout, this, &PanelWidget::handleTimeout);
@@ -58,7 +35,11 @@ PanelWidget::PanelWidget(QWidget *parent)
     tabsActionGroup = new QActionGroup(this);
     tabsActionGroup->setExclusive(true);
 
+    setupLayout();
     setAttribute(Qt::WA_NoMousePropagation);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &PanelWidget::themeChanged);
+    themeChanged();
 
     // set the default active tab
     if (defaultActiveAction) {
@@ -210,176 +191,22 @@ void PanelWidget::constructMemoryEventsView()
 }
 
 
-void PanelWidget::testDataSeries()
-{
-    QList<QPointF> points;
-    points.append(QPointF(0, 9));
-    points.append(QPointF(3, 7));
-    points.append(QPointF(6, 11));
-    points.append(QPointF(8, 6));
-    points.append(QPointF(10, 8));
-
-    //MEDEA::DataSeries* ds = new MEDEA::DataSeries();
-    //ds->addPoints(points);
-}
-
-
-void PanelWidget::testWidgets()
-{
-    QWidget* w = new QWidget(this);
-    QWidget* filler = new QWidget(this);
-    QWidget* filler2 = new QWidget(this);
-    filler2->setFixedHeight(5);
-    int margin = 5;
-
-    AxisSlider* axis = new AxisSlider(Qt::Horizontal, Qt::AlignBottom, this);
-    AxisDisplay* display = new AxisDisplay(axis, this);
-    display->setAxisLineVisible(true);
-
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->setContentsMargins(margin, margin, margin, margin);
-    layout->addWidget(filler, 1);
-    layout->addWidget(display);
-    layout->addWidget(filler2);
-    layout->addWidget(axis);
-
-    addTab("Axis", w);
-
-    AxisWidget* axisWidget_b = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this);
-    AxisWidget* axisWidget_t = new AxisWidget(Qt::Horizontal, Qt::AlignTop, this);
-    AxisWidget* axisWidget_l = new AxisWidget(Qt::Vertical, Qt::AlignLeft, this);
-    AxisWidget* axisWidget_r = new AxisWidget(Qt::Vertical, Qt::AlignRight, this);
-    QWidget* w3 = new QWidget(this);
-    QWidget* filler3 = new QWidget(this);
-    filler3->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    filler3->hide();
-
-    QWidget* tempView = new QWidget(this);
-    tempView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QGridLayout* layout3 = new QGridLayout(w3);
-    layout3->setMargin(0);
-    layout3->setSpacing(0);
-    layout3->setContentsMargins(margin, margin, margin, margin);
-    layout3->addWidget(axisWidget_t, 0, 1);
-    layout3->addWidget(axisWidget_l, 1, 0);
-    layout3->addWidget(tempView, 1, 1);
-    layout3->addWidget(axisWidget_r, 1, 2);
-    layout3->addWidget(axisWidget_b, 2, 1);
-
-    addTab("AxisW", w3);
-}
-
-
-void PanelWidget::testNewTimelineView()
-{
-    TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::DATA});
-    defaultActiveAction = addTab("Entities", view);
-    defaultActiveAction->trigger();
-
-    /*if (viewController) {
-        connect(viewController, &ViewController::vc_viewItemConstructed, view, &TimelineChartView::viewItemConstructed);
-        connect(viewController, &ViewController::vc_viewItemDestructing, view, &TimelineChartView::viewItemDestructed);
-    }*/
-}
-
-
-// EXAMPLES
-void PanelWidget::constructBigDataChart()
-{
-    QFile file("/Sample Data/SpeciesA_Isolate1-1_110131.txt");
-    QString errorStr;
-    if (!file.open(QIODevice::ReadOnly)) {
-        errorStr = "File ERROR: " + file.errorString();
-    }
-
-    QTextStream in(&file);
-    QList<QPointF> textDataPoints;
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        QStringList fields = line.split(" ");
-        if (fields.count() == 2) {
-            QPointF p(fields.at(0).toFloat(), fields.at(1).toFloat());
-            textDataPoints.append(p);
-        }
-    }
-    file.close();
-
-    //qDebug() << errorStr;
-    //qDebug() << "#: " << textDataPoints.count();
-}
-
-
-void PanelWidget::constructCustomChartView()
-{
-    QGraphicsView* view = new QGraphicsView(new QGraphicsScene);
-    defaultActiveAction = addTab("Custom", view);
-
-    QChart* c1 = new QChart;
-    QChart* c2 = new QChart;
-    QChart* c3 = new QChart;
-
-    QLineSeries* line = new QLineSeries;
-    QSplineSeries* spline = new QSplineSeries;
-    QScatterSeries* scatter = new QScatterSeries;
-
-    c1->addSeries(line);
-    c2->addSeries(spline);
-    c3->addSeries(scatter);
-
-    c1->createDefaultAxes();
-    c2->createDefaultAxes();
-    c3->createDefaultAxes();
-
-    view->scene()->addItem(c1);
-    view->scene()->addItem(c2);
-    view->scene()->addItem(c3);
-
-    int viewWidth = 1200; //view->viewport()->rect().width();
-    c1->setMinimumSize(viewWidth / 3, 500);
-    c2->setMinimumSize(viewWidth / 3, 500);
-    c3->setMinimumSize(viewWidth / 3, 500);
-
-    c2->moveBy(500, 0);
-    c3->moveBy(1000, 0);
-}
-
-
-void PanelWidget::constructSizeTestTab()
-{
-    QWidget* w = new QWidget(this);
-    QLabel* w1 = new QLabel("HELLO WORLD", this);
-    QWidget* w2 = new QWidget(this);
-
-    w1->setStyleSheet("background:red;");
-    w2->setStyleSheet("background:blue;");
-
-    //w1->setFixedWidth(150);
-
-    QHBoxLayout* layout = new QHBoxLayout(w);
-    layout->addWidget(w1);
-    layout->addWidget(w2, 1);
-    defaultActiveAction = addTab("SIZE", w);
-}
-
-
+/**
+ * @brief PanelWidget::setViewController
+ * @param vc
+ */
 void PanelWidget::setViewController(ViewController *vc)
 {
     if (!vc)
         return;
 
     viewController = vc;
+    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
 
     if (chartPopup) {
         chartPopup->setViewController(viewController);
     }
 
-    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
-
-    //testNewTimelineView();
     //constructPortLifecycleEventsView();
     //constructWorkloadEventsView();
     //constructCPUEventsView();
@@ -505,7 +332,7 @@ void PanelWidget::setActiveTabTitle(QString title)
         if (activeAction) {
             activeAction->setText(title);
             activeAction->setToolTip(title);
-            int maxWidth = qMax(fontMetrics().width(title) + 40, TAB_WIDTH);
+            auto maxWidth = qMax(fontMetrics().width(title) + 40, TAB_WIDTH);
             tabBar->widgetForAction(activeAction)->setFixedWidth(maxWidth);
         }
     }
@@ -518,13 +345,6 @@ void PanelWidget::setActiveTabTitle(QString title)
  */
 void PanelWidget::minimisePanel(bool checked)
 {
-    /*if (!checked) {
-        // if all the tabs are currently hidden, don't allow the panel to be maximised
-        if (hiddenTabs == tabsActionGroup->actions().count()) {
-            minimiseAction->setChecked(true);
-            return;
-        }
-    }*/
     tabStack->setVisible(!checked);
     emit minimiseTriggered(checked);
 }
@@ -579,15 +399,6 @@ void PanelWidget::snapShotPanel()
     if (!widgetPixmap.save(fileName))
         QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
                              .arg(QDir::toNativeSeparators(fileName)));
-}
-
-
-/**
- * @brief PanelWidget::popOutPanel
- */
-void PanelWidget::popOutPanel()
-{
-
 }
 
 
@@ -661,11 +472,8 @@ void PanelWidget::handleTimeout()
     nextDataPoints.append(nextPoint);
 
     if (playPauseAction->isChecked()) {
-        testSeries->append(nextDataPoints);
+        //testSeries->append(nextDataPoints);
         nextDataPoints.clear();
-        //Chart* tChart = (Chart*)testSeries->chart();
-        //tChart->setDataMaxX(dt);
-        //tChart->setAxisRange(Qt::Horizontal, minDateTime, dt);
         minDateTime.setMSecsSinceEpoch(minDateTime.toMSecsSinceEpoch() + timer->interval());
     }
 
@@ -710,9 +518,8 @@ void PanelWidget::removeTab(QAction* tabAction, bool deleteWidget)
         // remove action from the tabs action group
         tabsActionGroup->removeAction(tabAction);
 
-        if (deleteWidget) {
+        if (deleteWidget)
             w->deleteLater();
-        }
 
         tabAction->deleteLater();
         menuAction->deleteLater();
@@ -824,13 +631,15 @@ void PanelWidget::setupLayout()
  */
 void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon)
 {
-    if (action) {
-        if (newIcon) {
-            action->setProperty("iconPath", iconPath);
-            action->setProperty("iconName", iconName);
-        }
-        action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
+    if (!action)
+        return;
+
+    if (newIcon) {
+        action->setProperty("iconPath", iconPath);
+        action->setProperty("iconName", iconName);
     }
+
+    action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
 }
 
 
@@ -841,7 +650,6 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
 void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
 {
     if (view && viewController) {
-        //connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedEvents, view, &TimelineChartView::addChartEvents);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearTimelineChart);
         connect(&viewController->getAggregationProxy(), &AggregationProxy::receivedAllEvents, view, &TimelineChartView::updateTimelineChart);
     }

@@ -2,7 +2,6 @@
 #include "timelinechart.h"
 #include "entitychart.h"
 #include "../Axis/axiswidget.h"
-#include "../../Series/barseries.h"
 #include "../../../../theme.h"
 
 #include <QScrollBar>
@@ -12,7 +11,6 @@
 #define MIN_ENTITY_HEIGHT 50
 #define SCROLLBAR_WIDTH 20
 #define AXIS_LINE_WIDTH 2
-#define POINTS_WIDTH 14
 #define ZOOM_FACTOR 1.025
 #define SPACING 5
 #define OPACITY 0.2
@@ -45,7 +43,6 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 
     _timelineChart = new TimelineChart(this);
     _timelineChart->setAxisWidth(AXIS_LINE_WIDTH);
-    _timelineChart->setPointsWidth(POINTS_WIDTH);
     _timelineChart->setAxisYVisible(true);
 
     connect(_timelineChart, &TimelineChart::panning, _dateTimeAxis, &AxisWidget::setPanning);
@@ -89,7 +86,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
      * HOVER AND LEGEND TIMELINE_DATA_KIND WIDGETS
      */
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
-        if (kind == TIMELINE_DATA_KIND::DATA || kind == TIMELINE_DATA_KIND::LINE)
+        if (kind == TIMELINE_DATA_KIND::DATA)
             continue;
 
         // construct legend widgets
@@ -264,13 +261,8 @@ void TimelineChartView::setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds)
         case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
             _legendActions.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION)->setVisible(true);
             break;
-        default: {
-            // NOTE: this case is temporary - only added it for the model entities chart
-            _legendActions.value(TIMELINE_DATA_KIND::STATE)->setVisible(true);
-            _legendActions.value(TIMELINE_DATA_KIND::NOTIFICATION)->setVisible(true);
-            _legendActions.value(TIMELINE_DATA_KIND::BAR)->setVisible(true);
+        default:
             break;
-        }
         }
     }
 }
@@ -336,15 +328,6 @@ void TimelineChartView::themeChanged()
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
         QIcon buttonIcon;
         switch (kind) {
-        case TIMELINE_DATA_KIND::STATE:
-            buttonIcon = theme->getIcon("ToggleIcons", "stateHover");
-            break;
-        case TIMELINE_DATA_KIND::NOTIFICATION:
-            buttonIcon = theme->getIcon("ToggleIcons", "notificationHover");
-            break;
-        case TIMELINE_DATA_KIND::BAR:
-            buttonIcon = theme->getIcon("ToggleIcons", "barHover");
-            break;
         case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
@@ -763,8 +746,7 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     auto experimentRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
     label = "[" + QString::number(experimentRunID) + "] " + label;
 
-    EntityChart* chart = new EntityChart(0, this);
-    chart->setExperimentRunID(experimentRunID);
+    EntityChart* chart = new EntityChart(experimentRunID, this);
     chart->addEventSeries(series);
     _timelineChart->addEntityChart(chart);
     eventEntityCharts[ID] = chart;

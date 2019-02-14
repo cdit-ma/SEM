@@ -30,9 +30,7 @@ public:
 
     void setAxisXVisible(bool visible);
     void setAxisYVisible(bool visible);
-
     void setAxisWidth(double width);
-    void setPointsWidth(double width);
 
     void addEntityChart(EntityChart* chart);
     void insertEntityChart(int index, EntityChart* chart);
@@ -80,7 +78,6 @@ private:
     double mapLocalPixelToTime(double pixel);
 
     double axisWidth;
-    double pointsWidth;
 
     bool axisXVisible = false;
     bool axisYVisible = false;
