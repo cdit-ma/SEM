@@ -20,8 +20,25 @@ void Dis_Worker::SetPduCallback(std::function<void (const KDIS::PDU::Header &)> 
     impl_->SetPduCallback(func);
 }
 
+std::string Dis_Worker::PDU2String(const KDIS::PDU::Header& header){
+    return impl_->PDU2String(header);
+}
 
-void Dis_Worker::HandleConfigure() {
+bool Dis_Worker::Connect(){
+    try{
+        Connect_();
+        return true;
+    }catch(const std::exception& e){
+
+    }
+    return false;
+}
+
+void Dis_Worker::Disconnect(){
+    Disconnect_();
+}
+        
+void Dis_Worker::Connect_(){
     auto work_id = get_new_work_id();
 
     std::string ip_address;
@@ -35,7 +52,6 @@ void Dis_Worker::HandleConfigure() {
         port = port_->get_Integer();
     }
 
-
     Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id,
             "Connecting DIS Worker: " + ip_address + ":" + std::to_string(port));
     try{
@@ -44,13 +60,20 @@ void Dis_Worker::HandleConfigure() {
         LogException(GET_FUNC, ex, work_id);
         throw;
     }
+}
+
+void Dis_Worker::Disconnect_(){
+    auto work_id = get_new_work_id();
+    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Disconnecting DIS Worker");
+    impl_->Disconnect();
+}
+
+void Dis_Worker::HandleConfigure() {
+    Connect_();
     Worker::HandleConfigure();
 }
 
 void Dis_Worker::HandleTerminate() {
-    auto work_id = get_new_work_id();
-    Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Disconnecting DIS Worker");
-
-    impl_->Disconnect();
+    Disconnect_();
     Worker::HandleTerminate();
 }

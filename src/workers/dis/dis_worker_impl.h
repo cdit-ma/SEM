@@ -9,9 +9,9 @@
 #include <future>
 #include <queue>
 
-#include <KDIS/Extras/PDU_Factory.h>
-#include <KDIS/Network/Connection.h>
-#include <KDIS/Network/ConnectionSubscriber.h>
+#include <kdis/KDIS/Extras/PDU_Factory.h>
+#include <kdis/KDIS/Network/Connection.h>
+#include <kdis/KDIS/Network/ConnectionSubscriber.h>
 
 class Dis_Worker_Impl{
     public:
@@ -19,6 +19,7 @@ class Dis_Worker_Impl{
         ~Dis_Worker_Impl();
         void Connect(const std::string& ip_address, const int port);
         void SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func);
+        std::string PDU2String(const KDIS::PDU::Header& header);
         void Disconnect();
     private:
         void ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> connection);

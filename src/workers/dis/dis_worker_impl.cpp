@@ -18,7 +18,12 @@ void Dis_Worker_Impl::Connect(const std::string& ip_address, const int port){
         }catch(const std::exception& ex){
             throw std::runtime_error("Cannot create KDIS Connection: " + ip_address + " " + std::to_string(port) + ": " + ex.what());
         }
-        //start async tasks for both threads
+
+        //Reset Terminate Flags once we are sure the connection is established
+        terminate_kdis_ = false;
+        terminate_queue_ = false;
+
+        //start async tasks for both funcs
         kdis_future_ = std::async(std::launch::async, &Dis_Worker_Impl::ProcessEvents, this, std::move(connection));
         callback_future_ = std::async(std::launch::async, &Dis_Worker_Impl::ProcessQueue, this);
     }
@@ -27,9 +32,13 @@ void Dis_Worker_Impl::Connect(const std::string& ip_address, const int port){
 void Dis_Worker_Impl::Disconnect(){
     std::lock_guard<std::mutex> lock(future_mutex_);
     if(kdis_future_.valid() && callback_future_.valid()){
+        //Set Terminate Flags
         terminate_kdis_ = true;
         terminate_queue_ = true;
+        //Notify the queue thread
         queue_condition_.notify_all();
+        
+        //Join the threads
         kdis_future_.get();
         callback_future_.get();
     }
@@ -37,6 +46,10 @@ void Dis_Worker_Impl::Disconnect(){
 
 void Dis_Worker_Impl::SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func){
     callback_function_ = func;
+}
+
+std::string Dis_Worker_Impl::PDU2String(const KDIS::PDU::Header& header){
+    return header.GetAsString();
 }
 
 void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> connection){
@@ -48,8 +61,6 @@ void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> c
         try{
             // Note: GetNextPDU supports PDU Bundling, which Receive does not.
             auto pdu_ptr = connection->GetNextPDU().release();
-            
-
             if(pdu_ptr){
                 {
                     std::lock_guard<std::mutex> lock(queue_mutex_);

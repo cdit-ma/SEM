@@ -4,7 +4,7 @@
 #include <memory>
 #include <core/worker.h>
 #include <functional>
-#include <KDIS/Extras/PDU_Factory.h>
+#include "kdis/KDIS/Extras/PDU_Factory.h"
 
 class Dis_Worker_Impl;
 class Dis_Worker : public Worker{
@@ -12,10 +12,15 @@ class Dis_Worker : public Worker{
         Dis_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Dis_Worker();
         void SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func);
+        std::string PDU2String(const KDIS::PDU::Header& header);
+        bool Connect();
+        void Disconnect();
     protected:
         void HandleConfigure() override;
         void HandleTerminate() override;
     private:
+        void Connect_();
+        void Disconnect_();
         std::unique_ptr<Dis_Worker_Impl> impl_;
 
         std::shared_ptr<Attribute> ip_address_;
