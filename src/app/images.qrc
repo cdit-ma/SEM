@@ -163,6 +163,10 @@
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleMinus">Resources/Icons/circleMinus.png</file>
         <file alias="circleMinusDark">Resources/Icons/circleMinusDark.png</file>
+        <file alias="circlePauseTwoTone">Resources/Icons/circlePauseTwoTone.png</file>
+        <file alias="circlePlayTwoTone">Resources/Icons/circlePlayTwoTone.png</file>
+        <file alias="circlePause">Resources/Icons/circlePause.png</file>
+        <file alias="circlePlay">Resources/Icons/circlePlay.png</file>
         <file alias="circlePlus">Resources/Icons/circlePlus.png</file>
         <file alias="circlePlusDark">Resources/Icons/circlePlusDark.png</file>
         <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>

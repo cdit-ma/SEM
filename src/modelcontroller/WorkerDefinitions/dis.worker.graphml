@@ -16,6 +16,7 @@
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
     <key attr.name="cpp_vartype" attr.type="string" for="all" id="cpp_vartype"/>
+    <key attr.name="callback_set_func" attr.type="string" for="all" id="callback_set_func"/>
 
     <graph id="G">
         <node id="DIS">
@@ -33,7 +34,7 @@
                 <node id="DIS::got_pdu">
                     <data key="kind">CallbackFunction</data>
                     <data key="label">Got PDU</data>
-                    <data key="operation">got_pdu</data>
+                    <data key="operation">SetPduCallback</data>
                     <data key="description">TODO</data>
                     <graph id="DIS::got_pdu:">
                         <node id="DIS::got_pdu::in">
@@ -44,7 +45,6 @@
                                     <data key="label">PDU Header</data>
                                     <data key="inner_type">KDIS::PDU::Header</data>
                                     <data key="cpp_vartype">CONST_REF</data>
-                                    <data key="outer_type" />
                                     <data key="icon">category</data>
                                     <data key="icon_prefix">Icons</data>
                                     <data key="description">The PDU header</data>
@@ -69,7 +69,6 @@
                                     <data key="label">PDU Header</data>
                                     <data key="inner_type">KDIS::PDU::Header</data>
                                     <data key="cpp_vartype">CONST_REF</data>
-                                    <data key="outer_type" />
                                     <data key="icon">category</data>
                                     <data key="icon_prefix">Icons</data>
                                     <data key="description">The PDU header</data>
@@ -86,16 +85,45 @@
                                     <data key="outer_type" />
                                     <data key="icon_prefix">Icons</data>
                                     <data key="icon">memoryCard</data>
-                                    <data key="is_generic_param">true</data>
                                     <data key="description">The String.</data>
                                 </node>
                             </graph>
                         </node>
                     </graph>
                 </node>
+                <node id="DIS::connect">
+                    <data key="kind">Function</data>
+                    <data key="label">Connect</data>
+                    <data key="operation">Connect</data>
+                    <data key="description">Connects to the DIS Service.</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePlayTwoTone</data>
+                    <graph id="DIS::connect:">
+                        <node id="DIS::connect::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="DIS::connect::out:">
+                                <node id="DIS::connect::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">value</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="outer_type" />
+                                    <data key="description">Connection Succesful</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="DIS::disconnect">
+                    <data key="kind">Function</data>
+                    <data key="label">Disconnect</data>
+                    <data key="operation">Disconnect</data>
+                    <data key="description">Disconnects from the DIS Service.</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePauseTwoTone</data>
+                </node>
                 <node id="DIS::pdu_header">
                     <data key="inner_type">KDIS::PDU::Header</data>
-                    <data key="outer_type"/>
+                    <data key="outer_type"></data>
                     <data key="label">DIS PDU Header</data>
                     <data key="kind">ExternalType</data>
                 </node>
