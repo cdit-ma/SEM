@@ -949,6 +949,10 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_types = true;
 
     switch(instance_kind){
+        case NODE_KIND::CLASS_INSTANCE:{
+            bind_values[KeyName::IsWorker] += KeyName::IsWorker;
+            break;
+        }
         case NODE_KIND::MEMBER_INSTANCE:
         case NODE_KIND::VECTOR_INSTANCE:
         case NODE_KIND::AGGREGATE_INSTANCE:{
