@@ -45,6 +45,13 @@ void PeriodicPort::SetFrequency(double hz){
     }
 }
 
+double PeriodicPort::GetFrequency(){
+    if(frequency_){
+        return frequency_->get_Double();
+    }
+    return -1;
+}
+
 void PeriodicPort::SetDuration(int milliseconds){
     auto hz = milliseconds / 1000.0;
 
