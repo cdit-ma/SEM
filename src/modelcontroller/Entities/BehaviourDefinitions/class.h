@@ -6,11 +6,11 @@ class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class Class : public Node{
         friend class ::EntityFactory;
-        protected:
-public:
+        public:
             static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
-protected:
+        protected:
             Class(EntityFactoryBroker& factory, bool is_temp_node);
+            void parentSet(Node* parent) override;
     };
 };
 
