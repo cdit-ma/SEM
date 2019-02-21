@@ -34,11 +34,11 @@
 	<key attr.name="is_optional_param" attr.type="boolean" id="217"/>
 	<key attr.name="column_count" attr.type="int" id="258"/>
 	<key attr.name="comment" attr.type="string" id="259"/>
-	<key attr.name="x" attr.type="double" id="264"/>
-	<key attr.name="y" attr.type="double" id="265"/>
-	<key attr.name="isExpanded" attr.type="boolean" id="276"/>
-	<key attr.name="middleware" attr.type="string" id="287"/>
-	<key attr.name="editable_key" attr.type="string" id="351"/>
+	<key attr.name="x" attr.type="double" id="260"/>
+	<key attr.name="y" attr.type="double" id="261"/>
+	<key attr.name="isExpanded" attr.type="boolean" id="262"/>
+	<key attr.name="middleware" attr.type="string" id="263"/>
+	<key attr.name="editable_key" attr.type="string" id="264"/>
 
 	<graph edgedefault="directed" id="parentGraph0">
 		<node id="12">
@@ -53,7 +53,7 @@
 					<data key="2">INTERFACES</data>
 					<data key="3">0</data>
 					<graph id="g13">
-						<node id="260">
+						<node id="265">
 							<data key="1">Aggregate</data>
 							<data key="2">Message</data>
 							<data key="3">0</data>
@@ -61,18 +61,18 @@
 							<data key="32"></data>
 							<data key="258">1</data>
 							<data key="259"></data>
-							<data key="264">0</data>
-							<data key="265">-5</data>
-							<graph id="g260">
-								<node id="261">
+							<data key="260">0</data>
+							<data key="261">-5</data>
+							<graph id="g265">
+								<node id="266">
 									<data key="1">Member</data>
 									<data key="2">instName</data>
 									<data key="3">0</data>
 									<data key="21">String</data>
 									<data key="39"></data>
-									<data key="40">false</data>
+									<data key="40">true</data>
 								</node>
-								<node id="262">
+								<node id="267">
 									<data key="1">Member</data>
 									<data key="2">messageID</data>
 									<data key="3">1</data>
@@ -80,7 +80,7 @@
 									<data key="39"></data>
 									<data key="40">false</data>
 								</node>
-								<node id="263">
+								<node id="268">
 									<data key="1">Member</data>
 									<data key="2">content</data>
 									<data key="3">2</data>
@@ -97,9 +97,9 @@
 							<data key="21">HelloReceiver</data>
 							<data key="32"></data>
 							<data key="259"></data>
-							<data key="264">250</data>
-							<data key="265">-5</data>
-							<data key="276">true</data>
+							<data key="260">250</data>
+							<data key="261">-5</data>
+							<data key="262">true</data>
 							<graph id="g269">
 								<node id="289">
 									<data key="1">SubscriberPort</data>
@@ -147,17 +147,17 @@
 								</node>
 							</graph>
 						</node>
-						<node id="266">
+						<node id="270">
 							<data key="1">Component</data>
 							<data key="2">HelloSender</data>
 							<data key="3">2</data>
 							<data key="21">HelloSender</data>
 							<data key="32"></data>
 							<data key="259"></data>
-							<data key="264">75</data>
-							<data key="265">-5</data>
-							<data key="276">true</data>
-							<graph id="g266">
+							<data key="260">75</data>
+							<data key="261">-5</data>
+							<data key="262">true</data>
+							<graph id="g270">
 								<node id="273">
 									<data key="1">Attribute</data>
 									<data key="2">message</data>
@@ -217,22 +217,22 @@
 					<data key="1">BehaviourDefinitions</data>
 					<data key="2">BEHAVIOUR</data>
 					<data key="3">1</data>
-					<data key="276">true</data>
+					<data key="262">true</data>
 					<graph id="g14">
-						<node id="267">
+						<node id="271">
 							<data key="1">ComponentImpl</data>
 							<data key="2">HelloSender</data>
 							<data key="3">0</data>
 							<data key="21">HelloSender</data>
-							<data key="264">-50</data>
-							<data key="265">40</data>
-							<data key="276">true</data>
-							<graph id="g267">
+							<data key="260">-50</data>
+							<data key="261">40</data>
+							<data key="262">true</data>
+							<graph id="g271">
 								<node id="314">
 									<data key="1">PeriodicPort</data>
 									<data key="2">tick</data>
 									<data key="3">0</data>
-									<data key="276">true</data>
+									<data key="262">true</data>
 									<graph id="g314">
 										<node id="342">
 											<data key="1">FunctionCall</data>
@@ -339,7 +339,7 @@
 													<data key="27">Icons</data>
 													<data key="28">circlePlusDark</data>
 													<data key="106">true</data>
-													<data key="351">label</data>
+													<data key="264">label</data>
 												</node>
 												<node id="355">
 													<data key="1">InputParameter</data>
@@ -386,7 +386,7 @@
 									<data key="23"></data>
 									<data key="36">1</data>
 									<data key="37">1</data>
-									<data key="276">false</data>
+									<data key="262">false</data>
 									<graph id="g349">
 										<node id="350">
 											<data key="1">Member</data>
@@ -488,16 +488,16 @@
 							<data key="2">HelloReceiver</data>
 							<data key="3">1</data>
 							<data key="21">HelloReceiver</data>
-							<data key="264">275</data>
-							<data key="265">40</data>
-							<data key="276">true</data>
+							<data key="260">275</data>
+							<data key="261">40</data>
+							<data key="262">true</data>
 							<graph id="g302">
 								<node id="304">
 									<data key="1">SubscriberPortImpl</data>
 									<data key="2">rxGreeting</data>
 									<data key="3">0</data>
 									<data key="21">Message</data>
-									<data key="276">true</data>
+									<data key="262">true</data>
 									<graph id="g304">
 										<node id="306">
 											<data key="1">AggregateInstance</data>
@@ -509,7 +509,7 @@
 											<data key="36">0</data>
 											<data key="37">-1</data>
 											<data key="258">1</data>
-											<data key="276">true</data>
+											<data key="262">true</data>
 											<graph id="g306">
 												<node id="308">
 													<data key="1">MemberInstance</data>
@@ -774,8 +774,8 @@
 									<data key="3">0</data>
 									<data key="21">HelloReceiver</data>
 									<data key="259"></data>
-									<data key="264">155</data>
-									<data key="265">65</data>
+									<data key="260">155</data>
+									<data key="261">65</data>
 									<graph id="g404">
 										<node id="434">
 											<data key="1">SubscriberPortInstance</data>
@@ -783,8 +783,8 @@
 											<data key="3">0</data>
 											<data key="21">Message</data>
 											<data key="36">0</data>
-											<data key="276">true</data>
-											<data key="287">ZMQ</data>
+											<data key="262">true</data>
+											<data key="263">ZMQ</data>
 										</node>
 										<node id="406">
 											<data key="1">ClassInstance</data>
@@ -939,8 +939,8 @@
 									<data key="3">1</data>
 									<data key="21">HelloSender</data>
 									<data key="259"></data>
-									<data key="264">5</data>
-									<data key="265">65</data>
+									<data key="260">5</data>
+									<data key="261">65</data>
 									<graph id="g436">
 										<node id="458">
 											<data key="1">AttributeInstance</data>
@@ -1060,7 +1060,7 @@
 											<data key="3">3</data>
 											<data key="21">Message</data>
 											<data key="36">2</data>
-											<data key="287">ZMQ</data>
+											<data key="263">ZMQ</data>
 										</node>
 									</graph>
 								</node>
@@ -4061,7 +4061,7 @@
 		<edge id="440" source="438" target="314">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="437" source="436" target="266">
+		<edge id="437" source="436" target="270">
 			<data key="1">Edge_Definition</data>
 		</edge>
 		<edge id="435" source="434" target="289">
@@ -4250,40 +4250,40 @@
 		<edge id="303" source="302" target="269">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="298" source="297" target="263">
+		<edge id="298" source="297" target="268">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="296" source="295" target="262">
+		<edge id="296" source="295" target="267">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="294" source="293" target="261">
+		<edge id="294" source="293" target="266">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="292" source="291" target="260">
+		<edge id="292" source="291" target="265">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="290" source="289" target="260">
+		<edge id="290" source="289" target="265">
 			<data key="1">Edge_Aggregate</data>
 		</edge>
-		<edge id="286" source="285" target="263">
+		<edge id="286" source="285" target="268">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="284" source="283" target="262">
+		<edge id="284" source="283" target="267">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="282" source="281" target="261">
+		<edge id="282" source="281" target="266">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="280" source="279" target="260">
+		<edge id="280" source="279" target="265">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="278" source="277" target="260">
+		<edge id="278" source="277" target="265">
 			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="276" source="271" target="270">
+			<data key="1">Edge_Definition</data>
 		</edge>
 		<edge id="275" source="274" target="273">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="268" source="267" target="266">
 			<data key="1">Edge_Definition</data>
 		</edge>
 	</graph>

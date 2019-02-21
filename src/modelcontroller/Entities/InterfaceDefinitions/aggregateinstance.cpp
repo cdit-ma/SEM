@@ -132,15 +132,12 @@ void AggregateInstance::parentSet(Node* parent){
             getFactoryBroker().AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
             break;
         }
-        case NODE_KIND::AGGREGATE:{
-            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-            SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
-            break;
-        }
+        case NODE_KIND::AGGREGATE:
         case NODE_KIND::VECTOR:
         case NODE_KIND::VARIABLE:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
         case NODE_KIND::RETURN_PARAMETER_GROUP:{
+            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
             SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
             break;
         }

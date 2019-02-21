@@ -45,10 +45,3 @@ int GraphML::getID() const
 EntityFactoryBroker& GraphML::getFactoryBroker(){
     return broker_;
 }
-
-QString GraphML::toGraphML(int indent_depth){
-    QString xml;
-    QTextStream stream(&xml);
-    ToGraphmlStream(stream, indent_depth);
-    return xml;
-}

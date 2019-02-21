@@ -141,15 +141,6 @@ bool Key::setData(Data* data, QVariant data_value){
 }
 
 
-void Key::ToGraphmlStream(QTextStream& stream, int indent_depth){
-    stream << QString("\t").repeated(indent_depth);
-    stream << "<key";
-    stream << " attr.name=\"" << getName() << "\"";
-    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
-    stream << " id=\"" << getID() << "\"";
-    stream << "/>\n";
-}
-
 QString Key::toString() const
 {
     QString str;
