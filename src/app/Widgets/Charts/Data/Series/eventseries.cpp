@@ -28,7 +28,6 @@ void MEDEA::EventSeries::clear()
 {
     auto i = events_.begin();
     while (i != events_.end()) {
-        //(*i)->deleteLater();
         auto event = (*i);
         event->deleteLater();
         i = events_.erase(i);
@@ -56,20 +55,8 @@ void MEDEA::EventSeries::addEvent(Event* event)
             maxTime_ = eventTime;
             emit maxChanged(maxTime_);
         }
-        event->setParent(this);
+        //event->setParent(this);
         events_.append(event);
-    }
-}
-
-
-/**
- * @brief MEDEA::EventSeries::addEvents
- * @param events
- */
-void MEDEA::EventSeries::addEvents(QList<Event*>& events)
-{
-    for (auto event : events) {
-        addEvent(event);
     }
 }
 

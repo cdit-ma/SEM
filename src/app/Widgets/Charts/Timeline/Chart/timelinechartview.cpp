@@ -100,6 +100,7 @@ TimelineChartView::TimelineChartView(QWidget* parent)
         connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
 
         QWidget* actionWidget = _legendToolbar->widgetForAction(action);
+        actionWidget->setProperty("TIMELINE_DATA_KIND", (uint)kind);
         actionWidget->installEventFilter(this);
 
         // construct hover display widgets
@@ -173,6 +174,8 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChartView::themeChanged);
     themeChanged();
+
+    setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE, TIMELINE_DATA_KIND::WORKLOAD, TIMELINE_DATA_KIND::CPU_UTILISATION, TIMELINE_DATA_KIND::MEMORY_UTILISATION});
 
     // initialise stored ranges
     longestExperimentRunDuration_ = {0, INT64_MIN};
@@ -549,8 +552,11 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Eve
     if (events.isEmpty())
         return;
 
+    QSet<TIMELINE_DATA_KIND> receivedKinds;
     QSet<MEDEA::EventSeries*> updatedSeries;
     qint64 minTime = INT64_MAX, maxTime = INT64_MIN;
+
+    //auto currentRange = timeDisplayFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME ? longestExperimentRunDuration_ : totalTimeRange_;
 
     for (auto event : events) {
         if (!event)
@@ -566,6 +572,7 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Eve
         series->addEvent(event);
         minTime = qMin(event->getTimeMS(), minTime);
         maxTime = qMax(event->getTimeMS(), maxTime);
+        receivedKinds.insert(event->getKind());
     }
 
     // store/update experiment run's range
@@ -577,6 +584,11 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Eve
     }
 
     addedDataFromExperimentRun(experimentRunID);
+
+    // update the charts' binned data
+    /*for (auto chart : eventEntityCharts) {
+        chart->updateBinnedData(receivedKinds);
+    }*/
 }
 
 
@@ -728,7 +740,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 exper
  * @param label
  * @return
  */
-EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label)
+EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, QString ID, QString label)
 {
     if (!series)
         return 0;
@@ -747,7 +759,7 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* seri
     label = "[" + QString::number(experimentRunID) + "] " + label;
 
     EntityChart* chart = new EntityChart(experimentRunID, this);
-    chart->addEventSeries(series);
+    chart->addSeries(series);
     _timelineChart->addEntityChart(chart);
     eventEntityCharts[ID] = chart;
 

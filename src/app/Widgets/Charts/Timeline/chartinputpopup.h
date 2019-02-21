@@ -32,26 +32,17 @@ public:
 
 signals:
     void setChartTitle(QString title);
+
     void selectedExperimentRunID(quint32 experimentRunID);
     void selectedExperimentRun(ExperimentRun experimentRun);
-    //void setEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
-    void requestExperimentRuns(QString experimentName = "");
-    void requestExperimentState(quint32 experimentRunID);
-    void requestAllEvents();
-
-    void requestPortLifecycleEvents(PortLifecycleRequest request);
-    void requestWorkloadEvents(WorkloadRequest request);
-    void requestCPUUtilisationEvents(CPUUtilisationRequest request);
-    void requestMemoryUtilisationEvents(MemoryUtilisationRequest request);
+    void receivedRequestResponse(QList<MEDEA::Event*> events);
 
 public slots:
     void themeChanged();
 
     void setPopupVisible(bool visible);
-    void populateExperimentRuns(QList<ExperimentRun> runs);
 
-    void receivedExperimentState(QStringList nodeHostnames, QStringList componentNames, QStringList workerNames);
     void receivedSelectedViewItems(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
 
     void filterMenuTriggered(QAction* action);
@@ -60,7 +51,16 @@ public slots:
     void reject();
 
 private:
-    QString getItemLabel(ViewItem* item);
+    void requestExperimentRuns();
+    void requestEvents(quint32 experimentRunID);
+    void requestEvents(PortLifecycleRequest request);
+    void requestEvents(WorkloadRequest request);
+    void requestEvents(CPUUtilisationRequest request);
+    void requestEvents(MemoryUtilisationRequest request);
+
+    void toastRequestError(QString description, QString iconPath, QString iconName);
+
+    void populateExperimentRuns(QList<ExperimentRun> runs);
 
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
@@ -68,9 +68,11 @@ private:
 
     void recenterPopup();
     void resizePopup();
+    void resetPopup();
 
-    void resetFilters();
     void setupFilterWidgets();
+
+    QString getItemLabel(ViewItem* item);
 
     QString& getSelectedFilter(FILTER_KEY filter);
     QStringList& getFilterList(FILTER_KEY filter);
@@ -101,7 +103,6 @@ private:
 
     QPointF originalCenterPos_;
 
-    ExperimentRun selectedExperimentRun_;
     qint32 selectedExperimentRunID_;
 
     QString experimentName_;
@@ -128,6 +129,7 @@ private:
     QStringList nodeIDs_;
 
     ViewController* viewController_ = 0;
+
 };
 
 #endif // CHARTINPUTPOPUP_H

@@ -1256,7 +1256,7 @@ void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
         emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);
-        emit proxy.setChartUserInputDialogVisible(true);
+        //emit proxy.setChartUserInputDialogVisible(true);
     }
 }
 

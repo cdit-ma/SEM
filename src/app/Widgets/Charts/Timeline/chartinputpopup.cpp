@@ -5,7 +5,7 @@
 #include <QRadioButton>
 #include <QToolButton>
 #include <QDateTime>
-
+#include <QFutureWatcher>
 #define MIN_WIDTH 400
 #define FILTER "filter"
 #define GROUPBOX_ITEM_SPACING 5
@@ -30,11 +30,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     experimentNameLineEdit_->setPlaceholderText("Enter experiment name...");
     experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
-
-    connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=](QString text) {
-        hideGroupBoxes();
-        emit requestExperimentRuns(text.trimmed());
-    });
+    connect(experimentNameLineEdit_, &QLineEdit::textEdited, this, &ChartInputPopup::requestExperimentRuns);
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
     QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
@@ -68,12 +64,14 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     toolbar_->addWidget(spacerWidget);
 
     cancelAction_ = toolbar_->addAction("Cancel");
-    okAction_ = toolbar_->addAction("Ok");
-
-    connect(okAction_, &QAction::triggered, this, &ChartInputPopup::accept);
     connect(cancelAction_, &QAction::triggered, this, &ChartInputPopup::reject);
 
+    okAction_ = toolbar_->addAction("Ok");
+    connect(okAction_, &QAction::triggered, this, &ChartInputPopup::accept);
+
     QWidget* holderWidget = new QWidget(this);
+    holderWidget->setStyleSheet("background: rgba(0,0,0,0);");
+
     QVBoxLayout* mainLayout = constructVBoxLayout(holderWidget, 5, 5);
     mainLayout->setContentsMargins(5, 5, 5, 5);
     mainLayout->addWidget(experimentNameGroupBox_);
@@ -102,29 +100,15 @@ void ChartInputPopup::setViewController(ViewController* controller)
 
     if (controller) {
         connect(controller, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
-
         connect(&controller->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &ChartInputPopup::setPopupVisible);
-        connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentRuns, this, &ChartInputPopup::populateExperimentRuns);
-        connect(&controller->getAggregationProxy(), &AggregationProxy::requestedExperimentState, this, &ChartInputPopup::receivedExperimentState);
-
         connect(this, &ChartInputPopup::selectedExperimentRunID, &controller->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
-        //connect(this, &ChartInputPopup::setEventKinds, &controller->getAggregationProxy(), &AggregationProxy::SetRequestEventKinds);
-
-        connect(this, &ChartInputPopup::requestExperimentRuns, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentRuns);
-        connect(this, &ChartInputPopup::requestExperimentState, &controller->getAggregationProxy(), &AggregationProxy::RequestExperimentState);
-        connect(this, &ChartInputPopup::requestAllEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestAllEvents);
-
-        connect(this, &ChartInputPopup::requestPortLifecycleEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestPortLifecycleEvents);
-        connect(this, &ChartInputPopup::requestWorkloadEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestWorkloadEvents);
-        connect(this, &ChartInputPopup::requestCPUUtilisationEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestCPUUtilisationEvents);
-        connect(this, &ChartInputPopup::requestMemoryUtilisationEvents, &controller->getAggregationProxy(), &AggregationProxy::RequestMemoryUtilisationEvents);
     }
 }
 
 
 /**
  * @brief ChartInputPopup::enableFilters
- * NOTE - If this is called before setWidget() has been called, the groupboxes aren't put in the right layout`
+ * NOTE - Call this after setWidget(), otherwise the groupboxes won't be put in the right layout
  */
 void ChartInputPopup::enableFilters()
 {
@@ -167,6 +151,142 @@ void ChartInputPopup::themeChanged()
 
 
 /**
+ * @brief ChartInputPopup::requestExperimentRuns
+ */
+void ChartInputPopup::requestExperimentRuns()
+{
+    auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentNameLineEdit_->text().trimmed());
+    auto futureWatcher = new QFutureWatcher<QList<ExperimentRun>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<ExperimentRun>>::finished, [=]() {
+        try {
+            populateExperimentRuns(futureWatcher->result());
+        } catch(const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "chart");
+            throw std::runtime_error(ex.what());
+        }
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::requestEvents
+ * @param experimentRunID
+ */
+void ChartInputPopup::requestEvents(quint32 experimentRunID)
+{
+    auto future = viewController_->getAggregationProxy().RequestAllEvents(experimentRunID);
+    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+        try {
+            emit receivedRequestResponse(futureWatcher->result());
+        } catch (const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "chart");
+            throw std::runtime_error(ex.what());
+        }
+        qDebug() << "-----------------------------------------------------------";
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::requestEvents
+ * @param request
+ */
+void ChartInputPopup::requestEvents(PortLifecycleRequest request)
+{
+    auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
+    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+        try {
+            emit receivedRequestResponse(futureWatcher->result());
+        } catch (const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "plug");
+            throw std::runtime_error(ex.what());
+        }
+        qDebug() << "-----------------------------------------------------------";
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::requestEvents
+ * @param request
+ */
+void ChartInputPopup::requestEvents(WorkloadRequest request)
+{
+    auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(request);
+    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+        try {
+            emit receivedRequestResponse(futureWatcher->result());
+        } catch (const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "spanner");
+            throw std::runtime_error(ex.what());
+        }
+        qDebug() << "-----------------------------------------------------------";
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::requestEvents
+ * @param request
+ */
+void ChartInputPopup::requestEvents(CPUUtilisationRequest request)
+{
+    auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(request);
+    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+        try {
+            emit receivedRequestResponse(futureWatcher->result());
+        } catch (const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "cpu");
+            throw std::runtime_error(ex.what());
+        }
+        qDebug() << "-----------------------------------------------------------";
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::requestEvents
+ * @param request
+ */
+void ChartInputPopup::requestEvents(MemoryUtilisationRequest request)
+{
+    auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(request);
+    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+        try {
+            emit receivedRequestResponse(futureWatcher->result());
+        } catch (const std::exception& ex) {
+            toastRequestError(ex.what(), "Icons", "memoryCard");
+            throw std::runtime_error(ex.what());
+        }
+        qDebug() << "-----------------------------------------------------------";
+    });
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ChartInputPopup::toastRequestError
+ * @param description
+ * @param iconPath
+ * @param iconName
+ */
+void ChartInputPopup::toastRequestError(QString description, QString iconPath, QString iconName)
+{
+    NotificationManager::manager()->AddNotification(description, iconPath, iconName, Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+}
+
+
+/**
  * @brief ChartInputPopup::setPopupVisible
  * @param visible
  */
@@ -181,98 +301,14 @@ void ChartInputPopup::setPopupVisible(bool visible)
         activateWindow();
         experimentNameLineEdit_->setFocus();
         experimentNameLineEdit_->selectAll();
-        emit requestExperimentRuns(experimentNameLineEdit_->text().trimmed());
-    }
-
-    // NOTE - the default position of the popup is in the center of the screen
-    /*if (originalCenterPos_.isNull())
-        originalCenterPos_ = geometry().center();*/
-}
-
-
-/**
- * @brief ChartInputPopup::populateExperimentRuns
- * @param runs
- */
-void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
-{
-    // clear previous experimentRun widgets
-    clearGroupBox(FILTER_KEY::RUNS_FILTER);
-
-    // hiding it first, resizes the widget immediately
-    resizePopup();
-
-    if (filterAction_)
-        filterAction_->setEnabled(false);
-
-    if (runs.isEmpty()) {
-        recenterPopup();
-        return;
-    }
-
-    for (auto run : runs) {
-        auto ID = run.experiment_run_id;
-        //QString text = "[" + QString::number(ID) + "] " + run.experiment_name +
-        QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
-                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
-
-        QRadioButton* button = new QRadioButton(text, this);
-        button->setProperty("ID", ID);
-        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
-        connect(button, &QRadioButton::toggled, [=](bool checked) {
-            if (checked) {
-                // we only need to request the experiment state if the filter widgets are enabled
-                if (filtersEnabled_) {
-                    emit requestExperimentState(ID);
-                }
-                //selectedExperimentRun_ = run;
-                selectedExperimentRunID_ = ID;
-                emit selectedExperimentRunID(ID);
-                emit selectedExperimentRun(run);
-            }
-        });
-    }
-
-    experimentRunsGroupBox_->show();
-    resizePopup();
-    recenterPopup();
-}
-
-
-/**
- * @brief ChartInputPopup::receivedExperimentState
- * @param nodeHostname
- * @param componentName
- * @param workerName
- */
-void ChartInputPopup::receivedExperimentState(QStringList nodeHostnames, QStringList componentNames, QStringList workerNames)
-{
-    nodes_ = nodeHostnames;
-    components_ = componentNames;
-    workers_ = workerNames;
-
-    if (!filtersEnabled_)
-        return;
-
-    // if the corresponding filter section is visible, clear then re-populate it
-    for (auto action : filterMenu_->actions()) {
-        auto filter = (FILTER_KEY) action->property(FILTER).toUInt();
-        bool showAction = !getFilterList(filter).isEmpty();
-        action->setVisible(showAction);
-        if (showAction) {
-            filterAction_->setEnabled(true);
-            filterMenuTriggered(action);
-        } else if (action->isChecked()) {
-            action->toggled(false);
-            resizePopup();
-        }
+        requestExperimentRuns();
     }
 }
 
 
 /**
  * @brief ChartInputPopup::receivedSelectedViewItems
+ * This slot is called when the user has selected an entity to view chart data for
  * @param selectedItems
  * @param dataKinds
  */
@@ -285,7 +321,7 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
         return;
 
     // clear request filters
-    resetFilters();
+    resetPopup();
 
     hasSelection_ = !selectedItems.isEmpty();
     eventKinds_ = dataKinds;
@@ -368,6 +404,9 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             break;
         }
     }
+
+    // show the popup so that the user can select which experiment run they want to display data from
+    setPopupVisible(true);
 }
 
 
@@ -407,47 +446,37 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ == -1)
         return;
 
-    // if there is no selection, show all the data for the selected experiment run
-    if (!hasSelection_) {
-        resetFilters();
-    }
-
     qDebug() << "-----------------------------------------------------------";
 
-    if (!eventKinds_.isEmpty()) {
-
+    if (hasSelection_) {
         for (auto kind : eventKinds_) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-                PortLifecycleRequest request;
-                request.experimentRunID = selectedExperimentRunID_;
+                PortLifecycleRequest request(selectedExperimentRunID_);
                 request.port_paths = portPaths_;
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
-                emit requestPortLifecycleEvents(request);
+                requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::WORKLOAD: {
-                WorkloadRequest request;
-                request.experimentRunID = selectedExperimentRunID_;
+                WorkloadRequest request(selectedExperimentRunID_);
                 request.worker_paths = workerPaths_;
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
-                emit requestWorkloadEvents(request);
+                requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::CPU_UTILISATION: {
-                CPUUtilisationRequest request;
-                request.experimentRunID = selectedExperimentRunID_;
+                CPUUtilisationRequest request(selectedExperimentRunID_);
                 request.node_ids = nodeIDs_;
-                emit requestCPUUtilisationEvents(request);
+                requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
-                MemoryUtilisationRequest request;
-                request.experimentRunID = selectedExperimentRunID_;
+                MemoryUtilisationRequest request(selectedExperimentRunID_);
                 request.node_ids = nodeIDs_;
-                emit requestMemoryUtilisationEvents(request);
+                requestEvents(request);
                 break;
             }
             default:
@@ -455,16 +484,12 @@ void ChartInputPopup::accept()
                 break;
             }
         }
-
     } else {
-        // request all events for all event kinds
-        emit requestAllEvents();
+        // if there is no selection, request all events for the selected experiment run
+        requestEvents(selectedExperimentRunID_);
     }
 
-    qDebug() << "-----------------------------------------------------------";
-
-    hasSelection_ = false;
-    hideGroupBoxes();
+    resetPopup();
     PopupWidget::accept();
 }
 
@@ -474,8 +499,7 @@ void ChartInputPopup::accept()
  */
 void ChartInputPopup::reject()
 {
-    hasSelection_ = false;
-    hideGroupBoxes();
+    resetPopup();
     PopupWidget::reject();
 }
 
@@ -491,6 +515,57 @@ QString ChartInputPopup::getItemLabel(ViewItem *item)
         return item->getData("label").toString();
     }
     return "";
+}
+
+
+/**
+ * @brief ChartInputPopup::populateExperimentRuns
+ * @param runs
+ */
+void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
+{
+    experimentRunsGroupBox_->hide();
+
+    // clear previous experimentRun widgets
+    clearGroupBox(FILTER_KEY::RUNS_FILTER);
+
+    // hiding it first, resizes the widget immediately
+    resizePopup();
+
+    if (filterAction_)
+        filterAction_->setEnabled(false);
+
+    if (runs.isEmpty()) {
+        recenterPopup();
+        return;
+    }
+
+    for (auto run : runs) {
+        auto ID = run.experiment_run_id;
+        //QString text = "[" + QString::number(ID) + "] " + run.experiment_name +
+        QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
+                       QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
+
+        QRadioButton* button = new QRadioButton(text, this);
+        button->setProperty("ID", ID);
+        button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
+        groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
+        connect(button, &QRadioButton::toggled, [=](bool checked) {
+            if (checked) {
+                // we only need to request the experiment state if the filter widgets are enabled
+                if (filtersEnabled_) {
+                    //emit requestExperimentState(ID);
+                }
+                selectedExperimentRunID_ = ID;
+                emit selectedExperimentRunID(ID);
+                emit selectedExperimentRun(run);
+            }
+        });
+    }
+
+    experimentRunsGroupBox_->show();
+    resizePopup();
+    recenterPopup();
 }
 
 
@@ -590,10 +665,14 @@ void ChartInputPopup::resizePopup()
 
 
 /**
- * @brief ChartInputPopup::resetFilters
+ * @brief ChartInputPopup::reset
  */
-void ChartInputPopup::resetFilters()
+void ChartInputPopup::resetPopup()
 {
+    hasSelection_ = false;
+    hideGroupBoxes();
+
+    // reset filters
     eventKinds_.clear();
     compNames_.clear();
     compInstPaths_.clear();

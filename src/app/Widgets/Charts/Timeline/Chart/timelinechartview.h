@@ -65,8 +65,8 @@ private slots:
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
-    EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
+    MEDEA::EventSeries* constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
+    EntityChart* constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
     void removeChart(QString ID, bool clearing = false);
 
     void addedDataFromExperimentRun(quint32 experimentRunID);

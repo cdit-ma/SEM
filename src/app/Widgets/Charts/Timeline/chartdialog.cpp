@@ -7,6 +7,7 @@
 #include <QImageWriter>
 #include <QMessageBox>
 
+
 /**
  * @brief ChartDialog::ChartDialog
  * @param vc
@@ -18,23 +19,13 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     // setup widgets
     inputPopup_ = new ChartInputPopup(this);
     inputPopup_->setViewController(vc);
+
     connect(inputPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartDialog::experimentRunSelected);
-    connect(inputPopup_, &ChartInputPopup::accepted, this, &ChartDialog::receivedData);
+    connect(inputPopup_, &ChartInputPopup::receivedRequestResponse, this, &ChartDialog::queryResponseReceived);
+    connect(inputPopup_, &ChartInputPopup::accepted, [=]() { hasSelectedExperimentRun_ = false; });
+    connect(inputPopup_, &ChartInputPopup::rejected, [=]() { hasSelectedExperimentRun_ = false; });
 
     chartView_ = new TimelineChartView(this);
-    chartView_->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE, TIMELINE_DATA_KIND::WORKLOAD, TIMELINE_DATA_KIND::CPU_UTILISATION, TIMELINE_DATA_KIND::MEMORY_UTILISATION});
-
-    if (vc) {
-        connect(&vc->getAggregationProxy(), &AggregationProxy::receivedEvents, this, &ChartDialog::queryResponseReceived);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::receivedAllEvents, chartView_, &TimelineChartView::updateTimelineChart);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, chartView_, &TimelineChartView::clearTimelineChart);
-        connect(&vc->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, [=] (bool visible) {
-            if (visible)
-                hasSelectedExperimentRun_ = false;
-        });
-    } else {
-        qWarning("ChartDialog - ViewController is null");
-    }
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -45,8 +36,6 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     themeChanged();
     setMinimumWidth(700);
 
-    minTime_ = INT64_MAX;
-    maxTime_ = INT64_MIN;
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 }
 
@@ -56,8 +45,7 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
  */
 void ChartDialog::themeChanged()
 {
-    Theme* theme = Theme::theme();
-    setStyleSheet("background:" + theme->getBackgroundColorHex() + "; border: none;");
+    setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + "; border: none;");
 }
 
 
@@ -137,40 +125,12 @@ void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
 
 /**
  * @brief ChartDialog::queryResponseReceived
- * @param experimentRunID
  * @param events
  */
-void ChartDialog::queryResponseReceived(quint32 experimentRunID, QList<MEDEA::Event*> events)
+void ChartDialog::queryResponseReceived(QList<MEDEA::Event*> events)
 {
-    Q_UNUSED(experimentRunID)
-
-    if (hasSelectedExperimentRun_) {
+    if (!events.isEmpty()) {
         chartView_->addChartEvents(selectedExperimentRun_, events);
-    } else {
-        qWarning("ChartDialog::queryResponseReceived - No experiment run selected");
+        emit receivedData();
     }
-}
-
-
-/**
- * @brief ChartDialog::updateTimelineRange
- */
-void ChartDialog::updateTimelineRange()
-{    
-    if (!hasSelectedExperimentRun_)
-        return;
-
-    auto minTime = selectedExperimentRun_.start_time;
-    auto maxTime = selectedExperimentRun_.end_time;
-    auto rangeChanged = minTime < minTime_ || maxTime > maxTime_;
-
-    qDebug() << "start: " << minTime << ", end: " << maxTime;
-
-    minTime_ = qMin(minTime, minTime_);
-    maxTime_ = qMax(maxTime, maxTime_);
-
-    /*if (rangeChanged)
-        chartView_->setTimelineRange(minTime_, maxTime_);*/
-
-    qDebug() << "Update timeline range";
 }

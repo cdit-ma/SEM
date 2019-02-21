@@ -11,6 +11,32 @@ CPUUtilisationEventSeries::CPUUtilisationEventSeries(QString ID, QObject* parent
 
 
 /**
+ * @brief CPUUtilisationEventSeries::addEvent
+ * @param event
+ */
+void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
+{
+    if (event->getKind() == TIMELINE_DATA_KIND::CPU_UTILISATION) {
+        auto utilisation = ((CPUUtilisationEvent*)event)->getUtilisation();
+        if (utilisation > maxUtilisation_) {
+            maxUtilisation_ = utilisation;
+        }
+    }
+    MEDEA::EventSeries::addEvent(event);
+}
+
+
+/**
+ * @brief CPUUtilisationEventSeries::getMaxUtilisation
+ * @return
+ */
+double CPUUtilisationEventSeries::getMaxUtilisation()
+{
+    return maxUtilisation_;
+}
+
+
+/**
  * @brief CPUUtilisationEventSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS

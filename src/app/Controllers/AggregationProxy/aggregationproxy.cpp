@@ -10,6 +10,9 @@
  */
 AggregationProxy::AggregationProxy()
 {
+
+    qRegisterMetaType<QList<ExperimentRun>>();
+
     auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value) {
         if (key == SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT) {
@@ -57,18 +60,6 @@ void AggregationProxy::SetRequestExperimentRunID(quint32 experimentRunID)
 
 
 /**
- * @brief AggregationProxy::SetRequestEventKinds
- * @param kinds
- */
-void AggregationProxy::SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds)
-{
-    if (!kinds.isEmpty()) {
-        requestEventKinds_ = kinds;
-    }
-}
-
-
-/**
  * @brief AggregationProxy::RequestRunningExperiments
  */
 void AggregationProxy::RequestExperiments()
@@ -88,200 +79,126 @@ void AggregationProxy::ReloadExperiments()
         return;
     }
 
-    emit clearPreviousEvents();
-    SendRequests();
-    emit receivedAllEvents();
+    // TODO:: Reload the data being displayed in the chart
 }
 
 
 /**
  * @brief AggregationProxy::RequestExperimentRuns
  * @param experimentName
+ * @return
  */
-void AggregationProxy::RequestExperimentRuns(QString experimentName)
+QFuture<QList<ExperimentRun>> AggregationProxy::RequestExperimentRuns(QString experimentName)
 {
-    if (!GotRequester())
-        return;
-
-    QList<ExperimentRun> runs;
-
-    try {
-        AggServer::ExperimentRunRequest request;
-        request.set_experiment_name(experimentName.toStdString());
-
-        auto& results = requester_->GetExperimentRuns(request);
-        /*qDebug() << "--------------------------------------------------------------------------------";
-        qDebug() << "Requesting experiment with name: " << experimentName;
-        qDebug() << "Results: " << results->experiments_size();
-        qDebug() << "--------------------------------------------------------------------------------";*/
-
-        for (const auto& ex : results->experiments()) {
-            auto experiment_name = getQString(ex.name());
-            for (auto& exRun : ex.runs()) {
-                ExperimentRun run;
-                run.experiment_name = experiment_name;
-                run.experiment_run_id = exRun.experiment_run_id();
-                run.job_num = exRun.job_num();
-                run.start_time = getQDateTime(exRun.start_time()).toMSecsSinceEpoch();
-                run.end_time = getQDateTime(exRun.end_time()).toMSecsSinceEpoch();
-                runs.append(run);
-            }
-        }
-
-    } catch (const std::exception& ex) {
-        ShowErrorNotification(ex.what());
-    }
-
-    emit requestedExperimentRuns(runs);
+    return QtConcurrent::run(this, &AggregationProxy::GetExperimentRuns, experimentName);
 }
 
 
 /**
  * @brief AggregationProxy::RequestExperimentState
  * @param experimentRunID
+ * @return
  */
-void AggregationProxy::RequestExperimentState(quint32 experimentRunID)
+QFuture<ExperimentState> AggregationProxy::RequestExperimentState(quint32 experimentRunID)
 {
-    if (!GotRequester())
-        return;
-
-    try {
-        AggServer::ExperimentStateRequest request;
-        request.set_experiment_run_id(experimentRunID);
-
-        auto& results = requester_->GetExperimentState(request);
-        qDebug() << "[Experiment State] Nodes: " << results->nodes_size();
-        qDebug() << "[Experiment State] Components: " << results->components_size();
-        qDebug() << "[Experiment State] Workers: " << results->workers_size();
-        qDebug() << "-----------------------------------------------------------";
-
-        QStringList hostnames, componentNames, workerNames;
-        for (const auto& node : results->nodes()) {
-            auto name = getQString(node.hostname());
-            hostnames.append(name);
-        }
-        for (const auto& component : results->components()) {
-            auto name = getQString(component.name());
-            componentNames.append(name);
-        }
-        for (const auto& worker : results->workers()) {
-            auto name = getQString(worker.name());
-            workerNames.append(name);
-        }
-
-        //emit requestedExperimentState(hostnames, componentNames, workerNames);
-
-    } catch (const std::exception& ex) {
-        ShowErrorNotification(ex.what());
-    }
+    return QtConcurrent::run(this, &AggregationProxy::GetExperimentState, experimentRunID);
 }
 
 
 /**
  * @brief AggregationProxy::RequestAllEvents
+ * @param experimentRunID
+ * @return
  */
-void AggregationProxy::RequestAllEvents()
+QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestAllEvents(quint32 experimentRunID)
 {
-    SendRequests();
-    emit receivedAllEvents();
+    return QtConcurrent::run(this, &AggregationProxy::GetExperimentEvents, experimentRunID);
 }
 
 
 /**
  * @brief AggregationProxy::RequestPortLifecycleEvents
  * @param request
+ * @return
  */
-void AggregationProxy::RequestPortLifecycleEvents(PortLifecycleRequest request)
+QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestPortLifecycleEvents(PortLifecycleRequest request)
 {
     if (!hasSelectedExperimentID_)
-        return;
+        return QFuture<QList<MEDEA::Event*>>();
 
     AggServer::PortLifecycleRequest portLifecycleRequest;
     portLifecycleRequest.set_experiment_run_id(experimentRunID_);
-    qDebug() << "Request PortLifecycleEvents";
-
     for (auto compName : request.component_names) {
-        qDebug() << "comp: " << compName;
         portLifecycleRequest.add_component_names(compName.toStdString());
     }
     for (auto compInstPath : request.component_instance_paths) {
-        qDebug() << "compInstPath: " << compInstPath;
         portLifecycleRequest.add_component_instance_paths(compInstPath.toStdString());
     }
     for (auto portPath : request.port_paths) {
-        qDebug() << "portPath: " << portPath;
         portLifecycleRequest.add_port_paths(portPath.toStdString());
     }
 
-    SendPortLifecycleRequest(portLifecycleRequest);
+    return QtConcurrent::run(this, &AggregationProxy::GetPortLifecycleEvents, portLifecycleRequest);
 }
 
 
 /**
  * @brief AggregationProxy::RequestWorkloadEvents
  * @param request
+ * @return
  */
-void AggregationProxy::RequestWorkloadEvents(WorkloadRequest request)
+QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestWorkloadEvents(WorkloadRequest request)
 {
     if (!hasSelectedExperimentID_)
-        return;
+        return QFuture<QList<MEDEA::Event*>>();
 
     AggServer::WorkloadRequest workloadRequest;
     workloadRequest.set_experiment_run_id(experimentRunID_);
-    qDebug() << "Request WorkloadEvents";
-
     for (auto compName : request.component_names) {
-        qDebug() << "comp: " << compName;
         workloadRequest.add_component_names(compName.toStdString());
     }
     for (auto compInstPath : request.component_instance_paths) {
-        qDebug() << "compInstPath: " << compInstPath;
         workloadRequest.add_component_instance_paths(compInstPath.toStdString());
     }
     for (auto workerPath : request.worker_paths) {
-        qDebug() << "workerPath: " << workerPath;
         workloadRequest.add_worker_paths(workerPath.toStdString());
     }
 
-    SendWorkloadRequest(workloadRequest);
+    return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents, workloadRequest);
 }
 
-
-/**
- * @brief AggregationProxy::RequestCPUUtilisationEvents
- * @param request
- */
-void AggregationProxy::RequestCPUUtilisationEvents(CPUUtilisationRequest request)
+QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestCPUUtilisationEvents(CPUUtilisationRequest request)
 {
+    if (!hasSelectedExperimentID_)
+        return QFuture<QList<MEDEA::Event*>>();
+
     AggServer::CPUUtilisationRequest cpuUtilisationRequest;
     cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    qDebug() << "Request CPUUtilisationEvents";
-
     for (auto nodeID : request.node_ids) {
-        qDebug() << "nodeID: " << nodeID;
         cpuUtilisationRequest.add_node_ids(nodeID.toStdString());
     }
 
-    SendCPUUtilisationRequest(cpuUtilisationRequest);
+    return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, cpuUtilisationRequest);
 }
 
 
 /**
  * @brief AggregationProxy::RequestMemoryUtilisationEvents
  * @param request
+ * @return
  */
-void AggregationProxy::RequestMemoryUtilisationEvents(MemoryUtilisationRequest request)
+QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestMemoryUtilisationEvents(MemoryUtilisationRequest request)
 {
+    if (!hasSelectedExperimentID_)
+        return QFuture<QList<MEDEA::Event*>>();
+
     AggServer::MemoryUtilisationRequest memoryUtilisationRequest;
     memoryUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    qDebug() << "Request MemoryUtilisationEvents";
-
     for (auto nodeID : request.node_ids) {
-        qDebug() << "nodeID: " << nodeID;
         memoryUtilisationRequest.add_node_ids(nodeID.toStdString());
     }
 
-    SendMemoryUtilisationRequest(memoryUtilisationRequest);
+    return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, memoryUtilisationRequest);
 }
 
 
@@ -321,6 +238,252 @@ const QString AggregationProxy::getQString(const std::string &string)
 
 
 /**
+ * @brief AggregationProxy::GetExperimentRuns
+ * @param experimentName
+ * @return
+ */
+QList<ExperimentRun> AggregationProxy::GetExperimentRuns(QString experimentName)
+{
+    QList<ExperimentRun> runs;
+
+    if (!GotRequester())
+        return runs;
+
+    try {
+        AggServer::ExperimentRunRequest request;
+        request.set_experiment_name(experimentName.toStdString());
+        auto& results = requester_->GetExperimentRuns(request);
+        for (const auto& ex : results->experiments()) {
+            auto experiment_name = getQString(ex.name());
+            for (auto& exRun : ex.runs()) {
+                ExperimentRun run;
+                run.experiment_name = experiment_name;
+                run.experiment_run_id = exRun.experiment_run_id();
+                run.job_num = exRun.job_num();
+                run.start_time = getQDateTime(exRun.start_time()).toMSecsSinceEpoch();
+                run.end_time = getQDateTime(exRun.end_time()).toMSecsSinceEpoch();
+                runs.append(run);
+            }
+        }
+    } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+    }
+
+    return runs;
+}
+
+
+/**
+ * @brief AggregationProxy::GetExperimentState
+ * @param experimentRunID
+ * @return
+ */
+ExperimentState AggregationProxy::GetExperimentState(quint32 experimentRunID)
+{
+    ExperimentState state;
+
+    if (!GotRequester())
+        return state;
+
+    try {
+        AggServer::ExperimentStateRequest request;
+        request.set_experiment_run_id(experimentRunID);
+
+        auto& results = requester_->GetExperimentState(request);
+        state.experiment_run_id = experimentRunID;
+        qDebug() << "[Experiment State Request]";
+
+        for (const auto& n : results->nodes()) {
+            Node node;
+            node.hostname = getQString(n.hostname());
+            node.ip = getQString(n.ip());
+            for (auto c : n.containers()) {
+                node.containers.append(convertContainer(c));
+            }
+            state.nodes.append(node);
+        }
+
+        for (const auto& c : results->components()) {
+            Component component;
+            component.name = getQString(c.name());
+            state.components.append(component);
+        }
+
+        for (const auto& w : results->workers()) {
+            Worker worker;
+            worker.name = getQString(w.name());
+            state.workers.append(worker);
+        }
+
+    } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+    }
+
+    return state;
+}
+
+
+/**
+ * @brief AggregationProxy::GetExperimentEvents
+ * @param experimentRunID
+ * @return
+ */
+QList<MEDEA::Event*> AggregationProxy::GetExperimentEvents(quint32 experimentRunID)
+{
+    QList<MEDEA::Event*> events;
+
+    if (!GotRequester())
+        return events;
+
+    AggServer::PortLifecycleRequest portLifecycleRequest;
+    portLifecycleRequest.set_experiment_run_id(experimentRunID);
+    events.append(GetPortLifecycleEvents(portLifecycleRequest));
+
+    AggServer::WorkloadRequest workloadRequest;
+    workloadRequest.set_experiment_run_id(experimentRunID);
+    events.append(GetWorkloadEvents(workloadRequest));
+
+    AggServer::CPUUtilisationRequest cpuUtilisationRequest;
+    cpuUtilisationRequest.set_experiment_run_id(experimentRunID);
+    events.append(GetCPUUtilisationEvents(cpuUtilisationRequest));
+
+    AggServer::MemoryUtilisationRequest memoryUtilisationRequest;
+    memoryUtilisationRequest.set_experiment_run_id(experimentRunID);
+    events.append(GetMemoryUtilisationEvents(memoryUtilisationRequest));
+
+    return events;
+}
+
+
+/**
+ * @brief AggregationProxy::GetPortLifecycleEvents
+ * @param request
+ * @return
+ */
+QList<MEDEA::Event*> AggregationProxy::GetPortLifecycleEvents(const AggServer::PortLifecycleRequest &request)
+{
+    QList<MEDEA::Event*> events;
+
+    if (!GotRequester())
+        return events;
+
+    try {
+        const auto results = requester_->GetPortLifecycle(request);
+        qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
+        for (auto item : results.get()->events()) {
+            auto port = convertPort(item.port());
+            auto type = getLifeCycleType(item.type());
+            auto time = getQDateTime(item.time());
+            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
+            events.append(event);
+        }
+    } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+    }
+
+    return events;
+}
+
+
+/**
+ * @brief AggregationProxy::GetWorkloadEvents
+ * @param request
+ * @return
+ */
+QList<MEDEA::Event*> AggregationProxy::GetWorkloadEvents(const AggServer::WorkloadRequest &request)
+{
+    QList<MEDEA::Event*> events;
+
+    if (!GotRequester())
+        return events;
+
+    try {
+        auto results = requester_->GetWorkload(request);
+        qDebug() << "[Workload Request] Result size#: " << results->events_size();
+        for (auto item : results->events()) {
+            auto workerInst = convertWorkerInstance(item.worker_inst());
+            auto type = getWorkloadEventType(item.type());
+            auto workloadID = item.workload_id();
+            auto time = getQDateTime(item.time()).toMSecsSinceEpoch();
+            auto funcName = getQString(item.function_name());
+            auto args = getQString(item.args());
+            auto logLevel = item.log_level();
+            WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
+            events.append(event);
+        }
+    } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+    }
+
+    return events;
+}
+
+
+/**
+ * @brief AggregationProxy::GetCPUUtilisationEvents
+ * @param request
+ * @return
+ */
+QList<MEDEA::Event*> AggregationProxy::GetCPUUtilisationEvents(const AggServer::CPUUtilisationRequest &request)
+{
+    QList<MEDEA::Event*> events;
+
+    if (!GotRequester())
+        return events;
+
+    try {
+        auto results = requester_->GetCPUUtilisation(request);
+        qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
+        for (const auto& node : results->nodes()) {
+            auto hostname = getQString(node.node_info().hostname());
+            for (const auto& e : node.events()) {
+                auto utilisation = e.cpu_utilisation();
+                auto time = getQDateTime(e.time());
+                CPUUtilisationEvent* event = new CPUUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
+                events.append(event);
+            }
+        }
+    } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+    }
+
+    return events;
+}
+
+
+/**
+ * @brief AggregationProxy::GetMemoryUtilisationEvents
+ * @param request
+ * @return
+ */
+QList<MEDEA::Event *> AggregationProxy::GetMemoryUtilisationEvents(const AggServer::MemoryUtilisationRequest &request)
+{
+    QList<MEDEA::Event*> events;
+
+    if (!GotRequester())
+        return events;
+
+     try {
+         auto results = requester_->GetMemoryUtilisation(request);
+         qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
+         for (const auto& node : results->nodes()) {
+             auto hostname = getQString(node.node_info().hostname());
+             for (const auto& e : node.events()) {
+                 auto utilisation = e.memory_utilisation();
+                 auto time = getQDateTime(e.time());
+                 MemoryUtilisationEvent* event = new MemoryUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
+                 events.append(event);
+             }
+         }
+     } catch (const std::exception& ex) {
+        throw std::runtime_error(ex.what());
+     }
+
+    return events;
+}
+
+
+/**
  * @brief AggregationProxy::GotRequester
  * @return
  */
@@ -339,201 +502,8 @@ bool AggregationProxy::GotRequester()
  */
 void AggregationProxy::ResetRequestFilters()
 {
-    requestEventKinds_ = GET_TIMELINE_DATA_KINDS();
-    hasSelectedExperimentID_ = false;
     experimentRunID_ = -1;
-    componentName_ = "";
-    workerName_ = "";
-    nodeHostname_ = "";
-}
-
-
-/**
- * @brief AggregationProxy::SendRequests
- */
-void AggregationProxy::SendRequests()
-{
-    if (!hasSelectedExperimentID_)
-        return;
-
-    for (auto kind : requestEventKinds_) {
-        switch (kind) {
-        case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-            AggServer::PortLifecycleRequest request;
-            request.set_experiment_run_id(experimentRunID_);
-            SendPortLifecycleRequest(request);
-            break;
-        }
-        case TIMELINE_DATA_KIND::WORKLOAD: {
-            AggServer::WorkloadRequest request;
-            request.set_experiment_run_id(experimentRunID_);
-            SendWorkloadRequest(request);
-            break;
-        }
-        case TIMELINE_DATA_KIND::CPU_UTILISATION: {
-            AggServer::CPUUtilisationRequest request;
-            request.set_experiment_run_id(experimentRunID_);
-            SendCPUUtilisationRequest(request);
-            break;
-        }
-        case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
-            AggServer::MemoryUtilisationRequest request;
-            request.set_experiment_run_id(experimentRunID_);
-            SendMemoryUtilisationRequest(request);
-            break;
-        }
-        default:
-            break;
-        }
-    }
-}
-
-
-/**
- * @brief AggregationProxy::SendPortLifecycleRequest
- * @param request
- */
-void AggregationProxy::SendPortLifecycleRequest(AggServer::PortLifecycleRequest &request)
-{
-    if (!GotRequester())
-        return;
-
-    try {
-        auto results = requester_->GetPortLifecycle(request);
-        QList<MEDEA::Event*> events;
-
-        qDebug() << "[PortLifecycle Request] Result size#: " << results.get()->events_size();
-        //qDebug() << "-----------------------------------------------------------";
-
-        for (auto item : results.get()->events()) {
-            auto port = convertPort(item.port());
-            auto type = getLifeCycleType(item.type());
-            auto time = getQDateTime(item.time());
-            PortLifecycleEvent* event = new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch());
-            events.append(event);
-        }
-
-        emit receivedEvents(experimentRunID_, events);
-
-    } catch (const std::exception& ex) {
-        ShowErrorNotification(ex.what(), "Icons", "plug");
-    }
-}
-
-
-/**
- * @brief AggregationProxy::SendWorkloadRequest
- * @param request
- */
-void AggregationProxy::SendWorkloadRequest(AggServer::WorkloadRequest &request)
-{
-    if (!GotRequester())
-        return;
-
-    try {
-        auto results = requester_->GetWorkload(request);
-        QList<MEDEA::Event*> events;
-
-        qDebug() << "[Workload Request] Result size#: " << results->events_size();
-        //qDebug() << "-----------------------------------------------------------";
-
-        for (auto item : results->events()) {
-            auto workerInst = convertWorkerInstance(item.worker_inst());
-            auto type = getWorkloadEventType(item.type());
-            auto workloadID = item.workload_id();
-            auto time = getQDateTime(item.time()).toMSecsSinceEpoch();
-            auto funcName = getQString(item.function_name());
-            auto args = getQString(item.args());
-            auto logLevel = item.log_level();
-            WorkloadEvent* event = new WorkloadEvent(workerInst, type, workloadID, time, funcName, args, logLevel);
-            events.append(event);
-        }
-
-        emit receivedEvents(experimentRunID_, events);
-
-    } catch (const std::exception& ex) {
-        ShowErrorNotification(ex.what(), "Icons", "spanner");
-    }
-}
-
-
-/**
- * @brief AggregationProxy::SendCPUUtilisationRequest
- * @param request
- */
-void AggregationProxy::SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest &request)
-{
-    if (!GotRequester())
-        return;
-
-    try {
-        auto results = requester_->GetCPUUtilisation(request);
-        QList<MEDEA::Event*> events;
-
-        qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
-        //qDebug() << "-----------------------------------------------------------";
-
-        for (const auto& node : results->nodes()) {
-            auto hostname = getQString(node.node_info().hostname());
-            for (const auto& e : node.events()) {
-                auto utilisation = e.cpu_utilisation();
-                auto time = getQDateTime(e.time());
-                CPUUtilisationEvent* event = new CPUUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
-                events.append(event);
-            }
-        }
-
-        emit receivedEvents(experimentRunID_, events);
-
-    } catch (const std::exception& ex) {
-        ShowErrorNotification(ex.what(), "Icons", "cpu");
-    }
-}
-
-
-/**
- * @brief AggregationProxy::SendMemoryUtilisationRequest
- * @param request
- */
-void AggregationProxy::SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request)
-{
-    if (!GotRequester())
-         return;
-
-     try {
-         auto results = requester_->GetMemoryUtilisation(request);
-         QList<MEDEA::Event*> events;
-
-         qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
-         //qDebug() << "-----------------------------------------------------------";
-
-         for (const auto& node : results->nodes()) {
-             auto hostname = getQString(node.node_info().hostname());
-             for (const auto& e : node.events()) {
-                 auto utilisation = e.memory_utilisation();
-                 auto time = getQDateTime(e.time());
-                 MemoryUtilisationEvent* event = new MemoryUtilisationEvent(hostname, utilisation, time.toMSecsSinceEpoch());
-                 events.append(event);
-             }
-         }
-
-         emit receivedEvents(experimentRunID_, events);
-
-     } catch (const std::exception& ex) {
-         ShowErrorNotification(ex.what(), "Icons", "memoryCard");
-     }
-}
-
-
-/**
- * @brief AggregationProxy::ShowErrorNotification
- * @param description
- * @param iconPath
- * @param iconName
- */
-void AggregationProxy::ShowErrorNotification(QString description, QString iconPath, QString iconName)
-{
-    NotificationManager::manager()->AddNotification(description, iconPath, iconName, Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+    hasSelectedExperimentID_ = false;
 }
 
 
@@ -542,7 +512,7 @@ void AggregationProxy::ShowErrorNotification(QString description, QString iconPa
  * @param port
  * @return
  */
-Port AggregationProxy::convertPort(const AggServer::Port port)
+Port AggregationProxy::convertPort(const AggServer::Port& port)
 {
     Port portStruct;
     portStruct.kind = getPortKind(port.kind());
@@ -556,16 +526,69 @@ Port AggregationProxy::convertPort(const AggServer::Port port)
 
 /**
  * @brief AggregationProxy::convertWorkerInstance
- * @param inst
+ * @param workerInstance
  * @return
  */
-WorkerInstance AggregationProxy::convertWorkerInstance(const AggServer::WorkerInstance inst)
+WorkerInstance AggregationProxy::convertWorkerInstance(const AggServer::WorkerInstance workerInstance)
 {
-    WorkerInstance workerInst;
-    workerInst.name = getQString(inst.name());
-    workerInst.path = getQString(inst.path());
-    workerInst.graphml_id = getQString(inst.graphml_id());
-    return workerInst;
+    WorkerInstance workerInstStruct;
+    workerInstStruct.name = getQString(workerInstance.name());
+    workerInstStruct.path = getQString(workerInstance.path());
+    workerInstStruct.graphml_id = getQString(workerInstance.graphml_id());
+    return workerInstStruct;
+}
+
+
+/**
+ * @brief AggregationProxy::convertComponentInstance
+ * @param componentInstance
+ * @return
+ */
+ComponentInstance AggregationProxy::convertComponentInstance(AggServer::ComponentInstance componentInstance)
+{
+    ComponentInstance compInstStruct;
+    compInstStruct.name = getQString(componentInstance.name());
+    compInstStruct.path = getQString(componentInstance.path());
+    compInstStruct.graphml_id = getQString(componentInstance.graphml_id());
+    compInstStruct.type = getQString(componentInstance.type());
+
+    for (auto port : componentInstance.ports()) {
+        compInstStruct.ports.append(convertPort(port));
+    }
+
+    for (auto workerInst : componentInstance.worker_instances()) {
+        compInstStruct.worker_instances.append(convertWorkerInstance(workerInst));
+    }
+
+    return compInstStruct;
+}
+
+
+/**
+ * @brief AggregationProxy::convertContainer
+ * @param container
+ * @return
+ */
+Container AggregationProxy::convertContainer(AggServer::Container container)
+{
+    Container containerStruct;
+    containerStruct.name = getQString(container.name());
+    containerStruct.graphml_id = getQString(container.graphml_id());
+
+    for (auto compInst : container.component_instances()) {
+        containerStruct.component_instances.append(convertComponentInstance(compInst));
+    }
+
+    switch (container.type()) {
+    case AggServer::Container_ContainerType::Container_ContainerType_GENERIC:
+        containerStruct.type = Container::ContainerType::GENERIC;
+        break;
+    case AggServer::Container_ContainerType::Container_ContainerType_DOCKER:
+        containerStruct.type = Container::ContainerType::DOCKER;
+        break;
+    }
+
+    return containerStruct;
 }
 
 

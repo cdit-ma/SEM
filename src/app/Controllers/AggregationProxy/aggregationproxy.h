@@ -22,19 +22,18 @@ public:
 
     void SetServerEndpoint(QString endpoint);
     void SetRequestExperimentRunID(quint32 experimentRunID);
-    void SetRequestEventKinds(QList<TIMELINE_DATA_KIND> kinds);
 
     void RequestExperiments();
     void ReloadExperiments();
 
-    void RequestExperimentRuns(QString experimentName = "");
-    void RequestExperimentState(quint32 experimentRunID);
-    void RequestAllEvents();
+    QFuture<QList<ExperimentRun>> RequestExperimentRuns(QString experimentName = "");
+    QFuture<ExperimentState> RequestExperimentState(quint32 experimentRunID);
+    QFuture<QList<MEDEA::Event*>> RequestAllEvents(quint32 experimentRunID);
 
-    void RequestPortLifecycleEvents(PortLifecycleRequest request);
-    void RequestWorkloadEvents(WorkloadRequest request);
-    void RequestCPUUtilisationEvents(CPUUtilisationRequest request);
-    void RequestMemoryUtilisationEvents(MemoryUtilisationRequest request);
+    QFuture<QList<MEDEA::Event*>> RequestPortLifecycleEvents(PortLifecycleRequest request);
+    QFuture<QList<MEDEA::Event*>> RequestWorkloadEvents(WorkloadRequest request);
+    QFuture<QList<MEDEA::Event*>> RequestCPUUtilisationEvents(CPUUtilisationRequest request);
+    QFuture<QList<MEDEA::Event*>> RequestMemoryUtilisationEvents(MemoryUtilisationRequest request);
 
     static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
     static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
@@ -42,43 +41,36 @@ public:
 
 signals:
     void setChartUserInputDialogVisible(bool visible);
-    void requestedExperimentRuns(QList<ExperimentRun> runs);
-    void requestedExperimentState(QStringList nodeHostname, QStringList componentName, QStringList workerName);
-
-    void receivedEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
-
-    void clearPreviousEvents();
-    void receivedAllEvents();
 
 private:
+    QList<ExperimentRun> GetExperimentRuns(QString experimentName);
+    ExperimentState GetExperimentState(quint32 experimentRunID);
+    QList<MEDEA::Event*> GetExperimentEvents(quint32 experimentRunID);
+
+    QList<MEDEA::Event*> GetPortLifecycleEvents(const AggServer::PortLifecycleRequest &request);
+    QList<MEDEA::Event*> GetWorkloadEvents(const AggServer::WorkloadRequest &request);
+    QList<MEDEA::Event*> GetCPUUtilisationEvents(const AggServer::CPUUtilisationRequest& request);
+    QList<MEDEA::Event*> GetMemoryUtilisationEvents(const AggServer::MemoryUtilisationRequest& request);
+
     bool GotRequester();
     void ResetRequestFilters();
 
-    void SendRequests();
-    void SendPortLifecycleRequest(AggServer::PortLifecycleRequest& request);
-    void SendWorkloadRequest(AggServer::WorkloadRequest& request);
-    void SendCPUUtilisationRequest(AggServer::CPUUtilisationRequest& request);
-    void SendMemoryUtilisationRequest(AggServer::MemoryUtilisationRequest& request);
+    Port convertPort(const AggServer::Port& port);
+    Container convertContainer(AggServer::Container container);
+    WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance workerInstance);
+    ComponentInstance convertComponentInstance(AggServer::ComponentInstance componentInstance);
 
-    void ShowErrorNotification(QString description, QString iconPath = "Icons", QString iconName = "buildingPillared");
-
-    Port convertPort(const AggServer::Port port);
-    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
     Port::Kind getPortKind(const AggServer::Port_Kind kind);
-
-    WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance inst);
+    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
     WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
 
     AggServer::Requester* requester_ = 0;
 
     bool hasSelectedExperimentID_ = false;
-
     quint32 experimentRunID_;
-    QString componentName_;
-    QString workerName_;
-    QString nodeHostname_;
 
     QList<TIMELINE_DATA_KIND> requestEventKinds_;
+
 };
 
 #endif // MEDEA_AGGREGATIONPROXY_H

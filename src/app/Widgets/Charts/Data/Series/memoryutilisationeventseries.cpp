@@ -11,6 +11,32 @@ MemoryUtilisationEventSeries::MemoryUtilisationEventSeries(QString ID, QObject* 
 
 
 /**
+ * @brief MemoryUtilisationEventSeries::addEvent
+ * @param event
+ */
+void MemoryUtilisationEventSeries::addEvent(MEDEA::Event *event)
+{
+    if (event->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+        auto utilisation = ((MemoryUtilisationEvent*)event)->getUtilisation();
+        if (utilisation > maxUtilisation_) {
+            maxUtilisation_ = utilisation;
+        }
+    }
+    MEDEA::EventSeries::addEvent(event);
+}
+
+
+/**
+ * @brief MemoryUtilisationEventSeries::getMaxUtilisation
+ * @return
+ */
+double MemoryUtilisationEventSeries::getMaxUtilisation()
+{
+    return maxUtilisation_;
+}
+
+
+/**
  * @brief MemoryUtilisationEventSeries::getHoveredDataString
  * @param fromTimeMS
  * @param toTimeMS

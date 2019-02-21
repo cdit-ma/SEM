@@ -20,8 +20,8 @@ public:
 
     quint32 getExperimentRunID();
 
-    void addEventSeries(MEDEA::EventSeries* series);
-    void removeEventSeries(TIMELINE_DATA_KIND kind);
+    void addSeries(MEDEA::EventSeries* series);
+    void removeSeries(TIMELINE_DATA_KIND kind);
 
     bool isHovered();
 
@@ -35,8 +35,7 @@ public:
     void setDisplayMaxRatio(double ratio);
     void setDisplayRangeRatio(double minRatio, double maxRatio);
 
-signals:
-    void dataAdded(QList<QPointF> points);
+    void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds);
 
 public slots:
     void setHovered(bool visible);
@@ -57,13 +56,15 @@ private:
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
     void paintMemoryUtilisationEventSeries(QPainter &painter);
-    void paintBarSeries(QPainter &painter);
-    void paintBarData(QPainter &painter, const QRectF &barRect, const QColor &color, const QVector<double> &data);
+
+    void paintPortLifecycleSeries(QPainter& painter);
 
     bool rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
     void clearHoveredLists();
+
+    void updateBinnedData(TIMELINE_DATA_KIND kind);
     void updateSeriesPixmaps();
 
     qint64 mapPixelToTime(double x);
@@ -71,40 +72,38 @@ private:
 
     quint32 _experimentRunID;
 
-    bool _containsYRange = false;
-    bool _hovered = false;
+    bool containsYRange_ = false;
+    bool hovered_ = false;
 
-    double _displayMin;
-    double _displayMax;
-    double _dataMinX;
-    double _dataMaxX;
-    double _dataMinY;
-    double _dataMaxY;
+    double displayMin_;
+    double displayMax_;
+    double dataMinX_;
+    double dataMaxX_;
+    double dataMinY_;
+    double dataMaxY_;
 
-    double _minRatio = 0.0;
-    double _maxRatio = 1.0;
+    double minRatio_ = 0.0;
+    double maxRatio_ = 1.0;
 
-    QPixmap _messagePixmap;
-    QPointF _cursorPoint;
-    QRectF _hoveredRect;
+    QPixmap messagePixmap_;
+    QRectF hoveredRect_;
 
-    QColor _backgroundColor;
-    QColor _highlightColor;
-    QColor _highlightTextColor;
-    QColor _hoveredRectColor;
+    QColor gridColor_;
+    QColor textColor_;
+    QColor backgroundColor_;
+    QColor highlightColor_;
+    QColor highlightTextColor_;
+    QColor hoveredRectColor_;
 
-    QColor _defaultPortLifecycleColor = Qt::gray;
-    QColor _defaultWorkloadColor = Qt::gray;
-    QColor _defaultUtilisationColor = Qt::lightGray;
-    QColor _defaultMemoryColor = Qt::lightGray;
+    QColor defaultPortLifecycleColor_ = Qt::gray;
+    QColor defaultWorkloadColor_ = Qt::gray;
+    QColor defaultUtilisationColor_ = Qt::lightGray;
+    QColor defaultMemoryColor_ = Qt::lightGray;
 
-    QColor _portLifecycleColor = _defaultUtilisationColor;
-    QColor _workloadColor = _defaultWorkloadColor;
-    QColor _utilisationColor = _defaultUtilisationColor;
-    QColor _memoryColor = _defaultMemoryColor;
-
-    QPen _gridPen;
-    QPen _hoverLinePen;
+    QColor portLifecycleColor_ = defaultUtilisationColor_;
+    QColor workloadColor_ = defaultWorkloadColor_;
+    QColor utilisationColor_ = defaultUtilisationColor_;
+    QColor memoryColor_ = defaultMemoryColor_;
 
     /*
     struct Series{
@@ -114,14 +113,18 @@ private:
     QHash<TIMELINE_DATA_KIND, Series> series_;
     */
 
-    QMap<LifecycleType, QPixmap> _lifeCycleTypePixmaps;
-    QHash<WorkloadEvent::WorkloadEventType, QPixmap> _workloadEventTypePixmaps;
+    QHash<TIMELINE_DATA_KIND, bool> seriesKindVisible_;
+    QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> seriesList_;
 
-    QHash<TIMELINE_DATA_KIND, bool> _seriesKindVisible;
-    QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> _seriesList;
+    QHash<TIMELINE_DATA_KIND, QVector< QList<MEDEA::Event*> >> binnedData_;
+    QHash<double, QVector< QList<MEDEA::Event*> >> portLifecycleBinnedData_;
 
-    QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> _hoveredSeriesTimeRange;
-    TIMELINE_DATA_KIND _hoveredSeriesKind;
+    QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
+    TIMELINE_DATA_KIND hoveredSeriesKind_;
+
+    QHash<LifecycleType, QPixmap> lifeCycleTypePixmaps_;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
+
 };
 
 #endif // ENTITYCHART_H

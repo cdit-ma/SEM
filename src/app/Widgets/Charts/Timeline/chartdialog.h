@@ -21,16 +21,13 @@ public slots:
     void themeChanged();
 
     void toggleTimelineAxisFormat();
-
     void snapShot();
     void clear();
 
     void experimentRunSelected(ExperimentRun experimentRun);
-    void queryResponseReceived(quint32 experimentRunID, QList<MEDEA::Event*> events);
+    void queryResponseReceived(QList<MEDEA::Event*> events);
 
 private:
-    void updateTimelineRange();
-
     TimelineChartView* chartView_ = 0;
     ChartInputPopup* inputPopup_ = 0;
 
@@ -38,9 +35,6 @@ private:
     bool hasSelectedExperimentRun_ = false;
 
     TIME_DISPLAY_FORMAT displayFormat_;
-
-    qint64 minTime_;
-    qint64 maxTime_;
 };
 
 #endif // CHARTDIALOG_H
