@@ -76,16 +76,17 @@ public:
     QMultiMap<EDGE_DIRECTION, ViewItem*> getExistingEndPointsOfSelection(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
-    
 
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
+    int getNodeDefinitionID(int ID);
+    QList<int> getNodeInstanceIDs(int ID);
+
     void QueryRunningExperiments();
     
-
     ModelController* getModelController();
 
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> ids);
@@ -96,8 +97,6 @@ public:
     QSet<NODE_KIND> getValidChartNodeKinds();
     QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForNodeKinds(QSet<NODE_KIND> nodeKinds);
     QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
-
-    QList<NodeViewItem*> getNodesInstances(int ID);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -271,6 +270,7 @@ private:
 
     NodeViewItem* getNodesImpl(int ID);
     NodeViewItem* getNodesDefinition(int ID);
+    QList<NodeViewItem*> getNodesInstances(int ID);
 
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 

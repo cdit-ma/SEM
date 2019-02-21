@@ -134,8 +134,12 @@ QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestPortLifecycleEvents(PortL
     for (auto compInstPath : request.component_instance_paths) {
         portLifecycleRequest.add_component_instance_paths(compInstPath.toStdString());
     }
-    for (auto portPath : request.port_paths) {
+    for (auto portPath : request.paths) {
         portLifecycleRequest.add_port_paths(portPath.toStdString());
+    }
+    for (auto portID : request.graphml_ids) {
+        portLifecycleRequest.add_port_ids(portID.toStdString());
+        qDebug() << "port ID: " << portID;
     }
 
     return QtConcurrent::run(this, &AggregationProxy::GetPortLifecycleEvents, portLifecycleRequest);
@@ -160,7 +164,7 @@ QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestWorkloadEvents(WorkloadRe
     for (auto compInstPath : request.component_instance_paths) {
         workloadRequest.add_component_instance_paths(compInstPath.toStdString());
     }
-    for (auto workerPath : request.worker_paths) {
+    for (auto workerPath : request.paths) {
         workloadRequest.add_worker_paths(workerPath.toStdString());
     }
 
@@ -174,8 +178,8 @@ QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestCPUUtilisationEvents(CPUU
 
     AggServer::CPUUtilisationRequest cpuUtilisationRequest;
     cpuUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    for (auto nodeID : request.node_ids) {
-        cpuUtilisationRequest.add_node_ids(nodeID.toStdString());
+    for (auto hostname : request.node_hostnames) {
+        cpuUtilisationRequest.add_node_hostnames(hostname.toStdString());
     }
 
     return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, cpuUtilisationRequest);
@@ -194,8 +198,8 @@ QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestMemoryUtilisationEvents(M
 
     AggServer::MemoryUtilisationRequest memoryUtilisationRequest;
     memoryUtilisationRequest.set_experiment_run_id(experimentRunID_);
-    for (auto nodeID : request.node_ids) {
-        memoryUtilisationRequest.add_node_ids(nodeID.toStdString());
+    for (auto hostname : request.node_hostnames) {
+        memoryUtilisationRequest.add_node_hostnames(hostname.toStdString());
     }
 
     return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, memoryUtilisationRequest);

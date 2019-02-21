@@ -124,8 +124,12 @@ private:
     QList<TIMELINE_DATA_KIND> eventKinds_;
     QStringList compNames_;
     QStringList compInstPaths_;
+    QStringList compInstIDs_;
     QStringList portPaths_;
-    QStringList workerPaths_;
+    QStringList portIDs_;
+    QStringList workerInstPaths_;
+    QStringList workerInstIDs_;
+    QStringList nodeHostnames_;
     QStringList nodeIDs_;
 
     ViewController* viewController_ = 0;

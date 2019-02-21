@@ -293,6 +293,27 @@ QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)
     return parent_list;
 }
 
+int ViewController::getNodeDefinitionID(int ID)
+{
+    auto definition = getNodesDefinition(ID);
+    if (definition) {
+        return definition->getID();
+    }
+    return -1;
+}
+
+QList<int> ViewController::getNodeInstanceIDs(int ID)
+{
+    QList<int> instIDs;
+    auto instances = getNodesInstances(ID);
+    for (auto inst : instances) {
+        if (inst) {
+            instIDs.append(inst->getID());
+        }
+    }
+    return instIDs;
+}
+
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind)
 {
     QList<ViewItem*> items;

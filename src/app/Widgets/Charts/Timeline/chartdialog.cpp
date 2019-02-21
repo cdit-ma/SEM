@@ -132,5 +132,7 @@ void ChartDialog::queryResponseReceived(QList<MEDEA::Event*> events)
     if (!events.isEmpty()) {
         chartView_->addChartEvents(selectedExperimentRun_, events);
         emit receivedData();
+    } else {
+        NotificationManager::manager()->AddNotification("No chart events received for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
     }
 }

@@ -125,7 +125,7 @@ void ChartInputPopup::themeChanged()
     Theme* theme = Theme::theme();
 
     toolbar_->setIconSize(theme->getIconSize());
-    toolbar_->setStyleSheet(theme->getToolBarStyleSheet());
+    toolbar_->setStyleSheet(theme->getToolBarStyleSheet() + "QToolTip{ background: white; color: black; }");
 
     okAction_->setIcon(theme->getIcon("Icons", "tick"));
     cancelAction_->setIcon(theme->getIcon("Icons", "cross"));
@@ -155,14 +155,15 @@ void ChartInputPopup::themeChanged()
  */
 void ChartInputPopup::requestExperimentRuns()
 {
+    resizePopup(); // remove this when auto-complete is implemented
+
     auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentNameLineEdit_->text().trimmed());
     auto futureWatcher = new QFutureWatcher<QList<ExperimentRun>>(this);
     connect(futureWatcher, &QFutureWatcher<QList<ExperimentRun>>::finished, [=]() {
         try {
             populateExperimentRuns(futureWatcher->result());
         } catch(const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "chart");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "Icons", "chart");
         }
     });
     futureWatcher->setFuture(future);
@@ -181,8 +182,7 @@ void ChartInputPopup::requestEvents(quint32 experimentRunID)
         try {
             emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "chart");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request experiment events - " + QString::fromStdString(ex.what()), "Icons", "chart");
         }
         qDebug() << "-----------------------------------------------------------";
     });
@@ -202,8 +202,7 @@ void ChartInputPopup::requestEvents(PortLifecycleRequest request)
         try {
             emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "plug");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "Icons", "plug");
         }
         qDebug() << "-----------------------------------------------------------";
     });
@@ -223,8 +222,7 @@ void ChartInputPopup::requestEvents(WorkloadRequest request)
         try {
             emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "spanner");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request workload events - " + QString::fromStdString(ex.what()), "Icons", "spanner");
         }
         qDebug() << "-----------------------------------------------------------";
     });
@@ -244,8 +242,7 @@ void ChartInputPopup::requestEvents(CPUUtilisationRequest request)
         try {
             emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "cpu");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "Icons", "cpu");
         }
         qDebug() << "-----------------------------------------------------------";
     });
@@ -265,8 +262,7 @@ void ChartInputPopup::requestEvents(MemoryUtilisationRequest request)
         try {
             emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
-            toastRequestError(ex.what(), "Icons", "memoryCard");
-            throw std::runtime_error(ex.what());
+            toastRequestError("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "Icons", "memoryCard");
         }
         qDebug() << "-----------------------------------------------------------";
     });
@@ -308,7 +304,7 @@ void ChartInputPopup::setPopupVisible(bool visible)
 
 /**
  * @brief ChartInputPopup::receivedSelectedViewItems
- * This slot is called when the user has selected an entity to view chart data for
+ * This slot is called when the user has selected an entity(s) to view chart data for
  * @param selectedItems
  * @param dataKinds
  */
@@ -333,7 +329,9 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             continue;
 
         auto nodeItem = (NodeViewItem*) item;
+        auto nodeItemID = nodeItem->getID();
         auto label = getItemLabel(nodeItem);
+
         switch (nodeItem->getNodeKind()) {
         case NODE_KIND::COMPONENT:
         case NODE_KIND::COMPONENT_IMPL:
@@ -344,23 +342,21 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             // can send port/workload requests
             compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
             break;
-        case NODE_KIND::PORT_REPLIER:
         case NODE_KIND::PORT_REPLIER_IMPL:
-        case NODE_KIND::PORT_REQUESTER:
         case NODE_KIND::PORT_REQUESTER_IMPL:
-        case NODE_KIND::PORT_PUBLISHER:
         case NODE_KIND::PORT_PUBLISHER_IMPL:
-        case NODE_KIND::PORT_SUBSCRIBER:
         case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+            nodeItemID = viewController_->getNodeDefinitionID(nodeItemID);
+        case NODE_KIND::PORT_REPLIER:
+        case NODE_KIND::PORT_REQUESTER:
+        case NODE_KIND::PORT_PUBLISHER:
+        case NODE_KIND::PORT_SUBSCRIBER:
         case NODE_KIND::PORT_PERIODIC:
             // can send port requests
             if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
-                for (auto instItem : viewController_->getNodesInstances(item->getID())) {
-                    if (instItem) {
-                        auto compInstItem = instItem->getParentItem();
-                        if (compInstItem)
-                            portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                    }
+                qDebug() << "inst#: " << viewController_->getNodeInstanceIDs(nodeItemID).size();
+                for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
+                    portIDs_.append(QString::number(instID) + "_0");
                 }
             }
             break;
@@ -382,17 +378,17 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
                 // a ClassInstance can be a child of either a CompImpl or CompInst
                 auto parentNodeKind = nodeItem->getParentNodeKind();
                 if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                    for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                    /*for (auto instItem : viewController_->getNodesInstances(nodeItem->getID())) {
                         if (instItem) {
                             auto compInstItem = instItem->getParentItem();
                             if (compInstItem)
-                                workerPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                                workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
                         }
-                    }
+                    }*/
                 } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
                     auto compInstItem = nodeItem->getParentItem();
                     if (compInstItem)
-                        workerPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                        workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
                 }
             }
             break;
@@ -453,7 +449,8 @@ void ChartInputPopup::accept()
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
                 PortLifecycleRequest request(selectedExperimentRunID_);
-                request.port_paths = portPaths_;
+                request.paths = portPaths_;
+                request.graphml_ids = portIDs_;
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
                 requestEvents(request);
@@ -461,7 +458,7 @@ void ChartInputPopup::accept()
             }
             case TIMELINE_DATA_KIND::WORKLOAD: {
                 WorkloadRequest request(selectedExperimentRunID_);
-                request.worker_paths = workerPaths_;
+                request.paths = workerInstPaths_;
                 request.component_names = compNames_;
                 request.component_instance_paths = compInstPaths_;
                 requestEvents(request);
@@ -469,13 +466,13 @@ void ChartInputPopup::accept()
             }
             case TIMELINE_DATA_KIND::CPU_UTILISATION: {
                 CPUUtilisationRequest request(selectedExperimentRunID_);
-                request.node_ids = nodeIDs_;
+                request.node_hostnames = nodeIDs_;
                 requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
                 MemoryUtilisationRequest request(selectedExperimentRunID_);
-                request.node_ids = nodeIDs_;
+                request.node_hostnames = nodeIDs_;
                 requestEvents(request);
                 break;
             }
@@ -676,8 +673,12 @@ void ChartInputPopup::resetPopup()
     eventKinds_.clear();
     compNames_.clear();
     compInstPaths_.clear();
+    compInstIDs_.clear();
     portPaths_.clear();
-    workerPaths_.clear();
+    portIDs_.clear();
+    workerInstPaths_.clear();
+    workerInstIDs_.clear();
+    nodeHostnames_.clear();
     nodeIDs_.clear();
 }
 
