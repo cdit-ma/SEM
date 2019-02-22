@@ -51,8 +51,6 @@ public:
     bool isWelcomeScreenShowing();
     ContextMenu* getContextMenu();
 
-    
-
     SelectionController* getSelectionController();
     ActionController* getActionController();
     AggregationProxy& getAggregationProxy();
@@ -60,8 +58,7 @@ public:
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
     QStringList _getSearchSuggestions();
-    QStringList GetIDs();
-    
+    QStringList GetIDs();    
 
     QHash<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
     QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
@@ -95,7 +92,6 @@ public:
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
     QSet<NODE_KIND> getValidChartNodeKinds();
-    QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForNodeKinds(QSet<NODE_KIND> nodeKinds);
     QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
@@ -117,11 +113,11 @@ public:
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
-
     bool isNodeAncestor(int ID, int ID2);
     VIEW_ASPECT getNodeViewAspect(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
+
 private:
     void SetParentNode(ViewItem* parent, ViewItem* child);
     void notification_Added(QSharedPointer<NotificationObject> obj);
@@ -154,8 +150,6 @@ public slots:
     
     void welcomeScreenToggled(bool visible);
 
-
-
     void showCodeViewer(QString tabName, QString content);
 
     JobMonitor* getExecutionMonitor();
@@ -164,7 +158,6 @@ public slots:
     void ListJenkinsJobs();
 
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
-
 
     void getCodeForComponent();
     void validateModel();
@@ -181,6 +174,7 @@ protected:
     void NodeEdgeKindsChanged(int id);
     void NodeTypesChanged(int id);
     void AddNotification(MODEL_SEVERITY severity, QString title, QString description, int ID);
+
 public slots:
 
     void setClipboardData(QString data);
@@ -196,8 +190,6 @@ public slots:
     void saveAsProject();
     void closeProject();
     void closeMEDEA();
-
-
 
     void generateProjectWorkspace();
     void executeModelLocal();
@@ -277,9 +269,7 @@ private:
     NodeView* getActiveNodeView();
     void TeardownController();
 
-
     bool newProjectUsed;
-
 
     bool _newProject(QString file_path="");
     bool _saveProject();
@@ -289,28 +279,21 @@ private:
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
 
-
-
     QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
     QHash<EDGE_KIND, EdgeViewItem*> edgeKindItems;
 
     bool _controllerReady = false;
-
-
 
     ViewItem* getViewItem(int ID);
 
     ViewItem* root_item = 0;
     QHash<int, ViewItem*> view_items_;
     int model_id_ = -1;
-    
 
     BaseDockWidget* codeViewer = 0;
     CodeBrowser* codeBrowser = 0;
     BaseDockWidget* execution_monitor = 0;
     JobMonitor* job_monitor = 0;
-
-
 
     SelectionController* selectionController;
     ActionController* actionController;

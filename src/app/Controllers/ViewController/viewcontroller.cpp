@@ -533,74 +533,66 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
 }
 
 
-QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForNodeKinds(QSet<NODE_KIND> nodeKinds)
-{
-    auto validNodeKinds = getValidChartNodeKinds();
-    QSet<TIMELINE_DATA_KIND> validDataKinds;
-
-    for (auto kind : nodeKinds) {
-
-        if (!validNodeKinds.contains(kind))
-            return QSet<TIMELINE_DATA_KIND>();
-
-        switch (kind) {
-        case NODE_KIND::COMPONENT:
-        case NODE_KIND::COMPONENT_IMPL:
-        case NODE_KIND::COMPONENT_INSTANCE: {
-            validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
-            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
-            break;
-        }
-        case NODE_KIND::PORT_REPLIER:
-        case NODE_KIND::PORT_REPLIER_IMPL:
-        case NODE_KIND::PORT_REPLIER_INST:
-        case NODE_KIND::PORT_REQUESTER:
-        case NODE_KIND::PORT_REQUESTER_IMPL:
-        case NODE_KIND::PORT_REQUESTER_INST:
-        case NODE_KIND::PORT_PERIODIC:
-        case NODE_KIND::PORT_PERIODIC_INST:
-        case NODE_KIND::PORT_PUBLISHER:
-        case NODE_KIND::PORT_PUBLISHER_IMPL:
-        case NODE_KIND::PORT_PUBLISHER_INST:
-        case NODE_KIND::PORT_SUBSCRIBER:
-        case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-        case NODE_KIND::PORT_SUBSCRIBER_INST:
-            validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
-            break;
-        case NODE_KIND::CLASS_INSTANCE:
-            validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
-            break;
-        case NODE_KIND::HARDWARE_NODE: {
-            validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
-            validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-    return validDataKinds;
-}
-
-
 QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
 {
     QSet<TIMELINE_DATA_KIND> validDataKinds;
 
     if (selectionController) {
-        auto selectedKinds = selectionController->getSelectedNodeKinds();
-        if (selectedKinds.contains(NODE_KIND::CLASS_INSTANCE)) {
-            // check if the ClassInstance is a Worker - if not, return an empty set
-            for (auto item : selectionController->getSelection()) {
-                if (!item->isNode())
-                    continue;
-                auto nodeItem = (NodeViewItem*) item;
-                if ((nodeItem->getNodeKind() == NODE_KIND::CLASS_INSTANCE) && !nodeItem->getData("version").isValid())
-                    return validDataKinds;
+
+        QSet<NODE_KIND> selectedKinds;
+        auto validChartNodeKinds = getValidChartNodeKinds();
+
+        for (auto item : selectionController->getSelection()) {
+            if (!item->isNode())
+                continue;
+            auto nodeItem = (NodeViewItem*) item;
+            auto nodeKind = nodeItem->getNodeKind();
+            if (!validChartNodeKinds.contains(nodeKind)) {
+                return validDataKinds;
+            }
+            if ((nodeKind == NODE_KIND::CLASS_INSTANCE) && !nodeItem->getData("is_worker").toBool()) {
+                return validDataKinds;
+            }
+            selectedKinds.insert(nodeKind);
+        }
+
+        for (auto kind : selectedKinds) {
+            switch (kind) {
+            case NODE_KIND::COMPONENT:
+            case NODE_KIND::COMPONENT_IMPL:
+            case NODE_KIND::COMPONENT_INSTANCE: {
+                validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
+                validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+                break;
+            }
+            case NODE_KIND::PORT_REPLIER:
+            case NODE_KIND::PORT_REPLIER_IMPL:
+            case NODE_KIND::PORT_REPLIER_INST:
+            case NODE_KIND::PORT_REQUESTER:
+            case NODE_KIND::PORT_REQUESTER_IMPL:
+            case NODE_KIND::PORT_REQUESTER_INST:
+            case NODE_KIND::PORT_PERIODIC:
+            case NODE_KIND::PORT_PERIODIC_INST:
+            case NODE_KIND::PORT_PUBLISHER:
+            case NODE_KIND::PORT_PUBLISHER_IMPL:
+            case NODE_KIND::PORT_PUBLISHER_INST:
+            case NODE_KIND::PORT_SUBSCRIBER:
+            case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+            case NODE_KIND::PORT_SUBSCRIBER_INST:
+                validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
+                break;
+            case NODE_KIND::CLASS_INSTANCE:
+                validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+                break;
+            case NODE_KIND::HARDWARE_NODE: {
+                validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
+                validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);
+                break;
+            }
+            default:
+                break;
             }
         }
-        validDataKinds = getValidChartDataKindsForNodeKinds(selectedKinds);
     }
 
     return validDataKinds;

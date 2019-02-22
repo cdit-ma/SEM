@@ -24,8 +24,6 @@ public:
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
 
-    QSet<NODE_KIND> getSelectedNodeKinds();
-
 signals:
     void zoomIn();
     void zoomOut();
