@@ -1120,12 +1120,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             }
 
-            
+            case NODE_KIND::CLASS_INSTANCE:{
+                node_item = new StackNodeItem(item, parentNode);
+                if(item->getData(KeyName::IsWorker).toBool()){
+                    node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
+                }
+                break;
+            }
             case NODE_KIND::INPUT_PARAMETER_GROUP:
             case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
             case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
-            case NODE_KIND::CLASS_INSTANCE:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);
