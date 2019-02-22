@@ -247,9 +247,17 @@ pipeline{
                                                     args += "-v ${params.log_verbosity} "
                                                 }
 
-                                                //Run re_node_manager
-                                                if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
-                                                    error("re_node_manager failed on Node: ${node_name}")
+                                                if(is_docker) {
+                                                    docker.image("192.168.111.98:5000/re_full").inside("--network host") {
+                                                        if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
+                                                            error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                        }
+                                                    }
+                                                } else {
+                                                    //Run re_node_manager
+                                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
+                                                        error("re_node_manager failed on Node: ${node_name}")
+                                                    }
                                                 }
                                             }
                                         }
