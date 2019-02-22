@@ -354,7 +354,6 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
         case NODE_KIND::PORT_PERIODIC:
             // can send port requests
             if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
-                qDebug() << "inst#: " << viewController_->getNodeInstanceIDs(nodeItemID).size();
                 for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
                     portIDs_.append(QString::number(instID) + "_0");
                 }
@@ -373,23 +372,31 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             }
             break;
         case NODE_KIND::CLASS_INSTANCE:
+
             // can send workload requests
             if (dataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
                 // a ClassInstance can be a child of either a CompImpl or CompInst
                 auto parentNodeKind = nodeItem->getParentNodeKind();
                 if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                    /*for (auto instItem : viewController_->getNodesInstances(nodeItem->getID())) {
+                    for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
+                        workerInstIDs_.append(QString::number(instID));
+                    }
+                } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
+                    workerInstIDs_.append(QString::number(nodeItemID));
+                }
+                /*if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
+                    for (auto instItem : viewController_->getNodesInstances(nodeItem->getID())) {
                         if (instItem) {
                             auto compInstItem = instItem->getParentItem();
                             if (compInstItem)
                                 workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
                         }
-                    }*/
+                    }
                 } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
                     auto compInstItem = nodeItem->getParentItem();
                     if (compInstItem)
                         workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                }
+                }*/
             }
             break;
         case NODE_KIND::HARDWARE_NODE:
@@ -452,6 +459,7 @@ void ChartInputPopup::accept()
                 request.paths = portPaths_;
                 request.graphml_ids = portIDs_;
                 request.component_names = compNames_;
+                request.component_instance_ids = compInstIDs_;
                 request.component_instance_paths = compInstPaths_;
                 requestEvents(request);
                 break;
@@ -459,20 +467,24 @@ void ChartInputPopup::accept()
             case TIMELINE_DATA_KIND::WORKLOAD: {
                 WorkloadRequest request(selectedExperimentRunID_);
                 request.paths = workerInstPaths_;
+                request.graphml_ids = workerInstIDs_;
                 request.component_names = compNames_;
+                request.component_instance_ids = compInstIDs_;
                 request.component_instance_paths = compInstPaths_;
                 requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::CPU_UTILISATION: {
                 CPUUtilisationRequest request(selectedExperimentRunID_);
-                request.node_hostnames = nodeIDs_;
+                request.node_hostnames = nodeHostnames_;
+                request.graphml_ids = nodeIDs_;
                 requestEvents(request);
                 break;
             }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
                 MemoryUtilisationRequest request(selectedExperimentRunID_);
-                request.node_hostnames = nodeIDs_;
+                request.node_hostnames = nodeHostnames_;
+                request.graphml_ids = nodeIDs_;
                 requestEvents(request);
                 break;
             }
