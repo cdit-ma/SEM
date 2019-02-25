@@ -2,75 +2,122 @@
 #define MEDEA_AGGREGATIONPROXY_H
 
 #include <QObject>
+#include <QException>
+#include <QVector>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QDateTime>
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
-#include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
+#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
+
+
+class NoRequesterException : public QException{
+    public:
+        void raise() const { throw *this; }
+        NoRequesterException *clone() const { return new NoRequesterException(*this); }
+};
+
+class RequestException : public QException{
+    public:
+        RequestException(const QString& error) : 
+            error_(error){};
+        
+        QString What() const{
+            return error_;
+        }
+        void raise() const { throw *this; }
+        RequestException *clone() const { return new RequestException(*this); }
+    private:
+        QString error_;
+};
+
 
 class AggregationProxy : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit AggregationProxy();
-    ~AggregationProxy();
+    AggregationProxy();
+    
+    QFuture<QVector<ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
+    QFuture<ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
 
-    void SetServerEndpoint(QString endpoint);
-    void SetRequestExperimentRunID(quint32 experimentRunID);
+    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& port_ids);
 
-    void RequestExperiments();
-    void ReloadExperiments();
-
-    QFuture<QList<ExperimentRun>> RequestExperimentRuns(QString experimentName = "");
-    QFuture<ExperimentState> RequestExperimentState(quint32 experimentRunID);
-    QFuture<QList<MEDEA::Event*>> RequestAllEvents(quint32 experimentRunID);
-
-    QFuture<QList<MEDEA::Event*>> RequestPortLifecycleEvents(PortLifecycleRequest request);
-    QFuture<QList<MEDEA::Event*>> RequestWorkloadEvents(WorkloadRequest request);
-    QFuture<QList<MEDEA::Event*>> RequestCPUUtilisationEvents(CPUUtilisationRequest request);
-    QFuture<QList<MEDEA::Event*>> RequestMemoryUtilisationEvents(MemoryUtilisationRequest request);
-
-    static std::unique_ptr<google::protobuf::Timestamp> constructTimestampFromMS(qint64 milliseconds);
-    static const QDateTime getQDateTime(const google::protobuf::Timestamp &time);
-    static const QString getQString(const std::string &string);
-
-signals:
-    void setChartUserInputDialogVisible(bool visible);
-
+    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& worker_ids);
+    
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
+    
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
+    
 private:
-    QList<ExperimentRun> GetExperimentRuns(QString experimentName);
-    ExperimentState GetExperimentState(quint32 experimentRunID);
-    QList<MEDEA::Event*> GetExperimentEvents(quint32 experimentRunID);
+    void SetServerEndpoint(const QString& endpoint);
 
-    QList<MEDEA::Event*> GetPortLifecycleEvents(const AggServer::PortLifecycleRequest &request);
-    QList<MEDEA::Event*> GetWorkloadEvents(const AggServer::WorkloadRequest &request);
-    QList<MEDEA::Event*> GetCPUUtilisationEvents(const AggServer::CPUUtilisationRequest& request);
-    QList<MEDEA::Event*> GetMemoryUtilisationEvents(const AggServer::MemoryUtilisationRequest& request);
+    QVector<ExperimentRun> GetExperimentRuns(const QString& experiment_name);
+    ExperimentState GetExperimentState(const quint32 experiment_run_id);
 
-    bool GotRequester();
-    void ResetRequestFilters();
+    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& port_ids);
 
-    Port convertPort(const AggServer::Port& port);
-    Container convertContainer(AggServer::Container container);
-    WorkerInstance convertWorkerInstance(const AggServer::WorkerInstance workerInstance);
-    ComponentInstance convertComponentInstance(AggServer::ComponentInstance componentInstance);
+    QVector<WorkloadEvent*> GetWorkloadEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& worker_ids);
+    
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
+    
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
 
-    Port::Kind getPortKind(const AggServer::Port_Kind kind);
-    LifecycleType getLifeCycleType(const AggServer::LifecycleType type);
-    WorkloadEvent::WorkloadEventType getWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType type);
+    void CheckRequester();
+    std::unique_ptr<AggServer::Requester> requester_;
 
-    AggServer::Requester* requester_ = 0;
 
-    bool hasSelectedExperimentID_ = false;
-    quint32 experimentRunID_;
+    //Static Helpers
+    static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);
+    static QDateTime GetQDateTime(const google::protobuf::Timestamp &time);
+    static QString GetQString(const std::string &string);
+    
+    static Node ConvertNode(const AggServer::Node& node);
+    static Component ConvertComponent(const AggServer::Component& component);
+    static Worker ConvertWorker(const AggServer::Worker& worker);
+    static Port ConvertPort(const AggServer::Port& port);
+    static Container ConvertContainer(const AggServer::Container& container);
+    static WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
+    static ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
-    QList<TIMELINE_DATA_KIND> requestEventKinds_;
-
+    static Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
+    static LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
+    static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
 };
 
 #endif // MEDEA_AGGREGATIONPROXY_H

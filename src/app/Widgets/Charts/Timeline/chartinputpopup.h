@@ -53,10 +53,30 @@ public slots:
 private:
     void requestExperimentRuns();
     void requestEvents(quint32 experimentRunID);
-    void requestEvents(PortLifecycleRequest request);
-    void requestEvents(WorkloadRequest request);
-    void requestEvents(CPUUtilisationRequest request);
-    void requestEvents(MemoryUtilisationRequest request);
+
+    void requestPortLifecycleEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& port_ids);
+
+    void requestWorkloadEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& component_instance_ids,
+        const QVector<QString>& worker_ids);
+    
+    void requestCPUUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
+    
+    void requestMemoryUtilisationEvents(
+        const quint32 experiment_run_id,
+        const QVector<qint64>& time_intervals,
+        const QVector<QString>& graphml_ids);
+
+
 
     void toastRequestError(QString description, QString iconPath, QString iconName);
 
@@ -122,15 +142,15 @@ private:
     QStringList workers_;
 
     QList<TIMELINE_DATA_KIND> eventKinds_;
-    QStringList compNames_;
-    QStringList compInstPaths_;
-    QStringList compInstIDs_;
-    QStringList portPaths_;
-    QStringList portIDs_;
-    QStringList workerInstPaths_;
-    QStringList workerInstIDs_;
-    QStringList nodeHostnames_;
-    QStringList nodeIDs_;
+    QVector<QString> compNames_;
+    QVector<QString> compInstPaths_;
+    QVector<QString> compInstIDs_;
+    QVector<QString> portPaths_;
+    QVector<QString> portIDs_;
+    QVector<QString> workerInstPaths_;
+    QVector<QString> workerInstIDs_;
+    QVector<QString> nodeHostnames_;
+    QVector<QString> nodeIDs_;
 
     ViewController* viewController_ = 0;
 

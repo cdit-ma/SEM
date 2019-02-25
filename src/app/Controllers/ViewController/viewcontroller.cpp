@@ -104,7 +104,21 @@ ViewController::ViewController(){
 }
 
 void ViewController::QueryRunningExperiments(){
-    QtConcurrent::run(&proxy, &AggregationProxy::RequestExperiments);
+    auto future = proxy.RequestExperimentRuns("");
+    auto future_watcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
+    
+    connect(future_watcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=](){
+        try{
+            auto result = future_watcher->result();
+            emit vc_showChartPopup(true);
+        }catch(const NoRequesterException& ex){
+            qCritical() << "Not Requester: " << ex.what();
+        }catch(const RequestException& ex){
+            qCritical() << "Unhandled: " << ex.What() << " " << ex.what();
+        }
+    });
+    
+    future_watcher->setFuture(future);
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){

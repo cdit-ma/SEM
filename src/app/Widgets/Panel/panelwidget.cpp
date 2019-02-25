@@ -201,7 +201,7 @@ void PanelWidget::setViewController(ViewController *vc)
         return;
 
     viewController = vc;
-    connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
+    //connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
 
     if (chartPopup) {
         chartPopup->setViewController(viewController);

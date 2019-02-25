@@ -100,8 +100,7 @@ void ChartInputPopup::setViewController(ViewController* controller)
 
     if (controller) {
         connect(controller, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
-        connect(&controller->getAggregationProxy(), &AggregationProxy::setChartUserInputDialogVisible, this, &ChartInputPopup::setPopupVisible);
-        connect(this, &ChartInputPopup::selectedExperimentRunID, &controller->getAggregationProxy(), &AggregationProxy::SetRequestExperimentRunID);
+        connect(controller, &ViewController::vc_showChartPopup, this, &ChartInputPopup::setPopupVisible);
     }
 }
 
@@ -158,10 +157,10 @@ void ChartInputPopup::requestExperimentRuns()
     resizePopup(); // remove this when auto-complete is implemented
 
     auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentNameLineEdit_->text().trimmed());
-    auto futureWatcher = new QFutureWatcher<QList<ExperimentRun>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<ExperimentRun>>::finished, [=]() {
+    auto futureWatcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
         try {
-            populateExperimentRuns(futureWatcher->result());
+            populateExperimentRuns(futureWatcher->result().toList());
         } catch(const std::exception& ex) {
             toastRequestError("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "Icons", "chart");
         }
@@ -176,71 +175,48 @@ void ChartInputPopup::requestExperimentRuns()
  */
 void ChartInputPopup::requestEvents(quint32 experimentRunID)
 {
-    auto future = viewController_->getAggregationProxy().RequestAllEvents(experimentRunID);
-    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
-        try {
-            emit receivedRequestResponse(futureWatcher->result());
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request experiment events - " + QString::fromStdString(ex.what()), "Icons", "chart");
-        }
-        qDebug() << "-----------------------------------------------------------";
-    });
-    futureWatcher->setFuture(future);
+
 }
 
-
-/**
- * @brief ChartInputPopup::requestEvents
- * @param request
- */
-void ChartInputPopup::requestEvents(PortLifecycleRequest request)
+void ChartInputPopup::requestPortLifecycleEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &component_instance_ids, const QVector<QString> &port_ids)
 {
-    auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
-    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+    auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(experiment_run_id, time_intervals, component_instance_ids, port_ids);
+    auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
         try {
-            emit receivedRequestResponse(futureWatcher->result());
+            //emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "Icons", "plug");
         }
         qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
+
 }
 
-
-/**
- * @brief ChartInputPopup::requestEvents
- * @param request
- */
-void ChartInputPopup::requestEvents(WorkloadRequest request)
+void ChartInputPopup::requestWorkloadEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &component_instance_ids, const QVector<QString> &worker_ids)
 {
-    auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(request);
-    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+    auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(experiment_run_id, time_intervals, component_instance_ids, worker_ids);
+    auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
         try {
-            emit receivedRequestResponse(futureWatcher->result());
+            //emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request workload events - " + QString::fromStdString(ex.what()), "Icons", "spanner");
         }
         qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
+
 }
 
-
-/**
- * @brief ChartInputPopup::requestEvents
- * @param request
- */
-void ChartInputPopup::requestEvents(CPUUtilisationRequest request)
+void ChartInputPopup::requestCPUUtilisationEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &graphml_ids)
 {
-    auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(request);
-    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+    auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(experiment_run_id, time_intervals, graphml_ids);
+    auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
         try {
-            emit receivedRequestResponse(futureWatcher->result());
+            //emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "Icons", "cpu");
         }
@@ -249,24 +225,20 @@ void ChartInputPopup::requestEvents(CPUUtilisationRequest request)
     futureWatcher->setFuture(future);
 }
 
-
-/**
- * @brief ChartInputPopup::requestEvents
- * @param request
- */
-void ChartInputPopup::requestEvents(MemoryUtilisationRequest request)
+void ChartInputPopup::requestMemoryUtilisationEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &graphml_ids)
 {
-    auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(request);
-    auto futureWatcher = new QFutureWatcher<QList<MEDEA::Event*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QList<MEDEA::Event*>>::finished, [=]() {
+    auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(experiment_run_id, time_intervals, graphml_ids);
+    auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
         try {
-            emit receivedRequestResponse(futureWatcher->result());
+            //emit receivedRequestResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "Icons", "memoryCard");
         }
         qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
+
 }
 
 
@@ -442,37 +414,19 @@ void ChartInputPopup::accept()
         for (auto kind : eventKinds_) {
             switch (kind) {
             case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
-                PortLifecycleRequest request(selectedExperimentRunID_);
-                request.paths = portPaths_;
-                request.graphml_ids = portIDs_;
-                request.component_names = compNames_;
-                request.component_instance_ids = compInstIDs_;
-                request.component_instance_paths = compInstPaths_;
-                requestEvents(request);
+                requestPortLifecycleEvents(selectedExperimentRunID_, {}, compInstIDs_, portIDs_);
                 break;
             }
             case TIMELINE_DATA_KIND::WORKLOAD: {
-                WorkloadRequest request(selectedExperimentRunID_);
-                request.paths = workerInstPaths_;
-                request.graphml_ids = workerInstIDs_;
-                request.component_names = compNames_;
-                request.component_instance_ids = compInstIDs_;
-                request.component_instance_paths = compInstPaths_;
-                requestEvents(request);
+                requestWorkloadEvents(selectedExperimentRunID_, {}, compInstIDs_, workerInstIDs_);
                 break;
             }
             case TIMELINE_DATA_KIND::CPU_UTILISATION: {
-                CPUUtilisationRequest request(selectedExperimentRunID_);
-                request.node_hostnames = nodeHostnames_;
-                request.graphml_ids = nodeIDs_;
-                requestEvents(request);
+                requestCPUUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
                 break;
             }
             case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
-                MemoryUtilisationRequest request(selectedExperimentRunID_);
-                request.node_hostnames = nodeHostnames_;
-                request.graphml_ids = nodeIDs_;
-                requestEvents(request);
+                requestMemoryUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
                 break;
             }
             default:
