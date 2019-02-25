@@ -35,6 +35,7 @@ public:
     void setDisplayMaxRatio(double ratio);
     void setDisplayRangeRatio(double minRatio, double maxRatio);
 
+    void updateChartHeight(double height);
     void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds);
 
 public slots:
@@ -67,6 +68,9 @@ private:
     void updateBinnedData(TIMELINE_DATA_KIND kind);
     void updateSeriesPixmaps();
 
+    int getBinIndexForTime(double time);
+    QVector<QList<MEDEA::Event*>>& getBinnedData(TIMELINE_DATA_KIND kind);
+
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
 
@@ -81,6 +85,7 @@ private:
     double dataMaxX_;
     double dataMinY_;
     double dataMaxY_;
+    double dataHeight_ = 0;
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
@@ -105,6 +110,21 @@ private:
     QColor utilisationColor_ = defaultUtilisationColor_;
     QColor memoryColor_ = defaultMemoryColor_;
 
+    QHash<TIMELINE_DATA_KIND, bool> seriesKindVisible_;
+    QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> seriesList_;
+
+    //QHash<TIMELINE_DATA_KIND, QVector< QList<MEDEA::Event*> >> binnedData_;
+    QVector<QList<MEDEA::Event*>> portLifecycleBinnedData_;
+    QVector<QList<MEDEA::Event*>> workloadBinnedData_;
+    QVector<QList<MEDEA::Event*>> cpuUtilisationBinnedData_;
+    QVector<QList<MEDEA::Event*>> memoryUtilisationBinnedData_;
+
+    QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
+    TIMELINE_DATA_KIND hoveredSeriesKind_;
+
+    QHash<LifecycleType, QPixmap> lifeCycleTypePixmaps_;
+    QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
+
     /*
     struct Series{
         MEDEA::DataSeries* series = 0;
@@ -112,18 +132,6 @@ private:
     }
     QHash<TIMELINE_DATA_KIND, Series> series_;
     */
-
-    QHash<TIMELINE_DATA_KIND, bool> seriesKindVisible_;
-    QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> seriesList_;
-
-    QHash<TIMELINE_DATA_KIND, QVector< QList<MEDEA::Event*> >> binnedData_;
-    QHash<double, QVector< QList<MEDEA::Event*> >> portLifecycleBinnedData_;
-
-    QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
-    TIMELINE_DATA_KIND hoveredSeriesKind_;
-
-    QHash<LifecycleType, QPixmap> lifeCycleTypePixmaps_;
-    QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
 
 };
 

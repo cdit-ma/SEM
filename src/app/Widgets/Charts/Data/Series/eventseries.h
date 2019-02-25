@@ -38,6 +38,7 @@ public:
 signals:
     void minChanged(qint64 min);
     void maxChanged(qint64 max);
+    void maxHeightChanged(double height);
 
 private:
     QString ID_;

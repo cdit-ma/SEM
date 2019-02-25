@@ -130,6 +130,10 @@ void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
 void ChartDialog::queryResponseReceived(QList<MEDEA::Event*> events)
 {
     if (!events.isEmpty()) {
+        /*for (auto event : events) {
+            chartView->addChartEvent(selectedExperimentRun, event);
+        }
+        chartView_->updateTimeRange()*/
         chartView_->addChartEvents(selectedExperimentRun_, events);
         emit receivedData();
     } else {

@@ -18,6 +18,8 @@
 #define BAR_WIDTH 5.0
 #define PRINT_RENDER_TIMES false
 
+#define BIN_PIXEL_WIDTH 20.0
+
 
 /**
  * @brief EntityChart::EntityChart
@@ -167,6 +169,17 @@ void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
     maxRatio_ = maxRatio;
     displayMin_ = (dataMaxX_ - dataMinX_) * minRatio + dataMinX_;
     displayMax_ = (dataMaxX_ - dataMinX_) * maxRatio + dataMinX_;
+    update();
+}
+
+
+/**
+ * @brief EntityChart::updateChartHeight
+ * @param height
+ */
+void EntityChart::updateChartHeight(double height)
+{
+    dataHeight_ = height;
     update();
 }
 
@@ -845,19 +858,17 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintPortLifecycleSeries(QPainter &painter)
 {
-    /*
-    //auto binnedData = binnedData_.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
-    auto binCount = portLifecycleBinnedData_.count();
-    auto binPixelWidth = 20.0;
+    int firstIndex = getBinIndexForTime(displayMin_);
+    int lastIndex = getBinIndexForTime(displayMax_);
 
     QColor seriesColor = portLifecycleColor_;
-    int y = rect().center().y() - binPixelWidth / 2.0;
+    int y = rect().center().y() - BIN_PIXEL_WIDTH / 2.0;
 
-    for (int i = 0; i < binCount; i++) {
+    for (int i = firstIndex; i < lastIndex; i++) {
         int count = portLifecycleBinnedData_[i].count();
         if (count == 0)
             continue;
-        QRectF rect(i * binPixelWidth, y, binPixelWidth, binPixelWidth);
+        QRectF rect(i * BIN_PIXEL_WIDTH, y, BIN_PIXEL_WIDTH, BIN_PIXEL_WIDTH);
         if (count == 1) {
             auto event = (PortLifecycleEvent*) portLifecycleBinnedData_[i][0];
             if (rectHovered(TIMELINE_DATA_KIND::PORT_LIFECYCLE, rect))
@@ -873,7 +884,7 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
             painter.fillRect(rect, color);
             painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
         }
-    }*/
+    }
 }
 
 
@@ -930,23 +941,22 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
         return;
 
     // clear binned data
-    binnedData_.clear();
+    auto binnedData = getBinnedData(kind);
+    binnedData.clear();
+
+    //qDebug() << "Update binned data: " << QDateTime::fromMSecsSinceEpoch(dataMinX_).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(dataMaxX_).toString(TIME_FORMAT);
 
     auto dataRange = dataMaxX_ - dataMinX_;
-    auto binPixelWidth = 20.0;
-    auto barTimeWidth = dataRange / binPixelWidth;
-    auto binCount = ceil(dataRange / barTimeWidth);
+    auto binTimeWidth = dataRange / BIN_PIXEL_WIDTH;
+    auto binCount = ceil(dataRange / binTimeWidth);
 
-    //auto binCount = ceil((double)width() / binPixelWidth);
-    //auto barTimeWidth = (displayMax_ - displayMin_) / binCount;
-
-    QVector<double> binEndTimes;
-    binEndTimes.reserve(binCount);
+    QVector<double> binEndTimes(binCount);
+    //binEndTimes.reserve(binCount);
 
     // calculate the bin end times
     auto currentTime = displayMin_;
     for (auto i = 0; i < binCount; i++) {
-        binEndTimes.append(currentTime + barTimeWidth);
+        binEndTimes.append(currentTime + binTimeWidth);
         currentTime = binEndTimes.last();
     }
 
@@ -954,8 +964,7 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
         if (!series)
             continue;
 
-        QVector< QList<MEDEA::Event*> > binnedData;
-        binnedData.reserve(binCount);
+        //QVector< QList<MEDEA::Event*> > binnedData(binCount);
 
         auto currentBin = 0;
         auto currentBinItr = binEndTimes.constBegin();
@@ -979,7 +988,7 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
             }
         }
 
-        binnedData_[series->getKind()] = binnedData;
+        //binnedData_[series->getKind()] = binnedData;
     }
 }
 
@@ -1037,6 +1046,51 @@ void EntityChart::updateSeriesPixmaps()
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), pixmapColor);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), pixmapColor);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), pixmapColor);
+    }
+}
+
+
+/**
+ * @brief EntityChart::getBinIndexForTime
+ * @param time
+ * @return
+ */
+int EntityChart::getBinIndexForTime(double time)
+{
+    auto dataRange = dataMaxX_ - dataMinX_;
+    auto binTimeWidth = dataRange / BIN_PIXEL_WIDTH;
+    auto index = floor((time - displayMin_) / binTimeWidth);
+
+    /*
+    if (time == displayMin_) {
+        index = floor(index);
+    } else if (time == displayMax_) {
+        index = ceil(index);
+    }
+    */
+
+    return index;
+}
+
+
+/**
+ * @brief EntityChart::getBinnedData
+ * @param kind
+ * @return
+ */
+QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(TIMELINE_DATA_KIND kind)
+{
+    switch (kind) {
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+        return portLifecycleBinnedData_;
+    case TIMELINE_DATA_KIND::WORKLOAD:
+        return workloadBinnedData_;
+    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+        return cpuUtilisationBinnedData_;
+    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        return memoryUtilisationBinnedData_;
+    default:
+        return QVector<QList<MEDEA::Event*>>();
     }
 }
 

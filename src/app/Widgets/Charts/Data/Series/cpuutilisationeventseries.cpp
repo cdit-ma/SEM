@@ -20,6 +20,7 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
         auto utilisation = ((CPUUtilisationEvent*)event)->getUtilisation();
         if (utilisation > maxUtilisation_) {
             maxUtilisation_ = utilisation;
+            emit maxHeightChanged(maxUtilisation_);
         }
     }
     MEDEA::EventSeries::addEvent(event);

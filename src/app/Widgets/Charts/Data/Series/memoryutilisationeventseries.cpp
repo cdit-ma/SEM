@@ -20,6 +20,7 @@ void MemoryUtilisationEventSeries::addEvent(MEDEA::Event *event)
         auto utilisation = ((MemoryUtilisationEvent*)event)->getUtilisation();
         if (utilisation > maxUtilisation_) {
             maxUtilisation_ = utilisation;
+            emit maxHeightChanged(maxUtilisation_);
         }
     }
     MEDEA::EventSeries::addEvent(event);

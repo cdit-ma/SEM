@@ -586,9 +586,9 @@ void TimelineChartView::addChartEvents(quint32 experimentRunID, QList<MEDEA::Eve
     addedDataFromExperimentRun(experimentRunID);
 
     // update the charts' binned data
-    /*for (auto chart : eventEntityCharts) {
+    for (auto chart : eventEntityCharts) {
         chart->updateBinnedData(receivedKinds);
-    }*/
+    }
 }
 
 

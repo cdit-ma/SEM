@@ -153,6 +153,8 @@ QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestPortLifecycleEvents(PortL
  * @param request
  * @return
  */
+
+
 QFuture<QList<MEDEA::Event*>> AggregationProxy::RequestWorkloadEvents(WorkloadRequest request)
 {
     if (!hasSelectedExperimentID_)

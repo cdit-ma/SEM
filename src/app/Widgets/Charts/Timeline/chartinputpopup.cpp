@@ -340,7 +340,8 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             break;
         case NODE_KIND::COMPONENT_INSTANCE:
             // can send port/workload requests
-            compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
+            //compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
+            compInstIDs_.append(QString::number(nodeItem->getParentID()));
             break;
         case NODE_KIND::PORT_REPLIER_IMPL:
         case NODE_KIND::PORT_REQUESTER_IMPL:
@@ -372,7 +373,6 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
             }
             break;
         case NODE_KIND::CLASS_INSTANCE:
-
             // can send workload requests
             if (dataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
                 // a ClassInstance can be a child of either a CompImpl or CompInst
@@ -384,19 +384,6 @@ void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems
                 } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
                     workerInstIDs_.append(QString::number(nodeItemID));
                 }
-                /*if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                    for (auto instItem : viewController_->getNodesInstances(nodeItem->getID())) {
-                        if (instItem) {
-                            auto compInstItem = instItem->getParentItem();
-                            if (compInstItem)
-                                workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                        }
-                    }
-                } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
-                    auto compInstItem = nodeItem->getParentItem();
-                    if (compInstItem)
-                        workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                }*/
             }
             break;
         case NODE_KIND::HARDWARE_NODE:

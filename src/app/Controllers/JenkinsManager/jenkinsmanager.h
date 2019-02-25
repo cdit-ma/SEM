@@ -76,6 +76,7 @@ private:
     bool RequestValidation();
     bool RequestBuildJob(QString job_name, QList<Jenkins_Job_Parameter> job_parameters);
     bool RequestAbortJob(QString job_name, int job_number);
+
     
     QString RequestJobConsoleOutput(QString job_name, int job_number);
     QString RequestExecuteGroovyScript(QString title, QString script);
