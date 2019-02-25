@@ -1930,9 +1930,6 @@ int ModelController::compare_version(const QString& current_version, const QStri
             int current = current_rx.cap(i).toInt();
             int compare = compare_rx.cap(i).toInt();
 
-            qCritical() << "current" << current;
-            qCritical() << "compare" << compare;
-
             // Bail out early if anything other than a match
             if(current > compare) {return 1;}
             if(current < compare) {return -1;}
@@ -1940,8 +1937,6 @@ int ModelController::compare_version(const QString& current_version, const QStri
             // Keep comparing if we have a match
             if(current == compare) {continue;}
         }
-
-        qCritical() << "GOT TO STRING COMPARE";
 
         // All numeric version numbers match, compare suffix strings lexicographically
         return current_rx.cap(4).compare(compare_rx.cap(4), Qt::CaseInsensitive);
