@@ -327,3 +327,4 @@ inline uint qHash(MODEL_ACTION key, uint seed)
 Q_DECLARE_METATYPE(MODEL_ACTION);
 
 #endif // MODELCONTROLLER_H
+

@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QXmlStreamReader>
 #include <QCoreApplication>
+#include <QRegExp>
 
 #include "version.h"
 
@@ -1911,7 +1912,43 @@ bool ModelController::isKeyNameVisual(const QString& key_name){
 }
 
 int ModelController::compare_version(const QString& current_version, const QString& compare_version){
-    return current_version.compare(compare_version, Qt::CaseInsensitive);
+
+    // Match format {num}.{num}.{num}{alpha}
+    // eg 12.1.11a
+    // eg 1.2.0b
+    // eg 0.1.16test
+    QRegExp current_rx("^([0-9]*)\\.([0-9]*)\\.([0-9]*)([\\w]*)$");
+    QRegExp compare_rx("^([0-9]*)\\.([0-9]*)\\.([0-9]*)([\\w]*)$");
+    int current_pos = current_rx.indexIn(current_version);
+    int compare_pos = compare_rx.indexIn(compare_version);
+
+    // indexIn returns number of groups that match, 0 if full match with no groups, -1 if no match
+    // Therefore we want to bail out if < 0 on either string
+    if(current_pos > -1 && compare_pos > -1) {
+        // Iterate over the three numeric fields
+        for(int i = 1; i < 4; i++) {
+            int current = current_rx.cap(i).toInt();
+            int compare = compare_rx.cap(i).toInt();
+
+            qCritical() << "current" << current;
+            qCritical() << "compare" << compare;
+
+            // Bail out early if anything other than a match
+            if(current > compare) {return 1;}
+            if(current < compare) {return -1;}
+
+            // Keep comparing if we have a match
+            if(current == compare) {continue;}
+        }
+
+        qCritical() << "GOT TO STRING COMPARE";
+
+        // All numeric version numbers match, compare suffix strings lexicographically
+        return current_rx.cap(4).compare(compare_rx.cap(4), Qt::CaseInsensitive);
+    } 
+
+    // One of our strings doesn't match our regex
+    throw std::invalid_argument("Invalid version format!");
 }
 
 bool ModelController::importGraphML(const QString& document, Node *parent)
