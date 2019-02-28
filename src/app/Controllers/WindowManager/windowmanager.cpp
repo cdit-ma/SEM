@@ -96,7 +96,7 @@ void WindowManager::ShowDockWidget(BaseDockWidget* widget){
     }
 }
 
-BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
+BaseWindow* WindowManager::constructMainWindow(ViewController* vc)
 {
     if(!mainWindow){
         mainWindow = new MainWindow(vc);

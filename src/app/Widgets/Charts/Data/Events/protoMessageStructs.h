@@ -133,6 +133,8 @@ struct Node {
 
 struct ExperimentState {
     quint32 experiment_run_id;
+    qint64 last_updated_time;
+    qint64 end_time;
     QVector<Node> nodes;
     QVector<Component> components;
     QVector<Worker> workers;

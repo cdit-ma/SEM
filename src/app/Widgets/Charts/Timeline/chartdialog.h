@@ -14,6 +14,8 @@ class ChartDialog : public QFrame
 public:
     explicit ChartDialog(ViewController* vc, QWidget* parent = 0);
 
+    void setChartView(TimelineChartView* view);
+
 signals:
     void receivedData();
 
@@ -23,14 +25,6 @@ public slots:
     void toggleTimelineAxisFormat();
     void snapShot();
     void clear();
-
-    void experimentRunSelected(ExperimentRun experimentRun);
-    void queryResponseReceived(QList<MEDEA::Event *> events);
-
-    void receivedPortLifecycleResponse(QVector<PortLifecycleEvent*> events);
-    void receivedWorkloadResponse(QVector<WorkloadEvent*> events);
-    void receivedCPUUtilisationResponse(QVector<CPUUtilisationEvent*> events);
-    void receivedMemoryUtilisationResponse(QVector<MemoryUtilisationEvent*> events);
 
 private:
     TimelineChartView* chartView_ = 0;

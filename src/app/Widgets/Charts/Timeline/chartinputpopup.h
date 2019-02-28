@@ -25,9 +25,8 @@ public:
         return {RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
     }
 
-    explicit ChartInputPopup(QWidget* parent = 0);
+    explicit ChartInputPopup(ViewController *vc, QWidget* parent = 0);
 
-    void setViewController(ViewController* controller);
     void enableFilters();
 
 signals:
@@ -36,6 +35,7 @@ signals:
     void selectedExperimentRunID(quint32 experimentRunID);
     void selectedExperimentRun(ExperimentRun experimentRun);
 
+    // THESE ARE TEMPORARY - WILL BE REMOVING THEM AFTER MANAGER IS DONE
     //void receivedRequestResponse(QList<MEDEA::Event*> events);
     void receivedPortLifecycleResponse(QVector<PortLifecycleEvent*> events);
     void receivedWorkloadResponse(QVector<WorkloadEvent*> events);
@@ -56,7 +56,8 @@ public slots:
 
 private:
     void requestExperimentRuns();
-    void requestEvents(quint32 experimentRunID);
+    void requestExperimentState(quint32 experiment_run_id);
+    void requestEvents(quint32 experiment_run_id);
 
     void requestPortLifecycleEvents(
         const quint32 experiment_run_id,
@@ -81,7 +82,6 @@ private:
         const QVector<QString>& graphml_ids);
 
 
-
     void toastRequestError(QString description, QString iconPath, QString iconName);
 
     void populateExperimentRuns(QList<ExperimentRun> runs);
@@ -94,6 +94,7 @@ private:
     void resizePopup();
     void resetPopup();
 
+    void setupLayout();
     void setupFilterWidgets();
 
     QString getItemLabel(ViewItem* item);

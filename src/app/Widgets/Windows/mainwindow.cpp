@@ -9,7 +9,8 @@
 #include "../../Widgets/Dialogs/popupwidget.h"
 #include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
-#include "../../Widgets/Charts/Timeline/chartdialog.h"
+//#include "../../Widgets/Charts/Timeline/chartdialog.h"
+#include "../../Widgets/Charts/ChartManager/chartmanager.h"
 
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -589,7 +590,8 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setProtected(true);
 
     // Charts Panel
-    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", new ChartDialog(view_controller, dockwidget_Charts), this);
+    //dockwidget_Charts = window_manager->constructChartDockWidget("Charts", new ChartDialog(view_controller, dockwidget_Charts), this);
+    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", ChartManager::manager()->getChartDialog(), this);
     dockwidget_Charts->setIconVisible(true);
     dockwidget_Charts->setProtected(true);
 

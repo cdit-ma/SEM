@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
+#include <QLayout>
 
 
 /**
@@ -16,9 +17,9 @@
 ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     : QFrame(parent)
 {
+    /*
     // setup widgets
-    inputPopup_ = new ChartInputPopup(this);
-    inputPopup_->setViewController(vc);
+    inputPopup_ = new ChartInputPopup(vc);
 
     connect(inputPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartDialog::experimentRunSelected);
     //connect(inputPopup_, &ChartInputPopup::receivedRequestResponse, this, &ChartDialog::queryResponseReceived);
@@ -35,12 +36,33 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->addWidget(chartView_);
+    //*/
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
     setMinimumWidth(700);
 
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
+}
+
+
+/**
+ * @brief ChartDialog::setChartView
+ * @param view
+ */
+void ChartDialog::setChartView(TimelineChartView *view)
+{
+    if (view) {
+        if (layout()) {
+            layout()->addWidget(view);
+        } else {
+            QVBoxLayout* layout = new QVBoxLayout(this);
+            layout->setMargin(0);
+            layout->setSpacing(0);
+            layout->addWidget(view);
+        }
+        chartView_ = view;
+    }
 }
 
 
@@ -58,6 +80,9 @@ void ChartDialog::themeChanged()
  */
 void ChartDialog::toggleTimelineAxisFormat()
 {
+    if (!chartView_)
+        return;
+
     switch (displayFormat_) {
     case TIME_DISPLAY_FORMAT::DATE_TIME:
         displayFormat_ = TIME_DISPLAY_FORMAT::ELAPSED_TIME;
@@ -77,6 +102,9 @@ void ChartDialog::toggleTimelineAxisFormat()
  */
 void ChartDialog::snapShot()
 {
+    if (!chartView_)
+        return;
+
     QPixmap widgetPixmap = chartView_->grab();
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     const QString format = "png";
@@ -112,75 +140,7 @@ void ChartDialog::snapShot()
  */
 void ChartDialog::clear()
 {
-    chartView_->clearTimelineChart();
+    if (chartView_)
+        chartView_->clearTimelineChart();
 }
 
-
-/**
- * @brief ChartDialog::experimentRunSelected
- * @param experimentRun
- */
-void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
-{
-    selectedExperimentRun_ = experimentRun;
-    hasSelectedExperimentRun_ = true;
-}
-
-
-/**
- * @brief ChartDialog::queryResponseReceived
- * @param events
- */
-void ChartDialog::queryResponseReceived(QList<MEDEA::Event *> events)
-{
-    if (!events.isEmpty()) {
-        /*for (auto event : events) {
-            chartView->addChartEvent(selectedExperimentRun, event);
-        }
-        chartView_->updateTimeRange()*/
-        chartView_->addChartEvents(selectedExperimentRun_, events);
-        emit receivedData();
-    } else {
-        NotificationManager::manager()->AddNotification("No chart events received for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
-    }
-}
-
-void ChartDialog::receivedPortLifecycleResponse(QVector<PortLifecycleEvent *> events)
-{
-    QList<MEDEA::Event*> _events; //_events.append(events);
-    for (auto e : events) {
-        _events.append(e);
-    }
-    queryResponseReceived(_events);
-    //queryResponseReceived(events.toList());
-}
-
-void ChartDialog::receivedWorkloadResponse(QVector<WorkloadEvent *> events)
-{
-    QList<MEDEA::Event*> _events;
-    for (auto e : events) {
-        _events.append(e);
-    }
-    queryResponseReceived(_events);
-    //queryResponseReceived(events);
-}
-
-void ChartDialog::receivedCPUUtilisationResponse(QVector<CPUUtilisationEvent *> events)
-{
-    QList<MEDEA::Event*> _events;
-    for (auto e : events) {
-        _events.append(e);
-    }
-    queryResponseReceived(_events);
-    //queryResponseReceived(events);
-}
-
-void ChartDialog::receivedMemoryUtilisationResponse(QVector<MemoryUtilisationEvent *> events)
-{
-    QList<MEDEA::Event*> _events;
-    for (auto e : events) {
-        _events.append(e);
-    }
-    queryResponseReceived(_events);
-    //queryResponseReceived(events);
-}

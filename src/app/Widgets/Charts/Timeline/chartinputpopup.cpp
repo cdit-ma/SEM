@@ -16,69 +16,17 @@
  * @brief ChartInputPopup::ChartInputPopup
  * @param parent
  */
-ChartInputPopup::ChartInputPopup(QWidget* parent)
+ChartInputPopup::ChartInputPopup(ViewController* vc, QWidget* parent)
     : HoverPopup(parent)
 {
-    /*
-     * Setup Widgets
-     */
+    viewController_ = vc;
 
-    experimentNameLineEdit_ = new QLineEdit(this);
-    experimentNameLineEdit_->setFixedHeight(40);
-    experimentNameLineEdit_->setMinimumWidth(MIN_WIDTH);
-    experimentNameLineEdit_->setFont(QFont(font().family(), 10, QFont::ExtraLight));
-    experimentNameLineEdit_->setPlaceholderText("Enter experiment name...");
-    experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
-    connect(experimentNameLineEdit_, &QLineEdit::textEdited, this, &ChartInputPopup::requestExperimentRuns);
-
-    experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
-    QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
-    topLayout->addWidget(experimentNameLineEdit_);
-
-    // EXPERIMENT RUNS GROUP BOX
-    {
-        experimentRunsScrollWidget_ = new QWidget(this);
-        experimentRunsScrollWidget_->setStyleSheet("background: rgba(0,0,0,0);");
-        experimentRunsScrollWidget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-        groupBoxLayouts[FILTER_KEY::RUNS_FILTER] = constructVBoxLayout(experimentRunsScrollWidget_, GROUPBOX_ITEM_SPACING);
-
-        QScrollArea* scroll = new QScrollArea(this);
-        scroll->setWidget(experimentRunsScrollWidget_);
-        scroll->setWidgetResizable(true);
-        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-        experimentRunsGroupBox_ = new QGroupBox("Select Experiment Run:", this);
-        experimentRunsGroupBox_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        QVBoxLayout* layout = constructVBoxLayout(experimentRunsGroupBox_);
-        layout->addWidget(scroll);
+    if (vc) {
+        connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
+        connect(vc, &ViewController::vc_showChartPopup, this, &ChartInputPopup::setPopupVisible);
     }
 
-    toolbar_ = new QToolBar(this);
-    toolbar_->setMinimumWidth(MIN_WIDTH);
-    toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar_->addWidget(spacerWidget);
-
-    cancelAction_ = toolbar_->addAction("Cancel");
-    connect(cancelAction_, &QAction::triggered, this, &ChartInputPopup::reject);
-
-    okAction_ = toolbar_->addAction("Ok");
-    connect(okAction_, &QAction::triggered, this, &ChartInputPopup::accept);
-
-    QWidget* holderWidget = new QWidget(this);
-    holderWidget->setStyleSheet("background: rgba(0,0,0,0);");
-
-    QVBoxLayout* mainLayout = constructVBoxLayout(holderWidget, 5, 5);
-    mainLayout->setContentsMargins(5, 5, 5, 5);
-    mainLayout->addWidget(experimentNameGroupBox_);
-    mainLayout->addWidget(experimentRunsGroupBox_, 1);
-    mainLayout->addWidget(toolbar_);
-
-    setWidget(holderWidget);
+    setupLayout();
     setVisible(false);
     setModal(true);
 
@@ -87,21 +35,6 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartInputPopup::themeChanged);
     themeChanged();
-}
-
-
-/**
- * @brief ChartInputPopup::setViewController
- * @param controller
- */
-void ChartInputPopup::setViewController(ViewController* controller)
-{
-    viewController_ = controller;
-
-    if (controller) {
-        connect(controller, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
-        connect(controller, &ViewController::vc_showChartPopup, this, &ChartInputPopup::setPopupVisible);
-    }
 }
 
 
@@ -168,12 +101,33 @@ void ChartInputPopup::requestExperimentRuns()
     futureWatcher->setFuture(future);
 }
 
+void ChartInputPopup::requestExperimentState(quint32 experiment_run_id)
+{
+    auto future = viewController_->getAggregationProxy().RequestExperimentState(experiment_run_id);
+    auto futureWatcher = new QFutureWatcher<ExperimentState>(this);
+    connect(futureWatcher, &QFutureWatcher<ExperimentState>::finished, [=]() {
+        try {
+            auto state = futureWatcher->result();
+            qDebug() << "[Experiment State Request]";
+            qDebug() << "nodes#: " << state.nodes.size();
+            qDebug() << "components#: " << state.components.size();
+            qDebug() << "workers#: " << state.workers.size();
+            qDebug() << "last-updated-time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("MMM d, hh:mm:ss.zzz");
+            qDebug() << "end-time: " << QDateTime::fromMSecsSinceEpoch(state.end_time).toString("MMM d, hh:mm:ss.zzz");
+            qDebug() << "-----------------------------------------------------------";
+        } catch (const std::exception& ex) {
+            toastRequestError("Failed to request experiment state - " + QString::fromStdString(ex.what()), "Icons", "chart");
+        }
+    });
+    futureWatcher->setFuture(future);
+}
+
 
 /**
  * @brief ChartInputPopup::requestEvents
  * @param experimentRunID
  */
-void ChartInputPopup::requestEvents(quint32 experimentRunID)
+void ChartInputPopup::requestEvents(quint32 experiment_run_id)
 {
 
 }
@@ -184,11 +138,13 @@ void ChartInputPopup::requestPortLifecycleEvents(const quint32 experiment_run_id
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
         try {
-            emit receivedPortLifecycleResponse(futureWatcher->result());
+            auto events = futureWatcher->result();
+            qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
+            emit receivedPortLifecycleResponse(events);
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "Icons", "plug");
         }
-        qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
 
@@ -200,11 +156,13 @@ void ChartInputPopup::requestWorkloadEvents(const quint32 experiment_run_id, con
     auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
         try {
-            emit receivedWorkloadResponse(futureWatcher->result());
+            auto events = futureWatcher->result();
+            qDebug() << "[Workload Request] Result size#: " << events.size();
+            emit receivedWorkloadResponse(events);
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request workload events - " + QString::fromStdString(ex.what()), "Icons", "spanner");
         }
-        qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
 
@@ -216,11 +174,13 @@ void ChartInputPopup::requestCPUUtilisationEvents(const quint32 experiment_run_i
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
         try {
-            emit receivedCPUUtilisationResponse(futureWatcher->result());
+            auto events = futureWatcher->result();
+            qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
+            emit receivedCPUUtilisationResponse(events);
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "Icons", "cpu");
         }
-        qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
 }
@@ -231,11 +191,13 @@ void ChartInputPopup::requestMemoryUtilisationEvents(const quint32 experiment_ru
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
         try {
-            emit receivedMemoryUtilisationResponse(futureWatcher->result());
+            auto events = futureWatcher->result();
+            qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
+            emit receivedMemoryUtilisationResponse(events);
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "Icons", "memoryCard");
         }
-        qDebug() << "-----------------------------------------------------------";
     });
     futureWatcher->setFuture(future);
 
@@ -413,22 +375,18 @@ void ChartInputPopup::accept()
     if (hasSelection_) {
         for (auto kind : eventKinds_) {
             switch (kind) {
-            case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+            case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
                 requestPortLifecycleEvents(selectedExperimentRunID_, {}, compInstIDs_, portIDs_);
                 break;
-            }
-            case TIMELINE_DATA_KIND::WORKLOAD: {
+            case TIMELINE_DATA_KIND::WORKLOAD:
                 requestWorkloadEvents(selectedExperimentRunID_, {}, compInstIDs_, workerInstIDs_);
                 break;
-            }
-            case TIMELINE_DATA_KIND::CPU_UTILISATION: {
+            case TIMELINE_DATA_KIND::CPU_UTILISATION:
                 requestCPUUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
                 break;
-            }
-            case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
+            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
                 requestMemoryUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
                 break;
-            }
             default:
                 NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
                 break;
@@ -445,6 +403,7 @@ void ChartInputPopup::accept()
 
     }
 
+    requestExperimentState(selectedExperimentRunID_);
     resetPopup();
     PopupWidget::accept();
 }
@@ -639,6 +598,74 @@ void ChartInputPopup::resetPopup()
     workerInstIDs_.clear();
     nodeHostnames_.clear();
     nodeIDs_.clear();
+}
+
+
+/**
+ * @brief ChartInputPopup::setupLayout
+ */
+void ChartInputPopup::setupLayout()
+{
+    /*
+     * Setup Widgets
+     */
+
+    experimentNameLineEdit_ = new QLineEdit(this);
+    experimentNameLineEdit_->setFixedHeight(40);
+    experimentNameLineEdit_->setMinimumWidth(MIN_WIDTH);
+    experimentNameLineEdit_->setFont(QFont(font().family(), 10, QFont::ExtraLight));
+    experimentNameLineEdit_->setPlaceholderText("Enter experiment name...");
+    experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
+    connect(experimentNameLineEdit_, &QLineEdit::textEdited, this, &ChartInputPopup::requestExperimentRuns);
+
+    experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
+    QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
+    topLayout->addWidget(experimentNameLineEdit_);
+
+    // EXPERIMENT RUNS GROUP BOX
+    {
+        experimentRunsScrollWidget_ = new QWidget(this);
+        experimentRunsScrollWidget_->setStyleSheet("background: rgba(0,0,0,0);");
+        experimentRunsScrollWidget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+        groupBoxLayouts[FILTER_KEY::RUNS_FILTER] = constructVBoxLayout(experimentRunsScrollWidget_, GROUPBOX_ITEM_SPACING);
+
+        QScrollArea* scroll = new QScrollArea(this);
+        scroll->setWidget(experimentRunsScrollWidget_);
+        scroll->setWidgetResizable(true);
+        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+        experimentRunsGroupBox_ = new QGroupBox("Select Experiment Run:", this);
+        experimentRunsGroupBox_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        QVBoxLayout* layout = constructVBoxLayout(experimentRunsGroupBox_);
+        layout->addWidget(scroll);
+    }
+
+    toolbar_ = new QToolBar(this);
+    toolbar_->setMinimumWidth(MIN_WIDTH);
+    toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    QWidget* spacerWidget = new QWidget(this);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar_->addWidget(spacerWidget);
+
+    cancelAction_ = toolbar_->addAction("Cancel");
+    connect(cancelAction_, &QAction::triggered, this, &ChartInputPopup::reject);
+
+    okAction_ = toolbar_->addAction("Ok");
+    connect(okAction_, &QAction::triggered, this, &ChartInputPopup::accept);
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setStyleSheet("background: rgba(0,0,0,0);");
+
+    QVBoxLayout* mainLayout = constructVBoxLayout(holderWidget, 5, 5);
+    mainLayout->setContentsMargins(5, 5, 5, 5);
+    mainLayout->addWidget(experimentNameGroupBox_);
+    mainLayout->addWidget(experimentRunsGroupBox_, 1);
+    mainLayout->addWidget(toolbar_);
+
+    setWidget(holderWidget);
 }
 
 

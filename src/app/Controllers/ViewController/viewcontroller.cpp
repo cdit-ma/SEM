@@ -20,7 +20,7 @@
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
-
+#include "../../Widgets/Charts/ChartManager/chartmanager.h"
 
 
 #include "../../../modelcontroller/modelcontroller.h"
@@ -69,6 +69,8 @@ ViewController::ViewController(){
 
     NotificationManager::construct_singleton(this);
     SearchManager::construct_singleton(this);
+    ChartManager::constructSingleton(this);
+
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     menu = new ContextMenu(this);

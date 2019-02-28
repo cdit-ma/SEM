@@ -136,17 +136,18 @@ QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experi
         
         auto& results = requester_->GetExperimentRuns(request);
         for (const auto& ex : results->experiments()) {
-            const auto& experiment_name = GetQString(ex.name());
+            const auto& experiment_name = ConstructQString(ex.name());
             for (auto& ex_run : ex.runs()) {
                 ExperimentRun run;
                 run.experiment_name = experiment_name;
                 run.experiment_run_id = ex_run.experiment_run_id();
                 run.job_num = ex_run.job_num();
-                run.start_time = GetQDateTime(ex_run.start_time()).toMSecsSinceEpoch();
-                run.end_time = GetQDateTime(ex_run.end_time()).toMSecsSinceEpoch();
+                run.start_time = ConstructQDateTime(ex_run.start_time()).toMSecsSinceEpoch();
+                run.end_time = ConstructQDateTime(ex_run.end_time()).toMSecsSinceEpoch();
                 runs.append(run);
             }
         }
+
         return runs;
 
     } catch (const std::exception& ex) {
@@ -170,19 +171,21 @@ ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_ru
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experiment_run_id);
 
-        auto& results = requester_->GetExperimentState(request);
+        auto& result = requester_->GetExperimentState(request);
         state.experiment_run_id = experiment_run_id;
-        qDebug() << "[Experiment State Request]";
+        state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
+        state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();
 
-        for (const auto& n : results->nodes()) {
+        for (const auto& n : result->nodes()) {
             state.nodes.append(ConvertNode(n));
         }
-        for (const auto& c : results->components()) {
+        for (const auto& c : result->components()) {
             state.components.append(ConvertComponent(c));
         }
-        for (const auto& w : results->workers()) {
+        for (const auto& w : result->workers()) {
             state.workers.append(ConvertWorker(w));
         }
+
         return state;
 
     } catch (const std::exception& ex) {
@@ -220,13 +223,13 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(
         }
 
         const auto& results = requester_->GetPortLifecycle(request);
-        qDebug() << "[PortLifecycle Request] Result size#: " << results->events_size();
         for (const auto& item : results->events()) {
             const auto& port = ConvertPort(item.port());
             const auto& type = ConvertLifeCycleType(item.type());
-            const auto& time = GetQDateTime(item.time());
+            const auto& time = ConstructQDateTime(item.time());
             events.append(new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch()));
         }
+
         return events;
 
     } catch (const std::exception& ex) {
@@ -264,17 +267,17 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(
         }
         
         const auto& results = requester_->GetWorkload(request);
-        qDebug() << "[Workload Request] Result size#: " << results->events_size();
         for (const auto& item : results->events()) {
             const auto& worker_instance = ConvertWorkerInstance(item.worker_inst());
             const auto& type = ConvertWorkloadEventType(item.type());
             const auto& workload_id = item.workload_id();
-            const auto& time = GetQDateTime(item.time()).toMSecsSinceEpoch();
-            const auto& function_name = GetQString(item.function_name());
-            const auto& args = GetQString(item.args());
+            const auto& time = ConstructQDateTime(item.time()).toMSecsSinceEpoch();
+            const auto& function_name = ConstructQString(item.function_name());
+            const auto& args = ConstructQString(item.args());
             const auto& log_level = item.log_level();
             events.append(new WorkloadEvent(worker_instance, type, workload_id, time, function_name, args, log_level));
         }
+
         return events;
 
     } catch (const std::exception& ex) {
@@ -307,16 +310,16 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(
         }
         
         auto results = requester_->GetCPUUtilisation(request);
-        qDebug() << "[CPUUtilisation Request] Result size#: " << results->nodes_size();
         for (const auto& node : results->nodes()) {
-            const auto& host_name = GetQString(node.node_info().hostname());
+            const auto& host_name = ConstructQString(node.node_info().hostname());
 
             for (const auto& e : node.events()) {
                 const auto& utilisation = e.cpu_utilisation();
-                const auto& time = GetQDateTime(e.time());
+                const auto& time = ConstructQDateTime(e.time());
                 events.append(new CPUUtilisationEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
             }
         }
+
         return events;
 
     } catch (const std::exception& ex) {
@@ -349,15 +352,15 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(
         }
         
         auto results = requester_->GetMemoryUtilisation(request);
-        qDebug() << "[MemoryUtilisation Request] Result size#: " << results->nodes_size();
         for (const auto& node : results->nodes()) {
-            const auto& host_name = GetQString(node.node_info().hostname());
+            const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
                 const auto& utilisation = e.memory_utilisation();
-                const auto& time = GetQDateTime(e.time());
+                const auto& time = ConstructQDateTime(e.time());
                 events.append(new MemoryUtilisationEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
             }
         }
+
         return events;
 
     } catch (const std::exception& ex) {
@@ -375,10 +378,10 @@ Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 {
     Port port;
     port.kind = ConvertPortKind(p.kind());
-    port.name = GetQString(p.name());
-    port.path = GetQString(p.path());
-    port.middleware = GetQString(p.middleware());
-    port.graphml_id = GetQString(p.graphml_id());
+    port.name = ConstructQString(p.name());
+    port.path = ConstructQString(p.path());
+    port.middleware = ConstructQString(p.middleware());
+    port.graphml_id = ConstructQString(p.graphml_id());
     return port;
 }
 
@@ -391,9 +394,9 @@ Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerInstance& w_i)
 {
     WorkerInstance worker_instance;
-    worker_instance.name = GetQString(w_i.name());
-    worker_instance.path = GetQString(w_i.path());
-    worker_instance.graphml_id = GetQString(w_i.graphml_id());
+    worker_instance.name = ConstructQString(w_i.name());
+    worker_instance.path = ConstructQString(w_i.path());
+    worker_instance.graphml_id = ConstructQString(w_i.graphml_id());
     return worker_instance;
 }
 
@@ -406,10 +409,10 @@ WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerIn
 ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::ComponentInstance& c_i)
 {
     ComponentInstance component_instance;
-    component_instance.name = GetQString(c_i.name());
-    component_instance.path = GetQString(c_i.path());
-    component_instance.graphml_id = GetQString(c_i.graphml_id());
-    component_instance.type = GetQString(c_i.type());
+    component_instance.name = ConstructQString(c_i.name());
+    component_instance.path = ConstructQString(c_i.path());
+    component_instance.graphml_id = ConstructQString(c_i.graphml_id());
+    component_instance.type = ConstructQString(c_i.type());
 
     for (const auto& p : c_i.ports()) {
         component_instance.ports.append(ConvertPort(p));
@@ -430,8 +433,8 @@ ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::Co
 Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
 {
     Container container;
-    container.name = GetQString(c.name());
-    container.graphml_id = GetQString(c.graphml_id());
+    container.name = ConstructQString(c.name());
+    container.graphml_id = ConstructQString(c.graphml_id());
 
     for (const auto& c_i : c.component_instances()) {
         container.component_instances.append(ConvertComponentInstance(c_i));
@@ -460,8 +463,8 @@ Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
 Node AggregationProxy::ConvertNode(const AggServer::Node& n)
 {
     Node node;
-    node.hostname = GetQString(n.hostname());
-    node.ip = GetQString(n.ip());
+    node.hostname = ConstructQString(n.hostname());
+    node.ip = ConstructQString(n.ip());
     for (const auto& c : n.containers()) {
         node.containers.append(ConvertContainer(c));
     }
@@ -477,7 +480,7 @@ Node AggregationProxy::ConvertNode(const AggServer::Node& n)
 Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
 {
     Component component;
-    component.name = GetQString(c.name());
+    component.name = ConstructQString(c.name());
     return component;
 }
 
@@ -490,7 +493,7 @@ Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
 Worker AggregationProxy::ConvertWorker(const AggServer::Worker& w)
 {
     Worker worker;
-    worker.name = GetQString(w.name());
+    worker.name = ConstructQString(w.name());
     return worker;
 }
 
@@ -549,19 +552,19 @@ Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 WorkloadEvent::WorkloadEventType AggregationProxy::ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type)
 {
     switch (type) {
-      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
-          return WorkloadEvent::WorkloadEventType::STARTED;
-      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
-          return WorkloadEvent::WorkloadEventType::FINISHED;
-      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
-          return WorkloadEvent::WorkloadEventType::MESSAGE;
-      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
-          return WorkloadEvent::WorkloadEventType::WARNING;
-      case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
-          return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
-      default:
-          return WorkloadEvent::WorkloadEventType::UNKNOWN;
-      }
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
+        return WorkloadEvent::WorkloadEventType::STARTED;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
+        return WorkloadEvent::WorkloadEventType::FINISHED;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
+        return WorkloadEvent::WorkloadEventType::MESSAGE;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
+        return WorkloadEvent::WorkloadEventType::WARNING;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
+        return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
+    default:
+        return WorkloadEvent::WorkloadEventType::UNKNOWN;
+    }
 }
 
 
@@ -578,11 +581,11 @@ std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::ConstructTimestam
 
 
 /**
- * @brief AggregationProxy::GetQDateTime
+ * @brief AggregationProxy::ConstructQDateTime
  * @param time
  * @return
  */
-QDateTime AggregationProxy::GetQDateTime(const google::protobuf::Timestamp &time)
+QDateTime AggregationProxy::ConstructQDateTime(const google::protobuf::Timestamp &time)
 {
     int64_t mu = google::protobuf::util::TimeUtil::TimestampToMicroseconds(time);
     return QDateTime::fromMSecsSinceEpoch(mu / 1E3, Qt::UTC);
@@ -590,11 +593,11 @@ QDateTime AggregationProxy::GetQDateTime(const google::protobuf::Timestamp &time
 
 
 /**
- * @brief AggregationProxy::GetQString
+ * @brief AggregationProxy::ConstructQString
  * @param str
  * @return
  */
-QString AggregationProxy::GetQString(const std::string& str)
+QString AggregationProxy::ConstructQString(const std::string& str)
 {
     return QString::fromUtf8(str.c_str());
 }

@@ -203,9 +203,9 @@ void PanelWidget::setViewController(ViewController *vc)
     viewController = vc;
     //connect(this, &PanelWidget::reloadTimelineEvents, &viewController->getAggregationProxy(), &AggregationProxy::ReloadExperiments);
 
-    if (chartPopup) {
+    /*if (chartPopup) {
         chartPopup->setViewController(viewController);
-    }
+    }*/
 
     //constructPortLifecycleEventsView();
     //constructWorkloadEventsView();
@@ -618,7 +618,8 @@ void PanelWidget::setupLayout()
     connect(snapShotAction, &QAction::triggered, this, &PanelWidget::snapShotPanel);
     connect(playPauseAction, &QAction::toggled, this, &PanelWidget::playPauseToggled);
 
-    chartPopup = new ChartInputPopup(this);
+    //chartPopup = new ChartInputPopup(this);
+    chartPopup = new ChartInputPopup(viewController);
 }
 
 

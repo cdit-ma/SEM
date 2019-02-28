@@ -104,8 +104,8 @@ private:
 
     //Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);
-    static QDateTime GetQDateTime(const google::protobuf::Timestamp &time);
-    static QString GetQString(const std::string &string);
+    static QDateTime ConstructQDateTime(const google::protobuf::Timestamp &time);
+    static QString ConstructQString(const std::string &string);
     
     static Node ConvertNode(const AggServer::Node& node);
     static Component ConvertComponent(const AggServer::Component& component);
