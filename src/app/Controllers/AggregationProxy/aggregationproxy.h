@@ -26,8 +26,8 @@ class NoRequesterException : public QException{
 class RequestException : public QException{
     public:
         RequestException(const QString& error) : 
-            error_(error){};
-        
+            error_(error) {}
+
         QString What() const{
             return error_;
         }

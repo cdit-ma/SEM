@@ -116,6 +116,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.cpp
 )
 
 if(WIN32)
@@ -238,6 +239,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.h
 )
 
 set(RESOURCES

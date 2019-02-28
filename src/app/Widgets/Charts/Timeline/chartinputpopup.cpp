@@ -184,7 +184,7 @@ void ChartInputPopup::requestPortLifecycleEvents(const quint32 experiment_run_id
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
         try {
-            //emit receivedRequestResponse(futureWatcher->result());
+            emit receivedPortLifecycleResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "Icons", "plug");
         }
@@ -200,7 +200,7 @@ void ChartInputPopup::requestWorkloadEvents(const quint32 experiment_run_id, con
     auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
         try {
-            //emit receivedRequestResponse(futureWatcher->result());
+            emit receivedWorkloadResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request workload events - " + QString::fromStdString(ex.what()), "Icons", "spanner");
         }
@@ -216,7 +216,7 @@ void ChartInputPopup::requestCPUUtilisationEvents(const quint32 experiment_run_i
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
         try {
-            //emit receivedRequestResponse(futureWatcher->result());
+            emit receivedCPUUtilisationResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "Icons", "cpu");
         }
@@ -231,7 +231,7 @@ void ChartInputPopup::requestMemoryUtilisationEvents(const quint32 experiment_ru
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
         try {
-            //emit receivedRequestResponse(futureWatcher->result());
+            emit receivedMemoryUtilisationResponse(futureWatcher->result());
         } catch (const std::exception& ex) {
             toastRequestError("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "Icons", "memoryCard");
         }
@@ -436,7 +436,13 @@ void ChartInputPopup::accept()
         }
     } else {
         // if there is no selection, request all events for the selected experiment run
-        requestEvents(selectedExperimentRunID_);
+        //requestEvents(selectedExperimentRunID_);
+
+        requestPortLifecycleEvents(selectedExperimentRunID_, {}, compInstIDs_, portIDs_);
+        requestWorkloadEvents(selectedExperimentRunID_, {}, compInstIDs_, workerInstIDs_);
+        requestCPUUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
+        requestMemoryUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
+
     }
 
     resetPopup();

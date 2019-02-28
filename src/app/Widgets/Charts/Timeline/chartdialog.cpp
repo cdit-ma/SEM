@@ -21,7 +21,11 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
     inputPopup_->setViewController(vc);
 
     connect(inputPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartDialog::experimentRunSelected);
-    connect(inputPopup_, &ChartInputPopup::receivedRequestResponse, this, &ChartDialog::queryResponseReceived);
+    //connect(inputPopup_, &ChartInputPopup::receivedRequestResponse, this, &ChartDialog::queryResponseReceived);
+    connect(inputPopup_, &ChartInputPopup::receivedPortLifecycleResponse, this, &ChartDialog::receivedPortLifecycleResponse);
+    connect(inputPopup_, &ChartInputPopup::receivedWorkloadResponse, this, &ChartDialog::receivedWorkloadResponse);
+    connect(inputPopup_, &ChartInputPopup::receivedCPUUtilisationResponse, this, &ChartDialog::receivedCPUUtilisationResponse);
+    connect(inputPopup_, &ChartInputPopup::receivedMemoryUtilisationResponse, this, &ChartDialog::receivedMemoryUtilisationResponse);
     connect(inputPopup_, &ChartInputPopup::accepted, [=]() { hasSelectedExperimentRun_ = false; });
     connect(inputPopup_, &ChartInputPopup::rejected, [=]() { hasSelectedExperimentRun_ = false; });
 
@@ -127,7 +131,7 @@ void ChartDialog::experimentRunSelected(ExperimentRun experimentRun)
  * @brief ChartDialog::queryResponseReceived
  * @param events
  */
-void ChartDialog::queryResponseReceived(QList<MEDEA::Event*> events)
+void ChartDialog::queryResponseReceived(QList<MEDEA::Event *> events)
 {
     if (!events.isEmpty()) {
         /*for (auto event : events) {
@@ -139,4 +143,44 @@ void ChartDialog::queryResponseReceived(QList<MEDEA::Event*> events)
     } else {
         NotificationManager::manager()->AddNotification("No chart events received for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
     }
+}
+
+void ChartDialog::receivedPortLifecycleResponse(QVector<PortLifecycleEvent *> events)
+{
+    QList<MEDEA::Event*> _events; //_events.append(events);
+    for (auto e : events) {
+        _events.append(e);
+    }
+    queryResponseReceived(_events);
+    //queryResponseReceived(events.toList());
+}
+
+void ChartDialog::receivedWorkloadResponse(QVector<WorkloadEvent *> events)
+{
+    QList<MEDEA::Event*> _events;
+    for (auto e : events) {
+        _events.append(e);
+    }
+    queryResponseReceived(_events);
+    //queryResponseReceived(events);
+}
+
+void ChartDialog::receivedCPUUtilisationResponse(QVector<CPUUtilisationEvent *> events)
+{
+    QList<MEDEA::Event*> _events;
+    for (auto e : events) {
+        _events.append(e);
+    }
+    queryResponseReceived(_events);
+    //queryResponseReceived(events);
+}
+
+void ChartDialog::receivedMemoryUtilisationResponse(QVector<MemoryUtilisationEvent *> events)
+{
+    QList<MEDEA::Event*> _events;
+    for (auto e : events) {
+        _events.append(e);
+    }
+    queryResponseReceived(_events);
+    //queryResponseReceived(events);
 }

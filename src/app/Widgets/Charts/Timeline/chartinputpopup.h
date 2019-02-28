@@ -36,7 +36,11 @@ signals:
     void selectedExperimentRunID(quint32 experimentRunID);
     void selectedExperimentRun(ExperimentRun experimentRun);
 
-    void receivedRequestResponse(QList<MEDEA::Event*> events);
+    //void receivedRequestResponse(QList<MEDEA::Event*> events);
+    void receivedPortLifecycleResponse(QVector<PortLifecycleEvent*> events);
+    void receivedWorkloadResponse(QVector<WorkloadEvent*> events);
+    void receivedCPUUtilisationResponse(QVector<CPUUtilisationEvent*> events);
+    void receivedMemoryUtilisationResponse(QVector<MemoryUtilisationEvent*> events);
 
 public slots:
     void themeChanged();

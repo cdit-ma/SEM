@@ -16,12 +16,15 @@ class SearchManager : public QObject
 private:
     SearchManager(ViewController* controller);
     ~SearchManager();
+
 protected:
     static bool construct_singleton(ViewController* controller);
     static void destruct_singleton();
+
 signals:
     void SearchComplete();
     void GotoID(int id);
+
 public:
     static SearchManager* manager();
     
@@ -32,6 +35,7 @@ public:
     void Search(QString search_query);
     void PopupSearch();
     void PopupGoto();
+
 private:
     static SearchManager* manager_singleton;
     SearchPopup* search_popup = 0;
