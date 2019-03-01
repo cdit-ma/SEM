@@ -70,9 +70,6 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
 
-        
-
-        
 
         connect(edit_undo, &QAction::triggered, viewController, &ViewController::Undo);
         connect(edit_redo, &QAction::triggered, viewController, &ViewController::Redo);
@@ -821,12 +818,6 @@ void ActionController::setupActions()
     model_reloadWorkerDefinitions = createRootAction("Model", "Reload Worker Definitions", "", "Icons", "reload");
     model_reloadWorkerDefinitions->setToolTip("Reloads the Worker Definitions for this version of MEDEA.");
 
-    
-    
-
-
-
-
     jenkins_importNodes = createRootAction("Jenkins", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
     jenkins_importNodes->setToolTip("Imports the nodes from the Jenkins Server.");
     jenkins_importNodes->setShortcutContext(Qt::ApplicationShortcut);
@@ -1009,6 +1000,7 @@ void ActionController::setupMainMenu()
     // Model Menu
     menu_model->addAction(model_selectModel);
     menu_model->addAction(model_reloadWorkerDefinitions);
+    
     
     menu_model->addSeparator();
     menu_model->addAction(model_validateModel);

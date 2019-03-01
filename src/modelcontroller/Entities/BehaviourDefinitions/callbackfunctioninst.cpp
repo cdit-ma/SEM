@@ -63,6 +63,21 @@ bool MEDEA::CallbackFunctionInst::CallbackFunctionInst::canAdoptChild(Node* chil
     return Node::canAdoptChild(child);
 }
 
+bool MEDEA::CallbackFunctionInst::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
+{
+    switch(edge_kind){
+    case EDGE_KIND::DEFINITION:{
+        if(dst->getInstances().count() > 0){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edge_kind, dst);
+}
+
 
 QSet<Node*> MEDEA::CallbackFunctionInst::getListOfValidAncestorsForChildrenDefinitions(){
     QSet<Node*> valid_ancestors;

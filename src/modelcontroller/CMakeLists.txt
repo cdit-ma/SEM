@@ -46,6 +46,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/publisherportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/replierportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/replierportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/requesterportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/requesterportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
@@ -64,6 +66,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.cpp
@@ -72,6 +76,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/opencldevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportinst.cpp
@@ -101,6 +106,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportinst.cpp
@@ -127,7 +134,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/memberinst.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/publisherport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestreply/replierport.cpp
@@ -159,7 +165,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactorybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactoryregistrybroker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
@@ -207,69 +215,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingprofile.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/edge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/aggregateedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/assemblyedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/dataedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregateinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/attribute.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/component.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/datanode.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/eventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/memberinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/publisherport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/subscriberport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vectorinst.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/key.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.h
 )
 
 

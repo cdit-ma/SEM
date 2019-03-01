@@ -552,7 +552,7 @@ bool JenkinsManager::RequestBuildJob(QString job_name, QList<Jenkins_Job_Paramet
                         file_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
                         file_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"" + parameter.name + "\"; filename=\""+ file_info.baseName() + "\""));
                         file_part.setBodyDevice(file);
-                        file->setParent(multi_part.get());
+                        file->setParent(multi_part.data());
                         multi_part->append(file_part);
                     }
                 }

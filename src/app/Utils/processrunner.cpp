@@ -243,7 +243,7 @@ HTTPResult ProcessRunner::HTTPPostMulti(QNetworkRequest request, QHttpMultiPart*
     if(network_access_manager && request.url().isValid()){
         QScopedPointer<QNetworkReply> reply(network_access_manager->post(request, post_data));
         //Post to the URL from the networkManager.
-        result = WaitForNetworkReply(reply.get());
+        result = WaitForNetworkReply(reply.data());
     }
     delete post_data;
     

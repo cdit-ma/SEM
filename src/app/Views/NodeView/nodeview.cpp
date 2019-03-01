@@ -759,8 +759,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
             
             //Ignore Functions contained within Class Instances
-            if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INST){
-                return;
+            if(parent_node_kind == NODE_KIND::CLASS_INST){
+                if(node_kind == NODE_KIND::FUNCTION || node_kind == NODE_KIND::CALLBACK_FUNCTION){
+                    return;
+                }
             }
 
             switch(node_kind){
@@ -1075,13 +1077,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setContractedWidth(40);
                 break;
             }
-
-            
+            case NODE_KIND::CLASS_INST:{
+                node_item = new StackNodeItem(item, parentNode);
+                if(item->getData(KeyName::IsWorker).toBool()){
+                    node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
+                }
+                break;
+            }
             case NODE_KIND::INPUT_PARAMETER_GROUP:
             case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
             case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
-            case NODE_KIND::CLASS_INST:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);

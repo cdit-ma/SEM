@@ -34,9 +34,43 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
 
     //Setup Data
 
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED);
     TypeKey::BindNamespaceAndLabelToType(this, true);
 };
+
+void MEDEA::Class::parentSet(Node* parent){
+    bool is_worker = false;
+    switch(getViewAspect()){
+        case VIEW_ASPECT::WORKERS:{
+            is_worker = true;
+            break;
+        }
+        default:{
+            is_worker = false;
+            break;
+        }
+    }
+    getFactoryBroker().AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED, is_worker);
+}
+
+
+bool MEDEA::Class::canAdoptChild(Node* child)
+{
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
+        case NODE_KIND::CALLBACK_FUNCTION:{
+            //Only allow Workers to have Callback Function
+            if(getDataValue(KeyName::IsWorker).toBool() == false){
+                return false;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    return Node::canAdoptChild(child);
+}

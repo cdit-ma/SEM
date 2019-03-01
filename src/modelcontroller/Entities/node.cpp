@@ -411,7 +411,7 @@ bool Node::containsChild(Node *child)
     return new_nodes_.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth) const
 {
     auto child_list = getOrderedChildNodes();
 
@@ -496,12 +496,12 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
     return getChildrenOfKinds({kind}, depth);
 }
 
-int Node::getChildrenCount()
+int Node::getChildrenCount() const
 {
     return new_nodes_.size();
 }
 
-int Node::getChildrenOfKindCount(NODE_KIND kind){
+int Node::getChildrenOfKindCount(NODE_KIND kind) const{
     return node_kind_count_.value(kind, 0);
 }
 
@@ -834,30 +834,8 @@ void Node::setParentNode(Node *parent, int branch)
     parentNodeUpdated();
 }
 
-void Node::ToGraphmlStream(QTextStream& stream, int indent_depth){
-    const auto tab = QString("\t").repeated(indent_depth);
-    
-    stream << tab;
-    stream << "<node id=\"" << getID() << "\">\n";
 
-    auto data_list = getData();
-    std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
-    for(auto data : data_list){
-        data->ToGraphmlStream(stream, indent_depth + 1);
-    }
-
-    //Children are in a <graph>
-    if(getChildrenCount() > 0){
-        stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
-        for(auto child : getChildren(0)){
-            child->ToGraphmlStream(stream, indent_depth + 2);
-        }
-        stream << tab << "\t</graph>\n";
-    }
-    stream << tab << "</node>\n";
-}
-
-QList<Node *> Node::getOrderedChildNodes()
+QList<Node *> Node::getOrderedChildNodes() const
 {
     auto child_list = new_nodes_.toList();
     auto index_key = getKey("index");
@@ -974,12 +952,17 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_types = true;
 
     switch(instance_kind){
+        case NODE_KIND::CLASS_INST:{
+            bind_values[KeyName::IsWorker] += KeyName::IsWorker;
+            break;
+        }
         case NODE_KIND::MEMBER_INST:
         case NODE_KIND::VECTOR_INST:
         case NODE_KIND::AGGREGATE_INST:{
-            if(instance_parent_kind == NODE_KIND::AGGREGATE_INST || instance_parent_kind == NODE_KIND::VECTOR_INST || instance_parent_kind == NODE_KIND::INPUT_PARAMETER_GROUP_INST){
+            static const QSet<NODE_KIND> bind_index_kinds{NODE_KIND::AGGREGATE_INST, NODE_KIND::VECTOR_INST, NODE_KIND::INPUT_PARAMETER_GROUP_INST};
+            if(bind_index_kinds.contains(instance_parent_kind)){
                 bind_index = true;
-            }
+        }
             break;
         }
         default:
@@ -998,9 +981,11 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             case NODE_KIND::AGGREGATE_INST:
             case NODE_KIND::VECTOR_INST:
             case NODE_KIND::ENUM_INST:{
-                if(instance_parent_kind == NODE_KIND::AGGREGATE){
+                static const QSet<NODE_KIND> unbound_labels{NODE_KIND::AGGREGATE, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+                if(unbound_labels.contains(instance_parent_kind)){
                     bind_labels = false;
                 }
+
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::Description] += KeyName::Description;
                     required_instance_keys.insert(KeyName::Description);

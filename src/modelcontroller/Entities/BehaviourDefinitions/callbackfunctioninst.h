@@ -14,6 +14,7 @@ namespace MEDEA{
             static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
         protected:
             CallbackFunctionInst(EntityFactoryBroker& factory, bool is_temp_node);
+            bool canAcceptEdge(EDGE_KIND edge_kind, Node *dst);
             QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
 	        QSet<Node*> getParentNodesForValidDefinition();
         public:
