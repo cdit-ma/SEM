@@ -1919,10 +1919,11 @@ int ModelController::semver_compare_version(const QString& current_version, cons
     // eg 0.1.16test
     QRegExp current_rx(R"(^(\d+)\.(\d+)\.(\d+)([\w]*)$)");
     QRegExp compare_rx(R"(^(\d+)\.(\d+)\.(\d+)([\w]*)$)");
-    int current_matches = current_rx.indexIn(current_version);
-    int compare_matches = compare_rx.indexIn(compare_version);
 
-    if(current_rx.exactMatch(current_version) && compare_rx.exactMatch(compare_version)) {
+    auto current_valid = current_rx.exactMatch(current_version);
+    auto compare_valid = compare_rx.exactMatch(compare_version);
+
+    if(current_valid && compare_valid) {
         // Iterate over the three numeric fields
         // First matching regex group is start caret, therefore skip and start at group 1
         for(int i = 1; i < 4; i++) {
@@ -1946,11 +1947,14 @@ int ModelController::semver_compare_version(const QString& current_version, cons
     }
 
     // One of our strings doesn't match our regex
-    throw std::invalid_argument("Invalid version format!");
-}
-
-int ModelController::string_compare_version(const QString& current_version, const QString& compare_version) {
-    return current_version.compare(compare_version, Qt::CaseInsensitive);
+    std::string error = "Invalid version format:";
+    if(!current_valid) {
+        error += "current version ";
+    }
+    if(!compare_valid) {
+        error += "compare_version ";
+    }
+    throw std::invalid_argument(error);
 }
 
 bool ModelController::importGraphML(const QString& document, Node *parent)
