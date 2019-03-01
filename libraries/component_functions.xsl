@@ -931,6 +931,11 @@
         <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <xsl:if test="count($periodic_events) > 0">
+            <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'ports', 'periodicport.h')))" />
+            <xsl:value-of select="o:nl(1)" />
+        </xsl:if>
+
         <!-- Inject the Code in Header of type [CPP] -->
         <xsl:for-each select="$headers[graphml:get_data_value(., 'header_location') = 'CPP']">
             <xsl:if test="position() = 1">
@@ -1357,11 +1362,11 @@
             
             <xsl:choose>
                 <xsl:when test="count(graphml:get_sources($node, 'Edge_Data')) = 1">
-                    <xsl:value-of select ="cdit:get_resolved_getter_function($node, true(), false())" />
+                    <xsl:value-of select ="cdit:get_resolved_getter_function($node, false(), false())" />
                 </xsl:when>
                 <xsl:when test="count($input_parameters) = 3">
                     <xsl:variable name="var_setter">
-                        <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[1], true(), false())" />
+                        <xsl:value-of select="cdit:get_resolved_getter_function($input_parameters[1], false(), false())" />
                     </xsl:variable>
 
                     <xsl:variable name="operator">    
@@ -1558,6 +1563,7 @@
     
 
 
+
     <xsl:function name="cdit:generate_setter_code">
         <xsl:param name="node" as="element()"/>
         <xsl:param name="tab" as="xs:integer"/>
@@ -1571,11 +1577,40 @@
         <xsl:if test="count($input_parameters) = 3">
             <xsl:variable name="operator" select="graphml:get_label($input_parameters[2])" />
             <xsl:variable name="needs_variable" select="$operator = ('-', '+', '/', '*')" />
+            <xsl:variable name="is_mutating" select="$operator = ('-=', '+=', '/=', '*=', '=')" />
+            <xsl:variable name="has_complex_setter" select="cdit:has_referential_setter_func($input_parameters[1]) = false()" />
+            
+            <!-- Use the Const Getter for the LHS if we aren't mutating it -->
+            <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], $is_mutating, false())" />
+            <xsl:variable name="const_rhs" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
 
-            <!-- Get const getter for the lhs if we aren't in-place modifying -->
-            <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], not($needs_variable), false())" />
-            <xsl:variable name="rhs" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
-            <xsl:variable name="statement" select="concat($lhs, ' ', $operator, ' ', $rhs)" />
+            <xsl:variable name="statement">
+                <xsl:choose>
+                    <xsl:when test="$is_mutating and $has_complex_setter">
+                        <xsl:variable name="value">
+                            <xsl:choose>
+                                <xsl:when test="$operator = '='">
+                                    <xsl:value-of select="$const_rhs" />
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <!--
+                                        When we have a setter function with a complex Setter function, we can't use the mutating functions.
+                                        We need to get the const-getter for the LHS and change the operator to remove the '=' and then append the RHS
+                                        ie SetValue(GetValue() + GetValue2());
+                                    -->
+                                    <xsl:variable name="const_lhs" select="cdit:get_resolved_getter_function($input_parameters[1], false(), false())" />
+                                    <xsl:variable name="non_mutating_operator" select="substring($operator, 1, 1)" />
+                                    <xsl:value-of select="o:join_list(($const_lhs, $non_mutating_operator, $const_rhs), ' ')" />
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:value-of select="cpp:invoke_static_function((), $lhs, $value, '', 0)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="o:join_list(($lhs, $operator, $const_rhs), ' ')" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
 
             <xsl:choose>
                 <xsl:when test="$inline">
@@ -1595,6 +1630,45 @@
         </xsl:if>
     </xsl:function>
 
+    <xsl:function name="cdit:has_referential_setter_func" as="xs:boolean">
+        <xsl:param name="node" as="element()?"/>
+
+        <xsl:variable name="connected_entity" select="cdit:get_first_data_connected_entity($node)" />
+
+        <xsl:choose>
+            <!-- Use Data Edges first -->
+            <xsl:when test="$connected_entity">
+                <xsl:variable name="kind" select="graphml:get_kind($connected_entity)" />
+                <xsl:variable name="parent_kind" select="graphml:get_kind( graphml:get_parent_node($connected_entity) )" />
+                <xsl:choose>
+                    <xsl:when test="$kind = 'Attribute' and $parent_kind = 'PeriodicPort'">
+                        <xsl:value-of select="false()" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="true()" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="true()" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_first_data_connected_entity" as="element()?">
+        <xsl:param name="node" as="element()"/>
+
+        <!-- Get the Source ID's which data link to this element -->
+        <xsl:variable name="sources" select="graphml:get_sources($node, 'Edge_Data')" />
+
+        <!-- Get the Source ID's which data link to this element -->
+        <xsl:variable name="sources" select="graphml:get_sources($node, 'Edge_Data')" />
+        <!-- Use Data Edges first -->
+        <xsl:if test="count($sources) > 0">
+            <xsl:sequence select="$sources[1]" />
+        </xsl:if>
+    </xsl:function>
+
     <xsl:function name="cdit:get_resolved_getter_function">
         <xsl:param name="node"/>
         <xsl:param name="mutable" as="xs:boolean"/>
@@ -1605,12 +1679,12 @@
         <xsl:variable name="value" select="graphml:get_value($node)" />
 
         <!-- Get the Source ID's which data link to this element -->
-        <xsl:variable name="sources" select="graphml:get_sources($node, 'Edge_Data')" />
+        <xsl:variable name="connected_entity" select="cdit:get_first_data_connected_entity($node)" />
 
         <xsl:choose>
             <!-- Use Data Edges first -->
-            <xsl:when test="count($sources) > 0">
-                <xsl:value-of select="cdit:get_mutable_get_function($sources[1], $mutable)" />
+            <xsl:when test="$connected_entity">
+                <xsl:value-of select="cdit:get_mutable_get_function($connected_entity, $mutable)" />
             </xsl:when>
             <!-- Use Value second -->
             <xsl:when test="$value != ''">
@@ -1682,6 +1756,19 @@
                     <xsl:variable name="get_attr_ref" select="cpp:invoke_function($get_attr_sp, cpp:arrow(), cdit:get_attribute_ref_function($node), '', 0)"/>
 
                     <xsl:value-of select="$get_attr_ref" />
+                </xsl:when>
+                <xsl:when test="$kind = 'Attribute' and $parent_kind = 'PeriodicPort'">
+                    <xsl:variable name="port_label" select="graphml:get_label($parent_node)" />
+
+                    <xsl:variable name="port_getter" select="cpp:invoke_templated_static_function('PeriodicPort', 'GetTypedPort', o:wrap_dblquote($port_label), '', 0)" />
+                    <xsl:choose>
+                        <xsl:when test="$mutable">
+                            <xsl:value-of select="concat($port_getter, cpp:arrow(), 'SetFrequency')"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="cpp:invoke_function($port_getter, cpp:arrow(), 'GetFrequency', '', 0)"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:when test="$kind = 'AttributeImpl' or $kind = 'Attribute'">
                     <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
