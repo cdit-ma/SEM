@@ -23,7 +23,7 @@
             <data key="worker">Component_Info</data>
             <data key="label">Component_Info</data>
             <data key="icon_prefix">Icons</data>
-            <data key="icon">circleSegment</data>
+            <data key="icon">circleInfoDark</data>
             <data key="description">Provides Component State Getting</data>
             <graph id="ComponentInfo:">
                 <node id="ComponentInfo::get_name">
