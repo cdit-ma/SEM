@@ -23,6 +23,11 @@ OpenCLFFTWorker::OpenCLFFTWorker(const Component& component, std::string inst_na
     InitCLFFT();
 }
 
+const std::string& OpenCLFFTWorker::get_version() const{
+    const static std::string WORKER_VERSION{"1.0.0"};
+    return WORKER_VERSION;
+}
+
 OpenCLFFTWorker::~OpenCLFFTWorker() {
     CleanupCLFFT();
 }

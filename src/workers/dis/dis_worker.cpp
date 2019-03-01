@@ -11,6 +11,10 @@ Dis_Worker::Dis_Worker(const BehaviourContainer& container, const std::string& i
     }
 }
 
+const std::string& Dis_Worker::get_version() const{
+    const static std::string WORKER_VERSION{"0.1.0"};
+    return WORKER_VERSION;
+}
 
 Dis_Worker::~Dis_Worker(){
     impl_.reset();

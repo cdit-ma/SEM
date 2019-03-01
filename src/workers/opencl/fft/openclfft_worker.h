@@ -14,6 +14,7 @@ class OpenCLFFTWorker : public Worker{
 public:
     OpenCLFFTWorker(const Component& component, std::string inst_name);
     ~OpenCLFFTWorker();
+    const std::string& get_version() const override;
 
     bool HandleConfigure();
 

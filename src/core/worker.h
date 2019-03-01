@@ -26,6 +26,8 @@ class Worker: public BehaviourContainer{
         bool is_custom_class() const;
         bool is_worker() const;
 
+        virtual const std::string& get_version() const = 0;
+
     protected:
         int get_new_work_id();
         void Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1);

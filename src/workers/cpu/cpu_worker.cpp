@@ -11,6 +11,10 @@ Cpu_Worker::Cpu_Worker(const BehaviourContainer& container, const std::string& i
     impl_ = std::unique_ptr<Cpu_Worker_Impl>(new Cpu_Worker_Impl());
 }
 
+const std::string& Cpu_Worker::get_version() const{
+    const static std::string WORKER_VERSION{"1.1.0"};
+    return WORKER_VERSION;
+}
 
 Cpu_Worker::~Cpu_Worker(){
     impl_.reset();

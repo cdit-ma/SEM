@@ -19,6 +19,7 @@ public:
     void HandleConfigure() override;
     void HandleTerminate() override;
     bool IsValid() const;
+    const std::string& get_version() const override;
 
     // Base/Utility functions
     template <typename T>

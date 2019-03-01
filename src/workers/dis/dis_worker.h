@@ -11,6 +11,7 @@ class Dis_Worker : public Worker{
     public:
         Dis_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Dis_Worker();
+        const std::string& get_version() const override;
         void SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func);
         std::string PDU2String(const KDIS::PDU::Header& header);
         bool Connect();
