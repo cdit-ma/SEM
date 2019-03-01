@@ -20,7 +20,7 @@ public:
 
     quint32 getExperimentRunID();
 
-    void addSeries(MEDEA::EventSeries* series);
+    void addSeries(MEDEA::EventSeries *series);
     void removeSeries(TIMELINE_DATA_KIND kind);
 
     bool isHovered();
@@ -36,6 +36,7 @@ public:
     void setDisplayRangeRatio(double minRatio, double maxRatio);
 
     void updateChartHeight(double height);
+    void updateBinnedData(TIMELINE_DATA_KIND kind);
     void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds);
 
 public slots:
@@ -65,7 +66,6 @@ private:
 
     void clearHoveredLists();
 
-    void updateBinnedData(TIMELINE_DATA_KIND kind);
     void updateSeriesPixmaps();
 
     int getBinIndexForTime(double time);

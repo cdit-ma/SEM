@@ -11,33 +11,11 @@
 
 /**
  * @brief ChartDialog::ChartDialog
- * @param vc
  * @param parent
  */
-ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
+ChartDialog::ChartDialog(QWidget *parent)
     : QFrame(parent)
 {
-    /*
-    // setup widgets
-    inputPopup_ = new ChartInputPopup(vc);
-
-    connect(inputPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartDialog::experimentRunSelected);
-    //connect(inputPopup_, &ChartInputPopup::receivedRequestResponse, this, &ChartDialog::queryResponseReceived);
-    connect(inputPopup_, &ChartInputPopup::receivedPortLifecycleResponse, this, &ChartDialog::receivedPortLifecycleResponse);
-    connect(inputPopup_, &ChartInputPopup::receivedWorkloadResponse, this, &ChartDialog::receivedWorkloadResponse);
-    connect(inputPopup_, &ChartInputPopup::receivedCPUUtilisationResponse, this, &ChartDialog::receivedCPUUtilisationResponse);
-    connect(inputPopup_, &ChartInputPopup::receivedMemoryUtilisationResponse, this, &ChartDialog::receivedMemoryUtilisationResponse);
-    connect(inputPopup_, &ChartInputPopup::accepted, [=]() { hasSelectedExperimentRun_ = false; });
-    connect(inputPopup_, &ChartInputPopup::rejected, [=]() { hasSelectedExperimentRun_ = false; });
-
-    chartView_ = new TimelineChartView(this);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->addWidget(chartView_);
-    //*/
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
     setMinimumWidth(700);
@@ -52,17 +30,18 @@ ChartDialog::ChartDialog(ViewController *vc, QWidget *parent)
  */
 void ChartDialog::setChartView(TimelineChartView *view)
 {
-    if (view) {
-        if (layout()) {
-            layout()->addWidget(view);
-        } else {
-            QVBoxLayout* layout = new QVBoxLayout(this);
-            layout->setMargin(0);
-            layout->setSpacing(0);
-            layout->addWidget(view);
-        }
-        chartView_ = view;
+    if (!view)
+        return;
+
+    if (layout()) {
+        layout()->addWidget(view);
+    } else {
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        layout->setMargin(0);
+        layout->setSpacing(0);
+        layout->addWidget(view);
     }
+    chartView_ = view;
 }
 
 
@@ -71,7 +50,8 @@ void ChartDialog::setChartView(TimelineChartView *view)
  */
 void ChartDialog::themeChanged()
 {
-    setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + "; border: none;");
+    Theme* theme = Theme::theme();
+    setStyleSheet("background:" + theme->getBackgroundColorHex() + "; border: none;");
 }
 
 

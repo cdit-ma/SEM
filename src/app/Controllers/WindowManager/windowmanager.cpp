@@ -180,7 +180,7 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
 
     // when the charts receive new data, show the charts panel
-    connect(dialog, &ChartDialog::receivedData, [=]() {
+    connect(dialog, &ChartDialog::showChartsDockWidget, [=]() {
         emit dockWidget->req_Visible(dockWidget->getID(), true);
     });
 

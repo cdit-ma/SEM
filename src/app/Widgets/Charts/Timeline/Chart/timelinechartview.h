@@ -7,10 +7,10 @@
 #include "../Axis/entityset.h"
 #include "entitychart.h"
 
-#include "../../Data/Series/portlifecycleeventseries.h"
-#include "../../Data/Series/workloadeventseries.h"
-#include "../../Data/Series/cpuutilisationeventseries.h"
-#include "../../Data/Series/memoryutilisationeventseries.h"
+#include "../../Data/Events/portlifecycleevent.h"
+#include "../../Data/Events/workloadevent.h"
+#include "../../Data/Events/cpuutilisationevent.h"
+#include "../../Data/Events/memoryutilisationevent.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -33,11 +33,17 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event);
 
+    void addPortLifecycleEvents(const ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
+    void addWorkloadEvents(const ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
+    void addCPUUtilisationEvents(const ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
+    void addMemoryUtilisationEvents(const ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
+
+    void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
+
+    void setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format);
+
     void clearTimelineChart();
     void updateTimelineChart();
-
-    void setActiveEventKinds(QList<TIMELINE_DATA_KIND> kinds);
-    void setTimeDisplayFormat(TIME_DISPLAY_FORMAT format);
 
 signals:
     void seriesLegendHovered(TIMELINE_DATA_KIND kind);
@@ -53,25 +59,26 @@ public slots:
 
     void updateHoverDisplay();
 
-    void addChartEvents(ExperimentRun experimentRun, QList<MEDEA::Event*> events);
-    void addChartEvents(quint32 experimentRunID, QList<MEDEA::Event*> events);
-
 private slots:
-    void minSliderMoved(double ratio);
-    void maxSliderMoved(double ratio);
+    void minSliderMoved(const double ratio);
+    void maxSliderMoved(const double ratio);
 
-    void timelineZoomed(int delta);
-    void timelinePanned(double dx, double dy);
+    void timelineZoomed(const int delta);
+    void timelinePanned(const double dx, const double dy);
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    MEDEA::EventSeries* constructSeriesForEventKind(quint32 experimentRunID, TIMELINE_DATA_KIND kind, QString ID, QString label);
-    EntityChart* constructChartForSeries(MEDEA::EventSeries* series, QString ID, QString label);
-    void removeChart(QString ID, bool clearing = false);
+    void addedChartEvents(const TIMELINE_DATA_KIND kind, const ExperimentRun& experimentRun);
 
-    void addedDataFromExperimentRun(quint32 experimentRunID);
-    void removedDataFromExperimentRun(quint32 experimentRunID);
+    MEDEA::EventSeries* constructSeriesForEventKind(const quint32 experimentRunID, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
+    EntityChart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
+    void removeChart(const QString& ID, bool clearing = false);
+
+    void updateRangeForExperimentRun(const quint32 experimentRunID, const qint64 startTime, const qint64 lastUpdatedTime);
+    void removedDataFromExperimentRun(const quint32 experimentRunID);
     void updateTimelineRange(bool updateDisplayRange = true);
+
+    void setupLayout();
 
     bool rangeSet = false;
     bool scrollbarVisible = false;
@@ -95,7 +102,6 @@ private:
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 
-    QList<TIMELINE_DATA_KIND> _activeEventKinds;
     QHash<TIMELINE_DATA_KIND, QAction*> _legendActions;
     QHash<TIMELINE_DATA_KIND, QPushButton*> _hoverDisplayButtons;
 

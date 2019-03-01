@@ -206,7 +206,9 @@ void NotificationDialog::themeChanged()
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
     
     //info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
-    info_label->setStyleSheet("color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
+    info_label->setFont(QFont(theme->getFont().family(), 12));
+    info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
+
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
 
     top_toolbar->setIconSize(theme->getIconSize());
@@ -468,7 +470,7 @@ void NotificationDialog::setupLayout()
         top_toolbar->addSeparator();
         clear_filtered_action = top_toolbar->addAction("Delete Visible Notifications");
 
-        info_label = new QLabel("0 Notifications", this);
+        info_label = new QLabel("No Notifications", this);
         info_label->setAlignment(Qt::AlignCenter);
         info_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
         

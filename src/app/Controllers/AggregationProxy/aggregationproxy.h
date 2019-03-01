@@ -72,6 +72,7 @@ public:
     
 private:
     void SetServerEndpoint(const QString& endpoint);
+    void CheckRequester();
 
     QVector<ExperimentRun> GetExperimentRuns(const QString& experiment_name);
     ExperimentState GetExperimentState(const quint32 experiment_run_id);
@@ -98,11 +99,8 @@ private:
         const QVector<qint64>& time_intervals,
         const QVector<QString>& graphml_ids);
 
-    void CheckRequester();
-    std::unique_ptr<AggServer::Requester> requester_;
 
-
-    //Static Helpers
+    // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);
     static QDateTime ConstructQDateTime(const google::protobuf::Timestamp &time);
     static QString ConstructQString(const std::string &string);
@@ -118,6 +116,9 @@ private:
     static Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
     static LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
+
+
+    std::unique_ptr<AggServer::Requester> requester_;
 };
 
 #endif // MEDEA_AGGREGATIONPROXY_H

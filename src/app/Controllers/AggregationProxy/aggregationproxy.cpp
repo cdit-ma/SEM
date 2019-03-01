@@ -121,6 +121,17 @@ void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 
 
 /**
+ * @brief AggregationProxy::CheckRequester
+ */
+void AggregationProxy::CheckRequester()
+{
+    if (!requester_) {
+        throw NoRequesterException();
+    }
+}
+
+
+/**
  * @brief AggregationProxy::GetExperimentRuns
  * @param experiment_name
  * @return
@@ -600,15 +611,4 @@ QDateTime AggregationProxy::ConstructQDateTime(const google::protobuf::Timestamp
 QString AggregationProxy::ConstructQString(const std::string& str)
 {
     return QString::fromUtf8(str.c_str());
-}
-
-
-/**
- * @brief AggregationProxy::CheckRequester
- */
-void AggregationProxy::CheckRequester()
-{
-    if (!requester_) {
-        throw NoRequesterException();
-    }
 }

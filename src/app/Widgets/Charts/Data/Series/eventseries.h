@@ -14,9 +14,11 @@ class EventSeries : public QObject
 
 public:
     explicit EventSeries(QString ID, TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA, QObject* parent = 0);
-// TODO - add destructor to delete all children events
+    ~EventSeries();
+
     void clear();
 
+    void addEvents(QList<Event*> events);
     virtual void addEvent(Event* event);
     const QList<Event*>& getEvents();
 

@@ -97,7 +97,10 @@ void SearchDialog::themeChanged()
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+    //info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+
+    info_label->setFont(QFont(theme->getFont().family(), 12));
+    info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
 
     top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());

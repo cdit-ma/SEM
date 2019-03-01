@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <QDateTime>
 #include <QFutureWatcher>
+
 #define MIN_WIDTH 400
 #define FILTER "filter"
 #define GROUPBOX_ITEM_SPACING 5
@@ -20,11 +21,6 @@ ChartInputPopup::ChartInputPopup(ViewController* vc, QWidget* parent)
     : HoverPopup(parent)
 {
     viewController_ = vc;
-
-    if (vc) {
-        connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartInputPopup::receivedSelectedViewItems);
-        connect(vc, &ViewController::vc_showChartPopup, this, &ChartInputPopup::setPopupVisible);
-    }
 
     setupLayout();
     setVisible(false);
@@ -91,128 +87,20 @@ void ChartInputPopup::requestExperimentRuns()
 
     auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentNameLineEdit_->text().trimmed());
     auto futureWatcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
+
     connect(futureWatcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
         try {
             populateExperimentRuns(futureWatcher->result().toList());
         } catch(const std::exception& ex) {
-            toastRequestError("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "Icons", "chart");
+            NotificationManager::manager()->AddNotification("Failed to request experiment runs - " + QString::fromStdString(ex.what()),
+                                                            "Icons", "chart",
+                                                            Notification::Severity::ERROR,
+                                                            Notification::Type::APPLICATION,
+                                                            Notification::Category::NONE);
         }
     });
+
     futureWatcher->setFuture(future);
-}
-
-void ChartInputPopup::requestExperimentState(quint32 experiment_run_id)
-{
-    auto future = viewController_->getAggregationProxy().RequestExperimentState(experiment_run_id);
-    auto futureWatcher = new QFutureWatcher<ExperimentState>(this);
-    connect(futureWatcher, &QFutureWatcher<ExperimentState>::finished, [=]() {
-        try {
-            auto state = futureWatcher->result();
-            qDebug() << "[Experiment State Request]";
-            qDebug() << "nodes#: " << state.nodes.size();
-            qDebug() << "components#: " << state.components.size();
-            qDebug() << "workers#: " << state.workers.size();
-            qDebug() << "last-updated-time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("MMM d, hh:mm:ss.zzz");
-            qDebug() << "end-time: " << QDateTime::fromMSecsSinceEpoch(state.end_time).toString("MMM d, hh:mm:ss.zzz");
-            qDebug() << "-----------------------------------------------------------";
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request experiment state - " + QString::fromStdString(ex.what()), "Icons", "chart");
-        }
-    });
-    futureWatcher->setFuture(future);
-}
-
-
-/**
- * @brief ChartInputPopup::requestEvents
- * @param experimentRunID
- */
-void ChartInputPopup::requestEvents(quint32 experiment_run_id)
-{
-
-}
-
-void ChartInputPopup::requestPortLifecycleEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &component_instance_ids, const QVector<QString> &port_ids)
-{
-    auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(experiment_run_id, time_intervals, component_instance_ids, port_ids);
-    auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
-        try {
-            auto events = futureWatcher->result();
-            qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
-            emit receivedPortLifecycleResponse(events);
-            qDebug() << "-----------------------------------------------------------";
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "Icons", "plug");
-        }
-    });
-    futureWatcher->setFuture(future);
-
-}
-
-void ChartInputPopup::requestWorkloadEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &component_instance_ids, const QVector<QString> &worker_ids)
-{
-    auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(experiment_run_id, time_intervals, component_instance_ids, worker_ids);
-    auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
-        try {
-            auto events = futureWatcher->result();
-            qDebug() << "[Workload Request] Result size#: " << events.size();
-            emit receivedWorkloadResponse(events);
-            qDebug() << "-----------------------------------------------------------";
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request workload events - " + QString::fromStdString(ex.what()), "Icons", "spanner");
-        }
-    });
-    futureWatcher->setFuture(future);
-
-}
-
-void ChartInputPopup::requestCPUUtilisationEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &graphml_ids)
-{
-    auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(experiment_run_id, time_intervals, graphml_ids);
-    auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
-        try {
-            auto events = futureWatcher->result();
-            qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
-            emit receivedCPUUtilisationResponse(events);
-            qDebug() << "-----------------------------------------------------------";
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "Icons", "cpu");
-        }
-    });
-    futureWatcher->setFuture(future);
-}
-
-void ChartInputPopup::requestMemoryUtilisationEvents(const quint32 experiment_run_id, const QVector<qint64> &time_intervals, const QVector<QString> &graphml_ids)
-{
-    auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(experiment_run_id, time_intervals, graphml_ids);
-    auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
-        try {
-            auto events = futureWatcher->result();
-            qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
-            emit receivedMemoryUtilisationResponse(events);
-            qDebug() << "-----------------------------------------------------------";
-        } catch (const std::exception& ex) {
-            toastRequestError("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "Icons", "memoryCard");
-        }
-    });
-    futureWatcher->setFuture(future);
-
-}
-
-
-/**
- * @brief ChartInputPopup::toastRequestError
- * @param description
- * @param iconPath
- * @param iconName
- */
-void ChartInputPopup::toastRequestError(QString description, QString iconPath, QString iconName)
-{
-    NotificationManager::manager()->AddNotification(description, iconPath, iconName, Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
 
 
@@ -233,104 +121,6 @@ void ChartInputPopup::setPopupVisible(bool visible)
         experimentNameLineEdit_->selectAll();
         requestExperimentRuns();
     }
-}
-
-
-/**
- * @brief ChartInputPopup::receivedSelectedViewItems
- * This slot is called when the user has selected an entity(s) to view chart data for
- * @param selectedItems
- * @param dataKinds
- */
-void ChartInputPopup::receivedSelectedViewItems(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds)
-{
-    // at this point, all selected node items should have a valid chart data kind to show
-    // all selected items are from a single aspect - the active aspect
-
-    if (!viewController_ || dataKinds.isEmpty())
-        return;
-
-    // clear request filters
-    resetPopup();
-
-    hasSelection_ = !selectedItems.isEmpty();
-    eventKinds_ = dataKinds;
-
-    // send a separate filtered request per selected node item
-    for (auto item : selectedItems) {
-
-        if (!item || !item->isNode())
-            continue;
-
-        auto nodeItem = (NodeViewItem*) item;
-        auto nodeItemID = nodeItem->getID();
-        auto label = getItemLabel(nodeItem);
-
-        switch (nodeItem->getNodeKind()) {
-        case NODE_KIND::COMPONENT:
-        case NODE_KIND::COMPONENT_IMPL:
-            // can send port/workload requests
-            compNames_.append(label);
-            break;
-        case NODE_KIND::COMPONENT_INSTANCE:
-            // can send port/workload requests
-            //compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
-            compInstIDs_.append(QString::number(nodeItem->getParentID()));
-            break;
-        case NODE_KIND::PORT_REPLIER_IMPL:
-        case NODE_KIND::PORT_REQUESTER_IMPL:
-        case NODE_KIND::PORT_PUBLISHER_IMPL:
-        case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-            nodeItemID = viewController_->getNodeDefinitionID(nodeItemID);
-        case NODE_KIND::PORT_REPLIER:
-        case NODE_KIND::PORT_REQUESTER:
-        case NODE_KIND::PORT_PUBLISHER:
-        case NODE_KIND::PORT_SUBSCRIBER:
-        case NODE_KIND::PORT_PERIODIC:
-            // can send port requests
-            if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
-                for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
-                    portIDs_.append(QString::number(instID) + "_0");
-                }
-            }
-            break;
-        case NODE_KIND::PORT_REPLIER_INST:
-        case NODE_KIND::PORT_REQUESTER_INST:
-        case NODE_KIND::PORT_PUBLISHER_INST:
-        case NODE_KIND::PORT_SUBSCRIBER_INST:
-        case NODE_KIND::PORT_PERIODIC_INST:
-            // can send port requests
-            if (dataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
-                auto compInstItem = nodeItem->getParentItem();
-                if (compInstItem)
-                    portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-            }
-            break;
-        case NODE_KIND::CLASS_INSTANCE:
-            // can send workload requests
-            if (dataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
-                // a ClassInstance can be a child of either a CompImpl or CompInst
-                auto parentNodeKind = nodeItem->getParentNodeKind();
-                if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                    for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
-                        workerInstIDs_.append(QString::number(instID));
-                    }
-                } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
-                    workerInstIDs_.append(QString::number(nodeItemID));
-                }
-            }
-            break;
-        case NODE_KIND::HARDWARE_NODE:
-            // can send cpu/mem requests
-            nodeIDs_.append(label);
-            break;
-        default:
-            break;
-        }
-    }
-
-    // show the popup so that the user can select which experiment run they want to display data from
-    setPopupVisible(true);
 }
 
 
@@ -367,43 +157,10 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
  */
 void ChartInputPopup::accept()
 {
-    if (selectedExperimentRunID_ == -1)
-        return;
-
-    qDebug() << "-----------------------------------------------------------";
-
-    if (hasSelection_) {
-        for (auto kind : eventKinds_) {
-            switch (kind) {
-            case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
-                requestPortLifecycleEvents(selectedExperimentRunID_, {}, compInstIDs_, portIDs_);
-                break;
-            case TIMELINE_DATA_KIND::WORKLOAD:
-                requestWorkloadEvents(selectedExperimentRunID_, {}, compInstIDs_, workerInstIDs_);
-                break;
-            case TIMELINE_DATA_KIND::CPU_UTILISATION:
-                requestCPUUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
-                break;
-            case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
-                requestMemoryUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
-                break;
-            default:
-                NotificationManager::manager()->AddNotification("No chart data for selection", "Icons", "chart", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::NONE);
-                break;
-            }
-        }
-    } else {
-        // if there is no selection, request all events for the selected experiment run
-        //requestEvents(selectedExperimentRunID_);
-
-        requestPortLifecycleEvents(selectedExperimentRunID_, {}, compInstIDs_, portIDs_);
-        requestWorkloadEvents(selectedExperimentRunID_, {}, compInstIDs_, workerInstIDs_);
-        requestCPUUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
-        requestMemoryUtilisationEvents(selectedExperimentRunID_, {}, nodeIDs_);
-
+    if (selectedExperimentRunID_ != -1) {
+        emit requestEventsForExperimentRun(selectedExperimentRun_);
     }
 
-    requestExperimentState(selectedExperimentRunID_);
     resetPopup();
     PopupWidget::accept();
 }
@@ -420,16 +177,18 @@ void ChartInputPopup::reject()
 
 
 /**
- * @brief ChartInputPopup::getItemLabel
- * @param item
- * @return
+ * @brief ChartInputPopup::experimentRunSelected
+ * @param experimentRun
  */
-QString ChartInputPopup::getItemLabel(ViewItem *item)
+void ChartInputPopup::experimentRunSelected(ExperimentRun experimentRun)
 {
-    if (item) {
-        return item->getData("label").toString();
-    }
-    return "";
+    // we only need to request the experiment state if the filter widgets are enabled
+    /*if (filtersEnabled_) {
+        emit requestExperimentState(ID);
+    }*/
+
+    selectedExperimentRun_ = experimentRun;
+    selectedExperimentRunID_ = experimentRun.experiment_run_id;
 }
 
 
@@ -466,15 +225,7 @@ void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
         connect(button, &QRadioButton::toggled, [=](bool checked) {
-            if (checked) {
-                // we only need to request the experiment state if the filter widgets are enabled
-                if (filtersEnabled_) {
-                    //emit requestExperimentState(ID);
-                }
-                selectedExperimentRunID_ = ID;
-                emit selectedExperimentRunID(ID);
-                emit selectedExperimentRun(run);
-            }
+            if (checked) { experimentRunSelected(run); }
         });
     }
 
@@ -584,20 +335,8 @@ void ChartInputPopup::resizePopup()
  */
 void ChartInputPopup::resetPopup()
 {
-    hasSelection_ = false;
+    selectedExperimentRunID_ = -1;
     hideGroupBoxes();
-
-    // reset filters
-    eventKinds_.clear();
-    compNames_.clear();
-    compInstPaths_.clear();
-    compInstIDs_.clear();
-    portPaths_.clear();
-    portIDs_.clear();
-    workerInstPaths_.clear();
-    workerInstIDs_.clear();
-    nodeHostnames_.clear();
-    nodeIDs_.clear();
 }
 
 

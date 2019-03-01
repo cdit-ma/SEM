@@ -75,9 +75,10 @@ ViewController::ViewController(){
     actionController = new ActionController(this);
     menu = new ContextMenu(this);
     
-
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
+
+    connect(ChartManager::manager(), &ChartManager::showChartsPanel, [=](){ emit  });
 
     connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);
@@ -105,18 +106,19 @@ ViewController::ViewController(){
     }
 }
 
-void ViewController::QueryRunningExperiments(){
+void ViewController::QueryRunningExperiments()
+{
     auto future = proxy.RequestExperimentRuns("");
     auto future_watcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
     
-    connect(future_watcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=](){
-        try{
-            auto result = future_watcher->result();
-            emit vc_showChartPopup(true);
-        }catch(const NoRequesterException& ex){
-            qCritical() << "Not Requester: " << ex.what();
-        }catch(const RequestException& ex){
-            qCritical() << "Unhandled: " << ex.What() << " " << ex.what();
+    connect(future_watcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
+        try {
+            //auto result = future_watcher->result();
+            emit vc_showChartsPopup(true);
+        } catch(const NoRequesterException& ex) {
+            qWarning() << "No Requester: " << ex.what();
+        } catch(const RequestException& ex) {
+            qWarning() << "Unhandled: " << ex.What() << " " << ex.what();
         }
     });
     

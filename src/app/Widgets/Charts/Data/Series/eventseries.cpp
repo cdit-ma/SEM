@@ -22,6 +22,18 @@ MEDEA::EventSeries::EventSeries(QString ID, TIMELINE_DATA_KIND kind, QObject* pa
 
 
 /**
+ * @brief MEDEA::EventSeries::~EventSeries
+ */
+MEDEA::EventSeries::~EventSeries()
+{
+    for (auto event : events_) {
+        if (event)
+            event->deleteLater();
+    }
+}
+
+
+/**
  * @brief MEDEA::EventSeries::clear
  */
 void MEDEA::EventSeries::clear()
@@ -35,6 +47,18 @@ void MEDEA::EventSeries::clear()
     // reset the time range
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::addEvents
+ * @param events
+ */
+void MEDEA::EventSeries::addEvents(QList<MEDEA::Event *> events)
+{
+    for (auto event : events) {
+        addEvent(event);
+    }
 }
 
 

@@ -951,7 +951,6 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
     auto binCount = ceil(dataRange / binTimeWidth);
 
     QVector<double> binEndTimes(binCount);
-    //binEndTimes.reserve(binCount);
 
     // calculate the bin end times
     auto currentTime = displayMin_;
@@ -963,8 +962,6 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
     for (auto series : seriesList_.values(kind)) {
         if (!series)
             continue;
-
-        //QVector< QList<MEDEA::Event*> > binnedData(binCount);
 
         auto currentBin = 0;
         auto currentBinItr = binEndTimes.constBegin();
@@ -987,8 +984,6 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
                 binnedData[currentBin].append(*eventItr);
             }
         }
-
-        //binnedData_[series->getKind()] = binnedData;
     }
 }
 

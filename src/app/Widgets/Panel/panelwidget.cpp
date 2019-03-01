@@ -132,7 +132,6 @@ bool PanelWidget::isMinimised()
 void PanelWidget::constructEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE, TIMELINE_DATA_KIND::WORKLOAD, TIMELINE_DATA_KIND::CPU_UTILISATION, TIMELINE_DATA_KIND::MEMORY_UTILISATION});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
@@ -145,7 +144,6 @@ void PanelWidget::constructEventsView()
 void PanelWidget::constructPortLifecycleEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::PORT_LIFECYCLE});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("PortLifecycle", view);
     defaultActiveAction->trigger();
@@ -158,7 +156,6 @@ void PanelWidget::constructPortLifecycleEventsView()
 void PanelWidget::constructWorkloadEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::WORKLOAD});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Workload", view);
     defaultActiveAction->trigger();
@@ -171,7 +168,6 @@ void PanelWidget::constructWorkloadEventsView()
 void PanelWidget::constructCPUEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::CPU_UTILISATION});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("CPUUtilisation", view);
     defaultActiveAction->trigger();
@@ -184,7 +180,6 @@ void PanelWidget::constructCPUEventsView()
 void PanelWidget::constructMemoryEventsView()
 {
     TimelineChartView* view = new TimelineChartView(this);
-    view->setActiveEventKinds({TIMELINE_DATA_KIND::MEMORY_UTILISATION});
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Memory", view);
     defaultActiveAction->trigger();
