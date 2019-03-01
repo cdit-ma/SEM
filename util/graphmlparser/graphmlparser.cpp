@@ -7,7 +7,7 @@ GraphmlParser::GraphmlParser(std::istream& model_stream) : GraphmlParserInt(mode
     auto result = doc.load(model_stream);
     legal_parse = result.status == pugi::status_ok;;
     if(!legal_parse){
-        throw std::runtime_error("GraphmlParser:Parse("") Error: ");
+        throw std::runtime_error(std::string("GraphmlParser:PugiXML Error: ") + result.description());
     }
 
     //Pre fill attribute map
