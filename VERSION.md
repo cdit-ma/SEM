@@ -5,9 +5,16 @@
 * Updated Jenkins deploy_model script to support docker
 
 ## Workers
-* Updated all current workers to have an appropriate version
+### Cpu_Worker v1.1.0
+* Added version number
+### Memory_Worker v1.0.0
+* Added version number
+### OpenCL_Worker v1.2.0
+* Added version number
+### Utility_Worker v1.3.0
+* Added version number
 ### Dis_Worker v0.1.0
-Added Dis_Worker to allow communication with the Distributed Interactive Simulation (DIS)
+* Added Dis_Worker to allow communication with the Distributed Interactive Simulation (DIS)
 * Implemented using KDIS in DISv6
 * Added a connect() function which connects to a broadcast address / port (driven from Attributes)
 * Added a disconnect() function which disconnects from the DIS network
