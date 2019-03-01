@@ -159,6 +159,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/operationkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/versionkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp

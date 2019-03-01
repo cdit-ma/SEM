@@ -28,6 +28,7 @@
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
+#include "Entities/Keys/versionkey.h"
 #include "graphmlprinter.h"
 
 inline QPair<bool, QString> readFile(const QString& filePath)
@@ -61,6 +62,9 @@ ModelController::ModelController(const QString& application_dir):
 QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
+    if(!VersionKey::IsVersionValid(APP_VERSION())){
+        throw std::runtime_error("MEDEA Version is invalid: '" + APP_VERSION().toStdString() + "'");
+    }
     this->application_dir = application_dir;
     controller_thread = new QThread();
     moveToThread(controller_thread);
@@ -1911,10 +1915,6 @@ bool ModelController::isKeyNameVisual(const QString& key_name){
     return GraphmlPrinter::IsKeyVisual(key_name);
 }
 
-int ModelController::compare_version(const QString& current_version, const QString& compare_version){
-    return current_version.compare(compare_version, Qt::CaseInsensitive);
-}
-
 bool ModelController::importGraphML(const QString& document, Node *parent)
 {
     //Lookup for key's ID to Key* object
@@ -2003,7 +2003,14 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
-                            auto model_version = compare_version(value, APP_VERSION());
+                            int model_version = 0;
+                            try {
+                                model_version = VersionKey::CompareVersion(value, APP_VERSION());
+                            } catch(const std::invalid_argument& ex){
+                                qCritical() << "ImportGraphML: Invalid version number format id in medea_version: " << ex.what();
+                                error_count ++;
+                                continue;
+                            }
 
                             if(model_version > 0){
                                 QString title = "Loading model from future MEDEA";
@@ -2127,7 +2134,17 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     auto node_kind = matched_node->getDataValue("kind").toString();
 
                     if(!version.isEmpty() && !old_version.isEmpty()){
-                        auto version_compare = compare_version(version, old_version);
+                        int version_compare = 0;
+                        try {
+                            const static QSet<NODE_KIND> valid_kinds{NODE_KIND::CLASS, NODE_KIND::SHARED_DATATYPES};
+                            if(valid_kinds.contains(matched_node->getNodeKind())){
+                                version_compare = VersionKey::CompareVersion(version, old_version);
+                            }
+                        } catch (const std::invalid_argument& ex){
+                            qCritical() << "ImportGraphML: Invalid version number format found in node labelled: '" << old_label << "'";
+                            error_count ++;
+                            continue;
+                        }
 
                         if(version_compare > 0){
                             QString title = "Loaded Model contains a newer " + node_kind + " named '" + old_label + "'";
@@ -2136,7 +2153,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         }else if(version_compare < 0){
                             MODEL_SEVERITY severity = MODEL_SEVERITY::WARNING;
                             QString title = "Loaded Model contains an older " + node_kind + " named '" + old_label + "'";
-                            QString description = "Reverting current version '" % old_version % "'. Please check usage.";
+                            QString description = "Reverting current version '" % old_version % "' to '" % "'. Please check usage.";
 
                             if(matched_node->getNodeKind() == NODE_KIND::CLASS && matched_node->getViewAspect() == VIEW_ASPECT::WORKERS){
                                 description += "Please reimport Worker Definitions to ensure runtime compatibility.";

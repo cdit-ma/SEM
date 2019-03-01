@@ -827,6 +827,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                     node_item = stack_item;
+                    node_item->setSecondaryTextKey("version");
+                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 }
                 break;
             case NODE_KIND::COMPONENT_INST:
@@ -1082,6 +1084,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 if(item->getData(KeyName::IsWorker).toBool()){
                     node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
                 }
+                node_item->setSecondaryTextKey("version");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             }
             case NODE_KIND::INPUT_PARAMETER_GROUP:

@@ -1747,8 +1747,15 @@ void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-        controller = new ModelController(QApplication::applicationDirPath());
-        ConnectModelController(controller);
+        try{
+            auto new_controller = new ModelController(QApplication::applicationDirPath());
+            controller = new_controller;
+            ConnectModelController(controller);
+        }catch(const std::exception& ex){
+            auto parent = WindowManager::manager()->getMainWindow();
+            QMessageBox::critical(parent, "MEDEA Model Exception", ex.what());
+            QCoreApplication::exit(1);
+        }
     }
 }
 

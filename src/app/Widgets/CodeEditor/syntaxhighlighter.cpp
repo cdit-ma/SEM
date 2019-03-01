@@ -128,12 +128,12 @@ void SyntaxHighlighter::themeChanged()
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
 
-    //multiLineCommentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
-
-
-    //quotationFormat.setForeground(Theme::theme()->getTextColor(ColorRole::SELECTED));
-    //quotationFormat.setForeground(Theme::theme()->getHighlightColor());
-    rule.pattern = QRegExp("\".*\"");
+    {
+        auto str_reg = QRegExp("\".*\"");
+        //Don't be greedy
+        str_reg.setMinimal(true);
+        rule.pattern = str_reg;
+    }
     rule.format = quotationFormat;
     highlightingRules.append(rule);
 
@@ -145,8 +145,6 @@ void SyntaxHighlighter::themeChanged()
 
     commentStartExpression = QRegExp("/\\*");
     commentEndExpression = QRegExp("\\*/");
-
-
 }
 
 bool ParenthesisInfo::isOpening() const
