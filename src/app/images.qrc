@@ -366,6 +366,7 @@
         <file alias="torch">Resources/Icons/torch.png</file>
         <file alias="trafficLight">Resources/Icons/trafficLight.png</file>
         <file alias="translate">Resources/Icons/translate.png</file>
+        <file alias="transmission">Resources/Icons/transmission.png</file>
         <file alias="transparent">Resources/Icons/transparent.png</file>
         <file alias="triangleCritical">Resources/Icons/triangleCritical.png</file>
         <file alias="triangleDown">Resources/Icons/triangleDown.png</file>

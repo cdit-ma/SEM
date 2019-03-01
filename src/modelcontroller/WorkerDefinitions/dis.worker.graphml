@@ -21,11 +21,11 @@
     <graph id="G">
         <node id="DIS">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">0.1.0</data>
             <data key="worker">Dis_Worker</data>
             <data key="label">DIS</data>
             <data key="icon_prefix">Icons</data>
-            <data key="icon">circleSegment</data>
+            <data key="icon">transmission</data>
             <data key="description">Provides DIS Support</data>
             <data key="folder">${RE_PATH}/src/workers/dis</data>
             <data key="file">dis_worker</data>
