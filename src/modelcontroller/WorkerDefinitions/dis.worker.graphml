@@ -59,7 +59,7 @@
                     <data key="operation">PDU2String</data>
                     <data key="description">Convert DIS Pdu to string</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circlePlus</data>
+                    <data key="icon">format</data>
                     <graph id="DIS::header_to_string:">
                         <node id="DIS::header_to_string::in">
                             <data key="kind">InputParameterGroup</data>
