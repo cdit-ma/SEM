@@ -1578,7 +1578,7 @@
             <xsl:variable name="operator" select="graphml:get_label($input_parameters[2])" />
             <xsl:variable name="needs_variable" select="$operator = ('-', '+', '/', '*')" />
             <xsl:variable name="is_mutating" select="$operator = ('-=', '+=', '/=', '*=', '=')" />
-            <xsl:variable name="has_complex_setter" select="cdit:has_referencial_setter_func($input_parameters[1]) = false()" />
+            <xsl:variable name="has_complex_setter" select="cdit:has_referential_setter_func($input_parameters[1]) = false()" />
             
             <!-- Use the Const Getter for the LHS if we aren't mutating it -->
             <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], $is_mutating, false())" />
@@ -1630,7 +1630,7 @@
         </xsl:if>
     </xsl:function>
 
-    <xsl:function name="cdit:has_referencial_setter_func" as="xs:boolean">
+    <xsl:function name="cdit:has_referential_setter_func" as="xs:boolean">
         <xsl:param name="node" as="element()?"/>
 
         <xsl:variable name="connected_entity" select="cdit:get_first_data_connected_entity($node)" />
