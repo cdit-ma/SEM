@@ -157,7 +157,6 @@ private:
     Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
-    static int compare_version(const QString& current_version, const QString& version);
     bool canReplicate(const QList<Entity *>& ordered_selection);
     bool canCut(const QList<Entity *>& ordered_selection);
     bool canCopy(const QList<Entity *>& ordered_selection);
@@ -327,3 +326,4 @@ inline uint qHash(MODEL_ACTION key, uint seed)
 Q_DECLARE_METATYPE(MODEL_ACTION);
 
 #endif // MODELCONTROLLER_H
+
