@@ -7,7 +7,12 @@
 * Added an 'worker' icon which is rendered over the icon on ClassInstance's which are known to MEDEA as Workers
 
 ## Workers:
-* Added a new DIS Worker
+* Added a new Dis_Worker.worker.graphml v0.1.0
+* Updated Cpu_Worker.worker.graphml to to v1.1.0
+* Updated Memory_Worker.worker.graphml to v1.0.0
+* Updated OpenCL_Worker.worker.graphml to v1.2.0
+* Updated Utility_Worker.worker.graphml to v1.3.0
+* Updated Dis_Worker.worker.graphml to v0.1.0
 
 ## Bug Fixes:
 * Fixed the syntax highlighter being greedy with double quotes ""
