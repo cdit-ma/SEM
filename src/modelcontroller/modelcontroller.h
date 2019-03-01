@@ -157,13 +157,6 @@ private:
     Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
-    // Throws std::invalid_argument when passed version string that does not match regex:
-    // ^(\d+)\.(\d+)\.(\d+)([\w]*)$
-    // eg 12.5.7a
-    // See: https://semver.org/ for full specification (we allow an arbitrary string on the end)
-    static int semver_compare_version(const QString& current_version, const QString& compare_version);
-    // Simple lexicographic version comparison, used for user defined versions
-    static int string_compare_version(const QString& current_version, const QString& compare_version);
     bool canReplicate(const QList<Entity *>& ordered_selection);
     bool canCut(const QList<Entity *>& ordered_selection);
     bool canCopy(const QList<Entity *>& ordered_selection);

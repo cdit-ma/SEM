@@ -11,7 +11,6 @@
 #include <QThread>
 #include <QXmlStreamReader>
 #include <QCoreApplication>
-#include <QRegExp>
 
 #include "version.h"
 
@@ -29,6 +28,7 @@
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
+#include "Entities/Keys/versionkey.h"
 #include "graphmlprinter.h"
 
 inline QPair<bool, QString> readFile(const QString& filePath)
@@ -62,6 +62,9 @@ ModelController::ModelController(const QString& application_dir):
 QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
+    if(!VersionKey::IsVersionValid(APP_VERSION())){
+        throw std::runtime_error("MEDEA Version is invalid: '" + APP_VERSION().toStdString() + "'");
+    }
     this->application_dir = application_dir;
     controller_thread = new QThread();
     moveToThread(controller_thread);
@@ -1911,52 +1914,6 @@ bool ModelController::isKeyNameVisual(const QString& key_name){
     return GraphmlPrinter::IsKeyVisual(key_name);
 }
 
-int ModelController::semver_compare_version(const QString& current_version, const QString& compare_version){
-
-    // Match format {num}.{num}.{num}{alpha}
-    // eg 12.1.11a
-    // eg 1.2.0b
-    // eg 0.1.16test
-    QRegExp current_rx(R"(^(\d+)\.(\d+)\.(\d+)([\w]*)$)");
-    QRegExp compare_rx(R"(^(\d+)\.(\d+)\.(\d+)([\w]*)$)");
-
-    auto current_valid = current_rx.exactMatch(current_version);
-    auto compare_valid = compare_rx.exactMatch(compare_version);
-
-    if(current_valid && compare_valid) {
-        // Iterate over the three numeric fields
-        // First matching regex group is start caret, therefore skip and start at group 1
-        for(int i = 1; i < 4; i++) {
-            int current = current_rx.cap(i).toInt();
-            int compare = compare_rx.cap(i).toInt();
-
-            if(current == compare) {
-                // Keep comparing if we have a match
-                continue;
-            } else if(current > compare) {
-                // Bail out early if anything other than a match
-                return 1;
-            } else if(current < compare) {
-                return -1;
-            }
-
-        }
-
-        // All numeric version numbers match, compare suffix strings lexicographically
-        return current_rx.cap(4).compare(compare_rx.cap(4), Qt::CaseInsensitive);
-    }
-
-    // One of our strings doesn't match our regex
-    std::string error = "Invalid version format:";
-    if(!current_valid) {
-        error += "current version ";
-    }
-    if(!compare_valid) {
-        error += "compare_version ";
-    }
-    throw std::invalid_argument(error);
-}
-
 bool ModelController::importGraphML(const QString& document, Node *parent)
 {
     //Lookup for key's ID to Key* object
@@ -2047,9 +2004,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         }else if(key_name == "medea_version"){
                             int model_version = 0;
                             try {
-                                model_version = semver_compare_version(value, APP_VERSION());
+                                model_version = VersionKey::CompareVersion(value, APP_VERSION());
                             } catch(const std::invalid_argument& ex){
-                                qCritical() << "ImportGraphML: Invalid version number format id in medea_version";
+                                qCritical() << "ImportGraphML: Invalid version number format id in medea_version: " << ex.what();
                                 error_count ++;
                                 continue;
                             }
@@ -2178,13 +2135,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     if(!version.isEmpty() && !old_version.isEmpty()){
                         int version_compare = 0;
                         try {
-                            if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES) {
-                                // If we're comparing the versions of two shared datatypes, compare purely lexicographically to ensure backward compat
-                                version_compare = string_compare_version(version, old_version);
-                            } else if (matched_node->getNodeKind() == NODE_KIND::CLASS){
-                                // If we're comparing a class/worker, use SEMVER spec version comparison
-                                // User defined classes don't have a version
-                                version_compare = semver_compare_version(version, old_version);
+                            const static QSet<NODE_KIND> valid_kinds{NODE_KIND::CLASS, NODE_KIND::SHARED_DATATYPES};
+                            if(valid_kinds.contains(matched_node->getNodeKind())){
+                                version_compare = VersionKey::CompareVersion(version, old_version);
                             }
                         } catch (const std::invalid_argument& ex){
                             qCritical() << "ImportGraphML: Invalid version number format found in node labelled: '" << old_label << "'";
@@ -2199,7 +2152,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         }else if(version_compare < 0){
                             MODEL_SEVERITY severity = MODEL_SEVERITY::WARNING;
                             QString title = "Loaded Model contains an older " + node_kind + " named '" + old_label + "'";
-                            QString description = "Reverting current version '" % old_version % "'. Please check usage.";
+                            QString description = "Reverting current version '" % old_version % "' to '" % "'. Please check usage.";
 
                             if(matched_node->getNodeKind() == NODE_KIND::CLASS && matched_node->getViewAspect() == VIEW_ASPECT::WORKERS){
                                 description += "Please reimport Worker Definitions to ensure runtime compatibility.";

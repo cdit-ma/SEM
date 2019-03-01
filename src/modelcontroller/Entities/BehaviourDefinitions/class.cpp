@@ -37,7 +37,8 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(this, KeyName::Version, QVariant::String, ProtectedState::PROTECTED);
     TypeKey::BindNamespaceAndLabelToType(this, true);
 };
 
@@ -53,5 +54,8 @@ void MEDEA::Class::parentSet(Node* parent){
             break;
         }
     }
+
     getFactoryBroker().AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED, is_worker);
+    //Lock down the version number
+    getFactoryBroker().AttachData(this, KeyName::Version, QVariant::String, (is_worker ? ProtectedState::PROTECTED : ProtectedState::UNPROTECTED));
 }
