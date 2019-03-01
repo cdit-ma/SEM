@@ -1,6 +1,8 @@
 # Runtime Environment v3.3.4
 * The Worker interface now to requires a get_version() to be implemented in Sub-Classes
   * This is used for tying versions of Workers with MEDEAs *.worker.graphml definitions files
+* Added human readable error string when pugixml fails to parse the graphml document
+* Updated Jenkins deploy_model script to support docker
 
 ## Workers
 * Updated all current workers to have an appropriate version
@@ -13,5 +15,7 @@ Added Dis_Worker to allow communication with the Distributed Interactive Simulat
 * Implemented a Callback registration function, used by re_gen to attach a custom MEDEA function to process received PDU objects
 
 ## Resolved JIRA Tickets:
-* RE-435
+* RE-406
 * RE-434
+* RE-435
+* RE-443

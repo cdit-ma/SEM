@@ -39,7 +39,7 @@ int main(int argc, char **argv){
                             "Port number for deployment registration.");
 
     options.add_options()("qpid_address,q", boost::program_options::value<std::string>(&qpid_address),
-                            "Endpoint of qpid broker.");
+                            "Endpoint of qpid broker. <ip_addr:port>");
     
     options.add_options()("tao_naming_service_address,t", boost::program_options::value<std::string>(&tao_naming_service_address),
                             "Endpoint of tao naming service.");
@@ -74,8 +74,7 @@ int main(int argc, char **argv){
 
     //Broker and naming service endpoints default to same ip as environment manager.
     if(qpid_address.empty()){
-        qpid_address = ip_address + ":5672";
-        std::cerr << "* No QPID broker address set, using default: " << qpid_address << std::endl;
+        std::cerr << "* No Qpid broker address set. This will cause models containing Qpid ports to fail." << std::endl;
     }
     if(tao_naming_service_address.empty()){
         std::cerr << "* No Tao naming service address set. This will cause models containing TAO ports to fail." << std::endl;

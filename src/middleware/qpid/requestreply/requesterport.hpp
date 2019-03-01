@@ -291,9 +291,6 @@ BaseReplyType qpid::RequesterPort<BaseReplyType, ProtoReplyType, void, void>::Pr
 
         //Copy the message into a heap allocated object
         BaseReplyType base_reply(*base_reply_ptr);
-        
-        //Clean up the memory from the base_reply_ptr
-        delete base_reply_ptr;
 
         //Return the reply object
         return base_reply;

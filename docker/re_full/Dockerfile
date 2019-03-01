@@ -22,3 +22,6 @@ RUN     cd re && \
 RUN ln -sf /bin/dash /bin/sh
 
 ENV PATH="/re/lib:${PATH}"
+
+ENV LD_LIBRARY_PATH /re/lib
+RUN ldconfig

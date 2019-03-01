@@ -11,15 +11,16 @@
 #include <middleware/qpid/requestreply/replierport.hpp>
 #include <middleware/qpid/requestreply/requesterport.hpp>
 
-const std::string broker("127.0.0.1:5672");
+//Include main and env passing magic
+#include "../../../core/test_main.h"
 
-bool setup_port(Port& port, const std::string& broker, const std::string& topic_name){
+bool setup_port(Port& port, const std::string& topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
     if(b && t){
-        b->set_String(broker);
-        t->set_String(topic_name);
+        b->set_String(cditma::GetQpidBrokerAddress());
+        t->set_String(cditma::GetNodeName() + "_" + topic_name);
         return true;
     }
     return false;
@@ -36,7 +37,7 @@ class qpid_RequesterPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = ConstructRequesterPort<qpid::RequesterPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, broker, port_name));
+            EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -50,7 +51,7 @@ class qpid_ReplierPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             component->RegisterCallback<Base::Basic, Base::Basic>(port_name, EmptyCallback);
             auto port = ConstructReplierPort<qpid::ReplierPort<Base::Basic, ::Basic, Base::Basic, ::Basic>>(port_name, component);
-            EXPECT_TRUE(setup_port(*port, broker, port_name));
+            EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -84,8 +85,8 @@ TEST(qpid_ReqRep, Basic2Basic_Stable){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -113,8 +114,8 @@ TEST(qpid_ReqRep, Basic2Basic_Busy){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -143,8 +144,8 @@ TEST(qpid_ReqRep, Basic2Basic_Timeout){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -173,8 +174,8 @@ TEST(qpid_ReqRep, Basic2Void_Stable){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -203,8 +204,8 @@ TEST(qpid_ReqRep, Basic2Void_Busy){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -233,8 +234,8 @@ TEST(qpid_ReqRep, Void2Basic_Stable){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 
@@ -263,8 +264,8 @@ TEST(qpid_ReqRep, Void2Basic_Busy){
     auto requester_port = ConstructRequesterPort<qpid::RequesterPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(req_name, component);
     auto replier_port = ConstructReplierPort<qpid::ReplierPort<base_reply_type, mw_reply_type, base_request_type, mw_request_type>>(rep_name, component);
     
-    EXPECT_TRUE(setup_port(*requester_port, broker, test_name));
-    EXPECT_TRUE(setup_port(*replier_port, broker, test_name));
+    EXPECT_TRUE(setup_port(*requester_port, test_name));
+    EXPECT_TRUE(setup_port(*replier_port, test_name));
 
     RunTest(*requester_port, *replier_port);
 

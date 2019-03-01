@@ -101,7 +101,7 @@ namespace tao{
                     auto base_message = Base::Translator<BaseRequestType, TaoRequestType>::MiddlewareToBase(message);
                     auto base_result = eventport.ProcessRequest(*base_message);
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return delayedTaoCast(tao_result_ptr);
+                    return delayedTaoCast(tao_result_ptr.release());
                 }catch(const CallbackException& ex){
 
                 }catch(const std::exception& ex){
@@ -144,7 +144,7 @@ namespace tao{
                 try{
                     auto base_result = eventport.ProcessRequest();
                     auto tao_result_ptr = Base::Translator<BaseReplyType, TaoReplyType>::BaseToMiddleware(base_result);
-                    return delayedTaoCast(tao_result_ptr);
+                    return delayedTaoCast(tao_result_ptr.release());
                 }catch(const CallbackException& ex){
 
                 }catch(const std::exception& ex){
@@ -166,7 +166,7 @@ tao::ReplierPort<BaseReplyType, TaoReplyType, BaseRequestType, TaoRequestType, T
     naming_service_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "naming_service_endpoint").lock();
     server_kind_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "server_kind").lock();
 
-    current_naming_service_name_ = this->get_id() + "_" + this->get_name() + "_NamingService";
+    current_naming_service_name_ = this->get_name() + "_NS";
 };
 
 
@@ -239,8 +239,19 @@ std::unique_ptr<tao::TaoServerImpl<BaseReplyType, TaoReplyType, BaseRequestType,
             );
         
         //Register the nameserver
-        helper.register_initial_reference(orb, current_naming_service_name_, naming_service_endpoint_->String());
-        helper.register_servant_via_namingservice(orb, current_naming_service_name_, poa, server.get(), server_name_->StringList(), server_kind_->String());
+        try{
+            helper.register_initial_reference(orb, current_naming_service_name_, naming_service_endpoint_->String());
+        }catch(const std::exception& ex){
+            std::cerr << "Cannot register name service: " << ex.what() << std::endl;
+            throw;
+        }
+        
+        try{
+            helper.register_servant_via_namingservice(orb, current_naming_service_name_, poa, server.get(), server_name_->StringList(), server_kind_->String());
+        }catch(const std::exception& ex){
+            std::cerr << "Cannot register servant: " << ex.what() << std::endl;
+            throw;
+        }
 
         return std::move(server);
     }

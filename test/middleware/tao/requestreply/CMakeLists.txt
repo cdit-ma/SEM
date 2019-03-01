@@ -10,10 +10,12 @@ if(NOT TAO_FOUND)
 	return()
 endif()
 
+
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
+
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
-    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
 
 TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../message.idl)
@@ -24,6 +26,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} PRIVATE pthread)
@@ -35,3 +38,5 @@ target_link_libraries(${PROJ_NAME} PRIVATE re_core)
 target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE tao_helper)
+target_link_libraries(${PROJ_NAME} PRIVATE re_environment_controller_lib)
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})

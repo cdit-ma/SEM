@@ -16,7 +16,7 @@ pipeline{
         stage("Run Qpid Broker"){
             steps{
                 script{
-                    def endpoint = "tcp://${env.IP_ADDRESS}:${params.port}"
+                    def endpoint = "${env.IP_ADDRESS}:${params.port}"
                     print("Qpid Broker Endpoint: ${endpoint}")
 
                     if(utils.runScript("${env.QPID_ROOT}/sbin/qpidd -p ${params.port} ${params.broker_args}") != 0){

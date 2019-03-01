@@ -1,11 +1,14 @@
-#Install required build tools
+#Build Deps
+#UBUNTU
 apt-get update && apt-get install -y \
     git \
     cmake \
     build-essential \
     wget \
     ninja-build \
-    openjdk-11-jre-headless
+    openjdk-11-jre-headless \
+    ccache \
+    ntpdate
 
 #Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
@@ -39,10 +42,13 @@ wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.
     rm protobuf-cpp-3.6.0.tar.gz protobuf-3.6.0 -rf
 
 #Install pugixml
+#may need to recursively touch files in extracted pugi directory on centos("find  -type f  -exec touch {} +")
 wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q && \
     tar xf pugixml-1.8.tar.gz && \
-    mkdir pugixml-1.8/build && \
-    cd /pugixml-1.8/build && \
+    cd pugixml-1.8 && \
+    find  -type f  -exec touch {} + && \
+    mkdir build && \
+    cd build && \
     cmake -G Ninja .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON && \
     sudo cmake --build . --target install && \
     cd ~ && \
@@ -57,3 +63,7 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
     sudo cmake --build . --target install && \
     cd ~ && \
     rm sigar-1.6.4B.tar.gz sigar-sigar-1.6.4B -rf
+
+#Setup Jenkins Directory
+sudo mkdir /mnt/Jenkins && \
+    sudo chown cdit-ma /mnt/Jenkins/
