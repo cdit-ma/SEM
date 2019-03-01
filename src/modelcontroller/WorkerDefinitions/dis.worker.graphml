@@ -26,16 +26,15 @@
             <data key="label">Dis_Worker</data>
             <data key="icon_prefix">Icons</data>
             <data key="icon">transmission</data>
-            <data key="description">Provides DIS Support</data>
+            <data key="description">Provides DIS Support. Requires an IP address and Port attribute to be set</data>
             <data key="folder">${RE_PATH}/src/workers/dis</data>
             <data key="file">dis_worker</data>
-            
             <graph id="DIS:">
                 <node id="DIS::got_pdu">
                     <data key="kind">CallbackFunction</data>
                     <data key="label">Got PDU</data>
                     <data key="operation">SetPduCallback</data>
-                    <data key="description">TODO</data>
+                    <data key="description">This function is called whenever a DIS PDU is received. Can only be called if the Dis_worker has been connected.</data>
                     <graph id="DIS::got_pdu:">
                         <node id="DIS::got_pdu::in">
                             <data key="kind">InputParameterGroup</data>
@@ -95,7 +94,7 @@
                     <data key="kind">Function</data>
                     <data key="label">Connect</data>
                     <data key="operation">Connect</data>
-                    <data key="description">Connects to the DIS Service.</data>
+                    <data key="description">Connects to the DIS Service, uses the IP and port from the workers attributes</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circlePlayTwoTone</data>
                     <graph id="DIS::connect:">
