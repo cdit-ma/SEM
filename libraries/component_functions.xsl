@@ -1578,15 +1578,11 @@
             <xsl:variable name="operator" select="graphml:get_label($input_parameters[2])" />
             <xsl:variable name="needs_variable" select="$operator = ('-', '+', '/', '*')" />
             <xsl:variable name="is_mutating" select="$operator = ('-=', '+=', '/=', '*=', '=')" />
-
-            
             <xsl:variable name="has_complex_setter" select="cdit:has_referencial_setter_func($input_parameters[1]) = false()" />
-
             
-
-            <!-- Get const getter for the lhs if we aren't in-place modifying -->
-            <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], not($needs_variable), false())" />
-            <xsl:variable name="rhs" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+            <!-- Use the Const Getter for the LHS if we aren't mutating it -->
+            <xsl:variable name="lhs" select="cdit:get_resolved_getter_function($input_parameters[1], $is_mutating, false())" />
+            <xsl:variable name="const_rhs" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
 
             <xsl:variable name="statement">
                 <xsl:choose>
@@ -1594,18 +1590,24 @@
                         <xsl:variable name="value">
                             <xsl:choose>
                                 <xsl:when test="$operator = '='">
-                                    <xsl:value-of select="$rhs" />
+                                    <xsl:value-of select="$const_rhs" />
                                 </xsl:when>
                                 <xsl:otherwise>
+                                    <!--
+                                        When we have a setter function with a complex Setter function, we can't use the mutating functions.
+                                        We need to get the const-getter for the LHS and change the operator to remove the '=' and then append the RHS
+                                        ie SetValue(GetValue() + GetValue2());
+                                    -->
                                     <xsl:variable name="const_lhs" select="cdit:get_resolved_getter_function($input_parameters[1], false(), false())" />
-                                    <xsl:value-of select="o:join_list(($const_lhs, substring($operator, 1, 1), $rhs), ' ')" />
+                                    <xsl:variable name="non_mutating_operator" select="substring($operator, 1, 1)" />
+                                    <xsl:value-of select="o:join_list(($const_lhs, $non_mutating_operator, $const_rhs), ' ')" />
                                 </xsl:otherwise>
                             </xsl:choose>
                         </xsl:variable>
-                        <xsl:value-of select="cpp:invoke_static_function((), $lhs, $value,'', 0)" />
+                        <xsl:value-of select="cpp:invoke_static_function((), $lhs, $value, '', 0)" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="concat($lhs, ' ', $operator, ' ', $rhs)" />
+                        <xsl:value-of select="o:join_list(($lhs, $operator, $const_rhs), ' ')" />
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:variable>
