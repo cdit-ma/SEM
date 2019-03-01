@@ -26,6 +26,7 @@
 #include "Entities/Keys/outertypekey.h"
 #include "Entities/Keys/namespacekey.h"
 #include "Entities/Keys/operationkey.h"
+#include "Entities/Keys/versionkey.h"
 
 //Model Includes
 
@@ -624,6 +625,8 @@ Key *EntityFactory::GetKey(const QString& key_name, QVariant::Type type)
             key = new NamespaceKey(factory_broker_);
         }else if(key_name == KeyName::Operation){
             key = new OperationKey(factory_broker_);
+        }else if(key_name == KeyName::Version){
+            key = new VersionKey(factory_broker_);
         }else{
             key = new Key(factory_broker_, key_name, type);
         }
