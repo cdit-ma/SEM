@@ -1,9 +1,7 @@
-# Runtime Environment v3.3.3
-* Add install scripts for centos7 and ubuntu18.04
+# Runtime Environment v3.3.4
+* Added human readable error string when pugixml fails to parse the graphml document
+* Updated Jenkins deploy_model script to support docker
 
-## Environment Manager
-* Add testing support.
-
-## Tests:
-* Improved support for parallel run network tests.
-
+## Resolved JIRA tickers
+* RE-406
+* RE-443
