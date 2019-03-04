@@ -2413,8 +2413,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             if(requires_parenting){
                 got_parent = attachChildNode(parent_node, node, false);
 
-                //If we have got a parent
                 if(got_parent){
+                    //Only progress when parent setting actually worked.
                     need_to_store = true;
                     addDependantsToDependants(parent_node, node);
                 }
