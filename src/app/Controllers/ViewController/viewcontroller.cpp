@@ -1364,6 +1364,7 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
 }
 
 void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind){
+    //qCritical() << id << EntityFactory::getNodeKindString(node_kind);
     auto node_item = new NodeViewItem(this, id, node_kind);
     auto parent_item = getNodeViewItem(parent_id);
     SetParentNode(parent_item, node_item);

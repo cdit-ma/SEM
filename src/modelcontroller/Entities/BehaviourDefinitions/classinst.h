@@ -11,8 +11,8 @@ namespace MEDEA{
             static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
         protected:
             ClassInst(EntityFactoryBroker& factory, bool is_temp_node);
-        public:
-            bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+            void parentSet(Node* parent) override;
+            bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) override;
     };
 };
 

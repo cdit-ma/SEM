@@ -19,9 +19,6 @@ MEDEA::ClassInst::ClassInst(::EntityFactoryBroker& broker, bool is_temp) : Node(
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INST);
-    setAcceptsNodeKind(NODE_KIND::FUNCTION);
-    setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -64,7 +61,6 @@ bool MEDEA::ClassInst::ClassInst::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
                                 break;
                             }
                         }
-
                     }
                     
                     if(!in_ancestor){
@@ -87,4 +83,26 @@ bool MEDEA::ClassInst::ClassInst::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
     }
 
     return Node::canAcceptEdge(edge_kind, dst);
+}
+
+void MEDEA::ClassInst::parentSet(Node*){
+    bool allow_children = false;
+
+    switch(getViewAspect()){
+        case VIEW_ASPECT::BEHAVIOUR:
+        case VIEW_ASPECT::WORKERS:{
+            allow_children = true;
+            break;
+        }
+        default:{
+            break;
+        }
+    }
+
+    if(allow_children){
+        //Behaviour
+        setAcceptsNodeKind(NODE_KIND::FUNCTION);
+        setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
+        setAcceptsNodeKind(NODE_KIND::CLASS_INST);
+    }
 }

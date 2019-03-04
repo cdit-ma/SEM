@@ -94,6 +94,70 @@ ModelController::~ModelController()
     delete entity_factory;
 }
 
+bool ListInList(const QList<NODE_KIND>& haystack, const QList<NODE_KIND>& needle){
+    //Checks to see if a list(haystack) fully contains another list(needle)
+    return std::find_end(haystack.constBegin(), haystack.constEnd(), needle.constBegin(), needle.constEnd()) != haystack.end();
+}
+
+bool ModelController::SuppressImportNodeError(const TempEntity& parent_entity, const TempEntity& child_entity, const QString& version){
+    if(!VersionKey::IsVersionValid(version)){
+        return false;
+    }
+
+    //Handling the breaking changes prior to v3.3.4
+    //This check is to remove the errors about Function, CallbackFunction and ClassInstance children being no-longer valid children of ClassInstance's in the Assembly Aspect
+    if(VersionKey::IsVersionOlder(version, "3.3.5")){
+        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::CLASS_INST};
+        
+        auto child_kind = entity_factory->getNodeKind(child_entity.getKind());
+
+        if(now_invalid_child_kinds.contains(child_kind)){
+            const static QList<NODE_KIND> assembly_stack{NODE_KIND::MODEL, NODE_KIND::DEPLOYMENT_DEFINITIONS, NODE_KIND::ASSEMBLY_DEFINITIONS};
+            const static QList<NODE_KIND> component_stack{NODE_KIND::COMPONENT_INST, NODE_KIND::CLASS_INST};
+            
+            const auto& stack = child_entity.getParentStack();
+            const auto& in_assembly = ListInList(stack, assembly_stack);
+            const auto& in_class_instance = ListInList(stack, component_stack);
+            
+            if(in_assembly && in_class_instance){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool ModelController::SuppressImportEdgeError(const TempEntity& edge_entity, const TempEntity* src_entity, const TempEntity* dst_entity, const QString& version){
+    if(!VersionKey::IsVersionValid(version)){
+        return false;
+    }
+
+    //Handling the breaking changes prior to v3.3.4
+    //This check is to remove the errors about Function, CallbackFunction and ClassInstance children being no-longer valid children of ClassInstance's in the Assembly Aspect
+    if(VersionKey::IsVersionOlder(version, "3.3.5")){
+        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::CLASS_INST};
+        auto child_kind = entity_factory->getNodeKind(src_entity->getKind());
+
+        if(now_invalid_child_kinds.contains(child_kind)){
+            //Check the Source stack for being in the right spot
+            const static QList<NODE_KIND> assembly_stack{NODE_KIND::MODEL, NODE_KIND::DEPLOYMENT_DEFINITIONS, NODE_KIND::ASSEMBLY_DEFINITIONS};
+            const static QList<NODE_KIND> component_stack{NODE_KIND::COMPONENT_INST, NODE_KIND::CLASS_INST};
+            
+            const auto& stack = src_entity->getParentStack();
+            const auto& in_assembly = ListInList(stack, assembly_stack);
+            const auto& in_class_instance = ListInList(stack, component_stack);
+            if(in_assembly && in_class_instance){
+                return true;
+            }
+        }
+    }
+
+
+    return false;
+}
+
 void ModelController::ConnectViewController(ViewControllerInterface* view_controller){
     if(view_controller){
         connect(view_controller, &ViewControllerInterface::SetupModelController, this, &ModelController::SetupController, Qt::QueuedConnection);
@@ -431,6 +495,7 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
         //Make sure we add Dependants
         addDependantsToDependants(parent_node, source);
     }else if(source){
+        qCritical() << source->toString();
         //If we haven't construct an edge, we should delete the source element we created.
         entity_factory->DestructEntity(source);
         source = 0;
@@ -1963,6 +2028,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     
     auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
+    QString model_import_version = APP_VERSION();
+
     while(xml.readNext() != QXmlStreamReader::EndDocument){
         auto kind = getGraphMLKindFromString(xml.name());
 
@@ -2003,6 +2070,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
+                            model_import_version = value;
                             int model_version = 0;
                             try {
                                 model_version = VersionKey::CompareVersion(value, APP_VERSION());
@@ -2187,9 +2255,11 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
                     //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
                     for(auto child : matched_node->getChildren(0)){
-                        auto child_uuid = child->getDataValue("uuid").toString();
-                        if(!required_uuids.contains(child_uuid)){
-                            to_remove.push_back(child);
+                        if(child->gotData("uuid")){
+                            auto child_uuid = child->getDataValue("uuid").toString();
+                            if(!required_uuids.contains(child_uuid)){
+                                to_remove.push_back(child);
+                            }
                         }
                     }
                 }
@@ -2199,6 +2269,10 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
+
+    for(const auto& node : to_remove){
+        qCritical() << node->toString();
+    }
     //unset any entities which 
     destructEntities(to_remove);
 
@@ -2337,24 +2411,25 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             }
 
             if(requires_parenting){
-                //If it's not got a parent, set it.
                 got_parent = attachChildNode(parent_node, node, false);
-                need_to_store = true;
 
-                addDependantsToDependants(parent_node, node);
+                //If we have got a parent
+                if(got_parent){
+                    need_to_store = true;
+                    addDependantsToDependants(parent_node, node);
+                }
             }
 
-            if(need_to_store || implicitly_created){
+            if((need_to_store || implicitly_created) && (got_parent || is_model)){
                 auto add_action_state = !implicitly_created;
                 storeNode(node, entity->getPreviousID(), false, add_action_state);
             }
 
-            for(auto key_name : entity->getKeys()){
-                auto value = entity->getDataValue(key_name);
-                setData_(node, key_name, value, true);
-            }
-
             if(got_parent || is_model){
+                for(auto key_name : entity->getKeys()){
+                    auto value = entity->getDataValue(key_name);
+                    setData_(node, key_name, value, true);
+                }
                 entity->setID(node->getID());
             }else{
                 for(auto child : node->getChildren()){
@@ -2362,8 +2437,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         implicitly_constructed_nodes.removeAll(child);
                     }
                 }
-
-                //Destroy!
                 entity_factory->DestructEntity(node);
                 node = 0;
             }
@@ -2371,9 +2444,11 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
         if(!node){
             QString title = "Cannot create Node '" + entity->getKind() + "'";
-            QString description = "importGraphML(): Document line #" % QString::number(entity->getLineNumber());
-            error_count ++;
-            emit Notification(MODEL_SEVERITY::ERROR, title, description);
+            if(!SuppressImportNodeError(*parent_entity, *entity, model_import_version)){
+                QString description = "importGraphML(): Document line #" % QString::number(entity->getLineNumber());
+                error_count ++;
+                emit Notification(MODEL_SEVERITY::ERROR, title, description);
+            }
         }
 
         if(UPDATE_PROGRESS){
@@ -2440,18 +2515,22 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
             if(entity->gotEdgeKind()){
                 edges_list.append(entity);
-                
             }else{
+                if(!SuppressImportEdgeError(*entity, src_entity, dst_entity, model_import_version)){
+                    QString title = "Cannot create edge";
+                    QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nNo valid edge kinds";
+                    error_count ++;
+                    emit Notification(MODEL_SEVERITY::ERROR, title, description);
+                }
+            }
+
+        }else{
+            if(!SuppressImportEdgeError(*entity, src_entity, dst_entity, model_import_version)){
                 QString title = "Cannot create edge";
-                QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nNo valid edge kinds";
+                QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nMissing Source or destination";
                 error_count ++;
                 emit Notification(MODEL_SEVERITY::ERROR, title, description);
             }
-        }else{
-            QString title = "Cannot create edge";
-            QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nMissing Source or destination";
-            error_count ++;
-            emit Notification(MODEL_SEVERITY::ERROR, title, description);
         }
     }
 
@@ -2608,6 +2687,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     QList<Entity*> nodes_to_remove_list;
     std::for_each(nodes_to_remove.begin(), nodes_to_remove.end(), [&nodes_to_remove_list](Node* node){
+        qCritical() << node->toString();
         nodes_to_remove_list.push_back(node);
     });
     destructEntities(nodes_to_remove_list);
@@ -2655,6 +2735,7 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
                     continue;
                 }else{
                     nodes_to_remove += child;
+                    
                 }
             }
         }
