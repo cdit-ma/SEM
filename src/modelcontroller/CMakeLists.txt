@@ -12,14 +12,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 
-
-#Include the binary directory to include the generated cmakevars.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-#Include the 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../)
-
-
-
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
@@ -221,10 +213,20 @@ set(HEADERS
 )
 
 
+
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
 
+#Pass Version info into cmakevars.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
+)
+
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
-target_link_libraries(${LIB_NAME} Qt5::Core)
+#Include the binary directory to include the generated cmakevars.h
+target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${LIB_NAME} PUBLIC Qt5::Core)

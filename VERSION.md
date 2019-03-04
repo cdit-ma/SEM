@@ -14,6 +14,9 @@
 * Updated Utility_Worker.worker.graphml to v1.3.0
 * Updated Dis_Worker.worker.graphml to v0.1.0
 
+## Tests:
+* Added unit tests for the Semantic Version Comparator now used by MEDEA
+
 ## Bug Fixes:
 * Fixed the syntax highlighter being greedy with double quotes ""
 
