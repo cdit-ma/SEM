@@ -494,11 +494,12 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
     if(success){
         //Make sure we add Dependants
         addDependantsToDependants(parent_node, source);
-    }else if(source){
-        qCritical() << source->toString();
-        //If we haven't construct an edge, we should delete the source element we created.
-        entity_factory->DestructEntity(source);
-        source = 0;
+    }else{
+        if(source){
+            //If we haven't construct an edge, we should delete the source element we created.
+            entity_factory->DestructEntity(source);
+            source = 0;
+        }
     }
     return source;
 }
@@ -1411,19 +1412,6 @@ bool ModelController::undoRedo()
             ProgressChanged_(++actions_reversed / action_count);
         }else{
             success = false;
-
-            /*qCritical() << "FAILED TO UNDO";
-
-            qCritical() << entity_factory->GetEntity(action.entity_id);
-            qCritical() << "Entity ID: " << action.entity_id;
-            qCritical() << "Kind: " << getGraphMLKindString(action.Action.kind);
-            qCritical() << "Type: " << getActionTypeString(action.Action.type);
-            
-            if(action.Action.kind == GRAPHML_KIND::DATA){
-                qCritical() << "action.Data.key_name:" << action.Data.key_name;
-                qCritical() << "action.Data.old_value:" << action.Data.old_value;
-                qCritical() << "action.Data.new_value:" << action.Data.new_value;   
-            }*/
         }
     }
 
@@ -2269,10 +2257,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
-
-    for(const auto& node : to_remove){
-        qCritical() << node->toString();
-    }
+    
     //unset any entities which 
     destructEntities(to_remove);
 
@@ -2687,7 +2672,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     QList<Entity*> nodes_to_remove_list;
     std::for_each(nodes_to_remove.begin(), nodes_to_remove.end(), [&nodes_to_remove_list](Node* node){
-        qCritical() << node->toString();
         nodes_to_remove_list.push_back(node);
     });
     destructEntities(nodes_to_remove_list);
@@ -2701,6 +2685,44 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     return error_count == 0;
 }
 
+const QSet<NODE_KIND>& GetValidInstanceKinds(const NODE_KIND& instance_kind){
+    switch(instance_kind){
+        case NODE_KIND::VECTOR_INST:{
+            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::ENUM_INST, NODE_KIND::AGGREGATE_INST, NODE_KIND::MEMBER_INST};
+            return instance_kinds;
+        }
+        case NODE_KIND::AGGREGATE_INST:
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
+            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::ENUM_INST, NODE_KIND::AGGREGATE_INST, NODE_KIND::MEMBER_INST, NODE_KIND::VECTOR_INST};
+            return instance_kinds;
+        }
+        case NODE_KIND::CLASS_INST:{
+            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::ATTRIBUTE_INST};
+            return instance_kinds;
+        }
+        case NODE_KIND::FUNCTION_CALL:
+        case NODE_KIND::CALLBACK_FUNCTION_INST:{
+            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::INPUT_PARAMETER_GROUP_INST, NODE_KIND::RETURN_PARAMETER_GROUP_INST};
+            return instance_kinds;
+        }
+        case NODE_KIND::CALLBACK_FUNCTION:
+        case NODE_KIND::ATTRIBUTE_INST:
+        case NODE_KIND::MEMBER_INST:
+        case NODE_KIND::FUNCTION:{
+            //None of these types can have children
+            break;
+        }
+        default:{
+            qCritical() << "Got Unexcepted Instance Kind: " << EntityFactory::getNodeKindString(instance_kind);
+            break;
+        }
+    }
+    static const QSet<NODE_KIND> empty;
+    return empty;
+}
+
+
 
 QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance){
     QSet<Node*> nodes_to_remove;
@@ -2709,6 +2731,7 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
     //Check if the definition has a definition
     auto def_def = definition->getDefinition(true);
     auto def = def_def ? def_def : definition;
+
     
     //Get the children of the definition
     for(auto child : def->getChildren(0)){
@@ -2721,12 +2744,12 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
         }
     }
 
-    static const QSet<NODE_KIND> instance_kinds = {NODE_KIND::MEMBER_INST, NODE_KIND::VECTOR_INST, NODE_KIND::AGGREGATE_INST, NODE_KIND::INPUT_PARAMETER_GROUP_INST, NODE_KIND::RETURN_PARAMETER_GROUP_INST, NODE_KIND::FUNCTION, NODE_KIND::FUNCTION_CALL, NODE_KIND::ENUM_INST};
+    const auto& instance_kind = instance->getNodeKind();
+    const auto& instance_kinds = GetValidInstanceKinds(instance_kind);
 
     for(auto child : instance->getChildren(0)){
         auto node_kind = child->getNodeKind();
-
-        if(instance_kinds.contains(node_kind)){
+        if(child->isInstanceImpl() && instance_kinds.contains(instance_kind)){
             auto c_def = child->getDefinition(true);
 
             if(c_def){
@@ -2735,7 +2758,6 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
                     continue;
                 }else{
                     nodes_to_remove += child;
-                    
                 }
             }
         }
