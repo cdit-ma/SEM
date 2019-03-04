@@ -779,7 +779,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::DEPLOYMENT_CONTAINER:
                 node_item = new DeploymentContainerNodeItem(item, parentNode);
-                    break;
+                break;
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
@@ -910,7 +910,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         break;
                     }
                 }
-
                 break;
             case NODE_KIND::SERVER_INTERFACE:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
@@ -944,6 +943,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("class");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
+                qCritical() << "CONSTRUCING: " << node_item;
                 break;
             case NODE_KIND::MEMBER:
             case NODE_KIND::MEMBER_INST:
@@ -1124,6 +1124,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
+            
              case NODE_KIND::FUNCTION:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 
@@ -1139,7 +1140,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
 
             if(node_item){
-                
                 //Ignore the position if we are 
                 if(containedNodeViewItem == item){
                     node_item->setIgnorePosition(true);
@@ -1171,7 +1171,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                             stack_item->SetRenderCellHoverIcons(0, 0, true, "Icons", "plus");
-                            
                             stack_item->SetCellSpacing(0, 0, 20);
                         }
 
