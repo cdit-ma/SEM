@@ -63,13 +63,34 @@ public:
         bool Terminate();
 
         std::weak_ptr<Attribute> GetAttribute(const std::string& name);
+        
+
         std::weak_ptr<Attribute> ConstructAttribute(const ATTRIBUTE_TYPE type, const std::string name);
+
+        template<class PrimitiveType>
+        void SetAttributeValue(const std::string& name, const PrimitiveType& value){
+            auto attr = GetAttribute(name).lock();
+            if(attr){
+                return attr->SetValue<PrimitiveType>(value);
+            }
+            throw std::invalid_argument("No attribute with name '" + name + "'");
+        };
+
+        template<class PrimitiveType>
+        PrimitiveType& GetAttributeValue(const std::string& name){
+            auto attr = GetAttribute(name).lock();
+            if(attr){
+                return attr->Value<PrimitiveType>();
+            }
+            throw std::invalid_argument("No attribute with name '" + name + "'");
+        };
     protected:
         virtual void HandleConfigure(){};
         virtual void HandleActivate(){};
         virtual void HandlePassivate(){};
         virtual void HandleTerminate(){};
         std::weak_ptr<Attribute> AddAttribute(std::unique_ptr<Attribute> attribute);
+        std::shared_ptr<Attribute> GetAttribute(const std::string& name, const ATTRIBUTE_TYPE type);
     private:
         bool transition_state(const Activatable::Transition transition);
 
@@ -92,5 +113,6 @@ public:
 
         std::mutex transitioning_mutex_;
 };
+
 
 #endif //ACTIVATABLE_H

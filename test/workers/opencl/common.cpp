@@ -7,7 +7,7 @@ void PrintInfo(std::string str){
 
 std::vector<DeviceParam> getDevices(){
     Component component("dummy_component");
-    Worker worker(component, "dummy_worker", "dummy_worker");
+    DummyWorker worker(component);
 
     auto platforms = OpenCLManager::GetPlatforms(worker);
     std::vector<DeviceParam> device_structs;
@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const DeviceParam& d){
 
 std::string GetDeviceName(int platform_id, int device_id){
     Component c("");
-	Worker w(c, "", "");
+    DummyWorker w(c);
     auto manager = OpenCLManager::GetReferenceByPlatformID(w, platform_id);
     if(manager){
         auto& devices = manager->GetDevices(w);
@@ -44,7 +44,7 @@ std::string GetDeviceName(int platform_id, int device_id){
 
 std::string GetPlatformName(int platform_id){
     Component c("");
-    Worker w(c, "", "");
+    DummyWorker w(c);
     int id = 0;
     for (auto& platform : OpenCLManager::GetPlatforms(w)){
         if(id++ == platform_id){
@@ -68,4 +68,16 @@ std::vector<float> CPUMatrixMult(float* matrix_a, float* matrix_b, size_t m, siz
 		}
 	}
     return matrix_c;
+};
+
+
+
+DummyWorker::DummyWorker(Component& component) : Worker(component, "dummy_worker", "dummy_worker"){
+
+};
+
+
+const std::string& DummyWorker::get_version() const{
+    const static std::string VERSION{"0.0.0"};
+    return VERSION;
 };

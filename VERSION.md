@@ -3,6 +3,7 @@
   * This is used for tying versions of Workers with MEDEAs *.worker.graphml definitions files
 * Added human readable error string when pugixml fails to parse the graphml document
 * Updated Jenkins deploy_model script to support docker
+* Added templated Setters/Getters for Attributes, exposed templatate Setter/Getters in Activatable
 
 ## Workers
 ### Cpu_Worker v1.1.0

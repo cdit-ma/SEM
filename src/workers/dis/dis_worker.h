@@ -4,6 +4,7 @@
 #include <memory>
 #include <core/worker.h>
 #include <functional>
+#define DIS_VERSION 5
 #include "kdis/KDIS/Extras/PDU_Factory.h"
 
 class Dis_Worker_Impl;
