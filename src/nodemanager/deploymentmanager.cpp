@@ -186,7 +186,6 @@ void DeploymentManager::ProcessControlQueue(){
             auto start = std::chrono::steady_clock::now();
 
             auto type = control_message->type();
-            std::cout << "* Started " << NodeManager::ControlMessage_Type_Name(type) << " Hanlding " << std::endl;
             
             switch(type){
                 case NodeManager::ControlMessage::CONFIGURE:
