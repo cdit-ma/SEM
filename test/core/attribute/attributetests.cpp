@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include <core/attribute.h>
-
+#include <cmath>
 
 TEST(AttributeTests, IntegerTests){
     Attribute a(ATTRIBUTE_TYPE::INTEGER, "int");
