@@ -1,10 +1,6 @@
 #include "dis_worker_impl.h"
 #include <iostream>
 
-Dis_Worker_Impl::Dis_Worker_Impl(){
-
-}
-
 Dis_Worker_Impl::~Dis_Worker_Impl(){
     Disconnect();
 }
@@ -53,7 +49,7 @@ std::string Dis_Worker_Impl::PDU2String(const KDIS::PDU::Header& header){
 }
 
 void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> connection){
-    //Set max blocking time
+    //This sets the maximum time the GetNextPDU() can block for to 0.5 seconds
     connection->SetBlockingTimeOut(0, 500000);
     connection->GetPDU_Factory()->AddFilter( new KDIS::UTILS::FactoryFilterExerciseID( 1 ) );
 
@@ -68,11 +64,10 @@ void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> c
                 }
                 queue_condition_.notify_all();
             }
-        }catch(const std::exception & e){
-            std::cout << e.what() << std::endl;
+        }catch(const std::exception & ex){
+            std::cerr << "DIS_Worker_Impl: ProcessEvents Exception: " << ex.what() << std::endl;
         }
     }
-    connection.reset();
 }
 
 void Dis_Worker_Impl::ProcessQueue(){
@@ -102,7 +97,7 @@ void Dis_Worker_Impl::ProcessQueue(){
                 try{
                     callback_function_(*pdu);
                 }catch(const std::exception& ex){
-
+                    std::cerr << "DIS_Worker_Impl: ProcessQueue Exception: " << ex.what() << std::endl;
                 }
             }
         }

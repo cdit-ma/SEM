@@ -6,7 +6,7 @@ Dis_Worker::Dis_Worker(const BehaviourContainer& container, const std::string& i
 
     ip_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "ip_address").lock();
     port_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "port").lock();
-    if (port_ != NULL) {
+    if(port_){
         port_->set_Integer(3000);
     }
 }
@@ -64,12 +64,14 @@ void Dis_Worker::Connect_(){
         LogException(GET_FUNC, ex, work_id);
         throw;
     }
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
 }
 
 void Dis_Worker::Disconnect_(){
     auto work_id = get_new_work_id();
     Log(GET_FUNC, Logger::WorkloadEvent::STARTED, work_id, "Disconnecting DIS Worker");
     impl_->Disconnect();
+    Log(GET_FUNC, Logger::WorkloadEvent::FINISHED, work_id);
 }
 
 void Dis_Worker::HandleConfigure() {

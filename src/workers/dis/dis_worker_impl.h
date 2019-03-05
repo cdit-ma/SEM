@@ -15,7 +15,7 @@
 
 class Dis_Worker_Impl{
     public:
-        Dis_Worker_Impl();
+        Dis_Worker_Impl() = default;
         ~Dis_Worker_Impl();
         void Connect(const std::string& ip_address, const int port);
         void SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func);
