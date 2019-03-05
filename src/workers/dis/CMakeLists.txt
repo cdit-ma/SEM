@@ -9,7 +9,7 @@ add_subdirectory("tester")
 
 
 message(STATUS "KDIS_LIB: ${KDIS_LIB}")
-# If OpenCL doesn't exist on this machine we can bail out
+# If kdis doesn't exist on this machine we can bail out
 if(NOT KDIS_LIB)
     message(STATUS "Not Found KDIS - Not building kdis_worker")
     return()
