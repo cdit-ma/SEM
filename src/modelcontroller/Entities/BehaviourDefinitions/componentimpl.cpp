@@ -24,9 +24,10 @@ ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setAcceptsNodeKind(NODE_KIND::VARIABLE);
     setAcceptsNodeKind(NODE_KIND::HEADER);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_REPLIER_IMPL);
     setAcceptsNodeKind(NODE_KIND::TRANSITION_FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION_INST);
     
     
 

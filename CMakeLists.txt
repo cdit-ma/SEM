@@ -42,12 +42,6 @@ option(BUILD_CLI "Build MEDEA CLI" ON)
 #option(BUILD_TEST "Build MEDEA Test" ON)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
-    #Pass Version info into cmakevars.h
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
-        ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-    )
-
     message(STATUS "Building MEDEA Core")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/modelcontroller")
 endif()
@@ -61,6 +55,12 @@ if(BUILD_APP)
     message(STATUS "Building MEDEA App")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
 endif(BUILD_APP)
+
+if(BUILD_TEST)
+    enable_testing()
+    message(STATUS "Building MEDEA Tests")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+endif(BUILD_TEST)
 
 SET(CPACK_GENERATOR "IFW;ZIP") 
 # Set CPACK generic info

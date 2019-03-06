@@ -5,6 +5,7 @@
 
 #include <QHash>
 #include <QTextCharFormat>
+#include <QRegularExpression>
 
 class QString;
 
@@ -50,21 +51,19 @@ private:
     void themeChanged();
     struct HighlightingRule
     {
-        QRegExp pattern;
+        QRegularExpression pattern;
         QTextCharFormat format;
     };
 
     QVector<HighlightingRule> highlightingRules;
 
-    QRegExp commentStartExpression;
-    QRegExp commentEndExpression;
-
     QTextCharFormat keywordFormat;
     QTextCharFormat classFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat commentFormat;
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
+    QTextCharFormat templateFormat;
+
 };
 
 #endif // SYNTAXHIGHLIGHTER_H

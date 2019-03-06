@@ -19,6 +19,7 @@ protected:
 
     
 public:
+    
     void setTitleIcon(QString path, QString alias);
     int getID() const;
     BaseDockType getBaseDockType() const;
