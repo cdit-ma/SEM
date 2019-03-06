@@ -11,12 +11,11 @@
 #include <core/loggers/print_logger.h>
 
 
-
 //This is our test case for the frame
 TEST(OpenCLManager, GetDevices)
 {
     Component component("dummy_component");
-    Worker worker(component, "dummy_worker", "dummy_worker");
+    DummyWorker worker(component);
 
     auto platforms = OpenCLManager::GetPlatforms(worker);
 
@@ -42,7 +41,7 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
     public:
         OpenCLManagerFixture():
             component_("dummy_component"),
-            worker_(component_, "dummy_worker", "dummy_worker")
+            worker_(component_)
         {
             Print::Logger::get_logger().SetLogLevel(10);
             worker_.logger().AddLogger(Print::Logger::get_logger());
@@ -69,7 +68,7 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 
         DeviceParam device_;
         Component component_;
-        Worker worker_;
+        DummyWorker worker_;
         OpenCLManager* manager_;
 };
 

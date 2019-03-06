@@ -261,3 +261,13 @@ std::weak_ptr<Attribute> Activatable::GetAttribute(const std::string& name){
         return std::weak_ptr<Attribute>();
     }
 }
+
+std::shared_ptr<Attribute> Activatable::GetAttribute(const std::string& name, const ATTRIBUTE_TYPE type){
+    auto attr = GetAttribute(name).lock();
+    if(attr){
+        if(attr->get_type() != type){
+            attr.reset();
+        }
+    }
+    return attr;
+}

@@ -83,6 +83,12 @@ extern std::vector<float> CPUMatrixMult(float* matrix_a, float* matrix_b, size_t
 extern std::string GetDeviceName(int platform_id, int device_id);
 extern std::string GetPlatformName(int platform_id);
 
+class DummyWorker : public Worker{
+    public:
+        DummyWorker(Component& component);
+        const std::string& get_version() const override;
+};
+
 
 
 #endif //TEST_WORKERS_OPENCL_COMMON_H

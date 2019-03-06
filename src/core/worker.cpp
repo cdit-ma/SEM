@@ -80,3 +80,7 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
 void Worker::Log(const std::string& function_name, const Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
     logger().LogWorkerEvent(*this, function_name, event, work_id, args, message_log_level);
 }
+
+void Worker::LogException(const std::string& function_name, const std::exception& ex, int work_id){
+    Log(function_name, Logger::WorkloadEvent::ERROR, work_id, ex.what());
+}
