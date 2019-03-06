@@ -22,7 +22,7 @@
     <graph id="G">
         <node id="cpuworker">
             <data key="kind">Class</data>
-            <data key="version">1.1.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>

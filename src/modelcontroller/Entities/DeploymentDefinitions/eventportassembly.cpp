@@ -6,7 +6,7 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
     
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST, false);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE, false);
 
     if(is_temp){
         //Break out early for temporary entities

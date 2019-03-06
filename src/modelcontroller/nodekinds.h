@@ -22,18 +22,18 @@ enum class NODE_KIND
         WORKER_DEFINITIONS,
 
         AGGREGATE,
-        AGGREGATE_INST,
+        AGGREGATE_INSTANCE,
         MEMBER,
-        VECTOR_INST,
+        VECTOR_INSTANCE,
         COMPONENT,
-        MEMBER_INST,
+        MEMBER_INSTANCE,
         ATTRIBUTE,
         PORT_PUBLISHER,
         PORT_SUBSCRIBER,
         IDL,
         VECTOR,
         ENUM,
-        ENUM_INST,
+        ENUM_INSTANCE,
         ENUM_MEMBER,
         NAMESPACE,
 
@@ -46,8 +46,8 @@ enum class NODE_KIND
         PORT_REQUESTER_INST,
         INPUT_PARAMETER_GROUP,
         RETURN_PARAMETER_GROUP,
-        INPUT_PARAMETER_GROUP_INST,
-        RETURN_PARAMETER_GROUP_INST,
+        INPUT_PARAMETER_GROUP_INSTANCE,
+        RETURN_PARAMETER_GROUP_INSTANCE,
         VOID_TYPE,
 
         
@@ -56,8 +56,8 @@ enum class NODE_KIND
 
         COMPONENT_ASSEMBLY,
         MANAGEMENT_COMPONENT,
-        ATTRIBUTE_INST,
-        COMPONENT_INST,
+        ATTRIBUTE_INSTANCE,
+        COMPONENT_INSTANCE,
         PORT_SUBSCRIBER_DELEGATE,
         PORT_PUBLISHER_DELEGATE,
         
@@ -71,7 +71,7 @@ enum class NODE_KIND
         OPENCL_DEVICE,
         DEPLOYMENT_CONTAINER,
         CLASS,
-        CLASS_INST,
+        CLASS_INSTANCE,
         FUNCTION,
         TRANSITION_FUNCTION,
 
@@ -134,9 +134,7 @@ enum class NODE_KIND
         SHARED_DATATYPES,
         PORT_REQUEST_DELEGATE,
         PORT_PUBSUB_DELEGATE,
-        EXTERNAL_SERVER_DELEGATE,
-        CALLBACK_FUNCTION,
-        CALLBACK_FUNCTION_INST
+        EXTERNAL_SERVER_DELEGATE
     };
 inline uint qHash(NODE_KIND key, uint seed)
     {

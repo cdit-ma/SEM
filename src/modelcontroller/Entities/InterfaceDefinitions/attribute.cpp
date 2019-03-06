@@ -15,7 +15,7 @@ void Attribute::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
-    addInstanceKind(NODE_KIND::ATTRIBUTE_INST);
+    addInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 
     if(is_temp){

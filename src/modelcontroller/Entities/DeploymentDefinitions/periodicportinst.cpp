@@ -15,7 +15,7 @@ void PeriodicPortInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& br
 PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::PORT_PERIODIC);
-    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INST);
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     
     if(is_temp){
         //Break out early for temporary entities
@@ -26,7 +26,7 @@ PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : 
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::UNPROTECTED, 1);
     broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
 
-    auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INST);
+    auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INSTANCE);
     broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
     broker.AttachData(frequency, "value", QVariant::String, ProtectedState::UNPROTECTED, 1);
 }
@@ -35,7 +35,7 @@ bool PeriodicPortInst::canAdoptChild(Node* child)
 {
     auto child_kind = child->getNodeKind();
     switch(child_kind){
-        case NODE_KIND::ATTRIBUTE_INST:{
+        case NODE_KIND::ATTRIBUTE_INSTANCE:{
             //Only allow one AttributeInstance
             if(getChildrenOfKindCount(child_kind) > 0){
                 return false;

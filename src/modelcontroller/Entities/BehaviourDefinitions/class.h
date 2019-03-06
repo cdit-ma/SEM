@@ -10,7 +10,6 @@ namespace MEDEA{
             static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
         protected:
             Class(EntityFactoryBroker& factory, bool is_temp_node);
-            bool canAdoptChild(Node* child) override;
             void parentSet(Node* parent) override;
     };
 };

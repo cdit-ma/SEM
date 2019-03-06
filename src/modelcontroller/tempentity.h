@@ -21,9 +21,9 @@ public:
     void setLineNumber(int line_number);
     int getLineNumber();
     
-    TempEntity* getParent() const;
+    TempEntity* getParent();
 
-    QString getKind() const;
+    QString getKind();
 
     NODE_KIND getNodeKind();
 
@@ -34,14 +34,14 @@ public:
     void setPreviousID(int id);
 
     void setID(int ID);
-    int getID()  const;;
+    int getID();
     bool gotID();
     void setImplicitlyConstructed();
     bool isImplicitlyConstructed();
 
     const QList<TempEntity*>& getChildren();
     
-    const QList<NODE_KIND>& getParentStack() const;
+    const QList<NODE_KIND>& getParentStack();
 
     void setSourceIDStr(const QString& id);
     const QString& getSourceIDStr();

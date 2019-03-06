@@ -16,7 +16,7 @@ void Component::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
-    addInstanceKind(NODE_KIND::COMPONENT_INST);
+    addInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
     addImplKind(NODE_KIND::COMPONENT_IMPL);
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
     

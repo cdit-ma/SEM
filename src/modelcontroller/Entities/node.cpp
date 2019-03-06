@@ -939,28 +939,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bind_values[KeyName::IsGenericParam] += KeyName::IsGenericParam;
     bind_values[KeyName::IsGenericParamSrc] += KeyName::IsGenericParamSrc;
     bind_values[KeyName::IsOptionalParam] += KeyName::IsOptionalParam;
-    bind_values[KeyName::CppVarType] += KeyName::CppVarType;
-    
 
     required_instance_keys += KeyName::IsGenericParam;
     required_instance_keys += KeyName::IsGenericParamSrc;
     required_instance_keys += KeyName::IsOptionalParam;
-    required_instance_keys += KeyName::CppVarType;
 
     bool bind_index = false;
     bool bind_labels = true;
     bool bind_types = true;
 
     switch(instance_kind){
-        case NODE_KIND::CLASS_INST:{
+        case NODE_KIND::CLASS_INSTANCE:{
             bind_values[KeyName::IsWorker] += KeyName::IsWorker;
             break;
         }
-        case NODE_KIND::MEMBER_INST:
-        case NODE_KIND::VECTOR_INST:
-        case NODE_KIND::AGGREGATE_INST:{
-            static const QSet<NODE_KIND> bind_index_kinds{NODE_KIND::AGGREGATE_INST, NODE_KIND::VECTOR_INST, NODE_KIND::INPUT_PARAMETER_GROUP_INST};
-            if(bind_index_kinds.contains(instance_parent_kind)){
+        case NODE_KIND::MEMBER_INSTANCE:
+        case NODE_KIND::VECTOR_INSTANCE:
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE || instance_parent_kind == NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE){
                 bind_index = true;
             }
             break;
@@ -973,18 +969,19 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         switch(instance_kind){
             case NODE_KIND::PORT_REPLIER:
             case NODE_KIND::PORT_REQUESTER:
-            case NODE_KIND::COMPONENT_INST:{
+            case NODE_KIND::COMPONENT_INSTANCE:{
                 bind_labels = false;
                 break;
             }
-            case NODE_KIND::MEMBER_INST:
-            case NODE_KIND::AGGREGATE_INST:
-            case NODE_KIND::VECTOR_INST:
-            case NODE_KIND::ENUM_INST:{
+            case NODE_KIND::MEMBER_INSTANCE:
+            case NODE_KIND::AGGREGATE_INSTANCE:
+            case NODE_KIND::VECTOR_INSTANCE:
+            case NODE_KIND::ENUM_INSTANCE:{
                 static const QSet<NODE_KIND> unbound_labels{NODE_KIND::AGGREGATE, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
                 if(unbound_labels.contains(instance_parent_kind)){
                     bind_labels = false;
                 }
+
 
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::Description] += KeyName::Description;
@@ -992,11 +989,11 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
-            case NODE_KIND::CLASS_INST:{
+            case NODE_KIND::CLASS_INSTANCE:{
                 bind_values[KeyName::Version] += KeyName::Version;
                 required_instance_keys.insert(KeyName::Version);
 
-                if(definition_kind == NODE_KIND::CLASS_INST){
+                if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
                     copy_values[KeyName::Value] += KeyName::Value;
@@ -1007,8 +1004,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             }
-            case NODE_KIND::CALLBACK_FUNCTION_INST:
-            case NODE_KIND::FUNCTION_CALL: 
+            case NODE_KIND::FUNCTION_CALL:
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::WorkerID] += KeyName::WorkerID;
                     bind_values[KeyName::Operation] += KeyName::Operation;
@@ -1021,7 +1017,6 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 required_instance_keys.insert(KeyName::IsVariadic);
                 required_instance_keys.insert(KeyName::Description);
                 break;
-            case NODE_KIND::CALLBACK_FUNCTION:
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values[KeyName::Operation] += KeyName::Operation;
@@ -1326,15 +1321,9 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
 
     //If i am an instance nothing should be cosntructable
-    const auto is_valid_instance = isInstance() && getDefinition();
-    if(is_valid_instance && !IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE)){
+    if((isInstance() && getDefinition()) || isReadOnly()){
         node_kinds.clear();
     }
-
-    if(isReadOnly()){
-        node_kinds.clear();
-    }
-
     return node_kinds;
 }
 

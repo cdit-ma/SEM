@@ -15,9 +15,6 @@ public:
     QVariant validateDataChange(Data* data, QVariant dataValue);
 
     static int CompareVersion(const QString& current_version, const QString& compare_version);
-    static bool IsVersionOlder(const QString& current_version, const QString& compare_version);
-    static bool IsVersionNewer(const QString& current_version, const QString& compare_version);
-
     static bool IsVersionValid(const QString& version);
 private:
     static const QString& GetDefaultVersion();

@@ -34,19 +34,33 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent) : QSyntaxHighlighter
 
 void SyntaxHighlighter::highlightBlock(const QString &text)
 {
-    for(const auto& rule : highlightingRules) {
-        if(rule.pattern.isValid()){
-            auto itt = rule.pattern.globalMatch(text);
-            while (itt.hasNext()) {
-                const auto match = itt.next();
-                if(match.hasMatch()){
-                    //Always highlight the first capture group
-                    const auto& length = match.capturedLength(1);
-                    const auto& index = match.capturedStart(1);
-                    setFormat(index, length, rule.format);
-                }
-            }
+    foreach (const HighlightingRule &rule, highlightingRules) {
+        QRegExp expression(rule.pattern);
+        int index = expression.indexIn(text);
+        while (index >= 0) {
+            int length = expression.matchedLength();
+            setFormat(index, length, rule.format);
+            index = expression.indexIn(text, index + length);
         }
+    }
+    setCurrentBlockState(0);
+
+    int startIndex = 0;
+    if (previousBlockState() != 1)
+        startIndex = commentStartExpression.indexIn(text);
+
+    while (startIndex >= 0) {
+        int endIndex = commentEndExpression.indexIn(text, startIndex);
+        int commentLength;
+        if (endIndex == -1) {
+            setCurrentBlockState(1);
+            commentLength = text.length() - startIndex;
+        } else {
+            commentLength = endIndex - startIndex
+                            + commentEndExpression.matchedLength();
+        }
+        setFormat(startIndex, commentLength, multiLineCommentFormat);
+        startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
     }
 
     highlightParenthesis(text);
@@ -80,67 +94,57 @@ void SyntaxHighlighter::themeChanged()
 {
     highlightingRules.clear();
 
-    commentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
-    commentFormat.setFontItalic(true);
-    
+    quotationFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
+    singleLineCommentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
+    multiLineCommentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
 
 
+    //singleLineCommentFormat.setForeground(Theme::theme()->getHighlightColor());
+    //multiLineCommentFormat.setForeground(Theme::theme()->getHighlightColor());
     functionFormat.setForeground(Theme::theme()->getHighlightColor());
-    functionFormat.setFontItalic(true);
     keywordFormat.setForeground(Theme::theme()->getHighlightColor());
-    keywordFormat.setFontWeight(QFont::Bold);
-    templateFormat.setForeground(Theme::theme()->getAltTextColor());
-    quotationFormat.setForeground(Theme::theme()->getAltTextColor());
-    
 
+    keywordFormat.setFontWeight(QFont::Bold);
     HighlightingRule rule;
     QStringList keywordPatterns;
-    keywordPatterns << "char" << "class" << "const"
-                    << "double" << "enum" << "explicit"
-                    << "friend" << "inline" << "int"
-                    << "long" << "namespace" << "operator"
-                    << "private" << "protected" << "public"
-                    << "short" << "signals" << "signed"
-                    << "slots" << "static" << "struct"
-                    << "template" << "typedef" << "typename"
-                    << "union" << "unsigned" << "virtual"
-                    << "void" << "volatile" << "float" << "extern"
-                    << "#include" << "virtual"
-                    << "this" << "const";
-    
-    for (const auto& pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression("(" + pattern + ")");
+    keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
+                    << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
+                    << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
+                    << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"
+                    << "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b"
+                    << "\\bshort\\b" << "\\bsignals\\b" << "\\bsigned\\b"
+                    << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
+                    << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
+                    << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
+                    << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bfloat\\b" << "\\bextern\\b"
+                    << "\\b#include\\b" << "\\bvirtual\\b";
+    foreach (const QString &pattern, keywordPatterns) {
+        rule.pattern = QRegExp(pattern);
         rule.format = keywordFormat;
         highlightingRules.append(rule);
     }
-    
-    
+
+    rule.pattern = QRegExp("//[^\n]*");
+    rule.format = singleLineCommentFormat;
+    highlightingRules.append(rule);
 
     {
-        auto str_reg = QRegularExpression(R"((".*?"))");
+        auto str_reg = QRegExp("\".*\"");
+        //Don't be greedy
+        str_reg.setMinimal(true);
         rule.pattern = str_reg;
-        rule.format = quotationFormat;
-        highlightingRules.append(rule);
     }
+    rule.format = quotationFormat;
+    highlightingRules.append(rule);
 
-    {
-        rule.pattern = QRegularExpression(R"((\w+[\w|\d]*(?:<.*?>)?)\()");
-        rule.format = functionFormat;
-        highlightingRules.append(rule);
-    }
+    functionFormat.setFontItalic(true);
 
-    {
-        auto angle_reg = QRegularExpression("<(.*?)>");
-        rule.pattern = angle_reg;
-        rule.format = templateFormat;
-        highlightingRules.append(rule);
-    }
+    rule.pattern = QRegExp("\\b[A-Za-z0-9_]+(?=\\()");
+    rule.format = functionFormat;
+    highlightingRules.append(rule);
 
-    {
-        rule.pattern = QRegularExpression("(//.*)");
-        rule.format = commentFormat;
-        highlightingRules.append(rule);
-    }
+    commentStartExpression = QRegExp("/\\*");
+    commentEndExpression = QRegExp("\\*/");
 }
 
 bool ParenthesisInfo::isOpening() const

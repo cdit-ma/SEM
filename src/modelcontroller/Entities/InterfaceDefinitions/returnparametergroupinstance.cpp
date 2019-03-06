@@ -1,27 +1,27 @@
-#include "returnparametergroupinst.h"
+#include "returnparametergroupinstance.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP_INST;
+const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE;
 const QString kind_string = "Return Parameter Group Instance";
 
 
-void MEDEA::ReturnParameterGroupInst::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+void MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
-        return new MEDEA::ReturnParameterGroupInst(broker, is_temp_node);
+        return new MEDEA::ReturnParameterGroupInstance(broker, is_temp_node);
     });
 }
 
-MEDEA::ReturnParameterGroupInst::ReturnParameterGroupInst(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     setLabelFunctional(false);
     addInstancesDefinitionKind(NODE_KIND::RETURN_PARAMETER_GROUP);
     
     setChainableDefinition();
-    setAcceptsNodeKind(NODE_KIND::ENUM_INST);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
-    setAcceptsNodeKind(NODE_KIND::MEMBER_INST);
-    setAcceptsNodeKind(NODE_KIND::VECTOR_INST);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 
     if(is_temp){
@@ -37,7 +37,7 @@ MEDEA::ReturnParameterGroupInst::ReturnParameterGroupInst(::EntityFactoryBroker&
     broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
 }
 
-bool MEDEA::ReturnParameterGroupInst::canAdoptChild(Node* child)
+bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)
 {
     if(getChildrenCount() > 0 ){
         return false;

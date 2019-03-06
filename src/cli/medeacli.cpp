@@ -48,10 +48,6 @@ int main(int argc, char** argv){
     
     QScopedPointer<ModelController> controller(new ModelController(QCoreApplication::applicationDirPath()));
 
-    QObject::connect(controller.data(), &ModelController::Notification, [=](MODEL_SEVERITY severity, QString title, QString description, int ID){
-        qCritical() << "Error[" << title << "]" << description;
-    });
-
     //Setup the controller, passing in the project to open if we have any
     auto setup_success = controller->SetupController(open_project);
     if(open_project.length()){

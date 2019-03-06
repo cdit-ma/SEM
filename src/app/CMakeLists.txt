@@ -235,10 +235,10 @@ if(WIN32)
 endif()
 
 # Link against things
-target_link_libraries(${PROJ_NAME} PRIVATE medea_modelcontroller_lib)
-target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Widgets)
-target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Network)
-target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Concurrent)
+target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
+target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} Qt5::Network)
+target_link_libraries(${PROJ_NAME} Qt5::Concurrent)
 
 # Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})

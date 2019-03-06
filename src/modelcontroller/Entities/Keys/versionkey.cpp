@@ -58,14 +58,6 @@ int VersionKey::CompareVersion(const QString& current_version, const QString& co
     return current_match.captured(4).compare(compare_match.captured(4), Qt::CaseInsensitive);
 }
 
-bool VersionKey::IsVersionOlder(const QString& current_version, const QString& compare_version){
-    return CompareVersion(current_version, compare_version) < 0;
-}
-
-bool VersionKey::IsVersionNewer(const QString& current_version, const QString& compare_version){
-    return CompareVersion(current_version, compare_version) > 0;
-}
-
 bool VersionKey::IsVersionValid(const QString& version){
     return VERSION_REGEX.match(version).hasMatch();
 }

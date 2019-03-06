@@ -67,25 +67,22 @@
 #include "Entities/BehaviourDefinitions/functioncall.h"
 #include "Entities/BehaviourDefinitions/externaltype.h"
 #include "Entities/BehaviourDefinitions/booleanexpression.h"
-#include "Entities/BehaviourDefinitions/callbackfunction.h"
-#include "Entities/BehaviourDefinitions/callbackfunctioninst.h"
-
 
 //Instance Elements
-#include "Entities/DeploymentDefinitions/componentinst.h"
-#include "Entities/DeploymentDefinitions/attributeinst.h"
+#include "Entities/DeploymentDefinitions/componentinstance.h"
+#include "Entities/DeploymentDefinitions/attributeinstance.h"
 #include "Entities/DeploymentDefinitions/subscriberportinst.h"
 #include "Entities/DeploymentDefinitions/publisherportinst.h"
 #include "Entities/DeploymentDefinitions/periodicportinst.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
-#include "Entities/InterfaceDefinitions/aggregateinst.h"
-#include "Entities/InterfaceDefinitions/memberinst.h"
-#include "Entities/InterfaceDefinitions/vectorinst.h"
+#include "Entities/InterfaceDefinitions/aggregateinstance.h"
+#include "Entities/InterfaceDefinitions/memberinstance.h"
+#include "Entities/InterfaceDefinitions/vectorinstance.h"
 
 #include "Entities/InterfaceDefinitions/enum.h"
-#include "Entities/InterfaceDefinitions/enuminst.h"
+#include "Entities/InterfaceDefinitions/enuminstance.h"
 #include "Entities/InterfaceDefinitions/enummember.h"
 
 
@@ -121,7 +118,7 @@
 #include "Entities/InterfaceDefinitions/namespace.h"
 
 #include "Entities/BehaviourDefinitions/class.h"
-#include "Entities/BehaviourDefinitions/classinst.h"
+#include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
 #include "Entities/BehaviourDefinitions/transitionfunction.h"
 
@@ -138,8 +135,8 @@
 #include "Entities/InterfaceDefinitions/inputparametergroup.h"
 #include "Entities/InterfaceDefinitions/returnparametergroup.h"
 
-#include "Entities/InterfaceDefinitions/inputparametergroupinst.h"
-#include "Entities/InterfaceDefinitions/returnparametergroupinst.h"
+#include "Entities/InterfaceDefinitions/inputparametergroupinstance.h"
+#include "Entities/InterfaceDefinitions/returnparametergroupinstance.h"
 
 #include "Entities/InterfaceDefinitions/voidtype.h"
 
@@ -405,17 +402,15 @@ entity_lock_(QReadWriteLock::Recursive)
     
     FunctionCall::RegisterWithEntityFactory(registry_broker);
     MEDEA::TransitionFunction::RegisterWithEntityFactory(registry_broker);
-    MEDEA::CallbackFunction::RegisterWithEntityFactory(registry_broker);
-    MEDEA::CallbackFunctionInst::RegisterWithEntityFactory(registry_broker);
 
     //Instance Elements
-    ComponentInst::RegisterWithEntityFactory(registry_broker);
-    AttributeInst::RegisterWithEntityFactory(registry_broker);
+    ComponentInstance::RegisterWithEntityFactory(registry_broker);
+    AttributeInstance::RegisterWithEntityFactory(registry_broker);
     SubscriberPortInst::RegisterWithEntityFactory(registry_broker);
     PublisherPortInst::RegisterWithEntityFactory(registry_broker);
-    AggregateInst::RegisterWithEntityFactory(registry_broker);
-    MemberInst::RegisterWithEntityFactory(registry_broker);
-    VectorInst::RegisterWithEntityFactory(registry_broker);
+    AggregateInstance::RegisterWithEntityFactory(registry_broker);
+    MemberInstance::RegisterWithEntityFactory(registry_broker);
+    VectorInstance::RegisterWithEntityFactory(registry_broker);
     
     //Deployment Elements
     ComponentAssembly::RegisterWithEntityFactory(registry_broker);
@@ -442,9 +437,9 @@ entity_lock_(QReadWriteLock::Recursive)
 
     Enum::RegisterWithEntityFactory(registry_broker);
     EnumMember::RegisterWithEntityFactory(registry_broker);
-    EnumInst::RegisterWithEntityFactory(registry_broker);
+    EnumInstance::RegisterWithEntityFactory(registry_broker);
     MEDEA::Class::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ClassInst::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ClassInstance::RegisterWithEntityFactory(registry_broker);
     MEDEA::Function::RegisterWithEntityFactory(registry_broker);
     MEDEA::DeploymentAttribute::RegisterWithEntityFactory(registry_broker);
 
@@ -494,8 +489,8 @@ entity_lock_(QReadWriteLock::Recursive)
     MEDEA::InputParameterGroup::RegisterWithEntityFactory(registry_broker);
     MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(registry_broker);
 
-    MEDEA::InputParameterGroupInst::RegisterWithEntityFactory(registry_broker);
-    MEDEA::ReturnParameterGroupInst::RegisterWithEntityFactory(registry_broker);
+    MEDEA::InputParameterGroupInstance::RegisterWithEntityFactory(registry_broker);
+    MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(registry_broker);
     MEDEA::ExternalPubSubDelegate::RegisterWithEntityFactory(registry_broker);
 
 
