@@ -962,7 +962,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
             static const QSet<NODE_KIND> bind_index_kinds{NODE_KIND::AGGREGATE_INST, NODE_KIND::VECTOR_INST, NODE_KIND::INPUT_PARAMETER_GROUP_INST};
             if(bind_index_kinds.contains(instance_parent_kind)){
                 bind_index = true;
-        }
+            }
             break;
         }
         default:
