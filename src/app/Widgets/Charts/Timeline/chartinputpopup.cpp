@@ -177,6 +177,11 @@ void ChartInputPopup::reject()
 void ChartInputPopup::experimentNameActivated(const QString &experimentName)
 {
     clearGroupBox(FILTER_KEY::RUNS_FILTER);
+
+    // hiding it first resizes the widget immediately, returning the expected size hint
+    experimentRunsGroupBox_->hide();
+    resizePopup();
+
     populateExperimentRuns(experimentRuns_.values(experimentName));
 }
 
@@ -192,6 +197,9 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
         emit requestExperimentState(ID);
     }*/
 
+    if (filterAction_)
+        filterAction_->setEnabled(false);
+
     selectedExperimentRun_ = experimentRun;
     selectedExperimentRunID_ = experimentRun.experiment_run_id;
 }
@@ -203,8 +211,7 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
  */
 void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
 {
-    if (filterAction_)
-        filterAction_->setEnabled(false);
+    auto firstButton = true;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -218,6 +225,12 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
         connect(button, &QRadioButton::toggled, [=](bool checked) {
             if (checked) { experimentRunSelected(run); }
         });
+
+        // select the first button by default
+        if (firstButton) {
+            button->toggle();
+            firstButton = false;
+        }
     }
 
     experimentRunsGroupBox_->show();
