@@ -48,6 +48,7 @@ pipeline{
         string(name: 'execution_time', defaultValue: '60', description: 'The duration of the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
         string(name: 'log_verbosity', defaultValue: '3', description: 'The logging verbosity (1-10)')
+        string(name: 'docker_registry_address', defaultValue: '${env.DOCKER_REGISTRY_ADDRESS}', description: 'The address of the docker registry.')
         file(name: 'model', description: 'The model for this experiment')
     }
 
@@ -248,7 +249,7 @@ pipeline{
                                                 }
 
                                                 if(is_docker) {
-                                                    docker.image("192.168.111.98:5000/re_full").inside("--network host") {
+                                                    docker.image("${docker_registry_address}:5000/re_full").inside("--network host") {
                                                         if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
                                                             error("re_node_manager failed on Node: ${node_name} : ${container_id}")
                                                         }
