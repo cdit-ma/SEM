@@ -26,7 +26,7 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::MEMBER_INST] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_PUBLISHER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::ENUM_INST] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::CALLBACK_FUNCTION_INST] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::CALLBACK_FNC_INST] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::CLASS_INST] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::FUNCTION_CALL] = EDGE_KIND::DEFINITION;

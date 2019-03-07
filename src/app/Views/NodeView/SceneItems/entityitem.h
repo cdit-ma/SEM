@@ -3,7 +3,7 @@
 
 #include "../../../Controllers/ViewController/viewitem.h"
 #include "../../../Controllers/ViewController/edgeviewitem.h"
-#include "../../../../modelcontroller/strings.h"
+#include "../../../../modelcontroller/keynames.h"
 #include "../../../theme.h"
 #include <QGraphicsObject>
 #include <QGraphicsSceneHoverEvent>

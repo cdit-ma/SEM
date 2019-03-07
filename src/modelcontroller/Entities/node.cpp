@@ -16,7 +16,6 @@
 #include "../edgekinds.h"
 #include "Keys/indexkey.h"
 #include "Keys/typekey.h"
-#include "../strings.h"
 
 Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) : Entity(broker, GRAPHML_KIND::NODE){
     //Setup State
@@ -1007,7 +1006,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             }
-            case NODE_KIND::CALLBACK_FUNCTION_INST:
+            case NODE_KIND::CALLBACK_FNC_INST:
             case NODE_KIND::FUNCTION_CALL: 
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values[KeyName::WorkerID] += KeyName::WorkerID;
@@ -1021,7 +1020,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 required_instance_keys.insert(KeyName::IsVariadic);
                 required_instance_keys.insert(KeyName::Description);
                 break;
-            case NODE_KIND::CALLBACK_FUNCTION:
+            case NODE_KIND::CALLBACK_FNC:
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values[KeyName::Operation] += KeyName::Operation;

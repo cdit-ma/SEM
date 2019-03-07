@@ -39,7 +39,7 @@ set(CMAKE_AUTORCC ON)
 #Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
-#option(BUILD_TEST "Build MEDEA Test" ON)
+option(BUILD_TEST "Build MEDEA Test" OFF)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     message(STATUS "Building MEDEA Core")

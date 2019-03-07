@@ -3,7 +3,7 @@
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const NODE_KIND node_kind = NODE_KIND::CALLBACK_FUNCTION;
+const NODE_KIND node_kind = NODE_KIND::CALLBACK_FNC;
 const QString kind_string = "Callback Function";
 
 void MEDEA::CallbackFunction::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
@@ -16,7 +16,7 @@ MEDEA::CallbackFunction::CallbackFunction(::EntityFactoryBroker& broker, bool is
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
-    addInstanceKind(NODE_KIND::CALLBACK_FUNCTION_INST);
+    addInstanceKind(NODE_KIND::CALLBACK_FNC_INST);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);

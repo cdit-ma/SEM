@@ -760,7 +760,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             
             //Ignore Functions contained within Class Instances
             if(parent_node_kind == NODE_KIND::CLASS_INST){
-                if(node_kind == NODE_KIND::FUNCTION || node_kind == NODE_KIND::CALLBACK_FUNCTION){
+                if(node_kind == NODE_KIND::FUNCTION || node_kind == NODE_KIND::CALLBACK_FNC){
                     return;
                 }
             }
@@ -939,7 +939,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("class");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
-            case NODE_KIND::CALLBACK_FUNCTION_INST:
+            case NODE_KIND::CALLBACK_FNC_INST:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 node_item->setSecondaryTextKey("class");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);

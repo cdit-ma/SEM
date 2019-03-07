@@ -25,7 +25,7 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
     setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     setAcceptsNodeKind(NODE_KIND::HEADER);
-    setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::CALLBACK_FNC);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -65,7 +65,7 @@ bool MEDEA::Class::canAdoptChild(Node* child)
 {
     auto child_kind = child->getNodeKind();
     switch(child_kind){
-        case NODE_KIND::CALLBACK_FUNCTION:{
+        case NODE_KIND::CALLBACK_FNC:{
             //Only allow Workers to have Callback Function
             if(getDataValue(KeyName::IsWorker).toBool() == false){
                 return false;

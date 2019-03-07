@@ -102,7 +102,7 @@ void MEDEA::ClassInst::parentSet(Node*){
     if(allow_children){
         //Behaviour
         setAcceptsNodeKind(NODE_KIND::FUNCTION);
-        setAcceptsNodeKind(NODE_KIND::CALLBACK_FUNCTION);
+        setAcceptsNodeKind(NODE_KIND::CALLBACK_FNC);
         setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     }
 }

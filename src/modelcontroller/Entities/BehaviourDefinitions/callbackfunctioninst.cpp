@@ -4,7 +4,7 @@
 #include "../../entityfactoryregistrybroker.h"
 #include "containernode.h"
 
-const NODE_KIND node_kind = NODE_KIND::CALLBACK_FUNCTION_INST;
+const NODE_KIND node_kind = NODE_KIND::CALLBACK_FNC_INST;
 const QString kind_string = "Callback Function Instance";
 
 void MEDEA::CallbackFunctionInst::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
@@ -15,7 +15,7 @@ void MEDEA::CallbackFunctionInst::RegisterWithEntityFactory(::EntityFactoryRegis
 
 MEDEA::CallbackFunctionInst::CallbackFunctionInst(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
-    addInstancesDefinitionKind(NODE_KIND::CALLBACK_FUNCTION);
+    addInstancesDefinitionKind(NODE_KIND::CALLBACK_FNC);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE, true);
     

@@ -37,22 +37,52 @@ stage("Checkout"){
     }
 }
 
-def step_build_test = [:]
+def step_build = [:]
+def step_test = [:]
 def step_archive = [:]
 
 def medea_nodes = nodesByLabel("build_medea")
 for(n in medea_nodes){
     def node_name = n
 
-    step_build_test[node_name] = {
+    step_build[node_name] = {
         node(node_name){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                def success = utils.buildProject("Ninja", "-DBUILD_APP=ON -DBUILD_CLI=ON")
+                def success = utils.buildProject("Ninja", "-DBUILD_APP=ON -DBUILD_CLI=ON -DBUILD_TEST=ON")
 
                 if(!success){
                     error("CMake failed on Builder Node: " + node_name)
+                }
+            }
+        }
+    }
+
+    step_test[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME + "/build/bin/tests"){
+                def glob_str = "test_*"
+                if(!isUnix()){
+                    //If windows search for exe only
+                    glob_str += ".exe"
+                }
+                def tests_list = findFiles glob: glob_str
+                dir("results"){
+                    for(f in tests_list){
+                        def file_path = f.name
+                        def file_name = utils.trimExtension(file_path)
+                        def test_output = "${file_name}_${node_name}.xml"
+                        print("Running Test: ${file_path}")
+
+                        if(utils.runScript("../${file_path} -xunitxml -o ${test_output}") != 0){
+                            error("Running Test: ${file_path} Failed!")
+                        }
+                    }
+                    def stash_name = "${node_name}_test_cases"
+                    stash includes: "*.xml", name: stash_name, allowEmpty: true
+                    //Clean up the directory after
+                    deleteDir()
                 }
             }
         }
@@ -90,7 +120,23 @@ for(n in medea_nodes){
 }
 
 stage("Build"){
-    parallel step_build_test
+    parallel step_build
+}
+
+stage("Test"){
+    parallel step_test
+
+    node("master"){
+        dir("test_cases"){
+            deleteDir()
+            for(n in medea_nodes){
+                unstash  "${n}_test_cases"
+            }
+
+            def glob_str = "**.xml"
+            junit glob_str
+        }
+    }
 }
 
 if(BUILD_PACKAGE){

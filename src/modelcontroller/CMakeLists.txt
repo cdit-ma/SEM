@@ -1,16 +1,7 @@
-cmake_minimum_required (VERSION 2.6)
+set(PROJ_NAME medea_modelcontroller_lib)
+project(${PROJ_NAME})
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-set(LIB_NAME medea_modelcontroller_lib)
 find_package(Qt5 COMPONENTS Core REQUIRED)
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
@@ -38,8 +29,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/publisherportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/replierportimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/replierportimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/requesterportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/requesterportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
@@ -58,8 +47,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.cpp
@@ -68,7 +55,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/opencldevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportinst.cpp
@@ -98,8 +84,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportinst.cpp
@@ -151,7 +135,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/operationkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/versionkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
@@ -160,9 +143,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactorybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactoryregistrybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/keynames.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/strings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
@@ -218,15 +200,17 @@ set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
 
-#Pass Version info into cmakevars.h
+# Pass Version info into cmakevars.h
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
 )
 
-add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
-#Include the binary directory to include the generated cmakevars.h
-target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${LIB_NAME} PUBLIC Qt5::Core)
+# Include the binary directory to include the generated cmakevars.h
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+# Include the current source directory for those linking against us
+target_include_directories(${PROJ_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+# Publically link against QT5 Core
+target_link_libraries(${PROJ_NAME} PUBLIC Qt5::Core)

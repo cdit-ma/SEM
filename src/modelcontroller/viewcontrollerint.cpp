@@ -1,6 +1,5 @@
 #include "viewcontrollerint.h"
 #include "modelcontroller.h"
-#include <QCoreApplication>
 
 void ViewControllerInterface::ConnectModelController(ModelController* model_controller){
     if(model_controller){

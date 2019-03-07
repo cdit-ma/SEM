@@ -575,8 +575,8 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "arrowsLeftRightDark";
             break;
         }
-        case NODE_KIND::CALLBACK_FUNCTION:
-        case NODE_KIND::CALLBACK_FUNCTION_INST:{
+        case NODE_KIND::CALLBACK_FNC:
+        case NODE_KIND::CALLBACK_FNC_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "CallbackFunction";
             break;

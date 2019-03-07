@@ -107,7 +107,7 @@ bool ModelController::SuppressImportNodeError(const TempEntity& parent_entity, c
     //Handling the breaking changes prior to v3.3.4
     //This check is to remove the errors about Function, CallbackFunction and ClassInstance children being no-longer valid children of ClassInstance's in the Assembly Aspect
     if(VersionKey::IsVersionOlder(version, "3.3.5")){
-        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::CLASS_INST};
+        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FNC, NODE_KIND::CLASS_INST};
         
         auto child_kind = entity_factory->getNodeKind(child_entity.getKind());
 
@@ -137,7 +137,7 @@ bool ModelController::SuppressImportEdgeError(const TempEntity& edge_entity, con
     //Handling the breaking changes prior to v3.3.4
     //This check is to remove the errors about Function, CallbackFunction and ClassInstance children being no-longer valid children of ClassInstance's in the Assembly Aspect
     if(VersionKey::IsVersionOlder(version, "3.3.5")){
-        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::CLASS_INST};
+        const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FNC, NODE_KIND::CLASS_INST};
         auto child_kind = entity_factory->getNodeKind(src_entity->getKind());
 
         if(now_invalid_child_kinds.contains(child_kind)){
@@ -1465,7 +1465,7 @@ bool ModelController::canDeleteNode(Node *node)
             }
             case NODE_KIND::EXTERNAL_TYPE:
             case NODE_KIND::FUNCTION_CALL:
-            case NODE_KIND::CALLBACK_FUNCTION_INST:
+            case NODE_KIND::CALLBACK_FNC_INST:
             case NODE_KIND::PORT_REQUESTER_IMPL:
             case NODE_KIND::PORT_PUBLISHER_IMPL:
             case NODE_KIND::PORT_REPLIER:
@@ -2698,15 +2698,15 @@ const QSet<NODE_KIND>& GetValidInstanceKinds(const NODE_KIND& instance_kind){
             return instance_kinds;
         }
         case NODE_KIND::CLASS_INST:{
-            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION, NODE_KIND::ATTRIBUTE_INST};
+            static const QSet<NODE_KIND> instance_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FNC, NODE_KIND::ATTRIBUTE_INST};
             return instance_kinds;
         }
         case NODE_KIND::FUNCTION_CALL:
-        case NODE_KIND::CALLBACK_FUNCTION_INST:{
+        case NODE_KIND::CALLBACK_FNC_INST:{
             static const QSet<NODE_KIND> instance_kinds{NODE_KIND::INPUT_PARAMETER_GROUP_INST, NODE_KIND::RETURN_PARAMETER_GROUP_INST};
             return instance_kinds;
         }
-        case NODE_KIND::CALLBACK_FUNCTION:
+        case NODE_KIND::CALLBACK_FNC:
         case NODE_KIND::ATTRIBUTE_INST:
         case NODE_KIND::MEMBER_INST:
         case NODE_KIND::FUNCTION:{

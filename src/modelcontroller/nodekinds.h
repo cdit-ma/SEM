@@ -135,8 +135,8 @@ enum class NODE_KIND
         PORT_REQUEST_DELEGATE,
         PORT_PUBSUB_DELEGATE,
         EXTERNAL_SERVER_DELEGATE,
-        CALLBACK_FUNCTION,
-        CALLBACK_FUNCTION_INST
+        CALLBACK_FNC,
+        CALLBACK_FNC_INST
     };
 inline uint qHash(NODE_KIND key, uint seed)
     {
