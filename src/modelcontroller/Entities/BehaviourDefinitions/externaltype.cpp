@@ -52,7 +52,7 @@ bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 
             bool got_instance = false;
             if(container){
-                for(auto child : container->getChildrenOfKind(NODE_KIND::CLASS_INST)){
+                for(auto child : container->getChildrenOfKind(NODE_KIND::CLASS_INSTANCE)){
                     if(child->getDefinition(true) == dst_parent){
                         got_instance = true;
                         break;

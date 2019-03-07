@@ -15,7 +15,7 @@ void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegis
 MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     setLabelFunctional(false);
-    addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INST);
+    addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -44,11 +44,11 @@ void MEDEA::ReturnParameterGroup::parentSet(Node* parent){
     auto parent_kind = parent->getNodeKind();
     if(parent_kind == NODE_KIND::SERVER_INTERFACE){
         //Only allow AggregateInstances
-        setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+        setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
         setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
     }else{
-        setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
-        setAcceptsNodeKind(NODE_KIND::ENUM_INST);
+        setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+        setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
         setAcceptsNodeKind(NODE_KIND::MEMBER);
         setAcceptsNodeKind(NODE_KIND::VECTOR);
         setAcceptsNodeKind(NODE_KIND::VOID_TYPE);

@@ -19,9 +19,9 @@ Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker,
     setDataProducer(true);
     setDataReceiver(true);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
-    setAcceptsNodeKind(NODE_KIND::ENUM_INST);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
 
     if(is_temp){

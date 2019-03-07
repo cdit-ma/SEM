@@ -17,8 +17,8 @@ MEDEA::ReplierPort::ReplierPort(::EntityFactoryBroker& broker, bool is_temp) : E
     addInstanceKind(NODE_KIND::PORT_REPLIER_INST);
     addImplKind(NODE_KIND::PORT_REPLIER_IMPL);
 
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INST);
-    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INST);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -36,8 +36,8 @@ bool MEDEA::ReplierPort::canAdoptChild(Node* child)
     auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
-    case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
-    case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
+    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
         if(getChildrenOfKindCount(child_node_kind) > 0){
             return false;
         }

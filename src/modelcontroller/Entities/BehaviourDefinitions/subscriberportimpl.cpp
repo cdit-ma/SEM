@@ -15,7 +15,7 @@ SubscriberPortImpl::SubscriberPortImpl(EntityFactoryBroker& broker, bool is_temp
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     addImplsDefinitionKind(NODE_KIND::PORT_SUBSCRIBER);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
@@ -36,7 +36,7 @@ bool SubscriberPortImpl::canAdoptChild(Node *child)
     auto child_kind = child->getNodeKind();
     
     switch(child_kind){
-        case NODE_KIND::AGGREGATE_INST:{
+        case NODE_KIND::AGGREGATE_INSTANCE:{
             if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }

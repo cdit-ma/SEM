@@ -1,5 +1,5 @@
 #include "enummember.h"
-#include "enuminst.h"
+#include "enuminstance.h"
 #include <QDebug>
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"

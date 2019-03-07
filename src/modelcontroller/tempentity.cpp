@@ -48,7 +48,7 @@ NODE_KIND TempEntity::getNodeKind(){
     return node_kind;
 }
 
-const QList<NODE_KIND>& TempEntity::getParentStack() const{
+const QList<NODE_KIND>& TempEntity::getParentStack(){
     return parent_stack;
 }
 
@@ -58,12 +58,12 @@ void TempEntity::setLineNumber(int line_number)
     this->line_number = line_number;
 }
 
-TempEntity *TempEntity::getParent() const
+TempEntity *TempEntity::getParent()
 {
     return parent;
 }
 
-QString TempEntity::getKind()  const
+QString TempEntity::getKind()
 {
     return kind_str;
 }
@@ -100,7 +100,7 @@ void TempEntity::setID(int id){
     actual_id = id;
 }
 
-int TempEntity::getID() const{
+int TempEntity::getID(){
     return actual_id;
 }
 

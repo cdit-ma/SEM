@@ -119,7 +119,7 @@ bool StackNodeItem::allowIcons(){
         return false;
     }else{
         if(getNodeViewItem()->isInstance()){
-            static const QSet<NODE_KIND> valid_kinds({NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FUNCTION_INST});
+            static const QSet<NODE_KIND> valid_kinds({NODE_KIND::FUNCTION});
             return valid_kinds.contains(getNodeKind());
         }else{
             return true;

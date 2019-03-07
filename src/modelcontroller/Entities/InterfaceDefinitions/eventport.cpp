@@ -1,6 +1,6 @@
 #include "eventport.h"
 #include "aggregate.h"
-#include "aggregateinst.h"
+#include "aggregateinstance.h"
 #include "../Keys/typekey.h"
 #include "../../entityfactorybroker.h"
 
@@ -9,7 +9,7 @@ EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
     //Setup State
     setNodeType(NODE_TYPE::EVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 
     this->is_pubsub_port = is_pubsub_port;
 

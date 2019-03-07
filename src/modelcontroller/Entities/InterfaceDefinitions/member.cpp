@@ -1,5 +1,5 @@
 #include "member.h"
-#include "aggregateinst.h"
+#include "aggregateinstance.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
@@ -16,7 +16,7 @@ void Member::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
-    addInstanceKind(NODE_KIND::MEMBER_INST);
+    addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -41,7 +41,7 @@ void Member::parentSet(Node* parent){
     }
 
     if(parent->getNodeKind() != NODE_KIND::VARIABLE){
-        AggregateInst::ParentSet(this);
+        AggregateInstance::ParentSet(this);
     }else{
         getFactoryBroker().AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
     }

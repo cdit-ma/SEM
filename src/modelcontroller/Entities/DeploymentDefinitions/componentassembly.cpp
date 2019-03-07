@@ -17,7 +17,7 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
 
     setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
     setAcceptsNodeKind(NODE_KIND::VARIABLE);
-    setAcceptsNodeKind(NODE_KIND::COMPONENT_INST);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::PORT_SUBSCRIBER_DELEGATE);
     setAcceptsNodeKind(NODE_KIND::PORT_PUBLISHER_DELEGATE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);

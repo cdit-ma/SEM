@@ -23,7 +23,7 @@
     <graph id="G">
         <node id="utilityworker">
             <data key="kind">Class</data>
-            <data key="version">1.3.0</data>
+            <data key="version">1.0.3</data>
             <data key="worker">Utility_Worker</data>
             <data key="label">Utility Worker</data>
             <data key="description">A Worker that provides utility functions for use in workload.</data>

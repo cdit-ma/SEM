@@ -21,7 +21,7 @@
     <graph id="G">
         <node id="opencl">
             <data key="kind">Class</data>
-            <data key="version">1.2.0</data>
+            <data key="version">1.0.2</data>
             <data key="worker">OpenCL_Worker</data>
             <data key="label">OpenCL Worker</data>
             <data key="description">Provides heterogeneous compute workload functionality.</data>

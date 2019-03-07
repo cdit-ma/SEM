@@ -24,7 +24,7 @@
     <graph id="G">
         <node id="vectorworker">
             <data key="kind">Class</data>
-            <data key="version">1.1.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
             <data key="icon_prefix">EntityIcons</data>
