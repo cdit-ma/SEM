@@ -605,5 +605,7 @@ Setup has finished installing RTI Connext DDS Eval 5.3.0 on your computer.\r\r
 To install targets and add-on packages, use the RTI Package installer included \r\r
 with RTI Launcher.\r\r
 \r\r
-"
+Create an RTI Launcher shortcut on the Desktop \[y/N\]: "
+send -- "\r"
+expect "*"
 expect eof
