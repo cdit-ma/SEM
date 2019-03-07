@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <QDateTime>
 #include <QFutureWatcher>
+#include <QStyledItemDelegate>
 
 #define MIN_WIDTH 400
 #define FILTER "filter"
@@ -17,11 +18,9 @@
  * @brief ChartInputPopup::ChartInputPopup
  * @param parent
  */
-ChartInputPopup::ChartInputPopup(ViewController* vc, QWidget* parent)
+ChartInputPopup::ChartInputPopup(QWidget* parent)
     : HoverPopup(parent)
 {
-    viewController_ = vc;
-
     setupLayout();
     setVisible(false);
     setModal(true);
@@ -75,32 +74,11 @@ void ChartInputPopup::themeChanged()
                            "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
 
     setStyleSheet(styleSheet() + groupBoxStyle + scrollbarStyle);
-}
 
-
-/**
- * @brief ChartInputPopup::requestExperimentRuns
- */
-void ChartInputPopup::requestExperimentRuns()
-{
-    resizePopup(); // remove this when auto-complete is implemented
-
-    auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentNameLineEdit_->text().trimmed());
-    auto futureWatcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
-
-    connect(futureWatcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
-        try {
-            populateExperimentRuns(futureWatcher->result().toList());
-        } catch(const std::exception& ex) {
-            NotificationManager::manager()->AddNotification("Failed to request experiment runs - " + QString::fromStdString(ex.what()),
-                                                            "Icons", "chart",
-                                                            Notification::Severity::ERROR,
-                                                            Notification::Type::APPLICATION,
-                                                            Notification::Category::NONE);
-        }
-    });
-
-    futureWatcher->setFuture(future);
+    experimentsCompleter_->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
+                                                  theme->getScrollBarStyleSheet() +
+                                                  "QAbstractItemView::item{ padding: 2px 0px; }"
+                                                  "QAbstractItemView::item::selected{ background:red; }");
 }
 
 
@@ -119,8 +97,24 @@ void ChartInputPopup::setPopupVisible(bool visible)
         activateWindow();
         experimentNameLineEdit_->setFocus();
         experimentNameLineEdit_->selectAll();
-        requestExperimentRuns();
     }
+}
+
+
+/**
+ * @brief ChartInputPopup::setExperimentRuns
+ * @param runs
+ */
+void ChartInputPopup::setExperimentRuns(const QList<ExperimentRun> &runs)
+{
+    QStringList experimentNames;
+    for (auto run : runs) {
+        experimentNames.append(run.experiment_name);
+        experimentRuns_.insert(experimentNames.last(), run);
+    }
+    experimentNames.removeDuplicates();
+    experimentsModel_->setStringList(experimentNames);
+    experimentNameLineEdit_->setText(experimentNameLineEdit_->text());
 }
 
 
@@ -177,10 +171,21 @@ void ChartInputPopup::reject()
 
 
 /**
+ * @brief ChartInputPopup::experimentNameActivated
+ * @param experimentName
+ */
+void ChartInputPopup::experimentNameActivated(const QString &experimentName)
+{
+    clearGroupBox(FILTER_KEY::RUNS_FILTER);
+    populateExperimentRuns(experimentRuns_.values(experimentName));
+}
+
+
+/**
  * @brief ChartInputPopup::experimentRunSelected
  * @param experimentRun
  */
-void ChartInputPopup::experimentRunSelected(ExperimentRun experimentRun)
+void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
 {
     // we only need to request the experiment state if the filter widgets are enabled
     /*if (filtersEnabled_) {
@@ -196,27 +201,13 @@ void ChartInputPopup::experimentRunSelected(ExperimentRun experimentRun)
  * @brief ChartInputPopup::populateExperimentRuns
  * @param runs
  */
-void ChartInputPopup::populateExperimentRuns(QList<ExperimentRun> runs)
+void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
 {
-    experimentRunsGroupBox_->hide();
-
-    // clear previous experimentRun widgets
-    clearGroupBox(FILTER_KEY::RUNS_FILTER);
-
-    // hiding it first, resizes the widget immediately
-    resizePopup();
-
     if (filterAction_)
         filterAction_->setEnabled(false);
 
-    if (runs.isEmpty()) {
-        recenterPopup();
-        return;
-    }
-
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
-        //QString text = "[" + QString::number(ID) + "] " + run.experiment_name +
         QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
                        QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
 
@@ -336,7 +327,20 @@ void ChartInputPopup::resizePopup()
 void ChartInputPopup::resetPopup()
 {
     selectedExperimentRunID_ = -1;
+    experimentRuns_.clear();
+    experimentsModel_->setStringList(QStringList());
+
+    /*if (filtersEnabled_) {
+        for (auto filter : getFilterKeys()) {
+            clearGroupBox(filter);
+        }
+    } else {
+        clearGroupBox(FILTER_KEY::RUNS_FILTER);
+    }*/
+
     hideGroupBoxes();
+    resizePopup();
+    recenterPopup();
 }
 
 
@@ -345,6 +349,21 @@ void ChartInputPopup::resetPopup()
  */
 void ChartInputPopup::setupLayout()
 {
+    /*
+     * Setup Auto-Complete
+     */
+
+    experimentsModel_ = new QStringListModel(this);
+    experimentsCompleter_ = new QCompleter(this);
+    experimentsCompleter_->setModel(experimentsModel_);
+    experimentsCompleter_->setFilterMode(Qt::MatchContains);
+    experimentsCompleter_->setCaseSensitivity(Qt::CaseInsensitive);
+    experimentsCompleter_->popup()->setFont(QFont(font().family(), 10));
+
+    connect(experimentsCompleter_, static_cast<void(QCompleter::*)(const QString &)>(&QCompleter::activated),
+        [=](const QString &text){ experimentNameActivated(text);
+    });
+
     /*
      * Setup Widgets
      */
@@ -356,7 +375,7 @@ void ChartInputPopup::setupLayout()
     experimentNameLineEdit_->setPlaceholderText("Enter experiment name...");
     experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
-    connect(experimentNameLineEdit_, &QLineEdit::textEdited, this, &ChartInputPopup::requestExperimentRuns);
+    experimentNameLineEdit_->setCompleter(experimentsCompleter_);
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
     QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);

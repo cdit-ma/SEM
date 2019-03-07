@@ -17,6 +17,7 @@ public:
     QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
 
 private:
+    double minUtilisation_ = DBL_MAX;
     double maxUtilisation_ = DBL_MIN;
 
 };

@@ -166,6 +166,7 @@ void AxisSlider::zoom(double factor)
     // stop zooming out when one of the sliders hit the edge
     if (factor > 1) {
         if (_sliderMin == 0 || _sliderMax == _sliderRange)
+            // TODO - If the zoom isn't going to move the slider, allow it
             return;
     }
 

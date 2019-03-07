@@ -24,6 +24,7 @@
 #define HOVER_DISPLAY_ITEM_COUNT 10
 
 #define EXPERIMENT_RUN_ID "experimentRunID"
+#define EXPERIMENT_RUN_START_TIME "experimentRunStartTime"
 
 /**
  * @brief TimelineChartView::TimelineChartView
@@ -75,7 +76,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
 void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
     if (!events.isEmpty()) {
-        auto series = constructSeriesForEventKind(experimentRun.experiment_run_id, TIMELINE_DATA_KIND::PORT_LIFECYCLE, events.at(0)->getID(), events.at(0)->getName());
+        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::PORT_LIFECYCLE, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
             series->clear();
             for (auto event : events) {
@@ -95,7 +96,7 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
 void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, const QVector<WorkloadEvent *> &events)
 {
     if (!events.isEmpty()) {
-        auto series = constructSeriesForEventKind(experimentRun.experiment_run_id, TIMELINE_DATA_KIND::WORKLOAD, events.at(0)->getID(), events.at(0)->getName());
+        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::WORKLOAD, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
             series->clear();
             for (auto event : events) {
@@ -115,7 +116,7 @@ void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, co
 void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
 {
     if (!events.isEmpty()) {
-        auto series = constructSeriesForEventKind(experimentRun.experiment_run_id, TIMELINE_DATA_KIND::CPU_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
+        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::CPU_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
             series->clear();
             for (auto event : events) {
@@ -135,7 +136,7 @@ void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentR
 void TimelineChartView::addMemoryUtilisationEvents(const ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
 {
     if (!events.isEmpty()) {
-        auto series = constructSeriesForEventKind(experimentRun.experiment_run_id, TIMELINE_DATA_KIND::MEMORY_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
+        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::MEMORY_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
             series->clear();
             for (auto event : events) {
@@ -451,6 +452,7 @@ void TimelineChartView::minSliderMoved(const double ratio)
 {
     for (auto chart : eventEntityCharts) {
         chart->setDisplayMinRatio(ratio);
+        chart->updateBinnedData();
     }
 }
 
@@ -463,6 +465,7 @@ void TimelineChartView::maxSliderMoved(const double ratio)
 {
     for (auto chart : eventEntityCharts) {
         chart->setDisplayMaxRatio(ratio);
+        chart->updateBinnedData();
     }
 }
 
@@ -527,6 +530,7 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
     maxRatio = actualDist > 0 ? (max - actualRange.first) / actualDist : 0.0;
     for (auto chart : eventEntityCharts) {
         chart->setDisplayRangeRatio(minRatio, maxRatio);
+        chart->updateBinnedData();
     }
 }
 
@@ -539,10 +543,14 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
 void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const ExperimentRun &experimentRun)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
+    auto experimentRunStartTime = experimentRun.start_time;
     auto experimentInfo = "Experiment name:\t" + experimentRun.experiment_name +
                           "\nJob number#:\t" + QString::number(experimentRun.job_num) +
                           "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
 
+    updateRangeForExperimentRun(experimentRunID, experimentRunStartTime, experimentRun.last_updated_time);
+
+    // set the experiment info as the chart's tooltip
     for (auto ID : eventEntityCharts.keys()) {
         auto chart = eventEntityCharts.value(ID);
         if (!chart || (chart->getExperimentRunID() != experimentRunID))
@@ -550,11 +558,7 @@ void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const Ex
         if (eventEntitySets.contains(ID)) {
             eventEntitySets.value(ID)->setToolTip(experimentInfo);
         }
-        // update the charts' binned data
-        chart->updateBinnedData(kind);
     }
-
-    updateRangeForExperimentRun(experimentRunID, experimentRun.start_time, experimentRun.last_updated_time);
 }
 
 
@@ -566,8 +570,9 @@ void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const Ex
  * @param label
  * @return
  */
-MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const quint32 experimentRunID, const TIMELINE_DATA_KIND kind, const QString &ID, const QString &label)
+MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const ExperimentRun& experimentRun, const TIMELINE_DATA_KIND kind, const QString &ID, const QString &label)
 {
+    auto experimentRunID = experimentRun.experiment_run_id;
     auto seriesID = QString::number(experimentRunID);
 
     if (eventSeries.contains(seriesID)) {
@@ -603,6 +608,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const quint32
     if (series) {
         // this needs to be set before the chart is constructed
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
+        series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
         constructChartForSeries(series, seriesID, seriesLabel + GET_TIMELINE_DATA_KIND_STRING_SUFFIX(kind));
         eventSeries.insert(seriesID, series);
         experimentRunSeriesCount_[experimentRunID]++;
@@ -634,9 +640,10 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *seri
     // can't use event series ID as the chart ID because multiple event series can share the same ID
     auto seriesID = series->getEventSeriesID();
     auto experimentRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
+    auto experimentRunStartTime = (qint64) series->property(EXPERIMENT_RUN_START_TIME).toLongLong();
     auto seriesLabel = "[" + QString::number(experimentRunID) + "] " + label;
 
-    EntityChart* chart = new EntityChart(experimentRunID, this);
+    EntityChart* chart = new EntityChart(experimentRunID, experimentRunStartTime, this);
     chart->addSeries(series);
     _timelineChart->addEntityChart(chart);
     eventEntityCharts[seriesID] = chart;
@@ -814,7 +821,7 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
     /*
      * TODO - Refactor so that the total range can be changed without affecting the display range
      */
-    switch (timeDisplayFormat_) {
+    /*switch (timeDisplayFormat_) {
     case TIME_DISPLAY_FORMAT::DATE_TIME: {
         _timelineChart->setRange(totalTimeRange_.first, totalTimeRange_.second);
         _dateTimeAxis->setRange(totalTimeRange_, updateDisplayRange);
@@ -826,6 +833,7 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
             auto startTime = experimentRunTimeRange_.value(chart->getExperimentRunID()).first;
             chart->setRange(startTime, startTime + range);
             chart->setDisplayRangeRatio(0.0, 1.0);
+            chart->updateBinnedData();
         }
         _dateTimeAxis->setRange(0, range, updateDisplayRange);
         break;
@@ -838,7 +846,26 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
         auto range = _dateTimeAxis->getRange();
         _dateTimeAxis->setDisplayRange(range.first, range.second);
         rangeSet = true;
+    }*/
+
+    auto startTime = totalTimeRange_.first;
+    auto duration = totalTimeRange_.second - totalTimeRange_.first;
+
+    switch (timeDisplayFormat_) {
+    case TIME_DISPLAY_FORMAT::ELAPSED_TIME: {
+        startTime = 0.0;
+        duration = longestExperimentRunDuration_.second;
+        break;
     }
+    default:
+        break;
+    }
+
+    for (auto chart : eventEntityCharts) {
+        chart->updateRange(startTime, duration);
+    }
+
+    _dateTimeAxis->setRange(startTime, startTime + duration, updateDisplayRange);
 }
 
 

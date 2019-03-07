@@ -25,9 +25,6 @@ public:
 
     explicit TimelineChart(QWidget* parent = 0);
 
-    // NOTE: The timeline chart doesn't know anything about the data range
-    void setRange(double min, double max);
-
     void setAxisXVisible(bool visible);
     void setAxisYVisible(bool visible);
     void setAxisWidth(double width);

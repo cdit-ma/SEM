@@ -35,7 +35,8 @@ private:
     ChartManager(ViewController* vc);
     ~ChartManager();
 
-    void requestExperimentState(quint32 experiment_run_id);
+    void requestExperimentRuns(const QString& experimentName);
+    void requestExperimentState(const quint32 experiment_run_id);
 
     void requestPortLifecycleEvents(
         const quint32 experiment_run_id,

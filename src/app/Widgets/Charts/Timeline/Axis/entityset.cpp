@@ -23,7 +23,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     toolbar = new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     closeAction = toolbar->addAction("");
-    closeAction->setToolTip("Close " + label + "'s Chart");
+    closeAction->setToolTip("Close " + label + "'s chart");
 
     connect(closeAction, &QAction::triggered, this, &EntitySet::closeEntity);
 

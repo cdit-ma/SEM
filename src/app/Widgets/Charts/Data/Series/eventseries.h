@@ -40,7 +40,8 @@ public:
 signals:
     void minChanged(qint64 min);
     void maxChanged(qint64 max);
-    void maxHeightChanged(double height);
+    void minYValueChanged(double minY);
+    void maxYValueChanged(double maxY);
 
 private:
     QString ID_;

@@ -18,9 +18,13 @@ void MemoryUtilisationEventSeries::addEvent(MEDEA::Event *event)
 {
     if (event->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
         auto utilisation = ((MemoryUtilisationEvent*)event)->getUtilisation();
+        if (utilisation < minUtilisation_) {
+            minUtilisation_ = utilisation;
+            emit minYValueChanged(utilisation);
+        }
         if (utilisation > maxUtilisation_) {
             maxUtilisation_ = utilisation;
-            emit maxHeightChanged(maxUtilisation_);
+            emit maxYValueChanged(utilisation);
         }
     }
     MEDEA::EventSeries::addEvent(event);

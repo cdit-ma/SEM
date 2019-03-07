@@ -18,20 +18,22 @@
 #define BAR_WIDTH 5.0
 #define PRINT_RENDER_TIMES false
 
-#define BIN_PIXEL_WIDTH 20.0
+#define BIN_WIDTH 20.0
 
 
 /**
  * @brief EntityChart::EntityChart
  * @param experimentRunID
+ * @param experimentStartTime
  * @param parent
  */
-EntityChart::EntityChart(quint32 experimentRunID, QWidget* parent)
+EntityChart::EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent)
     : QWidget(parent)
 {
     setMouseTracking(true);
 
-    _experimentRunID = experimentRunID;
+    experimentRunID_ = experimentRunID;
+    experimentRunStartTime_ = experimentStartTime;
     hoveredSeriesKind_ = TIMELINE_DATA_KIND::DATA;
 
     dataMinX_ = DBL_MAX;
@@ -57,7 +59,7 @@ EntityChart::EntityChart(quint32 experimentRunID, QWidget* parent)
  */
 quint32 EntityChart::getExperimentRunID()
 {
-    return _experimentRunID;
+    return experimentRunID_;
 }
 
 
@@ -67,8 +69,15 @@ quint32 EntityChart::getExperimentRunID()
  */
 void EntityChart::addSeries(MEDEA::EventSeries* series)
 {
-    if (series)
+    if (series) {
         seriesList_[series->getKind()] = series;
+        if (series->getKind() == TIMELINE_DATA_KIND::CPU_UTILISATION ||
+            series->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+            containsYRange_ = true;
+        }
+        connect(series, &MEDEA::EventSeries::minYValueChanged, this, &EntityChart::updateVerticalMin);
+        connect(series, &MEDEA::EventSeries::maxYValueChanged, this, &EntityChart::updateVerticalMax);
+    }
 }
 
 
@@ -120,15 +129,18 @@ const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(TIMELINE_DATA_KIND 
  */
 void EntityChart::setRange(double min, double max)
 {
-    // added 1ms on either side to include border values
-    min--;
-    max++;
+    // add 1% on either side to include border values
+    auto range = max - min;
+    min = min - (range * 0.01);
+    max = max + (range * 0.01);
 
     dataMinX_ = min;
     dataMaxX_ = max;
 
     displayMin_ = (dataMaxX_ - dataMinX_) * minRatio_ + dataMinX_;
     displayMax_ = (dataMaxX_ - dataMinX_) * maxRatio_ + dataMinX_;
+
+    //qDebug() << "Set RANGES to: " << QDateTime::fromMSecsSinceEpoch(min).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(max).toString(TIME_FORMAT);
 
     update();
 }
@@ -174,13 +186,18 @@ void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
 
 
 /**
- * @brief EntityChart::updateChartHeight
- * @param height
+ * @brief EntityChart::updateRange
+ * @param startTime
+ * @param duration
  */
-void EntityChart::updateChartHeight(double height)
+void EntityChart::updateRange(double startTime, double duration)
 {
-    dataHeight_ = height;
-    update();
+    if (startTime == 0.0) {
+        startTime = experimentRunStartTime_;
+    }
+    setRange(startTime, startTime + duration);
+    setDisplayRangeRatio(0.0, 1.0);
+    updateBinnedData();
 }
 
 
@@ -190,9 +207,37 @@ void EntityChart::updateChartHeight(double height)
  */
 void EntityChart::updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds)
 {
+    return;
+
+    if (kinds.isEmpty())
+        kinds = seriesList_.keys().toSet();
+
     for (auto kind : kinds) {
         updateBinnedData(kind);
     }
+
+    update();
+}
+
+
+/**
+ * @brief EntityChart::updateVerticalMin
+ * @param min
+ */
+void EntityChart::updateVerticalMin(double min)
+{
+    dataMinY_ = min;
+    update();
+}
+
+
+/**
+ * @brief EntityChart::updateChartHeight
+ * @param max
+ */
+void EntityChart::updateVerticalMax(double max)
+{
+    dataMaxY_ = max;
     update();
 }
 
@@ -323,6 +368,7 @@ void EntityChart::themeChanged()
  */
 void EntityChart::resizeEvent(QResizeEvent* event)
 {
+    updateBinnedData();
     update();
     QWidget::resizeEvent(event);
 }
@@ -359,8 +405,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
     // display the y-range and send the series points that were hovered over
     if (hovered_) {
         if (containsYRange_) {
-            QString minStr = QString::number(round(dataMinY_));
-            QString maxStr = QString::number(round(dataMaxY_));
+            QString minStr = QString::number(floor(dataMinY_ * 100));
+            QString maxStr = QString::number(ceil(dataMaxY_ * 100));
             int h = fontMetrics().height();
             int w = qMax(fontMetrics().width(minStr), fontMetrics().width(maxStr)) + 5;
             QRectF maxRect(width() - w, POINT_BORDER, w, h);
@@ -400,9 +446,11 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
     // draw the points and get intersection point(s) index
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
         paintPortLifecycleEventSeries(painter);
+        //paintPortLifecycleSeries(painter);
         break;
+    }
     case TIMELINE_DATA_KIND::WORKLOAD:
         paintWorkloadEventSeries(painter);
         break;
@@ -429,7 +477,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     if (!eventSeries)
         return;
 
-    double barWidth = 22.0; //BAR_WIDTH;
+    double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
@@ -476,7 +524,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
         }
     }
 
-    QColor seriesColor = portLifecycleColor_;
+    QColor seriesColor = Qt::darkMagenta; // portLifecycleColor_;
     int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
@@ -567,7 +615,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
         }
     }
 
-    QColor seriesColor = workloadColor_;
+    QColor seriesColor = Qt::darkCyan; //workloadColor_;
     int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
@@ -858,17 +906,22 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintPortLifecycleSeries(QPainter &painter)
 {
+    if (portLifecycleBinnedData_.size() == 0)
+        return;
+
     int firstIndex = getBinIndexForTime(displayMin_);
-    int lastIndex = getBinIndexForTime(displayMax_);
+    int lastIndex = getBinIndexForTime(displayMax_)+1;
 
     QColor seriesColor = portLifecycleColor_;
-    int y = rect().center().y() - BIN_PIXEL_WIDTH / 2.0;
+    int y = rect().center().y() - BIN_WIDTH / 2.0;
 
-    for (int i = firstIndex; i < lastIndex; i++) {
+    for (int i = firstIndex; (i <= lastIndex) && (i < portLifecycleBinnedData_.size()); i++) {
         int count = portLifecycleBinnedData_[i].count();
         if (count == 0)
             continue;
-        QRectF rect(i * BIN_PIXEL_WIDTH, y, BIN_PIXEL_WIDTH, BIN_PIXEL_WIDTH);
+        auto rectX = (i - firstIndex) * binPixelWidth_;
+        QRectF rect(rectX, y, BIN_WIDTH, BIN_WIDTH);
+        qDebug() << "i[" << i << "] - rect x: " << rect.x();
         if (count == 1) {
             auto event = (PortLifecycleEvent*) portLifecycleBinnedData_[i][0];
             if (rectHovered(TIMELINE_DATA_KIND::PORT_LIFECYCLE, rect))
@@ -885,6 +938,7 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
             painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
         }
     }
+    qDebug() << "-------------------";
 }
 
 
@@ -940,22 +994,48 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
     if (!seriesList_.contains(kind))
         return;
 
+    auto dataRange = dataMaxX_ - dataMinX_;
+    auto displayRange = displayMax_ - displayMin_;
+
+    auto binRatio =  BIN_WIDTH / (double) width();
+    binTimeWidth_ = binRatio * displayRange;
+    binCount_ = ceil(dataRange / binTimeWidth_);
+    binPixelWidth_ = (double) width() / binCount_;
+    //binPixelWidth_ = BIN_WIDTH;
+    //binPixelWidth_ = (double)width() / (dataRange / binTimeWidth_);
+
+    //binRatio = binPixelWidth_ / (double) width();
+    //binTimeWidth_ = binRatio * displayRange;
+    //binCount_ = /*ceil*/(dataRange / binTimeWidth_);
+
+    if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE) {
+        int firstIndex = getBinIndexForTime(displayMin_);
+        int lastIndex = getBinIndexForTime(displayMax_);
+        qDebug() << "width(): " << width();
+        qDebug() << "binRatio =" << binRatio;
+        qDebug() << "bin pixel width: " << binPixelWidth_;
+        qDebug() << "bin time width: " << binTimeWidth_;
+        qDebug() << "bins#: " << binCount_;
+        qDebug() << "first index: " << firstIndex << " - 0";
+        qDebug() << "last index: " << lastIndex << " - " << ((lastIndex - firstIndex) * binPixelWidth_);
+    }
+
     // clear binned data
-    auto binnedData = getBinnedData(kind);
+    auto& binnedData = getBinnedData(kind);
     binnedData.clear();
+    binnedData.resize(binCount_);
 
     //qDebug() << "Update binned data: " << QDateTime::fromMSecsSinceEpoch(dataMinX_).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(dataMaxX_).toString(TIME_FORMAT);
 
-    auto dataRange = dataMaxX_ - dataMinX_;
-    auto binTimeWidth = dataRange / BIN_PIXEL_WIDTH;
-    auto binCount = ceil(dataRange / binTimeWidth);
+    QVector<double> binEndTimes;
+    binEndTimes.reserve(binCount_);
 
-    QVector<double> binEndTimes(binCount);
-
-    // calculate the bin end times
-    auto currentTime = displayMin_;
-    for (auto i = 0; i < binCount; i++) {
-        binEndTimes.append(currentTime + binTimeWidth);
+    // calculate the bin end times for the whole data range
+    auto currentTime = dataMinX_;
+    for (auto i = 0; i < binCount_; i++) {
+        /*if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE)
+            qDebug() << "CURRENT time: " << QDateTime::fromMSecsSinceEpoch(currentTime).toString(TIME_FORMAT);*/
+        binEndTimes.append(currentTime + binTimeWidth_);
         currentTime = binEndTimes.last();
     }
 
@@ -980,7 +1060,9 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
                     break;
                 }
             }
-            if (currentBin < binCount) {
+            if (currentBin < binCount_) {
+                if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE)
+                    qDebug() << "--- bin data at: " << currentBin;
                 binnedData[currentBin].append(*eventItr);
             }
         }
@@ -1052,19 +1134,9 @@ void EntityChart::updateSeriesPixmaps()
  */
 int EntityChart::getBinIndexForTime(double time)
 {
-    auto dataRange = dataMaxX_ - dataMinX_;
-    auto binTimeWidth = dataRange / BIN_PIXEL_WIDTH;
-    auto index = floor((time - displayMin_) / binTimeWidth);
-
-    /*
-    if (time == displayMin_) {
-        index = floor(index);
-    } else if (time == displayMax_) {
-        index = ceil(index);
-    }
-    */
-
-    return index;
+    auto index = (time - dataMinX_) / binTimeWidth_;
+    qDebug() << "index: " << index << " @ time " << (time - dataMinX_);
+    return floor(index);
 }
 
 

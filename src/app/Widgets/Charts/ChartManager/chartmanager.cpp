@@ -14,7 +14,7 @@ ChartManager::ChartManager(ViewController *vc)
     viewController_ = vc;
 
     chartDialog_ = new ChartDialog();
-    chartPopup_ = new ChartInputPopup(vc, chartDialog_);
+    chartPopup_ = new ChartInputPopup(chartDialog_);
     chartView_ = new TimelineChartView(chartDialog_);
 
     chartDialog_->setChartView(chartView_);
@@ -45,10 +45,31 @@ ChartManager::~ChartManager()
 
 
 /**
+ * @brief ChartManager::requestExperimentRuns
+ */
+void ChartManager::requestExperimentRuns(const QString& experimentName)
+{
+    auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentName);
+    auto futureWatcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
+
+    connect(futureWatcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
+        try {
+            if (chartPopup_)
+                chartPopup_->setExperimentRuns(futureWatcher->result().toList());
+        } catch(const std::exception& ex) {
+            toastNotification("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+        }
+    });
+
+    futureWatcher->setFuture(future);
+}
+
+
+/**
  * @brief ChartManager::requestExperimentState
  * @param experiment_run_id
  */
-void ChartManager::requestExperimentState(quint32 experiment_run_id)
+void ChartManager::requestExperimentState(const quint32 experiment_run_id)
 {
     auto future = viewController_->getAggregationProxy().RequestExperimentState(experiment_run_id);
     auto futureWatcher = new QFutureWatcher<ExperimentState>(this);
@@ -89,8 +110,6 @@ void ChartManager::requestPortLifecycleEvents(const quint32 experiment_run_id, c
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
         try {
             auto events = futureWatcher->result();
-            qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------";
             if (events.isEmpty()) {
                 toastNotification("No workload events received for selection", "spanner");
             } else {
@@ -98,6 +117,8 @@ void ChartManager::requestPortLifecycleEvents(const quint32 experiment_run_id, c
                 if (chartView_ )
                     chartView_->addPortLifecycleEvents(selectedExperimentRun_, events);
             }
+            qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -122,8 +143,6 @@ void ChartManager::requestWorkloadEvents(const quint32 experiment_run_id, const 
     connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
         try {
             auto events = futureWatcher->result();
-            qDebug() << "[Workload Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------";
             if (events.isEmpty()) {
                 toastNotification("No workload events received for selection", "spanner");
             } else {
@@ -131,6 +150,8 @@ void ChartManager::requestWorkloadEvents(const quint32 experiment_run_id, const 
                 if (chartView_ )
                     chartView_->addWorkloadEvents(selectedExperimentRun_, events);
             }
+            qDebug() << "[Workload Request] Result size#: " << events.size();
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
         }
@@ -154,8 +175,6 @@ void ChartManager::requestCPUUtilisationEvents(const quint32 experiment_run_id, 
     connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
         try {
             auto events = futureWatcher->result();
-            qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------";
             if (events.isEmpty()) {
                 toastNotification("No cpu utilisation events received for selection", "cpu");
             } else {
@@ -163,6 +182,8 @@ void ChartManager::requestCPUUtilisationEvents(const quint32 experiment_run_id, 
                 if (chartView_ )
                     chartView_->addCPUUtilisationEvents(selectedExperimentRun_, events);
             }
+            qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
         }
@@ -186,8 +207,6 @@ void ChartManager::requestMemoryUtilisationEvents(const quint32 experiment_run_i
     connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
         try {
             auto events = futureWatcher->result();
-            qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------";
             if (events.isEmpty()) {
                 toastNotification("No memory utilisation events received for selection", "memoryCard");
             } else {
@@ -195,6 +214,8 @@ void ChartManager::requestMemoryUtilisationEvents(const quint32 experiment_run_i
                 if (chartView_ )
                     chartView_->addMemoryUtilisationEvents(selectedExperimentRun_, events);
             }
+            qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
+            qDebug() << "-----------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
         }
@@ -275,8 +296,10 @@ ChartDialog* ChartManager::getChartDialog()
  */
 void ChartManager::showChartsPopup()
 {
-    if (chartPopup_)
+    if (chartPopup_) {
         chartPopup_->setPopupVisible(true);
+    }
+    requestExperimentRuns("");
 }
 
 

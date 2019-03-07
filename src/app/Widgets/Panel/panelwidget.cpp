@@ -613,8 +613,7 @@ void PanelWidget::setupLayout()
     connect(snapShotAction, &QAction::triggered, this, &PanelWidget::snapShotPanel);
     connect(playPauseAction, &QAction::toggled, this, &PanelWidget::playPauseToggled);
 
-    //chartPopup = new ChartInputPopup(this);
-    chartPopup = new ChartInputPopup(viewController);
+    chartPopup = new ChartInputPopup(this);
 }
 
 

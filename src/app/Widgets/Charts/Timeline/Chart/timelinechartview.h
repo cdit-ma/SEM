@@ -70,7 +70,7 @@ private slots:
 private:
     void addedChartEvents(const TIMELINE_DATA_KIND kind, const ExperimentRun& experimentRun);
 
-    MEDEA::EventSeries* constructSeriesForEventKind(const quint32 experimentRunID, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
+    MEDEA::EventSeries* constructSeriesForEventKind(const ExperimentRun &experimentRun, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
     EntityChart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 

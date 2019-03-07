@@ -147,24 +147,25 @@ void AxisWidget::setRange(QPair<double, double> range, bool updateDisplay)
  */
 void AxisWidget::setRange(double min, double max, bool updateDisplay)
 {
-    // added 1ms on either side to include border values
-    min--;
-    max++;
+    // add 1% on either side to include border values
+    auto range = max - min;
+    min = min - (range * 0.01);
+    max = max + (range * 0.01);
 
     _min = min;
     _max = max;
     _range = max - min;
 
     // set the range
-    _display->setMax(max);
     _display->setMin(min);
+    _display->setMax(max);
 
     if (updateDisplay) {
         setDisplayRange(min, max);
     } else {
         // update the slider rects' positions
-        updateMaxSliderRatio(getDisplayedRange().second);
         updateMinSliderRatio(getDisplayedRange().first);
+        updateMaxSliderRatio(getDisplayedRange().second);
     }
 }
 
@@ -177,12 +178,12 @@ void AxisWidget::setRange(double min, double max, bool updateDisplay)
 void AxisWidget::setDisplayRange(double min, double max)
 {
     // set the display range
-    _display->displayedMaxChanged(max);
     _display->displayedMinChanged(min);
+    _display->displayedMaxChanged(max);
 
     // update the slider rects' positions
-    updateMaxSliderRatio(max);
     updateMinSliderRatio(min);
+    updateMaxSliderRatio(max);
 }
 
 

@@ -558,12 +558,6 @@ QString AxisDisplay::getDateTimeString(double value)
         displayFormat = "hh:mm:ss.zzz";
     }
 
-    /*if (displayFormat != currentDisplayFormat) {
-        updateMinMaxTextWidth();
-        currentDisplayFormat = displayFormat;
-        update();
-    }*/
-
     return QDateTime::fromMSecsSinceEpoch(value).toString(displayFormat);
 }
 
@@ -618,10 +612,18 @@ QString AxisDisplay::getElapsedTimeString(double value)
         elapsedTime += QString::number(h) + "h";
     if (m > 0)
         elapsedTime += QString::number(m) + "m";
-    if (s > 0)
+    /*if (s > 0)
         elapsedTime += QString::number(s) + "s";
     if (ms > 0)
-        elapsedTime += QString::number(ms) + "ms";
+        elapsedTime += QString::number(ms) + "ms";*/
+
+    if (s > 0) {
+        if (ms > 0) {
+            elapsedTime += QString::number(s) + "." + QString::number(ms) + "s";
+        } else {
+            elapsedTime += QString::number(s) + "s";
+        }
+    }
 
     return elapsedTime;
 }

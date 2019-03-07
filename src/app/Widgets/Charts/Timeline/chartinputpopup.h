@@ -13,6 +13,8 @@
 #include <QToolBar>
 #include <QAction>
 #include <QMenu>
+#include <QCompleter>
+#include <QStringListModel>
 
 class ChartInputPopup : public HoverPopup
 {
@@ -25,7 +27,7 @@ public:
         return {RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
     }
 
-    explicit ChartInputPopup(ViewController *vc, QWidget* parent = 0);
+    explicit ChartInputPopup(QWidget* parent = 0);
 
     void enableFilters();
 
@@ -38,6 +40,7 @@ public slots:
     void themeChanged();
 
     void setPopupVisible(bool visible);
+    void setExperimentRuns(const QList<ExperimentRun>& runs);
 
     void filterMenuTriggered(QAction* action);
 
@@ -45,12 +48,11 @@ public slots:
     void reject();
 
 private slots:
-    void experimentRunSelected(ExperimentRun experimentRun);
+    void experimentNameActivated(const QString& experimentName);
+    void experimentRunSelected(const ExperimentRun& experimentRun);
 
 private:
-    void requestExperimentRuns();
-
-    void populateExperimentRuns(QList<ExperimentRun> runs);
+    void populateExperimentRuns(const QList<ExperimentRun>& runs);
 
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
@@ -70,6 +72,7 @@ private:
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
     QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
 
+
     QLineEdit* experimentNameLineEdit_ = 0;
     QWidget* experimentRunsScrollWidget_ = 0;
 
@@ -87,9 +90,9 @@ private:
     QAction* filterAction_ = 0;
     QMenu* filterMenu_ = 0;
 
+    QPointF originalCenterPos_;
     bool filtersEnabled_ = false;
 
-    QPointF originalCenterPos_;
 
     ExperimentRun selectedExperimentRun_;
     qint32 selectedExperimentRunID_;
@@ -102,7 +105,9 @@ private:
     QStringList components_;
     QStringList workers_;
 
-    ViewController* viewController_ = 0;
+    QStringListModel* experimentsModel_;
+    QCompleter* experimentsCompleter_;
+    QMultiHash<QString, ExperimentRun> experimentRuns_;
 
 };
 

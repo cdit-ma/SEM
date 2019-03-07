@@ -18,9 +18,13 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
 {
     if (event->getKind() == TIMELINE_DATA_KIND::CPU_UTILISATION) {
         auto utilisation = ((CPUUtilisationEvent*)event)->getUtilisation();
+        if (utilisation < minUtilisation_) {
+            minUtilisation_ = utilisation;
+            emit minYValueChanged(utilisation);
+        }
         if (utilisation > maxUtilisation_) {
             maxUtilisation_ = utilisation;
-            emit maxHeightChanged(maxUtilisation_);
+            emit maxYValueChanged(utilisation);
         }
     }
     MEDEA::EventSeries::addEvent(event);

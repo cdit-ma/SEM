@@ -16,7 +16,7 @@ class EntityChart : public QWidget
     Q_OBJECT
 
 public:
-    explicit EntityChart(quint32 experimentRunID, QWidget* parent = 0);
+    explicit EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = 0);
 
     quint32 getExperimentRunID();
 
@@ -29,15 +29,18 @@ public:
     const QList<TIMELINE_DATA_KIND> getHovereSeriesKinds();
     const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_DATA_KIND kind);
 
+    void updateBinnedData(TIMELINE_DATA_KIND kind);
+    void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds = QSet<TIMELINE_DATA_KIND>());
+
+    void updateVerticalMin(double min);
+    void updateVerticalMax(double max);
+    void updateRange(double startTime, double duration);
+
     void setRange(double min, double max);
 
     void setDisplayMinRatio(double ratio);
     void setDisplayMaxRatio(double ratio);
     void setDisplayRangeRatio(double minRatio, double maxRatio);
-
-    void updateChartHeight(double height);
-    void updateBinnedData(TIMELINE_DATA_KIND kind);
-    void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds);
 
 public slots:
     void setHovered(bool visible);
@@ -74,7 +77,8 @@ private:
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
 
-    quint32 _experimentRunID;
+    quint32 experimentRunID_;
+    qint64 experimentRunStartTime_;
 
     bool containsYRange_ = false;
     bool hovered_ = false;
@@ -89,6 +93,10 @@ private:
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
+
+    int binCount_;
+    double binPixelWidth_;
+    double binTimeWidth_;
 
     QPixmap messagePixmap_;
     QRectF hoveredRect_;

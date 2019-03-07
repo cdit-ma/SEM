@@ -20,7 +20,6 @@ TimelineChart::TimelineChart(QWidget* parent)
 {
     setMouseTracking(true);
     setFocusPolicy(Qt::WheelFocus);
-    setRange(0, 100);
 
     _layout = new QVBoxLayout(this);
     _layout->setMargin(0);
@@ -30,20 +29,6 @@ TimelineChart::TimelineChart(QWidget* parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChart::themeChanged);
     themeChanged();
-}
-
-
-/**
- * @brief TimelineChart::setRange
- * @param min
- * @param max
- */
-void TimelineChart::setRange(double min, double max)
-{
-    for (EntityChart* chart : _entityCharts) {
-        chart->setRange(min, max);
-        chart->setDisplayRangeRatio(0.0, 1.0);
-    }
 }
 
 
