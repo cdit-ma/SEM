@@ -114,6 +114,9 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
     createSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION, SETTING_TYPE::INT, "General", "MEDEA", "Autosave wait delay (Mins)", "Icons", "clockDark");
     
+    createSetting(SETTINGS::GENERAL_SHOW_WORKER_ASPECT, SETTING_TYPE::BOOL, "General", "MEDEA", "Show Worker Aspect", "Icons", "spanner");
+
+    
     createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
     
 
@@ -225,6 +228,7 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION)->setDefaultValue(3);
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
+    _getSetting(SETTINGS::GENERAL_SHOW_WORKER_ASPECT)->setDefaultValue(false);
     
     
     _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);

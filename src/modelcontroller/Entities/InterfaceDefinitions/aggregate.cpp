@@ -19,11 +19,11 @@ void Aggregate::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     // Setup State
-    addInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
+    addInstanceKind(NODE_KIND::AGGREGATE_INST);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
     
-    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INST);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INST);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
 

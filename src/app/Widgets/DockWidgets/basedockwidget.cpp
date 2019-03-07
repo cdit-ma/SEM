@@ -238,6 +238,7 @@ void BaseDockWidget::setMaximizeToggled(bool toggled)
 }
 
 
+
 void BaseDockWidget::close()
 {
     title_Close(true);

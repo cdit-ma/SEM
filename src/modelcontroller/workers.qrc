@@ -1,10 +1,11 @@
 <RCC>
     <qresource prefix="/WorkerDefinitions">
+            <file alias="componentinfo.worker.graphml">WorkerDefinitions/componentinfo.worker.graphml</file>
             <file alias="cpu.worker.graphml">WorkerDefinitions/cpu.worker.graphml</file>
-            <file alias="opencl.worker.graphml">WorkerDefinitions/opencl.worker.graphml</file>
+            <file alias="dis.worker.graphml">WorkerDefinitions/dis.worker.graphml</file>
             <file alias="memory.worker.graphml">WorkerDefinitions/memory.worker.graphml</file>
+            <file alias="opencl.worker.graphml">WorkerDefinitions/opencl.worker.graphml</file>
             <file alias="utility.worker.graphml">WorkerDefinitions/utility.worker.graphml</file>
             <file alias="vector.worker.graphml">WorkerDefinitions/vector.worker.graphml</file>
-            <file alias="componentinfo.worker.graphml">WorkerDefinitions/componentinfo.worker.graphml</file>
     </qresource>
 </RCC>
