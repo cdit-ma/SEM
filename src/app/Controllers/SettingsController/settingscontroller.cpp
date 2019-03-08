@@ -221,12 +221,6 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
     _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
 
-
-    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://192.168.111.98:12345");
-
-    
-
-
     _getSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION)->setDefaultValue(3);
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);

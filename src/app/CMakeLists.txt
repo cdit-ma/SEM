@@ -305,7 +305,6 @@ target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../.
 target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../../re_common/")
 
 # Link against things
-#target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Charts)
 target_link_libraries(${PROJ_NAME} PRIVATE aggregation_requester_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Widgets)
