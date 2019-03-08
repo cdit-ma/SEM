@@ -24,10 +24,11 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
     case TYPE::TOOL:
         setWindowFlags(windowFlags() | Qt::Tool);
         break;
-    case TYPE::SPLASH:
+    case TYPE::SPLASH: {
         setAttribute(Qt::WA_ShowWithoutActivating);
-        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint); // | Qt::WindowSystemMenuHint);
+        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
         break;
+    }
     case TYPE::POPUP:
         setWindowFlags(windowFlags() | Qt::Popup);
         break;
