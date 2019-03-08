@@ -67,9 +67,14 @@ def GetHost(String name) {
     def label_string = node.getLabelString();
 
     def launcher = node.getLauncher();
+
     if(computer.isOnline() && launcher instanceof SSHLauncher){
         return launcher.getHost();
-    }else{
+    }else if (computer.isOnline() && label_string.contains("cloud")){
+        def ssh_connection_string = computer.getEnvironment().get("SSH_CONNECTION", "");
+        return ssh_connection_string.split(' ')[2]
+    }
+    else{
         return "OFFLINE";
     }
 }
