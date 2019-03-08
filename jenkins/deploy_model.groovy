@@ -227,7 +227,7 @@ pipeline{
                                     def is_docker = c["isDocker"]
                                     def is_master = c["isMaster"]
                                     def map_name = is_master ? "RE_MSTR" : "RE_SLV"
-                                    def docker_registry_address = "${env.DOCKER_REGISTRY_ADDRESS}"
+                                    def docker_registry_endpoint = "${env.DOCKER_REGISTRY_ENDPOINT}"
 
                                     //Is Slave
                                     execution_map["${map_name}_${node_name}_${container_id}"] = {
@@ -249,14 +249,14 @@ pipeline{
                                                 }
 
                                                 if(is_docker) {
-                                                    if(docker_registry_address) {
-                                                        docker.image("${docker_registry_address}:5000/re_full").inside("--network host") {
+                                                    if(docker_registry_endpoint) {
+                                                        docker.image("${docker_registry_endpoint}/re_full").inside("--network host") {
                                                             if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
                                                                 error("re_node_manager failed on Node: ${node_name} : ${container_id}")
                                                             }
                                                         }
                                                     } else {
-                                                        error("Docker registry address not set")
+                                                        error("Docker registry endpoint not set")
                                                     }
                                                 } else {
                                                     //Run re_node_manager
