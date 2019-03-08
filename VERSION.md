@@ -4,6 +4,7 @@
 * Added human readable error string when pugixml fails to parse the graphml document
 * Updated Jenkins deploy_model script to support docker
 * Added templated Setters/Getters for Attributes, exposed templatate Setter/Getters in Activatable
+* Added GetFrequency in the PeriodicPort to allow dynamic modification in MEDEA
 
 ## Workers
 ### Cpu_Worker v1.1.0
@@ -27,3 +28,4 @@
 * RE-434
 * RE-435
 * RE-443
+* MED-524
