@@ -30,7 +30,7 @@ endif()
 
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
-SET(VERSION_NO "3.3.4")
+SET(VERSION_NO "3.3.4-VIS")
 SET(VERSION "${VERSION_NO}")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "MEDEAv${VERSION}")
