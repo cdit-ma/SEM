@@ -8,7 +8,7 @@
 #include <QReadWriteLock>
 #include <QVariant>
 
-#include "strings.h"
+#include "keynames.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
 

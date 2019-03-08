@@ -716,17 +716,23 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "arrowsLeftRightDark";
             break;
         }
+        case NODE_KIND::CALLBACK_FNC:
+        case NODE_KIND::CALLBACK_FNC_INST:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "CallbackFunction";
+            break;
+        }
 
         case NODE_KIND::INPUT_PARAMETER:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
-        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "InputParameterGroup";
             break;
         }
         case NODE_KIND::RETURN_PARAMETER:
         case NODE_KIND::RETURN_PARAMETER_GROUP:
-        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "ReturnParameterGroup";
             break;
@@ -759,7 +765,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "Workload";
             break;
         }
-        case NODE_KIND::ENUM_INSTANCE:{
+        case NODE_KIND::ENUM_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "EnumMember";
             break;
@@ -949,7 +955,7 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::PORT_PUBLISHER_INST);
     constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
-    constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
+    constructableNodes.removeAll(NODE_KIND::VECTOR_INST);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
 
@@ -1900,8 +1906,15 @@ void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-        controller = new ModelController(QApplication::applicationDirPath());
-        ConnectModelController(controller);
+        try{
+            auto new_controller = new ModelController(QApplication::applicationDirPath());
+            controller = new_controller;
+            ConnectModelController(controller);
+        }catch(const std::exception& ex){
+            auto parent = WindowManager::manager()->getMainWindow();
+            QMessageBox::critical(parent, "MEDEA Model Exception", ex.what());
+            QCoreApplication::exit(1);
+        }
     }
 }
 

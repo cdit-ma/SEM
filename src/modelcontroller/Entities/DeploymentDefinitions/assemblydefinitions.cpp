@@ -16,7 +16,7 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactoryBroker& broker, bool is_te
     //Setup State
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
-    setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_INST);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
     setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_PUBSUB_DELEGATE);

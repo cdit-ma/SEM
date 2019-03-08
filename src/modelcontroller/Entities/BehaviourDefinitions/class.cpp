@@ -17,14 +17,15 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     
-    addInstanceKind(NODE_KIND::CLASS_INSTANCE);
+    addInstanceKind(NODE_KIND::CLASS_INST);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
     setAcceptsNodeKind(NODE_KIND::TRANSITION_FUNCTION);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INST);
     setAcceptsNodeKind(NODE_KIND::HEADER);
+    setAcceptsNodeKind(NODE_KIND::CALLBACK_FNC);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -37,7 +38,8 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(this, KeyName::Version, QVariant::String, ProtectedState::PROTECTED);
     TypeKey::BindNamespaceAndLabelToType(this, true);
 };
 
@@ -53,5 +55,25 @@ void MEDEA::Class::parentSet(Node* parent){
             break;
         }
     }
+
     getFactoryBroker().AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED, is_worker);
+    //Lock down the version number
+    getFactoryBroker().AttachData(this, KeyName::Version, QVariant::String, (is_worker ? ProtectedState::PROTECTED : ProtectedState::UNPROTECTED));
+}
+
+bool MEDEA::Class::canAdoptChild(Node* child)
+{
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
+        case NODE_KIND::CALLBACK_FNC:{
+            //Only allow Workers to have Callback Function
+            if(getDataValue(KeyName::IsWorker).toBool() == false){
+                return false;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    return Node::canAdoptChild(child);
 }

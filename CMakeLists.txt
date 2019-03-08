@@ -30,7 +30,7 @@ endif()
 
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
-SET(VERSION_NO "3.3.3")
+SET(VERSION_NO "3.3.4")
 SET(VERSION "${VERSION_NO}")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "MEDEAv${VERSION}")
@@ -41,14 +41,9 @@ set(CMAKE_AUTORCC ON)
 #Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
+option(BUILD_TEST "Build MEDEA Test" OFF)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
-    #Pass Version info into cmakevars.h
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
-        ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-    )
-
     message(STATUS "Building MEDEA Core")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/modelcontroller")
 endif()
@@ -66,6 +61,12 @@ if(BUILD_APP)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 endif(BUILD_APP)
+
+if(BUILD_TEST)
+    enable_testing()
+    message(STATUS "Building MEDEA Tests")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+endif(BUILD_TEST)
 
 SET(CPACK_GENERATOR "IFW;ZIP") 
 # Set CPACK generic info

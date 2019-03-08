@@ -1,19 +1,19 @@
-#include "attributeinstance.h"
+#include "attributeinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
+const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_INST;
 const QString kind_string = "Attribute Instance";
 
 
-void AttributeInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+void AttributeInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
-        return new AttributeInstance(broker, is_temp_node);
+        return new AttributeInst(broker, is_temp_node);
         });
 }
 
-AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
+AttributeInst::AttributeInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::ATTRIBUTE);
     setChainableDefinition();
@@ -32,7 +32,7 @@ AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) 
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
-void AttributeInstance::parentSet(Node* parent){
+void AttributeInst::parentSet(Node* parent){
     if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
         
         setDataReceiver(true);

@@ -808,8 +808,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
             
             //Ignore Functions contained within Class Instances
-            if(node_kind == NODE_KIND::FUNCTION && parent_node_kind == NODE_KIND::CLASS_INSTANCE){
-                return;
+            if(parent_node_kind == NODE_KIND::CLASS_INST){
+                if(node_kind == NODE_KIND::FUNCTION || node_kind == NODE_KIND::CALLBACK_FNC){
+                    return;
+                }
             }
 
             switch(node_kind){
@@ -826,7 +828,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::DEPLOYMENT_CONTAINER:
                 node_item = new DeploymentContainerNodeItem(item, parentNode);
-                    break;
+                break;
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
@@ -874,9 +876,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                     node_item = stack_item;
+                    node_item->setSecondaryTextKey("version");
+                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 }
                 break;
-            case NODE_KIND::COMPONENT_INSTANCE:
+            case NODE_KIND::COMPONENT_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
@@ -939,7 +943,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setTertiaryTextKey("value");
                 node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
                 break;
-            case NODE_KIND::ATTRIBUTE_INSTANCE:
+            case NODE_KIND::ATTRIBUTE_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
 
@@ -955,7 +959,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         break;
                     }
                 }
-
                 break;
             case NODE_KIND::SERVER_INTERFACE:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
@@ -971,7 +974,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("namespace");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
-            case NODE_KIND::AGGREGATE_INSTANCE:
+            case NODE_KIND::AGGREGATE_INST:
                 {
                     auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                     stack_item->SetUseColumnCount(0, 0, true);
@@ -985,8 +988,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setSecondaryTextKey("class");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
+            case NODE_KIND::CALLBACK_FNC_INST:
+                node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                node_item->setSecondaryTextKey("class");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
+                qCritical() << "CONSTRUCING: " << node_item;
+                break;
             case NODE_KIND::MEMBER:
-            case NODE_KIND::MEMBER_INSTANCE:
+            case NODE_KIND::MEMBER_INST:
                 node_item = new MemberNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
                 
@@ -1031,7 +1040,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
                 break;
             }
-            case NODE_KIND::ENUM_INSTANCE:
+            case NODE_KIND::ENUM_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setExpandEnabled(false);
                 
@@ -1119,18 +1128,19 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setContractedWidth(40);
                 break;
             }
-
-            case NODE_KIND::CLASS_INSTANCE:{
+            case NODE_KIND::CLASS_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 if(item->getData(KeyName::IsWorker).toBool()){
                     node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
                 }
+                node_item->setSecondaryTextKey("version");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             }
             case NODE_KIND::INPUT_PARAMETER_GROUP:
-            case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+            case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
-            case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
+            case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
             case NODE_KIND::PORT_PERIODIC_INST:{
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);
@@ -1158,11 +1168,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 node_item->setExpandEnabled(false);
                 break;
             case NODE_KIND::VECTOR:
-            case NODE_KIND::VECTOR_INSTANCE:
+            case NODE_KIND::VECTOR_INST:
                 node_item = new StackNodeItem(item, parentNode);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
+            
              case NODE_KIND::FUNCTION:
                 node_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 
@@ -1178,7 +1189,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
 
             if(node_item){
-                
                 //Ignore the position if we are 
                 if(containedNodeViewItem == item){
                     node_item->setIgnorePosition(true);
@@ -1210,7 +1220,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                             stack_item->SetRenderCellHoverIcons(0, 0, true, "Icons", "plus");
-                            
                             stack_item->SetCellSpacing(0, 0, 20);
                         }
 
@@ -1235,7 +1244,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         stack_item->SetUseColumnCount(1, 2, true);
                         stack_item->SetCellSpacing(1, 2, 10);
                     }else{
-                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INSTANCE){
+                        if(node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INST){
                             stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                         }
                     }

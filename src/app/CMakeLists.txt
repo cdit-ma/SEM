@@ -1,8 +1,11 @@
-# Requires Qt5_DIR and QTIFWDIR to be set
 set(PROJ_NAME MEDEA)
-
 project(${PROJ_NAME})
-find_package(Qt5 COMPONENTS Widgets Network Charts Concurrent REQUIRED)
+#find_package(Qt5 COMPONENTS Widgets Network Charts Concurrent REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
@@ -39,9 +42,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/compactnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/membernodeitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
@@ -160,8 +163,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/compactnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/membernodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
@@ -294,7 +295,7 @@ add_custom_command(TARGET ${PROJ_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E co
 
 if(WIN32)
     # Link against the Win Main Launcher
-    target_link_libraries(${PROJ_NAME} Qt5::WinMain)
+    target_link_libraries(${PROJ_NAME} PRIVATE Qt5::WinMain)
 endif()
 
 
@@ -302,12 +303,12 @@ target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../.
 target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../../re_common/")
 
 # Link against things
-target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
-target_link_libraries(${PROJ_NAME} Qt5::Charts)
-target_link_libraries(${PROJ_NAME} Qt5::Widgets)
-target_link_libraries(${PROJ_NAME} Qt5::Network)
-target_link_libraries(${PROJ_NAME} Qt5::Concurrent)
-target_link_libraries(${PROJ_NAME} aggregation_requester_lib)
+#target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Charts)
+target_link_libraries(${PROJ_NAME} PRIVATE aggregation_requester_lib)
+target_link_libraries(${PROJ_NAME} PRIVATE medea_modelcontroller_lib)
+target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Network)
+target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Concurrent)
 
 # Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})

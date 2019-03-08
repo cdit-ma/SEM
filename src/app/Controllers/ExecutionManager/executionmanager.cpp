@@ -261,6 +261,7 @@ QString ExecutionManager::GenerateWorkload(QString document_path, QString output
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
         notification->setTitle("Failed to generate workload C++");
+        notification->setDescription(results.standard_error.join("\n"));
     }else{
         notification->setTitle("Successfully generated workload C++");
     }

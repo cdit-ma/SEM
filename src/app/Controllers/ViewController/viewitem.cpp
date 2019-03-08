@@ -1,7 +1,7 @@
 #include "viewitem.h"
 #include "viewcontroller.h"
 #include "../../../modelcontroller/modelcontroller.h"
-#include "../../../modelcontroller/strings.h"
+#include "../../../modelcontroller/keynames.h"
 
 
 #include <QDebug>

@@ -1,5 +1,5 @@
 #include "datanode.h"
-#include "vectorinstance.h"
+#include "vectorinst.h"
 #include <QDebug>
 #include "../edge.h"
 #include "../Keys/typekey.h"
@@ -220,14 +220,14 @@ void DataNode::RunContainmentChecks(){
                     _contained_in_function_call = true;
                     break;
                 }
-                case NODE_KIND::AGGREGATE_INSTANCE:{
+                case NODE_KIND::AGGREGATE_INST:{
                     _contained_in_aggregate_instance = true;
                     break;
                 }
                 
                 
                 case NODE_KIND::VECTOR:
-                case NODE_KIND::VECTOR_INSTANCE:{
+                case NODE_KIND::VECTOR_INST:{
                     _contained_in_vector = true;
                     break;
                 }

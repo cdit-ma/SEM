@@ -61,6 +61,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::importProjects);
         connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
+        connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
 
         connect(edit_undo, &QAction::triggered, viewController, &ViewController::Undo);
         connect(edit_redo, &QAction::triggered, viewController, &ViewController::Redo);
@@ -960,6 +961,7 @@ void ActionController::setupMainMenu()
     // Model Menu
     menu_model->addAction(model_selectModel);
     menu_model->addAction(model_reloadWorkerDefinitions);
+    
     
     menu_model->addSeparator();
     menu_model->addAction(model_validateModel);

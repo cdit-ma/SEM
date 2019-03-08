@@ -39,7 +39,7 @@ bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         return false;
     }
     
-    const static QSet<NODE_KIND> valid_dst_kinds = {NODE_KIND::ATTRIBUTE_INSTANCE, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::VARIABLE};
+    const static QSet<NODE_KIND> valid_dst_kinds = {NODE_KIND::ATTRIBUTE_INST, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::VARIABLE};
 
     switch(edge_kind){
     case EDGE_KIND::DATA:{

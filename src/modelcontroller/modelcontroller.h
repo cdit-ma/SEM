@@ -22,6 +22,7 @@ class Data;
 class EntityFactory;
 class ViewController;
 
+class TempEntity;
 
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -155,12 +156,17 @@ signals:
     void SetClipboardData(QString);
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
+    Node* getFirstValidParent(const TempEntity& entity);
+
+    bool SuppressImportNodeError(const TempEntity& parent_node, const TempEntity& entity, const QString& version);
+    bool SuppressImportEdgeError(const TempEntity& edge_entity, const TempEntity* src_entity, const TempEntity* dst_entity, const QString& version);
+    
+    
     QSet<Node*> UpdateDefinitions(Node* definition, Node* instance);
 
     Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
-    static int compare_version(const QString& current_version, const QString& version);
     bool canReplicate(const QList<Entity *>& ordered_selection);
     bool canCut(const QList<Entity *>& ordered_selection);
     bool canCopy(const QList<Entity *>& ordered_selection);
