@@ -1567,14 +1567,14 @@
                         <xsl:when test="($kind = 'Member' or
                                         $kind = 'MemberInstance') and
                                         cpp:is_primitive_type($cpp_type)">
-                            <xsl:value-of select="VALUE" />
+                            <xsl:value-of select="'VALUE'" />
                         </xsl:when>
                         <xsl:when test="$kind = 'EnumInstance'">
-                            <xsl:value-of select="VALUE" />
+                            <xsl:value-of select="'VALUE'" />
                         </xsl:when>
                         <xsl:when test="$cpp_type and
                                         $cpp_type != 'void'" >
-                            <xsl:value-of select="REF" />
+                            <xsl:value-of select="'REF'" />
                         </xsl:when>
                     </xsl:choose>
                 </xsl:variable>
