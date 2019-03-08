@@ -48,7 +48,6 @@ pipeline{
         string(name: 'execution_time', defaultValue: '60', description: 'The duration of the experiment')
         string(name: 'environment_manager_address', defaultValue: "${env.ENVIRONMENT_MANAGER_ADDRESS}", description: 'The address of the Environment Manager to use for this experiment')
         string(name: 'log_verbosity', defaultValue: '3', description: 'The logging verbosity (1-10)')
-        string(name: 'docker_registry_address', defaultValue: '${env.DOCKER_REGISTRY_ADDRESS}', description: 'The address of the docker registry.')
         file(name: 'model', description: 'The model for this experiment')
     }
 
@@ -228,6 +227,7 @@ pipeline{
                                     def is_docker = c["isDocker"]
                                     def is_master = c["isMaster"]
                                     def map_name = is_master ? "RE_MSTR" : "RE_SLV"
+                                    def docker_registry_address = "${env.DOCKER_REGISTRY_ADDRESS}"
 
                                     //Is Slave
                                     execution_map["${map_name}_${node_name}_${container_id}"] = {
@@ -249,10 +249,14 @@ pipeline{
                                                 }
 
                                                 if(is_docker) {
-                                                    docker.image("${docker_registry_address}:5000/re_full").inside("--network host") {
-                                                        if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
-                                                            error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                    if(docker_registry_address) {
+                                                        docker.image("${docker_registry_address}:5000/re_full").inside("--network host") {
+                                                            if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
+                                                                error("re_node_manager failed on Node: ${node_name} : ${container_id}")
+                                                            }
                                                         }
+                                                    } else {
+                                                        error("Docker registry address not set")
                                                     }
                                                 } else {
                                                     //Run re_node_manager
