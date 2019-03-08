@@ -77,11 +77,19 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::ShowDockWidget(dockwidget_Notification);});
 
     SettingsController* s = SettingsController::settings();
+    connect(s, &SettingsController::settingChanged, this, &MainWindow::settingChanged);
 
-    
-    auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
-    if(!outer_geo.isEmpty()){
-        restoreGeometry(outer_geo);
+    {
+        auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
+        if(!outer_geo.isEmpty()){
+            restoreGeometry(outer_geo);
+        }
+    }
+
+    {
+        //Load the initial setting
+        auto show_worker = s->getSetting(SETTINGS::GENERAL_SHOW_WORKER_ASPECT);
+        settingChanged(SETTINGS::GENERAL_SHOW_WORKER_ASPECT, show_worker);
     }
 
     setModelTitle();
@@ -105,7 +113,7 @@ void MainWindow::setViewController(ViewController* view_controller)
     connect(view_controller, &ViewController::ProjectModified, this, &MainWindow::setWindowModified);
     connect(view_controller, &ViewController::ProjectFileChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
-
+    
     addActions(action_controller->getAllActions());
 }
 
@@ -430,14 +438,6 @@ void MainWindow::setupInnerWindow()
     setDockWidgetIcon(dockwidget_Assemblies, "EntityIcons", "AssemblyDefinitions", theme);
     setDockWidgetIcon(dockwidget_Hardware, "EntityIcons", "HardwareDefinitions", theme);
 
-    /*//Uncomment for Workers View Aspect
-    auto dockwidget_Workers = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::WORKERS), this);
-    dockwidget_Workers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
-    setDockWidgetIcon(dockwidget_Workers, "EntityIcons", "WorkerDefinitions", theme);
-    dockwidget_Workers->setIconVisible(false);
-    dockwidget_Workers->setProtected(true);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Workers);*/
-
     //Set Icon Visibility
     dockwidget_Interfaces->setIconVisible(false);
     dockwidget_Behaviour->setIconVisible(false);
@@ -474,6 +474,32 @@ void MainWindow::setupInnerWindow()
     dockwidget_Hardware->req_Visible(dockwidget_Hardware->getID(), false);
     */
     dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
+}
+
+void MainWindow::ShowWorkerAspect(bool show){
+    if(show){
+        if(!dockwidget_workers){
+            dockwidget_workers = view_controller->constructViewDockWidget(getViewAspectName(VIEW_ASPECT::WORKERS), this);
+            dockwidget_workers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
+            setDockWidgetIcon(dockwidget_workers, "Icons", "spanner");
+            dockwidget_workers->setIconVisible(false);
+            dockwidget_workers->setProtected(true);
+            dockwidget_workers->setVisible(false);
+            innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_workers);
+        }
+    }else{
+        if(dockwidget_workers){
+            dockwidget_workers->close();
+            dockwidget_workers = 0;
+        }
+    }
+}
+
+void MainWindow::settingChanged(SETTINGS key, QVariant value)
+{
+    if(key == SETTINGS::GENERAL_SHOW_WORKER_ASPECT){
+        ShowWorkerAspect(value.toBool());
+    }
 }
 
 

@@ -11,6 +11,7 @@
         <file alias="AttributeImpl">Resources/EntityIcons/AttributeImpl.png</file>
         <file alias="AttributeInstance">Resources/EntityIcons/AttributeInstance.png</file>
         <file alias="BehaviourDefinitions">Resources/EntityIcons/BehaviourDefinitions.png</file>
+        <file alias="CallbackFunction">Resources/EntityIcons/CallbackFunction.png</file>
         <file alias="Class">Resources/EntityIcons/Class.png</file>
         <file alias="ClassInstance">Resources/EntityIcons/ClassInstance.png</file>
         <file alias="Code">Resources/EntityIcons/Code.png</file>
@@ -175,6 +176,10 @@
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleMinus">Resources/Icons/circleMinus.png</file>
         <file alias="circleMinusDark">Resources/Icons/circleMinusDark.png</file>
+        <file alias="circlePauseTwoTone">Resources/Icons/circlePauseTwoTone.png</file>
+        <file alias="circlePlayTwoTone">Resources/Icons/circlePlayTwoTone.png</file>
+        <file alias="circlePause">Resources/Icons/circlePause.png</file>
+        <file alias="circlePlay">Resources/Icons/circlePlay.png</file>
         <file alias="circlePlus">Resources/Icons/circlePlus.png</file>
         <file alias="circlePlusDark">Resources/Icons/circlePlusDark.png</file>
         <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
@@ -379,6 +384,7 @@
         <file alias="torch">Resources/Icons/torch.png</file>
         <file alias="trafficLight">Resources/Icons/trafficLight.png</file>
         <file alias="translate">Resources/Icons/translate.png</file>
+        <file alias="transmission">Resources/Icons/transmission.png</file>
         <file alias="transparent">Resources/Icons/transparent.png</file>
         <file alias="triangleCritical">Resources/Icons/triangleCritical.png</file>
         <file alias="triangleDown">Resources/Icons/triangleDown.png</file>

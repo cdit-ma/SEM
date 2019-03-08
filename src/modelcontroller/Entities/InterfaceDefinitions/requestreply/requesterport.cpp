@@ -19,8 +19,8 @@ MEDEA::RequesterPort::RequesterPort(::EntityFactoryBroker& broker, bool is_temp)
     addInstanceKind(NODE_KIND::PORT_REQUESTER_INST);
     addImplKind(NODE_KIND::PORT_REQUESTER_IMPL);
 
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INST);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INST);
     
     if(is_temp){
         //Break out early for temporary entities
@@ -39,8 +39,8 @@ bool MEDEA::RequesterPort::canAdoptChild(Node* child)
     auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
-    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
-    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+    case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
+    case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
         if(getChildrenOfKindCount(child_node_kind) > 0){
             return false;
         }

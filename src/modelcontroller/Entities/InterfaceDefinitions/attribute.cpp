@@ -15,7 +15,7 @@ void Attribute::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp, false){
     //Setup State
-    addInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
+    addInstanceKind(NODE_KIND::ATTRIBUTE_INST);
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 
     if(is_temp){
@@ -37,9 +37,6 @@ void Attribute::parentSet(Node* parent){
         auto parent_kind = parent->getNodeKind();
 
         switch(parent_kind){
-            case NODE_KIND::PORT_PERIODIC:{
-                break;
-            }
             default:{
                 setDataProducer(true);
                 break;

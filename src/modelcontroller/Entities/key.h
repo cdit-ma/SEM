@@ -1,7 +1,7 @@
 #ifndef KEY_H
 #define KEY_H
 #include "graphml.h"
-#include "../strings.h"
+#include "../keynames.h"
 
 
 #include <QMultiMap>

@@ -339,7 +339,7 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
             // can send port/workload requests
             compNames_.append(label);
             break;
-        case NODE_KIND::COMPONENT_INSTANCE:
+        case NODE_KIND::COMPONENT_INST:
             // can send port/workload requests
             compInstIDs_.append(QString::number(nodeItem->getParentID()));
             break;
@@ -372,7 +372,7 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
                     portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
             }
             break;
-        case NODE_KIND::CLASS_INSTANCE:
+        case NODE_KIND::CLASS_INST:
             // can send workload requests
             if (selectedDataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
                 // a ClassInstance can be a child of either a CompImpl or CompInst
@@ -381,7 +381,7 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
                     for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
                         workerInstIDs_.append(QString::number(instID));
                     }
-                } else if (parentNodeKind == NODE_KIND::COMPONENT_INSTANCE) {
+                } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
                     workerInstIDs_.append(QString::number(nodeItemID));
                 }
             }

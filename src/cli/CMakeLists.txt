@@ -11,8 +11,7 @@ set(SOURCE
 set(HEADERS
 )
 
-
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
-target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
+target_link_libraries(${PROJ_NAME} PUBLIC medea_modelcontroller_lib)
 
 INSTALL(TARGETS ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})

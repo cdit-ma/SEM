@@ -1,26 +1,24 @@
-#include "classinstance.h"
+#include "classinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
-const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
+const NODE_KIND node_kind = NODE_KIND::CLASS_INST;
 const QString kind_string = "Class Instance";
 
-void MEDEA::ClassInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+void MEDEA::ClassInst::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
-        return new MEDEA::ClassInstance(broker, is_temp_node);
+        return new MEDEA::ClassInst(broker, is_temp_node);
         });
 }
 
-MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+MEDEA::ClassInst::ClassInst(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::CLASS);
     setChainableDefinition();
     
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
 
-    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::FUNCTION);
-    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INST);
 
     if(is_temp){
         //Break out early for temporary entities
@@ -39,7 +37,7 @@ MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp)
     broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED);
 };
 
-bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
+bool MEDEA::ClassInst::ClassInst::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
@@ -52,8 +50,8 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
     case EDGE_KIND::DEFINITION:{
         switch(dst->getNodeKind()){
             case NODE_KIND::CLASS:
-            case NODE_KIND::CLASS_INSTANCE:{
-                if(parent_node_kind == NODE_KIND::COMPONENT_INSTANCE){
+            case NODE_KIND::CLASS_INST:{
+                if(parent_node_kind == NODE_KIND::COMPONENT_INST){
                     auto parent_node_def = parent_node->getDefinition(true);
                     bool in_ancestor = false;
                     if(parent_node_def){
@@ -63,7 +61,6 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
                                 break;
                             }
                         }
-
                     }
                     
                     if(!in_ancestor){
@@ -86,4 +83,26 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
     }
 
     return Node::canAcceptEdge(edge_kind, dst);
+}
+
+void MEDEA::ClassInst::parentSet(Node*){
+    bool allow_children = false;
+
+    switch(getViewAspect()){
+        case VIEW_ASPECT::BEHAVIOUR:
+        case VIEW_ASPECT::WORKERS:{
+            allow_children = true;
+            break;
+        }
+        default:{
+            break;
+        }
+    }
+
+    if(allow_children){
+        //Behaviour
+        setAcceptsNodeKind(NODE_KIND::FUNCTION);
+        setAcceptsNodeKind(NODE_KIND::CALLBACK_FNC);
+        setAcceptsNodeKind(NODE_KIND::CLASS_INST);
+    }
 }

@@ -37,8 +37,6 @@ public:
     void setCurrentWindow(BaseWindow* window);
     BaseWindow* getCurrentWindow();
 
-    void setTitleIcon(QString path, QString alias);
-    void setIconVisible(bool visible);
 
     void setIcon(QString, QString);
     void setIcon(QPair<QString, QString> pair);
@@ -52,6 +50,7 @@ public:
 
     void setFocusEnabled(bool enabled);
 
+    void setIconVisible(bool visible);
     void setCloseVisible(bool visible);
     void setHideVisible(bool visible);
     void setMaximizeVisible(bool visible);

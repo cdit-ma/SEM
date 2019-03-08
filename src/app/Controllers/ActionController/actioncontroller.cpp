@@ -961,6 +961,7 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_selectModel);
     menu_model->addAction(model_reloadWorkerDefinitions);
     
+    
     menu_model->addSeparator();
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);

@@ -23,6 +23,8 @@ private slots:
     void themeChanged();
     void resetToolDockWidgets();
 private:
+    void settingChanged(SETTINGS key, QVariant value);
+    void ShowWorkerAspect(bool show);
     bool isWelcomeScreenVisible();
     void setModelTitle(QString model_title="");
 
@@ -57,8 +59,6 @@ private:
     BaseWindow* rightWindow = 0;
     BaseWindow* leftWindow = 0;
 
-    //For the innew window
-    //BaseDockWidget* dockwidget_Jenkins = 0;
     BaseDockWidget* dockwidget_Search = 0;
     BaseDockWidget* dockwidget_Qos = 0;
     BaseDockWidget* dockwidget_Notification = 0;
@@ -75,6 +75,8 @@ private:
     BaseDockWidget* dockwidget_Center = 0;
     BaseDockWidget* dockwidget_Right = 0;
     BaseDockWidget* dockwidget_Dock = 0;
+
+    ViewDockWidget* dockwidget_workers = 0;
     
     QMenuBar* menu_bar = 0;
     QToolBar* applicationToolbar = 0;

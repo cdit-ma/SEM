@@ -530,7 +530,7 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     QSet<NODE_KIND> chart_valid_node_kinds;
     chart_valid_node_kinds.insert(NODE_KIND::COMPONENT);
     chart_valid_node_kinds.insert(NODE_KIND::COMPONENT_IMPL);
-    chart_valid_node_kinds.insert(NODE_KIND::COMPONENT_INSTANCE);
+    chart_valid_node_kinds.insert(NODE_KIND::COMPONENT_INST);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER_IMPL);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_REPLIER_INST);
@@ -545,7 +545,7 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_IMPL);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_INST);
-    chart_valid_node_kinds.insert(NODE_KIND::CLASS_INSTANCE);
+    chart_valid_node_kinds.insert(NODE_KIND::CLASS_INST);
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
     return chart_valid_node_kinds;
 }
@@ -568,7 +568,7 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             if (!validChartNodeKinds.contains(nodeKind)) {
                 return validDataKinds;
             }
-            if ((nodeKind == NODE_KIND::CLASS_INSTANCE) && !nodeItem->getData("is_worker").toBool()) {
+            if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData("is_worker").toBool()) {
                 return validDataKinds;
             }
             selectedKinds.insert(nodeKind);
@@ -578,7 +578,7 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             switch (kind) {
             case NODE_KIND::COMPONENT:
             case NODE_KIND::COMPONENT_IMPL:
-            case NODE_KIND::COMPONENT_INSTANCE: {
+            case NODE_KIND::COMPONENT_INST: {
                 validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
                 validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
                 break;
@@ -599,7 +599,7 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER_INST:
                 validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
                 break;
-            case NODE_KIND::CLASS_INSTANCE:
+            case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
                 break;
             case NODE_KIND::HARDWARE_NODE: {
@@ -716,17 +716,23 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "arrowsLeftRightDark";
             break;
         }
+        case NODE_KIND::CALLBACK_FNC:
+        case NODE_KIND::CALLBACK_FNC_INST:{
+            default_icon_prefix = "EntityIcons";
+            default_icon_name = "CallbackFunction";
+            break;
+        }
 
         case NODE_KIND::INPUT_PARAMETER:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
-        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "InputParameterGroup";
             break;
         }
         case NODE_KIND::RETURN_PARAMETER:
         case NODE_KIND::RETURN_PARAMETER_GROUP:
-        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "ReturnParameterGroup";
             break;
@@ -759,7 +765,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "Workload";
             break;
         }
-        case NODE_KIND::ENUM_INSTANCE:{
+        case NODE_KIND::ENUM_INST:{
             default_icon_prefix = "EntityIcons";
             default_icon_name = "EnumMember";
             break;
@@ -949,7 +955,7 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::PORT_PUBLISHER_INST);
     constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
-    constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
+    constructableNodes.removeAll(NODE_KIND::VECTOR_INST);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
 
@@ -1900,8 +1906,15 @@ void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-        controller = new ModelController(QApplication::applicationDirPath());
-        ConnectModelController(controller);
+        try{
+            auto new_controller = new ModelController(QApplication::applicationDirPath());
+            controller = new_controller;
+            ConnectModelController(controller);
+        }catch(const std::exception& ex){
+            auto parent = WindowManager::manager()->getMainWindow();
+            QMessageBox::critical(parent, "MEDEA Model Exception", ex.what());
+            QCoreApplication::exit(1);
+        }
     }
 }
 
