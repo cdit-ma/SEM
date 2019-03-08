@@ -18,6 +18,7 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds = 1000);
         ~PeriodicPort();
         void SetFrequency(double hz);
+        double GetFrequency() const;
         void SetDuration(int milliseconds);
     protected:
         void HandleActivate();
