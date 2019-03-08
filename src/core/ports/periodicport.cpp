@@ -45,7 +45,7 @@ void PeriodicPort::SetFrequency(double hz){
     }
 }
 
-double PeriodicPort::GetFrequency(){
+double PeriodicPort::GetFrequency() const{
     if(frequency_){
         return frequency_->get_Double();
     }
