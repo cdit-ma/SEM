@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         wget \
         ninja-build \
+	libpqxx-dev \
     && rm -rf /var/lib/apt/lists/*
 
 #Install Boost
