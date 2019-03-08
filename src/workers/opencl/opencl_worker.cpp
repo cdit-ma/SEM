@@ -24,6 +24,11 @@ OpenCL_Worker::OpenCL_Worker(const BehaviourContainer& bc, std::string inst_name
     }
 }
 
+const std::string& OpenCL_Worker::get_version() const{
+    const static std::string WORKER_VERSION{"1.2.0"};
+    return WORKER_VERSION;
+}
+
 void OpenCL_Worker::HandleConfigure() {
 
     auto work_id = get_new_work_id();

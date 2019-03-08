@@ -9,6 +9,7 @@ RUN wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_co
         chmod +x /opt/install_rti.exp && \
         sync && \
         /opt/install_rti.exp && \
+	wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/rti_license.dat -q -P /opt/RTI/rti_connext_dds-5.3.0/ && \
         rm -rf /opt/rti* /opt/install_rti.exp
 
 RUN wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q -P /opt/ && \

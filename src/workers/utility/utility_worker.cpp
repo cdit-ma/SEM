@@ -13,6 +13,11 @@ Utility_Worker::~Utility_Worker(){
     impl_.reset();
 }
 
+const std::string& Utility_Worker::get_version() const{
+    const static std::string WORKER_VERSION{"1.3.0"};
+    return WORKER_VERSION;
+}
+
 double Utility_Worker::GetTimeOfDay(){
     return impl_->TimeOfDay();
 }

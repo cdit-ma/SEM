@@ -9,6 +9,7 @@ class Utility_Worker : public Worker{
     public:
         Utility_Worker(const BehaviourContainer& component, const std::string& inst_name);
         ~Utility_Worker();
+        const std::string& get_version() const override;
 
         void Marker(const std::string& marker_name, int64_t mark_id);
         void Log(const std::string format_str, int log_level, ...);

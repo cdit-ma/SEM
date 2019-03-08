@@ -5,9 +5,16 @@
 Memory_Worker::Memory_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
     impl_ = std::unique_ptr<Memory_Worker_Impl>(new Memory_Worker_Impl());
 }
+
 Memory_Worker::~Memory_Worker(){
     impl_.reset();
 }
+
+const std::string& Memory_Worker::get_version() const{
+    const static std::string WORKER_VERSION{"1.0.0"};
+    return WORKER_VERSION;
+}
+
 #include <iostream>
 void Memory_Worker::Allocate(int kilobytes){
     const auto& func_name = std::string(GET_FUNC);

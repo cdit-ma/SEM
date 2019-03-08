@@ -10,6 +10,8 @@ class Cpu_Worker : public Worker{
         Cpu_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Cpu_Worker();
 
+        const std::string& get_version() const override;
+
         int IntOp(double loops, int thread_count = 1, bool split_workload = true);
         int FloatOp(double loops, int thread_count = 1, bool split_workload = true);
         int Whetstone(double loops, int thread_count = 1, bool split_workload = true);

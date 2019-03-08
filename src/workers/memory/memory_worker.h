@@ -9,6 +9,7 @@ class Memory_Worker : public Worker{
     public:
         Memory_Worker(const BehaviourContainer& container, const std::string& inst_name);
         ~Memory_Worker();
+        const std::string& get_version() const override;
         
         void Allocate(int kilobytes);
         void Deallocate(int kilobytes);

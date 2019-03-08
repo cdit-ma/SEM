@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         wget \
         ninja-build \
+	libpqxx-dev \
     && rm -rf /var/lib/apt/lists/*
 
 #Install Boost
@@ -61,3 +62,5 @@ RUN wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q -P /opt
         rm /opt/sigar* -rf
 
 ENV PUGIXML_PATH /usr/local
+
+RUN ldconfig

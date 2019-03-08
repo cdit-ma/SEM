@@ -14,7 +14,7 @@ std::string Attribute::get_name() const{
 }
 
 
-void Attribute::set_String(const std::string val){
+void Attribute::set_String(const std::string& val){
     if(type_ == ATTRIBUTE_TYPE::STRING){
         string_ = val;
     }
@@ -95,7 +95,7 @@ bool& Attribute::Boolean(){
 }
 
 
-void Attribute::set_StringList(const std::vector<std::string> val){
+void Attribute::set_StringList(const std::vector<std::string>& val){
     if(type_ == ATTRIBUTE_TYPE::STRINGLIST){
         stringlist_ = val;
     }
@@ -106,4 +106,99 @@ std::vector<std::string> Attribute::get_StringList() const{
 
 std::vector<std::string>& Attribute::StringList(){
     return stringlist_;
+}
+
+//Template Specialisation
+template<> void Attribute::SetValue<std::string>(const std::string& value){
+    if(get_type() == ATTRIBUTE_TYPE::STRING){
+        return set_String(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<int>(const int& value){
+    if(get_type() == ATTRIBUTE_TYPE::INTEGER){
+        return set_Integer(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<char>(const char& value){
+    if(get_type() == ATTRIBUTE_TYPE::CHARACTER){
+        return set_Character(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<bool>(const bool& value){
+    if(get_type() == ATTRIBUTE_TYPE::BOOLEAN){
+        return set_Boolean(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<double>(const double& value){
+    if(get_type() == ATTRIBUTE_TYPE::DOUBLE){
+        return set_Double(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<float>(const float& value){
+    if(get_type() == ATTRIBUTE_TYPE::FLOAT){
+        return set_Float(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> void Attribute::SetValue<std::vector<std::string>>(const std::vector<std::string>& value){
+    if(get_type() == ATTRIBUTE_TYPE::STRINGLIST){
+        return set_StringList(value);
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+};
+
+template<> std::string& Attribute::Value<std::string>(){
+    if(get_type() == ATTRIBUTE_TYPE::STRING){
+        return String();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+}
+template<> int& Attribute::Value<int>(){
+    if(get_type() == ATTRIBUTE_TYPE::INTEGER){
+        return Integer();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+}
+template<> char& Attribute::Value<char>(){
+    if(get_type() == ATTRIBUTE_TYPE::CHARACTER){
+        return Character();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+}
+
+template<> bool& Attribute::Value<bool>(){
+    if(get_type() == ATTRIBUTE_TYPE::BOOLEAN){
+        return Boolean();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+}
+template<> double& Attribute::Value<double>(){
+    if(get_type() == ATTRIBUTE_TYPE::DOUBLE){
+        return Double();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+}
+template<> float& Attribute::Value<float>(){
+    if(get_type() == ATTRIBUTE_TYPE::FLOAT){
+        return Float();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
+
+}
+template<> std::vector<std::string>& Attribute::Value<std::vector<std::string>>(){
+    if(get_type() == ATTRIBUTE_TYPE::STRINGLIST){
+        return StringList();
+    }
+    throw std::invalid_argument("Invalid Attribute Type");
 }
