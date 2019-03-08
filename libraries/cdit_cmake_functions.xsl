@@ -637,9 +637,11 @@
     <xsl:function name="cdit:get_requestreply_cmake">
         <xsl:param name="server_interface"/>
         <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="ignore_recursion" select="$middleware != 'tao'">
         
         <!-- Get all required aggregates -->
-        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($server_interface, true())" />
+        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($server_interface, $ignore_recursion)" />
 
         <xsl:variable name="proj_name" select="cmake:get_requestreply_module_library_name($server_interface, $middleware)" />
 
