@@ -80,7 +80,6 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
         if (series) {
             series->clear();
             for (auto event : events) {
-                //qDebug() << "event.getID: " << event->getID();
                 series->addEvent(event);
             }
         }
@@ -822,33 +821,6 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
     /*
      * TODO - Refactor so that the total range can be changed without affecting the display range
      */
-    /*switch (timeDisplayFormat_) {
-    case TIME_DISPLAY_FORMAT::DATE_TIME: {
-        _timelineChart->setRange(totalTimeRange_.first, totalTimeRange_.second);
-        _dateTimeAxis->setRange(totalTimeRange_, updateDisplayRange);
-        break;
-    }
-    case TIME_DISPLAY_FORMAT::ELAPSED_TIME: {
-        auto range = (double)longestExperimentRunDuration_.second;
-        for (auto chart : eventEntityCharts) {
-            auto startTime = experimentRunTimeRange_.value(chart->getExperimentRunID()).first;
-            chart->setRange(startTime, startTime + range);
-            chart->setDisplayRangeRatio(0.0, 1.0);
-            chart->updateBinnedData();
-        }
-        _dateTimeAxis->setRange(0, range, updateDisplayRange);
-        break;
-    }
-    default:
-        break;
-    }
-
-    if (!rangeSet) {
-        auto range = _dateTimeAxis->getRange();
-        _dateTimeAxis->setDisplayRange(range.first, range.second);
-        rangeSet = true;
-    }*/
-
     auto startTime = totalTimeRange_.first;
     auto duration = totalTimeRange_.second - totalTimeRange_.first;
 
