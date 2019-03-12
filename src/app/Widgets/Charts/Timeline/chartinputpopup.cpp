@@ -111,21 +111,17 @@ void ChartInputPopup::themeChanged()
  */
 void ChartInputPopup::setPopupVisible(bool visible)
 {
-    qDebug() << "HERE2";
     setVisible(visible);
 
     if (visible) {
-        qDebug() << "HERE3";
         if (originalCenterPos_.isNull()) {
             originalCenterPos_ = pos() + QPointF(sizeHint().width()/2.0, sizeHint().height()/2.0);
         }
         activateWindow();
         experimentNameLineEdit_->setFocus();
         experimentNameLineEdit_->selectAll();
-        qDebug() << "HERE4";
         experimentNameChanged(typedExperimentName_);
     }
-    qDebug() << "HERE5";
 }
 
 
