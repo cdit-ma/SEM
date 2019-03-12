@@ -108,21 +108,7 @@ ViewController::ViewController(){
 
 void ViewController::QueryRunningExperiments()
 {
-    auto future = proxy.RequestExperimentRuns("");
-    auto future_watcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
-    
-    connect(future_watcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
-        try {
-            //auto result = future_watcher->result();
-            emit vc_showChartsPopup(true);
-        } catch(const NoRequesterException& ex) {
-            qWarning() << "No Requester: " << ex.what();
-        } catch(const RequestException& ex) {
-            qWarning() << "Unhandled: " << ex.What() << " " << ex.what();
-        }
-    });
-    
-    future_watcher->setFuture(future);
+    emit vc_showChartsPopup(true);
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){
@@ -1170,6 +1156,7 @@ QList<NodeViewItem *> ViewController::getNodesInstances(int ID)
         for (auto instID : controller->getInstances(ID)) {
             instances.append(getNodeViewItem(instID));
         }
+        qDebug() << "instanceS#: " << instances.size();
     }
     return instances;
 }
@@ -1293,7 +1280,6 @@ void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
         emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);
-        //emit proxy.setChartUserInputDialogVisible(true);
     }
 }
 

@@ -80,6 +80,7 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
         if (series) {
             series->clear();
             for (auto event : events) {
+                //qDebug() << "event.getID: " << event->getID();
                 series->addEvent(event);
             }
         }

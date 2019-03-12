@@ -57,6 +57,8 @@ public:
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
+    QList<NodeViewItem*> getNodesInstances(int ID);
+
     QStringList _getSearchSuggestions();
     QStringList GetIDs();    
 
@@ -263,7 +265,7 @@ private:
 
     NodeViewItem* getNodesImpl(int ID);
     NodeViewItem* getNodesDefinition(int ID);
-    QList<NodeViewItem*> getNodesInstances(int ID);
+    //QList<NodeViewItem*> getNodesInstances(int ID);
 
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 

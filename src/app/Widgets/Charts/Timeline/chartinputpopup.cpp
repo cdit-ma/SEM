@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QFutureWatcher>
 #include <QStyledItemDelegate>
+#include <QKeyEvent>
 
 #define MIN_WIDTH 400
 #define FILTER "filter"
@@ -26,7 +27,11 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     setModal(true);
 
     //enableFilters();
-    hideGroupBoxes();
+
+    // initially hide all filter group boxes
+    for (auto filter : getFilterKeys()) {
+        setGroupBoxVisible(filter, false);
+    }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartInputPopup::themeChanged);
     themeChanged();
@@ -41,6 +46,24 @@ void ChartInputPopup::enableFilters()
 {
     filtersEnabled_ = true;
     setupFilterWidgets();
+}
+
+
+/**
+ * @brief ChartInputPopup::eventFilter
+ * @param watched
+ * @param event
+ * @return
+ */
+bool ChartInputPopup::eventFilter(QObject *watched, QEvent *event)
+{
+   if (event->type() == QEvent::KeyPress) {
+       QKeyEvent* ke = (QKeyEvent*) event;
+       if (ke->key() == Qt::Key_Escape) {
+           experimentNameLineEdit_->setText(typedExperimentName_);
+       }
+   }
+   return QDialog::eventFilter(watched, event);
 }
 
 
@@ -88,16 +111,21 @@ void ChartInputPopup::themeChanged()
  */
 void ChartInputPopup::setPopupVisible(bool visible)
 {
+    qDebug() << "HERE2";
     setVisible(visible);
 
     if (visible) {
+        qDebug() << "HERE3";
         if (originalCenterPos_.isNull()) {
             originalCenterPos_ = pos() + QPointF(sizeHint().width()/2.0, sizeHint().height()/2.0);
         }
         activateWindow();
         experimentNameLineEdit_->setFocus();
         experimentNameLineEdit_->selectAll();
+        qDebug() << "HERE4";
+        experimentNameChanged(typedExperimentName_);
     }
+    qDebug() << "HERE5";
 }
 
 
@@ -114,7 +142,7 @@ void ChartInputPopup::setExperimentRuns(const QList<ExperimentRun> &runs)
     }
     experimentNames.removeDuplicates();
     experimentsModel_->setStringList(experimentNames);
-    experimentNameLineEdit_->setText(experimentNameLineEdit_->text());
+    experimentNameChanged(typedExperimentName_);
 }
 
 
@@ -129,16 +157,12 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
     if (!action)
         return;
 
+    // hiding then showing the groupbox stops the glitching
     auto filter = (FILTER_KEY) action->property(FILTER).toUInt();
     if (action->isChecked()) {
-        auto groupBox = getFilterGroupBox(filter);
-        if (!groupBox)
-            return;
-        // hiding then showing the groupbox here stops the glitching
-        groupBox->hide();
-        clearGroupBox(filter);
+        resetGroupBox(filter);
         populateGroupBox(filter);
-        groupBox->show();
+        setGroupBoxVisible(filter, true);
     }
 
     resizePopup();
@@ -155,8 +179,8 @@ void ChartInputPopup::accept()
         emit requestEventsForExperimentRun(selectedExperimentRun_);
     }
 
-    resetPopup();
     PopupWidget::accept();
+    resetPopup();
 }
 
 
@@ -165,8 +189,21 @@ void ChartInputPopup::accept()
  */
 void ChartInputPopup::reject()
 {
-    resetPopup();
     PopupWidget::reject();
+    resetPopup();
+}
+
+
+/**
+ * @brief ChartInputPopup::experimentNameChanged
+ * @param experimentName
+ */
+void ChartInputPopup::experimentNameChanged(const QString& experimentName)
+{
+    auto name = experimentName.trimmed();
+    if (experimentsModel_->stringList().contains(name)) {
+        experimentNameActivated(name);
+    }
 }
 
 
@@ -176,13 +213,16 @@ void ChartInputPopup::reject()
  */
 void ChartInputPopup::experimentNameActivated(const QString &experimentName)
 {
-    clearGroupBox(FILTER_KEY::RUNS_FILTER);
+    typedExperimentName_ = experimentName;
 
-    // hiding it first resizes the widget immediately, returning the expected size hint
-    experimentRunsGroupBox_->hide();
+    // hiding before resize does the resize event immediately, returning the expected size hint
+    resetGroupBox(FILTER_KEY::RUNS_FILTER);
     resizePopup();
 
     populateExperimentRuns(experimentRuns_.values(experimentName));
+    setGroupBoxVisible(FILTER_KEY::RUNS_FILTER, true);
+    resizePopup();
+    recenterPopup();
 }
 
 
@@ -212,6 +252,7 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
 void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
 {
     auto firstButton = true;
+    //auto maxButtonWidth = 0;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -226,6 +267,8 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
             if (checked) { experimentRunSelected(run); }
         });
 
+        //maxButtonWidth = qMax(maxButtonWidth, button->sizeHint().width());
+
         // select the first button by default
         if (firstButton) {
             button->toggle();
@@ -233,9 +276,7 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
         }
     }
 
-    experimentRunsGroupBox_->show();
-    resizePopup();
-    recenterPopup();
+    //setMinimumWidth(maxButtonWidth + 50);
 }
 
 
@@ -298,15 +339,29 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
 
 
 /**
- * @brief ChartInputPopup::hideGroupBoxes
+ * @brief ChartInputPopup::resetGroupBox
+ * @param filter
  */
-void ChartInputPopup::hideGroupBoxes()
+void ChartInputPopup::resetGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
-    // hide all the filter groupboxes whenever this popup is closed or the search has changed
-    for (auto key : getFilterKeys()) {
-        auto groupBox = getFilterGroupBox(key);
-        if (groupBox)
-            groupBox->hide();
+    auto groupBox = getFilterGroupBox(filter);
+    if (groupBox) {
+        clearGroupBox(filter);
+        setGroupBoxVisible(filter, false);
+    }
+}
+
+
+/**
+ * @brief ChartInputPopup::setGroupBoxVisible
+ * @param key
+ * @param visible
+ */
+void ChartInputPopup::setGroupBoxVisible(ChartInputPopup::FILTER_KEY filter, bool visible)
+{
+    auto groupBox = getFilterGroupBox(filter);
+    if (groupBox) {
+        groupBox->setVisible(visible);
     }
     updateGeometry();
 }
@@ -328,6 +383,7 @@ void ChartInputPopup::recenterPopup()
  */
 void ChartInputPopup::resizePopup()
 {
+    //setMinimumWidth(MIN_WIDTH);
     experimentRunsGroupBox_->setFixedHeight(qMin(GROUPBOX_MAX_HEIGHT, experimentRunsScrollWidget_->sizeHint().height()) + 45);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
@@ -343,15 +399,14 @@ void ChartInputPopup::resetPopup()
     experimentRuns_.clear();
     experimentsModel_->setStringList(QStringList());
 
-    /*if (filtersEnabled_) {
+    if (filtersEnabled_) {
         for (auto filter : getFilterKeys()) {
-            clearGroupBox(filter);
+            resetGroupBox(filter);
         }
     } else {
-        clearGroupBox(FILTER_KEY::RUNS_FILTER);
-    }*/
+        resetGroupBox(FILTER_KEY::RUNS_FILTER);
+    }
 
-    hideGroupBoxes();
     resizePopup();
     recenterPopup();
 }
@@ -369,9 +424,11 @@ void ChartInputPopup::setupLayout()
     experimentsModel_ = new QStringListModel(this);
     experimentsCompleter_ = new QCompleter(this);
     experimentsCompleter_->setModel(experimentsModel_);
+    experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
     experimentsCompleter_->setFilterMode(Qt::MatchContains);
     experimentsCompleter_->setCaseSensitivity(Qt::CaseInsensitive);
     experimentsCompleter_->popup()->setFont(QFont(font().family(), 10));
+    experimentsCompleter_->popup()->installEventFilter(this);
 
     connect(experimentsCompleter_, static_cast<void(QCompleter::*)(const QString &)>(&QCompleter::activated),
         [=](const QString &text){ experimentNameActivated(text);
@@ -389,6 +446,11 @@ void ChartInputPopup::setupLayout()
     experimentNameLineEdit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     experimentNameLineEdit_->setAttribute(Qt::WA_MacShowFocusRect, false);
     experimentNameLineEdit_->setCompleter(experimentsCompleter_);
+
+    connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=] (const QString& text) {
+        //qDebug() << "Text edited: " << text;
+        typedExperimentName_ = text;
+    });
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
     QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
@@ -564,6 +626,8 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
 /**
  * @brief ChartInputPopup::constructVBoxLayout
  * @param widget
+ * @param spacing
+ * @param margin
  * @return
  */
 QVBoxLayout* ChartInputPopup::constructVBoxLayout(QWidget* widget, int spacing, int margin)

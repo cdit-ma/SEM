@@ -26,7 +26,7 @@ ChartManager::ChartManager(ViewController *vc)
 
     connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);
     connect(chartPopup_, &ChartInputPopup::requestEventsForExperimentRun, this, &ChartManager::requestEventsForExperimentRun);
-    connect(chartPopup_, &ChartInputPopup::rejected, [=]() { resetFilters(); });
+    connect(chartPopup_, &ChartInputPopup::rejected, this, &ChartManager::resetFilters);
 }
 
 
@@ -111,7 +111,7 @@ void ChartManager::requestPortLifecycleEvents(const quint32 experiment_run_id, c
         try {
             auto events = futureWatcher->result();
             if (events.isEmpty()) {
-                toastNotification("No workload events received for selection", "spanner");
+                toastNotification("No port lifecycle events received for selection", "spanner");
             } else {
                 emit showChartsPanel();
                 if (chartView_ )
@@ -122,6 +122,7 @@ void ChartManager::requestPortLifecycleEvents(const quint32 experiment_run_id, c
         } catch (const std::exception& ex) {
             toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
+        incrementReceivedResponsesCount();
     });
 
     futureWatcher->setFuture(future);
@@ -155,6 +156,7 @@ void ChartManager::requestWorkloadEvents(const quint32 experiment_run_id, const 
         } catch (const std::exception& ex) {
             toastNotification("Failed to request workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
         }
+        incrementReceivedResponsesCount();
     });
 
     futureWatcher->setFuture(future);
@@ -187,6 +189,7 @@ void ChartManager::requestCPUUtilisationEvents(const quint32 experiment_run_id, 
         } catch (const std::exception& ex) {
             toastNotification("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
         }
+        incrementReceivedResponsesCount();
     });
 
     futureWatcher->setFuture(future);
@@ -219,6 +222,7 @@ void ChartManager::requestMemoryUtilisationEvents(const quint32 experiment_run_i
         } catch (const std::exception& ex) {
             toastNotification("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
         }
+        incrementReceivedResponsesCount();
     });
 
     futureWatcher->setFuture(future);
@@ -244,7 +248,7 @@ void ChartManager::resetFilters()
 {
     selectedExperimentRun_.experiment_run_id = -1;
     hasEntitySelection_ = false;
-    eventKinds_.clear();
+
     compNames_.clear();
     compInstPaths_.clear();
     compInstIDs_.clear();
@@ -254,6 +258,22 @@ void ChartManager::resetFilters()
     workerInstIDs_.clear();
     nodeHostnames_.clear();
     nodeIDs_.clear();
+
+    eventKinds_.clear();
+    expectedResponses_ = 0;
+    receivedResponses_ = 0;
+}
+
+
+/**
+ * @brief ChartManager::incrementReceivedResponsesCount
+ */
+void ChartManager::incrementReceivedResponsesCount()
+{
+    receivedResponses_++;
+    if (receivedResponses_ == expectedResponses_) {
+        resetFilters();
+    }
 }
 
 
@@ -296,10 +316,10 @@ ChartDialog* ChartManager::getChartDialog()
  */
 void ChartManager::showChartsPopup()
 {
+    requestExperimentRuns("");
     if (chartPopup_) {
         chartPopup_->setPopupVisible(true);
     }
-    requestExperimentRuns("");
 }
 
 
@@ -320,8 +340,9 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
     // clear request filters
     resetFilters();
 
-    hasEntitySelection_ = !selectedItems.isEmpty();
     eventKinds_ = selectedDataKinds;
+    expectedResponses_ = selectedDataKinds.count();
+    hasEntitySelection_ = !selectedItems.isEmpty();
 
     // send a separate filtered request per selected node item
     for (auto item : selectedItems) {
@@ -341,7 +362,8 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
             break;
         case NODE_KIND::COMPONENT_INST:
             // can send port/workload requests
-            compInstIDs_.append(QString::number(nodeItem->getParentID()));
+            //compInstIDs_.append(QString::number(nodeItem->getParentID() + "_0"));
+            compInstPaths_.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
             break;
         case NODE_KIND::PORT_REPLIER_IMPL:
         case NODE_KIND::PORT_REQUESTER_IMPL:
@@ -355,8 +377,14 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
         case NODE_KIND::PORT_PERIODIC:
             // can send port requests
             if (selectedDataKinds.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
-                for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
+                /*for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
                     portIDs_.append(QString::number(instID) + "_0");
+                }*/
+                for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                    if (instItem && instItem->getParentItem()) {
+                        auto compInstItem = instItem->getParentItem();
+                        portPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                    }
                 }
             }
             break;
@@ -377,18 +405,31 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
             if (selectedDataKinds.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
                 // a ClassInstance can be a child of either a CompImpl or CompInst
                 auto parentNodeKind = nodeItem->getParentNodeKind();
-                if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
+                /*if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
                     for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
-                        workerInstIDs_.append(QString::number(instID));
+                        workerInstIDs_.append(QString::number(instID) + "_0");
                     }
                 } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
-                    workerInstIDs_.append(QString::number(nodeItemID));
+                    workerInstIDs_.append(QString::number(nodeItemID) + "_0");
+                }*/
+                if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
+                    for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                        if (instItem && instItem->getParentItem()) {
+                            auto compInstItem = instItem->getParentItem();
+                            workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+                        }
+                    }
+                } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
+                    auto compInstItem = nodeItem->getParentItem();
+                    if (compInstItem)
+                        workerInstPaths_.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
                 }
             }
             break;
         case NODE_KIND::HARDWARE_NODE:
             // can send cpu/mem requests
-            nodeIDs_.append(label);
+            //nodeIDs_.append(label);
+            nodeHostnames_.append(label);
             break;
         default:
             break;
@@ -396,8 +437,7 @@ void ChartManager::filterRequestsBySelection(const QVector<ViewItem *> &selected
     }
 
     // show the popup so that the user can select which experiment run they want to display data from
-    if (chartPopup_)
-        chartPopup_->setPopupVisible(true);
+    showChartsPopup();
 }
 
 
@@ -438,10 +478,11 @@ void ChartManager::requestEventsForExperimentRun(const ExperimentRun& experiment
         }
     } else {
         // if there is no selection, request all events for the selected experiment run
-        requestPortLifecycleEvents(experimentRunID, {}, compInstIDs_, portIDs_);
-        requestWorkloadEvents(experimentRunID, {}, compInstIDs_, workerInstIDs_);
-        requestCPUUtilisationEvents(experimentRunID, {}, nodeIDs_);
-        requestMemoryUtilisationEvents(experimentRunID, {}, nodeIDs_);
+        expectedResponses_ = GET_TIMELINE_DATA_KINDS().count();
+        requestPortLifecycleEvents(experimentRunID, {}, {}, {});
+        requestWorkloadEvents(experimentRunID, {}, {}, {});
+        requestCPUUtilisationEvents(experimentRunID, {}, {});
+        requestMemoryUtilisationEvents(experimentRunID, {}, {});
     }
 }
 

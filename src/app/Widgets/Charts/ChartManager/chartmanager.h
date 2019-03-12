@@ -63,6 +63,8 @@ private:
     void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
     void resetFilters();
 
+    void incrementReceivedResponsesCount();
+
     QString getItemLabel(ViewItem* item);
 
     ExperimentRun selectedExperimentRun_;
@@ -78,6 +80,9 @@ private:
     QVector<QString> workerInstIDs_;
     QVector<QString> nodeHostnames_;
     QVector<QString> nodeIDs_;
+
+    int expectedResponses_ = 0;
+    int receivedResponses_ = 0;
 
     ChartDialog* chartDialog_ = 0;
     ChartInputPopup* chartPopup_ = 0;

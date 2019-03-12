@@ -31,6 +31,8 @@ public:
 
     void enableFilters();
 
+    bool eventFilter(QObject *watched, QEvent *event);
+
 signals:
     void setChartTitle(QString title);
 
@@ -48,6 +50,7 @@ public slots:
     void reject();
 
 private slots:
+    void experimentNameChanged(const QString& experimentName);
     void experimentNameActivated(const QString& experimentName);
     void experimentRunSelected(const ExperimentRun& experimentRun);
 
@@ -56,7 +59,8 @@ private:
 
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
-    void hideGroupBoxes();
+    void resetGroupBox(FILTER_KEY filter);
+    void setGroupBoxVisible(FILTER_KEY filter, bool visible);
 
     void recenterPopup();
     void resizePopup();
@@ -105,6 +109,7 @@ private:
     QStringList components_;
     QStringList workers_;
 
+    QString typedExperimentName_;
     QStringListModel* experimentsModel_;
     QCompleter* experimentsCompleter_;
     QMultiHash<QString, ExperimentRun> experimentRuns_;
