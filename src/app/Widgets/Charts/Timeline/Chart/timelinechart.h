@@ -11,9 +11,9 @@
 
 enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
-static QString DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
-static QString TIME_FORMAT = "hh:mm:ss.zzz";
-static QString DATE_FORMAT = "MMM d";
+static QString const DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
+static QString const TIME_FORMAT = "hh:mm:ss.zzz";
+static QString const DATE_FORMAT = "MMM d";
 
 class EntityChart;
 class TimelineChart : public QWidget

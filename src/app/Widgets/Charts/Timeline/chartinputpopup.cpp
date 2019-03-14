@@ -248,7 +248,6 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
 void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
 {
     auto firstButton = true;
-    //auto maxButtonWidth = 0;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -263,16 +262,12 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
             if (checked) { experimentRunSelected(run); }
         });
 
-        //maxButtonWidth = qMax(maxButtonWidth, button->sizeHint().width());
-
         // select the first button by default
         if (firstButton) {
             button->toggle();
             firstButton = false;
         }
     }
-
-    //setMinimumWidth(maxButtonWidth + 50);
 }
 
 
@@ -379,7 +374,6 @@ void ChartInputPopup::recenterPopup()
  */
 void ChartInputPopup::resizePopup()
 {
-    //setMinimumWidth(MIN_WIDTH);
     experimentRunsGroupBox_->setFixedHeight(qMin(GROUPBOX_MAX_HEIGHT, experimentRunsScrollWidget_->sizeHint().height()) + 45);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();

@@ -13,7 +13,7 @@
 #define BORDER_WIDTH 2.0
 
 #define PEN_WIDTH 1.0
-#define BIN_WIDTH 28.0
+#define BIN_WIDTH 30.0
 #define POINT_WIDTH 9.0
 
 #define PRINT_RENDER_TIMES false
@@ -579,7 +579,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     if (!eventSeries)
         return;
 
-    double barWidth = BIN_WIDTH;
+    double barWidth = 50; //BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
@@ -665,6 +665,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 
             QString countStr = count > 99 ? "🤮" : QString::number(count);
             painter.setPen(textColor);
+            painter.setFont(QFont(font().family(), 20));
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
