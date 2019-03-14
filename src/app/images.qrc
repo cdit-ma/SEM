@@ -129,12 +129,12 @@
         <file alias="avPause">Resources/Icons/avPause.png</file>
         <file alias="avPlay">Resources/Icons/avPlay.png</file>
         <file alias="avStop">Resources/Icons/avStop.png</file>
-	<file alias="barChart">Resources/Icons/barChart.png</file>
+        <file alias="barChart">Resources/Icons/barChart.png</file>
         <file alias="bed">Resources/Icons/bed.png</file>
         <file alias="bell">Resources/Icons/bell.png</file>
         <file alias="bellExclamation">Resources/Icons/bellExclamation.png</file>
         <file alias="bellExclamationDark">Resources/Icons/bellExclamationDark.png</file>
-	<file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
+        <file alias="bellTwoTone">Resources/Icons/bellTwoTone.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
         <file alias="book">Resources/Icons/book.png</file>
@@ -149,14 +149,14 @@
         <file alias="cards">Resources/Icons/cards.png</file>
         <file alias="category">Resources/Icons/category.png</file>
         <file alias="chart">Resources/Icons/chart.png</file>
-	<file alias="chartDark">Resources/Icons/chartDark.png</file>
+        <file alias="chartDark">Resources/Icons/chartDark.png</file>
         <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
         <file alias="chartMean">Resources/Icons/chartMean.png</file>
         <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
         <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
         <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
-	<file alias="checkbox">Resources/Icons/checkbox.png</file>
-	<file alias="checkboxChecked">Resources/Icons/checkboxChecked.png</file>
+        <file alias="checkbox">Resources/Icons/checkbox.png</file>
+        <file alias="checkboxChecked">Resources/Icons/checkboxChecked.png</file>
         <file alias="circleArrowDownDark">Resources/Icons/circleArrowDownDark.png</file>
         <file alias="circleArrowRightDark">Resources/Icons/circleArrowRightDark.png</file>
         <file alias="circleBoltDark">Resources/Icons/circleBoltDark.png</file>
@@ -169,7 +169,7 @@
         <file alias="circleCrossDark">Resources/Icons/circleCrossDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
         <file alias="circleHalo">Resources/Icons/circleHalo.png</file>
-	<file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
+        <file alias="circleHaloTwoTone">Resources/Icons/circleHaloTwoTone.png</file>
         <file alias="circleInfo">Resources/Icons/circleInfo.png</file>
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleMinus">Resources/Icons/circleMinus.png</file>
@@ -188,7 +188,7 @@
         <file alias="circleSegment">Resources/Icons/circleSegment.png</file>
         <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
         <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
-	<file alias="clearList">Resources/Icons/clearList.png</file>
+        <file alias="clearList">Resources/Icons/clearList.png</file>
         <file alias="clipboard">Resources/Icons/clipboard.png</file>
         <file alias="clipboardDown">Resources/Icons/clipboardDown.png</file>
         <file alias="clock">Resources/Icons/clock.png</file>
@@ -209,7 +209,7 @@
         <file alias="copyList">Resources/Icons/copyList.png</file>
         <file alias="copyX">Resources/Icons/copyX.png</file>
         <file alias="cpu">Resources/Icons/cpu.png</file>
-	<file alias="cpuTwoTone">Resources/Icons/cpuTwoTone.png</file>
+        <file alias="cpuTwoTone">Resources/Icons/cpuTwoTone.png</file>
         <file alias="cross">Resources/Icons/cross.png</file>
         <file alias="crosshair">Resources/Icons/crosshair.png</file>
         <file alias="crosshairEmpty">Resources/Icons/crosshairEmpty.png</file>
@@ -290,7 +290,7 @@
         <file alias="medeaLogoTransparent">Resources/Icons/medeaLogoTransparent.png</file>
         <file alias="memory">Resources/Icons/memory.png</file>
         <file alias="memoryCard">Resources/Icons/memoryCard.png</file>
-	<file alias="memoryCardTwoTone">Resources/Icons/memoryCardTwoTone.png</file>
+        <file alias="memoryCardTwoTone">Resources/Icons/memoryCardTwoTone.png</file>
         <file alias="microphone">Resources/Icons/microphone.png</file>
         <file alias="minimize">Resources/Icons/minimize.png</file>
         <file alias="mortarboard">Resources/Icons/mortarboard.png</file>
@@ -323,7 +323,7 @@
         <file alias="planeStriked">Resources/Icons/planeStriked.png</file>
         <file alias="play">Resources/Icons/play.png</file>
         <file alias="plug">Resources/Icons/plug.png</file>
-	<file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
+        <file alias="plugTwoTone">Resources/Icons/plugTwoTone.png</file>
         <file alias="plus">Resources/Icons/plus.png</file>
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="popOut">Resources/Icons/popOut.png</file>
@@ -377,11 +377,11 @@
         <file alias="thumbDown">Resources/Icons/thumbDown.png</file>
         <file alias="thumbUp">Resources/Icons/thumbUp.png</file>
         <file alias="tick">Resources/Icons/tick.png</file>
-	<file alias="tickWhite">Resources/Icons/tickWhite.png</file>
+        <file alias="tickWhite">Resources/Icons/tickWhite.png</file>
         <file alias="tiles">Resources/Icons/tiles.png</file>
         <file alias="timeDown">Resources/Icons/timeDown.png</file>
         <file alias="timeElapsed">Resources/Icons/timeElapsed.png</file>
-	<file alias="timeElapsedTwoTone">Resources/Icons/timeElapsedTwoTone.png</file>
+        <file alias="timeElapsedTwoTone">Resources/Icons/timeElapsedTwoTone.png</file>
         <file alias="toggleOff">Resources/Icons/toggleOff.png</file>
         <file alias="toggleOn">Resources/Icons/toggleOn.png</file>
         <file alias="toggleTick">Resources/Icons/toggleTick.png</file>
@@ -409,5 +409,6 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+        <file alias="bookmarkTwoTone">Resources/Icons/bookmarkTwoTone.png</file>
     </qresource>
 </RCC>

@@ -573,6 +573,8 @@ WorkloadEvent::WorkloadEventType AggregationProxy::ConvertWorkloadEventType(cons
         return WorkloadEvent::WorkloadEventType::WARNING;
     case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
         return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
+    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MARKER:
+        return WorkloadEvent::WorkloadEventType::MARKER;
     default:
         return WorkloadEvent::WorkloadEventType::UNKNOWN;
     }

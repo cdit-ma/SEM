@@ -15,7 +15,8 @@ public:
         FINISHED,
         MESSAGE,
         WARNING,
-        ERROR_EVENT
+        ERROR_EVENT,
+        MARKER
     };
 
     explicit WorkloadEvent(WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);

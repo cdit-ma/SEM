@@ -420,7 +420,7 @@ void ChartInputPopup::setupLayout()
     experimentsModel_ = new QStringListModel(this);
     experimentsCompleter_ = new QCompleter(this);
     experimentsCompleter_->setModel(experimentsModel_);
-    experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    //experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
     experimentsCompleter_->setFilterMode(Qt::MatchContains);
     experimentsCompleter_->setCaseSensitivity(Qt::CaseInsensitive);
     experimentsCompleter_->popup()->setFont(QFont(font().family(), 10));

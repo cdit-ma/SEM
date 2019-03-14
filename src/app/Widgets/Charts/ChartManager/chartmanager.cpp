@@ -271,7 +271,9 @@ void ChartManager::resetFilters()
 void ChartManager::incrementReceivedResponsesCount()
 {
     receivedResponses_++;
+    qDebug() << "INCREMENT: " << receivedResponses_ << "/" << expectedResponses_;
     if (receivedResponses_ == expectedResponses_) {
+        qDebug() << "Expected requests received - reset";
         resetFilters();
     }
 }
@@ -478,7 +480,7 @@ void ChartManager::requestEventsForExperimentRun(const ExperimentRun& experiment
         }
     } else {
         // if there is no selection, request all events for the selected experiment run
-        expectedResponses_ = GET_TIMELINE_DATA_KINDS().count();
+        expectedResponses_ = GET_TIMELINE_DATA_KINDS().count() - 1;
         requestPortLifecycleEvents(experimentRunID, {}, {}, {});
         requestWorkloadEvents(experimentRunID, {}, {}, {});
         requestCPUUtilisationEvents(experimentRunID, {}, {});

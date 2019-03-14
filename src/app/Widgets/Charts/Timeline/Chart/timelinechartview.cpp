@@ -75,6 +75,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  */
 void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
+    qDebug() << "PORT: " << experimentRun.experiment_run_id;
     if (!events.isEmpty()) {
         auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::PORT_LIFECYCLE, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
@@ -95,6 +96,7 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
  */
 void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, const QVector<WorkloadEvent *> &events)
 {
+    qDebug() << "WORKLOAD: " << experimentRun.experiment_run_id;
     if (!events.isEmpty()) {
         auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::WORKLOAD, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
@@ -115,6 +117,7 @@ void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, co
  */
 void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
 {
+    qDebug() << "CPU: " << experimentRun.experiment_run_id;
     if (!events.isEmpty()) {
         auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::CPU_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
@@ -135,6 +138,7 @@ void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentR
  */
 void TimelineChartView::addMemoryUtilisationEvents(const ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
 {
+    qDebug() << "MEMORY: " << experimentRun.experiment_run_id;
     if (!events.isEmpty()) {
         auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::MEMORY_UTILISATION, events.at(0)->getID(), events.at(0)->getName());
         if (series) {
