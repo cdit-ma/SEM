@@ -10,15 +10,13 @@
 #include <iostream>
 
 #define BACKGROUND_OPACITY 0.25
-#define LINE_WIDTH 2.0
-#define POINT_BORDER 2.0
-#define HIGHLIGHT_PEN_WIDTH POINT_BORDER + 1.0
+#define BORDER_WIDTH 2.0
 
-#define BAR_PEN_WIDTH 1.0
-#define BAR_WIDTH 5.0
-#define PRINT_RENDER_TIMES false
-
+#define PEN_WIDTH 1.0
 #define BIN_WIDTH 20.0
+#define POINT_WIDTH 9.0
+
+#define PRINT_RENDER_TIMES false
 
 
 /**
@@ -409,8 +407,8 @@ void EntityChart::paintEvent(QPaintEvent* event)
             QString maxStr = QString::number(ceil(dataMaxY_ * 100));
             int h = fontMetrics().height();
             int w = qMax(fontMetrics().width(minStr), fontMetrics().width(maxStr)) + 5;
-            QRectF maxRect(width() - w, POINT_BORDER, w, h);
-            QRectF minRect(width() - w, height() - h - POINT_BORDER, w, h);
+            QRectF maxRect(width() - w, BORDER_WIDTH, w, h);
+            QRectF minRect(width() - w, height() - h - BORDER_WIDTH, w, h);
             painter.setPen(textColor_);
             painter.setBrush(hoveredRectColor_);
             painter.drawRect(maxRect);
@@ -568,7 +566,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     if (!_eventSeries)
         return;
 
-    double barWidth = 22.0; //BAR_WIDTH;
+    double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
@@ -653,124 +651,178 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
     if (!eventSeries)
          return;
 
-     double barWidth = 10.0; //BAR_WIDTH;
+    const auto& events = eventSeries->getEvents();
+    if  (events.isEmpty())
+        return;
+
+     double barWidth = POINT_WIDTH;
      double barCount = ceil((double)width() / barWidth);
+     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
 
      // because barCount needed to be rounded up, the barWidth also needs to be recalculated
      barWidth = (double) width() / barCount;
 
-     QVector< QList<MEDEA::Event*> > buckets(barCount);
-     QVector<double> bucket_endTimes;
-     bucket_endTimes.reserve(barCount);
+     auto firstEventItr = events.constBegin();
+     auto lastEventItr = events.constEnd();
+     auto firstItrSet = false;
 
-     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-     double current_left = displayMin_;
-
-     // set the bucket end times
-     for (int i = 0; i < barCount; i++) {
-         bucket_endTimes.append(current_left + barTimeWidth);
-         current_left = bucket_endTimes.last();
-     }
-
-     const auto& events = eventSeries->getEvents();
-     auto firstEvent = events.constBegin();
-     auto lastEvent = events.constEnd();
-     auto prevFirst = firstEvent;
-
-     // get the first event inside the visible range
-     for (; firstEvent != events.constEnd(); firstEvent++) {
-         const auto& current_time = (*firstEvent)->getTimeMS();
-         if (current_time > displayMin_) {
+     // get the event iterators to the left and right of the display range
+     for (auto current = events.constBegin(); current != events.constEnd(); current++) {
+         const auto& current_time = (*current)->getTimeMS();
+         if (!firstItrSet && (current_time > displayMin_)) {
+             firstEventItr = current == events.constBegin() ? current : current - 1;
+             firstItrSet = true;
+         }
+         if (current_time >= displayMax_) {
+             lastEventItr = current;
              break;
          }
-         prevFirst = firstEvent;
      }
 
-     auto current_bucket = 0;
-     auto current_bucket_ittr = bucket_endTimes.constBegin();
-     auto end_bucket_ittr = bucket_endTimes.constEnd();
+     auto prevBarCount = 0.0;
+     if (firstEventItr != events.constEnd()) {
+         prevBarCount = ceil((displayMin_ - ((CPUUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
+     }
+     auto postBarCount = 0.0;
+     if (lastEventItr != events.constEnd()) {
+         postBarCount = ceil((((CPUUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
+     }
 
-     // put the data in the correct bucket
-     for (;firstEvent != lastEvent; firstEvent++) {
-         const auto& current_time = (*firstEvent)->getTimeMS();
-         while (current_bucket_ittr != end_bucket_ittr) {
-             if (current_time > (*current_bucket_ittr)) {
-                 current_bucket_ittr ++;
-                 current_bucket ++;
-             } else {
-                 break;
+     // get the iterator of the leftmost event up to the first bin that contributes to drawing
+     auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+     auto first_contributing_event = firstEventItr;
+     while (first_contributing_event != events.constBegin()) {
+         const auto& current_time = (*first_contributing_event)->getTimeMS();
+         // Keep going until we overshoot, then move back if we can
+         if (current_time < firstEndTime) {
+             if (first_contributing_event != events.constEnd()) {
+                first_contributing_event++;
+                break;
              }
          }
-         if (current_bucket < barCount) {
-             buckets[current_bucket].append(*firstEvent);
-         }
+         first_contributing_event--;
      }
 
-     auto max = 0.0;
-     for (const auto& data : buckets) {
-         for (auto e : data) {
-             auto event = (CPUUtilisationEvent*) e;
-             max = qMax(max, event->getUtilisation());
+     // get the iterator of the rightmost event up to the last bin that contributes to drawing
+     auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+     auto last_contributing_event = lastEventItr;
+     while (last_contributing_event != events.constEnd()) {
+         const auto& current_time = (*last_contributing_event)->getTimeMS();
+         // Keep going until we overshoot, then move back if we can
+         if (current_time >= lastEndTime) {
+             if (last_contributing_event != events.constBegin()) {
+                last_contributing_event--;
+                break;
+             }
          }
+         last_contributing_event++;
      }
-     max = 1.0;
+
+
+     auto totalBarCount = prevBarCount + barCount + postBarCount;
+     auto currentLeft = firstEndTime;
+
+     QVector< QList<CPUUtilisationEvent*> > buckets(totalBarCount);
+     QVector<double> bucketEndTimes;
+     bucketEndTimes.reserve(totalBarCount);
+
+     // calculate the bucket end times
+     for (int i = 0; i < totalBarCount; i++) {
+         bucketEndTimes.append(currentLeft + barTimeWidth);
+         currentLeft = bucketEndTimes.last();
+     }
+
+     auto currentBucketIndex = 0;
+     auto currentBucketItr = bucketEndTimes.constBegin();
+     auto endBucketItr = bucketEndTimes.constEnd();
+
+     // put the data in the correct bucket
+    while (first_contributing_event != events.constEnd()) {
+        auto event = (CPUUtilisationEvent*)(*first_contributing_event);
+        const auto& currentTime = event->getTimeMS();
+        while (currentBucketItr != endBucketItr) {
+            if (currentTime >= (*currentBucketItr)) {
+                currentBucketItr++;
+                currentBucketIndex++;
+            } else {
+                break;
+            }
+        }
+        if (currentBucketIndex < totalBarCount) {
+            buckets[currentBucketIndex].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
+    }
 
      auto availableHeight = height() - barWidth;
-     QColor seriesColor = utilisationColor_;
+     auto seriesColor = utilisationColor_;
+     QList<QRectF> rects;
 
-     painter.setPen(gridColor_);
-     painter.setRenderHint(QPainter::Antialiasing, true);
-
-     for (int i = 0; i < barCount; i++) {
+     for (int i = 0; i < totalBarCount; i++) {
          int count = buckets[i].count();
          if (count == 0)
              continue;
+
+         // calculate the bucket's average utilisation
          auto utilisation = 0.0;
          for (auto e : buckets[i]) {
-             auto event = (CPUUtilisationEvent*)e;
-             utilisation += event->getUtilisation();
+             utilisation += e->getUtilisation();
          }
-         utilisation /= buckets[i].count();
-         double y = (1 - utilisation / max) * availableHeight;
-         QRectF rect(i * barWidth, y, barWidth, barWidth);
-         painter.setBrush(seriesColor);
-         if (rectHovered(eventSeries->getKind(), rect)) {
-             painter.setBrush(highlightColor_);
-         }
-         painter.drawEllipse(rect);
+         utilisation /= count;
+
+         double y = (1 - utilisation) * availableHeight;
+         double x = (i - prevBarCount) * barWidth;
+         QRectF rect(x, y, barWidth, barWidth);
+         rects.append(rect);
      }
 
-     /*if (!endPoint.isNull())
-         rects.append(QRectF(endPoint.x(), (1 - endPoint.y() / max) * availableHeight, barWidth, barWidth));*/
-
-     /*
      painter.setRenderHint(QPainter::Antialiasing, true);
 
-     for (int i = 0; i < rects.count() - 1; i++) {
-         auto rect1 = rects.at(i);
-         auto rect2 = rects.at(i + 1);
-         painter.setPen(QPen(seriesColor, 3.0));
-         painter.drawLine(rect1.center(), rect2.center());
-         painter.setPen(QPen(seriesColor, 2));
-         if (rectHovered(_eventSeries->getKind(), rect1)) {
-             painter.setPen(QPen(_highlightTextColor, 2.0));
-             painter.setBrush(_highlightColor);
-         } else {
-             painter.setBrush(seriesColor);
-         }
-         painter.drawEllipse(rect1);
-         painter.setPen(QPen(seriesColor, 2));
-         if (rectHovered(_eventSeries->getKind(), rect2)) {
-             painter.setPen(QPen(_highlightTextColor, 2.0));
-             painter.setBrush(_highlightColor);
-         } else {
-             painter.setBrush(seriesColor);
-         }
-         painter.drawEllipse(rect2);
-     }
+     if (rects.isEmpty())
+         return;
 
-     painter.setRenderHint(QPainter::Antialiasing, false);
-     */
+     auto offset = 2.0;
+     auto penOffset = 0.5;
+
+     if (rects.size() == 1) {
+         auto rect = rects.first();
+         painter.setPen(QPen(seriesColor, offset));
+         painter.setBrush(seriesColor);
+         if (rectHovered(eventSeries->getKind(), rect)) {
+             rect.adjust(-offset, -offset, offset, offset);
+             painter.setPen(QPen(highlightColor_, offset + penOffset));
+             painter.setBrush(highlightTextColor_);
+         }
+         painter.drawEllipse(rect);
+     } else {
+         for (int i = 1; i < rects.count(); i++) {
+             auto rect1 = rects.at(i - 1);
+             auto rect2 = rects.at(i);
+             painter.setPen(QPen(seriesColor, 3.0));
+             painter.drawLine(rect1.center(), rect2.center());
+             if (rectHovered(eventSeries->getKind(), rect1)) {
+                 rect1.adjust(-offset, -offset, offset, offset);
+                 painter.setPen(QPen(highlightColor_, offset + penOffset));
+                 painter.setBrush(highlightTextColor_);
+             } else {
+                 painter.setPen(QPen(gridColor_, offset));
+                 painter.setBrush(seriesColor);
+             }
+             painter.drawEllipse(rect1);
+             if (rectHovered(eventSeries->getKind(), rect2)) {
+                 rect2.adjust(-offset, -offset, offset, offset);
+                 painter.setPen(QPen(highlightColor_, offset + penOffset));
+                 painter.setBrush(highlightTextColor_);
+             } else {
+                 painter.setPen(QPen(gridColor_, offset));
+                 painter.setBrush(seriesColor);
+             }
+             painter.drawEllipse(rect2);
+         }
+     }
 
      painter.setRenderHint(QPainter::Antialiasing, false);
 }
@@ -784,119 +836,182 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
     if (!eventSeries)
-        return;
-
-    double barWidth = 10.0; //BAR_WIDTH;
-    double barCount = ceil((double)width() / barWidth);
-
-    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-    barWidth = (double) width() / barCount;
-
-    QVector< QList<MEDEA::Event*> > buckets(barCount);
-    QVector<double> bucket_endTimes;
-    bucket_endTimes.reserve(barCount);
-
-    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-    double current_left = displayMin_;
-    for (int i = 0; i < barCount; i++) {
-        bucket_endTimes.append(current_left + barTimeWidth);
-        current_left = bucket_endTimes.last();
-    }
+         return;
 
     const auto& events = eventSeries->getEvents();
-    auto current = events.constBegin();
-    auto upper = events.constEnd();
-    for (; current != upper; current++) {
-        const auto& current_time = (*current)->getTimeMS();
-        if (current_time > displayMin_) {
-            break;
-        }
-    }
+    if  (events.isEmpty())
+        return;
 
-    auto current_bucket = 0;
-    auto current_bucket_ittr = bucket_endTimes.constBegin();
-    auto end_bucket_ittr = bucket_endTimes.constEnd();
+     double barWidth = POINT_WIDTH;
+     double barCount = ceil((double)width() / barWidth);
+     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
 
-    // put the data in the correct bucket
-    for (;current != upper; current++) {
-        const auto& current_time = (*current)->getTimeMS();
-        while (current_bucket_ittr != end_bucket_ittr) {
-            if (current_time > (*current_bucket_ittr)) {
-                current_bucket_ittr ++;
-                current_bucket ++;
+     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+     barWidth = (double) width() / barCount;
+
+     auto firstEventItr = events.constBegin();
+     auto lastEventItr = events.constEnd();
+     auto firstItrSet = false;
+
+    // get the event iterators to the left and right of the display range
+     for (auto current = events.constBegin(); current != events.constEnd(); current++) {
+         const auto& current_time = (*current)->getTimeMS();
+         if (!firstItrSet && (current_time > displayMin_)) {
+             firstEventItr = current == events.constBegin() ? current : current - 1;
+             firstItrSet = true;
+         }
+         if (current_time >= displayMax_) {
+             lastEventItr = current;
+             break;
+         }
+     }
+
+     auto prevBarCount = 0.0;
+     if (firstEventItr != events.constEnd()) {
+         prevBarCount = ceil((displayMin_ - ((MemoryUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
+     }
+     auto postBarCount = 0.0;
+     if (lastEventItr != events.constEnd()) {
+         postBarCount = ceil((((MemoryUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
+     }
+
+     // get the iterator of the leftmost event up to the first bin that contributes to drawing
+     auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+     auto first_contributing_event = firstEventItr;
+     while (first_contributing_event != events.constBegin()) {
+         const auto& current_time = (*first_contributing_event)->getTimeMS();
+         // Keep going until we overshoot, then move back if we can
+         if (current_time < firstEndTime) {
+             if (first_contributing_event != events.constEnd()) {
+                first_contributing_event++;
+                break;
+             }
+         }
+         first_contributing_event--;
+     }
+
+     // get the iterator of the rightmost event up to the last bin that contributes to drawing
+     auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+     auto last_contributing_event = lastEventItr;
+     while (last_contributing_event != events.constEnd()) {
+         const auto& current_time = (*last_contributing_event)->getTimeMS();
+         // Keep going until we overshoot, then move back if we can
+         if (current_time >= lastEndTime) {
+             if (last_contributing_event != events.constBegin()) {
+                last_contributing_event--;
+                break;
+             }
+         }
+         last_contributing_event++;
+     }
+
+
+     auto totalBarCount = prevBarCount + barCount + postBarCount;
+     auto currentLeft = firstEndTime;
+
+     QVector< QList<MemoryUtilisationEvent*> > buckets(totalBarCount);
+     QVector<double> bucketEndTimes;
+     bucketEndTimes.reserve(totalBarCount);
+
+     // calculate the bucket end times
+     for (int i = 0; i < totalBarCount; i++) {
+         bucketEndTimes.append(currentLeft + barTimeWidth);
+         currentLeft = bucketEndTimes.last();
+     }
+
+     auto currentBucketIndex = 0;
+     auto currentBucketItr = bucketEndTimes.constBegin();
+     auto endBucketItr = bucketEndTimes.constEnd();
+
+     // put the data in the correct bucket
+    while (first_contributing_event != events.constEnd()) {
+        auto event = (MemoryUtilisationEvent*)(*first_contributing_event);
+        const auto& currentTime = event->getTimeMS();
+        while (currentBucketItr != endBucketItr) {
+            if (currentTime >= (*currentBucketItr)) {
+                currentBucketItr++;
+                currentBucketIndex++;
             } else {
                 break;
             }
         }
-        if (current_bucket < barCount) {
-            buckets[current_bucket].append(*current);
+        if (currentBucketIndex < totalBarCount) {
+            buckets[currentBucketIndex].append(event);
         }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
     }
 
-    auto max = 0.0;
-    for (const auto& data : buckets) {
-        for (auto e : data) {
-            auto event = (MemoryUtilisationEvent*) e;
-            max = qMax(max, event->getUtilisation());
-        }
-    }
-    max = 1.0;
+     auto availableHeight = height() - barWidth;
+     auto seriesColor = memoryColor_;
+     QList<QRectF> rects;
 
-    painter.setPen(gridColor_);
-    painter.setRenderHint(QPainter::Antialiasing, true);
+     for (int i = 0; i < totalBarCount; i++) {
+         int count = buckets[i].count();
+         if (count == 0)
+             continue;
 
-    auto availableHeight = height() - barWidth;
-    QColor seriesColor = memoryColor_;
-    //QList<QRectF> rects;
+         // calculate the bucket's average utilisation
+         auto utilisation = 0.0;
+         for (auto e : buckets[i]) {
+             utilisation += e->getUtilisation();
+         }
+         utilisation /= count;
 
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0)
-            continue;
-        //auto event = (MemoryUtilisationEvent*) buckets[i][0];
-        //auto utilisation = event->getUtilisation();
-        auto utilisation = 0.0;
-        for (auto e : buckets[i]) {
-            auto event = (MemoryUtilisationEvent*)e;
-            utilisation += event->getUtilisation();
-        }
-        utilisation /= buckets[i].count();
-        double y = (1 - utilisation / max) * availableHeight;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
-        //rects.append(rect);
-        painter.setBrush(seriesColor);
-        if (rectHovered(eventSeries->getKind(), rect)) {
-            painter.setBrush(highlightColor_);
-        }
-        painter.drawEllipse(rect);
-    }
+         double y = (1 - utilisation) * availableHeight;
+         double x = (i - prevBarCount) * barWidth;
+         QRectF rect(x, y, barWidth, barWidth);
+         rects.append(rect);
+     }
 
-    /*painter.setRenderHint(QPainter::Antialiasing, true);
+     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    for (int i = 0; i < rects.count() - 1; i++) {
-        auto rect1 = rects.at(i);
-        auto rect2 = rects.at(i + 1);
-        painter.setPen(QPen(seriesColor, 3.0));
-        painter.drawLine(rect1.center(), rect2.center());
-        painter.setPen(QPen(seriesColor, 2));
-        if (rectHovered(_eventSeries->getKind(), rect1)) {
-            painter.setPen(QPen(_highlightTextColor, 2.0));
-            painter.setBrush(_highlightColor);
-        } else {
-            painter.setBrush(seriesColor);
-        }
-        painter.drawEllipse(rect1);
-        painter.setPen(QPen(seriesColor, 2));
-        if (rectHovered(_eventSeries->getKind(), rect2)) {
-            painter.setPen(QPen(_highlightTextColor, 2.0));
-            painter.setBrush(_highlightColor);
-        } else {
-            painter.setBrush(seriesColor);
-        }
-        painter.drawEllipse(rect2);
-    }*/
+     if (rects.isEmpty())
+         return;
 
-    painter.setRenderHint(QPainter::Antialiasing, false);
+     auto offset = 2.0;
+     auto penOffset = 0.5;
+
+     if (rects.size() == 1) {
+         auto rect = rects.first();
+         painter.setPen(QPen(seriesColor, offset));
+         painter.setBrush(seriesColor);
+         if (rectHovered(eventSeries->getKind(), rect)) {
+             rect.adjust(-offset, -offset, offset, offset);
+             painter.setPen(QPen(highlightColor_, offset + penOffset));
+             painter.setBrush(highlightTextColor_);
+         }
+         painter.drawEllipse(rect);
+     } else {
+         for (int i = 1; i < rects.count(); i++) {
+             auto rect1 = rects.at(i - 1);
+             auto rect2 = rects.at(i);
+             painter.setPen(QPen(seriesColor, 3.0));
+             painter.drawLine(rect1.center(), rect2.center());
+             if (rectHovered(eventSeries->getKind(), rect1)) {
+                 rect1.adjust(-offset, -offset, offset, offset);
+                 painter.setPen(QPen(highlightColor_, offset + penOffset));
+                 painter.setBrush(highlightTextColor_);
+             } else {
+                 painter.setPen(QPen(gridColor_, offset));
+                 painter.setBrush(seriesColor);
+             }
+             painter.drawEllipse(rect1);
+             if (rectHovered(eventSeries->getKind(), rect2)) {
+                 rect2.adjust(-offset, -offset, offset, offset);
+                 painter.setPen(QPen(highlightColor_, offset + penOffset));
+                 painter.setBrush(highlightTextColor_);
+             } else {
+                 painter.setPen(QPen(gridColor_, offset));
+                 painter.setBrush(seriesColor);
+             }
+             painter.drawEllipse(rect2);
+         }
+     }
+
+     painter.setRenderHint(QPainter::Antialiasing, false);
 }
 
 
@@ -950,7 +1065,7 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
  */
 bool EntityChart::rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect)
 {
-    auto painterRect = hitRect.adjusted(-BAR_PEN_WIDTH / 2.0, 0, BAR_PEN_WIDTH / 2.0, 0);
+    auto painterRect = hitRect.adjusted(-PEN_WIDTH / 2.0, 0, PEN_WIDTH / 2.0, 0);
     if (rectHovered(painterRect)) {
         // if the hit rect is hovered, store/update the hovered time range for the provided series kind
         QPair<qint64, qint64> timeRange = {mapPixelToTime(hitRect.left()), mapPixelToTime(hitRect.right())};
