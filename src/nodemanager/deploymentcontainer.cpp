@@ -157,7 +157,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         for(const auto& port_pb : component_pb.ports()){
             auto port = GetConfiguredPort(component, port_pb);
             try{
-                if(port->get_state() != Activatable::State::NOT_CONFIGURED){
+                if(port->get_state() != StateMachine::State::NOT_CONFIGURED){
                     //Terminate and reactivate?
                     std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
                     port->Terminate();

@@ -66,8 +66,9 @@ class DeploymentContainer : public Activatable{
         
         
         //Constructor functions
+        public:
         std::shared_ptr<Port> ConstructPeriodicPort(std::weak_ptr<Component> component, const std::string& port_name);
-        
+        private:
         std::shared_ptr<Port> ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
         std::shared_ptr<Port> ConstructSubscriberPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
         

@@ -15,11 +15,11 @@ endif()
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-SET(SOURCE
+add_executable(${PROJ_NAME})
+
+target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
 )
-
-add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})

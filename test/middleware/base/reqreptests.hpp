@@ -2,6 +2,7 @@
 #include "basic.hpp"
 #include <core/ports/requestreply/requesterport.hpp>
 #include <core/ports/requestreply/replierport.hpp>
+#include "../../core/testfunctions.h"
 
 namespace ReqRep{
     namespace Basic2Basic{

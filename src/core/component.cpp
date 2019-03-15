@@ -23,11 +23,13 @@ Component::~Component(){
 
 void Component::HandleActivate(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
-    
+    std::cerr << "HandleActivate: " << ports_.size() << std::endl;
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
+            std::cerr << "Activate: " << a->get_name() << std::endl;
             a->Activate();
+            std::cerr << "Activated: " << a->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleActivate();
@@ -37,10 +39,13 @@ void Component::HandleActivate(){
 void Component::HandleConfigure(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
+    std::cerr << "HandleConfigure: " << ports_.size() << std::endl;
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
+            std::cerr << "Configure: " << a->get_name() << std::endl;
             a->Configure();
+            std::cerr << "Configured: " << a->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleConfigure();
@@ -49,10 +54,13 @@ void Component::HandleConfigure(){
 void Component::HandlePassivate(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
+    std::cerr << "HandlePassivate: " << ports_.size() << std::endl;
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
+            std::cerr << "Passivate: " << a->get_name() << std::endl;
             a->Passivate();
+            std::cerr << "Passivated: " << a->get_name() << std::endl;
         }
     }
 
@@ -60,11 +68,14 @@ void Component::HandlePassivate(){
 }
 
 void Component::HandleTerminate(){
+    std::cerr << "HandleTerminate: " << ports_.size() << std::endl;
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     for(const auto& p : ports_){
         auto& port = p.second;
         if(port){
+            std::cerr << "Terminate: " << port->get_name() << std::endl;
             port->Terminate();
+            std::cerr << "Terminated: " << port->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleTerminate();
@@ -108,7 +119,9 @@ std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
     if(event_port){
         const auto& port_name = event_port->get_name();
         if(ports_.count(port_name) == 0){
+            std::cerr << "ADDING: " << port_name << std::endl;
             ports_[port_name] = std::move(event_port);
+            std::cerr << ports_.size() << std::endl;
             return ports_[port_name];
         }else{
             std::cerr << "Component '" << get_name()  << "' already has an Port with name '" << port_name << "'" << std::endl;

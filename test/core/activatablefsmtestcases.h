@@ -1,5 +1,5 @@
 #include <core/activatable.h>
-
+#include "testfunctions.h"
 //Requires a subclass of ActivatableFSMTester to be defined, and then this header file to be included with TEST_FSM_CLASS defined
 
 /*
@@ -18,6 +18,8 @@
         Passivate() - P
         Terminate() - T
 */
+
+
 
 TEST_F(TEST_FSM_CLASS, Valid_C)
 {
@@ -207,13 +209,13 @@ TEST_F(TEST_FSM_CLASS, LONG_Valid_CAPTx10_RAN_DELAY)
     int max = 50;
     int count = 10;
     while(count-- > 0){
-        random_sleep_ms(min, max);
+        random_sleep_ms(random_generator, min, max);
         ASSERT_TRUE(a->Configure());
-        random_sleep_ms(min, max);
+        random_sleep_ms(random_generator, min, max);
         ASSERT_TRUE(a->Activate());
-        random_sleep_ms(min, max);
+        random_sleep_ms(random_generator, min, max);
         ASSERT_TRUE(a->Passivate());
-        random_sleep_ms(min, max);
+        random_sleep_ms(random_generator, min, max);
         ASSERT_TRUE(a->Terminate());
     }
 };

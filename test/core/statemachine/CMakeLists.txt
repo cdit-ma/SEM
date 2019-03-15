@@ -1,4 +1,4 @@
-set(PROJ_NAME test_attribute)
+set(PROJ_NAME test_statemachine)
 project(${PROJ_NAME})
 
 add_executable(${PROJ_NAME})

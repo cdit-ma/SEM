@@ -1,5 +1,5 @@
 set(PROJ_NAME ospl_dds_helper)
-project (${PROJ_NAME})
+project(${PROJ_NAME})
 
 find_package(OSPL_DDS)
 
@@ -8,15 +8,14 @@ if(NOT OSPL_DDS_FOUND)
     return()
 endif()
 
-set(SOURCE
+add_library(${PROJ_NAME} SHARED)
+
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
-    )
-
-set(HEADERS
+    # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
-    )
-
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${OSPL_DDS_INCLUDE_DIRS})

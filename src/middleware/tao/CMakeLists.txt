@@ -8,19 +8,18 @@ if(NOT TAO_FOUND)
 	return()
 endif()
 
-set(SOURCE
+add_library(${PROJ_NAME} SHARED)
+
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/taohelper.cpp
-    )
-
-set(HEADERS
+    # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/taohelper.h
-    )
+)
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
-
+# Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${TAO_INCLUDE_DIRS})
 
+# Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC ${TAO_LIBRARIES})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/utils")

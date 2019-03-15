@@ -1,9 +1,9 @@
 #include "id_generator.h"
-#include <mutex>
+#include <atomic>
 
-int IdGenerator::get_next_id(){
-    static std::mutex mutex_;
-    static int counter_ = 0;
-    std::lock_guard<std::mutex> lock(mutex_);
-    return ++counter_;
-}
+namespace IdGenerator{
+    uint64_t get_next_id(){
+        static std::atomic<uint64_t> counter_{0};
+        return ++counter_;
+    };
+};
