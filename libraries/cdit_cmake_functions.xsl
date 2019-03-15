@@ -638,7 +638,7 @@
         <xsl:param name="server_interface"/>
         <xsl:param name="middleware" as="xs:string" />
 
-        <xsl:variable name="ignore_recursion" select="$middleware != 'tao'">
+        <xsl:variable name="ignore_recursion" select="$middleware != 'tao'" />
         
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($server_interface, $ignore_recursion)" />
