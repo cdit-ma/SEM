@@ -15,7 +15,7 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker_impl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
-    )
+)
 
 # Disable Optimizing
 if (UNIX)
