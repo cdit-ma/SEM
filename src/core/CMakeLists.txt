@@ -56,7 +56,9 @@ target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protowriter)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
-target_link_libraries(${PROJ_NAME} PRIVATE Boost::thread)
+# Have to use old CMake boost syntax TODO: Build all of Boost
+# Boost::thread links against boost::atomic boost::chrono and boost::data_time which aren't built
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_THREAD_LIBRARY})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
 
 if(UNIX)
