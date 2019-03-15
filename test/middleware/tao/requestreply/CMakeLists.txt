@@ -20,7 +20,7 @@ SET(SOURCE
 
 TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../message.idl)
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

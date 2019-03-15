@@ -8,7 +8,7 @@ if(NOT ZMQ_FOUND)
 	return()
 endif()
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

@@ -11,7 +11,7 @@ endif()
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
