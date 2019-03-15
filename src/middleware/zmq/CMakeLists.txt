@@ -7,7 +7,8 @@ if(NOT ZMQ_FOUND)
     message(STATUS "Cannot find ZMQ cannot build project ${PROJ_NAME}")
     return()
 endif()
-add_library(${PROJ_NAME} SHARED)
+
+add_library(${PROJ_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

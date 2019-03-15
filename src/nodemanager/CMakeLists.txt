@@ -4,8 +4,8 @@ project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-add_library(${LIB_NAME} SHARED)
-add_executable(${PROJ_NAME})
+add_library(${LIB_NAME} SHARED "")
+add_executable(${PROJ_NAME} "")
 
 target_sources(${LIB_NAME} PRIVATE
     # Sources
