@@ -27,10 +27,7 @@ if (NOT OPENCL_INCLUDE_PATH)
     set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
 
-add_library(${PROJ_NAME} SHARED)
-
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
+set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.cpp
@@ -42,8 +39,9 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclqueue.cpp
+    )
 
-    # Headers
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/cl2.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
@@ -57,7 +55,7 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
-)
+    )
 
 # Search for OpenCL FFT libraries
 set(CLFFT_ROOT $ENV{CLFFT_ROOT})
@@ -68,22 +66,28 @@ find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 # Add implementations for fft library as necessary
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "building OpenCL worker with FPGA FFT library")
-    target_sources(${PROJ_NAME} PRIVATE
+    set(SOURCE
+        ${SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
-    )
+        )
 elseif (CLFFT_LIB)
     message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
-    target_sources(${PROJ_NAME} PRIVATE
+    set(SOURCE
+        ${SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
-    )
+        )
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
-    target_sources(${PROJ_NAME} PRIVATE
+    set(SOURCE
+        ${SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
-    )
+        )
 endif()
 
+
+# Mark library dependencies
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
 if(ALTERA_OCLSDK_LIB)
@@ -99,9 +103,15 @@ endif()
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
-
+message(STATUS "KERNAL FILEPATH: ${KERNEL_FILEPATH}")
 target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
+#Add RE_PATH to include directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
+target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
+
+# Include Directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
 
 # Link Libraries

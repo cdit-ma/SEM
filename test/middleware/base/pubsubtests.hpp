@@ -4,7 +4,6 @@
 #include <future>
 #include <core/ports/pubsub/publisherport.hpp>
 #include <core/ports/pubsub/subscriberport.hpp>
-#include "../../core/testfunctions.h"
 
 namespace PubSub{
     namespace Basic{

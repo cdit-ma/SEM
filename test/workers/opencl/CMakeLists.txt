@@ -13,10 +13,11 @@ if(NOT OPENCL_LIB)
     return()
 endif()
 
-add_executable(${PROJ_NAME})
+if (NOT OPENCL_INCLUDE_PATH)
+    set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
+endif()
 
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
+SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanagertest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_matrixmult.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_runparallel.cpp
@@ -24,9 +25,20 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_kmeans.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclfftworker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common.cpp
+    ${RE_TEST_SOURCE_DIR}/core/test_main.cpp
 )
+
+add_executable(${PROJ_NAME} ${SOURCE})
+
+#Include OpenCL Includes
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
+
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} pthread)
+endif(UNIX)
 
 target_link_libraries(${PROJ_NAME} opencl_worker)
 target_link_libraries(${PROJ_NAME} re_loggers)
 target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${PROJ_NAME} gtest_main)

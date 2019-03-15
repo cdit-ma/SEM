@@ -10,7 +10,6 @@
 #include <boost/thread.hpp>
 
 #include <core/loggerproxy.h>
-#include <core/statemachine.h>
 
 class Activatable{
 public:
@@ -21,6 +20,22 @@ public:
         WORKER,
         DEPLOYMENT_CONTAINER
     };
+    enum class Transition{
+        NO_TRANSITION = 0,
+        CONFIGURE = 1,
+        ACTIVATE = 2,
+        PASSIVATE = 3,
+        TERMINATE = 4,
+    };
+
+    enum class State{
+        NOT_CONFIGURED = 0,
+        CONFIGURED = 1,
+        RUNNING = 2,
+        NOT_RUNNING = 3,
+    };
+    static const std::string ToString(const Transition& transation);
+    static const std::string ToString(const State& transation);
 
     public:
         Activatable(Class c = Class::UNKNOWN);
@@ -39,7 +54,7 @@ public:
         bool process_event();
         LoggerProxy& logger() const;
 
-        StateMachine::State get_state();
+        Activatable::State get_state();
 
 
         bool Configure();
@@ -77,7 +92,7 @@ public:
         std::weak_ptr<Attribute> AddAttribute(std::unique_ptr<Attribute> attribute);
         std::shared_ptr<Attribute> GetAttribute(const std::string& name, const ATTRIBUTE_TYPE type);
     private:
-        StateMachine state_machine_;
+        bool transition_state(const Activatable::Transition transition);
 
         std::unique_ptr<LoggerProxy> logger_;
         std::string name_;
@@ -87,6 +102,16 @@ public:
 
         std::mutex attributes_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Attribute> > attributes_;
+
+        //boost::shared_mutex state_mutex_;
+        std::mutex state_mutex_;
+        Activatable::State state_ = Activatable::State::NOT_CONFIGURED;
+        
+        //boost::shared_mutex transition_mutex_;
+        std::mutex transition_mutex_;
+        Activatable::Transition transition_ = Activatable::Transition::NO_TRANSITION;
+
+        std::mutex transitioning_mutex_;
 };
 
 

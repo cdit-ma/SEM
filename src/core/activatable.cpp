@@ -2,15 +2,37 @@
 #include <iostream>
 #include <typeinfo>
 
+const std::string Activatable::ToString(const Activatable::Transition& transition){
+    switch(transition){
+        case Transition::NO_TRANSITION:
+            return "NO_TRANSITION";
+        case Transition::CONFIGURE:
+            return "CONFIGURE";
+        case Transition::ACTIVATE:
+            return "ACTIVATE";
+        case Transition::PASSIVATE:
+            return "PASSIVATE";
+        case Transition::TERMINATE:
+            return "TERMINATE";
+    }
+};
+
+const std::string Activatable::ToString(const Activatable::State& state){
+    switch(state){
+        case State::NOT_CONFIGURED:
+            return "NOT_CONFIGURED";
+        case State::CONFIGURED:
+            return "CONFIGURED";
+        case State::RUNNING:
+            return "RUNNING";
+        case State::NOT_RUNNING:
+            return "NOT_RUNNING";
+    }
+};
+
 Activatable::Activatable(Class c){
     class_ = c;
     logger_ = std::unique_ptr<LoggerProxy>(new LoggerProxy);
-
-    //Bind in Transition functions
-    state_machine_.RegisterTransitionFunction(StateMachine::Transition::CONFIGURE, [=](){HandleConfigure();});
-    state_machine_.RegisterTransitionFunction(StateMachine::Transition::ACTIVATE,  [=](){HandleActivate();});
-    state_machine_.RegisterTransitionFunction(StateMachine::Transition::PASSIVATE, [=](){HandlePassivate();});
-    state_machine_.RegisterTransitionFunction(StateMachine::Transition::TERMINATE, [=](){HandleTerminate();});
 }
 
 std::string Activatable::get_name() const{
@@ -42,23 +64,147 @@ void Activatable::set_type(std::string type){
 }
 
 bool Activatable::Activate(){
-    return state_machine_.Activate();
-}
-
-bool Activatable::Configure(){
-    return state_machine_.Configure();
+    return transition_state(Transition::ACTIVATE);
 }
 
 bool Activatable::Passivate(){
-    return state_machine_.Passivate();
+    return transition_state(Transition::PASSIVATE);
 }
 
 bool Activatable::Terminate(){
-    return state_machine_.Terminate();
+    return transition_state(Transition::TERMINATE);
 }
 
-StateMachine::State Activatable::get_state(){
-    return state_machine_.get_state();
+bool Activatable::Configure(){
+    return transition_state(Transition::CONFIGURE);
+}
+
+
+bool Activatable::transition_state(Transition transition){
+    //Stop concurrent transitions occuring
+    std::lock_guard<std::mutex> transitioning_lock(transitioning_mutex_);
+
+    //get the current state
+    auto current_state = get_state();
+    auto new_state = current_state;
+    switch(current_state){
+        case State::NOT_CONFIGURED:{
+            switch(transition){
+                case Transition::CONFIGURE:{
+                    new_state = State::CONFIGURED;
+                    break;
+                }
+                case Transition::TERMINATE:{
+                    //Ignore this transition
+                    return false;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case State::CONFIGURED:{
+            switch(transition){
+                case Transition::ACTIVATE:{
+                    new_state = State::RUNNING;
+                    break;
+                }
+                case Transition::TERMINATE:{
+                    new_state = State::NOT_CONFIGURED;
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case State::RUNNING:{
+            switch(transition){
+                case Transition::PASSIVATE:{
+                    new_state = State::NOT_RUNNING;
+                    break;
+                }
+                case Transition::TERMINATE:{
+                    new_state = State::NOT_CONFIGURED;
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case State::NOT_RUNNING:{
+            switch(transition){
+                case Transition::PASSIVATE:{
+                    //Ignore this transition
+                    return false;
+                }
+                case Transition::TERMINATE:{
+                    new_state = State::NOT_CONFIGURED;
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+    }
+
+    if(new_state != current_state){
+        {
+            //If the state should change, we should set our transition
+            std::lock_guard<std::mutex> transition_lock(transition_mutex_);
+            transition_ = transition;
+        }
+
+        bool transitioned = true;
+        try{
+            switch(transition){
+                case Transition::CONFIGURE:{
+                    HandleConfigure();
+                    break;
+                }
+                case Transition::ACTIVATE:{
+                    HandleActivate();
+                    break;
+                }
+                case Transition::PASSIVATE:{
+                    HandlePassivate();
+                    break;
+                }
+                case Transition::TERMINATE:{
+                    HandleTerminate();
+                    break;
+                }
+                default:
+                    transitioned = false;
+                    break;
+            }
+        }catch(const std::exception& e){
+            std::cerr << "Exception:" << e.what() << std::endl;
+            transitioned = false;
+        }
+
+        std::lock_guard<std::mutex> transition_lock(transition_mutex_);
+        //If transitioned, move the state, otherwise fail
+        if(transitioned){
+            std::lock_guard<std::mutex> state_lock(state_mutex_);
+            state_ = new_state;
+        }else{
+            logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
+        }
+        //Reset the transition?
+        transition_ = Activatable::Transition::NO_TRANSITION;
+        return transitioned;
+    }else{
+        logger().LogException(*this, std::string(GET_FUNC) + " " + get_name() + ": Cannot transition from state: " + ToString(current_state) + " transition: " + ToString(transition));
+    }
+    return false;
+}
+
+Activatable::State Activatable::get_state(){
+    std::lock_guard<std::mutex> state_lock(state_mutex_);
+    return state_;
 }
 
 LoggerProxy& Activatable::logger() const{
@@ -66,11 +212,16 @@ LoggerProxy& Activatable::logger() const{
 };
 
 bool Activatable::process_event(){
-    if(state_machine_.get_state() == StateMachine::State::RUNNING){
-        return state_machine_.get_transition() == StateMachine::Transition::NO_TRANSITION;
+    std::unique_lock<std::mutex> state_lock(state_mutex_);//, std::try_to_lock);
+    if(state_ == Activatable::State::RUNNING){
+        std::unique_lock<std::mutex> transition_lock(transition_mutex_, std::try_to_lock);
+        if(transition_lock.owns_lock()){
+            return transition_ == Transition::NO_TRANSITION;
+        }
     }
     return false;
 }
+
 
 std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> attribute){
     std::lock_guard<std::mutex> lock(attributes_mutex_);

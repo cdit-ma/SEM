@@ -1,3 +1,4 @@
+
 set(PROJ_NAME rti_dds_helper)
 project (${PROJ_NAME})
 
@@ -9,14 +10,13 @@ if(NOT RTI_DDS_FOUND)
     return()
 endif()
 
-add_library(${PROJ_NAME} SHARED)
-
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
+set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
-    # Headers
+    )
+
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
-)
+    )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 

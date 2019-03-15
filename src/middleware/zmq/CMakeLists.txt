@@ -7,14 +7,16 @@ if(NOT ZMQ_FOUND)
     message(STATUS "Cannot find ZMQ cannot build project ${PROJ_NAME}")
     return()
 endif()
-add_library(${PROJ_NAME} SHARED)
 
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
+set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
-    # Headers
+    )
+
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
-)
+    )
+
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${ZMQ_INCLUDE_DIRS})

@@ -1,21 +1,22 @@
 set(PROJ_NAME cpu_worker)
 project(${PROJ_NAME})
 
-add_library(${PROJ_NAME} SHARED)
-
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
+set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/intop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/floatop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry_1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/whets.cpp
-    # Headers
+    )
+
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker_impl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
     )
+
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Disable Optimizing
 if (UNIX)
@@ -29,6 +30,9 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${NO_OPTIMIZE_FLAG}")
 
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${NO_OPTIMIZE_FLAG}")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${NO_OPTIMIZE_FLAG}")
+
+# Include Directories
+target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)

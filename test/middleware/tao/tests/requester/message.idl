@@ -1,0 +1,22 @@
+
+typedef sequence<string, 10> str_10;
+typedef sequence<string> str_u;
+
+
+struct Basic2{
+    string str_val;
+    str_u strings;
+};
+
+/// Put the interfaces in a module, to avoid global namespace pollution
+/*struct Basic3{
+    string str_val;
+    str_u strings;
+};*/
+
+
+/// A very simple interface
+interface SequenceTest
+{
+	Basic2 send(in Basic2 message);
+};

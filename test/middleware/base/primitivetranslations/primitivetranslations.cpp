@@ -1,7 +1,7 @@
 
 #include <core/ports/primitivetranslator.hpp>
 #include <limits>
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 typedef int RE_integer;
 typedef float RE_float;
@@ -19,7 +19,7 @@ bool IsValidConversion(const T& value){
     return success;
 }
 
-TEST(re2primitive, integer2short){
+TEST(re2corba, integer2short){
     typedef short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -52,7 +52,7 @@ TEST(re2primitive, integer2short){
     }
 };
 
-TEST(re2primitive, integer2ushort){
+TEST(re2corba, integer2ushort){
     typedef unsigned short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -85,7 +85,7 @@ TEST(re2primitive, integer2ushort){
     }
 };
 
-TEST(re2primitive, integer2integer){
+TEST(re2corba, integer2integer){
     typedef int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -118,7 +118,7 @@ TEST(re2primitive, integer2integer){
     }
 };
 
-TEST(re2primitive, integer2uinteger){
+TEST(re2corba, integer2uinteger){
     typedef unsigned int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -151,7 +151,7 @@ TEST(re2primitive, integer2uinteger){
     }
 };
 
-TEST(re2primitive, integer2long){
+TEST(re2corba, integer2long){
     typedef long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -184,7 +184,7 @@ TEST(re2primitive, integer2long){
     }
 };
 
-TEST(re2primitive, integer2ulong){
+TEST(re2corba, integer2ulong){
     typedef unsigned long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -217,7 +217,7 @@ TEST(re2primitive, integer2ulong){
     }
 };
 
-TEST(re2primitive, integer2longlong){
+TEST(re2corba, integer2longlong){
     typedef long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -250,7 +250,7 @@ TEST(re2primitive, integer2longlong){
     }
 };
 
-TEST(re2primitive, integer2ulonglong){
+TEST(re2corba, integer2ulonglong){
     typedef unsigned long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -283,7 +283,7 @@ TEST(re2primitive, integer2ulonglong){
     }
 };
 
-TEST(re2primitive, double2double){
+TEST(re2corba, double2double){
     typedef double CORBA_TYPE;
     typedef RE_double RE_TYPE;
     
@@ -316,7 +316,7 @@ TEST(re2primitive, double2double){
     }
 };
 
-TEST(re2primitive, float2float){
+TEST(re2corba, float2float){
     typedef float CORBA_TYPE;
     typedef RE_float RE_TYPE;
     
@@ -349,7 +349,7 @@ TEST(re2primitive, float2float){
     }
 };
 
-TEST(re2primitive, char2char){
+TEST(re2corba, char2char){
     typedef char CORBA_TYPE;
     typedef RE_char RE_TYPE;
     
@@ -375,7 +375,7 @@ TEST(re2primitive, char2char){
     }
 };
 
-TEST(re2primitive, char2wchar){
+TEST(re2corba, char2wchar){
     typedef wchar_t CORBA_TYPE;
     typedef RE_char RE_TYPE;
     

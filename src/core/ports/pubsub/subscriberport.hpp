@@ -26,9 +26,10 @@ class SubscriberPort : public Port{
         virtual void HandleActivate();
         virtual void HandlePassivate();
         virtual void HandleTerminate();
+
         void EnqueueMessage(std::unique_ptr<BaseType> message);
-    private:
         int GetQueuedMessageCount();
+    private:
         void InterruptLoop();
         void ProcessLoop();
         void rx(BaseType& t, bool process_message = true);
