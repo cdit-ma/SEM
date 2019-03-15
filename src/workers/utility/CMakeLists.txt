@@ -2,7 +2,7 @@ set(PROJ_NAME utility_worker)
 project(${PROJ_NAME})
 
 
-find_package(Boost 1.30.0 REQUIRED random)
+find_package(Boost 1.30.0 REQUIRED)
 
 add_library(${PROJ_NAME} SHARED "")
 
