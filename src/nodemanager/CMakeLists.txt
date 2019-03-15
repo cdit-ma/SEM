@@ -2,7 +2,7 @@ set(PROJ_NAME "re_node_manager")
 set(LIB_NAME "re_node_manager_lib")
 project(${PROJ_NAME})
 
-find_package(Boost 1.30.0 COMPONENTS program_options date_time chrono REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 add_library(${LIB_NAME} SHARED)
 add_executable(${PROJ_NAME})
@@ -48,9 +48,6 @@ target_link_libraries(${LIB_NAME} PUBLIC zmq_protoreplier)
 target_link_libraries(${LIB_NAME} PUBLIC zmq_protowriter)
 target_link_libraries(${LIB_NAME} PUBLIC zmq_environmentrequester)
 target_link_libraries(${LIB_NAME} PUBLIC logan_client_lib)
-
-target_link_libraries(${LIB_NAME} PUBLIC Boost::date_time)
-target_link_libraries(${LIB_NAME} PUBLIC Boost::chrono)
 
 target_link_libraries(${PROJ_NAME} PUBLIC ${LIB_NAME})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
