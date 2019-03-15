@@ -56,7 +56,7 @@ target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protowriter)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
-target_link_libraries(${PROJ_NAME} PUBLIC Boost::thread)
+target_link_libraries(${PROJ_NAME} PRIVATE Boost::thread)
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
 
 if(UNIX)
