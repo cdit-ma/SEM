@@ -27,7 +27,7 @@ if (NOT OPENCL_INCLUDE_PATH)
     set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
 
-add_library(${PROJ_NAME} SHARED)
+add_library(${PROJ_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

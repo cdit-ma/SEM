@@ -13,7 +13,7 @@ if(NOT OPENCL_LIB)
     return()
 endif()
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
@@ -26,7 +26,7 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/common.cpp
 )
 
-target_link_libraries(${PROJ_NAME} opencl_worker)
-target_link_libraries(${PROJ_NAME} re_loggers)
-target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${PROJ_NAME} gtest_main)
+target_link_libraries(${PROJ_NAME} PRIVATE opencl_worker)
+target_link_libraries(${PROJ_NAME} PRIVATE re_loggers)
+target_link_libraries(${PROJ_NAME} PRIVATE gtest)
+target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)

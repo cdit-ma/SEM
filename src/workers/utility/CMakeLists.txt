@@ -2,9 +2,9 @@ set(PROJ_NAME utility_worker)
 project(${PROJ_NAME})
 
 
-find_package(Boost 1.30.0 REQUIRED)
+find_package(Boost 1.30.0 REQUIRED random)
 
-add_library(${PROJ_NAME} SHARED)
+add_library(${PROJ_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

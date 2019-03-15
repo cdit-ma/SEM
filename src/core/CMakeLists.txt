@@ -4,8 +4,8 @@ project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS thread REQUIRED)
 
-add_library(${PROJ_NAME} STATIC)
-add_library(${LIB_NAME} SHARED)
+add_library(${PROJ_NAME} STATIC "")
+add_library(${LIB_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

@@ -13,7 +13,7 @@ if(NOT KDIS_LIB)
     return()
 endif()
 
-add_library(${PROJ_NAME} SHARED)
+add_library(${PROJ_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

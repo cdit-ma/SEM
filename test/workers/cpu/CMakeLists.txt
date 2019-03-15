@@ -2,7 +2,7 @@ set(PROJ_NAME test_cpuworker)
 project(${PROJ_NAME})
 
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

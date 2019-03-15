@@ -1,7 +1,7 @@
 set(PROJ_NAME test_periodicevent)
 project(${PROJ_NAME})
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp

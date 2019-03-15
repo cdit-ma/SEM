@@ -1,7 +1,7 @@
 set(PROJ_NAME memory_worker)
 project(${PROJ_NAME})
 
-add_library(${PROJ_NAME} SHARED)
+add_library(${PROJ_NAME} SHARED "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

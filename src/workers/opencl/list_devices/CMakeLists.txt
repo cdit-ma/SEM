@@ -1,5 +1,4 @@
 set(PROJ_NAME list_opencl_devices)
-
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
@@ -17,16 +16,15 @@ if(NOT OPENCL_INCLUDE_PATH)
     SET(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
 
-set(SOURCE
+add_executable(${PROJ_NAME} "")
+
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/listdevices.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/jsonwriter.cpp
-    )
-
-set(HEADERS
+    # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/jsonwriter.h
-    )
-
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
+)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
