@@ -417,7 +417,7 @@
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="function_name" select="cdit:get_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
-            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('PublisherPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
+            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('PublisherPort', $port_type), 'SafeGetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
 
             <!-- Define the Send function -->
             <xsl:value-of select="cpp:define_function('void', $qualified_class_type, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
@@ -443,7 +443,7 @@
 
             <xsl:variable name="port_type" select="cdit:get_server_interface_template_type($server_interface)" />
             
-            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('RequesterPort', $port_type), 'GetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
+            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('RequesterPort', $port_type), 'SafeGetTypedPort', o:wrap_dblquote($port_label), '', 0) " />
 
             <xsl:variable name="failed_return">
                 <xsl:choose>
@@ -1825,13 +1825,12 @@
                 <xsl:when test="$kind = 'Attribute' and $parent_kind = 'PeriodicPort'">
                     <xsl:variable name="port_label" select="graphml:get_label($parent_node)" />
 
-                    <xsl:variable name="port_getter" select="cpp:invoke_templated_static_function('PeriodicPort', 'GetTypedPort', o:wrap_dblquote($port_label), '', 0)" />
                     <xsl:choose>
                         <xsl:when test="$mutable">
-                            <xsl:value-of select="concat($port_getter, cpp:arrow(), 'SetFrequency')"/>
+                            <xsl:value-of select="concat('SetPeriodicFrequency', '(', o:wrap_dblquote($port_label), ' ')"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="cpp:invoke_function($port_getter, cpp:arrow(), 'GetFrequency', '', 0)"/>
+                            <xsl:value-of select="cpp:invoke_static_function('', 'GetPeriodicFrequency', o:wrap_dblquote($port_label), '', 0)" />
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
