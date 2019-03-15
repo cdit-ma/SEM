@@ -3,7 +3,7 @@ project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-add_executable(${PROJ_NAME})
+add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
