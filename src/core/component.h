@@ -76,10 +76,12 @@ class Component : public BehaviourContainer{
         //Port
         std::weak_ptr<Port> AddPort(std::unique_ptr<Port> port);
         std::weak_ptr<Port> GetPort(const std::string& port_name);
+
         template<class PortType>
         std::shared_ptr<PortType> GetTypedPort(const std::string& port_name);
 
-        std::shared_ptr<Port> RemovePort(const std::string& port_name);
+        template<class PortType>
+        std::shared_ptr<PortType> SafeGetTypedPort(const std::string& port_name);
 
         template<class ReplyType, class RequestType>
         void RegisterCallback(const std::string& port_name, std::function<ReplyType (RequestType&)> fn);
@@ -130,8 +132,16 @@ class Component : public BehaviourContainer{
 template<class PortType>
 std::shared_ptr<PortType> Component::GetTypedPort(const std::string& port_name){
     static_assert(std::is_base_of<Port, PortType>::value, "PortType must inherit from Port");
-    auto p = GetPort(port_name).lock();
-    return std::dynamic_pointer_cast<PortType>(p);
+    return std::dynamic_pointer_cast<PortType>(GetPort(port_name).lock());
+};
+
+
+template<class PortType>
+std::shared_ptr<PortType> Component::SafeGetTypedPort(const std::string& port_name){
+    if(process_event()){
+        return GetTypedPort<PortType>(port_name);
+    }
+    return nullptr;
 };
 
 template<class ReplyType, class RequestType>

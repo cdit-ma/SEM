@@ -16,20 +16,15 @@ Component::Component(const std::string& component_name):
 
 Component::~Component(){
     Activatable::Terminate();
-    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
-    //Destory Ports
-    ports_.clear();
 }
 
 void Component::HandleActivate(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
-    std::cerr << "HandleActivate: " << ports_.size() << std::endl;
+    
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
-            std::cerr << "Activate: " << a->get_name() << std::endl;
             a->Activate();
-            std::cerr << "Activated: " << a->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleActivate();
@@ -39,13 +34,10 @@ void Component::HandleActivate(){
 void Component::HandleConfigure(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
-    std::cerr << "HandleConfigure: " << ports_.size() << std::endl;
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
-            std::cerr << "Configure: " << a->get_name() << std::endl;
             a->Configure();
-            std::cerr << "Configured: " << a->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleConfigure();
@@ -54,13 +46,10 @@ void Component::HandleConfigure(){
 void Component::HandlePassivate(){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     
-    std::cerr << "HandlePassivate: " << ports_.size() << std::endl;
     for(const auto& p : ports_){
         auto& a = p.second;
         if(a){
-            std::cerr << "Passivate: " << a->get_name() << std::endl;
             a->Passivate();
-            std::cerr << "Passivated: " << a->get_name() << std::endl;
         }
     }
 
@@ -68,14 +57,11 @@ void Component::HandlePassivate(){
 }
 
 void Component::HandleTerminate(){
-    std::cerr << "HandleTerminate: " << ports_.size() << std::endl;
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
     for(const auto& p : ports_){
         auto& port = p.second;
         if(port){
-            std::cerr << "Terminate: " << port->get_name() << std::endl;
             port->Terminate();
-            std::cerr << "Terminated: " << port->get_name() << std::endl;
         }
     }
     BehaviourContainer::HandleTerminate();
@@ -112,17 +98,13 @@ const std::vector<int>& Component::GetReplicationIndices() const{
     return replication_indices_;
 }
 
-
 std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
-    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
-
     if(event_port){
+        boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
         const auto& port_name = event_port->get_name();
+        
         if(ports_.count(port_name) == 0){
-            std::cerr << "ADDING: " << port_name << std::endl;
-            ports_[port_name] = std::move(event_port);
-            std::cerr << ports_.size() << std::endl;
-            return ports_[port_name];
+            return ports_.emplace(port_name, std::move(event_port)).first->second;
         }else{
             std::cerr << "Component '" << get_name()  << "' already has an Port with name '" << port_name << "'" << std::endl;
         }
@@ -132,24 +114,13 @@ std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
 
 std::weak_ptr<Port> Component::GetPort(const std::string& port_name){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
-    if(ports_.count(port_name)){
-        return ports_[port_name];
+    auto port_itt = ports_.find(port_name);
+    if(port_itt != ports_.end()){
+        return port_itt->second;
     }
-    //std::cerr << "Component '" << get_name() << "' doesn't have an Port with name '" << port_name << "'" << std::endl;
     return std::weak_ptr<Port>();
 }
 
-std::shared_ptr<Port> Component::RemovePort(const std::string& port_name){
-    boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
-
-    if(ports_.count(port_name)){
-        auto worker = ports_[port_name];
-        ports_.erase(port_name);
-        return worker;
-    }
-    std::cerr << "Component '" << get_name() << "' doesn't have an Port with name '" << port_name << "'" << std::endl;
-    return std::shared_ptr<Port>();
-}
 bool Component::GotCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type){
     boost::shared_lock<boost::shared_mutex> lock{port_mutex_};
 
@@ -188,21 +159,22 @@ void Component::AddCallback(const std::string& port_name, const std::type_info& 
 
     //Insert types into map
     callback_type_hash_.emplace(std::make_pair(port_name, std::make_pair(request_type_ref, reply_type_ref)));
-    callback_functions_[port_name] = std::move(callback);
+    callback_functions_.emplace(port_name, std::move(callback));
 }
 
 
 
 bool Component::RemoveCallback(const std::string& port_name){
     boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
-    
-    if(callback_functions_.count(port_name) == 0){
-        callback_functions_.erase(port_name);
+
+    auto callback_itt = callback_functions_.find(port_name);
+    if(callback_itt != callback_functions_.end()){
+        callback_functions_.erase(callback_itt);
         return true;
     }else{
         std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << port_name << "'" << std::endl;
+        return false;
     }
-    return false;
 }
 
 const std::string& Component::GetExperimentName() const{

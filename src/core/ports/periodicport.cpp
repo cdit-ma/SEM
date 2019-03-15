@@ -102,9 +102,11 @@ void PeriodicPort::HandleTerminate(){
 };
 
 void PeriodicPort::InterruptLoop(){
-    //Wake up the threads sleep
-    std::lock_guard<std::mutex> lock(tick_mutex_);
-    interupt_ = true;
+    {
+        //Wake up the threads sleep
+        std::lock_guard<std::mutex> lock(tick_mutex_);
+        interupt_ = true;
+    }
     tick_condition_.notify_all();
 }
 

@@ -4,6 +4,9 @@
 #include "../activatable.h"
 #include "../basemessage.h"
 
+#include <atomic>
+#include <cstdint>
+
 //Forward declare
 class Component;
 
@@ -17,7 +20,6 @@ class CallbackException : public std::runtime_error{
 //Interface for a standard Port
 class Port : public Activatable
 {
-    
     public:
         enum class Kind{
             NONE = 0,
@@ -34,9 +36,9 @@ class Port : public Activatable
         std::string get_middleware() const;
         std::weak_ptr<Component> get_component() const;
 
-        int GetEventsReceived();
-        int GetEventsProcessed();
-        int GetEventsIgnored();
+        uint64_t GetEventsReceived();
+        uint64_t GetEventsProcessed();
+        uint64_t GetEventsIgnored();
     protected:
         void HandleConfigure();
         void HandlePassivate();
@@ -55,10 +57,9 @@ class Port : public Activatable
         std::string port_middleware_;
         Port::Kind port_kind_ = Port::Kind::NONE;
 
-        std::mutex mutex_;
-        int received_count_ = 0;
-        int processed_count_ = 0;
-        int ignored_count_ = 0;
+        std::atomic<uint64_t> received_count_{0};
+        std::atomic<uint64_t> processed_count_{0};
+        std::atomic<uint64_t> ignored_count_{0};
 };
 
 #endif // BASE_PORT_H

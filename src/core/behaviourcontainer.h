@@ -2,6 +2,8 @@
 #define BEHAVIOUR_CONTAINER_H
 
 #include "activatable.h"
+#include <boost/thread.hpp>
+#include <unordered_map>
 
 class Worker;
 
@@ -26,8 +28,7 @@ class BehaviourContainer : public Activatable{
         virtual void HandlePassivate();
         virtual void HandleTerminate();
     private:
-        std::mutex worker_mutex_;
-
+        boost::shared_mutex worker_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;
 };
 

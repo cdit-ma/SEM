@@ -26,34 +26,29 @@ void Port::SetKind(const Port::Kind& port_kind){
     port_kind_ = port_kind;
 }
 
-int Port::GetEventsReceived(){
-    std::lock_guard<std::mutex> lock(mutex_);
+uint64_t Port::GetEventsReceived(){
     return received_count_;
 }
-int Port::GetEventsProcessed(){
-    std::lock_guard<std::mutex> lock(mutex_);
+
+uint64_t Port::GetEventsProcessed(){
     return processed_count_;
 }
 
-int Port::GetEventsIgnored(){
-    std::lock_guard<std::mutex> lock(mutex_);
+uint64_t Port::GetEventsIgnored(){
     return ignored_count_;
 }
 
 void Port::EventRecieved(const BaseMessage& message){
-    std::lock_guard<std::mutex> lock(mutex_);
-    received_count_ ++;
+    ++received_count_;
 }
 
 void Port::EventProcessed(const BaseMessage& message){
-    std::lock_guard<std::mutex> lock(mutex_);
-    processed_count_++;
+    ++processed_count_;
 }
 
 void Port::EventIgnored(const BaseMessage& message){
-    std::lock_guard<std::mutex> lock(mutex_);
     logger().LogPortUtilizationEvent(*this, message, Logger::UtilizationEvent::IGNORED);
-    ignored_count_ ++;
+    ++ignored_count_;
 }
 
 void Port::ProcessMessageException(const BaseMessage& message, const std::string& error_str){

@@ -55,20 +55,10 @@ class DeploymentContainer : public Activatable{
         std::shared_ptr<Port> GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& eventport_pb);
         
         std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
-        
-
-        
         std::shared_ptr<LoganClient> GetConfiguredLoganClient(const NodeManager::Logger& logger_pb);
         std::shared_ptr<LoganClient> ConstructLoganClient(const std::string& id);
-        
 
-        
-        
-        
-        //Constructor functions
-        public:
         std::shared_ptr<Port> ConstructPeriodicPort(std::weak_ptr<Component> component, const std::string& port_name);
-        private:
         std::shared_ptr<Port> ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
         std::shared_ptr<Port> ConstructSubscriberPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_str);
         
