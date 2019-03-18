@@ -28,7 +28,5 @@ target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)
-
-target_link_libraries(${PROJ_NAME} PRIVATE ${RTI_DDS_LIBRARIES})
 target_link_libraries(${PROJ_NAME} PRIVATE rti_dds_helper)
 target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
