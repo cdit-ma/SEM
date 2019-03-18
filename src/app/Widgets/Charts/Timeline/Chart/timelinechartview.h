@@ -11,6 +11,7 @@
 #include "../../Data/Events/workloadevent.h"
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
+#include "../../Data/Events/markerevent.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -37,6 +38,7 @@ public:
     void addWorkloadEvents(const ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
     void addCPUUtilisationEvents(const ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
     void addMemoryUtilisationEvents(const ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
+    void addMarkerEvents(const ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
 
     void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
 

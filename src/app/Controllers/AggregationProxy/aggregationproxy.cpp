@@ -44,69 +44,56 @@ QFuture<ExperimentState> AggregationProxy::RequestExperimentState(const quint32 
 
 /**
  * @brief AggregationProxy::RequestPortLifecycleEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param component_instance_ids
- * @param port_ids
+ * @param request
  * @return
  */
-QFuture<QVector<PortLifecycleEvent*>> AggregationProxy::RequestPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids)
+QFuture< QVector<PortLifecycleEvent*> > AggregationProxy::RequestPortLifecycleEvents(const PortLifecycleRequest& request)
 {
-    return QtConcurrent::run(this, &AggregationProxy::GetPortLifecycleEvents, experiment_run_id, time_intervals, component_instance_ids, port_ids);
+    return QtConcurrent::run(this, &AggregationProxy::GetPortLifecycleEvents, request);
 }
 
 
 /**
  * @brief AggregationProxy::RequestWorkloadEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param component_instance_ids
- * @param worker_ids
+ * @param request
  * @return
  */
-QFuture<QVector<WorkloadEvent*>> AggregationProxy::RequestWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids)
+QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const WorkloadRequest& request)
 {
-    return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents, experiment_run_id, time_intervals, component_instance_ids, worker_ids);
+    return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents, request);
 }
 
 
 /**
  * @brief AggregationProxy::RequestCPUUtilisationEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param graphml_ids
+ * @param request
  * @return
  */
-QFuture<QVector<CPUUtilisationEvent*>> AggregationProxy::RequestCPUUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids)
+QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const CPUUtilisationRequest& request)
 {
-    return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, experiment_run_id, time_intervals, graphml_ids);
+    return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, request);
 }
 
 
 /**
  * @brief AggregationProxy::RequestMemoryUtilisationEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param graphml_ids
+ * @param request
  * @return
  */
-QFuture<QVector<MemoryUtilisationEvent*>> AggregationProxy::RequestMemoryUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids)
+QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request)
 {
-    return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, experiment_run_id, time_intervals, graphml_ids);
+    return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestMarkerEvents
+ * @param request
+ * @return
+ */
+QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const MarkerRequest& request)
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetMarkerEvents, request);
 }
 
 
@@ -164,7 +151,6 @@ QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experi
     } catch (const std::exception& ex) {
         throw RequestException(ex.what());
     }
-    
 }
 
 
@@ -207,33 +193,35 @@ ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_ru
 
 /**
  * @brief AggregationProxy::GetPortLifecycleEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param component_instance_ids
- * @param port_ids
+ * @param request
  * @return
  */
-QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids)
+QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const PortLifecycleRequest& request)
 {
     CheckRequester();
 
     try {
         QVector<PortLifecycleEvent*> events;
-        AggServer::PortLifecycleRequest request;
-        request.set_experiment_run_id(experiment_run_id);
-        
-        for (const auto& id : component_instance_ids) {
-            request.add_component_instance_ids(id.toStdString());
+        AggServer::PortLifecycleRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& name : request.component_names()) {
+            agg_request.add_component_names(name.toStdString());
         }
-        for (const auto& id : port_ids) {
-            request.add_port_ids(id.toStdString());
+        for (const auto& id : request.component_instance_ids()) {
+            agg_request.add_component_instance_ids(id.toStdString());
+        }
+        for (const auto& path : request.component_instance_paths()) {
+            agg_request.add_component_instance_paths(path.toStdString());
+        }
+        for (const auto& id : request.port_ids()) {
+            agg_request.add_port_ids(id.toStdString());
+        }
+        for (const auto& path : request.port_paths()) {
+            agg_request.add_port_paths(path.toStdString());
         }
 
-        const auto& results = requester_->GetPortLifecycle(request);
+        const auto& results = requester_->GetPortLifecycle(agg_request);
         for (const auto& item : results->events()) {
             const auto& port = ConvertPort(item.port());
             const auto& type = ConvertLifeCycleType(item.type());
@@ -251,33 +239,35 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(
 
 /**
  * @brief AggregationProxy::GetWorkloadEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param component_instance_ids
- * @param worker_ids
+ * @param request
  * @return
  */
-QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids)
+QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadRequest &request)
 {
     CheckRequester();
 
      try {
         QVector<WorkloadEvent*> events;
-        AggServer::WorkloadRequest request;
-        request.set_experiment_run_id(experiment_run_id);
+        AggServer::WorkloadRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
 
-        for (const auto& id : component_instance_ids) {
-            request.add_component_instance_ids(id.toStdString());
+        for (const auto& name : request.component_names()) {
+            agg_request.add_component_names(name.toStdString());
         }
-        for (const auto& id : worker_ids) {
-            request.add_worker_instance_ids(id.toStdString());
+        for (const auto& id : request.component_instance_ids()) {
+            agg_request.add_component_instance_ids(id.toStdString());
         }
-        
-        const auto& results = requester_->GetWorkload(request);
+        for (const auto& path : request.component_instance_paths()) {
+            agg_request.add_component_instance_paths(path.toStdString());
+        }
+        for (const auto& id : request.worker_instance_ids()) {
+            agg_request.add_worker_instance_ids(id.toStdString());
+        }
+        for (const auto& path : request.worker_instance_paths()) {
+            agg_request.add_worker_paths(path.toStdString());
+        }
+
+        const auto& results = requester_->GetWorkload(agg_request);
         for (const auto& item : results->events()) {
             const auto& worker_instance = ConvertWorkerInstance(item.worker_inst());
             const auto& type = ConvertWorkloadEventType(item.type());
@@ -299,31 +289,28 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(
 
 /**
  * @brief AggregationProxy::GetCPUUtilisationEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param graphml_ids
+ * @param request
  * @return
  */
-QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(
-    const quint32 experiment_run_id,
-    const QVector<qint64>& time_intervals,
-    const QVector<QString>& graphml_ids)
+QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request)
 {
     CheckRequester();
 
     try {
         QVector<CPUUtilisationEvent*> events;
-        AggServer::CPUUtilisationRequest request;
-        request.set_experiment_run_id(experiment_run_id);
+        AggServer::CPUUtilisationRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
 
-        for (const auto& id : graphml_ids) {
-            request.add_node_ids(id.toStdString());
+        for (const auto& id : request.node_ids()) {
+            agg_request.add_node_ids(id.toStdString());
         }
-        
-        auto results = requester_->GetCPUUtilisation(request);
+        for (const auto& name : request.node_hostnames()) {
+            agg_request.add_node_hostnames(name.toStdString());
+        }
+
+        auto results = requester_->GetCPUUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
-
             for (const auto& e : node.events()) {
                 const auto& utilisation = e.cpu_utilisation();
                 const auto& time = ConstructQDateTime(e.time());
@@ -341,28 +328,26 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(
 
 /**
  * @brief AggregationProxy::GetMemoryUtilisationEvents
- * @param experiment_run_id
- * @param time_intervals
- * @param graphml_ids
+ * @param request
  * @return
  */
-QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(
-    const quint32 experiment_run_id,
-    const QVector<qint64>& time_intervals,
-    const QVector<QString>& graphml_ids)
+QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request)
 {
     CheckRequester();
 
     try {
         QVector<MemoryUtilisationEvent*> events;
-        AggServer::MemoryUtilisationRequest request;
-        request.set_experiment_run_id(experiment_run_id);
+        AggServer::MemoryUtilisationRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
 
-        for (const auto& id : graphml_ids) {
-            request.add_node_ids(id.toStdString());
+        for (const auto& id : request.node_ids()) {
+            agg_request.add_node_ids(id.toStdString());
         }
-        
-        auto results = requester_->GetMemoryUtilisation(request);
+        for (const auto& name : request.node_hostnames()) {
+            agg_request.add_node_hostnames(name.toStdString());
+        }
+
+        auto results = requester_->GetMemoryUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
@@ -371,6 +356,59 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(
                 events.append(new MemoryUtilisationEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
             }
         }
+
+        return events;
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::GetMarkerEvents
+ * @param request
+ * @return
+ */
+QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &request)
+{
+    CheckRequester();
+
+    try {
+        QVector<MarkerEvent*> events;
+        AggServer::MarkerRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& name : request.component_names()) {
+            agg_request.add_component_names(name.toStdString());
+            //qDebug() << "compName: " << name;
+        }
+        for (const auto& id : request.component_instance_ids()) {
+            agg_request.add_component_instance_ids(id.toStdString());
+            //qDebug() << "compInstID: " << id;
+        }
+        for (const auto& path : request.component_instance_paths()) {
+            agg_request.add_component_instance_paths(path.toStdString());
+            //qDebug() << "compInstPath: " << path;
+        }
+        for (const auto& id : request.worker_instance_ids()) {
+            agg_request.add_worker_instance_ids(id.toStdString());
+            //qDebug() << "workerInstID: " << id;
+        }
+        for (const auto& path : request.worker_instance_paths()) {
+            agg_request.add_worker_instance_paths(path.toStdString());
+            //qDebug() << "workerInstPath: " << path;
+        }
+
+        auto results = requester_->GetMarkers(agg_request);
+        /*for (const auto& node : results->nodes()) {
+            const auto& host_name = ConstructQString(node.node_info().hostname());
+            for (const auto& e : node.events()) {
+                const auto& utilisation = e.cpu_utilisation();
+                const auto& time = ConstructQDateTime(e.time());
+                events.append(new MarkerEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
+            }
+        }*/
 
         return events;
 

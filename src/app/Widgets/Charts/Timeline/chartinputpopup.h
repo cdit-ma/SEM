@@ -35,8 +35,7 @@ public:
 
 signals:
     void setChartTitle(QString title);
-
-    void requestEventsForExperimentRun(const ExperimentRun& experimentRun);
+    void selectedExperimentRun(const ExperimentRun& experimentRun);
 
 public slots:
     void themeChanged();
