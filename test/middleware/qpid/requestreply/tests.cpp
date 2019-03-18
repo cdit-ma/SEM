@@ -11,7 +11,6 @@
 #include <middleware/qpid/requestreply/replierport.hpp>
 #include <middleware/qpid/requestreply/requesterport.hpp>
 
-//Include main and env passing magic
 #include "../../../core/test_main.h"
 
 bool setup_port(Port& port, const std::string& topic_name){
