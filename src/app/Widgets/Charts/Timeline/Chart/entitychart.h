@@ -100,6 +100,7 @@ private:
     double binTimeWidth_;
 
     QPixmap messagePixmap_;
+    QPixmap markerPixmap_;
     QRectF hoveredRect_;
 
     QColor gridColor_;

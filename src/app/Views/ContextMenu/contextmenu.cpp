@@ -208,7 +208,6 @@ void ContextMenu::themeChanged(){
             auto checkbox = (QCheckBox*)widgetAction->defaultWidget();
             checkbox->setIcon(theme->getIcon("ToggleIcons", checkbox->text()));
             checkbox->setIconSize(icon_size);
-            widgetAction->setIcon(theme->getIcon("Icons", "tick"));
         } else {
             action->setIcon(theme->getIcon("Icons", action->property("iconName").toString()));
         }

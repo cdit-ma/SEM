@@ -401,14 +401,17 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
         }
 
         auto results = requester_->GetMarkers(agg_request);
-        /*for (const auto& node : results->nodes()) {
-            const auto& host_name = ConstructQString(node.node_info().hostname());
-            for (const auto& e : node.events()) {
-                const auto& utilisation = e.cpu_utilisation();
-                const auto& time = ConstructQDateTime(e.time());
-                events.append(new MarkerEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
+        for (const auto& nameSet : results->marker_name_sets()) {
+            const auto& name = ConstructQString(nameSet.name());
+            for (const auto& idSet : nameSet.marker_id_set()) {
+                const auto& id = idSet.id();
+                for (const auto& e : idSet.events()) {
+                    const auto& compInst = ConvertComponentInstance(e.component_instance());
+                    const auto& time = ConstructQDateTime(e.timestamp());
+                    events.append(new MarkerEvent(name, id, compInst, time.toMSecsSinceEpoch()));
+                }
             }
-        }*/
+        }
 
         return events;
 

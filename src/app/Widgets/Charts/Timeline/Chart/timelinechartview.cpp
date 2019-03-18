@@ -93,7 +93,8 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
         }
     }
 
-    addedChartEvents(TIMELINE_DATA_KIND::PORT_LIFECYCLE, experimentRun);
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(TIMELINE_DATA_KIND::PORT_LIFECYCLE, experimentRun);
 }
 
 
@@ -119,7 +120,8 @@ void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, co
         }
     }
 
-    addedChartEvents(TIMELINE_DATA_KIND::WORKLOAD, experimentRun);
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(TIMELINE_DATA_KIND::WORKLOAD, experimentRun);
 }
 
 
@@ -145,7 +147,8 @@ void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentR
         }
     }
 
-    addedChartEvents(TIMELINE_DATA_KIND::CPU_UTILISATION, experimentRun);
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(TIMELINE_DATA_KIND::CPU_UTILISATION, experimentRun);
 }
 
 
@@ -171,7 +174,8 @@ void TimelineChartView::addMemoryUtilisationEvents(const ExperimentRun &experime
         }
     }
 
-    addedChartEvents(TIMELINE_DATA_KIND::MEMORY_UTILISATION, experimentRun);
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(TIMELINE_DATA_KIND::MEMORY_UTILISATION, experimentRun);
 }
 
 
@@ -197,7 +201,8 @@ void TimelineChartView::addMarkerEvents(const ExperimentRun &experimentRun, cons
         }
     }
 
-    addedChartEvents(TIMELINE_DATA_KIND::MARKER, experimentRun);
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(TIMELINE_DATA_KIND::MARKER, experimentRun);
 }
 
 
@@ -320,6 +325,9 @@ void TimelineChartView::themeChanged()
             break;
         case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
             buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
+            break;
+        case TIMELINE_DATA_KIND::MARKER:
+            buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
             break;
         default:
             continue;
@@ -662,6 +670,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const Experim
         break;
     case TIMELINE_DATA_KIND::MARKER:
         series = new MarkerEventSeries(seriesID, this);
+        break;
     default:
         return 0;
     }

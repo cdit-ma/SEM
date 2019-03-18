@@ -3,6 +3,7 @@
 #include "../../Data/Events/portlifecycleevent.h"
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
+#include "../../Data/Events/markerevent.h"
 
 #include <QPainter>
 #include <QPainter>
@@ -393,6 +394,7 @@ void EntityChart::themeChanged()
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
     messagePixmap_ = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
+    markerPixmap_ = theme->getImage("Icons", "bookmark", QSize(), theme->getMenuIconColor());
     updateSeriesPixmaps();
 }
 
@@ -1095,7 +1097,98 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintMarkerEventSeries(QPainter &painter)
 {
+    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
+    if (!eventSeries)
+        return;
 
+    double barWidth = BIN_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double current_left = displayMin_;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = eventSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > displayMin_) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    QColor seriesColor = markerColor_;
+    QColor textColor = gridColor_;
+    QColor bgColor = seriesColor;
+
+    int y = rect().center().y() - barWidth / 2.0;
+
+    painter.setOpacity(workloadSeriesOpacity_);
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (MarkerEvent*) buckets[i][0];
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
+                painter.fillRect(rect, highlightColor_);
+            }
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawPixmap(rect.toRect(), markerPixmap_);
+            painter.setRenderHint(QPainter::Antialiasing, false);
+        } else {
+            bgColor = seriesColor.darker(100 + (50 * (count - 1)));
+            //textColor = gridColor_;
+            textColor = textColor_;
+            painter.setPen(QPen(gridColor_, 0.5));
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                bgColor = highlightColor_;
+                textColor = highlightTextColor_;
+            }
+            //painter.fillRect(rect, color);
+            painter.setBrush(bgColor);
+            painter.drawRect(rect);
+
+            QString countStr = count > 99 ? "🤮" : QString::number(count);
+            painter.setPen(textColor);
+            //painter.setFont(QFont(font().family(), 20));
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+        }
+    }
 }
 
 
