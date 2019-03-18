@@ -5,7 +5,7 @@
 #include "../../base/reqreptests.hpp"
 
 // Include the proto convert functions for the port type
-#include "../../proto/basic.pb.h"
+#include "basic.pb.h"
 
 #include <core/ports/libportexport.h>
 #include <middleware/qpid/requestreply/replierport.hpp>
