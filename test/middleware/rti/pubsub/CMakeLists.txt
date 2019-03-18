@@ -23,6 +23,8 @@ target_sources(${PROJ_NAME} PRIVATE
     ${RTI_HDRS}
 )
 
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)
