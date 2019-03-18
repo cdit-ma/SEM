@@ -51,7 +51,7 @@ target_link_libraries(${LIB_NAME} PUBLIC logan_client_lib)
 
 target_link_libraries(${PROJ_NAME} PUBLIC ${LIB_NAME})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
-target_link_libraries(${PROJ_NAME} PRIVATE Boost::program_options)
+target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 if(UNIX)
     target_link_libraries(${LIB_NAME} PRIVATE pthread)
