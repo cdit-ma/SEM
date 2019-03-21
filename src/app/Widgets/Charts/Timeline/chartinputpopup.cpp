@@ -172,7 +172,7 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
 void ChartInputPopup::accept()
 {
     if (selectedExperimentRunID_ != -1) {
-        emit requestEventsForExperimentRun(selectedExperimentRun_);
+        emit selectedExperimentRun(selectedExperimentRun_);
     }
 
     PopupWidget::accept();

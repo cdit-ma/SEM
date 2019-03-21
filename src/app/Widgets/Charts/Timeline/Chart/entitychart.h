@@ -61,6 +61,7 @@ private:
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
     void paintMemoryUtilisationEventSeries(QPainter &painter);
+    void paintMarkerEventSeries(QPainter &painter);
 
     void paintPortLifecycleSeries(QPainter& painter);
 
@@ -99,6 +100,7 @@ private:
     double binTimeWidth_;
 
     QPixmap messagePixmap_;
+    QPixmap markerPixmap_;
     QRectF hoveredRect_;
 
     QColor gridColor_;
@@ -112,11 +114,19 @@ private:
     QColor defaultWorkloadColor_ = Qt::gray;
     QColor defaultUtilisationColor_ = Qt::lightGray;
     QColor defaultMemoryColor_ = Qt::lightGray;
+    QColor defaultMarkerColor_ = Qt::gray;
 
     QColor portLifecycleColor_ = defaultUtilisationColor_;
     QColor workloadColor_ = defaultWorkloadColor_;
     QColor utilisationColor_ = defaultUtilisationColor_;
     QColor memoryColor_ = defaultMemoryColor_;
+    QColor markerColor_ = defaultMarkerColor_;
+
+    double portSeriesOpacity_ = 1.0;
+    double workloadSeriesOpacity_ = 1.0;
+    double cpuSeriesOpacity_ = 1.0;
+    double memorySeriesOpacity_ = 1.0;
+    double markerSeriesOpacity_ = 1.0;
 
     QHash<TIMELINE_DATA_KIND, bool> seriesKindVisible_;
     QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> seriesList_;
@@ -126,6 +136,8 @@ private:
     QVector<QList<MEDEA::Event*>> workloadBinnedData_;
     QVector<QList<MEDEA::Event*>> cpuUtilisationBinnedData_;
     QVector<QList<MEDEA::Event*>> memoryUtilisationBinnedData_;
+    QVector<QList<MEDEA::Event*>> markerBinnedData_;
+    QVector<QList<MEDEA::Event*>> emptyBinnedData_;
 
     QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
     TIMELINE_DATA_KIND hoveredSeriesKind_;

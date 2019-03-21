@@ -208,7 +208,6 @@ void ContextMenu::themeChanged(){
             auto checkbox = (QCheckBox*)widgetAction->defaultWidget();
             checkbox->setIcon(theme->getIcon("ToggleIcons", checkbox->text()));
             checkbox->setIconSize(icon_size);
-            widgetAction->setIcon(theme->getIcon("Icons", "tick"));
         } else {
             action->setIcon(theme->getIcon("Icons", action->property("iconName").toString()));
         }
@@ -1087,34 +1086,33 @@ void ContextMenu::setupMenus()
 
     // setup chart menu
     chart_data_kind_menu = construct_menu("View In Chart", main_menu);
+    auto data_kinds = GET_TIMELINE_DATA_KINDS();
+    data_kinds.removeAll(TIMELINE_DATA_KIND::DATA);
     for (auto kind : GET_TIMELINE_DATA_KINDS()) {
-        if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE ||
-            kind == TIMELINE_DATA_KIND::WORKLOAD ||
-            kind == TIMELINE_DATA_KIND::CPU_UTILISATION ||
-            kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION)
-        {
-            auto text = GET_TIMELINE_DATA_KIND_STRING(kind);
-            auto checkbox = new QCheckBox(text);
-            auto widgetAction = new QWidgetAction(this);
-            widgetAction->setDefaultWidget(checkbox);
-            widgetAction->setProperty("dataKind", (uint)kind);
-            widgetAction->setCheckable(true);
-            connect(checkbox, &QCheckBox::toggled, widgetAction, &QAction::setChecked);
-            chart_data_kind_menu->addAction(widgetAction);
-        }
+        auto text = GET_TIMELINE_DATA_KIND_STRING(kind);
+        auto checkbox = new QCheckBox(text);
+        auto widgetAction = new QWidgetAction(this);
+        widgetAction->setDefaultWidget(checkbox);
+        widgetAction->setProperty("dataKind", (uint)kind);
+        widgetAction->setCheckable(true);
+        connect(checkbox, &QCheckBox::toggled, widgetAction, &QAction::setChecked);
+        chart_data_kind_menu->addAction(widgetAction);
     }
     chart_data_kind_menu->addSeparator();
-    chart_data_kind_menu->addAction("Apply Selection")->setProperty("iconName", "tick");
 
-    // connect chart menu
-    connect(chart_data_kind_menu, &QMenu::triggered, [=]() {
+    // construct and connect the "Apply" action for the chart menu
+    auto triggerChartMenuAction = chart_data_kind_menu->addAction("Apply Selection");
+    triggerChartMenuAction->setProperty("iconName", "tick");
+    connect(triggerChartMenuAction, &QAction::triggered, [=]() {
         if (view_controller) {
             QList<TIMELINE_DATA_KIND> checkedKinds;
             for (auto action : chart_data_kind_menu->actions()) {
                 if (action->isVisible() && action->isCheckable() && action->isChecked())
                     checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
             }
-            view_controller->viewSelectionChart(checkedKinds);
+            if (!checkedKinds.isEmpty()) {
+                view_controller->viewSelectionChart(checkedKinds);
+            }
         }
     });
 

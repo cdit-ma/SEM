@@ -3,6 +3,7 @@
 #include "../../Data/Events/portlifecycleevent.h"
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
+#include "../../Data/Events/markerevent.h"
 
 #include <QPainter>
 #include <QPainter>
@@ -13,8 +14,8 @@
 #define BORDER_WIDTH 2.0
 
 #define PEN_WIDTH 1.0
-#define BIN_WIDTH 30.0
-#define POINT_WIDTH 9.0
+#define BIN_WIDTH 25.0
+#define POINT_WIDTH 6.0
 
 #define PRINT_RENDER_TIMES false
 
@@ -299,27 +300,54 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     workloadColor_ = backgroundColor_;
     utilisationColor_ = backgroundColor_;
     memoryColor_ = backgroundColor_;
+    markerColor_ = backgroundColor_;
+
+    double alpha = 0.25;
+    portSeriesOpacity_ = alpha;
+    workloadSeriesOpacity_ = alpha;
+    cpuSeriesOpacity_ = alpha;
+    memorySeriesOpacity_ = alpha;
+    markerSeriesOpacity_ = alpha;
 
     switch (kind) {
         break;
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
+        portSeriesOpacity_ = 1.0;
         break;
-    case TIMELINE_DATA_KIND::WORKLOAD:
+    }
+    case TIMELINE_DATA_KIND::WORKLOAD: {
         workloadColor_ = defaultWorkloadColor_;
+        workloadSeriesOpacity_ = 1.0;
         break;
-    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    }
+    case TIMELINE_DATA_KIND::CPU_UTILISATION: {
         utilisationColor_ = defaultUtilisationColor_;
+        cpuSeriesOpacity_ = 1.0;
         break;
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    }
+    case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
         memoryColor_ = defaultMemoryColor_;
+        memorySeriesOpacity_ = 1.0;
         break;
+    }
+    case TIMELINE_DATA_KIND::MARKER: {
+        markerColor_ = defaultMarkerColor_;
+        markerSeriesOpacity_ = 1.0;
+        break;
+    }
     default: {
         // clear hovered state
         portLifecycleColor_ = defaultPortLifecycleColor_;
         workloadColor_ = defaultWorkloadColor_;
         utilisationColor_ = defaultUtilisationColor_;
         memoryColor_ = defaultMemoryColor_;
+        markerColor_ = defaultMarkerColor_;
+        portSeriesOpacity_ = 1.0;
+        workloadSeriesOpacity_ = 1.0;
+        cpuSeriesOpacity_ = 1.0;
+        memorySeriesOpacity_ = 1.0;
+        markerSeriesOpacity_ = 1.0;
         break;
     }
     }
@@ -350,11 +378,15 @@ void EntityChart::themeChanged()
     defaultUtilisationColor_ = QColor(30,144,255);
     utilisationColor_ = defaultUtilisationColor_;
 
-    defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
+    //defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
+    defaultMemoryColor_ = QColor(50,205,50); //theme->getSeverityColor(Notification::Severity::SUCCESS);
     memoryColor_ = defaultMemoryColor_;
 
-    gridColor_ = theme->getAltTextColor();
+    defaultMarkerColor_ = Qt::white;
+    markerColor_ = defaultMarkerColor_;
+
     textColor_ = theme->getTextColor();
+    gridColor_ = theme->getAltTextColor();
     highlightTextColor_ = theme->getTextColor(ColorRole::SELECTED);
     backgroundColor_ = theme->getAltBackgroundColor();
     backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
@@ -362,6 +394,7 @@ void EntityChart::themeChanged()
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
     messagePixmap_ = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
+    markerPixmap_ = theme->getImage("Icons", "bookmark", QSize(), theme->getMenuIconColor());
     updateSeriesPixmaps();
 }
 
@@ -402,6 +435,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
             paintSeries(painter, kind);
     }
     paintSeries(painter, hoveredSeriesKind_);
+    painter.setOpacity(1.0);
 
     QColor penColor = gridColor_;
     qreal penWidth = 0.5;
@@ -450,11 +484,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
     // draw the points and get intersection point(s) index
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
-        //paintPortLifecycleSeries(painter);
         break;
-    }
     case TIMELINE_DATA_KIND::WORKLOAD:
         paintWorkloadEventSeries(painter);
         break;
@@ -463,6 +495,9 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
         break;
     case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
         paintMemoryUtilisationEventSeries(painter);
+        break;
+    case TIMELINE_DATA_KIND::MARKER:
+        paintMarkerEventSeries(painter);
         break;
     default:
         qWarning("EntityChart::paintSeries - Series kind not handled");
@@ -534,6 +569,8 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 
     int y = rect().center().y() - barWidth / 2.0;
 
+    painter.setOpacity(portSeriesOpacity_);
+
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
@@ -550,10 +587,13 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
                 hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, highlightColor_);
             }
+            painter.setRenderHint(QPainter::Antialiasing, true);
             painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
+            painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
             bgColor = seriesColor.darker(100 + (50 * (count - 1)));
-            textColor = gridColor_;
+            //textColor = gridColor_;
+            textColor = textColor_;
             painter.setPen(QPen(gridColor_, 0.5));
             if (rectHovered(eventSeries->getKind(), rect)) {
                 bgColor = highlightColor_;
@@ -579,7 +619,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     if (!eventSeries)
         return;
 
-    double barWidth = 50; //BIN_WIDTH;
+    double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
@@ -632,6 +672,8 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 
     int y = rect().center().y() - barWidth / 2.0;
 
+    painter.setOpacity(workloadSeriesOpacity_);
+
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
@@ -650,10 +692,13 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
                 hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, highlightColor_);
             }
+            painter.setRenderHint(QPainter::Antialiasing, true);
             painter.drawPixmap(rect.toRect(), workloadEventTypePixmaps_.value(event->getType()));
+            painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
             bgColor = seriesColor.darker(100 + (50 * (count - 1)));
-            textColor = gridColor_;
+            //textColor = gridColor_;
+            textColor = textColor_;
             painter.setPen(QPen(gridColor_, 0.5));
             if (rectHovered(eventSeries->getKind(), rect)) {
                 bgColor = highlightColor_;
@@ -665,7 +710,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 
             QString countStr = count > 99 ? "🤮" : QString::number(count);
             painter.setPen(textColor);
-            painter.setFont(QFont(font().family(), 20));
+            //painter.setFont(QFont(font().family(), 20));
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
@@ -816,6 +861,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      auto penOffset = 0.5;
 
      painter.setRenderHint(QPainter::Antialiasing, true);
+     painter.setOpacity(cpuSeriesOpacity_);
 
      if (rects.size() == 1) {
          auto rect = rects.first();
@@ -996,6 +1042,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
      }
 
      painter.setRenderHint(QPainter::Antialiasing, true);
+     painter.setOpacity(memorySeriesOpacity_);
 
      if (rects.isEmpty())
          return;
@@ -1041,6 +1088,107 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
      }
 
      painter.setRenderHint(QPainter::Antialiasing, false);
+}
+
+
+/**
+ * @brief EntityChart::paintMarkerEventSeries
+ * @param painter
+ */
+void EntityChart::paintMarkerEventSeries(QPainter &painter)
+{
+    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
+    if (!eventSeries)
+        return;
+
+    double barWidth = BIN_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double current_left = displayMin_;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = eventSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > displayMin_) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    QColor seriesColor = markerColor_;
+    QColor textColor = gridColor_;
+    QColor bgColor = seriesColor;
+
+    int y = rect().center().y() - barWidth / 2.0;
+
+    painter.setOpacity(workloadSeriesOpacity_);
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (MarkerEvent*) buckets[i][0];
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
+                painter.fillRect(rect, highlightColor_);
+            }
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawPixmap(rect.toRect(), markerPixmap_);
+            painter.setRenderHint(QPainter::Antialiasing, false);
+        } else {
+            bgColor = seriesColor.darker(100 + (50 * (count - 1)));
+            //textColor = gridColor_;
+            textColor = textColor_;
+            painter.setPen(QPen(gridColor_, 0.5));
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                bgColor = highlightColor_;
+                textColor = highlightTextColor_;
+            }
+            //painter.fillRect(rect, color);
+            painter.setBrush(bgColor);
+            painter.drawRect(rect);
+
+            QString countStr = count > 99 ? "🤮" : QString::number(count);
+            painter.setPen(textColor);
+            //painter.setFont(QFont(font().family(), 20));
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+        }
+    }
 }
 
 
@@ -1220,8 +1368,6 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
 void EntityChart::updateSeriesPixmaps()
 {
     Theme* theme = Theme::theme();
-    QColor pixmapColor = theme->getBackgroundColor();
-
     bool colorPortPixmaps = false;
     bool colorWorkerPixmaps = false;
 
@@ -1248,11 +1394,11 @@ void EntityChart::updateSeriesPixmaps()
         lifeCycleTypePixmaps_[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
         lifeCycleTypePixmaps_[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
     } else {
-        lifeCycleTypePixmaps_[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), pixmapColor);
-        lifeCycleTypePixmaps_[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), pixmapColor);
-        lifeCycleTypePixmaps_[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), pixmapColor);
-        lifeCycleTypePixmaps_[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), pixmapColor);
-        lifeCycleTypePixmaps_[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), pixmapColor);
+        lifeCycleTypePixmaps_[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), backgroundColor_);
     }
 
     if (colorWorkerPixmaps) {
@@ -1263,12 +1409,12 @@ void EntityChart::updateSeriesPixmaps()
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), QColor(72, 151, 199));
     } else {
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), pixmapColor);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), pixmapColor);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), pixmapColor);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), pixmapColor);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), pixmapColor);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), pixmapColor);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), backgroundColor_);
     }
 }
 
@@ -1302,8 +1448,10 @@ QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(TIMELINE_DATA_KIND kin
         return cpuUtilisationBinnedData_;
     case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
         return memoryUtilisationBinnedData_;
+    case TIMELINE_DATA_KIND::MARKER:
+        return markerBinnedData_;
     default:
-        return QVector<QList<MEDEA::Event*>>();
+        return emptyBinnedData_;
     }
 }
 

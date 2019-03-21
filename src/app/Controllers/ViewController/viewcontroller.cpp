@@ -108,7 +108,7 @@ ViewController::ViewController(){
 
 void ViewController::QueryRunningExperiments()
 {
-    emit vc_showChartsPopup(true);
+    emit vc_acquireExperimentRun();
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){
@@ -533,6 +533,10 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_INST);
     chart_valid_node_kinds.insert(NODE_KIND::CLASS_INST);
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
+    chart_valid_node_kinds.insert(NODE_KIND::INTERFACE_DEFINITIONS);
+    chart_valid_node_kinds.insert(NODE_KIND::BEHAVIOUR_DEFINITIONS);
+    chart_valid_node_kinds.insert(NODE_KIND::ASSEMBLY_DEFINITIONS);
+    chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_DEFINITIONS);
     return chart_valid_node_kinds;
 }
 
@@ -562,6 +566,11 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
 
         for (auto kind : selectedKinds) {
             switch (kind) {
+            // Added cases for the aspects
+            case NODE_KIND::BEHAVIOUR_DEFINITIONS:
+                validDataKinds.insert(TIMELINE_DATA_KIND::MARKER);
+            case NODE_KIND::INTERFACE_DEFINITIONS:
+            case NODE_KIND::ASSEMBLY_DEFINITIONS:
             case NODE_KIND::COMPONENT:
             case NODE_KIND::COMPONENT_IMPL:
             case NODE_KIND::COMPONENT_INST: {
@@ -588,6 +597,7 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
                 break;
+            case NODE_KIND::HARDWARE_DEFINITIONS:
             case NODE_KIND::HARDWARE_NODE: {
                 validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
                 validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);

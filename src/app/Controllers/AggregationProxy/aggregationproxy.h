@@ -14,7 +14,8 @@
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
-#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
+#include "../../Widgets/Charts/Data/Events/markerevent.h"
+#include "../../Widgets/Charts/ChartManager/requestbuilder.h"
 
 
 class NoRequesterException : public QException{
@@ -48,28 +49,12 @@ public:
     QFuture<QVector<ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
     QFuture<ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
 
-    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids);
+    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request);
+    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request);
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request);
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
+    QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request);
 
-    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids);
-    
-    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
-    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
 private:
     void SetServerEndpoint(const QString& endpoint);
     void CheckRequester();
@@ -77,28 +62,11 @@ private:
     QVector<ExperimentRun> GetExperimentRuns(const QString& experiment_name);
     ExperimentState GetExperimentState(const quint32 experiment_run_id);
 
-    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids);
-
-    QVector<WorkloadEvent*> GetWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids);
-    
-    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
-    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-
+    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest &request);
+    QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request);
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request);
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
+    QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request);
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);

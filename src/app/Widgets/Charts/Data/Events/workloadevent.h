@@ -41,4 +41,4 @@ private:
 
 };
 
-#endif
+#endif // WORKLOADEVENT_H

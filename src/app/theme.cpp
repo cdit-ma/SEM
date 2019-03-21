@@ -1306,6 +1306,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "Workload", "Icons", "spanner", "Icons", "spanner");
     setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
     setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");
+    setIconToggledImage("ToggleIcons", "Marker", "Icons", "bookmark", "Icons", "bookmark");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
@@ -1314,6 +1315,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "workloadHover", "Icons", "spannerTwoTone", "Icons", "spannerTwoTone");
     setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "cpuTwoTone", "Icons", "cpuTwoTone");
     setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
+    setIconToggledImage("ToggleIcons", "markerHover", "Icons", "bookmarkTwoTone", "Icons", "bookmarkTwoTone");
 
     setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }
