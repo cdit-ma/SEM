@@ -381,36 +381,40 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
 
         for (const auto& name : request.component_names()) {
             agg_request.add_component_names(name.toStdString());
-            //qDebug() << "compName: " << name;
         }
         for (const auto& id : request.component_instance_ids()) {
             agg_request.add_component_instance_ids(id.toStdString());
-            //qDebug() << "compInstID: " << id;
         }
         for (const auto& path : request.component_instance_paths()) {
             agg_request.add_component_instance_paths(path.toStdString());
-            //qDebug() << "compInstPath: " << path;
         }
         for (const auto& id : request.worker_instance_ids()) {
             agg_request.add_worker_instance_ids(id.toStdString());
-            //qDebug() << "workerInstID: " << id;
         }
         for (const auto& path : request.worker_instance_paths()) {
             agg_request.add_worker_instance_paths(path.toStdString());
-            //qDebug() << "workerInstPath: " << path;
         }
+
+        int i = 0;
 
         auto results = requester_->GetMarkers(agg_request);
         for (const auto& nameSet : results->marker_name_sets()) {
             const auto& name = ConstructQString(nameSet.name());
+            //qDebug() << "MARKER NAME SET: " << name;
+            //qDebug() << "ID SET#: " << nameSet.marker_id_set_size();
             for (const auto& idSet : nameSet.marker_id_set()) {
                 const auto& id = idSet.id();
+                qDebug() << "MARKER ID SET: " << id;
                 for (const auto& e : idSet.events()) {
                     const auto& compInst = ConvertComponentInstance(e.component_instance());
                     const auto& time = ConstructQDateTime(e.timestamp());
+                    if (i == 0) {
+                        qDebug() << "time: " << time.toString("hh:mm:ss.zzz");
+                    }
                     events.append(new MarkerEvent(name, id, compInst, time.toMSecsSinceEpoch()));
                 }
             }
+            i++;
         }
 
         return events;

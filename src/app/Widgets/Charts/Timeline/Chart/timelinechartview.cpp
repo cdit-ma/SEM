@@ -201,6 +201,21 @@ void TimelineChartView::addMarkerEvents(const ExperimentRun &experimentRun, cons
         }
     }
 
+    auto markerSeries = (MarkerEventSeries*) clearedSeries.first();
+    /*qDebug() << "ID: " << markerSeries->getID();
+    for (const auto& startTime : markerSeries->getMarkerIDsWithSharedStartTimes().keys()) {
+        qDebug() << "TIME: " << QDateTime::fromMSecsSinceEpoch(startTime).toString(DATE_TIME_FORMAT);
+    }
+    qDebug() << "---------------------";*/
+
+    const auto& ranges = markerSeries->getMarkerIDSetRanges();
+    for (const auto& ID : ranges.keys()) {
+        const auto& range = ranges.value(ID);
+        qDebug() << "ID: " << ID;
+        qDebug() << "Range:" << QDateTime::fromMSecsSinceEpoch(range.first).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(range.second).toString(DATE_TIME_FORMAT);
+    }
+    qDebug() << "---------------------";
+
     if (!clearedSeries.isEmpty())
         addedChartEvents(TIMELINE_DATA_KIND::MARKER, experimentRun);
 }
@@ -454,6 +469,7 @@ void TimelineChartView::updateHoverDisplay()
             if (!s)
                 continue;
             auto kind = s->getKind();
+            //qDebug() << "hovered kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
             auto action = _legendActions.value(kind, 0);
             if (!action || !action->isChecked())
                 continue;
@@ -461,6 +477,7 @@ void TimelineChartView::updateHoverDisplay()
                 continue;
             auto hoveredRange = entityChart->getHoveredTimeRange(kind);
             auto hoveredInfo = s->getHoveredDataString(hoveredRange, HOVER_DISPLAY_ITEM_COUNT, DATE_TIME_FORMAT);
+            //qDebug() << "Hovered Info: " << hoveredInfo;
             if (!hoveredInfo.isEmpty())
                 hoveredData[kind] += hoveredInfo + "\n";
         }

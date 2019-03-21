@@ -21,7 +21,7 @@ MarkerEvent::MarkerEvent(QString markerName, qint64 markerID, ComponentInstance 
  * @brief MarkerEvent::getMarkerID
  * @return
  */
-const qint64 &MarkerEvent::getMarkerID() const
+qint64 MarkerEvent::getMarkerID() const
 {
     return markerID_;
 }
@@ -33,7 +33,8 @@ const qint64 &MarkerEvent::getMarkerID() const
  */
 QString MarkerEvent::getID() const
 {
-    return componentInstance_.graphml_id + getName() + markerID_;
+    return getName();
+    //return componentInstance_.graphml_id + getName() + markerID_;
 }
 
 

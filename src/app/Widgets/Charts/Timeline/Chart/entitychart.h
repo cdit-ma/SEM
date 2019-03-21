@@ -69,8 +69,9 @@ private:
     bool rectHovered(const QRectF& hitRect);
 
     void clearHoveredLists();
-
     void updateSeriesPixmaps();
+
+    QColor getContrastingColor(const QColor& color);
 
     int getBinIndexForTime(double time);
     QVector<QList<MEDEA::Event*>>& getBinnedData(TIMELINE_DATA_KIND kind);
@@ -102,6 +103,11 @@ private:
     QPixmap messagePixmap_;
     QPixmap markerPixmap_;
     QRectF hoveredRect_;
+
+    QPen defaultRectPen_;
+    QPen defaultEllipsePen_;
+    QPen highlightPen_;
+    QBrush highlightBrush_;
 
     QColor gridColor_;
     QColor textColor_;
@@ -141,6 +147,8 @@ private:
 
     QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
     TIMELINE_DATA_KIND hoveredSeriesKind_;
+    QList<QRectF> hoveredEllipseRects_;
+    QList<QRectF> hoveredRects_;
 
     QHash<LifecycleType, QPixmap> lifeCycleTypePixmaps_;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;

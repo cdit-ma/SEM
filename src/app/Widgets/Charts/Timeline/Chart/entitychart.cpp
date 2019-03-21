@@ -4,6 +4,7 @@
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
 #include "../../Data/Events/markerevent.h"
+#include "../../Data/Series/markereventseries.h"
 
 #include <QPainter>
 #include <QPainter>
@@ -14,8 +15,8 @@
 #define BORDER_WIDTH 2.0
 
 #define PEN_WIDTH 1.0
-#define BIN_WIDTH 25.0
-#define POINT_WIDTH 6.0
+#define BIN_WIDTH 24.0
+#define POINT_WIDTH 8.0
 
 #define PRINT_RENDER_TIMES false
 
@@ -378,11 +379,12 @@ void EntityChart::themeChanged()
     defaultUtilisationColor_ = QColor(30,144,255);
     utilisationColor_ = defaultUtilisationColor_;
 
-    //defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
-    defaultMemoryColor_ = QColor(50,205,50); //theme->getSeverityColor(Notification::Severity::SUCCESS);
+    //defaultMemoryColor_ = QColor(50,205,50);
+    defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
     memoryColor_ = defaultMemoryColor_;
 
-    defaultMarkerColor_ = Qt::white;
+    defaultMarkerColor_ = QColor(221,188,153);
+    //defaultMarkerColor_ = QColor(240,128,128);
     markerColor_ = defaultMarkerColor_;
 
     textColor_ = theme->getTextColor();
@@ -392,6 +394,11 @@ void EntityChart::themeChanged()
     backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
     highlightColor_ = theme->getHighlightColor();
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
+
+    defaultRectPen_ = QPen(gridColor_, 0.5);
+    defaultEllipsePen_ = QPen(gridColor_, 2.0);
+    highlightPen_ = QPen(highlightColor_, 2.0);
+    highlightBrush_ = QBrush(getContrastingColor(textColor_));
 
     messagePixmap_ = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
     markerPixmap_ = theme->getImage("Icons", "bookmark", QSize(), theme->getMenuIconColor());
@@ -437,8 +444,24 @@ void EntityChart::paintEvent(QPaintEvent* event)
     paintSeries(painter, hoveredSeriesKind_);
     painter.setOpacity(1.0);
 
-    QColor penColor = gridColor_;
-    qreal penWidth = 0.5;
+    // outline the highlighted rects - for event series
+    painter.setPen(highlightPen_);
+    painter.setBrush(Qt::NoBrush);
+    for (auto rect : hoveredRects_) {
+        rect.adjust(-1, -1, 1, 1);
+        painter.drawRect(rect);
+    }
+
+    // outline the highlighted ellipses - for utilisation series
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setBrush(highlightBrush_);
+    for (auto rect : hoveredEllipseRects_) {
+        rect.adjust(-BORDER_WIDTH, -BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
+        painter.drawEllipse(rect);
+    }
+
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(defaultRectPen_);
 
     // display the y-range and send the series points that were hovered over
     if (hovered_) {
@@ -456,13 +479,12 @@ void EntityChart::paintEvent(QPaintEvent* event)
             painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
             painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
         }
-        //penColor = _hoverLinePen.color();
-        //penWidth = 4.0;
+        painter.setPen(QPen(textColor_, 2.0));
+        painter.drawEllipse(mapFromGlobal(cursor().pos()), 4, 4);
     }
 
     // NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
     // draw horizontal grid lines
-    painter.setPen(QPen(penColor, penWidth));
     painter.drawLine(0, 0, rect().right(), 0);
     painter.drawLine(0, height(), rect().right(), height());
 
@@ -564,11 +586,10 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     }
 
     QColor seriesColor = portLifecycleColor_;
-    QColor textColor = gridColor_;
-    QColor bgColor = seriesColor;
+    QColor brushColor = seriesColor;
+    QPen textPen(textColor_, 2.0);
 
     int y = rect().center().y() - barWidth / 2.0;
-
     painter.setOpacity(portSeriesOpacity_);
 
     for (int i = 0; i < barCount; i++) {
@@ -585,25 +606,25 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
                  *  This also needs to be changed when there are multiple series of the same kind
                  */
                 hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
-                painter.fillRect(rect, highlightColor_);
+                painter.fillRect(rect, highlightBrush_);
             }
             painter.setRenderHint(QPainter::Antialiasing, true);
             painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
-            bgColor = seriesColor.darker(100 + (50 * (count - 1)));
-            //textColor = gridColor_;
-            textColor = textColor_;
-            painter.setPen(QPen(gridColor_, 0.5));
             if (rectHovered(eventSeries->getKind(), rect)) {
-                bgColor = highlightColor_;
-                textColor = highlightTextColor_;
+                textPen.setColor(textColor_);
+                painter.fillRect(rect, highlightBrush_);
+            } else {
+                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
+                textPen.setColor(getContrastingColor(brushColor));
+                painter.setPen(defaultRectPen_);
+                painter.setBrush(brushColor);
+                painter.drawRect(rect);
             }
-            //painter.fillRect(rect, color);
-            painter.setBrush(bgColor);
-            painter.drawRect(rect);
-            painter.setPen(textColor);
-            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
+            QString countStr = count > 99 ? "𝑛" : QString::number(count);
+            painter.setPen(textPen);
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
 }
@@ -667,11 +688,10 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     }
 
     QColor seriesColor = workloadColor_;
-    QColor textColor = gridColor_;
-    QColor bgColor = seriesColor;
+    QColor brushColor = seriesColor;
+    QPen textPen(textColor_, 2.0);
 
     int y = rect().center().y() - barWidth / 2.0;
-
     painter.setOpacity(workloadSeriesOpacity_);
 
     for (int i = 0; i < barCount; i++) {
@@ -681,8 +701,6 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
         QRectF rect(i * barWidth, y, barWidth, barWidth);
         if (count == 1) {
             auto event = (WorkloadEvent*) buckets[i][0];
-            /*if (rectHovered(_eventSeries->getKind(), rect))
-                painter.fillRect(rect, highlightColor_);*/
             if (rectHovered(eventSeries->getKind(), rect)) {
                 /*
                  *  TODO - This forces the hover display to only show the hovered item's data/time
@@ -690,27 +708,24 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
                  *  This also needs to be changed when there are multiple series of the same kind
                  */
                 hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
-                painter.fillRect(rect, highlightColor_);
+                painter.fillRect(rect, highlightBrush_);
             }
             painter.setRenderHint(QPainter::Antialiasing, true);
             painter.drawPixmap(rect.toRect(), workloadEventTypePixmaps_.value(event->getType()));
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
-            bgColor = seriesColor.darker(100 + (50 * (count - 1)));
-            //textColor = gridColor_;
-            textColor = textColor_;
-            painter.setPen(QPen(gridColor_, 0.5));
             if (rectHovered(eventSeries->getKind(), rect)) {
-                bgColor = highlightColor_;
-                textColor = highlightTextColor_;
+                textPen.setColor(textColor_);
+                painter.fillRect(rect, highlightBrush_);
+            } else {
+                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
+                textPen.setColor(getContrastingColor(brushColor));
+                painter.setPen(defaultRectPen_);
+                painter.setBrush(brushColor);
+                painter.drawRect(rect);
             }
-            //painter.fillRect(rect, color);
-            painter.setBrush(bgColor);
-            painter.drawRect(rect);
-
-            QString countStr = count > 99 ? "🤮" : QString::number(count);
-            painter.setPen(textColor);
-            //painter.setFont(QFont(font().family(), 20));
+            QString countStr = count > 99 ? "𝑛" : QString::number(count);
+            painter.setPen(textPen);
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
@@ -832,7 +847,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
         first_contributing_event++;
     }
 
-     auto availableHeight = height() - barWidth;
+     auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
      auto seriesColor = utilisationColor_;
      QList<QRectF> rects;
 
@@ -857,46 +872,27 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      if (rects.isEmpty())
          return;
 
-     auto offset = 2.0;
-     auto penOffset = 0.5;
-
+     QPen linePen(seriesColor, 3.0);
      painter.setRenderHint(QPainter::Antialiasing, true);
      painter.setOpacity(cpuSeriesOpacity_);
+     painter.setPen(defaultEllipsePen_);
+     painter.setBrush(seriesColor);
 
      if (rects.size() == 1) {
          auto rect = rects.first();
-         painter.setPen(QPen(seriesColor, offset));
-         painter.setBrush(seriesColor);
-         if (rectHovered(eventSeries->getKind(), rect)) {
-             rect.adjust(-offset, -offset, offset, offset);
-             painter.setPen(QPen(highlightColor_, offset + penOffset));
-             painter.setBrush(highlightTextColor_);
-         }
          painter.drawEllipse(rect);
+         rectHovered(eventSeries->getKind(), rect);
      } else {
          for (int i = 1; i < rects.count(); i++) {
              auto rect1 = rects.at(i - 1);
              auto rect2 = rects.at(i);
-             painter.setPen(QPen(seriesColor, 3.0));
+             painter.setPen(linePen);
              painter.drawLine(rect1.center(), rect2.center());
-             if (rectHovered(eventSeries->getKind(), rect1)) {
-                 rect1.adjust(-offset, -offset, offset, offset);
-                 painter.setPen(QPen(highlightColor_, offset + penOffset));
-                 painter.setBrush(highlightTextColor_);
-             } else {
-                 painter.setPen(QPen(gridColor_, offset));
-                 painter.setBrush(seriesColor);
-             }
+             painter.setPen(defaultEllipsePen_);
              painter.drawEllipse(rect1);
-             if (rectHovered(eventSeries->getKind(), rect2)) {
-                 rect2.adjust(-offset, -offset, offset, offset);
-                 painter.setPen(QPen(highlightColor_, offset + penOffset));
-                 painter.setBrush(highlightTextColor_);
-             } else {
-                 painter.setPen(QPen(gridColor_, offset));
-                 painter.setBrush(seriesColor);
-             }
              painter.drawEllipse(rect2);
+             rectHovered(eventSeries->getKind(), rect1);
+             rectHovered(eventSeries->getKind(), rect2);
          }
      }
 
@@ -1041,49 +1037,30 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
          rects.append(rect);
      }
 
-     painter.setRenderHint(QPainter::Antialiasing, true);
-     painter.setOpacity(memorySeriesOpacity_);
-
      if (rects.isEmpty())
          return;
 
-     auto offset = 2.0;
-     auto penOffset = 0.5;
+     QPen linePen(seriesColor, 3.0);
+     painter.setRenderHint(QPainter::Antialiasing, true);
+     painter.setOpacity(memorySeriesOpacity_);
+     painter.setPen(defaultEllipsePen_);
+     painter.setBrush(seriesColor);
 
      if (rects.size() == 1) {
          auto rect = rects.first();
-         painter.setPen(QPen(seriesColor, offset));
-         painter.setBrush(seriesColor);
-         if (rectHovered(eventSeries->getKind(), rect)) {
-             rect.adjust(-offset, -offset, offset, offset);
-             painter.setPen(QPen(highlightColor_, offset + penOffset));
-             painter.setBrush(highlightTextColor_);
-         }
          painter.drawEllipse(rect);
+         rectHovered(eventSeries->getKind(), rect);
      } else {
          for (int i = 1; i < rects.count(); i++) {
              auto rect1 = rects.at(i - 1);
              auto rect2 = rects.at(i);
-             painter.setPen(QPen(seriesColor, 3.0));
+             painter.setPen(linePen);
              painter.drawLine(rect1.center(), rect2.center());
-             if (rectHovered(eventSeries->getKind(), rect1)) {
-                 rect1.adjust(-offset, -offset, offset, offset);
-                 painter.setPen(QPen(highlightColor_, offset + penOffset));
-                 painter.setBrush(highlightTextColor_);
-             } else {
-                 painter.setPen(QPen(gridColor_, offset));
-                 painter.setBrush(seriesColor);
-             }
+             painter.setPen(defaultEllipsePen_);
              painter.drawEllipse(rect1);
-             if (rectHovered(eventSeries->getKind(), rect2)) {
-                 rect2.adjust(-offset, -offset, offset, offset);
-                 painter.setPen(QPen(highlightColor_, offset + penOffset));
-                 painter.setBrush(highlightTextColor_);
-             } else {
-                 painter.setPen(QPen(gridColor_, offset));
-                 painter.setBrush(seriesColor);
-             }
              painter.drawEllipse(rect2);
+             rectHovered(eventSeries->getKind(), rect1);
+             rectHovered(eventSeries->getKind(), rect2);
          }
      }
 
@@ -1101,93 +1078,119 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     if (!eventSeries)
         return;
 
-    double barWidth = BIN_WIDTH;
-    double barCount = ceil((double)width() / barWidth);
+    double binWidth = BIN_WIDTH;
+    double binCount = ceil((double)width() / binWidth);
 
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-    barWidth = (double) width() / barCount;
+    binWidth = (double) width() / binCount;
 
-    QVector< QList<MEDEA::Event*> > buckets(barCount);
-    QVector<double> bucket_endTimes;
-    bucket_endTimes.reserve(barCount);
+    QVector<double> bins(binCount);
+    QVector<double> binEndTimes;
+    binEndTimes.reserve(binCount);
 
-    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-    double current_left = displayMin_;
-    for (int i = 0; i < barCount; i++) {
-        bucket_endTimes.append(current_left + barTimeWidth);
-        current_left = bucket_endTimes.last();
+    double binTimeWidth = (displayMax_ - displayMin_) / binCount;
+    double currentLeft = displayMin_;
+    for (int i = 0; i < binCount; i++) {
+        binEndTimes.append(currentLeft + binTimeWidth);
+        currentLeft = binEndTimes.last();
     }
 
-    const auto& events = eventSeries->getEvents();
-    auto current = events.constBegin();
-    auto upper = events.constEnd();
-    for (; current != upper; current++) {
-        const auto& current_time = (*current)->getTimeMS();
-        if (current_time > displayMin_) {
-            break;
+    auto markerEventSeries = (MarkerEventSeries*) eventSeries;
+    const auto& startTimes = markerEventSeries->getMarkerIDsWithSharedStartTimes();
+    const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
+
+    auto currentBinIndex = 0;
+    auto currentBinItr = binEndTimes.constBegin();
+    auto endBinItr = binEndTimes.constEnd();
+
+    for (const auto& startTime : startTimes.keys()) {
+        if (startTime < displayMin_) {
+            continue;
         }
-    }
-
-    auto current_bucket = 0;
-    auto current_bucket_ittr = bucket_endTimes.constBegin();
-    auto end_bucket_ittr = bucket_endTimes.constEnd();
-
-    // put the data in the correct bucket
-    for (;current != upper; current++) {
-        const auto& current_time = (*current)->getTimeMS();
-        while (current_bucket_ittr != end_bucket_ittr) {
-            if (current_time > (*current_bucket_ittr)) {
-                current_bucket_ittr ++;
-                current_bucket ++;
+        // find the right bin to put the data in
+        while (currentBinItr != endBinItr) {
+            if (startTime > (*currentBinItr)) {
+                currentBinItr++;
+                currentBinIndex++;
             } else {
+                //qDebug() << "startime < bin time - index: " << currentBinIndex;
                 break;
             }
         }
-        if (current_bucket < barCount) {
-            buckets[current_bucket].append(*current);
+        // bin the data
+        if (currentBinIndex < binCount) {
+            const auto& markerIDsAtStartTime = startTimes.value(startTime);
+            //qDebug() << "IDs#: " << markerIDsAtStartTime.count();
+            auto totalDuration = 0.0;
+            for (const auto& id : markerIDsAtStartTime) {
+                if (idSetDuration.contains(id)) {
+                    totalDuration += idSetDuration.value(id);
+                    auto d = idSetDuration.value(id);
+                    if (d > 0) {
+                        qDebug() << "id: " << id;
+                        qDebug() << "IDs#: " << markerIDsAtStartTime.count();
+                        qDebug() << "duration: " << d;
+                        qDebug() << "totalDuration: " << totalDuration;
+                        qDebug()  << "BIN DATA --- " << QString::number(totalDuration / markerIDsAtStartTime.count());
+                        qDebug() << "at: " << currentBinIndex;
+                        qDebug() << "------";
+                    }
+                }
+            }
+            // bin the average duration from the current start time
+            bins[currentBinIndex] = totalDuration / markerIDsAtStartTime.count();
         }
     }
 
+    // get the maximum duration
+    auto maxDuration = 0.0;
+    for (int i = 0; i < bins.count(); i++) {
+        auto binVal = bins[i];
+        qDebug() << "binVal: " << binVal;
+        //maxDuration = qMax(binVal, maxDuration);
+    }
+
+    qDebug() << "maxDuration: " << maxDuration;
+
     QColor seriesColor = markerColor_;
-    QColor textColor = gridColor_;
-    QColor bgColor = seriesColor;
+    QColor brushColor = seriesColor;
+    QPen textPen(textColor_, 2.0);
 
-    int y = rect().center().y() - barWidth / 2.0;
+    auto availableHeight = height() - BORDER_WIDTH;
+    painter.setOpacity(markerSeriesOpacity_);
 
-    painter.setOpacity(workloadSeriesOpacity_);
-
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0)
+    for (int i = 0; i < binCount; i++) {
+        auto durationMS = bins[i];
+        if (durationMS == 0)
             continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
-        if (count == 1) {
-            auto event = (MarkerEvent*) buckets[i][0];
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
-                painter.fillRect(rect, highlightColor_);
-            }
-            painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawPixmap(rect.toRect(), markerPixmap_);
-            painter.setRenderHint(QPainter::Antialiasing, false);
+        qDebug() << "duration: " << durationMS;
+        double rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight; // + BORDER_WIDTH / 2.0;
+        double y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
+        QRectF rect(i * binWidth, y, binWidth, rectHeight);
+        if (rectHovered(eventSeries->getKind(), rect)) {
+            textPen.setColor(textColor_);
+            painter.fillRect(rect, highlightBrush_);
         } else {
-            bgColor = seriesColor.darker(100 + (50 * (count - 1)));
-            //textColor = gridColor_;
-            textColor = textColor_;
-            painter.setPen(QPen(gridColor_, 0.5));
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                bgColor = highlightColor_;
-                textColor = highlightTextColor_;
-            }
-            //painter.fillRect(rect, color);
-            painter.setBrush(bgColor);
+            brushColor = (maxDuration <= 0) ? seriesColor.darker(150) : seriesColor.darker(100 + (50 * durationMS / maxDuration));
+            textPen.setColor(getContrastingColor(brushColor));
+            painter.setPen(defaultRectPen_);
+            painter.setBrush(brushColor);
             painter.drawRect(rect);
-
-            QString countStr = count > 99 ? "🤮" : QString::number(count);
-            painter.setPen(textColor);
-            //painter.setFont(QFont(font().family(), 20));
-            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
+        //painter.drawRect(rect);
+
+        //QString countStr = count > 99 ? "🤮" : QString::number(count);
+        //painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+        //QString countStr = durationMS > 99 ? "𝑛" : QString::number(durationMS);
+        //painter.drawText(rect, QString::number(durationMS) + "ms", QTextOption(Qt::AlignCenter));
+        /*
+        painter.setPen(textPen);
+        painter.translate(0, availableHeight);
+        painter.rotate(-90);
+        painter.drawText(rect.x(), rect.y(), rectHeight, rect.width(), Qt::AlignCenter, QString::number(durationMS) + "ms");
+        painter.rotate(90);
+        painter.translate(0, -availableHeight);
+        */
     }
 }
 
@@ -1250,6 +1253,11 @@ bool EntityChart::rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect)
             timeRange.first = hoveredSeriesTimeRange_.value(kind).first;
         }
         hoveredSeriesTimeRange_[kind] = timeRange;
+        if (kind == TIMELINE_DATA_KIND::CPU_UTILISATION || kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+            hoveredEllipseRects_.append(hitRect);
+        } else {
+            hoveredRects_.append(hitRect);
+        }
         return true;
     }
     return false;
@@ -1274,6 +1282,8 @@ void EntityChart::clearHoveredLists()
 {
     // clear previously hovered series kinds
     hoveredSeriesTimeRange_.clear();
+    hoveredEllipseRects_.clear();
+    hoveredRects_.clear();
 }
 
 
@@ -1416,6 +1426,23 @@ void EntityChart::updateSeriesPixmaps()
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), backgroundColor_);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), backgroundColor_);
     }
+}
+
+
+/**
+ * @brief EntityChart::getContrastingColor
+ * @param color
+ * @return
+ */
+QColor EntityChart::getContrastingColor(const QColor &color)
+{
+    auto hue = color.hue();
+    auto saturation = color.saturation() < 128 ? 255 : 0;
+    auto value = color.value() < 128 ? 255 : 0;
+
+    QColor contrastColor;
+    contrastColor.setHsv(hue, saturation, value);
+    return contrastColor;
 }
 
 

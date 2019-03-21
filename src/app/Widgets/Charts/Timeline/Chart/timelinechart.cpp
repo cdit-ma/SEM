@@ -357,15 +357,16 @@ void TimelineChart::paintEvent(QPaintEvent *event)
     default: {
         //painter.fillRect(hoveredChartRect, backgroundHighlightColor);
         if (!hoveredChartRect.isNull()) {
-            painter.setPen(Qt::NoPen);
+            //painter.setPen(Qt::NoPen);
+            painter.setPen(axisLinePen);
             painter.setBrush(backgroundHighlightColor);
-            painter.drawRect(hoveredChartRect);
+            painter.drawRect(hoveredChartRect.adjusted(-axisLinePen.widthF(), 0, axisLinePen.widthF(), 0));
         }
         if (hovered) {
             painter.setPen(hoverLinePen);
             painter.drawLine(cursorPoint.x(), rect().top(), cursorPoint.x(), rect().bottom());
-            painter.setPen(cursorPen);
-            painter.drawPoint(cursorPoint);
+            //painter.setPen(cursorPen);
+            //painter.drawPoint(cursorPoint);
         }
         break;
     }

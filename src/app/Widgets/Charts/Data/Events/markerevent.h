@@ -11,7 +11,7 @@ class MarkerEvent : public MEDEA::Event
 public:
     explicit MarkerEvent(QString markerName, qint64 markerID, ComponentInstance inst, qint64 time, QObject* parent = 0);
 
-    const qint64& getMarkerID() const;
+    qint64 getMarkerID() const;
 
     QString getID() const;
     TIMELINE_DATA_KIND getKind() const;
