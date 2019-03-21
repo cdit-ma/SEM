@@ -90,8 +90,8 @@ void ChartInputPopup::themeChanged()
     }
 
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
-                         "QGroupBox{color: lightGray; margin-top: 15px;}" +
-                         "QGroupBox::title{subcontrol-origin: margin;}";
+                         "QGroupBox{color:" + theme->getAltTextColorHex() + "; margin-top: 15px;" + "border: 1px solid " + theme->getAltTextColorHex() + "}" +
+                         "QGroupBox::title{ subcontrol-origin: margin; }";
 
     auto scrollbarStyle =  "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
                            "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
@@ -248,6 +248,7 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
 void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
 {
     auto firstButton = true;
+    auto maxButtonWidth = 0;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -267,7 +268,10 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
             button->toggle();
             firstButton = false;
         }
+        maxButtonWidth = qMax(button->sizeHint().width(), maxButtonWidth);
     }
+
+    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + 50);
 }
 
 

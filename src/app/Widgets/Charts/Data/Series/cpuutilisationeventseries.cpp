@@ -52,20 +52,25 @@ double CPUUtilisationEventSeries::getMaxUtilisation()
 QString CPUUtilisationEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
     const auto& data = getEvents();
-    auto current = std::lower_bound(data.cbegin(), data.cend(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {
+    auto current = std::lower_bound(data.constBegin(), data.constEnd(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {
         return e->getTimeMS() < time;
     });
-    auto upper = std::upper_bound(data.cbegin(), data.cend(), toTimeMS, [](const qint64 &time, const MEDEA::Event* e) {
+    auto upper = std::upper_bound(data.constBegin(), data.constEnd(), toTimeMS, [](const qint64 &time, const MEDEA::Event* e) {
         return time < e->getTimeMS();
     });
 
-    int count = std::distance(current, upper);
+    /*int count = std::distance(current, upper);
     if (count <= 0)
+        return "";*/
+
+    if (current == data.constEnd())
         return "";
 
     QString hoveredData;
     QTextStream stream(&hoveredData);
+    int count = std::distance(current, upper);
     numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+    numberOfItemsToDisplay = qMax(1, numberOfItemsToDisplay);
 
     for (int i = 0; i < numberOfItemsToDisplay; i++) {
         auto event = (CPUUtilisationEvent*)(*current);
