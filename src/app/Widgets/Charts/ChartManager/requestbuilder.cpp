@@ -246,7 +246,7 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
  * @brief RequestBuilder::getPortLifecycleRequest
  * @return
  */
-const PortLifecycleRequest *RequestBuilder::getPortLifecycleRequest()
+const PortLifecycleRequest *RequestBuilder::getPortLifecycleRequest() const
 {
     return portLifecycleRequest_;
 }
@@ -256,7 +256,7 @@ const PortLifecycleRequest *RequestBuilder::getPortLifecycleRequest()
  * @brief RequestBuilder::getWorkloadRequest
  * @return
  */
-const WorkloadRequest *RequestBuilder::getWorkloadRequest()
+const WorkloadRequest *RequestBuilder::getWorkloadRequest() const
 {
     return workloadRequest_;
 }
@@ -266,7 +266,7 @@ const WorkloadRequest *RequestBuilder::getWorkloadRequest()
  * @brief RequestBuilder::getCPUUtilisationRequest
  * @return
  */
-const CPUUtilisationRequest *RequestBuilder::getCPUUtilisationRequest()
+const CPUUtilisationRequest *RequestBuilder::getCPUUtilisationRequest() const
 {
     return cpuUtilisationRequest_;
 }
@@ -276,7 +276,7 @@ const CPUUtilisationRequest *RequestBuilder::getCPUUtilisationRequest()
  * @brief RequestBuilder::getMemoryUtilisationRequest
  * @return
  */
-const MemoryUtilisationRequest *RequestBuilder::getMemoryUtilisationRequest()
+const MemoryUtilisationRequest *RequestBuilder::getMemoryUtilisationRequest() const
 {
     return memoryUtilisationRequest_;
 }
@@ -286,7 +286,7 @@ const MemoryUtilisationRequest *RequestBuilder::getMemoryUtilisationRequest()
  * @brief RequestBuilder::getMarkerRequest
  * @return
  */
-const MarkerRequest *RequestBuilder::getMarkerRequest()
+const MarkerRequest *RequestBuilder::getMarkerRequest() const
 {
     return markerRequest_;
 }

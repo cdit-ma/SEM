@@ -21,7 +21,7 @@ ChartManager::ChartManager(ViewController *vc)
     chartDialog_->setChartView(chartView_);
 
     if (vc) {
-        connect(vc, &ViewController::vc_acquireExperimentRun, this, &ChartManager::acquireExperimentRun);
+        connect(vc, &ViewController::vc_acquireExperimentRun, this, &ChartManager::displayExperimentRunPopup);
         connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
     }
 
@@ -326,9 +326,9 @@ ChartDialog* ChartManager::getChartDialog()
 
 
 /**
- * @brief ChartManager::acquireExperimentRun
+ * @brief ChartManager::displayExperimentRunPopup
  */
-void ChartManager::acquireExperimentRun()
+void ChartManager::displayExperimentRunPopup()
 {
     requestExperimentRuns("");
     if (chartPopup_) {
@@ -346,7 +346,7 @@ void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &se
 {
     selectedViewItems_ = selectedItems;
     selectedDataKinds_ = selectedDataKinds;
-    acquireExperimentRun();
+    displayExperimentRunPopup();
 }
 
 
