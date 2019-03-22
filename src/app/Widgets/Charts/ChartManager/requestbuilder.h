@@ -16,7 +16,7 @@ protected:
     explicit RequestBuilder();
 
 public:
-    RequestBuilder builder();
+    static RequestBuilder build();
 
     void buildRequests(QVector<TIMELINE_DATA_KIND> requestKinds);
 
@@ -32,11 +32,11 @@ public:
     void setNodeIDs(const QVector<QString>& node_ids);
     void setNodeHostnames(const QVector<QString>& node_hostnames);
 
-    const PortLifecycleRequest* getPortLifecycleRequest();
-    const WorkloadRequest* getWorkloadRequest();
-    const CPUUtilisationRequest* getCPUUtilisationRequest();
-    const MemoryUtilisationRequest* getMemoryUtilisationRequest();
-    const MarkerRequest* getMarkerRequest();
+    const PortLifecycleRequest* getPortLifecycleRequest() const;
+    const WorkloadRequest* getWorkloadRequest() const;
+    const CPUUtilisationRequest* getCPUUtilisationRequest() const;
+    const MemoryUtilisationRequest* getMemoryUtilisationRequest() const;
+    const MarkerRequest* getMarkerRequest() const;
 
 private:
     PortLifecycleRequest* portLifecycleRequest_ = 0;

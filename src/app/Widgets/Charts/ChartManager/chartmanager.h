@@ -23,7 +23,7 @@ signals:
     void showChartsPanel();
 
 public slots:
-    void acquireExperimentRun();
+    void displayChartPopup();
 
     void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<TIMELINE_DATA_KIND>& selectedDataKinds);
     void experimentRunSelected(const ExperimentRun& experimentRun);
@@ -41,7 +41,7 @@ private:
     void requestExperimentRuns(const QString& experimentName);
     void requestExperimentState(const quint32 experimentRunID);
 
-    void requestEvents(RequestBuilder* builder, const ExperimentRun &experimentRun);
+    void requestEvents(const RequestBuilder &builder, const ExperimentRun &experimentRun);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const ExperimentRun& experimentRun);
     void requestWorkloadEvents(const WorkloadRequest& request, const ExperimentRun& experimentRun);
     void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const ExperimentRun& experimentRun);

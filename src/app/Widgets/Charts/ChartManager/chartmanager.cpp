@@ -21,8 +21,9 @@ ChartManager::ChartManager(ViewController *vc)
     chartDialog_->setChartView(chartView_);
 
     if (vc) {
-        connect(vc, &ViewController::vc_acquireExperimentRun, this, &ChartManager::displayExperimentRunPopup);
+        connect(vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
         connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
+        //connect(vc, &ViewController::vc_);
     }
 
     connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);
@@ -98,37 +99,32 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
  * @param builder
  * @param experimentRun
  */
-void ChartManager::requestEvents(RequestBuilder* builder, const ExperimentRun& experimentRun)
+void ChartManager::requestEvents(const RequestBuilder& builder, const ExperimentRun& experimentRun)
 {
-    if (!builder)
-        return;
-
-    const auto portLifecycleRequest = builder->getPortLifecycleRequest();
+    const auto portLifecycleRequest = builder.getPortLifecycleRequest();
     if (portLifecycleRequest) {
         requestPortLifecycleEvents(*portLifecycleRequest, experimentRun);
     }
 
-    const auto workloadRequest = builder->getWorkloadRequest();
+    const auto workloadRequest = builder.getWorkloadRequest();
     if (workloadRequest) {
         requestWorkloadEvents(*workloadRequest, experimentRun);
     }
 
-    const auto cpuUtilisationRequest = builder->getCPUUtilisationRequest();
+    const auto cpuUtilisationRequest = builder.getCPUUtilisationRequest();
     if (cpuUtilisationRequest) {
         requestCPUUtilisationEvents(*cpuUtilisationRequest, experimentRun);
     }
 
-    const auto memoryUtilisationRequest = builder->getMemoryUtilisationRequest();
+    const auto memoryUtilisationRequest = builder.getMemoryUtilisationRequest();
     if (memoryUtilisationRequest) {
         requestMemoryUtilisationEvents(*memoryUtilisationRequest, experimentRun);
     }
 
-    const auto markerRequest = builder->getMarkerRequest();
+    const auto markerRequest = builder.getMarkerRequest();
     if (markerRequest) {
         requestMarkerEvents(*markerRequest, experimentRun);
     }
-
-    delete builder;
 }
 
 
@@ -326,9 +322,9 @@ ChartDialog* ChartManager::getChartDialog()
 
 
 /**
- * @brief ChartManager::displayExperimentRunPopup
+ * @brief ChartManager::displayChartPopup
  */
-void ChartManager::displayExperimentRunPopup()
+void ChartManager::displayChartPopup()
 {
     requestExperimentRuns("");
     if (chartPopup_) {
@@ -346,7 +342,7 @@ void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &se
 {
     selectedViewItems_ = selectedItems;
     selectedDataKinds_ = selectedDataKinds;
-    displayExperimentRunPopup();
+    displayChartPopup();
 }
 
 
@@ -401,9 +397,9 @@ void ChartManager::requestEventsForExperimentRun(const ExperimentRun& experiment
         selectedDataKinds_.removeAll(TIMELINE_DATA_KIND::DATA);
     }
 
-    RequestBuilder* builder = new RequestBuilder();
-    builder->buildRequests(selectedDataKinds_.toVector());
-    builder->setExperimentID(experimentRunID);
+    auto builder = RequestBuilder::build();
+    builder.buildRequests(selectedDataKinds_.toVector());
+    builder.setExperimentID(experimentRunID);
 
     qDebug() << "-----------------------------FILTERS-----------------------------";
 
@@ -507,11 +503,11 @@ void ChartManager::requestEventsForExperimentRun(const ExperimentRun& experiment
             }
         }
 
-        builder->setComponentNames(compNames);
-        builder->setComponentInstancePaths(compInstPaths);
-        builder->setPortPaths(portPaths);
-        builder->setWorkerInstancePaths(workerInstPaths);
-        builder->setNodeHostnames(nodeHostnames);
+        builder.setComponentNames(compNames);
+        builder.setComponentInstancePaths(compInstPaths);
+        builder.setPortPaths(portPaths);
+        builder.setWorkerInstancePaths(workerInstPaths);
+        builder.setNodeHostnames(nodeHostnames);
     }
 
     qDebug() << "-----------------------------------------------------------------";

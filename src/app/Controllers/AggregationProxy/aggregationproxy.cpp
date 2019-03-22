@@ -395,8 +395,6 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
             agg_request.add_worker_instance_paths(path.toStdString());
         }
 
-        int i = 0;
-
         auto results = requester_->GetMarkers(agg_request);
         for (const auto& nameSet : results->marker_name_sets()) {
             const auto& name = ConstructQString(nameSet.name());
@@ -404,17 +402,13 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
             //qDebug() << "ID SET#: " << nameSet.marker_id_set_size();
             for (const auto& idSet : nameSet.marker_id_set()) {
                 const auto& id = idSet.id();
-                qDebug() << "MARKER ID SET: " << id;
+                //qDebug() << "MARKER ID SET: " << id;
                 for (const auto& e : idSet.events()) {
                     const auto& compInst = ConvertComponentInstance(e.component_instance());
                     const auto& time = ConstructQDateTime(e.timestamp());
-                    if (i == 0) {
-                        qDebug() << "time: " << time.toString("hh:mm:ss.zzz");
-                    }
                     events.append(new MarkerEvent(name, id, compInst, time.toMSecsSinceEpoch()));
                 }
             }
-            i++;
         }
 
         return events;

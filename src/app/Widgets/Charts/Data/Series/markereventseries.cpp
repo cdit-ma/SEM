@@ -105,8 +105,8 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
         return time < idSetStartTime;
     });*/
 
-    auto lower = startTimes.constBegin();
-    auto upper = startTimes.constEnd();
+    auto currentStartTimeItr = startTimes.constBegin();
+    auto endStartTimeItr = startTimes.constEnd();
     auto firstItrSet = false;
 
     for (auto current = startTimes.constBegin(); current != startTimes.constEnd(); current++) {
@@ -115,16 +115,15 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
             if (currentStartTime > toTimeMS)
                 return "";
             if (currentStartTime > fromTimeMS) {
-                lower = current;
+                currentStartTimeItr = current;
                 firstItrSet = true;
-                //qDebug() << "LOWER TIME: " << QDateTime::fromMSecsSinceEpoch(*lower).toString("hh:mm:ss:zzz");
             }
         }
         if (currentStartTime > toTimeMS) {
             if (current == startTimes.constBegin()) {
-                upper = startTimes.constBegin();
+                endStartTimeItr = startTimes.constBegin();
             } else {
-                upper = current - 1;
+                endStartTimeItr = current - 1;
             }
             break;
         }
@@ -135,31 +134,31 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
 
     QString hoveredData;
     QTextStream stream(&hoveredData);
-    int count = std::distance(lower, upper);
+    int count = std::distance(currentStartTimeItr, endStartTimeItr);
     numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
     numberOfItemsToDisplay = qMax(1, numberOfItemsToDisplay);
 
-    // calculate the average duration between fromTimeMS and toTimeMS for each contained start times
+    // calculate the average duration between fromTimeMS and toTimeMS
+    auto totalDuration = 0.0;
+    auto numberOfIDSets = 0;
     for (int i = 0; i < numberOfItemsToDisplay; i++) {
-        auto currentStartTime = (*lower);
+        auto currentStartTime = (*currentStartTimeItr);
         const auto& markerIDsAtStartTime = startTimeMap_.value(currentStartTime);
-        auto numberOfIDSetsStarted = markerIDsAtStartTime.count();
-        auto totalDuration = 0.0;
         for (const auto& id : markerIDsAtStartTime) {
             if (markerIDSetDurations_.contains(id)) {
                 totalDuration += markerIDSetDurations_.value(id);
             }
+            numberOfIDSets++;
         }
-        auto avgDuration = totalDuration / numberOfIDSetsStarted;
-        stream << "Start Time: " << QDateTime::fromMSecsSinceEpoch(currentStartTime).toString("hh:mm:ss:zzz") << "\n"
-               << "Marker ID Sets Started#: " << numberOfIDSetsStarted << "\n"
-               << "Average Duration: " << avgDuration << "ms \n\n";
-
-        lower++;
+        currentStartTimeItr++;
     }
 
-    if (count > numberOfItemsToDisplay)
-        stream << "... (more omitted)";
+    if (numberOfIDSets == 0)
+        return "";
+
+    auto avgDuration = totalDuration / numberOfIDSets;
+    stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
+           << "Average Duration: " << avgDuration << "ms \n\n";
 
     return hoveredData.trimmed();
 }

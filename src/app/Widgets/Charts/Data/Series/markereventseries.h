@@ -23,7 +23,6 @@ private:
     QHash<qint64, QPair<qint64, qint64>> markerIDSetRanges_;
     QHash<qint64, qint64> markerIDSetDurations_;
     QMap<qint64, QSet<qint64>> startTimeMap_;
-    //QMultiHash<qint64, qint64> startTimeMultiHash_;
 
 };
 

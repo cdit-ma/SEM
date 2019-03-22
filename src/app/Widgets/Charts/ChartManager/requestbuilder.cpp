@@ -8,10 +8,10 @@ RequestBuilder::RequestBuilder() {}
 
 
 /**
- * @brief RequestBuilder::buildRequests
+ * @brief RequestBuilder::build
  * @param requestKinds
  */
-RequestBuilder RequestBuilder::builder()
+RequestBuilder RequestBuilder::build()
 {
     return RequestBuilder();
 }

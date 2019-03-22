@@ -108,7 +108,7 @@ ViewController::ViewController(){
 
 void ViewController::QueryRunningExperiments()
 {
-    emit vc_acquireExperimentRun();
+    emit vc_displayChartPopup();
 }
 
 void ViewController::SettingChanged(SETTINGS key, QVariant value){

@@ -1096,61 +1096,52 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     }
 
     auto markerEventSeries = (MarkerEventSeries*) eventSeries;
-    const auto& startTimes = markerEventSeries->getMarkerIDsWithSharedStartTimes();
+    const auto& startTimesMap = markerEventSeries->getMarkerIDsWithSharedStartTimes();
     const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
 
     auto currentBinIndex = 0;
     auto currentBinItr = binEndTimes.constBegin();
-    auto endBinItr = binEndTimes.constEnd();
+    const auto endBinItr = binEndTimes.constEnd();
+    const auto& startTimes = startTimesMap.keys();
+    auto startTimeItr = startTimes.constBegin();
+    const auto endStartTimeItr = startTimes.constEnd();
 
-    for (const auto& startTime : startTimes.keys()) {
-        if (startTime < displayMin_) {
-            continue;
-        }
-        // find the right bin to put the data in
-        while (currentBinItr != endBinItr) {
-            if (startTime > (*currentBinItr)) {
-                currentBinItr++;
-                currentBinIndex++;
-            } else {
-                //qDebug() << "startime < bin time - index: " << currentBinIndex;
+    while (currentBinItr != endBinItr) {
+        auto currentBinEndTime = *currentBinItr;
+        auto totalDuration = 0.0;
+        auto numberOfIDSets = 0;
+        for (; startTimeItr != endStartTimeItr; startTimeItr++) {
+            const auto& startTime = *startTimeItr;
+            // skip start times that are out of the display range
+            if (startTime < displayMin_)
                 break;
+            if (startTime >= displayMax_)
+                break;
+            if (startTime > currentBinEndTime)
+                break;
+            // calculate average duration
+            const auto& IDSetsAtStartTime = startTimesMap.value(startTime);
+            for (auto ID : IDSetsAtStartTime) {
+                totalDuration += idSetDuration.value(ID);
+                numberOfIDSets++;
             }
         }
-        // bin the data
-        if (currentBinIndex < binCount) {
-            const auto& markerIDsAtStartTime = startTimes.value(startTime);
-            //qDebug() << "IDs#: " << markerIDsAtStartTime.count();
-            auto totalDuration = 0.0;
-            for (const auto& id : markerIDsAtStartTime) {
-                if (idSetDuration.contains(id)) {
-                    totalDuration += idSetDuration.value(id);
-                    auto d = idSetDuration.value(id);
-                    if (d > 0) {
-                        qDebug() << "id: " << id;
-                        qDebug() << "IDs#: " << markerIDsAtStartTime.count();
-                        qDebug() << "duration: " << d;
-                        qDebug() << "totalDuration: " << totalDuration;
-                        qDebug()  << "BIN DATA --- " << QString::number(totalDuration / markerIDsAtStartTime.count());
-                        qDebug() << "at: " << currentBinIndex;
-                        qDebug() << "------";
-                    }
-                }
-            }
-            // bin the average duration from the current start time
-            bins[currentBinIndex] = totalDuration / markerIDsAtStartTime.count();
-        }
+
+        // store the average duration at the current bin
+        bins[currentBinIndex] = (numberOfIDSets == 0) ? 0 : totalDuration / numberOfIDSets;
+        currentBinItr++;
+        currentBinIndex++;
+
+        if (currentBinIndex >= binCount)
+            break;
     }
 
     // get the maximum duration
     auto maxDuration = 0.0;
     for (int i = 0; i < bins.count(); i++) {
-        auto binVal = bins[i];
-        qDebug() << "binVal: " << binVal;
-        //maxDuration = qMax(binVal, maxDuration);
+        //qDebug() << "bins[" << i << "]: " << bins[i];
+        maxDuration = qMax(bins[i], maxDuration);
     }
-
-    qDebug() << "maxDuration: " << maxDuration;
 
     QColor seriesColor = markerColor_;
     QColor brushColor = seriesColor;
@@ -1163,7 +1154,6 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
         auto durationMS = bins[i];
         if (durationMS == 0)
             continue;
-        qDebug() << "duration: " << durationMS;
         double rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight; // + BORDER_WIDTH / 2.0;
         double y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
         QRectF rect(i * binWidth, y, binWidth, rectHeight);
@@ -1177,20 +1167,6 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
             painter.setBrush(brushColor);
             painter.drawRect(rect);
         }
-        //painter.drawRect(rect);
-
-        //QString countStr = count > 99 ? "🤮" : QString::number(count);
-        //painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
-        //QString countStr = durationMS > 99 ? "𝑛" : QString::number(durationMS);
-        //painter.drawText(rect, QString::number(durationMS) + "ms", QTextOption(Qt::AlignCenter));
-        /*
-        painter.setPen(textPen);
-        painter.translate(0, availableHeight);
-        painter.rotate(-90);
-        painter.drawText(rect.x(), rect.y(), rectHeight, rect.width(), Qt::AlignCenter, QString::number(durationMS) + "ms");
-        painter.rotate(90);
-        painter.translate(0, -availableHeight);
-        */
     }
 }
 

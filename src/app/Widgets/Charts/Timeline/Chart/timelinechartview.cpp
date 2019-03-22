@@ -210,11 +210,13 @@ void TimelineChartView::addMarkerEvents(const ExperimentRun &experimentRun, cons
 
     const auto& ranges = markerSeries->getMarkerIDSetRanges();
     for (const auto& ID : ranges.keys()) {
-        const auto& range = ranges.value(ID);
-        qDebug() << "ID: " << ID;
-        qDebug() << "Range:" << QDateTime::fromMSecsSinceEpoch(range.first).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(range.second).toString(DATE_TIME_FORMAT);
+        if (ID == 2) {
+            const auto& range = ranges.value(ID);
+            qDebug() << "ID: " << ID;
+            qDebug() << "Range:" << QDateTime::fromMSecsSinceEpoch(range.first).toString(DATE_TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(range.second).toString(DATE_TIME_FORMAT);
+        }
     }
-    qDebug() << "---------------------";
+    //qDebug() << "---------------------";
 
     if (!clearedSeries.isEmpty())
         addedChartEvents(TIMELINE_DATA_KIND::MARKER, experimentRun);
