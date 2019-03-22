@@ -1,4 +1,4 @@
-# MEDEA v3.3.4-VIS
+# MEDEA v3.3.5-VIS
 ## New Features:
 * Added a setting to enable the Worker Aspect
 * Added the ability to dynamically change PeriodicPort's frequency in ComponentImpl
@@ -8,21 +8,18 @@
 * Added preliminary visualisation for select logged experiment data (BETA)
 
 ## Workers:
-* Added a new Dis_Worker.worker.graphml v0.1.0
-* Updated Cpu_Worker.worker.graphml to to v1.1.0
-* Updated Memory_Worker.worker.graphml to v1.0.0
-* Updated OpenCL_Worker.worker.graphml to v1.2.0
-* Updated Utility_Worker.worker.graphml to v1.3.0
-* Updated Dis_Worker.worker.graphml to v0.1.0
 
 ## Tests:
-* Added unit tests for the Semantic Version Comparator now used by MEDEA
 
 ## Bug Fixes:
-* Fixed the syntax highlighter being greedy with double quotes ""
+* Re-implemented the ability to query chart data by paths as graphml IDs may be inconsistent
+* Fixed chart popup hanging when there is an error with the connection to the Aggregation broker
 
 ## Resolved JIRA Tickets:
-* MED-539
-* MED-535
-* MED-538
-* MED-524
+* MED-534
+* MED-551
+* MED-553
+* MED-557
+* MED-558
+* MED-559
+* MED-562
