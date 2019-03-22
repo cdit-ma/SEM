@@ -528,6 +528,20 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 }
 
 
+namespace AggServerResponse{
+    /**
+     * @brief qHash
+     * @param key
+     * @param seed
+     * @return
+     */
+    inline uint qHash(const LifecycleType& key, uint seed)
+    {
+        return ::qHash(static_cast<uint>(key), seed);
+    };
+}
+
+
 /**
  * @brief EntityChart::paintPortLifecycleEventSeries
  * @param painter
@@ -1497,13 +1511,4 @@ inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
 }
 
 
-/**
- * @brief qHash
- * @param key
- * @param seed
- * @return
- */
-inline uint qHash(AggServerResponse::LifecycleType key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
+

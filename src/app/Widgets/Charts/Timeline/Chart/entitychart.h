@@ -10,6 +10,7 @@
 #include <QPen>
 #include <QBrush>
 
+
 class EntityChart : public QWidget
 {
     friend class TimelineChart;

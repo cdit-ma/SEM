@@ -97,7 +97,7 @@ namespace AggServerResponse{
         qint64 end_time;
         qint64 last_updated_time = 0;
     };
-    Q_DECLARE_METATYPE(ExperimentState);
+    
 
 
     struct ExperimentRun {
@@ -108,14 +108,15 @@ namespace AggServerResponse{
         qint64 last_updated_time = 0;
         qint32 experiment_run_id = -1;
     };
-    Q_DECLARE_METATYPE(ExperimentRun);
 
 
     struct Experiment {
         QString name;
         QVector<ExperimentRun> runs;
     };
-
-}
+    
+};
+Q_DECLARE_METATYPE(AggServerResponse::ExperimentState);
+Q_DECLARE_METATYPE(AggServerResponse::ExperimentRun);
 
 #endif // PROTOMESSAGESTRUCTS_H
