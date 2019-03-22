@@ -63,19 +63,8 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
     markerIDSetRanges_.insert(markerID, {minTime, maxTime});
     markerIDSetDurations_.insert(markerID, maxTime - minTime);
 
-    //qDebug() << "markerID: " << markerID;
-    //qDebug() << "eventime: " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss.zzz");
-
-    /*qDebug() << "markerID: " << markerID;
-    qDebug() << "eventime: " << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("MMM d, hh:mm:ss.zzz");
-    qDebug() << "minTime: " << QDateTime::fromMSecsSinceEpoch(minTime).toString("MMM d, hh:mm:ss.zzz");
-    qDebug() << "maxTime: " << QDateTime::fromMSecsSinceEpoch(maxTime).toString("MMM d, hh:mm:ss.zzz");
-    qDebug() << "duration: " << markerIDSetDurations_.value(markerID);
-    qDebug() << "--------------------";*/
-
     if (!startTimeMap_.contains(minTime)) {
         startTimeMap_.insert(minTime, {markerID});
-        //qDebug() << "INSERT START TIME: " << QDateTime::fromMSecsSinceEpoch(minTime).toString("MMM d, hh:mm:ss.zzz");
     } else {
         startTimeMap_[minTime].insert(markerID);
     }
@@ -161,66 +150,4 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
            << "Average Duration: " << avgDuration << "ms \n\n";
 
     return hoveredData.trimmed();
-}
-
-
-/**
- * @brief MarkerEventSeries::getElapsedTimeString
- * @param fromMS
- * @param toMS
- * @return
- */
-QString MarkerEventSeries::getElapsedTimeString(qint64 fromMS, qint64 toMS) const
-{
-    auto elapsedMS = toMS - fromMS;
-    if (elapsedMS <= 0) {
-        return "0ms";
-    } else if (elapsedMS < 1000) {
-        return QString::number(elapsedMS) + "ms";
-    }
-
-    auto days = elapsedMS / 8.64e7;
-    auto hours = elapsedMS / 3.6e6;
-    auto minutes = elapsedMS / 6e4;
-    auto seconds = elapsedMS / 1000;
-
-    /*if (maxElapsedDays >= 1) {
-        // if the max displayed elapsed time is a day or more, only show the elapsed days/hours
-        d = msecs / 8.64e7;
-        if (d >= 100)
-            return QString::number(d) + "d";
-        h = (msecs / 3.6e6) - ((int)d * 24);
-    } else if (maxElapsedHours >= 1) {
-        // if the max displayed elapsed time is an hour or more, only show the elapsed hours/mins
-        h = msecs / 3.6e6;
-        if (h >= 10)
-            return QString::number(h) + "h";
-        m = (msecs / 6e4) - (h * 60);
-    } else if (maxElapsedMins >= 1) {
-        // if the max displayed elapsed time is a minute or more, only show the elapsed mins/secs
-        m = msecs / 6e4;
-        s = (msecs / 1e3) - (m * 60);
-    } else {
-        // if it's anything smaller, show the elapsed secs/msecs
-        s = msecs / 1e3;
-        ms = msecs - (s * 1000);
-    }*/
-
-    QString elapsedTime = "";
-
-    if (days > 0)
-        elapsedTime = QString::number(days) + "d";
-    if (hours > 0)
-        elapsedTime += QString::number(hours) + "h";
-    if (minutes > 0)
-        elapsedTime += QString::number(minutes) + "m";
-    if (seconds > 0) {
-        if (elapsedMS > 0) {
-            elapsedTime += QString::number(seconds) + "." + QString::number(elapsedMS) + "s";
-        } else {
-            elapsedTime += QString::number(seconds) + "s";
-        }
-    }
-
-    return elapsedTime;
 }

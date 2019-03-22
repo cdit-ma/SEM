@@ -18,7 +18,7 @@ ChartDialog::ChartDialog(QWidget *parent)
 {
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
-    setMinimumWidth(700);
+    setMinimumWidth(800);
 
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 }

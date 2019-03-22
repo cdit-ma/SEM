@@ -18,8 +18,6 @@ public:
     QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat);
 
 private:
-    QString getElapsedTimeString(qint64 fromMS, qint64 toMS) const;
-
     QHash<qint64, QPair<qint64, qint64>> markerIDSetRanges_;
     QHash<qint64, qint64> markerIDSetDurations_;
     QMap<qint64, QSet<qint64>> startTimeMap_;

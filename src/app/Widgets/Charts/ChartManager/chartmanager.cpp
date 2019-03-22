@@ -102,34 +102,34 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
  */
 void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerResponse::ExperimentRun& experimentRun)
 {  
-    try{
+    try {
         requestPortLifecycleEvents(builder.getPortLifecycleRequest(), experimentRun);
-    }catch(const std::exception&){
-        //We don't have a request of that type
+    } catch (const std::exception&) {
+        qInfo("No PortLifecycleRequest");
     }
 
-    try{
+    try {
         requestWorkloadEvents(builder.getWorkloadRequest(), experimentRun);
-    }catch(const std::exception&){
-        //We don't have a request of that type
+    } catch (const std::exception&) {
+        qInfo("No WorkloadRequest");
     }
 
-    try{
+    try {
         requestCPUUtilisationEvents(builder.getCPUUtilisationRequest(), experimentRun);
-    }catch(const std::exception&){
-        //We don't have a request of that type
+    } catch (const std::exception&) {
+        qInfo("No CPUUtilisationRequest");
     }
 
-    try{
+    try {
         requestMemoryUtilisationEvents(builder.getMemoryUtilisationRequest(), experimentRun);
-    }catch(const std::exception&){
-        //We don't have a request of that type
+    } catch (const std::exception&) {
+        qInfo("No MemoryUtilisationRequest");
     }
 
-    try{
+    try {
         requestMarkerEvents(builder.getMarkerRequest(), experimentRun);
-    }catch(const std::exception&){
-        //We don't have a request of that type
+    } catch (const std::exception&) {
+        qInfo("No MarkerRequest");
     }
 }
 
@@ -407,7 +407,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
     builder.buildRequests(selectedDataKinds_);
     builder.setExperimentID(experimentRunID);
 
-    qDebug() << "-----------------------------FILTERS-----------------------------";
+    //qDebug() << "-----------------------------FILTERS-----------------------------";
 
     if (!selectedViewItems_.isEmpty()) {
 
@@ -516,7 +516,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
         builder.setNodeHostnames(nodeHostnames);
     }
 
-    qDebug() << "-----------------------------------------------------------------";
+    //qDebug() << "-----------------------------------------------------------------";
 
     requestEvents(builder, experimentRun);
     selectedDataKinds_.clear();
