@@ -213,12 +213,16 @@ void DeploymentManager::ProcessControlQueue(){
                 case NodeManager::ControlMessage::TERMINATE:{
                     {
                         std::lock_guard<std::mutex> lock(container_mutex_);
+                        
+                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: c.second->Terminate() STARTED " << std::endl;
                         for(const auto& c : deployment_containers_){
                             c.second->Terminate();
                         }
+                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: c.second->Terminate() Finished " << std::endl;
                         deployment_containers_.clear();
+                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: deployment_containers_.clear()" << std::endl;
                     }
-                    
+
                     //Interupt and die
                     InteruptControlQueue();
                     break;
