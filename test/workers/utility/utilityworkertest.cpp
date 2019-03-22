@@ -67,7 +67,7 @@ TEST(UtilityWorkerEvaluateComplexity, FunctionsWithReservedConstants) {
     EXPECT_DOUBLE_EQ(eps_result, 0.0000000001);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, GetTime) {
+TEST(UtilityWorker, GetTime) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
     auto time = worker.GetTimeOfDay();
