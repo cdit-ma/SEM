@@ -176,7 +176,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
         try {
             auto events = futureWatcher->result();
             if (events.isEmpty()) {
-                toastNotification("No port lifecycle events received for selection", "plug");
+                toastNotification("No workload events received for selection", "plug");
             } else {
                 emit showChartsPanel();
                 if (chartView_ )
@@ -185,7 +185,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
             //qDebug() << "[Workload Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
-            toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
+            toastNotification("Failed to request workload events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
     });
     futureWatcher->setFuture(future);
