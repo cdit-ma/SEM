@@ -31,6 +31,7 @@ typedef std::function<ComponentCConstructor> ComponentConstructor;
 class DeploymentContainer : public Activatable{
     public:
         DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path, const NodeManager::Container& container);
+        DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path);
         ~DeploymentContainer();
         void Configure(const NodeManager::Container& container);
         

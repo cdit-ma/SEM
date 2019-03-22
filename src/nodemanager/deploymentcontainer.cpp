@@ -23,11 +23,16 @@ std::string to_lower(std::string str){
     return str;
 }
 
-DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path):
     Activatable(Activatable::Class::DEPLOYMENT_CONTAINER),
     experiment_name_(experiment_name),
     library_path_(library_path),
-    host_name_(host_name)
+    host_name_(host_name){
+
+}
+
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+    DeploymentContainer(experiment_name, host_name, library_path)
 {
     Configure(container);
 }
@@ -332,25 +337,33 @@ void DeploymentContainer::HandlePassivate(){
 void DeploymentContainer::HandleTerminate(){
     std::lock_guard<std::mutex> component_lock(component_mutex_);
     
+    std::cerr << "components_->Terminate()" << std::endl;
     for(const auto& p : components_){
         auto& component = p.second;
         if(component){
             component->Terminate();
         }
     }
+    std::cerr << "components_->Terminated()" << std::endl;
 
+    std::cerr << "logan_client->Terminate()" << std::endl;
     for(const auto& p : logan_clients_){
         auto& logan_client = p.second;
         if(logan_client){
             logan_client->Terminate();
         }
     }
+    std::cerr << "logan_client->Terminated()" << std::endl;
     
+    std::cerr << "clear())" << std::endl;
     components_.clear();
     logan_clients_.clear();
+    std::cerr << "cleared())" << std::endl;
 
     if(logan_logger_){
+        std::cerr << "logan_logger_())" << std::endl;
         logan_logger_.reset();
+        std::cerr << "logan_logger_d())" << std::endl;
     }
 }
 

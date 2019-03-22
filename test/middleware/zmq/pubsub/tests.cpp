@@ -154,8 +154,10 @@ TEST(zmq_PubSub, Basic_Terminate){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <nodemanager/deploymentcontainer.h>
 
-TEST(zmq_PubSub, DISABLED_Deadlock){
+TEST(zmq_PubSub, Deadlock){
     using namespace ::PubSub::Basic::Terminate;
 
     //Define the base types
@@ -165,13 +167,15 @@ TEST(zmq_PubSub, DISABLED_Deadlock){
     auto test_name = get_long_test_name();
     
     auto rx_callback_count = 0;
-    auto c = std::make_shared<Component>("c_" + test_name);
+    std::unique_ptr<Component> c = std::unique_ptr<Component>(new Component("c_" + test_name));
+    auto& component = *c;
 
     //Define a callback wrapper
-    CallbackWrapper<void, base_type> callback_wrapper([=](base_type& m){
-        std::cerr << " GOT Message " << std::endl;
-        auto p_port = c->GetTypedPort<PublisherPort<base_type>>("tx_"+test_name);
-        sleep_ms(5000);
+    CallbackWrapper<void, base_type> callback_wrapper([&](base_type& m){
+        std::cerr << "GOT Message " << std::endl;
+        sleep_ms(500);
+        std::cerr << "WOKEN" << std::endl;
+        auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
         if(p_port){
             std::cerr << " GOT PORT" << std::endl;
             p_port->Send(m);
@@ -181,34 +185,47 @@ TEST(zmq_PubSub, DISABLED_Deadlock){
         }
     });
     
+    DeploymentContainer container("test", "host", ".");
+
     {
-        auto pub_port = std::unique_ptr<zmq::PublisherPort<base_type, mw_type>>(new zmq::PublisherPort<base_type, mw_type>(c, "tx_" + test_name));
-        auto sub_port = std::unique_ptr<zmq::SubscriberPort<base_type, mw_type>>(new zmq::SubscriberPort<base_type, mw_type>(c, "rx_" + test_name, callback_wrapper));
+        auto component_sptr = container.AddComponent(std::move(c), "c_" + test_name).lock();
+        std::cerr << component_sptr << std::endl;
+
+        auto pub_port = std::unique_ptr<zmq::PublisherPort<base_type, mw_type>>(new zmq::PublisherPort<base_type, mw_type>(component_sptr, "tx_" + test_name));
+        auto sub_port = std::unique_ptr<zmq::SubscriberPort<base_type, mw_type>>(new zmq::SubscriberPort<base_type, mw_type>(component_sptr, "rx_" + test_name, callback_wrapper));
     
         auto port_number = ++port_id;
         EXPECT_TRUE(setup_pub_port(*pub_port, port_number));
         EXPECT_TRUE(setup_sub_port(*sub_port, port_number));
 
-        c->AddPort(std::move(pub_port));
-        c->AddPort(std::move(sub_port));
-    }    
+        component_sptr->AddPort(std::move(pub_port));
+        component_sptr->AddPort(std::move(sub_port));
+    }
 
-    c->Configure();
-    c->Activate();
+    
+    
+
+    std::cerr << "Configure" << std::endl;
+    EXPECT_TRUE(((Activatable&)container).Configure());
+    std::cerr << "Activate" << std::endl;
+    EXPECT_TRUE(container.Activate());
+    std::cerr << "Activated" << std::endl;
 
     
 
-    sleep_ms(1000);
+    sleep_ms(200);
     {
         Base::Basic b;
-        auto p_port = c->GetTypedPort<PublisherPort<base_type>>("tx_"+test_name);
+        auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
+        std::cerr << "SENT MESSAGE" << std::endl;
         p_port->Send(b);
     }
-    sleep_ms(1000);
+    sleep_ms(10);
 
-    std::cerr << "PASSIVATING" << std::endl;
-    c->Passivate();
+    std::cerr << "PASSIVATE" << std::endl;
+    EXPECT_TRUE(container.Passivate());
     std::cerr << "PASSIVATED" << std::endl;
-    c->Terminate();
-    std::cerr << "TerminatD" << std::endl;
+    std::cerr << "TERMINATE" << std::endl;
+    EXPECT_TRUE(container.Terminate());
+    std::cerr << "TERMINATED" << std::endl;
 }
