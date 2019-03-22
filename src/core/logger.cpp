@@ -74,6 +74,6 @@ const std::string Logger::GetLifecycleName(const LifeCycleEvent& event){
     return std::string();
 }
 
-std::chrono::milliseconds Logger::GetCurrentTime(){
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+std::chrono::microseconds Logger::GetCurrentTime(){
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
 }
