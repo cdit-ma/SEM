@@ -4,7 +4,7 @@
  * @brief PortLifecycleEvent::PortLifecycleEvent
  * @param parent
  */
-PortLifecycleEvent::PortLifecycleEvent(AggServerResponse::Port port, AggServerResponse::LifecycleType type, qint64 time, QObject* parent)
+PortLifecycleEvent::PortLifecycleEvent(AggServerResponse::Port port, PortKind kind, AggServerResponse::LifecycleType type, qint64 time, QObject* parent)
     : MEDEA::Event(time, port.name, parent)
 {
     port_ = port;

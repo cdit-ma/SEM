@@ -17,9 +17,9 @@ public:
         REPLIER
     };
 
-    explicit PortLifecycleEvent(AggServerResponse::Port port, AggServerResponse::LifecycleType type, qint64 time, QObject* parent = 0);
+    explicit PortLifecycleEvent(AggServerResponse::Port port, PortKind kind, AggServerResponse::LifecycleType type, qint64 time, QObject* parent = 0);
 
-    const AggServerResponse::PortKind& getPortKind() const;
+    const PortKind& getPortKind() const;
     const AggServerResponse::Port& getPort() const;
     const AggServerResponse::LifecycleType& getType() const;
 
@@ -27,8 +27,8 @@ public:
     TIMELINE_DATA_KIND getKind() const;
 
 private:    
+    PortKind kind_;
     AggServerResponse::Port port_;
-    AggServerResponse::PortKind kind_;
     AggServerResponse::LifecycleType type_;
 };
 

@@ -429,7 +429,6 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
 AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 {
     AggServerResponse::Port port;
-    port.kind = ConvertPortKind(p.kind());
     port.name = ConstructQString(p.name());
     port.path = ConstructQString(p.path());
     port.middleware = ConstructQString(p.middleware());
@@ -577,21 +576,21 @@ AggServerResponse::LifecycleType AggregationProxy::ConvertLifeCycleType(const Ag
  * @param kind
  * @return
  */
-AggServerResponse::Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
+PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 {
     switch (kind) {
     case AggServer::Port_Kind::Port_Kind_PERIODIC:
-        return AggServerResponse::Port::Kind::PERIODIC;
+        return PortLifecycleEvent::PortKind::PERIODIC;
     case AggServer::Port_Kind::Port_Kind_PUBLISHER:
-        return AggServerResponse::Port::Kind::PUBLISHER;
+        return PortLifecycleEvent::PortKind::PUBLISHER;
     case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
-        return AggServerResponse::Port::Kind::SUBSCRIBER;
+        return PortLifecycleEvent::PortKind::SUBSCRIBER;
     case AggServer::Port_Kind::Port_Kind_REQUESTER:
-        return AggServerResponse::Port::Kind::REQUESTER;
+        return PortLifecycleEvent::PortKind::REQUESTER;
     case AggServer::Port_Kind::Port_Kind_REPLIER:
-        return AggServerResponse::Port::Kind::REPLIER;
+        return PortLifecycleEvent::PortKind::REPLIER;
     default:
-        return AggServerResponse::Port::Kind::NO_KIND;
+        return PortLifecycleEvent::PortKind::NO_KIND;
     }
 }
 
