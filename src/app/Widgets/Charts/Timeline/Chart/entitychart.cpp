@@ -1181,13 +1181,11 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
         }
 
         auto rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight;
-        auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
-        auto isPoint = durationMS == -1;
-        if (isPoint) {
+        if (durationMS == -1) {
             rectHeight = 2.0;
-            y = (availableHeight / 2.0) - (rectHeight / 2.0);
         }
 
+        auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
         QRectF rect(i * binWidth, y, binWidth, rectHeight);
         if (rectHovered(eventSeries->getKind(), rect)) {
             textPen.setColor(textColor_);

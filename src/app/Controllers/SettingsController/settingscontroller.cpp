@@ -105,7 +105,7 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
 
 
-    createSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT, SETTING_TYPE::STRING, "Charts", "Aggregation Server", "Aggregation Server Endpoint", "Icons", "cloudCircle");
+    createSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT, SETTING_TYPE::STRING, "Charts", "Aggregation Server", "Aggregation Broker Endpoint", "Icons", "cloudCircle");
 
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
