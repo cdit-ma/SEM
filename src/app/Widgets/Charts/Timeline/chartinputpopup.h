@@ -3,7 +3,7 @@
 
 #include "Chart/hoverpopup.h"
 #include "../Data/Events/event.h"
-#include "../Data/Events/protoMessageStructs.h"
+#include "../Data/Events/protomessagestructs.h"
 #include "../../../Controllers/ViewController/nodeviewitem.h"
 #include "../../../Controllers/ViewController/viewcontroller.h"
 
@@ -35,14 +35,13 @@ public:
 
 signals:
     void setChartTitle(QString title);
-
-    void requestEventsForExperimentRun(const ExperimentRun& experimentRun);
+    void selectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun);
 
 public slots:
     void themeChanged();
 
     void setPopupVisible(bool visible);
-    void setExperimentRuns(const QList<ExperimentRun>& runs);
+    void setExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs);
 
     void filterMenuTriggered(QAction* action);
 
@@ -52,10 +51,10 @@ public slots:
 private slots:
     void experimentNameChanged(const QString& experimentName);
     void experimentNameActivated(const QString& experimentName);
-    void experimentRunSelected(const ExperimentRun& experimentRun);
+    void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
 
 private:
-    void populateExperimentRuns(const QList<ExperimentRun>& runs);
+    void populateExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs);
 
     void populateGroupBox(FILTER_KEY filter);
     void clearGroupBox(FILTER_KEY filter);
@@ -97,8 +96,7 @@ private:
     QPointF originalCenterPos_;
     bool filtersEnabled_ = false;
 
-
-    ExperimentRun selectedExperimentRun_;
+    AggServerResponse::ExperimentRun selectedExperimentRun_;
     qint32 selectedExperimentRunID_;
 
     QString selectedNode_;
@@ -112,7 +110,7 @@ private:
     QString typedExperimentName_;
     QStringListModel* experimentsModel_;
     QCompleter* experimentsCompleter_;
-    QMultiHash<QString, ExperimentRun> experimentRuns_;
+    QMultiHash<QString, AggServerResponse::ExperimentRun> experimentRuns_;
 
 };
 

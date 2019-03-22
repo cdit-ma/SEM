@@ -145,10 +145,10 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
     void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
-    void vc_showChartsPopup(bool);
+    void vc_displayChartPopup();
 
     void modelClosed();
-    
+
 public slots:
     void incrementSelectedKey(QString key_name);
     void decrementSelectedKey(QString key_name);

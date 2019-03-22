@@ -17,19 +17,19 @@ public:
         REPLIER
     };
 
-    explicit PortLifecycleEvent(Port port, PortKind kind, LifecycleType type, qint64 time, QObject* parent = 0);
+    explicit PortLifecycleEvent(AggServerResponse::Port port, AggServerResponse::LifecycleType type, qint64 time, QObject* parent = 0);
 
-    const PortKind& getPortKind() const;
-    const Port& getPort() const;
-    const LifecycleType& getType() const;
+    const AggServerResponse::PortKind& getPortKind() const;
+    const AggServerResponse::Port& getPort() const;
+    const AggServerResponse::LifecycleType& getType() const;
 
     QString getID() const;
     TIMELINE_DATA_KIND getKind() const;
 
 private:    
-    Port port_;
-    PortKind kind_;
-    LifecycleType type_;
+    AggServerResponse::Port port_;
+    AggServerResponse::PortKind kind_;
+    AggServerResponse::LifecycleType type_;
 };
 
 #endif // PORTLIFECYCLEEVENT_H

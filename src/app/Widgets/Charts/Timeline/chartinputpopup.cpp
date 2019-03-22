@@ -90,8 +90,8 @@ void ChartInputPopup::themeChanged()
     }
 
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
-                         "QGroupBox{color: lightGray; margin-top: 15px;}" +
-                         "QGroupBox::title{subcontrol-origin: margin;}";
+                         "QGroupBox{color:" + theme->getAltTextColorHex() + "; margin-top: 15px;" + "border: 1px solid " + theme->getAltTextColorHex() + "}" +
+                         "QGroupBox::title{ subcontrol-origin: margin; }";
 
     auto scrollbarStyle =  "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
                            "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
@@ -129,7 +129,7 @@ void ChartInputPopup::setPopupVisible(bool visible)
  * @brief ChartInputPopup::setExperimentRuns
  * @param runs
  */
-void ChartInputPopup::setExperimentRuns(const QList<ExperimentRun> &runs)
+void ChartInputPopup::setExperimentRuns(const QList<AggServerResponse::ExperimentRun> &runs)
 {
     QStringList experimentNames;
     for (auto run : runs) {
@@ -172,7 +172,7 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
 void ChartInputPopup::accept()
 {
     if (selectedExperimentRunID_ != -1) {
-        emit requestEventsForExperimentRun(selectedExperimentRun_);
+        emit selectedExperimentRun(selectedExperimentRun_);
     }
 
     PopupWidget::accept();
@@ -226,7 +226,7 @@ void ChartInputPopup::experimentNameActivated(const QString &experimentName)
  * @brief ChartInputPopup::experimentRunSelected
  * @param experimentRun
  */
-void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
+void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
     // we only need to request the experiment state if the filter widgets are enabled
     /*if (filtersEnabled_) {
@@ -245,9 +245,10 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
  * @brief ChartInputPopup::populateExperimentRuns
  * @param runs
  */
-void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
+void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs)
 {
     auto firstButton = true;
+    auto maxButtonWidth = 0;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -267,7 +268,10 @@ void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
             button->toggle();
             firstButton = false;
         }
+        maxButtonWidth = qMax(button->sizeHint().width(), maxButtonWidth);
     }
+
+    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + 50);
 }
 
 
@@ -545,7 +549,8 @@ QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return selectedWorker_;
     default:
-        return QString();
+        //TODO: THrow exception
+        return selectedWorker_;
     }
 }
 
@@ -565,7 +570,8 @@ QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return workers_;
     default:
-        return QStringList();
+        //TODO: THrow exception
+        return workers_;
     }
 }
 

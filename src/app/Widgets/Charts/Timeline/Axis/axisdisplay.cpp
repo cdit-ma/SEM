@@ -284,7 +284,7 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
     painter.setPen(_labelColor);
 
     QVector<QLineF> tickLines;
-    QRectF& paintRect = (QRectF)rect(); //getAdjustedRect();
+    auto paintRect = QRectF(rect()); //getAdjustedRect();
 
     if (_orientation == Qt::Horizontal) {
         paintHorizontal(painter, tickLines, paintRect);

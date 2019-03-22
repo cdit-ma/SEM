@@ -14,7 +14,8 @@
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
-#include "../../Widgets/Charts/Data/Events/protoMessageStructs.h"
+#include "../../Widgets/Charts/Data/Events/markerevent.h"
+#include "../../Widgets/Charts/ChartManager/requestbuilder.h"
 
 
 class NoRequesterException : public QException{
@@ -45,78 +46,44 @@ class AggregationProxy : public QObject
 public:
     AggregationProxy();
     
-    QFuture<QVector<ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
-    QFuture<ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
+    QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
+    QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
 
-    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids);
+    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request);
+    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request);
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request);
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
+    QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request);
 
-    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids);
-    
-    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
-    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
 private:
     void SetServerEndpoint(const QString& endpoint);
     void CheckRequester();
 
-    QVector<ExperimentRun> GetExperimentRuns(const QString& experiment_name);
-    ExperimentState GetExperimentState(const quint32 experiment_run_id);
+    QVector<AggServerResponse::ExperimentRun> GetExperimentRuns(const QString& experiment_name);
+    AggServerResponse::ExperimentState GetExperimentState(const quint32 experiment_run_id);
 
-    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& port_ids);
-
-    QVector<WorkloadEvent*> GetWorkloadEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& component_instance_ids,
-        const QVector<QString>& worker_ids);
-    
-    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-    
-    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(
-        const quint32 experiment_run_id,
-        const QVector<qint64>& time_intervals,
-        const QVector<QString>& graphml_ids);
-
+    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest &request);
+    QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request);
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request);
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
+    QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request);
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);
     static QDateTime ConstructQDateTime(const google::protobuf::Timestamp &time);
     static QString ConstructQString(const std::string &string);
     
-    static Node ConvertNode(const AggServer::Node& node);
-    static Component ConvertComponent(const AggServer::Component& component);
-    static Worker ConvertWorker(const AggServer::Worker& worker);
-    static Port ConvertPort(const AggServer::Port& port);
-    static Container ConvertContainer(const AggServer::Container& container);
-    static WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
-    static ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
+    static AggServerResponse::Node ConvertNode(const AggServer::Node& node);
+    static AggServerResponse::Component ConvertComponent(const AggServer::Component& component);
+    static AggServerResponse::Worker ConvertWorker(const AggServer::Worker& worker);
+    static AggServerResponse::Port ConvertPort(const AggServer::Port& port);
+    static AggServerResponse::Container ConvertContainer(const AggServer::Container& container);
+    static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
+    static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
-    static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);
-    static LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
+    static AggServerResponse::Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
+    static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
-
 
     std::unique_ptr<AggServer::Requester> requester_;
 };

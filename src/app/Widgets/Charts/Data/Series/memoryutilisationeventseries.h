@@ -1,6 +1,7 @@
 #ifndef MEMORYUTILISATIONEVENTSERIES_H
 #define MEMORYUTILISATIONEVENTSERIES_H
 
+#include <cfloat>
 #include "eventseries.h"
 
 class MemoryUtilisationEventSeries : public MEDEA::EventSeries
