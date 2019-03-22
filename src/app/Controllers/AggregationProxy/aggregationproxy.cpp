@@ -236,9 +236,10 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(
         const auto& results = requester_->GetPortLifecycle(request);
         for (const auto& item : results->events()) {
             const auto& port = ConvertPort(item.port());
+            const auto& kind = ConvertPortKind(item.port().kind());
             const auto& type = ConvertLifeCycleType(item.type());
             const auto& time = ConstructQDateTime(item.time());
-            events.append(new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch()));
+            events.append(new PortLifecycleEvent(port, kind, type, time.toMSecsSinceEpoch()));
         }
 
         return events;
@@ -388,7 +389,6 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(
 Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 {
     Port port;
-    port.kind = ConvertPortKind(p.kind());
     port.name = ConstructQString(p.name());
     port.path = ConstructQString(p.path());
     port.middleware = ConstructQString(p.middleware());
@@ -536,21 +536,21 @@ LifecycleType AggregationProxy::ConvertLifeCycleType(const AggServer::LifecycleT
  * @param kind
  * @return
  */
-Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
+PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 {
     switch (kind) {
     case AggServer::Port_Kind::Port_Kind_PERIODIC:
-        return Port::Kind::PERIODIC;
+        return PortLifecycleEvent::PortKind::PERIODIC;
     case AggServer::Port_Kind::Port_Kind_PUBLISHER:
-        return Port::Kind::PUBLISHER;
+        return PortLifecycleEvent::PortKind::PUBLISHER;
     case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
-        return Port::Kind::SUBSCRIBER;
+        return PortLifecycleEvent::PortKind::SUBSCRIBER;
     case AggServer::Port_Kind::Port_Kind_REQUESTER:
-        return Port::Kind::REQUESTER;
+        return PortLifecycleEvent::PortKind::REQUESTER;
     case AggServer::Port_Kind::Port_Kind_REPLIER:
-        return Port::Kind::REPLIER;
+        return PortLifecycleEvent::PortKind::REPLIER;
     default:
-        return Port::Kind::NO_KIND;
+        return PortLifecycleEvent::PortKind::NO_KIND;
     }
 }
 

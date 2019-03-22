@@ -69,15 +69,6 @@ enum class LifecycleType {
  */
 
 struct Port {
-    enum Kind {
-        NO_KIND,
-        PERIODIC,
-        PUBLISHER,
-        SUBSCRIBER,
-        REQUESTER,
-        REPLIER
-    };
-    Kind kind;
     QString name;
     QString path;
     QString middleware;

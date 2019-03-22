@@ -1306,6 +1306,8 @@ void ViewController::TeardownController()
         for (auto notification : manager->getNotificationsOfType(Notification::Type::MODEL)) {
             manager->deleteNotification(notification->getID());
         }
+
+        emit modelClosed();
     }
 }
 

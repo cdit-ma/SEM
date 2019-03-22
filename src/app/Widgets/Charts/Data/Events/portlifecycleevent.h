@@ -8,8 +8,18 @@ class PortLifecycleEvent : public MEDEA::Event
     Q_OBJECT
 
 public:
-    explicit PortLifecycleEvent(Port port, LifecycleType type, qint64 time, QObject* parent = 0);
+    enum PortKind {
+        NO_KIND,
+        PERIODIC,
+        PUBLISHER,
+        SUBSCRIBER,
+        REQUESTER,
+        REPLIER
+    };
 
+    explicit PortLifecycleEvent(Port port, PortKind kind, LifecycleType type, qint64 time, QObject* parent = 0);
+
+    const PortKind& getPortKind() const;
     const Port& getPort() const;
     const LifecycleType& getType() const;
 
@@ -18,6 +28,7 @@ public:
 
 private:    
     Port port_;
+    PortKind kind_;
     LifecycleType type_;
 };
 

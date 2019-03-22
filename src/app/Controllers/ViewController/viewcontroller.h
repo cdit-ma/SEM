@@ -146,6 +146,8 @@ signals:
 
     void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
     void vc_showChartsPopup(bool);
+
+    void modelClosed();
     
 public slots:
     void incrementSelectedKey(QString key_name);

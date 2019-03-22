@@ -113,7 +113,7 @@ private:
     static WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
     static ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
-    static Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
+    static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);
     static LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
 
