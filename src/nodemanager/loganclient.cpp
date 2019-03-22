@@ -8,6 +8,7 @@ LoganClient::LoganClient(const std::string& id){
 
 LoganClient::~LoganClient(){
     Activatable::Terminate();
+    logan_client_.reset();
 }
 
 void LoganClient::HandleActivate(){
