@@ -549,7 +549,8 @@ QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return selectedWorker_;
     default:
-        return QString();
+        //TODO: THrow exception
+        return selectedWorker_;
     }
 }
 
@@ -569,7 +570,8 @@ QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return workers_;
     default:
-        return QStringList();
+        //TODO: THrow exception
+        return workers_;
     }
 }
 

@@ -132,7 +132,7 @@ QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experi
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experiment_name.toStdString());
         
-        auto& results = requester_->GetExperimentRuns(request);
+        auto results = requester_->GetExperimentRuns(request);
         for (const auto& ex : results->experiments()) {
             const auto& experiment_name = ConstructQString(ex.name());
             for (auto& ex_run : ex.runs()) {
@@ -168,7 +168,7 @@ ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_ru
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experiment_run_id);
 
-        auto& result = requester_->GetExperimentState(request);
+        auto result = requester_->GetExperimentState(request);
         state.experiment_run_id = experiment_run_id;
         state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
         state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();

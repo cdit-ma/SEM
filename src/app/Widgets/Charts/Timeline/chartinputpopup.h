@@ -3,7 +3,7 @@
 
 #include "Chart/hoverpopup.h"
 #include "../Data/Events/event.h"
-#include "../Data/Events/protoMessageStructs.h"
+#include "../Data/Events/protomessagestructs.h"
 #include "../../../Controllers/ViewController/nodeviewitem.h"
 #include "../../../Controllers/ViewController/viewcontroller.h"
 
