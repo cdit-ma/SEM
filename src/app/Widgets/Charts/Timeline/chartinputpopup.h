@@ -96,7 +96,6 @@ private:
     QPointF originalCenterPos_;
     bool filtersEnabled_ = false;
 
-
     AggServerResponse::ExperimentRun selectedExperimentRun_;
     qint32 selectedExperimentRunID_;
 

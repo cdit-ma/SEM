@@ -159,10 +159,8 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
  * @param experiment_run_id
  * @return
  */
-#include <iostream>
 AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id)
 {
-    qCritical() << experiment_run_id;
     CheckRequester();
     
     try {
@@ -170,31 +168,21 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experiment_run_id);
         
-        qCritical() << 1;
         auto result = requester_->GetExperimentState(request);
-        qCritical() << 2;
         state.experiment_run_id = experiment_run_id;
         state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
         state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();
-        std::cerr << 3 << std::endl;
 
         for (const auto& n : result->nodes()) {
-            std::cerr << 4 << std::endl;
             auto node = ConvertNode(n);
-            std::cerr << 4.1 << std::endl;
-            qCritical() << state.nodes.size();
             state.nodes.push_back(node);
-            std::cerr << 4.2 << std::endl;
         }
         for (const auto& c : result->components()) {
-            std::cerr << 5 << std::endl;
             state.components.append(ConvertComponent(c));
         }
         for (const auto& w : result->workers()) {
-            std::cerr << 6 << std::endl;
             state.workers.append(ConvertWorker(w));
         }
-        qCritical() << 3;
 
         return state;
 
@@ -528,12 +516,8 @@ AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& n)
     AggServerResponse::Node node;
     node.hostname = ConstructQString(n.hostname());
     node.ip = ConstructQString(n.ip());
-    qCritical() << node.hostname;
-    qCritical() << node.ip;
     for (const auto& c : n.containers()) {
-        qCritical() << 1;
         node.containers.append(ConvertContainer(c));
-        qCritical() << 2;
     }
     return node;
 }

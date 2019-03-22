@@ -20,8 +20,6 @@ public:
 private:
     double minUtilisation_ = DBL_MAX;
     double maxUtilisation_ = DBL_MIN;
-    //double minUtilisation_{std::numeric_limits<double>::max()};
-    //double maxUtilisation_{std::numeric_limits<double>::min()};
 
 };
 

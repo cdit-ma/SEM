@@ -23,7 +23,6 @@ ChartManager::ChartManager(ViewController *vc)
     if (vc) {
         connect(vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
         connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
-        //connect(vc, &ViewController::vc_);
     }
 
     connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);
@@ -81,10 +80,12 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
             if (chartView_) {
                 chartView_->updateExperimentRunLastUpdatedTime(experimentRunID, state.last_updated_time);
             }
+            /*
             qDebug() << "[Experiment State Request]";
             qDebug() << "last-updated-time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("MMM d, hh:mm:ss.zzz");
             qDebug() << "end-time: " << QDateTime::fromMSecsSinceEpoch(state.end_time).toString("MMM d, hh:mm:ss.zzz");
             qDebug() << "-----------------------------------------------------------------";
+            */
         } catch (const std::exception& ex) {
             toastNotification("Failed to request experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
         }
@@ -143,7 +144,6 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
     auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
-        qCritical() << "QFFQ";
         try {
             auto events = futureWatcher->result();
             if (events.isEmpty()) {
@@ -153,8 +153,8 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
                 if (chartView_ )
                     chartView_->addPortLifecycleEvents(experimentRun, events);
             }
-            qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------------";
+            //qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
+            //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -181,8 +181,8 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
                 if (chartView_ )
                     chartView_->addWorkloadEvents(experimentRun, events);
             }
-            qDebug() << "[Workload Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------------";
+            //qDebug() << "[Workload Request] Result size#: " << events.size();
+            //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -210,8 +210,8 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
                 if (chartView_ )
                     chartView_->addCPUUtilisationEvents(experimentRun, events);
             }
-            qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------------";
+            //qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
+            //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
         }
@@ -240,8 +240,8 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
                 if (chartView_ )
                     chartView_->addMemoryUtilisationEvents(experimentRun, events);
             }
-            qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------------";
+            //qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
+            //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
         }
@@ -270,8 +270,8 @@ void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggSe
                 if (chartView_ )
                     chartView_->addMarkerEvents(experimentRun, events);
             }
-            qDebug() << "[Marker Request] Result size#: " << events.size();
-            qDebug() << "-----------------------------------------------------------------";
+            //qDebug() << "[Marker Request] Result size#: " << events.size();
+            //qDebug() << "-----------------------------------------------------------------";
         } catch (const std::exception& ex) {
             toastNotification("Failed to request marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
         }
@@ -365,7 +365,6 @@ void ChartManager::experimentRunSelected(const AggServerResponse::ExperimentRun&
 
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [=]() {
         try {
-            qCritical() << "HAS THIS FINISHED";
             // once the state is received, request the events for the selected experiment run
             experimentRunStateReceived(experimentRun, futureWatcher->result());
         } catch (const std::exception& ex) {
@@ -405,7 +404,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
     }
 
     auto builder = RequestBuilder::build();
-    builder.buildRequests(selectedDataKinds_.toVector());
+    builder.buildRequests(selectedDataKinds_);
     builder.setExperimentID(experimentRunID);
 
     qDebug() << "-----------------------------FILTERS-----------------------------";

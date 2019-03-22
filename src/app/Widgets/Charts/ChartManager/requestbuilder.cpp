@@ -21,7 +21,7 @@ RequestBuilder RequestBuilder::build()
  * @brief RequestBuilder::buildRequests
  * @param requestKinds
  */
-void RequestBuilder::buildRequests(QVector<TIMELINE_DATA_KIND> requestKinds)
+void RequestBuilder::buildRequests(const QList<TIMELINE_DATA_KIND> &requestKinds)
 {
     for (auto kind : requestKinds) {
         switch (kind) {
@@ -53,20 +53,21 @@ void RequestBuilder::buildRequests(QVector<TIMELINE_DATA_KIND> requestKinds)
  */
 void RequestBuilder::setExperimentID(const quint32 experiment_run_id)
 {
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setExperimentID(experiment_run_id);
-
-    if (workloadRequest_)
+    }
+    if (workloadRequest_) {
         workloadRequest_->setExperimentID(experiment_run_id);
-
-    if (cpuUtilisationRequest_)
+    }
+    if (cpuUtilisationRequest_) {
         cpuUtilisationRequest_->setExperimentID(experiment_run_id);
-
-    if (memoryUtilisationRequest_)
+    }
+    if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setExperimentID(experiment_run_id);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setExperimentID(experiment_run_id);
+    }
 }
 
 
@@ -76,20 +77,21 @@ void RequestBuilder::setExperimentID(const quint32 experiment_run_id)
  */
 void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
 {
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setTimeInterval(time_interval);
-
-    if (workloadRequest_)
+    }
+    if (workloadRequest_) {
         workloadRequest_->setTimeInterval(time_interval);
-
-    if (cpuUtilisationRequest_)
+    }
+    if (cpuUtilisationRequest_) {
         cpuUtilisationRequest_->setTimeInterval(time_interval);
-
-    if (memoryUtilisationRequest_)
+    }
+    if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setTimeInterval(time_interval);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setTimeInterval(time_interval);
+    }
 }
 
 
@@ -99,18 +101,15 @@ void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
  */
 void RequestBuilder::setComponentNames(const QVector<QString> &component_names)
 {
-    for (auto name : component_names) {
-        qDebug() << "Comp name: " << name;
-    }
-
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setComponentNames(component_names);
-
-    if (workloadRequest_)
+    }
+    if (workloadRequest_) {
         workloadRequest_->setComponentNames(component_names);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setComponentNames(component_names);
+    }
 }
 
 
@@ -120,14 +119,15 @@ void RequestBuilder::setComponentNames(const QVector<QString> &component_names)
  */
 void RequestBuilder::setComponentInstanceIDS(const QVector<QString> &component_instance_ids)
 {
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setComponentInstanceIDS(component_instance_ids);
-
-    if (workloadRequest_)
+    }
+    if (workloadRequest_) {
         workloadRequest_->setComponentInstanceIDS(component_instance_ids);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setComponentInstanceIDS(component_instance_ids);
+    }
 }
 
 
@@ -137,18 +137,15 @@ void RequestBuilder::setComponentInstanceIDS(const QVector<QString> &component_i
  */
 void RequestBuilder::setComponentInstancePaths(const QVector<QString> &component_instance_paths)
 {
-    for (auto path : component_instance_paths) {
-        qDebug() << "CompInst path: " << path;
-    }
-
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setComponentInstancePaths(component_instance_paths);
-
-    if (workloadRequest_)
+    }
+    if (workloadRequest_) {
         workloadRequest_->setComponentInstancePaths(component_instance_paths);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setComponentInstancePaths(component_instance_paths);
+    }
 }
 
 
@@ -158,8 +155,9 @@ void RequestBuilder::setComponentInstancePaths(const QVector<QString> &component
  */
 void RequestBuilder::setPortIDs(const QVector<QString> &port_ids)
 {
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setPortIDs(port_ids);
+    }
 }
 
 
@@ -169,12 +167,9 @@ void RequestBuilder::setPortIDs(const QVector<QString> &port_ids)
  */
 void RequestBuilder::setPortPaths(const QVector<QString> &port_paths)
 {
-    for (auto path : port_paths) {
-        qDebug() << "Port path: " << path;
-    }
-
-    if (portLifecycleRequest_)
+    if (portLifecycleRequest_) {
         portLifecycleRequest_->setPortPaths(port_paths);
+    }
 }
 
 
@@ -184,11 +179,12 @@ void RequestBuilder::setPortPaths(const QVector<QString> &port_paths)
  */
 void RequestBuilder::setWorkerInstanceIDs(const QVector<QString> &worker_instance_ids)
 {
-    if (workloadRequest_)
+    if (workloadRequest_) {
         workloadRequest_->setWorkerInstanceIDs(worker_instance_ids);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setWorkerInstanceIDs(worker_instance_ids);
+    }
 }
 
 
@@ -198,15 +194,12 @@ void RequestBuilder::setWorkerInstanceIDs(const QVector<QString> &worker_instanc
  */
 void RequestBuilder::setWorkerInstancePaths(const QVector<QString> &worker_instance_paths)
 {
-    for (auto path : worker_instance_paths) {
-        qDebug() << "WorkerInst path: " << path;
-    }
-
-    if (workloadRequest_)
+    if (workloadRequest_) {
         workloadRequest_->setWorkerInstancePaths(worker_instance_paths);
-
-    if (markerRequest_)
+    }
+    if (markerRequest_) {
         markerRequest_->setWorkerInstancePaths(worker_instance_paths);
+    }
 }
 
 
@@ -216,11 +209,12 @@ void RequestBuilder::setWorkerInstancePaths(const QVector<QString> &worker_insta
  */
 void RequestBuilder::setNodeIDs(const QVector<QString> &node_ids)
 {
-    if (cpuUtilisationRequest_)
+    if (cpuUtilisationRequest_) {
         cpuUtilisationRequest_->setNodeIDs(node_ids);
-
-    if (memoryUtilisationRequest_)
+    }
+    if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeIDs(node_ids);
+    }
 }
 
 
@@ -230,15 +224,12 @@ void RequestBuilder::setNodeIDs(const QVector<QString> &node_ids)
  */
 void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
 {
-    for (auto hostname : node_hostnames) {
-        qDebug() << "Hostname: " << hostname;
-    }
-
-    if (cpuUtilisationRequest_)
+    if (cpuUtilisationRequest_) {
         cpuUtilisationRequest_->setNodeHostnames(node_hostnames);
-
-    if (memoryUtilisationRequest_)
+    }
+    if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeHostnames(node_hostnames);
+    }
 }
 
 
@@ -248,8 +239,8 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
  */
 const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
 {
-    if(!portLifecycleRequest_){
-        throw std::invalid_argument("No Request");
+    if (!portLifecycleRequest_) {
+        throw std::invalid_argument("No PortLifecycleRequest");
     }
     return *portLifecycleRequest_;
 }
@@ -261,8 +252,8 @@ const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
  */
 const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
 {
-    if(!workloadRequest_){
-        throw std::invalid_argument("No Request");
+    if (!workloadRequest_) {
+        throw std::invalid_argument("No WorkloadRequest");
     }
     return *workloadRequest_;
 }
@@ -274,8 +265,8 @@ const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
  */
 const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
-    if(!cpuUtilisationRequest_){
-        throw std::invalid_argument("No Request");
+    if (!cpuUtilisationRequest_) {
+        throw std::invalid_argument("No CPUUtilisationRequest");
     }
     return *cpuUtilisationRequest_;
 }
@@ -287,8 +278,8 @@ const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
  */
 const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
-    if(!memoryUtilisationRequest_){
-        throw std::invalid_argument("No Request");
+    if (!memoryUtilisationRequest_) {
+        throw std::invalid_argument("No MemoryUtilisationRequest");
     }
     return *memoryUtilisationRequest_;
 }
@@ -300,8 +291,8 @@ const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() co
  */
 const MarkerRequest& RequestBuilder::getMarkerRequest() const
 {
-    if(!markerRequest_){
-        throw std::invalid_argument("No Request");
+    if (!markerRequest_) {
+        throw std::invalid_argument("No MarkerRequest");
     }
     return *markerRequest_;
 }

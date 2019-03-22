@@ -20,7 +20,7 @@ protected:
 public:
     static RequestBuilder build();
 
-    void buildRequests(QVector<TIMELINE_DATA_KIND> requestKinds);
+    void buildRequests(const QList<TIMELINE_DATA_KIND> &requestKinds);
 
     void setExperimentID(const quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
