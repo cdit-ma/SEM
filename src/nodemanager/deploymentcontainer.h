@@ -43,13 +43,16 @@ class DeploymentContainer : public Activatable{
         std::weak_ptr<LoganClient> AddLoganClient(std::unique_ptr<LoganClient> component, const std::string& id);
         std::weak_ptr<LoganClient> GetLoganClient(const std::string& id);
         std::shared_ptr<LoganClient> RemoveLoganClient(const std::string& id);
+
+        void AddLoganLogger(std::unique_ptr<Logan::Logger> logan_logger);
     protected:
         void HandleActivate();
         void HandlePassivate();
         void HandleTerminate();
         void HandleConfigure();
-    private:
+    public:
         void SetLoggers(Activatable& entity);
+    private:
         std::string GetNamespaceString(const NodeManager::Info& port);
         //Get/Constructors
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);

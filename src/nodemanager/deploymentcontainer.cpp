@@ -55,6 +55,12 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<C
     return nullptr;
 }
 
+void DeploymentContainer::AddLoganLogger(std::unique_ptr<Logan::Logger> logan_logger){
+    if(!logan_logger_){
+        logan_logger_ = std::move(logan_logger);
+    }
+}
+
 void DeploymentContainer::Configure(const NodeManager::Container& container){
     try{
         //Set once off information

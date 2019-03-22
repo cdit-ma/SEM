@@ -188,11 +188,18 @@ TEST(zmq_PubSub, Deadlock){
     DeploymentContainer container("test", "host", ".");
 
     {
+        container.AddLoganLogger(std::unique_ptr<Logan::Logger>(new Logan::Logger("test", "host", "container", "test", "127.0.0.1", std::to_string(++port_id), Logger::Mode::CACHED)));
+
         auto component_sptr = container.AddComponent(std::move(c), "c_" + test_name).lock();
         std::cerr << component_sptr << std::endl;
+        
 
         auto pub_port = std::unique_ptr<zmq::PublisherPort<base_type, mw_type>>(new zmq::PublisherPort<base_type, mw_type>(component_sptr, "tx_" + test_name));
         auto sub_port = std::unique_ptr<zmq::SubscriberPort<base_type, mw_type>>(new zmq::SubscriberPort<base_type, mw_type>(component_sptr, "rx_" + test_name, callback_wrapper));
+        
+        container.SetLoggers(*component_sptr);
+        container.SetLoggers(*pub_port);
+        container.SetLoggers(*sub_port);
     
         auto port_number = ++port_id;
         EXPECT_TRUE(setup_pub_port(*pub_port, port_number));
@@ -200,6 +207,15 @@ TEST(zmq_PubSub, Deadlock){
 
         component_sptr->AddPort(std::move(pub_port));
         component_sptr->AddPort(std::move(sub_port));
+        std::string id{"logan_id"};
+        auto logan_client = std::unique_ptr<LoganClient>(new LoganClient(id));
+        logan_client->SetEndpoint("127.0.0.1", std::to_string(++port_id));
+        logan_client->SetFrequency(10);
+        logan_client->SetLiveMode(false);
+        container.AddLoganClient(std::move(logan_client), id);
+        
+        
+        
     }
 
     
@@ -213,7 +229,7 @@ TEST(zmq_PubSub, Deadlock){
 
     
 
-    sleep_ms(200);
+    sleep_ms(1000);
     {
         Base::Basic b;
         auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
