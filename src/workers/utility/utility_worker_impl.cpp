@@ -14,13 +14,17 @@
 #include <sstream>
 #include "exprtkwrapper.h"
 
+#include <core/logger.h>
+
 std::string Utility_Worker_Impl::TimeOfDayString(){
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-    return std::to_string(time.count() / 1000.0);
+    return std::to_string(TimeOfDay());
 }
 
 double Utility_Worker_Impl::TimeOfDay(){
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
+    auto time = Logger::GetCurrentTime();
+    //Second is what all other std::chrono::times ratios are based around
+    double denominator = static_cast<double>(decltype(time)::period::den);
+    return time.count() / denominator;
 }
 
 double Utility_Worker_Impl::EvaluateComplexity(const char* function, va_list args){

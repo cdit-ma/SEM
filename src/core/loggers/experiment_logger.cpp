@@ -6,7 +6,7 @@
 void FillInfoPB(ModelEvent::Info& info, Logan::ExperimentLogger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     using namespace google::protobuf::util;
-    auto timestamp = TimeUtil::MillisecondsToTimestamp(Logger::GetCurrentTime().count());
+    auto timestamp = TimeUtil::MicrosecondsToTimestamp(Logger::GetCurrentTime().count());
     info.mutable_timestamp()->Swap(&timestamp);
 }
 
