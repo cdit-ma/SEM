@@ -25,6 +25,7 @@
 #include <condition_variable>
 #include <future>
 #include <vector>
+#include <atomic>
 
 #include "systeminfo.h"
 
@@ -35,12 +36,6 @@ namespace re_common{
 };
 
 class LogController{
-    enum class State{
-        NONE,
-        S_ERROR,
-        RUNNING
-    };
-
     public:
         LogController();
         ~LogController();
@@ -50,7 +45,7 @@ class LogController{
         void Stop();
     private:
         void InteruptLogThread();
-        void LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode);
+        void LogThread(const std::string publisher_endpoint, const double frequency, const bool& live_mode, std::promise<void> startup_promise);
         void GotNewConnection(int event_type, std::string address);
         void QueueOneTimeInfo();
 
@@ -59,17 +54,12 @@ class LogController{
         
         std::mutex future_mutex_;
         std::future<void> logging_future_;
-        
-        std::mutex one_time_mutex_;
-        bool send_onetime_info_ = false;
-        
-        std::mutex interupt_mutex_;
-        std::condition_variable log_condition_;
-        bool interupt_ = false;
 
-        std::mutex state_mutex_;
-        std::condition_variable state_condition_;
-        State thread_state_;
+        std::mutex interupt_mutex_;
+        std::atomic_bool interupt_{false};
+        std::condition_variable interupt_condition_;
+        
+        std::atomic_bool send_onetime_info_{false};
 };
 
 #endif //LOGCONTROLLER_H
