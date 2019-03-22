@@ -14,7 +14,7 @@ Utility_Worker::~Utility_Worker(){
 }
 
 const std::string& Utility_Worker::get_version() const{
-    const static std::string WORKER_VERSION{"1.3.0"};
+    const static std::string WORKER_VERSION{"1.3.1"};
     return WORKER_VERSION;
 }
 

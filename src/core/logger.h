@@ -64,7 +64,7 @@ class Logger{
         virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
         virtual void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str = "") = 0;
         
-        static std::chrono::milliseconds GetCurrentTime();
+        static std::chrono::microseconds GetCurrentTime();
 };
 
 namespace std {
