@@ -172,34 +172,20 @@ TEST(zmq_PubSub, Deadlock){
 
     //Define a callback wrapper
     CallbackWrapper<void, base_type> callback_wrapper([&](base_type& m){
-        std::cerr << "GOT Message " << std::endl;
         sleep_ms(500);
-        std::cerr << "WOKEN" << std::endl;
-        auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
+        auto p_port = component.SafeGetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
         if(p_port){
-            std::cerr << " GOT PORT" << std::endl;
             p_port->Send(m);
-            std::cerr << " SENT M" << std::endl;
-        }else{
-            std::cerr << " NO PORT" << std::endl;
         }
     });
     
     DeploymentContainer container("test", "host", ".");
 
     {
-        container.AddLoganLogger(std::unique_ptr<Logan::Logger>(new Logan::Logger("test", "host", "container", "test", "127.0.0.1", std::to_string(++port_id), Logger::Mode::CACHED)));
-
         auto component_sptr = container.AddComponent(std::move(c), "c_" + test_name).lock();
-        std::cerr << component_sptr << std::endl;
         
-
         auto pub_port = std::unique_ptr<zmq::PublisherPort<base_type, mw_type>>(new zmq::PublisherPort<base_type, mw_type>(component_sptr, "tx_" + test_name));
         auto sub_port = std::unique_ptr<zmq::SubscriberPort<base_type, mw_type>>(new zmq::SubscriberPort<base_type, mw_type>(component_sptr, "rx_" + test_name, callback_wrapper));
-        
-        container.SetLoggers(*component_sptr);
-        container.SetLoggers(*pub_port);
-        container.SetLoggers(*sub_port);
     
         auto port_number = ++port_id;
         EXPECT_TRUE(setup_pub_port(*pub_port, port_number));
@@ -207,41 +193,27 @@ TEST(zmq_PubSub, Deadlock){
 
         component_sptr->AddPort(std::move(pub_port));
         component_sptr->AddPort(std::move(sub_port));
+
+        //Attach a Logan
         std::string id{"logan_id"};
         auto logan_client = std::unique_ptr<LoganClient>(new LoganClient(id));
         logan_client->SetEndpoint("127.0.0.1", std::to_string(++port_id));
-        logan_client->SetFrequency(10);
+        logan_client->SetFrequency(1);
         logan_client->SetLiveMode(false);
         container.AddLoganClient(std::move(logan_client), id);
-        
-        
-        
     }
 
-    
-    
-
-    std::cerr << "Configure" << std::endl;
     EXPECT_TRUE(((Activatable&)container).Configure());
-    std::cerr << "Activate" << std::endl;
     EXPECT_TRUE(container.Activate());
-    std::cerr << "Activated" << std::endl;
 
-    
-
-    sleep_ms(1000);
+    sleep_ms(500);
     {
         Base::Basic b;
         auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
-        std::cerr << "SENT MESSAGE" << std::endl;
         p_port->Send(b);
     }
-    sleep_ms(10);
+    sleep_ms(1000);
 
-    std::cerr << "PASSIVATE" << std::endl;
     EXPECT_TRUE(container.Passivate());
-    std::cerr << "PASSIVATED" << std::endl;
-    std::cerr << "TERMINATE" << std::endl;
     EXPECT_TRUE(container.Terminate());
-    std::cerr << "TERMINATED" << std::endl;
 }

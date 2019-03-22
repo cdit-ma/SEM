@@ -17,9 +17,7 @@ void LoganClient::HandleActivate(){
 }
 
 void LoganClient::HandleTerminate(){
-    std::cerr << "logan_client_->Stop()" << std::endl;
     logan_client_->Stop();
-    std::cerr << "logan_client_->Stop()d" << std::endl;
 }
 
 void LoganClient::SetEndpoint(const std::string& address, const std::string& port){

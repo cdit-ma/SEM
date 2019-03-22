@@ -343,33 +343,25 @@ void DeploymentContainer::HandlePassivate(){
 void DeploymentContainer::HandleTerminate(){
     std::lock_guard<std::mutex> component_lock(component_mutex_);
     
-    std::cerr << "components_->Terminate()" << std::endl;
     for(const auto& p : components_){
         auto& component = p.second;
         if(component){
             component->Terminate();
         }
     }
-    std::cerr << "components_->Terminated()" << std::endl;
 
-    std::cerr << "logan_client->Terminate()" << std::endl;
     for(const auto& p : logan_clients_){
         auto& logan_client = p.second;
         if(logan_client){
             logan_client->Terminate();
         }
     }
-    std::cerr << "logan_client->Terminated()" << std::endl;
     
-    std::cerr << "clear())" << std::endl;
     components_.clear();
     logan_clients_.clear();
-    std::cerr << "cleared())" << std::endl;
 
     if(logan_logger_){
-        std::cerr << "logan_logger_())" << std::endl;
         logan_logger_.reset();
-        std::cerr << "logan_logger_d())" << std::endl;
     }
 }
 
