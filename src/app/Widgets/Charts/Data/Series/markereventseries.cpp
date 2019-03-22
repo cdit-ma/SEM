@@ -83,6 +83,10 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
  */
 QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
 {
+    if (startTimeMap_.isEmpty()) {
+        return "";
+    }
+
     //qDebug() << "FROM: " << QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString(displayFormat);
     //qDebug() << "TO: " << QDateTime::fromMSecsSinceEpoch(toTimeMS).toString(displayFormat);
 
@@ -123,14 +127,12 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
 
     QString hoveredData;
     QTextStream stream(&hoveredData);
-    int count = std::distance(currentStartTimeItr, endStartTimeItr);
-    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
-    numberOfItemsToDisplay = qMax(1, numberOfItemsToDisplay);
 
     // calculate the average duration between fromTimeMS and toTimeMS
     auto totalDuration = 0.0;
     auto numberOfIDSets = 0;
-    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+
+    while (currentStartTimeItr != startTimes.constEnd()) {
         auto currentStartTime = (*currentStartTimeItr);
         const auto& markerIDsAtStartTime = startTimeMap_.value(currentStartTime);
         for (const auto& id : markerIDsAtStartTime) {
@@ -138,6 +140,9 @@ QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTime
                 totalDuration += markerIDSetDurations_.value(id);
             }
             numberOfIDSets++;
+        }
+        if (currentStartTimeItr == endStartTimeItr) {
+            break;
         }
         currentStartTimeItr++;
     }
