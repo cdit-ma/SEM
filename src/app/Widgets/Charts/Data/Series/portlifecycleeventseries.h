@@ -13,7 +13,7 @@ public:
     QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
 
 private:
-    QString getTypeString(LifecycleType type);
+    QString getTypeString(AggServerResponse::LifecycleType type);
 };
 
 #endif // PORTLIFECYCLEEVENTSERIES_H

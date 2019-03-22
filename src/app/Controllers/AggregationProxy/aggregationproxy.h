@@ -46,8 +46,8 @@ class AggregationProxy : public QObject
 public:
     AggregationProxy();
     
-    QFuture<QVector<ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
-    QFuture<ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
+    QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
+    QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
 
     QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request);
     QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request);
@@ -59,8 +59,8 @@ private:
     void SetServerEndpoint(const QString& endpoint);
     void CheckRequester();
 
-    QVector<ExperimentRun> GetExperimentRuns(const QString& experiment_name);
-    ExperimentState GetExperimentState(const quint32 experiment_run_id);
+    QVector<AggServerResponse::ExperimentRun> GetExperimentRuns(const QString& experiment_name);
+    AggServerResponse::ExperimentState GetExperimentState(const quint32 experiment_run_id);
 
     QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest &request);
     QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request);
@@ -73,16 +73,16 @@ private:
     static QDateTime ConstructQDateTime(const google::protobuf::Timestamp &time);
     static QString ConstructQString(const std::string &string);
     
-    static Node ConvertNode(const AggServer::Node& node);
-    static Component ConvertComponent(const AggServer::Component& component);
-    static Worker ConvertWorker(const AggServer::Worker& worker);
-    static Port ConvertPort(const AggServer::Port& port);
-    static Container ConvertContainer(const AggServer::Container& container);
-    static WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
-    static ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
+    static AggServerResponse::Node ConvertNode(const AggServer::Node& node);
+    static AggServerResponse::Component ConvertComponent(const AggServer::Component& component);
+    static AggServerResponse::Worker ConvertWorker(const AggServer::Worker& worker);
+    static AggServerResponse::Port ConvertPort(const AggServer::Port& port);
+    static AggServerResponse::Container ConvertContainer(const AggServer::Container& container);
+    static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
+    static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
-    static Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
-    static LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
+    static AggServerResponse::Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
+    static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
 
 

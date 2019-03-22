@@ -26,7 +26,7 @@ public slots:
     void displayChartPopup();
 
     void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<TIMELINE_DATA_KIND>& selectedDataKinds);
-    void experimentRunSelected(const ExperimentRun& experimentRun);
+    void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
 
 protected:
     static void constructSingleton(ViewController* vc);
@@ -35,18 +35,18 @@ private:
     ChartManager(ViewController* vc);
     ~ChartManager();
 
-    void experimentRunStateReceived(ExperimentRun experimentRun, ExperimentState experimentState);
-    void requestEventsForExperimentRun(const ExperimentRun &experimentRun);
+    void experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState);
+    void requestEventsForExperimentRun(const AggServerResponse::ExperimentRun &experimentRun);
 
     void requestExperimentRuns(const QString& experimentName);
     void requestExperimentState(const quint32 experimentRunID);
 
-    void requestEvents(const RequestBuilder &builder, const ExperimentRun &experimentRun);
-    void requestPortLifecycleEvents(const PortLifecycleRequest& request, const ExperimentRun& experimentRun);
-    void requestWorkloadEvents(const WorkloadRequest& request, const ExperimentRun& experimentRun);
-    void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const ExperimentRun& experimentRun);
-    void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const ExperimentRun& experimentRun);
-    void requestMarkerEvents(const MarkerRequest& request, const ExperimentRun& experimentRun);
+    void requestEvents(const RequestBuilder &builder, const AggServerResponse::ExperimentRun &experimentRun);
+    void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
+    void requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
+    void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
+    void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
+    void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
 
     void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 

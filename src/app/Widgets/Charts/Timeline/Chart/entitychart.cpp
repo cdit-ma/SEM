@@ -1374,17 +1374,17 @@ void EntityChart::updateSeriesPixmaps()
     }
 
     if (colorPortPixmaps) {
-        lifeCycleTypePixmaps_[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
-        lifeCycleTypePixmaps_[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
-        lifeCycleTypePixmaps_[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-        lifeCycleTypePixmaps_[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-        lifeCycleTypePixmaps_[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
     } else {
-        lifeCycleTypePixmaps_[LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), backgroundColor_);
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), backgroundColor_);
     }
 
     if (colorWorkerPixmaps) {
@@ -1503,7 +1503,7 @@ inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
  * @param seed
  * @return
  */
-inline uint qHash(LifecycleType key, uint seed)
+inline uint qHash(AggServerResponse::LifecycleType key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }

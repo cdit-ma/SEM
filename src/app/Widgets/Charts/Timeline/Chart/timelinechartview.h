@@ -34,11 +34,11 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event);
 
-    void addPortLifecycleEvents(const ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
-    void addWorkloadEvents(const ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
-    void addCPUUtilisationEvents(const ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
-    void addMemoryUtilisationEvents(const ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
-    void addMarkerEvents(const ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
+    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
+    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
+    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
+    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
+    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
 
     void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
 
@@ -70,9 +70,9 @@ private slots:
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    void addedChartEvents(const TIMELINE_DATA_KIND kind, const ExperimentRun& experimentRun);
+    void addedChartEvents(const TIMELINE_DATA_KIND kind, const AggServerResponse::ExperimentRun& experimentRun);
 
-    MEDEA::EventSeries* constructSeriesForEventKind(const ExperimentRun &experimentRun, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
+    MEDEA::EventSeries* constructSeriesForEventKind(const AggServerResponse::ExperimentRun &experimentRun, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
     EntityChart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 

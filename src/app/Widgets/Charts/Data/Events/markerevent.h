@@ -9,7 +9,7 @@ class MarkerEvent : public MEDEA::Event
     Q_OBJECT
 
 public:
-    explicit MarkerEvent(QString markerName, qint64 markerID, ComponentInstance inst, qint64 time, QObject* parent = 0);
+    explicit MarkerEvent(QString markerName, qint64 markerID, AggServerResponse::ComponentInstance inst, qint64 time, QObject* parent = 0);
 
     qint64 getMarkerID() const;
 
@@ -17,7 +17,7 @@ public:
     TIMELINE_DATA_KIND getKind() const;
 
 private:
-    ComponentInstance componentInstance_;
+    AggServerResponse::ComponentInstance componentInstance_;
     qint64 markerID_;
 
 };

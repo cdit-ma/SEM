@@ -150,7 +150,7 @@ private:
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 
-    QHash<LifecycleType, QPixmap> lifeCycleTypePixmaps_;
+    QHash<AggServerResponse::LifecycleType, QPixmap> lifeCycleTypePixmaps_;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
 
     /*

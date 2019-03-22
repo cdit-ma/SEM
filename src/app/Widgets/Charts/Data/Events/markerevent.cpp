@@ -9,7 +9,7 @@
  * @param time
  * @param parent
  */
-MarkerEvent::MarkerEvent(QString markerName, qint64 markerID, ComponentInstance inst, qint64 time, QObject *parent)
+MarkerEvent::MarkerEvent(QString markerName, qint64 markerID, AggServerResponse::ComponentInstance inst, qint64 time, QObject *parent)
     : MEDEA::Event(time, markerName, parent)
 {
     componentInstance_ = inst;

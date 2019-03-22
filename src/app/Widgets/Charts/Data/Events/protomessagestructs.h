@@ -6,7 +6,8 @@
 
 
 //TODO: Put into
-namespace PICK_NAME_HERE{
+namespace AggServerResponse{
+
     /*
     * ENUMS
     */
@@ -114,6 +115,7 @@ namespace PICK_NAME_HERE{
         QString name;
         QVector<ExperimentRun> runs;
     };
-};
+
+}
 
 #endif // PROTOMESSAGESTRUCTS_H

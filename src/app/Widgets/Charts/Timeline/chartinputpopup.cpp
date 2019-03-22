@@ -129,7 +129,7 @@ void ChartInputPopup::setPopupVisible(bool visible)
  * @brief ChartInputPopup::setExperimentRuns
  * @param runs
  */
-void ChartInputPopup::setExperimentRuns(const QList<ExperimentRun> &runs)
+void ChartInputPopup::setExperimentRuns(const QList<AggServerResponse::ExperimentRun> &runs)
 {
     QStringList experimentNames;
     for (auto run : runs) {
@@ -226,7 +226,7 @@ void ChartInputPopup::experimentNameActivated(const QString &experimentName)
  * @brief ChartInputPopup::experimentRunSelected
  * @param experimentRun
  */
-void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
+void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
     // we only need to request the experiment state if the filter widgets are enabled
     /*if (filtersEnabled_) {
@@ -245,7 +245,7 @@ void ChartInputPopup::experimentRunSelected(const ExperimentRun& experimentRun)
  * @brief ChartInputPopup::populateExperimentRuns
  * @param runs
  */
-void ChartInputPopup::populateExperimentRuns(const QList<ExperimentRun>& runs)
+void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs)
 {
     auto firstButton = true;
     auto maxButtonWidth = 0;

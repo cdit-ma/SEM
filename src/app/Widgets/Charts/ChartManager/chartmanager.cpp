@@ -51,9 +51,9 @@ ChartManager::~ChartManager()
 void ChartManager::requestExperimentRuns(const QString& experimentName)
 {
     auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentName);
-    auto futureWatcher = new QFutureWatcher<QVector<ExperimentRun>>(this);
+    auto futureWatcher = new QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<ExperimentRun>>::finished, [=]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>::finished, [=]() {
         try {
             if (chartPopup_)
                 chartPopup_->setExperimentRuns(futureWatcher->result().toList());
@@ -73,9 +73,9 @@ void ChartManager::requestExperimentRuns(const QString& experimentName)
 void ChartManager::requestExperimentState(const quint32 experimentRunID)
 {
     auto future = viewController_->getAggregationProxy().RequestExperimentState(experimentRunID);
-    auto futureWatcher = new QFutureWatcher<ExperimentState>(this);
+    auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
-    connect(futureWatcher, &QFutureWatcher<ExperimentState>::finished, [=]() {
+    connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [=]() {
         try {
             auto state = futureWatcher->result();
             if (chartView_) {
@@ -99,7 +99,7 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
  * @param builder
  * @param experimentRun
  */
-void ChartManager::requestEvents(const RequestBuilder& builder, const ExperimentRun& experimentRun)
+void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerResponse::ExperimentRun& experimentRun)
 {
     const auto portLifecycleRequest = builder.getPortLifecycleRequest();
     if (portLifecycleRequest) {
@@ -133,7 +133,7 @@ void ChartManager::requestEvents(const RequestBuilder& builder, const Experiment
  * @param request
  * @param experimentRun
  */
-void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &request, const ExperimentRun& experimentRun)
+void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &request, const AggServerResponse::ExperimentRun& experimentRun)
 {
     auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
@@ -162,7 +162,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
  * @brief ChartManager::requestWorkloadEvents
  * @param request
  */
-void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const ExperimentRun &experimentRun)
+void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
@@ -190,7 +190,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const E
  * @brief ChartManager::requestCPUUtilisationEvents
  * @param request
  */
-void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &request, const ExperimentRun &experimentRun)
+void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
@@ -220,7 +220,7 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
  * @brief ChartManager::requestMemoryUtilisationEvents
  * @param request
  */
-void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest &request, const ExperimentRun &experimentRun)
+void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
@@ -250,7 +250,7 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
  * @brief ChartManager::requestMarkerEvents
  * @param request
  */
-void ChartManager::requestMarkerEvents(const MarkerRequest &request, const ExperimentRun &experimentRun)
+void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto future = viewController_->getAggregationProxy().RequestMarkerEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MarkerEvent*>>(this);
@@ -351,14 +351,14 @@ void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &se
  * @brief ChartManager::experimentRunSelected
  * @param experimentRun
  */
-void ChartManager::experimentRunSelected(const ExperimentRun& experimentRun)
+void ChartManager::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
     // request the experiment state to get the experiment run's last updated time
     auto experimentRunID = experimentRun.experiment_run_id;
     auto future = viewController_->getAggregationProxy().RequestExperimentState(experimentRunID);
-    auto futureWatcher = new QFutureWatcher<ExperimentState>(this);
+    auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
-    connect(futureWatcher, &QFutureWatcher<ExperimentState>::finished, [=]() {
+    connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [=]() {
         try {
             qCritical() << "HAS THIS FINISHED";
             // once the state is received, request the events for the selected experiment run
@@ -377,7 +377,7 @@ void ChartManager::experimentRunSelected(const ExperimentRun& experimentRun)
  * @param experimentRun
  * @param experimentState
  */
-void ChartManager::experimentRunStateReceived(ExperimentRun experimentRun, ExperimentState experimentState)
+void ChartManager::experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState)
 {
     experimentRun.last_updated_time = experimentState.last_updated_time;
     requestEventsForExperimentRun(experimentRun);
@@ -388,7 +388,7 @@ void ChartManager::experimentRunStateReceived(ExperimentRun experimentRun, Exper
  * @brief ChartManager::requestEventsForExperimentRun
  * @param experimentRun
  */
-void ChartManager::requestEventsForExperimentRun(const ExperimentRun& experimentRun)
+void ChartManager::requestEventsForExperimentRun(const AggServerResponse::ExperimentRun& experimentRun)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
     if (experimentRunID == -1)

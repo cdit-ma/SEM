@@ -25,7 +25,7 @@ AggregationProxy::AggregationProxy()
  * @param experiment_name
  * @return
  */
-QFuture<QVector<ExperimentRun>> AggregationProxy::RequestExperimentRuns(const QString& experiment_name)
+QFuture<QVector<AggServerResponse::ExperimentRun>> AggregationProxy::RequestExperimentRuns(const QString& experiment_name)
 {
     return QtConcurrent::run(this, &AggregationProxy::GetExperimentRuns, experiment_name);
 }
@@ -36,7 +36,7 @@ QFuture<QVector<ExperimentRun>> AggregationProxy::RequestExperimentRuns(const QS
  * @param experiment_run_id
  * @return
  */
-QFuture<ExperimentState> AggregationProxy::RequestExperimentState(const quint32 experiment_run_id)
+QFuture<AggServerResponse::ExperimentState> AggregationProxy::RequestExperimentState(const quint32 experiment_run_id)
 {
     return QtConcurrent::run(this, &AggregationProxy::GetExperimentState, experiment_run_id);
 }
@@ -123,12 +123,12 @@ void AggregationProxy::CheckRequester()
  * @param experiment_name
  * @return
  */
-QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name)
+QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name)
 {
     CheckRequester();
     
     try {
-        QVector<ExperimentRun> runs;
+        QVector<AggServerResponse::ExperimentRun> runs;
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experiment_name.toStdString());
         
@@ -136,7 +136,7 @@ QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experi
         for (const auto& ex : results->experiments()) {
             const auto& experiment_name = ConstructQString(ex.name());
             for (auto& ex_run : ex.runs()) {
-                ExperimentRun run;
+                AggServerResponse::ExperimentRun run;
                 run.experiment_name = experiment_name;
                 run.experiment_run_id = ex_run.experiment_run_id();
                 run.job_num = ex_run.job_num();
@@ -160,13 +160,13 @@ QVector<ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experi
  * @return
  */
 #include <iostream>
-ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id)
+AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id)
 {
     qCritical() << experiment_run_id;
     CheckRequester();
     
     try {
-        ExperimentState state;
+        AggServerResponse::ExperimentState state;
         AggServer::ExperimentStateRequest request;
         request.set_experiment_run_id(experiment_run_id);
         
@@ -437,9 +437,9 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
  * @param p
  * @return
  */
-Port AggregationProxy::ConvertPort(const AggServer::Port& p)
+AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 {
-    Port port;
+    AggServerResponse::Port port;
     port.kind = ConvertPortKind(p.kind());
     port.name = ConstructQString(p.name());
     port.path = ConstructQString(p.path());
@@ -454,9 +454,9 @@ Port AggregationProxy::ConvertPort(const AggServer::Port& p)
  * @param w_i
  * @return
  */
-WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerInstance& w_i)
+AggServerResponse::WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerInstance& w_i)
 {
-    WorkerInstance worker_instance;
+    AggServerResponse::WorkerInstance worker_instance;
     worker_instance.name = ConstructQString(w_i.name());
     worker_instance.path = ConstructQString(w_i.path());
     worker_instance.graphml_id = ConstructQString(w_i.graphml_id());
@@ -469,9 +469,9 @@ WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerIn
  * @param c_i
  * @return
  */
-ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::ComponentInstance& c_i)
+AggServerResponse::ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::ComponentInstance& c_i)
 {
-    ComponentInstance component_instance;
+    AggServerResponse::ComponentInstance component_instance;
     component_instance.name = ConstructQString(c_i.name());
     component_instance.path = ConstructQString(c_i.path());
     component_instance.graphml_id = ConstructQString(c_i.graphml_id());
@@ -493,9 +493,9 @@ ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::Co
  * @param c
  * @return
  */
-Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
+AggServerResponse::Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
 {
-    Container container;
+    AggServerResponse::Container container;
     container.name = ConstructQString(c.name());
     container.graphml_id = ConstructQString(c.graphml_id());
 
@@ -505,10 +505,10 @@ Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
 
     switch (c.type()) {
     case AggServer::Container_ContainerType::Container_ContainerType_GENERIC:
-        container.type = Container::ContainerType::GENERIC;
+        container.type = AggServerResponse::Container::ContainerType::GENERIC;
         break;
     case AggServer::Container_ContainerType::Container_ContainerType_DOCKER:
-        container.type = Container::ContainerType::DOCKER;
+        container.type = AggServerResponse::Container::ContainerType::DOCKER;
         break;
     default:
         break;
@@ -523,9 +523,9 @@ Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
  * @param n
  * @return
  */
-Node AggregationProxy::ConvertNode(const AggServer::Node& n)
+AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& n)
 {
-    Node node;
+    AggServerResponse::Node node;
     node.hostname = ConstructQString(n.hostname());
     node.ip = ConstructQString(n.ip());
     qCritical() << node.hostname;
@@ -544,9 +544,9 @@ Node AggregationProxy::ConvertNode(const AggServer::Node& n)
  * @param c
  * @return
  */
-Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
+AggServerResponse::Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
 {
-    Component component;
+    AggServerResponse::Component component;
     component.name = ConstructQString(c.name());
     return component;
 }
@@ -557,9 +557,9 @@ Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
  * @param w
  * @return
  */
-Worker AggregationProxy::ConvertWorker(const AggServer::Worker& w)
+AggServerResponse::Worker AggregationProxy::ConvertWorker(const AggServer::Worker& w)
 {
-    Worker worker;
+    AggServerResponse::Worker worker;
     worker.name = ConstructQString(w.name());
     return worker;
 }
@@ -570,19 +570,19 @@ Worker AggregationProxy::ConvertWorker(const AggServer::Worker& w)
  * @param type
  * @return
  */
-LifecycleType AggregationProxy::ConvertLifeCycleType(const AggServer::LifecycleType& type)
+AggServerResponse::LifecycleType AggregationProxy::ConvertLifeCycleType(const AggServer::LifecycleType& type)
 {
     switch (type) {
     case AggServer::LifecycleType::CONFIGURE:
-        return LifecycleType::CONFIGURE;
+        return AggServerResponse::LifecycleType::CONFIGURE;
     case AggServer::LifecycleType::ACTIVATE:
-        return LifecycleType::ACTIVATE;
+        return AggServerResponse::LifecycleType::ACTIVATE;
     case AggServer::LifecycleType::PASSIVATE:
-        return LifecycleType::PASSIVATE;
+        return AggServerResponse::LifecycleType::PASSIVATE;
     case AggServer::LifecycleType::TERMINATE:
-        return LifecycleType::TERMINATE;
+        return AggServerResponse::LifecycleType::TERMINATE;
     default:
-        return LifecycleType::NO_TYPE;
+        return AggServerResponse::LifecycleType::NO_TYPE;
     }
 }
 
@@ -592,21 +592,21 @@ LifecycleType AggregationProxy::ConvertLifeCycleType(const AggServer::LifecycleT
  * @param kind
  * @return
  */
-Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
+AggServerResponse::Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 {
     switch (kind) {
     case AggServer::Port_Kind::Port_Kind_PERIODIC:
-        return Port::Kind::PERIODIC;
+        return AggServerResponse::Port::Kind::PERIODIC;
     case AggServer::Port_Kind::Port_Kind_PUBLISHER:
-        return Port::Kind::PUBLISHER;
+        return AggServerResponse::Port::Kind::PUBLISHER;
     case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
-        return Port::Kind::SUBSCRIBER;
+        return AggServerResponse::Port::Kind::SUBSCRIBER;
     case AggServer::Port_Kind::Port_Kind_REQUESTER:
-        return Port::Kind::REQUESTER;
+        return AggServerResponse::Port::Kind::REQUESTER;
     case AggServer::Port_Kind::Port_Kind_REPLIER:
-        return Port::Kind::REPLIER;
+        return AggServerResponse::Port::Kind::REPLIER;
     default:
-        return Port::Kind::NO_KIND;
+        return AggServerResponse::Port::Kind::NO_KIND;
     }
 }
 

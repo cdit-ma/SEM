@@ -75,7 +75,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRun, const QVector<PortLifecycleEvent*>& events)
+void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
     if (events.isEmpty())
         return;
@@ -103,7 +103,7 @@ void TimelineChartView::addPortLifecycleEvents(const ExperimentRun &experimentRu
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, const QVector<WorkloadEvent *> &events)
+void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<WorkloadEvent *> &events)
 {
     if (events.isEmpty())
         return;
@@ -130,7 +130,7 @@ void TimelineChartView::addWorkloadEvents(const ExperimentRun &experimentRun, co
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
+void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
 {
     if (events.isEmpty())
         return;
@@ -157,7 +157,7 @@ void TimelineChartView::addCPUUtilisationEvents(const ExperimentRun &experimentR
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addMemoryUtilisationEvents(const ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
+void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
 {
     if (events.isEmpty())
         return;
@@ -184,7 +184,7 @@ void TimelineChartView::addMemoryUtilisationEvents(const ExperimentRun &experime
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addMarkerEvents(const ExperimentRun &experimentRun, const QVector<MarkerEvent *> &events)
+void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MarkerEvent *> &events)
 {
     if (events.isEmpty())
         return;
@@ -620,7 +620,7 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
  * @param kind
  * @param experimentRun
  */
-void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const ExperimentRun &experimentRun)
+void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
     auto experimentRunStartTime = experimentRun.start_time;
@@ -650,7 +650,7 @@ void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const Ex
  * @param label
  * @return
  */
-MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const ExperimentRun& experimentRun, const TIMELINE_DATA_KIND kind, const QString &ID, const QString &label)
+MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServerResponse::ExperimentRun& experimentRun, const TIMELINE_DATA_KIND kind, const QString &ID, const QString &label)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
     auto seriesID = ID + QString::number(experimentRunID);
