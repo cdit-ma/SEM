@@ -44,10 +44,11 @@ zmq::ProtoWriter::~ProtoWriter(){
     std::cout << "* zmq::ProtoWriter: Wrote "  << GetTxCount() << " messages." << std::endl;
 }
 
-void zmq::ProtoWriter::AttachMonitor(std::unique_ptr<zmq::Monitor> monitor, const int event_type){
-    std::unique_lock<std::mutex> lock(mutex_);
-    monitor_futures_.emplace_back(std::async(std::launch::async, &Monitor::MonitorThread, monitor.get(), std::ref(*socket_), event_type));
-    monitors_.emplace_back(std::move(monitor));
+void zmq::ProtoWriter::RegisterMonitorCallback(const uint8_t& event, std::function<void(int, std::string)> fn){
+    if(!monitor_){
+        monitor_ = std::unique_ptr<zmq::Monitor>(new zmq::Monitor(*socket_));
+    }
+    monitor_->RegisterEventCallback(event, fn);
 }
 
 bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
@@ -66,8 +67,7 @@ bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
     return false;
 }
 
-int zmq::ProtoWriter::GetTxCount(){
-    std::unique_lock<std::mutex> lock(mutex_);
+uint64_t zmq::ProtoWriter::GetTxCount() const{
     return tx_count_;
 }
 
@@ -119,13 +119,14 @@ void zmq::ProtoWriter::UpdateBackpressure(bool increment_sender){
     }
     
     if(increment_sender){
-        backpressure_ ++;
-        tx_count_ ++;
+        ++backpressure_;
+        ++tx_count_;
     }
 
     if(!initial_message){
         int64_t message_count = duration_us / message_process_delay_;
         if(message_count > 0){
+
             backpressure_ -= message_count;
             if(backpressure_ < 0){
                 backpressure_ = 0;
@@ -139,18 +140,15 @@ void zmq::ProtoWriter::Terminate(){
     std::unique_lock<std::mutex> lock(mutex_);
     UpdateBackpressure(false);
 
-    if(backpressure_ > 0){
-        std::chrono::microseconds sleep_us(message_process_delay_ * backpressure_);
+    auto back = backpressure_.load();
+    if(back > 0){
+        std::chrono::microseconds sleep_us(message_process_delay_ * back);
         auto sleep_ms = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_us);
         std::cout << "* Sleeping for: " << sleep_ms.count() << " ms to free backpressure on ProtoWriter." << std::endl;
         std::this_thread::sleep_for(sleep_us);
     }
-
-    //Teardown socket
+    
+    monitor_.reset();
     socket_.reset();
-
-    //Remove monitors
-    monitors_.clear();
-    //Teardown context
     context_.reset();
 }

@@ -20,18 +20,23 @@
  
 #ifndef RE_COMMON_ZMQ_MONITOR_H
 #define RE_COMMON_ZMQ_MONITOR_H
-#include <functional>
 #include <zmq.hpp>
+#include <unordered_map>
+#include <functional>
+#include <future>
+#include <atomic>
 
 namespace zmq{
     class ProtoWriter;
     class Monitor: public zmq::monitor_t{
         friend class ProtoWriter;
         public:
-            void RegisterEventCallback(std::function<void(int, std::string)> fn);
-        protected:
-            void MonitorThread(std::reference_wrapper<zmq::socket_t> socket, const int event_type);
+            Monitor(zmq::socket_t& socket);
+            ~Monitor();
+            void RegisterEventCallback(const uint8_t& event_type, std::function<void(int, std::string)> fn);
         private:
+            void MonitorThread(std::reference_wrapper<zmq::socket_t> socket, const int event_type);
+            
             void on_event(const zmq_event_t &event, const char* addr);
             void on_event_connected(const zmq_event_t &event, const char* addr);
             void on_event_connect_delayed(const zmq_event_t &event, const char* addr);
@@ -46,7 +51,12 @@ namespace zmq{
             void on_event_handshake_failed(const zmq_event_t &event, const char* addr);
             void on_event_handshake_succeed(const zmq_event_t &event, const char* addr);
             void on_event_unknown(const zmq_event_t &event, const char* addr);
-            std::function<void(int, std::string)> callback_;
+
+            std::mutex callback_mutex_;
+            std::unordered_map< uint8_t, std::function<void(int, std::string)> > callbacks_;
+            
+            std::future<void> future_;
+            std::atomic_bool abort_{false};
     };
 }
 #endif //RE_COMMON_ZMQ_MONITOR_H
