@@ -5,7 +5,6 @@
 #include <QString>
 
 
-//TODO: Put into
 namespace AggServerResponse{
 
     /*
@@ -20,21 +19,12 @@ namespace AggServerResponse{
         TERMINATE
     };
 
-
+  
     /*
     * STRUCTS
     */
 
     struct Port {
-        enum Kind {
-            NO_KIND,
-            PERIODIC,
-            PUBLISHER,
-            SUBSCRIBER,
-            REQUESTER,
-            REPLIER
-        };
-        Kind kind;
         QString name;
         QString path;
         QString middleware;

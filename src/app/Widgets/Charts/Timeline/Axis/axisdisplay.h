@@ -86,8 +86,6 @@ private:
     int _spacing;
     int _textHeight;
     int _widestTextLength;
-    int _displayedMinTextWidth;
-    int _displayedMaxTextWidth;
 
     QLineF _axisLine;
     QColor _labelColor;

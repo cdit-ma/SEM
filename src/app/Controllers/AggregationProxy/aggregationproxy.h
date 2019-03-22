@@ -85,7 +85,6 @@ private:
     static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
 
-
     std::unique_ptr<AggServer::Requester> requester_;
 };
 

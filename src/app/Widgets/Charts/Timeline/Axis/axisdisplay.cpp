@@ -28,9 +28,6 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
     _valueType = type;
     _axisFormat = TIME_DISPLAY_FORMAT::VALUE;
 
-    _displayedMinTextWidth = fontMetrics().width(getCovertedString(_displayedMin));
-    _displayedMaxTextWidth = fontMetrics().width(getCovertedString(_displayedMax));
-
     if (_orientation == Qt::Horizontal) {
         _spacing = SPACING;
         setMinimumHeight(_textHeight + _tickLength + _spacing * 2);
@@ -377,6 +374,9 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
      * TODO - Clean up hovered date/time display and paint methods; move slot outside of this class
      */
 
+    double minTextWidth = 0.0;
+    double maxTextWidth = 0.0;
+
     for (int i = 0; i <= _tickCount; i++) {
 
         textRect = QRectF(startPoint, rectSize);
@@ -391,7 +391,8 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
         } else if (i == 0) {
             tickX = _penWidth / 2.0;
             value = _displayedMin;
-            textRect = textRect.adjusted(_displayedMinTextWidth + _penWidth, 0, 0, 0);
+            minTextWidth = fontMetrics().width(getCovertedString(value));
+            textRect = textRect.adjusted(minTextWidth + _penWidth, 0, 0, 0);
             if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
                 startPoint += QPointF(rectWidth, 0);
                 continue;
@@ -401,7 +402,8 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
                 return;
             tickX -= _penWidth / 2.0;
             value = _displayedMax;
-            textRect = textRect.adjusted(0, 0, -_displayedMaxTextWidth - _penWidth, 0);
+            maxTextWidth = fontMetrics().width(getCovertedString(value));
+            textRect = textRect.adjusted(0, 0, -maxTextWidth - _penWidth, 0);
         }
 
         tickLines.append(QLineF(tickX, tickY, tickX, tickY + lineLength));
@@ -416,11 +418,11 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
             textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
             if (_tickCount != 1) {
                 if (i == 0) {
-                    auto strLengthDiff = fontMetrics().width(dateStr) - _displayedMinTextWidth;
+                    auto strLengthDiff = fontMetrics().width(dateStr) - minTextWidth;
                     if (strLengthDiff > 0)
                         textRect.moveRight(textRect.right() + strLengthDiff - 5);
                 } else if (i == _tickCount) {
-                    auto strLengthDiff = fontMetrics().width(dateStr) - _displayedMaxTextWidth;
+                    auto strLengthDiff = fontMetrics().width(dateStr) - maxTextWidth;
                     if (strLengthDiff > 0)
                         textRect.moveLeft(textRect.left() - strLengthDiff + 5);
                 }
@@ -486,7 +488,6 @@ void AxisDisplay::displayedMinChanged(double min)
 {
     _displayedMin = min;
     _displayedRange = _displayedMax - min;
-    _displayedMinTextWidth = fontMetrics().width(getCovertedString(min));
     rangeChanged();
 }
 
@@ -499,7 +500,6 @@ void AxisDisplay::displayedMaxChanged(double max)
 {
     _displayedMax = max;
     _displayedRange = max - _displayedMin;
-    _displayedMaxTextWidth = fontMetrics().width(getCovertedString(max));
     rangeChanged();
 }
 
@@ -612,11 +612,6 @@ QString AxisDisplay::getElapsedTimeString(double value)
         elapsedTime += QString::number(h) + "h";
     if (m > 0)
         elapsedTime += QString::number(m) + "m";
-    /*if (s > 0)
-        elapsedTime += QString::number(s) + "s";
-    if (ms > 0)
-        elapsedTime += QString::number(ms) + "ms";*/
-
     if (s > 0) {
         if (ms > 0) {
             elapsedTime += QString::number(s) + "." + QString::number(ms) + "s";

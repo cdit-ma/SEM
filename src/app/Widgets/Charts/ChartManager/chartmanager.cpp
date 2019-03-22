@@ -23,6 +23,7 @@ ChartManager::ChartManager(ViewController *vc)
     if (vc) {
         connect(vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
         connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
+        connect(vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
     }
 
     connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);

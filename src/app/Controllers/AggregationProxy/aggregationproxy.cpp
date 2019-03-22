@@ -225,9 +225,10 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const Port
         const auto& results = requester_->GetPortLifecycle(agg_request);
         for (const auto& item : results->events()) {
             const auto& port = ConvertPort(item.port());
+            const auto& kind = ConvertPortKind(item.port().kind());
             const auto& type = ConvertLifeCycleType(item.type());
             const auto& time = ConstructQDateTime(item.time());
-            events.append(new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch()));
+            events.append(new PortLifecycleEvent(port, kind, type, time.toMSecsSinceEpoch()));
         }
 
         return events;

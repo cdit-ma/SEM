@@ -163,12 +163,13 @@ void AxisSlider::updateMaxRatio(double ratio)
  */
 void AxisSlider::zoom(double factor)
 {
+    // TODO - Previously there was some minor precision bugs when this was removed - check if those are fixed
     // stop zooming out when one of the sliders hit the edge
-    if (factor > 1) {
+    /*if (factor > 1) {
         if (_sliderMin == 0 || _sliderMax == _sliderRange)
             // TODO - If the zoom isn't going to move the slider, allow it
             return;
-    }
+    }*/
 
     double delta = (_actualMax - _actualMin) * (1 - factor);
     double scaledMin = qMax(0.0, _actualMin + delta);

@@ -8,7 +8,18 @@ PortLifecycleEvent::PortLifecycleEvent(AggServerResponse::Port port, AggServerRe
     : MEDEA::Event(time, port.name, parent)
 {
     port_ = port;
+    kind_ = kind;
     type_ = type;
+}
+
+
+/**
+ * @brief PortLifecycleEvent::getPortKind
+ * @return
+ */
+const PortLifecycleEvent::PortKind &PortLifecycleEvent::getPortKind() const
+{
+    return kind_;
 }
 
 
