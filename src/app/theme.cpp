@@ -1482,7 +1482,7 @@ QFont Theme::getFont() const{
 QFont Theme::getSmallFont() const
 {
     auto smallFont = font;
-    smallFont.setPointSizeF(font.pointSizeF() / 1.2);
+    smallFont.setPointSizeF(font.pointSizeF() / 1.3);
     return smallFont;
 }
 

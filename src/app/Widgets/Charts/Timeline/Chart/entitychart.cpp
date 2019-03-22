@@ -15,7 +15,7 @@
 #define BORDER_WIDTH 2.0
 
 #define PEN_WIDTH 1.0
-#define BIN_WIDTH 24.0
+#define BIN_WIDTH 22.0
 #define POINT_WIDTH 8.0
 
 #define PRINT_RENDER_TIMES false
@@ -434,6 +434,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
+    painter.setFont(font());
 
     clearHoveredLists();
 
@@ -1127,12 +1128,15 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
         for (; startTimeItr != endStartTimeItr; startTimeItr++) {
             const auto& startTime = *startTimeItr;
             // skip start times that are out of the display range
-            if (startTime < displayMin_)
+            if (startTime < displayMin_) {
+                continue;
+            }
+            if (startTime >= displayMax_) {
                 break;
-            if (startTime >= displayMax_)
+            }
+            if (startTime > currentBinEndTime) {
                 break;
-            if (startTime > currentBinEndTime)
-                break;
+            }
             // calculate average duration
             const auto& IDSetsAtStartTime = startTimesMap.value(startTime);
             for (auto ID : IDSetsAtStartTime) {
@@ -1142,7 +1146,13 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
         }
 
         // store the average duration at the current bin
-        bins[currentBinIndex] = (numberOfIDSets == 0) ? 0 : totalDuration / numberOfIDSets;
+        auto avgDuration = 0.0;
+        if (numberOfIDSets > 0) {
+            avgDuration = (totalDuration == 0) ? -1 : totalDuration / numberOfIDSets;
+        }
+        bins[currentBinIndex] = avgDuration;
+
+        //bins[currentBinIndex] = (numberOfIDSets == 0) ? 0 : totalDuration / numberOfIDSets;
         currentBinItr++;
         currentBinIndex++;
 
@@ -1153,7 +1163,6 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     // get the maximum duration
     auto maxDuration = 0.0;
     for (int i = 0; i < bins.count(); i++) {
-        //qDebug() << "bins[" << i << "]: " << bins[i];
         maxDuration = qMax(bins[i], maxDuration);
     }
 
@@ -1165,11 +1174,20 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     painter.setOpacity(markerSeriesOpacity_);
 
     for (int i = 0; i < binCount; i++) {
+
         auto durationMS = bins[i];
-        if (durationMS == 0)
+        if (durationMS == 0) {
             continue;
-        double rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight; // + BORDER_WIDTH / 2.0;
-        double y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
+        }
+
+        auto rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight;
+        auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
+        auto isPoint = durationMS == -1;
+        if (isPoint) {
+            rectHeight = 2.0;
+            y = (availableHeight / 2.0) - (rectHeight / 2.0);
+        }
+
         QRectF rect(i * binWidth, y, binWidth, rectHeight);
         if (rectHovered(eventSeries->getKind(), rect)) {
             textPen.setColor(textColor_);
@@ -1245,7 +1263,7 @@ bool EntityChart::rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect)
         hoveredSeriesTimeRange_[kind] = timeRange;
         if (kind == TIMELINE_DATA_KIND::CPU_UTILISATION || kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
             hoveredEllipseRects_.append(hitRect);
-        } else {
+        } else { //if (kind != TIMELINE_DATA_KIND::MARKER) {
             hoveredRects_.append(hitRect);
         }
         return true;

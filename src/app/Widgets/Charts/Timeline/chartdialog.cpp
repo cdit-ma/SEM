@@ -18,7 +18,7 @@ ChartDialog::ChartDialog(QWidget *parent)
 {
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
-    setMinimumWidth(800);
+    setMinimumWidth(900);
 
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 }
@@ -41,6 +41,7 @@ void ChartDialog::setChartView(TimelineChartView *view)
         layout->setSpacing(0);
         layout->addWidget(view);
     }
+
     chartView_ = view;
 }
 
