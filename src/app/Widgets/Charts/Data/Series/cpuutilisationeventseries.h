@@ -1,6 +1,7 @@
 #ifndef CPUUTILISATIONEVENTSERIES_H
 #define CPUUTILISATIONEVENTSERIES_H
 
+#include <cfloat>
 #include "eventseries.h"
 
 class CPUUtilisationEventSeries : public MEDEA::EventSeries

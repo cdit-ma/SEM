@@ -54,16 +54,16 @@ QString PortLifecycleEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64
  * @param type
  * @return
  */
-QString PortLifecycleEventSeries::getTypeString(LifecycleType type)
+QString PortLifecycleEventSeries::getTypeString(AggServerResponse::LifecycleType type)
 {
     switch (type) {
-    case LifecycleType::CONFIGURE:
+    case AggServerResponse::LifecycleType::CONFIGURE:
         return "CONFIGURE";
-    case LifecycleType::ACTIVATE:
+    case AggServerResponse::LifecycleType::ACTIVATE:
         return "ACTIVATE";
-    case LifecycleType::PASSIVATE:
+    case AggServerResponse::LifecycleType::PASSIVATE:
         return "PASSIVATE";
-    case LifecycleType::TERMINATE:
+    case AggServerResponse::LifecycleType::TERMINATE:
         return "TERMINATE";
     default:
         return "UNKNOWN";

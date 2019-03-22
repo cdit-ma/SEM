@@ -109,17 +109,28 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.cpp
 )
 
 if(WIN32)
@@ -231,18 +242,29 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/protomessagestructs.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.h
 )
 
 set(RESOURCES

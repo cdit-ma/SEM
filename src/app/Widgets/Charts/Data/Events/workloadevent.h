@@ -19,7 +19,7 @@ public:
         MARKER
     };
 
-    explicit WorkloadEvent(WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
+    explicit WorkloadEvent(AggServerResponse::WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
 
     const WorkloadEventType& getType() const;
     const quint32& getWorkloadID() const;
@@ -31,7 +31,7 @@ public:
     TIMELINE_DATA_KIND getKind() const;
 
 private:
-    WorkerInstance workerInstance_;
+    AggServerResponse::WorkerInstance workerInstance_;
     WorkloadEventType type_;
     quint32 workloadID_;
 
@@ -41,4 +41,4 @@ private:
 
 };
 
-#endif
+#endif // WORKLOADEVENT_H
