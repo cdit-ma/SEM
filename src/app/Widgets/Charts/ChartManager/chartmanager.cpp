@@ -100,30 +100,35 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
  * @param experimentRun
  */
 void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerResponse::ExperimentRun& experimentRun)
-{
-    const auto portLifecycleRequest = builder.getPortLifecycleRequest();
-    if (portLifecycleRequest) {
-        requestPortLifecycleEvents(*portLifecycleRequest, experimentRun);
-    }
-    
-    const auto workloadRequest = builder.getWorkloadRequest();
-    if (workloadRequest) {
-        requestWorkloadEvents(*workloadRequest, experimentRun);
+{  
+    try{
+        requestPortLifecycleEvents(builder.getPortLifecycleRequest(), experimentRun);
+    }catch(const std::exception&){
+        //We don't have a request of that type
     }
 
-    const auto cpuUtilisationRequest = builder.getCPUUtilisationRequest();
-    if (cpuUtilisationRequest) {
-        requestCPUUtilisationEvents(*cpuUtilisationRequest, experimentRun);
+    try{
+        requestWorkloadEvents(builder.getWorkloadRequest(), experimentRun);
+    }catch(const std::exception&){
+        //We don't have a request of that type
     }
 
-    const auto memoryUtilisationRequest = builder.getMemoryUtilisationRequest();
-    if (memoryUtilisationRequest) {
-        requestMemoryUtilisationEvents(*memoryUtilisationRequest, experimentRun);
+    try{
+        requestCPUUtilisationEvents(builder.getCPUUtilisationRequest(), experimentRun);
+    }catch(const std::exception&){
+        //We don't have a request of that type
     }
 
-    const auto markerRequest = builder.getMarkerRequest();
-    if (markerRequest) {
-        requestMarkerEvents(*markerRequest, experimentRun);
+    try{
+        requestMemoryUtilisationEvents(builder.getMemoryUtilisationRequest(), experimentRun);
+    }catch(const std::exception&){
+        //We don't have a request of that type
+    }
+
+    try{
+        requestMarkerEvents(builder.getMarkerRequest(), experimentRun);
+    }catch(const std::exception&){
+        //We don't have a request of that type
     }
 }
 

@@ -26,19 +26,19 @@ void RequestBuilder::buildRequests(QVector<TIMELINE_DATA_KIND> requestKinds)
     for (auto kind : requestKinds) {
         switch (kind) {
         case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
-            portLifecycleRequest_ = new PortLifecycleRequest();
+            portLifecycleRequest_ = std::unique_ptr<PortLifecycleRequest>(new PortLifecycleRequest());
             break;
         case TIMELINE_DATA_KIND::WORKLOAD:
-            workloadRequest_ = new WorkloadRequest();
+            workloadRequest_ = std::unique_ptr<WorkloadRequest>(new WorkloadRequest());
             break;
         case TIMELINE_DATA_KIND::CPU_UTILISATION:
-            cpuUtilisationRequest_ = new CPUUtilisationRequest();
+            cpuUtilisationRequest_ = std::unique_ptr<CPUUtilisationRequest>(new CPUUtilisationRequest());
             break;
         case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = new MemoryUtilisationRequest();
+            memoryUtilisationRequest_ = std::unique_ptr<MemoryUtilisationRequest>(new MemoryUtilisationRequest());
             break;
         case TIMELINE_DATA_KIND::MARKER:
-            markerRequest_ = new MarkerRequest();
+            markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
             break;
         default:
             break;
@@ -246,9 +246,12 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
  * @brief RequestBuilder::getPortLifecycleRequest
  * @return
  */
-const PortLifecycleRequest *RequestBuilder::getPortLifecycleRequest() const
+const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
 {
-    return portLifecycleRequest_;
+    if(!portLifecycleRequest_){
+        throw std::invalid_argument("No Request");
+    }
+    return *portLifecycleRequest_;
 }
 
 
@@ -256,9 +259,12 @@ const PortLifecycleRequest *RequestBuilder::getPortLifecycleRequest() const
  * @brief RequestBuilder::getWorkloadRequest
  * @return
  */
-const WorkloadRequest *RequestBuilder::getWorkloadRequest() const
+const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
 {
-    return workloadRequest_;
+    if(!workloadRequest_){
+        throw std::invalid_argument("No Request");
+    }
+    return *workloadRequest_;
 }
 
 
@@ -266,9 +272,12 @@ const WorkloadRequest *RequestBuilder::getWorkloadRequest() const
  * @brief RequestBuilder::getCPUUtilisationRequest
  * @return
  */
-const CPUUtilisationRequest *RequestBuilder::getCPUUtilisationRequest() const
+const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
-    return cpuUtilisationRequest_;
+    if(!cpuUtilisationRequest_){
+        throw std::invalid_argument("No Request");
+    }
+    return *cpuUtilisationRequest_;
 }
 
 
@@ -276,9 +285,12 @@ const CPUUtilisationRequest *RequestBuilder::getCPUUtilisationRequest() const
  * @brief RequestBuilder::getMemoryUtilisationRequest
  * @return
  */
-const MemoryUtilisationRequest *RequestBuilder::getMemoryUtilisationRequest() const
+const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
-    return memoryUtilisationRequest_;
+    if(!memoryUtilisationRequest_){
+        throw std::invalid_argument("No Request");
+    }
+    return *memoryUtilisationRequest_;
 }
 
 
@@ -286,7 +298,10 @@ const MemoryUtilisationRequest *RequestBuilder::getMemoryUtilisationRequest() co
  * @brief RequestBuilder::getMarkerRequest
  * @return
  */
-const MarkerRequest *RequestBuilder::getMarkerRequest() const
+const MarkerRequest& RequestBuilder::getMarkerRequest() const
 {
-    return markerRequest_;
+    if(!markerRequest_){
+        throw std::invalid_argument("No Request");
+    }
+    return *markerRequest_;
 }

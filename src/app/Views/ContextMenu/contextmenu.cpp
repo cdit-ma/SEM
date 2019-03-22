@@ -1088,7 +1088,7 @@ void ContextMenu::setupMenus()
     chart_data_kind_menu = construct_menu("View In Chart", main_menu);
     auto data_kinds = GET_TIMELINE_DATA_KINDS();
     data_kinds.removeAll(TIMELINE_DATA_KIND::DATA);
-    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
+    for (const auto& kind : data_kinds) {
         auto text = GET_TIMELINE_DATA_KIND_STRING(kind);
         auto checkbox = new QCheckBox(text);
         auto widgetAction = new QWidgetAction(this);

@@ -8,6 +8,8 @@
 #include "../Data/Requests/memoryutilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
 
+#include <memory>
+
 class RequestBuilder {
 
     friend class ChartManager;
@@ -32,18 +34,18 @@ public:
     void setNodeIDs(const QVector<QString>& node_ids);
     void setNodeHostnames(const QVector<QString>& node_hostnames);
 
-    const PortLifecycleRequest* getPortLifecycleRequest() const;
-    const WorkloadRequest* getWorkloadRequest() const;
-    const CPUUtilisationRequest* getCPUUtilisationRequest() const;
-    const MemoryUtilisationRequest* getMemoryUtilisationRequest() const;
-    const MarkerRequest* getMarkerRequest() const;
+    const PortLifecycleRequest& getPortLifecycleRequest() const;
+    const WorkloadRequest& getWorkloadRequest() const;
+    const CPUUtilisationRequest& getCPUUtilisationRequest() const;
+    const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
+    const MarkerRequest& getMarkerRequest() const;
 
 private:
-    PortLifecycleRequest* portLifecycleRequest_ = 0;
-    WorkloadRequest* workloadRequest_ = 0;
-    CPUUtilisationRequest* cpuUtilisationRequest_ = 0;
-    MemoryUtilisationRequest* memoryUtilisationRequest_ = 0;
-    MarkerRequest* markerRequest_ = 0;
+    std::unique_ptr<PortLifecycleRequest> portLifecycleRequest_;
+    std::unique_ptr<WorkloadRequest> workloadRequest_;
+    std::unique_ptr<CPUUtilisationRequest> cpuUtilisationRequest_;
+    std::unique_ptr<MemoryUtilisationRequest> memoryUtilisationRequest_;
+    std::unique_ptr<MarkerRequest> markerRequest_;
 };
 
 #endif // REQUESTBUILDER_H
