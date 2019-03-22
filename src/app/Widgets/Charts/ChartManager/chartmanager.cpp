@@ -105,7 +105,7 @@ void ChartManager::requestEvents(const RequestBuilder& builder, const Experiment
     if (portLifecycleRequest) {
         requestPortLifecycleEvents(*portLifecycleRequest, experimentRun);
     }
-
+    
     const auto workloadRequest = builder.getWorkloadRequest();
     if (workloadRequest) {
         requestWorkloadEvents(*workloadRequest, experimentRun);
@@ -138,6 +138,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
     auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
+        qCritical() << "QFFQ";
         try {
             auto events = futureWatcher->result();
             if (events.isEmpty()) {
@@ -359,6 +360,7 @@ void ChartManager::experimentRunSelected(const ExperimentRun& experimentRun)
 
     connect(futureWatcher, &QFutureWatcher<ExperimentState>::finished, [=]() {
         try {
+            qCritical() << "HAS THIS FINISHED";
             // once the state is received, request the events for the selected experiment run
             experimentRunStateReceived(experimentRun, futureWatcher->result());
         } catch (const std::exception& ex) {
