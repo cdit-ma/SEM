@@ -186,8 +186,7 @@ void DeploymentManager::ProcessControlQueue(){
             auto start = std::chrono::steady_clock::now();
 
             auto type = control_message->type();
-            std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: Got: " << NodeManager::ControlMessage_Type_Name(type) << std::endl;
-            
+                
             switch(type){
                 case NodeManager::ControlMessage::CONFIGURE:
                 case NodeManager::ControlMessage::STARTUP:
@@ -214,16 +213,11 @@ void DeploymentManager::ProcessControlQueue(){
                     {
                         std::lock_guard<std::mutex> lock(container_mutex_);
                         
-                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: c.second->Terminate() STARTED " << std::endl;
                         for(const auto& c : deployment_containers_){
                             c.second->Terminate();
                         }
-                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: c.second->Terminate() Finished " << std::endl;
                         deployment_containers_.clear();
-                        std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: deployment_containers_.clear()" << std::endl;
                     }
-
-                    //Interupt and die
                     InteruptControlQueue();
                     break;
                 }
@@ -231,7 +225,7 @@ void DeploymentManager::ProcessControlQueue(){
                     break;
             }
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-            std::cout << "*[ " << ip_address_ << " | " << container_id_ << "]: " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " ms" << std::endl;
+            std::cout << "* " << NodeManager::ControlMessage_Type_Name(type) << " Deployment took: " << ms.count() << " ms" << std::endl;
         }
     }
 
