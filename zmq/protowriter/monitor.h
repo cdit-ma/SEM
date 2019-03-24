@@ -29,11 +29,13 @@
 namespace zmq{
     class ProtoWriter;
     class Monitor: public zmq::monitor_t{
+        typedef std::function<void(int, std::string)> EventCallbackFn;
+
         friend class ProtoWriter;
         public:
             Monitor(zmq::socket_t& socket);
             ~Monitor();
-            void RegisterEventCallback(const uint8_t& event_type, std::function<void(int, std::string)> fn);
+            void RegisterEventCallback(const uint8_t& event_type, EventCallbackFn fn);
         private:
             void MonitorThread(std::reference_wrapper<zmq::socket_t> socket, const int event_type);
             
@@ -53,7 +55,7 @@ namespace zmq{
             void on_event_unknown(const zmq_event_t &event, const char* addr);
 
             std::mutex callback_mutex_;
-            std::unordered_map< uint8_t, std::function<void(int, std::string)> > callbacks_;
+            std::unordered_map< uint8_t, EventCallbackFn > callbacks_;
             
             std::future<void> future_;
             std::atomic_bool abort_{false};

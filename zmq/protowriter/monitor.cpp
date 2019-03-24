@@ -35,7 +35,7 @@ zmq::Monitor::~Monitor(){
 }
 
 
-void zmq::Monitor::RegisterEventCallback(const uint8_t& event, std::function<void(int, std::string)> fn){
+void zmq::Monitor::RegisterEventCallback(const uint8_t& event, EventCallbackFn fn){
     std::lock_guard<std::mutex> lock(callback_mutex_);
     callbacks_[event] = fn;
 }
