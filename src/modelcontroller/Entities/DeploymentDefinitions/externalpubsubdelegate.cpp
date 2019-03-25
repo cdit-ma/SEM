@@ -45,6 +45,20 @@ MEDEA::ExternalPubSubDelegate::ExternalPubSubDelegate(EntityFactoryBroker& broke
 
     Data::LinkData(this, "middleware", in_, "middleware", true);
 
+    QSet<Node*> elements = {this, in_};
+    for(auto node : elements){
+        broker.AttachData(node, "dds_domain_id", QVariant::Int, ProtectedState::PROTECTED, 0);
+        broker.AttachData(node, "zmq_publisher_address", QVariant::String, ProtectedState::PROTECTED, "IP:PORT");
+        broker.AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::PROTECTED, "tcp://IP:PORT");
+        broker.AttachData(node, "topic_name", QVariant::String, ProtectedState::PROTECTED);
+    }
+
+    Data::LinkData(this, "dds_domain_id", in_, "dds_domain_id", true);
+    Data::LinkData(this, "zmq_publisher_address", in_, "zmq_publisher_address", true);
+    Data::LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
+    Data::LinkData(this, "topic_name", in_, "topic_name", true);
+
+
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
     connect(data_external, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
     
@@ -95,60 +109,27 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
     const auto& middleware = getDataValue("middleware").toString();
     const auto& external = getDataValue("blackbox").toBool();
 
-    QSet<QString> topic_middlewares = {"RTI", "OSPL", "QPID"};
+    static const QSet<QString> topic_middlewares{"RTI", "OSPL", "QPID"};
 
-    auto topic_key = getFactoryBroker().GetKey("topic_name", QVariant::String);
+    const auto dds_options_state =   (external && (middleware == "RTI" || middleware == "OSPL"))? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
+    const auto zmq_options_state =   (external && middleware == "ZMQ") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
+    const auto qpid_options_state =  (external && middleware == "QPID") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
+    const auto topic_options_state = topic_middlewares.contains(middleware) ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
 
-    QSet<Node*> elements = {this, in_};
+    getFactoryBroker().AttachData(this, "dds_domain_id", QVariant::Int, dds_options_state);
+    getFactoryBroker().AttachData(this, "zmq_publisher_address", QVariant::String, zmq_options_state);
+    getFactoryBroker().AttachData(this, "qpid_broker_address", QVariant::String, qpid_options_state);
+    getFactoryBroker().AttachData(this, "topic_name", QVariant::String, topic_options_state);
 
-    if(!topic_middlewares.contains(middleware)){
-        for(auto node : elements){
-            getFactoryBroker().RemoveData(node, "topic_name");
-        }
-    }else{
-        for(auto node : elements){
-            getFactoryBroker().AttachData(node, topic_key, ProtectedState::UNPROTECTED);
-        }
-        Data::LinkData(this, "topic_name", in_, "topic_name", true);
-    }
-    bool allow_inputs = true;
-
-    //Add Data
-    if(external){
-        if(middleware == "RTI" || middleware == "OSPL"){
-            for(auto node : elements){
-                getFactoryBroker().AttachData(node, "dds_domain_id", QVariant::Int, ProtectedState::UNPROTECTED, 0);
-                getFactoryBroker().RemoveData(node, "zmq_publisher_address");
-                getFactoryBroker().RemoveData(node, "qpid_broker");
-            }
-            Data::LinkData(this, "dds_domain_id", in_, "dds_domain_id", true);
-            
-        }else if(middleware == "ZMQ"){
-            for(auto node : elements){
-                getFactoryBroker().AttachData(node, "zmq_publisher_address", QVariant::String, ProtectedState::UNPROTECTED, "tcp://IP:PORT");
-                getFactoryBroker().RemoveData(node, "dds_domain_id");
-                getFactoryBroker().RemoveData(node, "qpid_broker");
-            }
-            allow_inputs = false;
-            Data::LinkData(this, "zmq_publisher_address", in_, "zmq_publisher_address", true);
-        }else if(middleware == "QPID"){
-            for(auto node : elements){
-                getFactoryBroker().AttachData(node, "qpid_broker", QVariant::String, ProtectedState::UNPROTECTED, "IP:PORT");
-                getFactoryBroker().RemoveData(node, "zmq_publisher_address");
-                getFactoryBroker().RemoveData(node, "dds_domain_id");
-            }
-            Data::LinkData(this, "qpid_broker", in_, "qpid_broker", true);
-        }
-    }else{
-        for(auto node : elements){
-            getFactoryBroker().RemoveData(node, "zmq_publisher_address");
-            getFactoryBroker().RemoveData(node, "dds_domain_id");
-            getFactoryBroker().RemoveData(node, "qpid_broker");
-        }
-    }
 
     getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
     getFactoryBroker().AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+
+
+    bool allow_inputs = true;
+    if(external && middleware == "ZMQ"){
+        allow_inputs = false;
+    }
 
     getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, true);
     getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, allow_inputs);
