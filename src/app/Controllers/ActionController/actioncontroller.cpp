@@ -769,7 +769,7 @@ void ActionController::setupActions()
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
-    model_queryRunningExperiments = createRootAction("Model", "Query Running Experiment", "", "Icons", "shieldTick");
+    model_queryRunningExperiments = createRootAction("Model", "Query Experiment", "", "Icons", "shieldTick");
     model_queryRunningExperiments->setToolTip("Query Running Experiments.");
     model_queryRunningExperiments->setShortcutContext(Qt::ApplicationShortcut);
     model_queryRunningExperiments->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
