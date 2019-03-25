@@ -17,6 +17,9 @@ public:
 
     void setPromiscuousDataLinker(bool set);
     void setMultipleDataProducer(bool receiver);
+    
+    void setGlobalScopedDataLinker(bool set);
+    bool isGlobalScopedDataLinker() const;
 
     void setDataProducer(bool producer);
     void setDataReceiver(bool receiver);
@@ -34,6 +37,7 @@ public:
 
     Node* getContainmentNode();
     Node* getChildOfContainmentNode();
+    Node* getTopContainmentNode();
 private:
     void updateType();
     void RunContainmentChecks();
@@ -44,6 +48,7 @@ private:
     bool _contained_in_function_call = false;
     bool _contained_in_aggregate_instance = false;
     Node* _containment_node = 0;
+    Node* _top_containment_node = 0;
     Node* _child_of_containment_node = 0;
 
     bool promiscuous_data_linker_ = false;
@@ -53,6 +58,8 @@ private:
     bool is_receiver_ = false;
     bool is_multiple_data_receiver_ = false;
     bool is_multiple_data_producer_ = true;
+
+    bool is_global_scoped_ = false;
 
 };
 

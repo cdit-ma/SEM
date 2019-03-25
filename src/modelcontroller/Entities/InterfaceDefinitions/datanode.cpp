@@ -86,6 +86,14 @@ bool DataNode::isMultipleDataProducer() const
     return is_multiple_data_producer_;
 }
 
+void DataNode::setGlobalScopedDataLinker(bool set){
+    is_global_scoped_ = set;
+}
+
+bool DataNode::isGlobalScopedDataLinker() const{
+    return is_global_scoped_;
+}
+
 
 bool DataNode::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
@@ -136,8 +144,15 @@ bool DataNode::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         if(!isPromiscuousDataLinker() && !data_node->isPromiscuousDataLinker()){
             auto source_containment_node = getContainmentNode();
             auto destination_containment_node = data_node->getContainmentNode();
-            
-            if(source_containment_node && destination_containment_node){
+
+            auto source_top_containment_node = getTopContainmentNode();
+            auto destination_top_containment_node = data_node->getTopContainmentNode();
+
+            if(isGlobalScopedDataLinker() || data_node->isGlobalScopedDataLinker()){
+                if(source_top_containment_node != destination_top_containment_node){
+                    return false;
+                }
+            }else if(source_containment_node && destination_containment_node){
                 auto source_contains_destination = source_containment_node->isAncestorOf(destination_containment_node);
 
                 if(source_contains_destination){
@@ -211,6 +226,12 @@ void DataNode::RunContainmentChecks(){
                 }
             }
 
+            if(!_top_containment_node){
+                if(parent_node->isNodeOfType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER)){
+                    _top_containment_node = parent_node;
+                }
+            }
+
             switch(parent_node->getNodeKind()){
                 case NODE_KIND::VARIABLE:{
                     _contained_in_variable = true;
@@ -243,6 +264,11 @@ void DataNode::RunContainmentChecks(){
 Node* DataNode::getContainmentNode(){
     RunContainmentChecks();
     return _containment_node;
+}
+
+Node* DataNode::getTopContainmentNode(){
+    RunContainmentChecks();
+    return _top_containment_node;
 }
 
 Node* DataNode::getChildOfContainmentNode(){
