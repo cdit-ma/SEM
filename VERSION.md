@@ -5,10 +5,6 @@
 * Chart queries can now be sent without having to waiting for previous reuqest responses
 * Added functionality that allows the user to trigger and filter chart data by kind by right-clicking on the aspects
 
-## Workers:
-
-## Tests:
-
 ## Bug Fixes:
 * Re-implemented the ability to query chart data by paths as graphml IDs may be inconsistent
 * Fixed chart popup hanging when there is an error with the connection to the Aggregation broker
