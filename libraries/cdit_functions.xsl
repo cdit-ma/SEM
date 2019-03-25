@@ -1851,6 +1851,7 @@
             <!-- Get all the Aggregates used by each deployed ComponentImpl -->
             <xsl:for-each select="graphml:get_deployed_component_instances($model)">
                 <xsl:sequence select="graphml:get_impl(.)"/>
+                <xsl:sequence select="graphml:get_definition(.)"/>
             </xsl:for-each>
             <xsl:sequence select="cdit:get_classes_to_build($model, $generate_all)" />
         </xsl:variable>
