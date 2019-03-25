@@ -5,20 +5,19 @@
 #include <iostream>
 
 BehaviourContainer::BehaviourContainer(Class c, const std::string& inst_name)
-:Activatable(c){
+: Activatable(c){
     set_name(inst_name);
 }
 
 BehaviourContainer::~BehaviourContainer(){
     Activatable::Terminate();
-    std::lock_guard<std::mutex> lock(worker_mutex_);
-    workers_.clear();
 }
 
 void BehaviourContainer::HandleActivate(){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    for(const auto& p : workers_){
-        auto& worker = p.second;
+    boost::shared_lock<boost::shared_mutex> lock{worker_mutex_};
+
+    for(const auto& w : workers_){
+        auto& worker = w.second;
         if(worker){
             worker->Activate();
         }
@@ -26,49 +25,53 @@ void BehaviourContainer::HandleActivate(){
     logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::ACTIVATED);
 }
 
-void BehaviourContainer::HandlePassivate(){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    
-    for(const auto& p : workers_){
-        auto& worker = p.second;
-        if(worker){
-            worker->Passivate(); 
-        }
-    }
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
-}
-
-void BehaviourContainer::HandleTerminate(){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    
-    for(const auto& p : workers_){
-        auto& worker = p.second;
-        if(worker){
-            worker->Terminate();
-        }
-    }
-    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
-}
-
 void BehaviourContainer::HandleConfigure(){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock{worker_mutex_};
     
-    for(const auto& p : workers_){
-        auto& worker = p.second;
+    for(const auto& w : workers_){
+        auto& worker = w.second;
         if(worker){
             worker->Configure();
         }
     }
+
     logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::CONFIGURED);
 }
 
+void BehaviourContainer::HandlePassivate(){
+    boost::shared_lock<boost::shared_mutex> lock{worker_mutex_};
+    
+    for(const auto& w : workers_){
+        auto& worker = w.second;
+        if(worker){
+            worker->Passivate();
+        }
+    }
+
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::PASSIVATED);
+}
+
+void BehaviourContainer::HandleTerminate(){
+    boost::shared_lock<boost::shared_mutex> lock{worker_mutex_};
+    
+    for(const auto& w : workers_){
+        auto& worker = w.second;
+        if(worker){
+            worker->Terminate();
+        }
+    }
+
+    logger().LogLifecycleEvent(*this, Logger::LifeCycleEvent::TERMINATED);
+}
+
+
 std::weak_ptr<Worker> BehaviourContainer::AddWorker(std::unique_ptr<Worker> worker){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
     if(worker){
+        boost::unique_lock<boost::shared_mutex> lock{worker_mutex_};
+
         const auto& worker_name = worker->get_name();
         if(workers_.count(worker_name) == 0){
-            workers_[worker_name] = std::move(worker);
-            return workers_[worker_name];
+            return workers_.emplace(worker_name, std::move(worker)).first->second;
         }else{
             std::cerr << "BehaviourContainer '" << get_name()  << "' already has a Worker with name '" << worker_name << "'" << std::endl;
         }
@@ -77,24 +80,24 @@ std::weak_ptr<Worker> BehaviourContainer::AddWorker(std::unique_ptr<Worker> work
 }
 
 std::weak_ptr<Worker> BehaviourContainer::GetWorker(const std::string& worker_name){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    if(workers_.count(worker_name)){
-        return workers_[worker_name];
+    boost::shared_lock<boost::shared_mutex> lock{worker_mutex_};
+    auto worker_itt = workers_.find(worker_name);
+    if(worker_itt != workers_.end()){
+        return worker_itt->second;
     }
-    std::cerr << "BehaviourContainer '" << get_name() << "' doesn't have a Worker with name '" << worker_name << "'" << std::endl;
     return std::weak_ptr<Worker>();
 }
 
 
 std::shared_ptr<Worker> BehaviourContainer::RemoveWorker(const std::string& worker_name){
-    std::lock_guard<std::mutex> worker_lock(worker_mutex_);
-    
-    if(workers_.count(worker_name)){
-        auto worker = workers_[worker_name];
-        workers_.erase(worker_name);
+    boost::unique_lock<boost::shared_mutex> lock{worker_mutex_};
+
+    auto worker_itt = workers_.find(worker_name);
+    if(worker_itt != workers_.end()){
+        auto worker = worker_itt->second;
+        workers_.erase(worker_itt);
         return worker;
     }
-
     std::cerr << "BehaviourContainer '" << get_name() << "' doesn't have a Worker with name '" << worker_name << "'" << std::endl;
     return std::shared_ptr<Worker>();
 }

@@ -1,9 +1,6 @@
-#ifndef ID_GENERATOR_H
-#define ID_GENERATOR_H
+#pragma once
+#include <cstdint>
 
-class IdGenerator{
-    public: 
-         static int get_next_id();
+namespace IdGenerator{
+    uint64_t get_next_id();
 };
-
-#endif //ID_GENERATOR_H

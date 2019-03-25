@@ -157,9 +157,3 @@ INSTANTIATE_TEST_CASE_P(LONG_4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getT
 INSTANTIATE_TEST_CASE_P(LONG_8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
 INSTANTIATE_TEST_CASE_P(LONG_16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
 INSTANTIATE_TEST_CASE_P(LONG_32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
-
-int main(int ac, char* av[])
-{
-    testing::InitGoogleTest(&ac, av);
-    return RUN_ALL_TESTS();
-}

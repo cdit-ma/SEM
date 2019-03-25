@@ -5,7 +5,7 @@
 #include "../../base/pubsubtests.hpp"
 
 // Include the proto convert functions for the port type
-#include "../../proto/basic.pb.h"
+#include "basic.pb.h"
 
 #include <core/ports/libportexport.h>
 #include <middleware/zmq/pubsub/publisherport.hpp>
@@ -152,4 +152,68 @@ TEST(zmq_PubSub, Basic_Terminate){
     EXPECT_TRUE(setup_sub_port(sub_port, port_number));
 
     RunTest(pub_port, sub_port, rx_callback_count);
+}
+
+#include <proto/controlmessage/controlmessage.pb.h>
+#include <nodemanager/deploymentcontainer.h>
+
+TEST(zmq_PubSub, Deadlock){
+    using namespace ::PubSub::Basic::Terminate;
+
+    //Define the base types
+    using base_type = Base::Basic;
+    using mw_type = ::Basic;
+
+    auto test_name = get_long_test_name();
+    
+    auto rx_callback_count = 0;
+    std::unique_ptr<Component> c = std::unique_ptr<Component>(new Component("c_" + test_name));
+    auto& component = *c;
+
+    //Define a callback wrapper
+    CallbackWrapper<void, base_type> callback_wrapper([&](base_type& m){
+        sleep_ms(500);
+        auto p_port = component.SafeGetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
+        if(p_port){
+            p_port->Send(m);
+        }
+    });
+    
+    DeploymentContainer container("test", "host", ".");
+
+    {
+        auto component_sptr = container.AddComponent(std::move(c), "c_" + test_name).lock();
+        
+        auto pub_port = std::unique_ptr<zmq::PublisherPort<base_type, mw_type>>(new zmq::PublisherPort<base_type, mw_type>(component_sptr, "tx_" + test_name));
+        auto sub_port = std::unique_ptr<zmq::SubscriberPort<base_type, mw_type>>(new zmq::SubscriberPort<base_type, mw_type>(component_sptr, "rx_" + test_name, callback_wrapper));
+    
+        auto port_number = ++port_id;
+        EXPECT_TRUE(setup_pub_port(*pub_port, port_number));
+        EXPECT_TRUE(setup_sub_port(*sub_port, port_number));
+
+        component_sptr->AddPort(std::move(pub_port));
+        component_sptr->AddPort(std::move(sub_port));
+
+        //Attach a Logan
+        std::string id{"logan_id"};
+        auto logan_client = std::unique_ptr<LoganClient>(new LoganClient(id));
+        logan_client->SetEndpoint("127.0.0.1", std::to_string(++port_id));
+        logan_client->SetFrequency(1);
+        logan_client->SetLiveMode(false);
+        container.AddLoganClient(std::move(logan_client), id);
+    }
+
+    EXPECT_TRUE(((Activatable&)container).Configure());
+    EXPECT_TRUE(container.Activate());
+
+    sleep_ms(500);
+    {
+        Base::Basic b;
+        auto p_port = component.GetTypedPort<PublisherPort<base_type>>("tx_" + test_name);
+        p_port->Send(b);
+    }
+    sleep_ms(1000);
+
+    EXPECT_TRUE(container.Passivate());
+    EXPECT_TRUE(container.Terminate());
 }

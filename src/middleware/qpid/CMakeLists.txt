@@ -1,4 +1,3 @@
-
 set(PROJ_NAME qpid_helper)
 project (${PROJ_NAME})
 
@@ -9,15 +8,14 @@ if(NOT QPID_FOUND)
     return()
 endif()
 
-set(SOURCE
+add_library(${PROJ_NAME} SHARED "")
+
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.cpp
-    )
-
-set(HEADERS
+    # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.h
-    )
-
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${QPID_INCLUDE_DIRS})

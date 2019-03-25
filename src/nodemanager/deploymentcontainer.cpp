@@ -23,11 +23,16 @@ std::string to_lower(std::string str){
     return str;
 }
 
-DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path):
     Activatable(Activatable::Class::DEPLOYMENT_CONTAINER),
     experiment_name_(experiment_name),
     library_path_(library_path),
-    host_name_(host_name)
+    host_name_(host_name){
+
+}
+
+DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
+    DeploymentContainer(experiment_name, host_name, library_path)
 {
     Configure(container);
 }
@@ -48,6 +53,12 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<C
         }
     }
     return nullptr;
+}
+
+void DeploymentContainer::AddLoganLogger(std::unique_ptr<Logan::Logger> logan_logger){
+    if(!logan_logger_){
+        logan_logger_ = std::move(logan_logger);
+    }
 }
 
 void DeploymentContainer::Configure(const NodeManager::Container& container){
@@ -157,7 +168,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
         for(const auto& port_pb : component_pb.ports()){
             auto port = GetConfiguredPort(component, port_pb);
             try{
-                if(port->get_state() != Activatable::State::NOT_CONFIGURED){
+                if(port->get_state() != StateMachine::State::NOT_CONFIGURED){
                     //Terminate and reactivate?
                     std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
                     port->Terminate();

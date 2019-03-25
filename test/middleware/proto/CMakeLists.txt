@@ -1,31 +1,29 @@
-#Set our project names
 set(PROJ_NAME lib_test_basic_proto)
 project(${PROJ_NAME})
 
 #Find protobuf
 find_package(Protobuf REQUIRED)
 
-
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/basic.proto)
 
+add_library(${PROJ_NAME} SHARED "")
 
-SET(SOURCE
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
 )
 
-add_library(${PROJ_NAME} STATIC ${HEADER} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
-
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_SOURCE_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if(MSVC)
-    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${PROJ_NAME} PUBLIC -DPROTOBUF_USE_DLLS)
 elseif(UNIX)
-    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
+    target_link_libraries(${PROJ_NAME} PUBLIC pthread)
 endif()
 
-target_link_libraries(${PROJ_NAME} PRIVATE re_core)
-
-target_link_libraries(${PROJ_NAME} PRIVATE ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PUBLIC re_core)
+target_link_libraries(${PROJ_NAME} PUBLIC ${PROTOBUF_LIBRARIES})

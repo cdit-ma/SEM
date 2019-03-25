@@ -1,16 +1,12 @@
-cmake_minimum_required (VERSION 2.6)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
 set(PROJ_NAME "re_environment_manager")
 project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-set(SOURCE
+add_executable(${PROJ_NAME} "")
+
+target_sources(${PROJ_NAME} PRIVATE
+    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/container.cpp
@@ -29,9 +25,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
-    )
-
-set(HEADERS
+    
+    # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
     ${CMAKE_CURRENT_SOURCE_DIR}/container.h
@@ -49,18 +44,13 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ports/zmqport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
     ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-    )
+)
 
 # Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
-
 # Compile Definitions
-target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
-
-# Include Directories
-target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Link Libraries

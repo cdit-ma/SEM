@@ -5,13 +5,12 @@
 #include "../../base/reqreptests.hpp"
 
 // Include the proto convert functions for the port type
-#include "../../proto/basic.pb.h"
+#include "basic.pb.h"
 
 #include <core/ports/libportexport.h>
 #include <middleware/qpid/requestreply/replierport.hpp>
 #include <middleware/qpid/requestreply/requesterport.hpp>
 
-//Include main and env passing magic
 #include "../../../core/test_main.h"
 
 bool setup_port(Port& port, const std::string& topic_name){

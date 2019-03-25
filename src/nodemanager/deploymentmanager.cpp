@@ -186,7 +186,7 @@ void DeploymentManager::ProcessControlQueue(){
             auto start = std::chrono::steady_clock::now();
 
             auto type = control_message->type();
-            
+                
             switch(type){
                 case NodeManager::ControlMessage::CONFIGURE:
                 case NodeManager::ControlMessage::STARTUP:
@@ -212,13 +212,12 @@ void DeploymentManager::ProcessControlQueue(){
                 case NodeManager::ControlMessage::TERMINATE:{
                     {
                         std::lock_guard<std::mutex> lock(container_mutex_);
+                        
                         for(const auto& c : deployment_containers_){
                             c.second->Terminate();
                         }
                         deployment_containers_.clear();
                     }
-                    
-                    //Interupt and die
                     InteruptControlQueue();
                     break;
                 }

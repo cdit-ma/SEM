@@ -1,5 +1,6 @@
 #include "loganclient.h"
 #include <client/logcontroller.h>
+#include <iostream>
 
 LoganClient::LoganClient(const std::string& id){
     set_name(id);
@@ -8,6 +9,7 @@ LoganClient::LoganClient(const std::string& id){
 
 LoganClient::~LoganClient(){
     Activatable::Terminate();
+    logan_client_.reset();
 }
 
 void LoganClient::HandleActivate(){

@@ -1,14 +1,13 @@
-set(PROJ_NAME test_cpuworker)
+set(PROJ_NAME test_statemachine)
 project(${PROJ_NAME})
-
 
 add_executable(${PROJ_NAME} "")
 
 target_sources(${PROJ_NAME} PRIVATE
-    # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
 )
 
-target_link_libraries(${PROJ_NAME} PRIVATE cpu_worker)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core)
+target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)

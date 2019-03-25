@@ -126,9 +126,3 @@ TEST(AttributeTests, StringTests){
     EXPECT_ANY_THROW(a.Value<char>());
     EXPECT_ANY_THROW(a.Value<std::vector<std::string>>());
 }
-
-int main(int ac, char* av[])
-{
-    testing::InitGoogleTest(&ac, av);
-    return RUN_ALL_TESTS();
-}

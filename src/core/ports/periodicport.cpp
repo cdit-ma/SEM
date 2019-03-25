@@ -102,9 +102,11 @@ void PeriodicPort::HandleTerminate(){
 };
 
 void PeriodicPort::InterruptLoop(){
-    //Wake up the threads sleep
-    std::lock_guard<std::mutex> lock(tick_mutex_);
-    interupt_ = true;
+    {
+        //Wake up the threads sleep
+        std::lock_guard<std::mutex> lock(tick_mutex_);
+        interupt_ = true;
+    }
     tick_condition_.notify_all();
 }
 
@@ -125,10 +127,7 @@ void PeriodicPort::TickLoop(){
                     tick_condition_.wait(lock, [this]{return interupt_;});
                 }else{
                     //Get 1 second in microseconds
-                    double us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(1)).count();
-                    int sleep_us = std::floor(us / frequency);
-                    
-                    auto duration = std::chrono::microseconds(sleep_us);
+                    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(1)) / frequency;
                     tick_condition_.wait_for(lock, duration, [this]{return interupt_;});
                 }
 
