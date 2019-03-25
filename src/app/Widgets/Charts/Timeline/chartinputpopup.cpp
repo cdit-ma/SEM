@@ -174,7 +174,6 @@ void ChartInputPopup::accept()
     if (selectedExperimentRunID_ != -1) {
         emit selectedExperimentRun(selectedExperimentRun_);
     }
-
     PopupWidget::accept();
     resetPopup();
 }
@@ -442,8 +441,8 @@ void ChartInputPopup::setupLayout()
     experimentNameLineEdit_->setCompleter(experimentsCompleter_);
 
     connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=] (const QString& text) {
-        //qDebug() << "Text edited: " << text;
         typedExperimentName_ = text;
+        experimentNameChanged(text);
     });
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
