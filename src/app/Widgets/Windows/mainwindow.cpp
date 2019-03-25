@@ -468,9 +468,9 @@ void MainWindow::setupInnerWindow()
 
 
     // TESTING INNER DOCK WIDGETS
+    /*
     dockwidget_Interfaces->req_Visible(dockwidget_Interfaces->getID(), false);
     dockwidget_Hardware->req_Visible(dockwidget_Hardware->getID(), false);
-    /*
     WindowManager::manager()->constructInnerDockWidget(view_controller, dockwidget_Behaviour, "Inner Dock Widget");
     dockwidget_Assemblies->req_Visible(dockwidget_Assemblies->getID(), false);
     */
