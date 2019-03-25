@@ -2,6 +2,7 @@
 #include "containernode.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
+#include "../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::PORT_PERIODIC;
 const QString kind_string = "Periodic Port";
@@ -27,12 +28,14 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
         return;
     }
 
-    auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE);
+    auto frequency = (DataNode*)broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE);
     broker.AttachData(frequency, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
     broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsed");
     broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Frequency");
     broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+
+    frequency->setGlobalScopedDataLinker(true);
 }
 
 bool PeriodicEvent::canAdoptChild(Node* child)
