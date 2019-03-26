@@ -174,7 +174,6 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfo::GetSystemInfo(const int list
     for(int i = 0; i < interface_count; i++){ 
         if(get_interface_state(i, SystemInfo::InterfaceState::UP)){
             auto interface_info = system_info->add_interface_info();
-
             //get onetime info
             interface_info->set_name(get_interface_name(i));            
             interface_info->set_type(get_interface_type(i));

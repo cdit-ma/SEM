@@ -350,39 +350,39 @@ bool SigarSystemInfo::get_interface_state(const int interface_index, SystemInfo:
     return false;
 }
 
-int64_t SigarSystemInfo::get_interface_rx_packets(const int interface_index) const{
+uint64_t SigarSystemInfo::get_interface_rx_packets(const int interface_index) const{
     if(interface_index < get_interface_count()){
         return interfaces_[interface_index].stats.rx_packets;
     }
-    return -1;
+    return 0;
 }
 
-int64_t SigarSystemInfo::get_interface_rx_bytes(const int interface_index) const{
+uint64_t SigarSystemInfo::get_interface_rx_bytes(const int interface_index) const{
     if(interface_index < get_interface_count()){
         return interfaces_[interface_index].stats.rx_bytes;
     }
-    return -1;
+    return 0;
 }
 
-int64_t SigarSystemInfo::get_interface_tx_packets(const int interface_index) const{
+uint64_t SigarSystemInfo::get_interface_tx_packets(const int interface_index) const{
     if(interface_index < get_interface_count()){
         return interfaces_[interface_index].stats.tx_packets;
     }
-    return -1;
+    return 0;
 }
 
-int64_t SigarSystemInfo::get_interface_tx_bytes(const int interface_index) const{
+uint64_t SigarSystemInfo::get_interface_tx_bytes(const int interface_index) const{
     if(interface_index < get_interface_count()){
         return interfaces_[interface_index].stats.tx_bytes;
     }
-    return -1;
+    return 0;
 }
 
-int64_t SigarSystemInfo::get_interface_speed(const int interface_index) const{
+uint64_t SigarSystemInfo::get_interface_speed(const int interface_index) const{
     if(interface_index < get_interface_count()){
         return interfaces_[interface_index].stats.speed;
     }
-    return -1;
+    return 0;
 }
 
 

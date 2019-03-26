@@ -43,7 +43,7 @@ int TableInsert::GetFieldIndex(const std::string& field){
 
 int TableInsert::BindString(const std::string& field, const std::string& val){
     const auto& id = GetFieldIndex(field);
-    
+        
     if(val.size()){
         //SQLITE_TRANSIENT = Copy straight away
         return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
@@ -53,8 +53,8 @@ int TableInsert::BindString(const std::string& field, const std::string& val){
 }
 
 int TableInsert::BindInt(const std::string& field, const int64_t& val){
-    const auto& id = GetFieldIndex(field);
-    return sqlite3_bind_int(stmt_, id, val);
+    const auto& id = GetFieldIndex(field); 
+    return sqlite3_bind_int64(stmt_, id, val);
 }
 
 int TableInsert::BindDouble(const std::string& field, const double& val){

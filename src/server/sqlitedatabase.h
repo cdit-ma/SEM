@@ -40,12 +40,12 @@ class SQLiteDatabase{
         //void QueueSqlStatement(sqlite3_stmt * statement);
         void ExecuteSqlStatement(sqlite3_stmt& statement, bool flush = false);
         size_t Flush();
+        sqlite3* GetDatabase();
     private:
         size_t Flush_();
         sqlite3* database_ = 0;
         
         std::mutex mutex_;
         size_t transaction_count_ = 0;
-        std::queue<sqlite3_stmt*> sql_queue_;
 };
 #endif //SQLITEDATABASE_H

@@ -73,12 +73,11 @@ class SigarSystemInfo: public SystemInfo{
         std::string get_interface_mac(const int interface_index) const;
         bool get_interface_state(const int interface_index, SystemInfo::InterfaceState state) const;
 
-        int64_t get_interface_rx_packets(const int interface_index) const;
-        int64_t get_interface_rx_bytes(const int interface_index) const;
-        int64_t get_interface_tx_packets(const int interface_index) const;
-        int64_t get_interface_tx_bytes(const int interface_index) const;
-        
-        int64_t get_interface_speed(const int interface_index) const;
+        uint64_t get_interface_rx_packets(const int interface_index) const;
+        uint64_t get_interface_rx_bytes(const int interface_index) const;
+        uint64_t get_interface_tx_packets(const int interface_index) const;
+        uint64_t get_interface_tx_bytes(const int interface_index) const;
+        uint64_t get_interface_speed(const int interface_index) const;
         
 
         std::set<int> get_process_pids() const;
