@@ -417,11 +417,14 @@ void ChartInputPopup::setupLayout()
     experimentsModel_ = new QStringListModel(this);
     experimentsCompleter_ = new QCompleter(this);
     experimentsCompleter_->setModel(experimentsModel_);
-    //experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
     experimentsCompleter_->setFilterMode(Qt::MatchContains);
     experimentsCompleter_->setCaseSensitivity(Qt::CaseInsensitive);
     experimentsCompleter_->popup()->setFont(QFont(font().family(), 10));
     experimentsCompleter_->popup()->installEventFilter(this);
+
+    //experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    // the line below makes it crash but the line above is fine - why???
+    //experimentsCompleter_->setCompletionMode(QCompleter::InlineCompletion);
 
     connect(experimentsCompleter_, static_cast<void(QCompleter::*)(const QString &)>(&QCompleter::activated),
         [=](const QString &text){ experimentNameActivated(text);
@@ -442,7 +445,9 @@ void ChartInputPopup::setupLayout()
 
     connect(experimentNameLineEdit_, &QLineEdit::textEdited, [=] (const QString& text) {
         typedExperimentName_ = text;
-        experimentNameChanged(text);
+    });
+    connect(experimentNameLineEdit_, &QLineEdit::returnPressed, [=]() {
+        experimentNameChanged(typedExperimentName_);
     });
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
