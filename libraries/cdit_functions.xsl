@@ -1515,14 +1515,15 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:get_qualified_cpp_var_type" as="xs:string">
+    <xsl:function name="cdit:get_qualified_cpp_var_type" as="xs:string?">
         <xsl:param name="type" as="xs:string"/>
-        <xsl:param name="label" as="xs:string"/>
+        <xsl:param name="label" as="xs:string?"/>
         <xsl:param name="modifier" as="xs:string"/>
 
         <xsl:variable name="modifier_uc" select="upper-case($modifier)" />
-
         <xsl:choose>
+            <!-- Ignore void types -->
+            <xsl:when test="$type = 'void'" />
             <xsl:when test="$modifier_uc = 'VALUE'">
                 <xsl:value-of select="cpp:var_def($type, $label)" />
             </xsl:when>
@@ -1579,7 +1580,7 @@
                     </xsl:choose>
                 </xsl:variable>
 
-                <xsl:value-of select="cdit:get_qualified_cpp_var_type($cpp_type, $var_label, $var_modifier)" />
+                <xsl:sequence select="cdit:get_qualified_cpp_var_type($cpp_type, $var_label, $var_modifier)" />
             </xsl:for-each>
         </xsl:variable>
         <xsl:sequence select="cpp:join_args($resolved_args)" />
