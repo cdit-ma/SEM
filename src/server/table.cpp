@@ -129,7 +129,6 @@ void Table::Finalize(){
         top_ss << ") ";
         bottom_ss << ");";
         table_insert_ = top_ss.str() + bottom_ss.str();
-        
         }
     }
 }

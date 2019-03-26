@@ -100,6 +100,10 @@ void SQLiteDatabase::ExecuteSqlStatement(sqlite3_stmt& statement, bool flush){
     }
 }
 
+sqlite3* SQLiteDatabase::GetDatabase(){
+    return database_;
+}
+
 size_t SQLiteDatabase::Flush(){
     //Gain the mutex and flush
     std::unique_lock<std::mutex> lock(mutex_);

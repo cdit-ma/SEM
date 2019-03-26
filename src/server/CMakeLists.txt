@@ -45,6 +45,8 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} PUBLIC dl)
 endif()
 
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
