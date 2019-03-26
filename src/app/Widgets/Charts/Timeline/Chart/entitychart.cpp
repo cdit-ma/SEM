@@ -41,13 +41,6 @@ EntityChart::EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QW
     dataMinY_ = DBL_MAX;
     dataMaxY_ = DBL_MIN;
 
-    /*
-    //_color_s_state = 35;
-    _color_s_state = 50;
-    _color_s_notification = 100;
-    _color_s_line = 200;
-    */
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
     themeChanged();
 }
@@ -490,8 +483,10 @@ void EntityChart::paintEvent(QPaintEvent* event)
     painter.drawLine(0, height(), rect().right(), height());
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES)
-        qDebug() << "Total Series Render Took: " << finish - start << "MS.";
+    if (PRINT_RENDER_TIMES) {
+        qDebug() << "Total Render Took: " << finish - start << "MS.";
+        qDebug() << "------------------------------------------------";
+    }
 }
 
 
@@ -539,7 +534,7 @@ namespace AggServerResponse{
     inline uint qHash(const LifecycleType& key, uint seed)
     {
         return ::qHash(static_cast<uint>(key), seed);
-    };
+    }
 }
 
 
@@ -552,6 +547,8 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE, 0);
     if (!eventSeries)
         return;
+
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
@@ -642,6 +639,10 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "PORT Render Took: " << finish - start << "MS.";
 }
 
 
@@ -654,6 +655,8 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::WORKLOAD, 0);
     if (!eventSeries)
         return;
+
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
@@ -744,6 +747,10 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
             painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
         }
     }
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "WORKLOAD Render Took: " << finish - start << "MS.";
 }
 
 
@@ -756,6 +763,8 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
     if (!eventSeries)
          return;
+
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     const auto& events = eventSeries->getEvents();
     if  (events.isEmpty())
@@ -912,6 +921,10 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
      }
 
      painter.setRenderHint(QPainter::Antialiasing, false);
+
+     auto finish = QDateTime::currentMSecsSinceEpoch();
+     if (PRINT_RENDER_TIMES)
+         qDebug() << "CPU Render Took: " << finish - start << "MS.";
 }
 
 
@@ -924,6 +937,8 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
     if (!eventSeries)
          return;
+
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     const auto& events = eventSeries->getEvents();
     if  (events.isEmpty())
@@ -1080,6 +1095,10 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
      }
 
      painter.setRenderHint(QPainter::Antialiasing, false);
+
+     auto finish = QDateTime::currentMSecsSinceEpoch();
+     if (PRINT_RENDER_TIMES)
+         qDebug() << "MEMORY Render Took: " << finish - start << "MS.";
 }
 
 
@@ -1092,6 +1111,8 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
     if (!eventSeries)
         return;
+
+    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double binWidth = BIN_WIDTH;
     double binCount = ceil((double)width() / binWidth);
@@ -1198,6 +1219,10 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
             painter.drawRect(rect);
         }
     }
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "MARKER Render Took: " << finish - start << "MS.";
 }
 
 
