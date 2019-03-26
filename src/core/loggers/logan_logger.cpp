@@ -16,7 +16,7 @@ void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_container_name(logger.GetContainerName());
     info.set_container_id(logger.GetContainerId());
     using namespace google::protobuf::util;
-    auto timestamp = TimeUtil::MillisecondsToTimestamp(logger.GetCurrentTime().count());
+    auto timestamp = TimeUtil::MicrosecondsToTimestamp(logger.GetCurrentTime().count());
     info.mutable_timestamp()->Swap(&timestamp);
 }
 
