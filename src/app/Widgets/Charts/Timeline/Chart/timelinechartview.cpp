@@ -876,7 +876,7 @@ void TimelineChartView::removedDataFromExperimentRun(const quint32 experimentRun
     // recalculate the longest experiment run duration and the total range
     auto min = INT64_MAX;
     auto max = INT64_MIN;
-    auto updateLongestDuration = experimentRunID != longestExperimentRunDuration_.first;
+    bool updateLongestDuration = (experimentRunID == longestExperimentRunDuration_.first);
     if (updateLongestDuration) {
         longestExperimentRunDuration_.second = INT64_MIN;
     }
