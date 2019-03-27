@@ -18,7 +18,7 @@
 #define BIN_WIDTH 22.0
 #define POINT_WIDTH 8.0
 
-#define PRINT_RENDER_TIMES false
+#define PRINT_RENDER_TIMES true
 
 
 /**
@@ -65,7 +65,7 @@ void EntityChart::addSeries(MEDEA::EventSeries* series)
     if (series) {
         seriesList_[series->getKind()] = series;
         if (series->getKind() == TIMELINE_DATA_KIND::CPU_UTILISATION ||
-            series->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+                series->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
             containsYRange_ = true;
         }
         connect(series, &MEDEA::EventSeries::minYValueChanged, this, &EntityChart::updateVerticalMin);
@@ -304,7 +304,7 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     markerSeriesOpacity_ = alpha;
 
     switch (kind) {
-        break;
+    break;
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
         portSeriesOpacity_ = 1.0;
@@ -525,16 +525,16 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 
 
 namespace AggServerResponse{
-    /**
+/**
      * @brief qHash
      * @param key
      * @param seed
      * @return
      */
-    inline uint qHash(const LifecycleType& key, uint seed)
-    {
-        return ::qHash(static_cast<uint>(key), seed);
-    }
+inline uint qHash(const LifecycleType& key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 }
 
 
@@ -760,9 +760,9 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
  */
 void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
+    MEDEA:: EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
     if (!eventSeries)
-         return;
+        return;
 
     auto start = QDateTime::currentMSecsSinceEpoch();
 
@@ -770,87 +770,78 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
     if  (events.isEmpty())
         return;
 
-     double barWidth = POINT_WIDTH;
-     double barCount = ceil((double)width() / barWidth);
-     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double barWidth = POINT_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
 
-     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-     barWidth = (double) width() / barCount;
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
 
-     auto firstEventItr = events.constBegin();
-     auto lastEventItr = events.constEnd();
-     auto firstItrSet = false;
+    // get the iterators to the left and right of the display range
+    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const MEDEA::Event* e, const qint64 &time) {
+        return e->getTimeMS() < time;
+    });
+    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const MEDEA::Event* e) {
+        return time < e->getTimeMS();
+    });
 
-     // get the event iterators to the left and right of the display range
-     for (auto current = events.constBegin(); current != events.constEnd(); current++) {
-         const auto& current_time = (*current)->getTimeMS();
-         if (!firstItrSet && (current_time > displayMin_)) {
-             firstEventItr = current == events.constBegin() ? current : current - 1;
-             firstItrSet = true;
-         }
-         if (current_time >= displayMax_) {
-             lastEventItr = current;
-             break;
-         }
-     }
+    if (firstEventItr != events.constBegin()) {
+        firstEventItr -= 1;
+    }
 
-     auto prevBarCount = 0.0;
-     if (firstEventItr != events.constEnd()) {
-         prevBarCount = ceil((displayMin_ - ((CPUUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
-     }
-     auto postBarCount = 0.0;
-     if (lastEventItr != events.constEnd()) {
-         postBarCount = ceil((((CPUUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
-     }
+    auto prevBarCount = 0.0;
+    if (firstEventItr != events.constEnd()) {
+        prevBarCount = ceil((displayMin_ - (*firstEventItr)->getTimeMS()) / barTimeWidth);
+    }
+    auto postBarCount = 0.0;
+    if (lastEventItr != events.constEnd()) {
+        postBarCount = ceil(((*lastEventItr)->getTimeMS() - displayMax_) / barTimeWidth);
+    }
 
-     // get the iterator of the leftmost event up to the first bin that contributes to drawing
-     auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
-     auto first_contributing_event = firstEventItr;
-     while (first_contributing_event != events.constBegin()) {
-         const auto& current_time = (*first_contributing_event)->getTimeMS();
-         // Keep going until we overshoot, then move back if we can
-         if (current_time < firstEndTime) {
-             if (first_contributing_event != events.constEnd()) {
-                first_contributing_event++;
-                break;
-             }
-         }
-         first_contributing_event--;
-     }
+    // get the iterator of the leftmost event up to the first bin that contributes to drawing
+    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+    auto first_contributing_event = firstEventItr;
+    for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
+        const auto& current_time = (*first_contributing_event)->getTimeMS();
+        // keep going until we overshoot, then move back if we can
+        if (current_time < firstEndTime) {
+            first_contributing_event++;
+            break;
+        }
+    }
 
-     // get the iterator of the rightmost event up to the last bin that contributes to drawing
-     auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
-     auto last_contributing_event = lastEventItr;
-     while (last_contributing_event != events.constEnd()) {
-         const auto& current_time = (*last_contributing_event)->getTimeMS();
-         // keep going until we overshoot, then move back if we can
-         if (current_time >= lastEndTime) {
-             if (last_contributing_event != events.constBegin()) {
+    // get the iterator of the rightmost event up to the last bin that contributes to drawing
+    auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+    auto last_contributing_event = lastEventItr;
+    for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
+        const auto& current_time = (*last_contributing_event)->getTimeMS();
+        // keep going until we overshoot, then move back if we can
+        if (current_time >= lastEndTime) {
+            if (last_contributing_event != events.constBegin()) {
                 last_contributing_event--;
                 break;
-             }
-         }
-         last_contributing_event++;
-     }
+            }
+        }
+    }
 
-     auto totalBarCount = prevBarCount + barCount + postBarCount;
-     auto currentLeft = firstEndTime;
+    auto totalBarCount = prevBarCount + barCount + postBarCount;
+    auto currentLeft = firstEndTime;
 
-     QVector< QList<CPUUtilisationEvent*> > buckets(totalBarCount);
-     QVector<double> bucketEndTimes;
-     bucketEndTimes.reserve(totalBarCount);
+    QVector< QList<CPUUtilisationEvent*> > buckets(totalBarCount);
+    QVector<double> bucketEndTimes;
+    bucketEndTimes.reserve(totalBarCount);
 
-     // calculate the bucket end times
-     for (int i = 0; i < totalBarCount; i++) {
-         bucketEndTimes.append(currentLeft + barTimeWidth);
-         currentLeft = bucketEndTimes.last();
-     }
+    // calculate the bucket end times
+    for (int i = 0; i < totalBarCount; i++) {
+        bucketEndTimes.append(currentLeft + barTimeWidth);
+        currentLeft = bucketEndTimes.last();
+    }
 
-     auto currentBucketIndex = 0;
-     auto currentBucketItr = bucketEndTimes.constBegin();
-     auto endBucketItr = bucketEndTimes.constEnd();
+    auto currentBucketIndex = 0;
+    auto currentBucketItr = bucketEndTimes.constBegin();
+    auto endBucketItr = bucketEndTimes.constEnd();
 
-     // put the data in the correct bucket
+    // put the data in the correct bucket
     while (first_contributing_event != events.constEnd()) {
         auto event = (CPUUtilisationEvent*)(*first_contributing_event);
         const auto& currentTime = event->getTimeMS();
@@ -871,60 +862,62 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
         first_contributing_event++;
     }
 
-     auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
-     auto seriesColor = utilisationColor_;
-     QList<QRectF> rects;
+    return;
 
-     for (int i = 0; i < totalBarCount; i++) {
-         int count = buckets[i].count();
-         if (count == 0)
-             continue;
+    auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
+    auto seriesColor = utilisationColor_;
+    QList<QRectF> rects;
 
-         // calculate the bucket's average utilisation
-         auto utilisation = 0.0;
-         for (auto e : buckets[i]) {
-             utilisation += e->getUtilisation();
-         }
-         utilisation /= count;
+    for (int i = 0; i < totalBarCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
 
-         double y = (1 - utilisation) * availableHeight;
-         double x = (i - prevBarCount) * barWidth;
-         QRectF rect(x, y, barWidth, barWidth);
-         rects.append(rect);
-     }
+        // calculate the bucket's average utilisation
+        auto utilisation = 0.0;
+        for (auto e : buckets[i]) {
+            utilisation += e->getUtilisation();
+        }
+        utilisation /= count;
 
-     if (rects.isEmpty())
-         return;
+        double y = (1 - utilisation) * availableHeight;
+        double x = (i - prevBarCount) * barWidth;
+        QRectF rect(x, y, barWidth, barWidth);
+        rects.append(rect);
+    }
 
-     QPen linePen(seriesColor, 3.0);
-     painter.setRenderHint(QPainter::Antialiasing, true);
-     painter.setOpacity(cpuSeriesOpacity_);
-     painter.setPen(defaultEllipsePen_);
-     painter.setBrush(seriesColor);
+    if (rects.isEmpty())
+        return;
 
-     if (rects.size() == 1) {
-         auto rect = rects.first();
-         painter.drawEllipse(rect);
-         rectHovered(eventSeries->getKind(), rect);
-     } else {
-         for (int i = 1; i < rects.count(); i++) {
-             auto rect1 = rects.at(i - 1);
-             auto rect2 = rects.at(i);
-             painter.setPen(linePen);
-             painter.drawLine(rect1.center(), rect2.center());
-             painter.setPen(defaultEllipsePen_);
-             painter.drawEllipse(rect1);
-             painter.drawEllipse(rect2);
-             rectHovered(eventSeries->getKind(), rect1);
-             rectHovered(eventSeries->getKind(), rect2);
-         }
-     }
+    QPen linePen(seriesColor, 3.0);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setOpacity(cpuSeriesOpacity_);
+    painter.setPen(defaultEllipsePen_);
+    painter.setBrush(seriesColor);
 
-     painter.setRenderHint(QPainter::Antialiasing, false);
+    if (rects.size() == 1) {
+        auto rect = rects.first();
+        painter.drawEllipse(rect);
+        rectHovered(eventSeries->getKind(), rect);
+    } else {
+        for (int i = 1; i < rects.count(); i++) {
+            auto rect1 = rects.at(i - 1);
+            auto rect2 = rects.at(i);
+            painter.setPen(linePen);
+            painter.drawLine(rect1.center(), rect2.center());
+            painter.setPen(defaultEllipsePen_);
+            painter.drawEllipse(rect1);
+            painter.drawEllipse(rect2);
+            rectHovered(eventSeries->getKind(), rect1);
+            rectHovered(eventSeries->getKind(), rect2);
+        }
+    }
 
-     auto finish = QDateTime::currentMSecsSinceEpoch();
-     if (PRINT_RENDER_TIMES)
-         qDebug() << "CPU Render Took: " << finish - start << "MS.";
+    painter.setRenderHint(QPainter::Antialiasing, false);
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "CPU Render Took: " << finish - start << "MS.";
 }
 
 
@@ -936,7 +929,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
     MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
     if (!eventSeries)
-         return;
+        return;
 
     auto start = QDateTime::currentMSecsSinceEpoch();
 
@@ -944,87 +937,87 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     if  (events.isEmpty())
         return;
 
-     double barWidth = POINT_WIDTH;
-     double barCount = ceil((double)width() / barWidth);
-     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double barWidth = POINT_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
 
-     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-     barWidth = (double) width() / barCount;
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
 
-     auto firstEventItr = events.constBegin();
-     auto lastEventItr = events.constEnd();
-     auto firstItrSet = false;
+    auto firstEventItr = events.constBegin();
+    auto lastEventItr = events.constEnd();
+    auto firstItrSet = false;
 
     // get the event iterators to the left and right of the display range
-     for (auto current = events.constBegin(); current != events.constEnd(); current++) {
-         const auto& current_time = (*current)->getTimeMS();
-         if (!firstItrSet && (current_time > displayMin_)) {
-             firstEventItr = current == events.constBegin() ? current : current - 1;
-             firstItrSet = true;
-         }
-         if (current_time >= displayMax_) {
-             lastEventItr = current;
-             break;
-         }
-     }
+    for (auto current = events.constBegin(); current != events.constEnd(); current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (!firstItrSet && (current_time > displayMin_)) {
+            firstEventItr = current == events.constBegin() ? current : current - 1;
+            firstItrSet = true;
+        }
+        if (current_time >= displayMax_) {
+            lastEventItr = current;
+            break;
+        }
+    }
 
-     auto prevBarCount = 0.0;
-     if (firstEventItr != events.constEnd()) {
-         prevBarCount = ceil((displayMin_ - ((MemoryUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
-     }
-     auto postBarCount = 0.0;
-     if (lastEventItr != events.constEnd()) {
-         postBarCount = ceil((((MemoryUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
-     }
+    auto prevBarCount = 0.0;
+    if (firstEventItr != events.constEnd()) {
+        prevBarCount = ceil((displayMin_ - ((MemoryUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
+    }
+    auto postBarCount = 0.0;
+    if (lastEventItr != events.constEnd()) {
+        postBarCount = ceil((((MemoryUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
+    }
 
-     // get the iterator of the leftmost event up to the first bin that contributes to drawing
-     auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
-     auto first_contributing_event = firstEventItr;
-     while (first_contributing_event != events.constBegin()) {
-         const auto& current_time = (*first_contributing_event)->getTimeMS();
-         // keep going until we overshoot, then move back if we can
-         if (current_time < firstEndTime) {
-             if (first_contributing_event != events.constEnd()) {
+    // get the iterator of the leftmost event up to the first bin that contributes to drawing
+    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+    auto first_contributing_event = firstEventItr;
+    while (first_contributing_event != events.constBegin()) {
+        const auto& current_time = (*first_contributing_event)->getTimeMS();
+        // keep going until we overshoot, then move back if we can
+        if (current_time < firstEndTime) {
+            if (first_contributing_event != events.constEnd()) {
                 first_contributing_event++;
                 break;
-             }
-         }
-         first_contributing_event--;
-     }
+            }
+        }
+        first_contributing_event--;
+    }
 
-     // get the iterator of the rightmost event up to the last bin that contributes to drawing
-     auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
-     auto last_contributing_event = lastEventItr;
-     while (last_contributing_event != events.constEnd()) {
-         const auto& current_time = (*last_contributing_event)->getTimeMS();
-         // Keep going until we overshoot, then move back if we can
-         if (current_time >= lastEndTime) {
-             if (last_contributing_event != events.constBegin()) {
+    // get the iterator of the rightmost event up to the last bin that contributes to drawing
+    auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+    auto last_contributing_event = lastEventItr;
+    while (last_contributing_event != events.constEnd()) {
+        const auto& current_time = (*last_contributing_event)->getTimeMS();
+        // Keep going until we overshoot, then move back if we can
+        if (current_time >= lastEndTime) {
+            if (last_contributing_event != events.constBegin()) {
                 last_contributing_event--;
                 break;
-             }
-         }
-         last_contributing_event++;
-     }
+            }
+        }
+        last_contributing_event++;
+    }
 
-     auto totalBarCount = prevBarCount + barCount + postBarCount;
-     auto currentLeft = firstEndTime;
+    auto totalBarCount = prevBarCount + barCount + postBarCount;
+    auto currentLeft = firstEndTime;
 
-     QVector< QList<MemoryUtilisationEvent*> > buckets(totalBarCount);
-     QVector<double> bucketEndTimes;
-     bucketEndTimes.reserve(totalBarCount);
+    QVector< QList<MemoryUtilisationEvent*> > buckets(totalBarCount);
+    QVector<double> bucketEndTimes;
+    bucketEndTimes.reserve(totalBarCount);
 
-     // calculate the bucket end times
-     for (int i = 0; i < totalBarCount; i++) {
-         bucketEndTimes.append(currentLeft + barTimeWidth);
-         currentLeft = bucketEndTimes.last();
-     }
+    // calculate the bucket end times
+    for (int i = 0; i < totalBarCount; i++) {
+        bucketEndTimes.append(currentLeft + barTimeWidth);
+        currentLeft = bucketEndTimes.last();
+    }
 
-     auto currentBucketIndex = 0;
-     auto currentBucketItr = bucketEndTimes.constBegin();
-     auto endBucketItr = bucketEndTimes.constEnd();
+    auto currentBucketIndex = 0;
+    auto currentBucketItr = bucketEndTimes.constBegin();
+    auto endBucketItr = bucketEndTimes.constEnd();
 
-     // put the data in the correct bucket
+    // put the data in the correct bucket
     while (first_contributing_event != events.constEnd()) {
         auto event = (MemoryUtilisationEvent*)(*first_contributing_event);
         const auto& currentTime = event->getTimeMS();
@@ -1045,60 +1038,60 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
         first_contributing_event++;
     }
 
-     auto availableHeight = height() - barWidth;
-     auto seriesColor = memoryColor_;
-     QList<QRectF> rects;
+    auto availableHeight = height() - barWidth;
+    auto seriesColor = memoryColor_;
+    QList<QRectF> rects;
 
-     for (int i = 0; i < totalBarCount; i++) {
-         int count = buckets[i].count();
-         if (count == 0)
-             continue;
+    for (int i = 0; i < totalBarCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
 
-         // calculate the bucket's average utilisation
-         auto utilisation = 0.0;
-         for (auto e : buckets[i]) {
-             utilisation += e->getUtilisation();
-         }
-         utilisation /= count;
+        // calculate the bucket's average utilisation
+        auto utilisation = 0.0;
+        for (auto e : buckets[i]) {
+            utilisation += e->getUtilisation();
+        }
+        utilisation /= count;
 
-         double y = (1 - utilisation) * availableHeight;
-         double x = (i - prevBarCount) * barWidth;
-         QRectF rect(x, y, barWidth, barWidth);
-         rects.append(rect);
-     }
+        double y = (1 - utilisation) * availableHeight;
+        double x = (i - prevBarCount) * barWidth;
+        QRectF rect(x, y, barWidth, barWidth);
+        rects.append(rect);
+    }
 
-     if (rects.isEmpty())
-         return;
+    if (rects.isEmpty())
+        return;
 
-     QPen linePen(seriesColor, 3.0);
-     painter.setRenderHint(QPainter::Antialiasing, true);
-     painter.setOpacity(memorySeriesOpacity_);
-     painter.setPen(defaultEllipsePen_);
-     painter.setBrush(seriesColor);
+    QPen linePen(seriesColor, 3.0);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setOpacity(memorySeriesOpacity_);
+    painter.setPen(defaultEllipsePen_);
+    painter.setBrush(seriesColor);
 
-     if (rects.size() == 1) {
-         auto rect = rects.first();
-         painter.drawEllipse(rect);
-         rectHovered(eventSeries->getKind(), rect);
-     } else {
-         for (int i = 1; i < rects.count(); i++) {
-             auto rect1 = rects.at(i - 1);
-             auto rect2 = rects.at(i);
-             painter.setPen(linePen);
-             painter.drawLine(rect1.center(), rect2.center());
-             painter.setPen(defaultEllipsePen_);
-             painter.drawEllipse(rect1);
-             painter.drawEllipse(rect2);
-             rectHovered(eventSeries->getKind(), rect1);
-             rectHovered(eventSeries->getKind(), rect2);
-         }
-     }
+    if (rects.size() == 1) {
+        auto rect = rects.first();
+        painter.drawEllipse(rect);
+        rectHovered(eventSeries->getKind(), rect);
+    } else {
+        for (int i = 1; i < rects.count(); i++) {
+            auto rect1 = rects.at(i - 1);
+            auto rect2 = rects.at(i);
+            painter.setPen(linePen);
+            painter.drawLine(rect1.center(), rect2.center());
+            painter.setPen(defaultEllipsePen_);
+            painter.drawEllipse(rect1);
+            painter.drawEllipse(rect2);
+            rectHovered(eventSeries->getKind(), rect1);
+            rectHovered(eventSeries->getKind(), rect2);
+        }
+    }
 
-     painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::Antialiasing, false);
 
-     auto finish = QDateTime::currentMSecsSinceEpoch();
-     if (PRINT_RENDER_TIMES)
-         qDebug() << "MEMORY Render Took: " << finish - start << "MS.";
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "MEMORY Render Took: " << finish - start << "MS.";
 }
 
 
