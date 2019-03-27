@@ -2,15 +2,16 @@ set(PROJ_NAME re_common_proto_control)
 project(${PROJ_NAME})
 
 find_package(Protobuf REQUIRED)
-
-set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
-)
-
 # Generate .proto file
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
+add_library(${PROJ_NAME} STATIC "")
+set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_sources(${PROJ_NAME} PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
+		${PROTO_HDRS}
+		${PROTO_SRCS}
+		)
 
 # Compile Definitions
 target_compile_definitions(${PROJ_NAME} PUBLIC PROTOBUF_USE_DLLS)

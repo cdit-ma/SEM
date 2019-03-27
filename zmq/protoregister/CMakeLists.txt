@@ -4,15 +4,12 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.cpp
-)
-
-set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.hpp
-)
-
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC "")
+set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_sources(${PROJ_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/protoregister.hpp
+        )
 
 # Compile Definitions
 target_compile_definitions(${PROJ_NAME} PUBLIC PROTOBUF_USE_DLLS)

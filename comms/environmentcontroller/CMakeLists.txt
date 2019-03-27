@@ -4,23 +4,17 @@ set(LIB_NAME ${PROJ_NAME}_lib)
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-set(LIB_SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontroller.cpp
-    )
-
-set(LIB_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontroller.h
-    )
-
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    )
-
-add_executable(${PROJ_NAME} ${SOURCE})
-add_library(${LIB_NAME} STATIC ${LIB_SOURCE} ${LIB_HEADERS})
-
-# Compile Definitions
+add_executable(${PROJ_NAME} "")
 target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
+set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_sources(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
+
+add_library(${LIB_NAME} STATIC "")
+set_target_properties(${LIB_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_sources(${LIB_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontroller.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontroller.h)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})

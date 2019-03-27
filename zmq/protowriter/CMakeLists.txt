@@ -5,19 +5,16 @@ find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.cpp
-)
-
-set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.h
-)
-
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC "")
+set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_sources(${PROJ_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/monitor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/monitor.h
+        )
 
 # Compile Definitions
 target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
