@@ -18,7 +18,7 @@
 #define BIN_WIDTH 22.0
 #define POINT_WIDTH 8.0
 
-#define PRINT_RENDER_TIMES true
+#define PRINT_RENDER_TIMES false
 
 
 /**
@@ -422,7 +422,6 @@ void EntityChart::paintEvent(QPaintEvent* event)
      */
 
     auto start = QDateTime::currentMSecsSinceEpoch();
-    const auto& paintOrder = GET_TIMELINE_DATA_KINDS();
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
@@ -431,11 +430,18 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
     clearHoveredLists();
 
+    // NOTE - This will be needed if we decide to display multiple kinds of event series in one chart
+    /*const auto& paintOrder = GET_TIMELINE_DATA_KINDS();
     for (const auto& kind : paintOrder) {
         if (kind != hoveredSeriesKind_)
             paintSeries(painter, kind);
     }
     paintSeries(painter, hoveredSeriesKind_);
+    */
+
+    for (const auto& seriesKind : seriesList_.keys()) {
+        paintSeries(painter, seriesKind);
+    }
     painter.setOpacity(1.0);
 
     // outline the highlighted rects - for event series
@@ -484,7 +490,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES) {
-        qDebug() << "Total Render Took: " << finish - start << "MS.";
+        qDebug() << "Total Render Took: " << finish - start << "ms";
         qDebug() << "------------------------------------------------";
     }
 }
@@ -495,12 +501,11 @@ void EntityChart::paintEvent(QPaintEvent* event)
  * @param painter
  * @param kind
  */
-void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
+void EntityChart::paintSeries(QPainter &painter, const TIMELINE_DATA_KIND kind)
 {
     if (!seriesKindVisible_.value(kind, false))
         return;
 
-    // draw the points and get intersection point(s) index
     switch (kind) {
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
@@ -524,13 +529,13 @@ void EntityChart::paintSeries(QPainter &painter, TIMELINE_DATA_KIND kind)
 }
 
 
-namespace AggServerResponse{
+namespace AggServerResponse {
 /**
-     * @brief qHash
-     * @param key
-     * @param seed
-     * @return
-     */
+ * @brief qHash
+ * @param key
+ * @param seed
+ * @return
+ */
 inline uint qHash(const LifecycleType& key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
@@ -544,11 +549,11 @@ inline uint qHash(const LifecycleType& key, uint seed)
  */
 void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE, 0);
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE, 0);
     if (!eventSeries)
         return;
-
-    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
@@ -642,7 +647,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "PORT Render Took: " << finish - start << "MS.";
+        qDebug() << "PORT Render Took: " << finish - start << "ms";
 }
 
 
@@ -652,11 +657,11 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
  */
 void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::WORKLOAD, 0);
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::WORKLOAD, 0);
     if (!eventSeries)
         return;
-
-    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
@@ -750,7 +755,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "WORKLOAD Render Took: " << finish - start << "MS.";
+        qDebug() << "WORKLOAD Render Took: " << finish - start << "ms";
 }
 
 
@@ -760,11 +765,11 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
  */
 void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
-    MEDEA:: EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
     if (!eventSeries)
         return;
-
-    auto start = QDateTime::currentMSecsSinceEpoch();
 
     const auto& events = eventSeries->getEvents();
     if  (events.isEmpty())
@@ -785,41 +790,58 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
         return time < e->getTimeMS();
     });
 
+    // if the first iterator is the same as the last iterator, it means that all the events are out of range; return
+    if (firstEventItr == lastEventItr) {
+        return;
+    }
+
     if (firstEventItr != events.constBegin()) {
         firstEventItr -= 1;
     }
 
     auto prevBarCount = 0.0;
-    if (firstEventItr != events.constEnd()) {
-        prevBarCount = ceil((displayMin_ - (*firstEventItr)->getTimeMS()) / barTimeWidth);
-    }
-    auto postBarCount = 0.0;
-    if (lastEventItr != events.constEnd()) {
-        postBarCount = ceil(((*lastEventItr)->getTimeMS() - displayMax_) / barTimeWidth);
+    auto firstEventTime = (*firstEventItr)->getTimeMS();
+    bool firstItrIsToTheLeftOfDisplay = (firstEventTime < displayMin_);
+    if (firstItrIsToTheLeftOfDisplay) {
+        prevBarCount = ceil((displayMin_ - firstEventTime) / barTimeWidth);
     }
 
     // get the iterator of the leftmost event up to the first bin that contributes to drawing
-    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
     auto first_contributing_event = firstEventItr;
-    for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
-        const auto& current_time = (*first_contributing_event)->getTimeMS();
-        // keep going until we overshoot, then move back if we can
-        if (current_time < firstEndTime) {
-            first_contributing_event++;
-            break;
+    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+    if (firstItrIsToTheLeftOfDisplay) {
+        for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
+            const auto& current_time = (*first_contributing_event)->getTimeMS();
+            // keep going until we overshoot, then move back if we can
+            if (current_time < firstEndTime) {
+                first_contributing_event++;
+                break;
+            }
+        }
+    }
+
+    auto postBarCount = 0.0;
+    bool lastItrIsToTheRightOfDisplay = false;
+    if (lastEventItr != events.constEnd()) {
+        auto lastEventTime = (*lastEventItr)->getTimeMS();
+        lastItrIsToTheRightOfDisplay = (lastEventTime >= displayMax_);
+        if (lastItrIsToTheRightOfDisplay) {
+            postBarCount = ceil((lastEventTime - displayMax_) / barTimeWidth);
         }
     }
 
     // get the iterator of the rightmost event up to the last bin that contributes to drawing
-    auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
     auto last_contributing_event = lastEventItr;
-    for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
-        const auto& current_time = (*last_contributing_event)->getTimeMS();
-        // keep going until we overshoot, then move back if we can
-        if (current_time >= lastEndTime) {
-            if (last_contributing_event != events.constBegin()) {
-                last_contributing_event--;
-                break;
+    if (lastItrIsToTheRightOfDisplay) {
+        auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+        for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
+            const auto& current_time = (*last_contributing_event)->getTimeMS();
+            // keep going until we overshoot, then move back if we can
+            if (current_time >= lastEndTime) {
+                if (last_contributing_event != events.constBegin()) {
+                    last_contributing_event--;
+                    break;
+                }
             }
         }
     }
@@ -861,8 +883,6 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
         }
         first_contributing_event++;
     }
-
-    return;
 
     auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
     auto seriesColor = utilisationColor_;
@@ -917,7 +937,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "CPU Render Took: " << finish - start << "MS.";
+        qDebug() << "CPU Render Took: " << finish - start << "ms";
 }
 
 
@@ -927,11 +947,11 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
     if (!eventSeries)
         return;
-
-    auto start = QDateTime::currentMSecsSinceEpoch();
 
     const auto& events = eventSeries->getEvents();
     if  (events.isEmpty())
@@ -944,60 +964,68 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
     barWidth = (double) width() / barCount;
 
-    auto firstEventItr = events.constBegin();
-    auto lastEventItr = events.constEnd();
-    auto firstItrSet = false;
+    // get the iterators to the left and right of the display range
+    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const MEDEA::Event* e, const qint64 &time) {
+        return e->getTimeMS() < time;
+    });
+    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const MEDEA::Event* e) {
+        return time < e->getTimeMS();
+    });
 
-    // get the event iterators to the left and right of the display range
-    for (auto current = events.constBegin(); current != events.constEnd(); current++) {
-        const auto& current_time = (*current)->getTimeMS();
-        if (!firstItrSet && (current_time > displayMin_)) {
-            firstEventItr = current == events.constBegin() ? current : current - 1;
-            firstItrSet = true;
-        }
-        if (current_time >= displayMax_) {
-            lastEventItr = current;
-            break;
-        }
+    // if the first iterator is the same as the last iterator, it means that all the events are out of range; return
+    if (firstEventItr == lastEventItr) {
+        return;
+    }
+
+    if (firstEventItr != events.constBegin()) {
+        firstEventItr -= 1;
     }
 
     auto prevBarCount = 0.0;
-    if (firstEventItr != events.constEnd()) {
-        prevBarCount = ceil((displayMin_ - ((MemoryUtilisationEvent*)(*firstEventItr))->getTimeMS()) / barTimeWidth);
-    }
-    auto postBarCount = 0.0;
-    if (lastEventItr != events.constEnd()) {
-        postBarCount = ceil((((MemoryUtilisationEvent*)(*lastEventItr))->getTimeMS() - displayMax_) / barTimeWidth);
+    auto firstEventTime = (*firstEventItr)->getTimeMS();
+    bool firstItrIsOutOfRange = (firstEventTime < displayMin_);
+    if (firstItrIsOutOfRange) {
+        prevBarCount = ceil((displayMin_ - firstEventTime) / barTimeWidth);
     }
 
     // get the iterator of the leftmost event up to the first bin that contributes to drawing
-    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
     auto first_contributing_event = firstEventItr;
-    while (first_contributing_event != events.constBegin()) {
-        const auto& current_time = (*first_contributing_event)->getTimeMS();
-        // keep going until we overshoot, then move back if we can
-        if (current_time < firstEndTime) {
-            if (first_contributing_event != events.constEnd()) {
+    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
+    if (firstItrIsOutOfRange) {
+        for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
+            const auto& current_time = (*first_contributing_event)->getTimeMS();
+            // keep going until we overshoot, then move back if we can
+            if (current_time < firstEndTime) {
                 first_contributing_event++;
                 break;
             }
         }
-        first_contributing_event--;
+    }
+
+    auto postBarCount = 0.0;
+    bool lastItrIsOutOfRange = false;
+    if (lastEventItr != events.constEnd()) {
+        auto lastEventTime = (*lastEventItr)->getTimeMS();
+        lastItrIsOutOfRange = (lastEventTime >= displayMax_);
+        if (lastItrIsOutOfRange) {
+            postBarCount = ceil((lastEventTime - displayMax_) / barTimeWidth);
+        }
     }
 
     // get the iterator of the rightmost event up to the last bin that contributes to drawing
-    auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
     auto last_contributing_event = lastEventItr;
-    while (last_contributing_event != events.constEnd()) {
-        const auto& current_time = (*last_contributing_event)->getTimeMS();
-        // Keep going until we overshoot, then move back if we can
-        if (current_time >= lastEndTime) {
-            if (last_contributing_event != events.constBegin()) {
-                last_contributing_event--;
-                break;
+    if (lastItrIsOutOfRange) {
+        auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+        for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
+            const auto& current_time = (*last_contributing_event)->getTimeMS();
+            // keep going until we overshoot, then move back if we can
+            if (current_time >= lastEndTime) {
+                if (last_contributing_event != events.constBegin()) {
+                    last_contributing_event--;
+                    break;
+                }
             }
         }
-        last_contributing_event++;
     }
 
     auto totalBarCount = prevBarCount + barCount + postBarCount;
@@ -1091,7 +1119,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "MEMORY Render Took: " << finish - start << "MS.";
+        qDebug() << "MEMORY Render Took: " << finish - start << "ms";
 }
 
 
@@ -1101,11 +1129,11 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
  */
 void EntityChart::paintMarkerEventSeries(QPainter &painter)
 {
-    MEDEA::EventSeries* eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
     if (!eventSeries)
         return;
-
-    auto start = QDateTime::currentMSecsSinceEpoch();
 
     double binWidth = BIN_WIDTH;
     double binCount = ceil((double)width() / binWidth);
@@ -1215,7 +1243,7 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "MARKER Render Took: " << finish - start << "MS.";
+        qDebug() << "MARKER Render Took: " << finish - start << "ms";
 }
 
 

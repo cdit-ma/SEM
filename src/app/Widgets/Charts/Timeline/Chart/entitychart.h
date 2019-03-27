@@ -57,7 +57,7 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    void paintSeries(QPainter& painter, TIMELINE_DATA_KIND kind);
+    void paintSeries(QPainter& painter, const TIMELINE_DATA_KIND kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
