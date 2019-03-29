@@ -304,7 +304,6 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     markerSeriesOpacity_ = alpha;
 
     switch (kind) {
-    break;
     case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
         portSeriesOpacity_ = 1.0;
@@ -430,15 +429,7 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
     clearHoveredLists();
 
-    // NOTE - This will be needed if we decide to display multiple kinds of event series in one chart
-    /*const auto& paintOrder = GET_TIMELINE_DATA_KINDS();
-    for (const auto& kind : paintOrder) {
-        if (kind != hoveredSeriesKind_)
-            paintSeries(painter, kind);
-    }
-    paintSeries(painter, hoveredSeriesKind_);
-    */
-
+    // NOTE - If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
     for (const auto& seriesKind : seriesList_.keys()) {
         paintSeries(painter, seriesKind);
     }
