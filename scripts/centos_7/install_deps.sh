@@ -63,3 +63,4 @@ sudo mkdir /mnt/Jenkins && \
 
 #Disable CentOS Firewall
 sudo systemctl stop firewalld
+sudo systemctl disable firewalld
