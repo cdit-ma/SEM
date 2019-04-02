@@ -62,8 +62,9 @@ TEST_P(MemoryTestFixture, MatchingAllocTest) {
     size_t alloc_size_remaining = param.total_kb_alloc;
     size_t dealloc_size_remaining = param.total_kb_dealloc;
 
-    while (alloc_size_remaining > avg_alloc_size) {
+    while (alloc_size_remaining >= avg_alloc_size) {
         worker_.Allocate(avg_alloc_size);
+        alloc_size_remaining -= avg_alloc_size;
     }
     if (alloc_size_remaining > 0) {
         worker_.Allocate(alloc_size_remaining);
@@ -73,8 +74,9 @@ TEST_P(MemoryTestFixture, MatchingAllocTest) {
     auto amt_allocated = worker_.GetAllocatedCount();
     EXPECT_TRUE(amt_allocated == param.total_kb_alloc);
 
-    while (dealloc_size_remaining > avg_dealloc_size) {
+    while (dealloc_size_remaining >= avg_dealloc_size) {
         worker_.Deallocate(avg_dealloc_size);
+        dealloc_size_remaining -= avg_dealloc_size;
     }
     if (dealloc_size_remaining > 0) {
         worker_.Deallocate(dealloc_size_remaining);
