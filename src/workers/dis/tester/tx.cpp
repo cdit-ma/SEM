@@ -40,6 +40,8 @@ This example shows the older method for sending a PDU, to see how the connection
 #include <iostream>
 #include <thread>
 #include <chrono>
+
+#define DIS_VERSION 5
 #include <KDIS/PDU/Entity_Info_Interaction/Entity_State_PDU.h>
 #include <KDIS/Network/Connection.h> // A cross platform connection class.
 

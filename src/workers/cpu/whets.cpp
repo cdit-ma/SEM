@@ -167,7 +167,19 @@
  *  are normal with different compilers and sometimes optimisation levels. 
  *
  **************************************************************************/
-  
+
+// CDIT-MA:
+// Disable -Wwrite-strings and -Wformat warnings within this lib
+// Doing this here rather than in a target_compiler_options CMake directive
+//   means that warning suppression is isolated to this file, rather than
+//   the entire cpu_worker library.
+#pragma warning( push )
+#pragma warning( disable: WriteStrings)
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#pragma clang diagnostic ignored "-Wwrite-strings"
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma clang diagnostic ignored "-Wformat"
+
  #include <math.h>       /* for sin, exp etc.           */
  #include <stdio.h>      /* standard I/O                */ 
  #include <string.h>     /* for strcpy - 3 occurrences  */
@@ -585,6 +597,4 @@ if(!bSilent)
 
 }; // end of the new class
 
-
-
-
+#pragma warning( pop )

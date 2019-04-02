@@ -10,19 +10,12 @@ if(NOT RTI_DDS_FOUND)
 endif()
 
 add_library(${PROJ_NAME} SHARED "")
-
-target_sources(${PROJ_NAME} PRIVATE
-    # Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
-    # Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
-)
-
-# Compile Definitions
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 target_compile_definitions(${PROJ_NAME} PUBLIC ${RTI_DDS_DEFINITIONS})
 
-# Include Directories
+target_sources(${PROJ_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
+)
 target_include_directories(${PROJ_NAME} PUBLIC ${RTI_DDS_INCLUDE_DIRS})
-
-# Link Libraries
 target_link_libraries(${PROJ_NAME} PUBLIC ${RTI_DDS_LIBRARIES})

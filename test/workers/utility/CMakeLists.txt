@@ -3,6 +3,7 @@ project(${PROJ_NAME})
 
 
 add_executable(${PROJ_NAME} "")
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

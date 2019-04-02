@@ -976,6 +976,9 @@ set(KDIS_SRC
 
 add_library("kdis" STATIC ${KDIS_SRC})
 target_compile_definitions("kdis" PRIVATE "DIS_VERSION=${DIS_VERSION}")
+set_target_properties("kdis" PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# Suppress dynamic exception and auto_ptr deprecation warnings
+target_compile_options("kdis" PRIVATE -Wno-deprecated -Wno-deprecated-declarations)
 
 
 INSTALL(TARGETS ${KDIS_DLL} LIBRARY DESTINATION lib)

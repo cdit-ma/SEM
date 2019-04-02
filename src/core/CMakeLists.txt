@@ -4,8 +4,23 @@ project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS thread REQUIRED)
 
-add_library(${PROJ_NAME} STATIC "")
+# re_core_singletons
 add_library(${LIB_NAME} SHARED "")
+target_compile_features(${LIB_NAME} PRIVATE cxx_std_11)
+set_target_properties(${LIB_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_sources(${LIB_NAME} PRIVATE
+    # Sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/id_generator.cpp
+    # Headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/id_generator.h
+)
+
+# re_core
+add_library(${PROJ_NAME} STATIC "")
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
+target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
+set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
@@ -38,16 +53,6 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/threadmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/statemachine.h
 )
-
-target_sources(${LIB_NAME} PRIVATE
-    # Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/id_generator.cpp
-    # Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/id_generator.h
-)
-
-# Compile Definitions
-target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${RE_SOURCE_PATH})

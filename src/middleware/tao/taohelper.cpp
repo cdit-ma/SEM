@@ -3,6 +3,13 @@
 #include <tao/IORTable/IORTable.h>
 #include <tao/PortableServer/Servant_Base.h>
 
+namespace tao {
+    const std::string orb_endpoint_flag = "-ORBEndpoint";
+    const std::string orb_debug_flag = "-ORBDebugLevel";
+    const std::string orb_id_flag = "-ORBId";
+    const std::string orb_collocation_flag = "-ORBCollocation";
+    const std::string orb_no = "no";
+}
 
 tao::TaoHelper& tao::TaoHelper::get_tao_helper(){
     static tao::TaoHelper t;
@@ -47,15 +54,38 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
     }else{
         CORBA::ORB_ptr orb = 0;
         try{
-            auto endpoint = strdup(orb_endpoint.c_str());
-            auto orb_id = strdup(orb_endpoint.c_str());
+            // Have to strdup out to fresh allocs of constant strings to
+            //   dodge any potential UB if CORBA::ORB_init ever modifies strs
+            auto endpoint_flag = strdup(tao::orb_endpoint_flag.c_str());
+            auto endpoint_str = strdup(orb_endpoint.c_str());
+
+            auto debug_flag = strdup(tao::orb_debug_flag.c_str());
             auto debug_str = strdup(debug_mode ? "10" : "0");
+
+            auto id_flag = strdup(tao::orb_id_flag.c_str());
+            auto id_str = strdup(orb_endpoint.c_str());
+
+            auto collocation_flag = strdup(tao::orb_collocation_flag.c_str());
+            auto collocation_str = strdup(tao::orb_no.c_str());
+
             int argc = 8;
-            char* argv[8] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str, "-ORBId", orb_id, "-ORBCollocation", "no"};
+
+            char* argv[8] = {endpoint_flag,
+                             endpoint_str,
+                             debug_flag,
+                             debug_str,
+                             id_flag,
+                             id_str,
+                             collocation_flag,
+                             collocation_str};
+
             orb = CORBA::ORB_init (argc, argv);
-            
-            delete[] endpoint;
-            delete[] debug_str;
+
+            // Free allocations
+            for(size_t i = 0; i < argc; ++i) {
+                delete[] argv[i];
+            }
+
         }catch(const CORBA::Exception& e){
             std::cerr << "CORBA Exception: " << e._name() << "orb_endpoint: " << orb_endpoint << std::endl;
             orb = 0;

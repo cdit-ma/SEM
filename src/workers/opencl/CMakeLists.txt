@@ -1,4 +1,3 @@
-
 set(PROJ_NAME opencl_worker)
 project(${PROJ_NAME})
 
@@ -28,6 +27,9 @@ if (NOT OPENCL_INCLUDE_PATH)
 endif()
 
 add_library(${PROJ_NAME} SHARED "")
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
+# Suppress ignored cl_int alignment attribute warning in opencl library
+target_compile_options(${PROJ_NAME} PRIVATE -Wno-ignored-attributes)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
@@ -67,13 +69,13 @@ find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
 # Add implementations for fft library as necessary
 if(ALTERA_OCLSDK_LIB)
-    message(STATUS "building OpenCL worker with FPGA FFT library")
+    message(STATUS "Building OpenCL worker with FPGA FFT library")
     target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
     )
 elseif (CLFFT_LIB)
-    message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
+    message(STATUS "Building OpenCL worker with GPU FFT library (clFFT)")
     target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
     )

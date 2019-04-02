@@ -38,6 +38,8 @@ to see how to use GetNextPDU which does support bundling.
 *********************************************************************/
 
 #include <iostream>
+
+#define DIS_VERSION 5
 #include <KDIS/Extras/PDU_Factory.h>
 #include <KDIS/Network/Connection.h> // A cross platform connection class.
 

@@ -21,6 +21,7 @@ SET(SOURCE
 TAO_GENERATE_CPP(TAO_SRCS TAO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../message.idl)
 
 add_executable(${PROJ_NAME} "")
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources

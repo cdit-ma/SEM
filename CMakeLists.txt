@@ -1,12 +1,7 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.0)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-#Required for dynamic linking magic
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(APPLE)
 	set(CMAKE_MACOSX_RPATH ON)
@@ -22,8 +17,7 @@ if(CCACHE_FOUND)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-
-SET(RE_VERSION "3.3.5")
+set(RE_VERSION "3.3.5")
 
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
@@ -41,11 +35,7 @@ set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
 #Set the binary and library locations
-
-#set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-# Uncomment for standard stuff
 set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
@@ -58,7 +48,7 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
 endif()
 
-#Build the source
+#Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
 #Build Logan
@@ -70,6 +60,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 if(BUILD_TEST)
 	message(STATUS "Building re tests")
-	#Build the test
+	#Build tests
 	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif(BUILD_TEST)

@@ -13,6 +13,7 @@ endif()
 RTI_DDS_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/../basic.idl)
 
 add_executable(${PROJ_NAME} "")
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
