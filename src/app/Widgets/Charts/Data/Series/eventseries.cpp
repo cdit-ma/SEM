@@ -1,5 +1,7 @@
 #include "eventseries.h"
-#include <QDebug>
+
+#include <QTextStream>
+#include <QDateTime>
 
 int MEDEA::EventSeries::eventSeries_ID = 0;
 
@@ -9,12 +11,14 @@ int MEDEA::EventSeries::eventSeries_ID = 0;
  * @param kind
  * @param parent
  */
-MEDEA::EventSeries::EventSeries(QString ID, TIMELINE_DATA_KIND kind, QObject* parent)
+MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
     : QObject(parent)
 {
     ID_ = ID;
     kind_ = kind;
+
     eventSeriesID_ = eventSeries_ID++;
+    eventSeriesIDStr_ = QString::number(eventSeriesID_);
 
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
@@ -27,8 +31,9 @@ MEDEA::EventSeries::EventSeries(QString ID, TIMELINE_DATA_KIND kind, QObject* pa
 MEDEA::EventSeries::~EventSeries()
 {
     for (auto event : events_) {
-        if (event)
+        if (event) {
             event->deleteLater();
+        }
     }
 }
 
@@ -51,10 +56,20 @@ void MEDEA::EventSeries::clear()
 
 
 /**
+ * @brief MEDEA::EventSeries::isEmpty
+ * @return
+ */
+bool MEDEA::EventSeries::isEmpty() const
+{
+    return events_.isEmpty();
+}
+
+
+/**
  * @brief MEDEA::EventSeries::addEvents
  * @param events
  */
-void MEDEA::EventSeries::addEvents(QList<MEDEA::Event *> events)
+void MEDEA::EventSeries::addEvents(const QList<Event*>& events)
 {
     for (auto event : events) {
         addEvent(event);
@@ -79,7 +94,6 @@ void MEDEA::EventSeries::addEvent(Event* event)
             maxTime_ = eventTime;
             emit maxChanged(maxTime_);
         }
-        //event->setParent(this);
         events_.append(event);
     }
 }
@@ -99,7 +113,7 @@ const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents()
  * @brief MEDEA::EventSeries::getMinTimeMS
  * @return
  */
-const qint64& MEDEA::EventSeries::getMinTimeMS() const
+qint64 MEDEA::EventSeries::getMinTimeMS() const
 {
     return minTime_;
 }
@@ -109,7 +123,7 @@ const qint64& MEDEA::EventSeries::getMinTimeMS() const
  * @brief MEDEA::EventSeries::getMaxTimeMS
  * @return
  */
-const qint64& MEDEA::EventSeries::getMaxTimeMS() const
+qint64 MEDEA::EventSeries::getMaxTimeMS() const
 {
     return maxTime_;
 }
@@ -126,12 +140,12 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 
 
 /**
- * @brief MEDEA::EventSeries::getEventSeriesID
+ * @brief MEDEA::EventSeries::getKind
  * @return
  */
-QString MEDEA::EventSeries::getEventSeriesID() const
+MEDEA::ChartDataKind MEDEA::EventSeries::getKind() const
 {
-    return QString::number(eventSeriesID_);
+    return kind_;
 }
 
 
@@ -146,25 +160,27 @@ const QString& MEDEA::EventSeries::getID() const
 
 
 /**
- * @brief MEDEA::EventSeries::getKind
+ * @brief MEDEA::EventSeries::getEventSeriesID
  * @return
  */
-const TIMELINE_DATA_KIND& MEDEA::EventSeries::getKind() const
+const QString& MEDEA::EventSeries::getEventSeriesID() const
 {
-    return kind_;
+    return eventSeriesIDStr_;
 }
 
 
 /**
- * @brief MEDEA::EventSeries::getHoveredDataString
- * @param timeRangeMS
- * @param numberOfItemsToDisplay
- * @param displayFormat
+ * @brief MEDEA::EventSeries::getFirstAfterTime
+ * This returns a const iterator that points to the first item whose time is greater than or equal to the provided time
+ * @param timeMS
  * @return
  */
-QString MEDEA::EventSeries::getHoveredDataString(QPair<qint64, qint64> timeRangeMS, int numberOfItemsToDisplay, QString displayFormat)
+QList<MEDEA::Event*>::const_iterator MEDEA::EventSeries::getFirstAfterTime(const qint64 timeMS) const
 {
-    return getHoveredDataString(timeRangeMS.first, timeRangeMS.second, numberOfItemsToDisplay, displayFormat);
+    auto firstItr = std::lower_bound(events_.cbegin(), events_.cend(), timeMS, [](const Event* e, const qint64 &time) {
+        return e->getTimeMS() < time;
+    });
+    return firstItr;
 }
 
 
@@ -176,30 +192,56 @@ QString MEDEA::EventSeries::getHoveredDataString(QPair<qint64, qint64> timeRange
  * @param displayFormat
  * @return
  */
-QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
+QString MEDEA::EventSeries::getHoveredDataString (
+        qint64 fromTimeMS,
+        qint64 toTimeMS,
+        int numberOfItemsToDisplay,
+        const QString& displayFormat) const
 {
-    auto current = std::lower_bound(events_.cbegin(), events_.cend(), fromTimeMS, [](const MEDEA::Event* e, const qint64 &time) {
-        return e->getTimeMS() < time;
-    });
-    auto upper = std::upper_bound(events_.cbegin(), events_.cend(), toTimeMS, [](const qint64 &time, const MEDEA::Event* e) {
-        return time < e->getTimeMS();
-    });
-
-    int count = std::distance(current, upper);
-    if (count <= 0)
+    if (isEmpty()) {
         return "";
+    }
+    // get the iterators to the first and last events within the hovered range
+    auto fromItr = getFirstAfterTime(fromTimeMS);
+    auto toItr = getFirstAfterTime(toTimeMS);
+    return getDataString(fromItr, toItr, numberOfItemsToDisplay, displayFormat);
+}
 
+
+/**
+ * @brief MEDEA::EventSeries::getDataString
+ * @param from
+ * @param to
+ * @param numberOfItems
+ * @param dateTimeFormat
+ * @return
+ */
+QString MEDEA::EventSeries::getDataString (
+        const QList<Event*>::const_iterator& from,
+        const QList<Event*>::const_iterator& to,
+        int numberOfItems,
+        const QString& dateTimeFormat) const
+{
     QString hoveredData;
     QTextStream stream(&hoveredData);
-    numberOfItemsToDisplay = qMin(count, numberOfItemsToDisplay);
+    int displayCount = 0;
+    auto current = from;
 
-    for (int i = 0; i < numberOfItemsToDisplay; i++) {
+    while (displayCount < numberOfItems) {
+        // return if there are no more events to check
+        if (current == to) {
+            return hoveredData.trimmed();
+        }
         auto event = (*current);
-        stream << QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString(displayFormat) << "\n";
+        stream << event->toString(dateTimeFormat);
         current++;
+        displayCount++;
     }
-    if (count > numberOfItemsToDisplay)
+
+    // we didn't go through all the items; notify the user that items were omitted
+    if (current != to) {
         stream << "... (more omitted)";
+    }
 
     return hoveredData.trimmed();
 }
@@ -209,9 +251,10 @@ QString MEDEA::EventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTim
  * @brief MEDEA::EventSeries::getDefaultDisplayFormat
  * @return
  */
-QString MEDEA::EventSeries::getDefaultDisplayFormat()
+const QString& MEDEA::EventSeries::getDefaultDisplayFormat()
 {
-    return "MMM d, hh:mm:ss.zzz";
+    static QString displayFormat = "MMM d, hh:mm:ss.zzz";
+    return displayFormat;
 }
 
 
@@ -221,5 +264,6 @@ QString MEDEA::EventSeries::getDefaultDisplayFormat()
  */
 int MEDEA::EventSeries::getDefaultNumberOfItemsToDisplay()
 {
-    return 10;
+    static int numberToDisplay = 10;
+    return numberToDisplay;
 }

@@ -9,11 +9,36 @@
  * @param time
  * @param parent
  */
-MarkerEvent::MarkerEvent(QString markerName, qint64 markerID, AggServerResponse::ComponentInstance inst, qint64 time, QObject *parent)
-    : MEDEA::Event(time, markerName, parent)
+MarkerEvent::MarkerEvent(const QString &markerName,
+                         qint64 markerID,
+                         const AggServerResponse::ComponentInstance &inst,
+                         qint64 time,
+                         QObject *parent)
+    : MEDEA::Event(MEDEA::ChartDataKind::MARKER, time, markerName, parent),
+      componentInstance_(inst),
+      markerID_(markerID) {}
+
+
+/**
+ * @brief MarkerEvent::toString
+ * @param dateTimeFormat
+ * @return
+ */
+QString MarkerEvent::toString(const QString &dateTimeFormat) const
 {
-    componentInstance_ = inst;
-    markerID_ = markerID;
+    return "Marker Name: " + getName() + "\n" +
+           "ID: " + markerID_ + "\n" +
+           "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+}
+
+
+/**
+ * @brief MarkerEvent::getID
+ * @return
+ */
+const QString &MarkerEvent::getID() const
+{
+    return getName();
 }
 
 
@@ -26,24 +51,4 @@ qint64 MarkerEvent::getMarkerID() const
     return markerID_;
 }
 
-
-/**
- * @brief MarkerEvent::getID
- * @return
- */
-QString MarkerEvent::getID() const
-{
-    return getName();
-    //return componentInstance_.graphml_id + getName() + markerID_;
-}
-
-
-/**
- * @brief MarkerEvent::getKind
- * @return
- */
-TIMELINE_DATA_KIND MarkerEvent::getKind() const
-{
-    return TIMELINE_DATA_KIND::MARKER;
-}
 

@@ -129,10 +129,4 @@ private:
     int current_hovered_id = 0;
 };
 
-/*inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(TIMELINE_DATA_KIND)*/
-
 #endif // CONTEXTMENU_H

@@ -6,7 +6,7 @@
 class EventRequest : public Request {
 
 protected:
-    explicit EventRequest(TIMELINE_DATA_KIND kind);
+    explicit EventRequest(MEDEA::ChartDataKind kind);
 
 public:
     void setComponentNames(const QVector<QString>& component_names);

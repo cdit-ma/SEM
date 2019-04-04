@@ -22,16 +22,16 @@ public:
     quint32 getExperimentRunID();
 
     void addSeries(MEDEA::EventSeries *series);
-    void removeSeries(TIMELINE_DATA_KIND kind);
+    void removeSeries(MEDEA::ChartDataKind kind);
 
     bool isHovered();
 
-    const QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*>& getSeries();
-    const QList<TIMELINE_DATA_KIND> getHovereSeriesKinds();
-    const QPair<qint64, qint64> getHoveredTimeRange(TIMELINE_DATA_KIND kind);
+    const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& getSeries();
+    const QList<MEDEA::ChartDataKind> getHovereSeriesKinds();
+    const QPair<qint64, qint64> getHoveredTimeRange(MEDEA::ChartDataKind kind);
 
-    void updateBinnedData(TIMELINE_DATA_KIND kind);
-    void updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds = QSet<TIMELINE_DATA_KIND>());
+    void updateBinnedData(MEDEA::ChartDataKind kind);
+    void updateBinnedData(QSet<MEDEA::ChartDataKind> kinds = QSet<MEDEA::ChartDataKind>());
 
     void updateVerticalMin(double min);
     void updateVerticalMax(double max);
@@ -46,8 +46,8 @@ public:
 public slots:
     void setHovered(bool visible);
     void setHoveredRect(QRectF rect);
-    void seriesKindHovered(TIMELINE_DATA_KIND kind);
-    void setSeriesKindVisible(TIMELINE_DATA_KIND kind, bool visible);
+    void seriesKindHovered(MEDEA::ChartDataKind kind);
+    void setSeriesKindVisible(MEDEA::ChartDataKind kind, bool visible);
 
 private slots:
     void themeChanged();
@@ -57,7 +57,7 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    void paintSeries(QPainter& painter, const TIMELINE_DATA_KIND kind);
+    void paintSeries(QPainter& painter, const MEDEA::ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
@@ -66,7 +66,7 @@ private:
 
     void paintPortLifecycleSeries(QPainter& painter);
 
-    bool rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect);
+    bool rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
     void clearHoveredLists();
@@ -75,7 +75,7 @@ private:
     QColor getContrastingColor(const QColor& color);
 
     int getBinIndexForTime(double time);
-    QVector<QList<MEDEA::Event*>>& getBinnedData(TIMELINE_DATA_KIND kind);
+    QVector<QList<MEDEA::Event*>>& getBinnedData(MEDEA::ChartDataKind kind);
 
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
@@ -135,10 +135,10 @@ private:
     double memorySeriesOpacity_ = 1.0;
     double markerSeriesOpacity_ = 1.0;
 
-    QHash<TIMELINE_DATA_KIND, bool> seriesKindVisible_;
-    QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*> seriesList_;
+    QHash<MEDEA::ChartDataKind, bool> seriesKindVisible_;
+    QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*> seriesList_;
 
-    //QHash<TIMELINE_DATA_KIND, QVector< QList<MEDEA::Event*> >> binnedData_;
+    //QHash<MEDEA::ChartDataKind, QVector< QList<MEDEA::Event*> >> binnedData_;
     QVector<QList<MEDEA::Event*>> portLifecycleBinnedData_;
     QVector<QList<MEDEA::Event*>> workloadBinnedData_;
     QVector<QList<MEDEA::Event*>> cpuUtilisationBinnedData_;
@@ -146,8 +146,8 @@ private:
     QVector<QList<MEDEA::Event*>> markerBinnedData_;
     QVector<QList<MEDEA::Event*>> emptyBinnedData_;
 
-    QHash<TIMELINE_DATA_KIND, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
-    TIMELINE_DATA_KIND hoveredSeriesKind_;
+    QHash<MEDEA::ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
+    MEDEA::ChartDataKind hoveredSeriesKind_;
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 
@@ -159,7 +159,7 @@ private:
         MEDEA::DataSeries* series = 0;
         bool is_visible = false;
     }
-    QHash<TIMELINE_DATA_KIND, Series> series_;
+    QHash<MEDEA::ChartDataKind, Series> series_;
     */
 
 };

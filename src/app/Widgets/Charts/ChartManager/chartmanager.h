@@ -25,7 +25,7 @@ signals:
 public slots:
     void displayChartPopup();
 
-    void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<TIMELINE_DATA_KIND>& selectedDataKinds);
+    void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<MEDEA::ChartDataKind>& selectedDataKinds);
     void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
 
 protected:
@@ -58,7 +58,7 @@ private:
     ViewController* viewController_ = 0;
 
     QVector<ViewItem*> selectedViewItems_;
-    QList<TIMELINE_DATA_KIND> selectedDataKinds_;
+    QList<MEDEA::ChartDataKind> selectedDataKinds_;
 
     static ChartManager* manager_;
 };

@@ -7,7 +7,7 @@
 class Request {
 
 protected:
-    explicit Request(TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA);
+    explicit Request(MEDEA::ChartDataKind kind = MEDEA::ChartDataKind::DATA);
 
 public:
     void setExperimentID(const quint32 experiment_run_id);
@@ -16,13 +16,13 @@ public:
     const quint32 experiment_run_id() const;
     const QVector<qint64>& time_interval() const;
 
-    const TIMELINE_DATA_KIND getKind() const;
+    const MEDEA::ChartDataKind getKind() const;
 
 private:
     quint32 experimentRunID_;
     QVector<qint64> timeInterval_;
 
-    TIMELINE_DATA_KIND kind_;
+    MEDEA::ChartDataKind kind_;
 
 };
 

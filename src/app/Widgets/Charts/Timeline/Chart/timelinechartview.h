@@ -17,7 +17,6 @@
 #include <QToolBar>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QDateTime>
 #include <QMultiHash>
 
 enum class VALUE_TYPE{DOUBLE, DATE_TIME};
@@ -48,7 +47,7 @@ public:
     void updateTimelineChart();
 
 signals:
-    void seriesLegendHovered(TIMELINE_DATA_KIND kind);
+    void seriesLegendHovered(MEDEA::ChartDataKind kind);
 
 public slots:
     void themeChanged();
@@ -70,15 +69,17 @@ private slots:
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    void addedChartEvents(const TIMELINE_DATA_KIND kind, const AggServerResponse::ExperimentRun& experimentRun);
+    void addedChartEvents(const MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun);
 
-    MEDEA::EventSeries* constructSeriesForEventKind(const AggServerResponse::ExperimentRun &experimentRun, const TIMELINE_DATA_KIND kind, const QString& ID, const QString& label);
+    MEDEA::EventSeries* constructSeriesForEventKind(const AggServerResponse::ExperimentRun &experimentRun, const MEDEA::ChartDataKind kind, const QString& ID, const QString& label);
     EntityChart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 
     void updateRangeForExperimentRun(const quint32 experimentRunID, const qint64 startTime, const qint64 lastUpdatedTime);
     void removedDataFromExperimentRun(const quint32 experimentRunID);
     void updateTimelineRange(bool updateDisplayRange = true);
+
+    const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;
 
     void setupLayout();
 
@@ -104,8 +105,8 @@ private:
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 
-    QHash<TIMELINE_DATA_KIND, QAction*> _legendActions;
-    QHash<TIMELINE_DATA_KIND, QPushButton*> _hoverDisplayButtons;
+    QHash<MEDEA::ChartDataKind, QAction*> _legendActions;
+    QHash<MEDEA::ChartDataKind, QPushButton*> _hoverDisplayButtons;
 
     QHash<quint32, int> experimentRunSeriesCount_;
     QHash<quint32, QPair<qint64, qint64>> experimentRunTimeRange_;

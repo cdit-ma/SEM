@@ -119,7 +119,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(chart_viewInChart, &QAction::triggered, [=]() {
             auto kind = chart_viewInChart->property("dataKind");
             if (kind.isValid())
-                viewController->viewSelectionChart({(TIMELINE_DATA_KIND)kind.toUInt()});
+                viewController->viewSelectionChart({(MEDEA::ChartDataKind)kind.toUInt()});
         });
     }
 }

@@ -4,7 +4,6 @@
 #include <QScrollArea>
 #include <QRadioButton>
 #include <QToolButton>
-#include <QDateTime>
 #include <QFutureWatcher>
 #include <QStyledItemDelegate>
 #include <QKeyEvent>

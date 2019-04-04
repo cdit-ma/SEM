@@ -4,7 +4,7 @@
 /**
  * @brief PortLifecycleRequest::PortLifecycleRequest
  */
-PortLifecycleRequest::PortLifecycleRequest() : EventRequest(TIMELINE_DATA_KIND::PORT_LIFECYCLE) {}
+PortLifecycleRequest::PortLifecycleRequest() : EventRequest(MEDEA::ChartDataKind::PORT_LIFECYCLE) {}
 
 
 /**

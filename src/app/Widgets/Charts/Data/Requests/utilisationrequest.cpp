@@ -5,7 +5,7 @@
  * @brief UtilisationRequest::UtilisationRequest
  * @param kind
  */
-UtilisationRequest::UtilisationRequest(TIMELINE_DATA_KIND kind) : Request(kind) {}
+UtilisationRequest::UtilisationRequest(MEDEA::ChartDataKind kind) : Request(kind) {}
 
 
 /**

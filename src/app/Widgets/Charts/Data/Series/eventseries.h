@@ -3,8 +3,8 @@
 
 #include "../Events/event.h"
 
-#include <QDateTime>
-#include <QTextStream>
+#include <QList>
+#include <QDebug>
 
 namespace MEDEA {
 
@@ -13,28 +13,34 @@ class EventSeries : public QObject
     Q_OBJECT
 
 public:
-    explicit EventSeries(QString ID, TIMELINE_DATA_KIND kind = TIMELINE_DATA_KIND::DATA, QObject* parent = 0);
+    explicit EventSeries(const QString& ID, MEDEA::ChartDataKind kind = MEDEA::ChartDataKind::DATA, QObject* parent = 0);
     ~EventSeries();
 
     void clear();
+    bool isEmpty() const;
 
-    void addEvents(QList<Event*> events);
+    void addEvents(const QList<Event*>& events);
     virtual void addEvent(Event* event);
     const QList<Event*>& getEvents();
 
-    const qint64& getMinTimeMS() const;
-    const qint64& getMaxTimeMS() const;
+    qint64 getMinTimeMS() const;
+    qint64 getMaxTimeMS() const;
     QPair<qint64, qint64> getTimeRangeMS() const;
 
-    const TIMELINE_DATA_KIND& getKind() const;
+    MEDEA::ChartDataKind getKind() const;
 
-    QString getEventSeriesID() const;
     const QString& getID() const;
+    const QString& getEventSeriesID() const;
 
-    QString getHoveredDataString(QPair<qint64, qint64> timeRangeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
-    virtual QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
+    QList<Event*>::const_iterator getFirstAfterTime(const qint64 timeMS) const;
 
-    static QString getDefaultDisplayFormat();
+    virtual QString getHoveredDataString (
+            qint64 fromTimeMS,
+            qint64 toTimeMS,
+            int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(),
+            const QString& displayFormat = getDefaultDisplayFormat()) const;
+
+    static const QString& getDefaultDisplayFormat();
     static int getDefaultNumberOfItemsToDisplay();
 
 signals:
@@ -43,9 +49,16 @@ signals:
     void minYValueChanged(double minY);
     void maxYValueChanged(double maxY);
 
+protected:
+    QString getDataString (
+            const QList<Event*>::const_iterator& from,
+            const QList<Event*>::const_iterator& to,
+            int numberOfItems,
+            const QString& dateTimeFormat) const;
+
 private:
     QString ID_;
-    TIMELINE_DATA_KIND kind_;
+    MEDEA::ChartDataKind kind_;
 
     qint64 minTime_;
     qint64 maxTime_;
@@ -53,10 +66,11 @@ private:
     QList<Event*> events_;
 
     int eventSeriesID_;
+    QString eventSeriesIDStr_;
+
     static int eventSeries_ID;
 };
 
 }
-
 
 #endif // BASESERIES_H

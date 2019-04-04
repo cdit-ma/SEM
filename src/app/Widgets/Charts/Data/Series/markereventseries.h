@@ -8,14 +8,24 @@ class MarkerEventSeries : public MEDEA::EventSeries
     Q_OBJECT
 
 public:
-    explicit MarkerEventSeries(QString ID, QObject* parent = 0);
+    explicit MarkerEventSeries(const QString& ID, QObject* parent = 0);
 
     const QHash<qint64, QPair<qint64, qint64>>& getMarkerIDSetRanges() const;
     const QMap<qint64, QSet<qint64>>& getMarkerIDsWithSharedStartTimes() const;
     const QHash<qint64, qint64>& getMarkerIDSetDurations() const;
 
-    void addEvent(MEDEA::Event *event);
-    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat);
+    void addEvent(MEDEA::Event* event);
+
+    QString getHoveredDataString (
+            qint64 fromTimeMS,
+            qint64 toTimeMS,
+            int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(),
+            const QString& displayFormat = getDefaultDisplayFormat()) const;
+
+protected:
+    QString getDataString (
+            const QList<qint64>::const_iterator& from,
+            const QList<qint64>::const_iterator& to) const;
 
 private:
     QHash<qint64, QPair<qint64, qint64>> markerIDSetRanges_;

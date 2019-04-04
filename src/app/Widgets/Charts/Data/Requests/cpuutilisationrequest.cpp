@@ -4,4 +4,4 @@
 /**
  * @brief CPUUtilisationRequest::CPUUtilisationRequest
  */
-CPUUtilisationRequest::CPUUtilisationRequest() : UtilisationRequest(TIMELINE_DATA_KIND::CPU_UTILISATION) {}
+CPUUtilisationRequest::CPUUtilisationRequest() : UtilisationRequest(MEDEA::ChartDataKind::CPU_UTILISATION) {}

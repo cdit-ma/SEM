@@ -345,7 +345,7 @@ void ChartManager::displayChartPopup()
  * @param selectedItems
  * @param selectedDataKinds
  */
-void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &selectedItems, const QList<TIMELINE_DATA_KIND> &selectedDataKinds)
+void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &selectedItems, const QList<MEDEA::ChartDataKind> &selectedDataKinds)
 {
     selectedViewItems_ = selectedItems;
     selectedDataKinds_ = selectedDataKinds;
@@ -400,8 +400,8 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
         return;
 
     if (selectedDataKinds_.isEmpty()) {
-        selectedDataKinds_ = GET_TIMELINE_DATA_KINDS();
-        selectedDataKinds_.removeAll(TIMELINE_DATA_KIND::DATA);
+        selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
+        selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
     }
 
     auto builder = RequestBuilder::build();
@@ -449,7 +449,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
             case NODE_KIND::PORT_SUBSCRIBER:
             case NODE_KIND::PORT_PERIODIC:
                 // can send port requests
-                if (selectedDataKinds_.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
+                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
                     /*for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
                         portIDs_.append(QString::number(instID) + "_0");
                     }*/
@@ -467,7 +467,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
             case NODE_KIND::PORT_SUBSCRIBER_INST:
             case NODE_KIND::PORT_PERIODIC_INST:
                 // can send port requests
-                if (selectedDataKinds_.contains(TIMELINE_DATA_KIND::PORT_LIFECYCLE)) {
+                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
                     auto compInstItem = nodeItem->getParentItem();
                     if (compInstItem)
                         portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
@@ -475,7 +475,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
                 break;
             case NODE_KIND::CLASS_INST:
                 // can send workload requests
-                if (selectedDataKinds_.contains(TIMELINE_DATA_KIND::WORKLOAD)) {
+                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::WORKLOAD)) {
                     // a ClassInstance can be a child of either a CompImpl or CompInst
                     /*auto parentNodeKind = nodeItem->getParentNodeKind();
                     if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {

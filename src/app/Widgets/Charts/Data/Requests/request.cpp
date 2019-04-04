@@ -5,7 +5,7 @@
  * @brief Request::Request
  * @param kind
  */
-Request::Request(TIMELINE_DATA_KIND kind) : kind_(kind) {}
+Request::Request(MEDEA::ChartDataKind kind) : kind_(kind) {}
 
 
 /**
@@ -52,7 +52,7 @@ const QVector<qint64> &Request::time_interval() const
  * @brief Request::getKind
  * @return
  */
-const TIMELINE_DATA_KIND Request::getKind() const
+const MEDEA::ChartDataKind Request::getKind() const
 {
     return kind_;
 }

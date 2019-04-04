@@ -5,7 +5,7 @@
  * @brief EventRequest::EventRequest
  * @param kind
  */
-EventRequest::EventRequest(TIMELINE_DATA_KIND kind) : Request(kind) {}
+EventRequest::EventRequest(MEDEA::ChartDataKind kind) : Request(kind) {}
 
 
 /**

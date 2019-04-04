@@ -5,7 +5,6 @@
 #include <QException>
 #include <QVector>
 #include <QtConcurrent/QtConcurrentRun>
-#include <QDateTime>
 
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>

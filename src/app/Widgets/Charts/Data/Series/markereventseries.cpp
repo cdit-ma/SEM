@@ -1,15 +1,15 @@
 #include "markereventseries.h"
 #include "../Events/markerevent.h"
 
-#include <QDebug>
+#include <QSet>
 
 /**
  * @brief MarkerEventSeries::MarkerEventSeries
  * @param ID
  * @param parent
  */
-MarkerEventSeries::MarkerEventSeries(QString ID, QObject *parent)
-    : MEDEA::EventSeries(ID, TIMELINE_DATA_KIND::MARKER, parent) {}
+MarkerEventSeries::MarkerEventSeries(const QString& ID, QObject *parent)
+    : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::MARKER, parent) {}
 
 
 /**
@@ -47,7 +47,7 @@ const QHash<qint64, qint64> &MarkerEventSeries::getMarkerIDSetDurations() const
  */
 void MarkerEventSeries::addEvent(MEDEA::Event* event)
 {
-    if (event->getKind() != TIMELINE_DATA_KIND::MARKER)
+    if (event->getKind() != MEDEA::ChartDataKind::MARKER)
         return;
 
     auto markerEvent = (MarkerEvent*)event;
@@ -81,78 +81,65 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
  * @param displayFormat
  * @return
  */
-QString MarkerEventSeries::getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay, QString displayFormat)
+QString MarkerEventSeries::getHoveredDataString (
+        qint64 fromTimeMS,
+        qint64 toTimeMS,
+        int numberOfItemsToDisplay,
+        const QString& displayFormat) const
 {
-    if (startTimeMap_.isEmpty()) {
+    Q_UNUSED(numberOfItemsToDisplay)
+    Q_UNUSED(displayFormat)
+
+    if (isEmpty() || startTimeMap_.isEmpty()) {
         return "";
     }
 
-    //qDebug() << "FROM: " << QDateTime::fromMSecsSinceEpoch(fromTimeMS).toString(displayFormat);
-    //qDebug() << "TO: " << QDateTime::fromMSecsSinceEpoch(toTimeMS).toString(displayFormat);
-
     const auto& startTimes = startTimeMap_.keys();
-    /*auto current = std::lower_bound(startTimes.constBegin(), startTimes.constEnd(), fromTimeMS, [](const qint64 &idSetStartTime, const qint64 &time) {
+    auto current = std::lower_bound(startTimes.constBegin(), startTimes.constEnd(), fromTimeMS, [](const qint64 &idSetStartTime, const qint64 &time) {
         return idSetStartTime < time;
     });
     auto upper = std::upper_bound(startTimes.constBegin(), startTimes.constEnd(), toTimeMS, [](const qint64 &time, const qint64 &idSetStartTime) {
         return time < idSetStartTime;
-    });*/
+    });
+    return getDataString(current, upper);
+}
 
-    auto currentStartTimeItr = startTimes.constBegin();
-    auto endStartTimeItr = startTimes.constEnd();
-    auto firstItrSet = false;
 
-    for (auto current = startTimes.constBegin(); current != startTimes.constEnd(); current++) {
+/**
+ * @brief MarkerEventSeries::getDataString
+ * @param from
+ * @param to
+ * @return
+ */
+QString MarkerEventSeries::getDataString (
+        const QList<qint64>::const_iterator& from,
+        const QList<qint64>::const_iterator& to) const
+{
+    // calculate the average duration between from time and to time
+    qint64 totalDurationMS = 0;
+    int numberOfIDSets = 0;
+    auto current = from;
+
+    while (current != to) {
         auto currentStartTime = (*current);
-        if (!firstItrSet) {
-            if (currentStartTime > toTimeMS)
-                return "";
-            if (currentStartTime > fromTimeMS) {
-                currentStartTimeItr = current;
-                firstItrSet = true;
+        const auto& markerIDsAtStartTime = startTimeMap_.value(currentStartTime);
+        for (const auto& id : markerIDsAtStartTime) {
+            if (markerIDSetDurations_.contains(id)) {
+                totalDurationMS += markerIDSetDurations_.value(id);
             }
+            numberOfIDSets++;
         }
-        if (currentStartTime > toTimeMS) {
-            if (current == startTimes.constBegin()) {
-                endStartTimeItr = startTimes.constBegin();
-            } else {
-                endStartTimeItr = current - 1;
-            }
-            break;
-        }
+        current++;
     }
-
-    if (!firstItrSet)
-        return "";
 
     QString hoveredData;
     QTextStream stream(&hoveredData);
 
-    // calculate the average duration between fromTimeMS and toTimeMS
-    auto totalDuration = 0.0;
-    auto numberOfIDSets = 0;
-
-    while (currentStartTimeItr != startTimes.constEnd()) {
-        auto currentStartTime = (*currentStartTimeItr);
-        const auto& markerIDsAtStartTime = startTimeMap_.value(currentStartTime);
-        for (const auto& id : markerIDsAtStartTime) {
-            if (markerIDSetDurations_.contains(id)) {
-                totalDuration += markerIDSetDurations_.value(id);
-            }
-            numberOfIDSets++;
-        }
-        if (currentStartTimeItr == endStartTimeItr) {
-            break;
-        }
-        currentStartTimeItr++;
+    if (numberOfIDSets > 0) {
+        double avgDuration = (double) totalDurationMS / numberOfIDSets;
+        stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
+               << "Average Duration: " << avgDuration << "ms \n\n";
     }
-
-    if (numberOfIDSets == 0)
-        return "";
-
-    auto avgDuration = totalDuration / numberOfIDSets;
-    stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
-           << "Average Duration: " << avgDuration << "ms \n\n";
 
     return hoveredData.trimmed();
 }

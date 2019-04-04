@@ -34,7 +34,7 @@ EntityChart::EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QW
 
     experimentRunID_ = experimentRunID;
     experimentRunStartTime_ = experimentStartTime;
-    hoveredSeriesKind_ = TIMELINE_DATA_KIND::DATA;
+    hoveredSeriesKind_ = MEDEA::ChartDataKind::DATA;
 
     dataMinX_ = DBL_MAX;
     dataMaxX_ = DBL_MIN;
@@ -64,8 +64,8 @@ void EntityChart::addSeries(MEDEA::EventSeries* series)
 {
     if (series) {
         seriesList_[series->getKind()] = series;
-        if (series->getKind() == TIMELINE_DATA_KIND::CPU_UTILISATION ||
-                series->getKind() == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+        if (series->getKind() == MEDEA::ChartDataKind::CPU_UTILISATION ||
+                series->getKind() == MEDEA::ChartDataKind::MEMORY_UTILISATION) {
             containsYRange_ = true;
         }
         connect(series, &MEDEA::EventSeries::minYValueChanged, this, &EntityChart::updateVerticalMin);
@@ -78,7 +78,7 @@ void EntityChart::addSeries(MEDEA::EventSeries* series)
  * @brief EntityChart::removeSeries
  * @param kind
  */
-void EntityChart::removeSeries(TIMELINE_DATA_KIND kind)
+void EntityChart::removeSeries(MEDEA::ChartDataKind kind)
 {
     seriesList_.remove(kind);
 }
@@ -88,7 +88,7 @@ void EntityChart::removeSeries(TIMELINE_DATA_KIND kind)
  * @brief EntityChart::getSeries
  * @return
  */
-const QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*>& EntityChart::getSeries()
+const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& EntityChart::getSeries()
 {
     return seriesList_;
 }
@@ -98,7 +98,7 @@ const QHash<TIMELINE_DATA_KIND, MEDEA::EventSeries*>& EntityChart::getSeries()
  * @brief EntityChart::getHovereSeriesKinds
  * @return
  */
-const QList<TIMELINE_DATA_KIND> EntityChart::getHovereSeriesKinds()
+const QList<MEDEA::ChartDataKind> EntityChart::getHovereSeriesKinds()
 {
     return hoveredSeriesTimeRange_.keys();
 }
@@ -109,7 +109,7 @@ const QList<TIMELINE_DATA_KIND> EntityChart::getHovereSeriesKinds()
  * @param kind
  * @return
  */
-const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(TIMELINE_DATA_KIND kind)
+const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(MEDEA::ChartDataKind kind)
 {
     return hoveredSeriesTimeRange_.value(kind, {-1, -1});
 }
@@ -198,7 +198,7 @@ void EntityChart::updateRange(double startTime, double duration)
  * @brief EntityChart::updateBinnedData
  * @param kinds
  */
-void EntityChart::updateBinnedData(QSet<TIMELINE_DATA_KIND> kinds)
+void EntityChart::updateBinnedData(QSet<MEDEA::ChartDataKind> kinds)
 {
     return;
 
@@ -274,7 +274,7 @@ void EntityChart::setHoveredRect(QRectF rect)
  * @param kind
  * @param visible
  */
-void EntityChart::setSeriesKindVisible(TIMELINE_DATA_KIND kind, bool visible)
+void EntityChart::setSeriesKindVisible(MEDEA::ChartDataKind kind, bool visible)
 {
     seriesKindVisible_[kind] = visible;
     update();
@@ -285,7 +285,7 @@ void EntityChart::setSeriesKindVisible(TIMELINE_DATA_KIND kind, bool visible)
  * @brief EntityChart::seriesKindHovered
  * @param kind
  */
-void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
+void EntityChart::seriesKindHovered(MEDEA::ChartDataKind kind)
 {
     if (kind == hoveredSeriesKind_)
         return;
@@ -304,27 +304,27 @@ void EntityChart::seriesKindHovered(TIMELINE_DATA_KIND kind)
     markerSeriesOpacity_ = alpha;
 
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+    case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
         portSeriesOpacity_ = 1.0;
         break;
     }
-    case TIMELINE_DATA_KIND::WORKLOAD: {
+    case MEDEA::ChartDataKind::WORKLOAD: {
         workloadColor_ = defaultWorkloadColor_;
         workloadSeriesOpacity_ = 1.0;
         break;
     }
-    case TIMELINE_DATA_KIND::CPU_UTILISATION: {
+    case MEDEA::ChartDataKind::CPU_UTILISATION: {
         utilisationColor_ = defaultUtilisationColor_;
         cpuSeriesOpacity_ = 1.0;
         break;
     }
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION: {
+    case MEDEA::ChartDataKind::MEMORY_UTILISATION: {
         memoryColor_ = defaultMemoryColor_;
         memorySeriesOpacity_ = 1.0;
         break;
     }
-    case TIMELINE_DATA_KIND::MARKER: {
+    case MEDEA::ChartDataKind::MARKER: {
         markerColor_ = defaultMarkerColor_;
         markerSeriesOpacity_ = 1.0;
         break;
@@ -492,25 +492,25 @@ void EntityChart::paintEvent(QPaintEvent* event)
  * @param painter
  * @param kind
  */
-void EntityChart::paintSeries(QPainter &painter, const TIMELINE_DATA_KIND kind)
+void EntityChart::paintSeries(QPainter &painter, const MEDEA::ChartDataKind kind)
 {
     if (!seriesKindVisible_.value(kind, false))
         return;
 
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
         break;
-    case TIMELINE_DATA_KIND::WORKLOAD:
+    case MEDEA::ChartDataKind::WORKLOAD:
         paintWorkloadEventSeries(painter);
         break;
-    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    case MEDEA::ChartDataKind::CPU_UTILISATION:
         paintCPUUtilisationEventSeries(painter);
         break;
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    case MEDEA::ChartDataKind::MEMORY_UTILISATION:
         paintMemoryUtilisationEventSeries(painter);
         break;
-    case TIMELINE_DATA_KIND::MARKER:
+    case MEDEA::ChartDataKind::MARKER:
         paintMarkerEventSeries(painter);
         break;
     default:
@@ -542,9 +542,10 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::PORT_LIFECYCLE, 0);
+    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::PORT_LIFECYCLE, 0);
     if (!eventSeries)
         return;
+
 
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
@@ -572,6 +573,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
             break;
         }
     }
+//    /qDebug() << "Port series#: " << events.count();
 
     auto current_bucket = 0;
     auto current_bucket_ittr = bucket_endTimes.constBegin();
@@ -608,12 +610,6 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
         if (count == 1) {
             auto event = (PortLifecycleEvent*) buckets[i][0];
             if (rectHovered(eventSeries->getKind(), rect)) {
-                /*
-                 *  TODO - This forces the hover display to only show the hovered item's data/time
-                 *  This can be removed when the date-time axis range has a minimum limit
-                 *  This also needs to be changed when there are multiple series of the same kind
-                 */
-                hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, highlightBrush_);
             }
             painter.setRenderHint(QPainter::Antialiasing, true);
@@ -650,7 +646,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::WORKLOAD, 0);
+    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::WORKLOAD, 0);
     if (!eventSeries)
         return;
 
@@ -716,12 +712,6 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
         if (count == 1) {
             auto event = (WorkloadEvent*) buckets[i][0];
             if (rectHovered(eventSeries->getKind(), rect)) {
-                /*
-                 *  TODO - This forces the hover display to only show the hovered item's data/time
-                 *  This can be removed when the date-time axis range has a minimum limit
-                 *  This also needs to be changed when there are multiple series of the same kind
-                 */
-                hoveredSeriesTimeRange_[eventSeries->getKind()] = {event->getTimeMS(), event->getTimeMS()};
                 painter.fillRect(rect, highlightBrush_);
             }
             painter.setRenderHint(QPainter::Antialiasing, true);
@@ -758,7 +748,7 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::CPU_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::CPU_UTILISATION, 0);
     if (!eventSeries)
         return;
 
@@ -940,7 +930,7 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MEMORY_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::MEMORY_UTILISATION, 0);
     if (!eventSeries)
         return;
 
@@ -1122,7 +1112,7 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(TIMELINE_DATA_KIND::MARKER, 0);
+    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::MARKER, 0);
     if (!eventSeries)
         return;
 
@@ -1207,17 +1197,14 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
     painter.setOpacity(markerSeriesOpacity_);
 
     for (int i = 0; i < binCount; i++) {
-
         auto durationMS = bins[i];
         if (durationMS == 0) {
             continue;
         }
-
         auto rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight;
         if (durationMS == -1) {
             rectHeight = 2.0;
         }
-
         auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
         QRectF rect(i * binWidth, y, binWidth, rectHeight);
         if (rectHovered(eventSeries->getKind(), rect)) {
@@ -1262,13 +1249,13 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
         qDebug() << "i[" << i << "] - rect x: " << rect.x();
         if (count == 1) {
             auto event = (PortLifecycleEvent*) portLifecycleBinnedData_[i][0];
-            if (rectHovered(TIMELINE_DATA_KIND::PORT_LIFECYCLE, rect))
+            if (rectHovered(MEDEA::ChartDataKind::PORT_LIFECYCLE, rect))
                 painter.fillRect(rect, highlightColor_);
             painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);
-            if (rectHovered(TIMELINE_DATA_KIND::PORT_LIFECYCLE, rect)) {
+            if (rectHovered(MEDEA::ChartDataKind::PORT_LIFECYCLE, rect)) {
                 painter.setPen(highlightTextColor_);
                 color = highlightColor_;
             }
@@ -1286,7 +1273,7 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
  * @param hitRect
  * @return
  */
-bool EntityChart::rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect)
+bool EntityChart::rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect)
 {
     auto painterRect = hitRect.adjusted(-PEN_WIDTH / 2.0, 0, PEN_WIDTH / 2.0, 0);
     if (rectHovered(painterRect)) {
@@ -1296,9 +1283,9 @@ bool EntityChart::rectHovered(TIMELINE_DATA_KIND kind, const QRectF& hitRect)
             timeRange.first = hoveredSeriesTimeRange_.value(kind).first;
         }
         hoveredSeriesTimeRange_[kind] = timeRange;
-        if (kind == TIMELINE_DATA_KIND::CPU_UTILISATION || kind == TIMELINE_DATA_KIND::MEMORY_UTILISATION) {
+        if (kind == MEDEA::ChartDataKind::CPU_UTILISATION || kind == MEDEA::ChartDataKind::MEMORY_UTILISATION) {
             hoveredEllipseRects_.append(hitRect);
-        } else { //if (kind != TIMELINE_DATA_KIND::MARKER) {
+        } else { //if (kind != MEDEA::ChartDataKind::MARKER) {
             hoveredRects_.append(hitRect);
         }
         return true;
@@ -1334,7 +1321,7 @@ void EntityChart::clearHoveredLists()
  * @brief EntityChart::updateBinnedData
  * @param kind
  */
-void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
+void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
 {
     if (!seriesList_.contains(kind))
         return;
@@ -1353,7 +1340,7 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
     //binTimeWidth_ = binRatio * displayRange;
     //binCount_ = /*ceil*/(dataRange / binTimeWidth_);
 
-    if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE) {
+    if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
         int firstIndex = getBinIndexForTime(displayMin_);
         int lastIndex = getBinIndexForTime(displayMax_);
         qDebug() << "width(): " << width();
@@ -1378,7 +1365,7 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
     // calculate the bin end times for the whole data range
     auto currentTime = dataMinX_;
     for (auto i = 0; i < binCount_; i++) {
-        /*if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE)
+        /*if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE)
             qDebug() << "CURRENT time: " << QDateTime::fromMSecsSinceEpoch(currentTime).toString(TIME_FORMAT);*/
         binEndTimes.append(currentTime + binTimeWidth_);
         currentTime = binEndTimes.last();
@@ -1406,7 +1393,7 @@ void EntityChart::updateBinnedData(TIMELINE_DATA_KIND kind)
                 }
             }
             if (currentBin < binCount_) {
-                if (kind == TIMELINE_DATA_KIND::PORT_LIFECYCLE)
+                if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE)
                     qDebug() << "--- bin data at: " << currentBin;
                 binnedData[currentBin].append(*eventItr);
             }
@@ -1425,15 +1412,15 @@ void EntityChart::updateSeriesPixmaps()
     bool colorWorkerPixmaps = false;
 
     switch (hoveredSeriesKind_) {
-    case TIMELINE_DATA_KIND::DATA: {
+    case MEDEA::ChartDataKind::DATA: {
         colorPortPixmaps = true;
         colorWorkerPixmaps = true;
         break;
     }
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
         colorPortPixmaps = true;
         break;
-    case TIMELINE_DATA_KIND::WORKLOAD:
+    case MEDEA::ChartDataKind::WORKLOAD:
         colorWorkerPixmaps = true;
         break;
     default:
@@ -1442,7 +1429,7 @@ void EntityChart::updateSeriesPixmaps()
 
     if (colorPortPixmaps) {
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getMenuIconColor());
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "clockDark", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "circleMinusDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "circleRadio", QSize(), theme->getMenuIconColor());
@@ -1507,18 +1494,18 @@ int EntityChart::getBinIndexForTime(double time)
  * @param kind
  * @return
  */
-QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(TIMELINE_DATA_KIND kind)
+QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(MEDEA::ChartDataKind kind)
 {
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
         return portLifecycleBinnedData_;
-    case TIMELINE_DATA_KIND::WORKLOAD:
+    case MEDEA::ChartDataKind::WORKLOAD:
         return workloadBinnedData_;
-    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    case MEDEA::ChartDataKind::CPU_UTILISATION:
         return cpuUtilisationBinnedData_;
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    case MEDEA::ChartDataKind::MEMORY_UTILISATION:
         return memoryUtilisationBinnedData_;
-    case TIMELINE_DATA_KIND::MARKER:
+    case MEDEA::ChartDataKind::MARKER:
         return markerBinnedData_;
     default:
         return emptyBinnedData_;
@@ -1558,7 +1545,7 @@ double EntityChart::mapTimeToPixel(double time)
  * @param seed
  * @return
  */
-inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
+inline uint qHash(MEDEA::ChartDataKind key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }

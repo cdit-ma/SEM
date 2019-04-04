@@ -8,12 +8,7 @@ class PortLifecycleEventSeries : public MEDEA::EventSeries
     Q_OBJECT
 
 public:
-    explicit PortLifecycleEventSeries(QString ID, QObject* parent = 0);
-
-    QString getHoveredDataString(qint64 fromTimeMS, qint64 toTimeMS, int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(), QString displayFormat = getDefaultDisplayFormat());
-
-private:
-    QString getTypeString(AggServerResponse::LifecycleType type);
+    explicit PortLifecycleEventSeries(const QString& ID, QObject* parent = 0);
 };
 
 #endif // PORTLIFECYCLEEVENTSERIES_H

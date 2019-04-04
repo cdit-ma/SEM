@@ -1,6 +1,7 @@
 #include "aggregationproxy.h"
 #include "../SettingsController/settingscontroller.h"
 
+#include <QDateTime>
 #include <iostream>
 
 

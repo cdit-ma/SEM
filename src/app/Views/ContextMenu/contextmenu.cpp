@@ -859,7 +859,7 @@ void ContextMenu::update_chart_menu()
         if (actionKind.isValid()) {
             // NOTE - Apparently hiding the action doesn't necessarily hide its default widget!
             auto widgetAction = (QWidgetAction*) action;
-            auto visible = valid_data_kinds.contains((TIMELINE_DATA_KIND)actionKind.toUInt());
+            auto visible = valid_data_kinds.contains((MEDEA::ChartDataKind)actionKind.toUInt());
             widgetAction->setVisible(visible);
             widgetAction->defaultWidget()->setVisible(visible);
         }
@@ -1086,10 +1086,10 @@ void ContextMenu::setupMenus()
 
     // setup chart menu
     chart_data_kind_menu = construct_menu("View In Chart", main_menu);
-    auto data_kinds = GET_TIMELINE_DATA_KINDS();
-    data_kinds.removeAll(TIMELINE_DATA_KIND::DATA);
+    auto data_kinds = MEDEA::Event::GetChartDataKinds();
+    data_kinds.removeAll(MEDEA::ChartDataKind::DATA);
     for (const auto& kind : data_kinds) {
-        auto text = GET_TIMELINE_DATA_KIND_STRING(kind);
+        auto text = MEDEA::Event::GetChartDataKindString(kind);
         auto checkbox = new QCheckBox(text);
         auto widgetAction = new QWidgetAction(this);
         widgetAction->setDefaultWidget(checkbox);
@@ -1105,10 +1105,10 @@ void ContextMenu::setupMenus()
     triggerChartMenuAction->setProperty("iconName", "tick");
     connect(triggerChartMenuAction, &QAction::triggered, [=]() {
         if (view_controller) {
-            QList<TIMELINE_DATA_KIND> checkedKinds;
+            QList<MEDEA::ChartDataKind> checkedKinds;
             for (auto action : chart_data_kind_menu->actions()) {
                 if (action->isVisible() && action->isCheckable() && action->isChecked())
-                    checkedKinds.append((TIMELINE_DATA_KIND)action->property("dataKind").toUInt());
+                    checkedKinds.append((MEDEA::ChartDataKind)action->property("dataKind").toUInt());
             }
             if (!checkedKinds.isEmpty()) {
                 view_controller->viewSelectionChart(checkedKinds);

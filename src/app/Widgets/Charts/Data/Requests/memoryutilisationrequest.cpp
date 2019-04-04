@@ -4,4 +4,4 @@
 /**
  * @brief MemoryUtilisationRequest::MemoryUtilisationRequest
  */
-MemoryUtilisationRequest::MemoryUtilisationRequest() : UtilisationRequest(TIMELINE_DATA_KIND::MEMORY_UTILISATION) {}
+MemoryUtilisationRequest::MemoryUtilisationRequest() : UtilisationRequest(MEDEA::ChartDataKind::MEMORY_UTILISATION) {}

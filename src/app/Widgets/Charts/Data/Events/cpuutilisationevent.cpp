@@ -8,21 +8,35 @@
  * @param time
  * @param parent
  */
-CPUUtilisationEvent::CPUUtilisationEvent(QString hostname, double utilisation, qint64 time, QObject *parent)
-    : MEDEA::Event(time, hostname, parent)
+CPUUtilisationEvent::CPUUtilisationEvent(const QString& hostname,
+                                         double utilisation,
+                                         qint64 time,
+                                         QObject *parent)
+    : MEDEA::Event(MEDEA::ChartDataKind::CPU_UTILISATION, time, hostname, parent),
+      hostname_(hostname),
+      utilisation_(utilisation) {}
+
+
+/**
+ * @brief CPUUtilisationEvent::toString
+ * @param dateTimeFormat
+ * @return
+ */
+QString CPUUtilisationEvent::toString(const QString &dateTimeFormat) const
 {
-    hostname_ = hostname;
-    utilisation_ = utilisation;
+    return "Host: " + hostname_ + "\n" +
+           "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
+           "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
 
 
 /**
- * @brief CPUUtilisationEvent::getUtilisation
+ * @brief CPUUtilisationEvent::getID
  * @return
  */
-const double& CPUUtilisationEvent::getUtilisation() const
+const QString& CPUUtilisationEvent::getID() const
 {
-    return utilisation_;
+    return hostname_;
 }
 
 
@@ -37,20 +51,10 @@ const QString& CPUUtilisationEvent::getHostname() const
 
 
 /**
- * @brief CPUUtilisationEvent::getID
+ * @brief CPUUtilisationEvent::getUtilisation
  * @return
  */
-QString CPUUtilisationEvent::getID() const
+double CPUUtilisationEvent::getUtilisation() const
 {
-    return hostname_;
-}
-
-
-/**
- * @brief CPUUtilisationEvent::getKind
- * @return
- */
-TIMELINE_DATA_KIND CPUUtilisationEvent::getKind() const
-{
-    return TIMELINE_DATA_KIND::CPU_UTILISATION;
+    return utilisation_;
 }

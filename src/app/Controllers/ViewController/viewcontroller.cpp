@@ -541,9 +541,9 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
 }
 
 
-QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
+QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
 {
-    QSet<TIMELINE_DATA_KIND> validDataKinds;
+    QSet<MEDEA::ChartDataKind> validDataKinds;
 
     if (selectionController) {
 
@@ -568,14 +568,14 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             switch (kind) {
             // Added cases for the aspects
             case NODE_KIND::BEHAVIOUR_DEFINITIONS:
-                validDataKinds.insert(TIMELINE_DATA_KIND::MARKER);
+                validDataKinds.insert(MEDEA::ChartDataKind::MARKER);
             case NODE_KIND::INTERFACE_DEFINITIONS:
             case NODE_KIND::ASSEMBLY_DEFINITIONS:
             case NODE_KIND::COMPONENT:
             case NODE_KIND::COMPONENT_IMPL:
             case NODE_KIND::COMPONENT_INST: {
-                validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
-                validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
                 break;
             }
             case NODE_KIND::PORT_REPLIER:
@@ -592,15 +592,15 @@ QSet<TIMELINE_DATA_KIND> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER:
             case NODE_KIND::PORT_SUBSCRIBER_IMPL:
             case NODE_KIND::PORT_SUBSCRIBER_INST:
-                validDataKinds.insert(TIMELINE_DATA_KIND::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
                 break;
             case NODE_KIND::CLASS_INST:
-                validDataKinds.insert(TIMELINE_DATA_KIND::WORKLOAD);
+                validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
                 break;
             case NODE_KIND::HARDWARE_DEFINITIONS:
             case NODE_KIND::HARDWARE_NODE: {
-                validDataKinds.insert(TIMELINE_DATA_KIND::CPU_UTILISATION);
-                validDataKinds.insert(TIMELINE_DATA_KIND::MEMORY_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::CPU_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::MEMORY_UTILISATION);
                 break;
             }
             default:
@@ -1286,7 +1286,7 @@ void ViewController::editReplicationCount()
 }
 
 
-void ViewController::viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds)
+void ViewController::viewSelectionChart(QList<MEDEA::ChartDataKind> dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
         emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);

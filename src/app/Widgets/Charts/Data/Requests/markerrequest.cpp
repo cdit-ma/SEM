@@ -4,7 +4,7 @@
 /**
  * @brief MarkerRequest::MarkerRequest
  */
-MarkerRequest::MarkerRequest() : EventRequest(TIMELINE_DATA_KIND::MARKER) {}
+MarkerRequest::MarkerRequest() : EventRequest(MEDEA::ChartDataKind::MARKER) {}
 
 
 /**

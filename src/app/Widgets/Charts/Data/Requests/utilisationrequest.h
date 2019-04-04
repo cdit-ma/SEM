@@ -6,7 +6,7 @@
 class UtilisationRequest : public Request {
 
 protected:
-    explicit UtilisationRequest(TIMELINE_DATA_KIND kind);
+    explicit UtilisationRequest(MEDEA::ChartDataKind kind);
 
 public:
     void setNodeIDs(const QVector<QString>& node_ids);

@@ -21,23 +21,23 @@ RequestBuilder RequestBuilder::build()
  * @brief RequestBuilder::buildRequests
  * @param requestKinds
  */
-void RequestBuilder::buildRequests(const QList<TIMELINE_DATA_KIND> &requestKinds)
+void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKinds)
 {
     for (auto kind : requestKinds) {
         switch (kind) {
-        case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+        case MEDEA::ChartDataKind::PORT_LIFECYCLE:
             portLifecycleRequest_ = std::unique_ptr<PortLifecycleRequest>(new PortLifecycleRequest());
             break;
-        case TIMELINE_DATA_KIND::WORKLOAD:
+        case MEDEA::ChartDataKind::WORKLOAD:
             workloadRequest_ = std::unique_ptr<WorkloadRequest>(new WorkloadRequest());
             break;
-        case TIMELINE_DATA_KIND::CPU_UTILISATION:
+        case MEDEA::ChartDataKind::CPU_UTILISATION:
             cpuUtilisationRequest_ = std::unique_ptr<CPUUtilisationRequest>(new CPUUtilisationRequest());
             break;
-        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        case MEDEA::ChartDataKind::MEMORY_UTILISATION:
             memoryUtilisationRequest_ = std::unique_ptr<MemoryUtilisationRequest>(new MemoryUtilisationRequest());
             break;
-        case TIMELINE_DATA_KIND::MARKER:
+        case MEDEA::ChartDataKind::MARKER:
             markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
             break;
         default:

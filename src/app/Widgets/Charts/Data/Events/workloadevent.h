@@ -3,7 +3,6 @@
 
 #include "event.h"
 
-
 class WorkloadEvent : public MEDEA::Event
 {
     Q_OBJECT
@@ -19,25 +18,35 @@ public:
         MARKER
     };
 
-    explicit WorkloadEvent(AggServerResponse::WorkerInstance inst, WorkloadEventType type, quint32 workloadID, qint64 time, QString functionName, QString args, quint32 logLevel, QObject* parent = 0);
+    explicit WorkloadEvent(const AggServerResponse::WorkerInstance& inst,
+                           WorkloadEventType type,
+                           quint32 workloadID,
+                           qint64 time,
+                           const QString& functionName,
+                           const QString& args,
+                           quint32 logLevel,
+                           QObject* parent = 0);
 
-    const WorkloadEventType& getType() const;
-    const quint32& getWorkloadID() const;
-    const quint32& getLogLevel() const;
-    const QString& getFunctionName() const;
+    QString toString(const QString& dateTimeFormat) const;
+
+    const QString& getID() const;
     const QString& getArgs() const;
+    const QString& getFunctionName() const;
 
-    QString getID() const;
-    TIMELINE_DATA_KIND getKind() const;
+    WorkloadEventType getType() const;
+    quint32 getWorkloadID() const;
+    quint32 getLogLevel() const;
 
 private:
-    AggServerResponse::WorkerInstance workerInstance_;
-    WorkloadEventType type_;
-    quint32 workloadID_;
+    const AggServerResponse::WorkerInstance workerInstance_;
+    const WorkloadEventType type_;
 
-    QString functionName_;
-    QString args_;
-    quint32 logLevel_;
+    const quint32 workloadID_;
+    const quint32 logLevel_;
+
+    const QString functionName_;
+    const QString args_;
+    const QString ID_;
 
 };
 

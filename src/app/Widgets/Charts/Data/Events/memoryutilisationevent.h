@@ -8,17 +8,21 @@ class MemoryUtilisationEvent : public MEDEA::Event
     Q_OBJECT
 
 public:
-    explicit MemoryUtilisationEvent(QString hostname, double utilisation, qint64 time, QObject* parent = 0);
+    explicit MemoryUtilisationEvent(const QString& hostname,
+                                    double utilisation,
+                                    qint64 time,
+                                    QObject* parent = 0);
 
-    const double& getUtilisation() const;
+    QString toString(const QString& dateTimeFormat) const;
+
+    const QString& getID() const;
     const QString& getHostname() const;
 
-    QString getID() const;
-    TIMELINE_DATA_KIND getKind()const ;
+    double getUtilisation() const;
 
 private:
-    QString hostname_;
-    double utilisation_;
+    const QString hostname_;
+    const double utilisation_;
 
 };
 

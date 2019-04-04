@@ -25,6 +25,7 @@
 #define HOVER_DISPLAY_ON true
 #define HOVER_DISPLAY_ITEM_COUNT 10
 
+#define CHART_DATA_KIND "ChartDataKind"
 #define EXPERIMENT_RUN_ID "experimentRunID"
 #define EXPERIMENT_RUN_START_TIME "experimentRunStartTime"
 
@@ -59,9 +60,9 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
         if (!watched->property("checked").toBool())
             return false;
-        auto kind = TIMELINE_DATA_KIND::DATA;
+        auto kind = MEDEA::ChartDataKind::DATA;
         if (event->type() == QEvent::HoverEnter) {
-            kind = (TIMELINE_DATA_KIND) watched->property("TIMELINE_DATA_KIND").toUInt();
+            kind = (MEDEA::ChartDataKind) watched->property(CHART_DATA_KIND).toUInt();
         }
         emit seriesLegendHovered(kind);
         return true;
@@ -82,19 +83,18 @@ void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::Experime
 
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
-        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::PORT_LIFECYCLE, event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::PORT_LIFECYCLE, event->getID(), event->getName());
         if (series) {
             if (!clearedSeries.contains(series)) {
                 series->clear();
                 clearedSeries.append(series);
-                //qDebug() << "New series: " << event->getName();
             }
             series->addEvent(event);
         }
     }
 
     if (!clearedSeries.isEmpty())
-        addedChartEvents(TIMELINE_DATA_KIND::PORT_LIFECYCLE, experimentRun);
+        addedChartEvents(MEDEA::ChartDataKind::PORT_LIFECYCLE, experimentRun);
 }
 
 
@@ -108,9 +108,10 @@ void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun
     if (events.isEmpty())
         return;
 
+
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
-        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::WORKLOAD, event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::WORKLOAD, event->getID(), event->getName());
         if (series) {
             if (!clearedSeries.contains(series)) {
                 series->clear();
@@ -121,7 +122,7 @@ void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun
     }
 
     if (!clearedSeries.isEmpty())
-        addedChartEvents(TIMELINE_DATA_KIND::WORKLOAD, experimentRun);
+        addedChartEvents(MEDEA::ChartDataKind::WORKLOAD, experimentRun);
 }
 
 
@@ -137,7 +138,7 @@ void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::Experim
 
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
-        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::CPU_UTILISATION, event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::CPU_UTILISATION, event->getID(), event->getName());
         if (series) {
             if (!clearedSeries.contains(series)) {
                 series->clear();
@@ -148,7 +149,7 @@ void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::Experim
     }
 
     if (!clearedSeries.isEmpty())
-        addedChartEvents(TIMELINE_DATA_KIND::CPU_UTILISATION, experimentRun);
+        addedChartEvents(MEDEA::ChartDataKind::CPU_UTILISATION, experimentRun);
 }
 
 
@@ -162,9 +163,10 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
     if (events.isEmpty())
         return;
 
+
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
-        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::MEMORY_UTILISATION, event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::MEMORY_UTILISATION, event->getID(), event->getName());
         if (series) {
             if (!clearedSeries.contains(series)) {
                 series->clear();
@@ -175,7 +177,7 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
     }
 
     if (!clearedSeries.isEmpty())
-        addedChartEvents(TIMELINE_DATA_KIND::MEMORY_UTILISATION, experimentRun);
+        addedChartEvents(MEDEA::ChartDataKind::MEMORY_UTILISATION, experimentRun);
 }
 
 
@@ -189,9 +191,10 @@ void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &
     if (events.isEmpty())
         return;
 
+
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
-        auto series = constructSeriesForEventKind(experimentRun, TIMELINE_DATA_KIND::MARKER, event->getID(), event->getName());
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::MARKER, event->getID(), event->getName());
         if (series) {
             if (!clearedSeries.contains(series)) {
                 series->clear();
@@ -201,20 +204,8 @@ void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &
         }
     }
 
-    /*for (auto s : clearedSeries) {
-        auto mSeries = (MarkerEventSeries*) s;
-        const auto& ranges = mSeries->getMarkerIDSetRanges();
-        for (const auto& ID : ranges.keys()) {
-            const auto& range = ranges.value(ID);
-            qDebug() << "ID: " << ID;
-            qDebug() << "START: " << QDateTime::fromMSecsSinceEpoch(range.first).toString(DATE_TIME_FORMAT);
-            qDebug() << "END: " << QDateTime::fromMSecsSinceEpoch(range.second).toString(DATE_TIME_FORMAT);
-            qDebug() << "---------------------------";
-        }
-    }*/
-
     if (!clearedSeries.isEmpty())
-        addedChartEvents(TIMELINE_DATA_KIND::MARKER, experimentRun);
+        addedChartEvents(MEDEA::ChartDataKind::MARKER, experimentRun);
 }
 
 
@@ -323,22 +314,22 @@ void TimelineChartView::themeChanged()
         widget->setMinimumSize(theme->getLargeIconSize());
     }
 
-    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
+    for (auto kind : MEDEA::Event::GetChartDataKinds()) {
         QIcon buttonIcon;
         switch (kind) {
-        case TIMELINE_DATA_KIND::PORT_LIFECYCLE:
+        case MEDEA::ChartDataKind::PORT_LIFECYCLE:
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
-        case TIMELINE_DATA_KIND::WORKLOAD:
+        case MEDEA::ChartDataKind::WORKLOAD:
             buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
             break;
-        case TIMELINE_DATA_KIND::CPU_UTILISATION:
+        case MEDEA::ChartDataKind::CPU_UTILISATION:
             buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
             break;
-        case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+        case MEDEA::ChartDataKind::MEMORY_UTILISATION:
             buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
             break;
-        case TIMELINE_DATA_KIND::MARKER:
+        case MEDEA::ChartDataKind::MARKER:
             buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
             break;
         default:
@@ -349,7 +340,7 @@ void TimelineChartView::themeChanged()
             button->setIcon(buttonIcon);
         auto action = _legendActions.value(kind, 0);
         if (action)
-            action->setIcon(theme->getIcon("ToggleIcons", GET_TIMELINE_DATA_KIND_STRING(kind)));
+            action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
     }
 
     emptyLabel_->setFont(QFont(theme->getFont().family(), 12));
@@ -372,21 +363,23 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
     if (!sender())
         return;
 
-    auto kind = (TIMELINE_DATA_KIND) sender()->property("TIMELINE_DATA_KIND").toUInt();
+    auto kind = (MEDEA::ChartDataKind) sender()->property(CHART_DATA_KIND).toUInt();
     for (auto series : eventSeries) {
-        if (series->getKind() != kind)
-            continue;
-        auto ID = series->getEventSeriesID();
-        auto chart = eventEntityCharts.value(ID, 0);
-        if (chart)
-            chart->setVisible(checked);
-        auto set = eventEntitySets.value(ID, 0);
-        if (set)
-            set->setVisible(checked);
+        if (series->getKind() == kind) {
+            auto ID = series->getEventSeriesID();
+            auto chart = eventEntityCharts.value(ID, 0);
+            if (chart) {
+                chart->setVisible(checked);
+            }
+            auto set = eventEntitySets.value(ID, 0);
+            if (set) {
+                set->setVisible(checked);
+            }
+        }
     }
 
     sender()->setProperty("checked", checked);
-    emit seriesLegendHovered(checked ? kind : TIMELINE_DATA_KIND::DATA);
+    emit seriesLegendHovered(checked ? kind : MEDEA::ChartDataKind::DATA);
 }
 
 
@@ -455,26 +448,31 @@ void TimelineChartView::updateHoverDisplay()
     if (_timelineChart->isPanning())
         return;
 
-    QHash<TIMELINE_DATA_KIND, QString> hoveredData;
+    QHash<MEDEA::ChartDataKind, QString> hoveredData;
 
     for (auto entityChart : _timelineChart->getEntityCharts()) {
         if (!entityChart || !entityChart->isHovered())
             continue;
         const auto& series = entityChart->getSeries();
         auto hoveredKinds = entityChart->getHovereSeriesKinds();
-        for (auto s : series) {
+        for (const auto& s : series) {
             if (!s)
                 continue;
-            auto kind = s->getKind();
-            //qDebug() << "hovered kind: " << GET_TIMELINE_DATA_KIND_STRING(kind);
-            auto action = _legendActions.value(kind, 0);
+            const auto& kind = s->getKind();
+            const auto& action = _legendActions.value(kind, 0);
             if (!action || !action->isChecked())
                 continue;
             if (!hoveredKinds.contains(kind))
                 continue;
-            auto hoveredRange = entityChart->getHoveredTimeRange(kind);
-            auto hoveredInfo = s->getHoveredDataString(hoveredRange, HOVER_DISPLAY_ITEM_COUNT, DATE_TIME_FORMAT);
+            //auto dt = QDateTime::currentMSecsSinceEpoch();
+            const auto& hoveredRange = entityChart->getHoveredTimeRange(kind);
+            const auto& hoveredInfo = s->getHoveredDataString(hoveredRange.first,
+                                                              hoveredRange.second,
+                                                              HOVER_DISPLAY_ITEM_COUNT,
+                                                              getDateTimeDisplayFormat(kind));
+            //qDebug() << "Duration: " << (QDateTime::currentMSecsSinceEpoch() - dt) << " ms";
             //qDebug() << "Hovered Info: " << hoveredInfo;
+            //qDebug() << "---";
             if (!hoveredInfo.isEmpty())
                 hoveredData[kind] += hoveredInfo + "\n";
         }
@@ -487,7 +485,7 @@ void TimelineChartView::updateHoverDisplay()
         auto button = _hoverDisplayButtons.value(kind, 0);
         if (!button)
             continue;
-        auto hasData = hoveredData.contains(kind);
+        bool hasData = hoveredData.contains(kind);
         button->setVisible(hasData);
         if (hasData) {
             auto data = hoveredData.value(kind);
@@ -615,7 +613,7 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
  * @param kind
  * @param experimentRun
  */
-void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const AggServerResponse::ExperimentRun &experimentRun)
+void TimelineChartView::addedChartEvents(const MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun &experimentRun)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
     auto experimentRunStartTime = experimentRun.start_time;
@@ -645,7 +643,7 @@ void TimelineChartView::addedChartEvents(const TIMELINE_DATA_KIND kind, const Ag
  * @param label
  * @return
  */
-MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServerResponse::ExperimentRun& experimentRun, const TIMELINE_DATA_KIND kind, const QString &ID, const QString &label)
+MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServerResponse::ExperimentRun& experimentRun, const MEDEA::ChartDataKind kind, const QString &ID, const QString &label)
 {
     auto experimentRunID = experimentRun.experiment_run_id;
     auto seriesID = ID + QString::number(experimentRunID);
@@ -664,25 +662,25 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
     //qDebug() << "label: " << label;
 
     switch (kind) {
-    case TIMELINE_DATA_KIND::PORT_LIFECYCLE: {
+    case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
         auto strList = seriesID.split("_");
         seriesLabel += "_" + strList.first();
         series = new PortLifecycleEventSeries(seriesID, this);
         break;
     }
-    case TIMELINE_DATA_KIND::WORKLOAD: {
+    case MEDEA::ChartDataKind::WORKLOAD: {
         auto strList = seriesID.split("_");
         seriesLabel += "_" + strList.first();
         series = new WorkloadEventSeries(seriesID, this);
         break;
     }
-    case TIMELINE_DATA_KIND::CPU_UTILISATION:
+    case MEDEA::ChartDataKind::CPU_UTILISATION:
         series = new CPUUtilisationEventSeries(seriesID, this);
         break;
-    case TIMELINE_DATA_KIND::MEMORY_UTILISATION:
+    case MEDEA::ChartDataKind::MEMORY_UTILISATION:
         series = new MemoryUtilisationEventSeries(seriesID, this);
         break;
-    case TIMELINE_DATA_KIND::MARKER:
+    case MEDEA::ChartDataKind::MARKER:
         series = new MarkerEventSeries(seriesID, this);
         break;
     default:
@@ -693,7 +691,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
         // this needs to be set before the chart is constructed
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
-        constructChartForSeries(series, seriesID, seriesLabel + GET_TIMELINE_DATA_KIND_STRING_SUFFIX(kind));
+        constructChartForSeries(series, seriesID, seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
         eventSeries.insert(seriesID, series);
         experimentRunSeriesCount_[experimentRunID]++;
     }
@@ -711,9 +709,6 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
  */
 EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, const QString &ID, const QString &label)
 {
-    //qDebug() << "construct chart with label: " << label;
-    //qDebug() << "-----------------";
-
     if (!series)
         return 0;
 
@@ -750,7 +745,7 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *seri
 
     // set the initial visibility state of the chart/axis item
     for (auto& action : _legendActions.values()) {
-        auto kind = _legendActions.key(action, TIMELINE_DATA_KIND::DATA);
+        auto kind = _legendActions.key(action, MEDEA::ChartDataKind::DATA);
         if (kind == series->getKind()) {
             chart->setSeriesKindVisible(kind, true);
             chart->setVisible(action->isChecked());
@@ -930,6 +925,23 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 
 
 /**
+ * @brief TimelineChartView::getDateTimeDisplayFormat
+ * @param kind
+ * @return
+ */
+const QString &TimelineChartView::getDateTimeDisplayFormat(const MEDEA::ChartDataKind &kind) const
+{
+   switch (kind) {
+   case MEDEA::ChartDataKind::CPU_UTILISATION:
+   case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+       return TIME_FORMAT;
+   default:
+       return DATE_TIME_FORMAT;
+   }
+}
+
+
+/**
  * @brief TimelineChartView::setupLayout
  */
 void TimelineChartView::setupLayout()
@@ -990,24 +1002,24 @@ void TimelineChartView::setupLayout()
     _hoverDisplay->setWidget(_hoverWidget);
 
     /*
-     * HOVER AND LEGEND TIMELINE_DATA_KIND WIDGETS
+     * HOVER AND LEGEND CHART DATA KIND WIDGETS
      */
-    for (auto kind : GET_TIMELINE_DATA_KINDS()) {
-        if (kind == TIMELINE_DATA_KIND::DATA)
+    for (auto kind : MEDEA::Event::GetChartDataKinds()) {
+        if (kind == MEDEA::ChartDataKind::DATA)
             continue;
 
         // construct legend widgets
-        QAction* action = _legendToolbar->addAction(GET_TIMELINE_DATA_KIND_STRING(kind));
+        QAction* action = _legendToolbar->addAction(MEDEA::Event::GetChartDataKindString(kind));
         _legendActions[kind] = action;
         action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
         //action->setVisible(false);
-        action->setProperty("TIMELINE_DATA_KIND", (uint)kind);
+        action->setProperty(CHART_DATA_KIND, (uint)kind);
         connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
 
         QWidget* actionWidget = _legendToolbar->widgetForAction(action);
-        actionWidget->setProperty("TIMELINE_DATA_KIND", (uint)kind);
+        actionWidget->setProperty(CHART_DATA_KIND, (uint)kind);
         actionWidget->installEventFilter(this);
 
         // construct hover display widgets
@@ -1087,7 +1099,7 @@ void TimelineChartView::setupLayout()
  * @param seed
  * @return
  */
-inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
+inline uint qHash(MEDEA::ChartDataKind key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }

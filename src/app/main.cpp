@@ -17,8 +17,9 @@ int launchMEDEA(int argc, char *argv[]){
     // If we are on windows and openend through a console pipe stdout and stderr for debugging
     #ifdef _WIN32
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
+        FILE* file;
+        freopen_s(&file, "CONOUT$", "w", stdout);
+        freopen_s(&file, "CONOUT$", "w", stderr);
     }
     #endif
 

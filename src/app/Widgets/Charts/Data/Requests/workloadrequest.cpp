@@ -4,7 +4,7 @@
 /**
  * @brief WorkloadRequest::WorkloadRequest
  */
-WorkloadRequest::WorkloadRequest() : EventRequest(TIMELINE_DATA_KIND::WORKLOAD) {}
+WorkloadRequest::WorkloadRequest() : EventRequest(MEDEA::ChartDataKind::WORKLOAD) {}
 
 
 /**

@@ -94,7 +94,7 @@ public:
     QSet<EDGE_KIND> getCurrentEdgeKinds();
 
     QSet<NODE_KIND> getValidChartNodeKinds();
-    QSet<TIMELINE_DATA_KIND> getValidChartDataKindsForSelection();
+    QSet<MEDEA::ChartDataKind> getValidChartDataKindsForSelection();
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
@@ -144,7 +144,7 @@ signals:
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
 
-    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<TIMELINE_DATA_KIND>& dataKinds);
+    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind>& dataKinds);
     void vc_displayChartPopup();
 
     void modelClosed();
@@ -231,7 +231,7 @@ public slots:
     void editLabel();
     void editReplicationCount();
 
-    void viewSelectionChart(QList<TIMELINE_DATA_KIND> dataKinds);
+    void viewSelectionChart(QList<MEDEA::ChartDataKind> dataKinds);
 
     void setControllerReady(bool ready);
     void openURL(QString url);
@@ -314,11 +314,11 @@ private:
     bool showingWelcomeScreen = true;
 };
 
-inline uint qHash(TIMELINE_DATA_KIND key, uint seed)
+inline uint qHash(MEDEA::ChartDataKind key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }
-Q_DECLARE_METATYPE(TIMELINE_DATA_KIND)
+Q_DECLARE_METATYPE(MEDEA::ChartDataKind)
 
 
 
