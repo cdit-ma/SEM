@@ -6,6 +6,8 @@ def builder_map = [:]
 def unstash_map = [:]
 def execution_map = [:]
 
+// File to populate with experiment deployment configuration.
+// See environment controller for example
 final json_file = 'experiment_config.json'
 
 final workspace_dir = env.BUILD_ID
@@ -74,6 +76,7 @@ pipeline{
 
                             //Add the experiment and pipe the output to the json_file
                             if(utils.runReEnvironmentController(args, "> ${json_file}")){
+                                // Archive and stash deployment configuration .json
                                 archiveArtifacts json_file
                                 stash includes: json_file, name: json_file
                                 currentBuild.displayName = "#${env.BUILD_ID} - ${params.experiment_name}"
@@ -128,9 +131,25 @@ pipeline{
                             def parsed_json = readJSON file: json_file
                             
                             //Construct a list of required OS's to compile
+                            //Need to check if each container in node is deployed to docker or native
+                            //If node only has containers deployed to docker nodes, no need to build for native
+                            // and viceversa
                             def required_oses = []
+                            def require_docker = false
                             for(def d in parsed_json['deployments']){
-                                required_oses += utils.getNodeOSVersion(d["id"]["hostName"])
+                                def node_require_native = false
+
+                                for(def c in d['containerIds']){
+                                    if(c['isDocker']){
+                                        require_docker = true
+                                    } else {
+                                        node_require_native = true
+                                    }
+                                }
+
+                                if(node_require_native) {
+                                    required_oses += utils.getNodeOSVersion(d["id"]["hostName"])
+                                }
                             }
 
                             //Compile all required OS's C++ Code
@@ -140,7 +159,6 @@ pipeline{
                                 }
                                 //Get the node_name of the builder node for this OS
                                 def builder_name = builder_nodes[required_os]
-
 
 
                                 builder_map[builder_name] = {
@@ -161,6 +179,30 @@ pipeline{
                                                 stash includes: '**', name: stash_name
                                             }
                                             deleteDir()
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(require_docker){
+                                builder_map["docker"] = {
+                                    node("docker_builder"){
+                                        def stash_name = "code_docker"
+                                        dir("${workspace_dir}/${stash_name}"){
+                                            print("Building on docker image for docker image")
+
+                                            docker.image("${docker_registry_endpoint}/re_full").inside("--network host"){
+                                                unstash('codegen')
+                                                dir("build"){
+                                                    if(!utils.buildProject("Ninja", "")){
+                                                        error("CMake failed on Builder Node: ${builder_name}")
+                                                    }
+                                                }
+                                                dir("lib"){
+                                                    //Stash all built libraries
+                                                    stash includes: '**', name: stash_name
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -189,6 +231,16 @@ pipeline{
                             for(d in parsed_json['deployments']){
                                 def node_name = d["id"]["hostName"]
 
+                                def node_require_native = false
+                                def node_require_docker = false
+                                for(def c in d['containerIds']){
+                                    if(c['isDocker']){
+                                        node_require_docker = true
+                                    } else {
+                                        node_require_native = true
+                                    }
+                                }
+
                                 //Handle Logan
                                 if(d["hasLoganServer"]){
                                     execution_map["LOGAN_${node_name}"] = {
@@ -213,10 +265,18 @@ pipeline{
 
                                 unstash_map["RE_${node_name}"] = {
                                     node(node_name){
-                                        dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
-                                            //Unstash the required libraries once for this node, and place in the non-executor specific folder
-                                            //Have to run in the lib directory due to dll linker paths
-                                            unstash("code_" + utils.getNodeOSVersion(node_name))
+                                        if(node_require_native){
+                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
+                                                //Unstash the required libraries once for this node, and place in the non-executor specific folder
+                                                //Have to run in the lib directory due to dll linker paths
+                                                unstash("code_" + utils.getNodeOSVersion(node_name))
+                                            }
+                                        }
+                                        if(node_require_docker) {
+                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/docker_libs"){
+                                                // Unstash docker compiled libs in seperate dir
+                                                unstash("code_docker")
+                                            }
                                         }
                                     }
                                 }
@@ -232,8 +292,12 @@ pipeline{
                                     //Is Slave
                                     execution_map["${map_name}_${node_name}_${container_id}"] = {
                                         node(node_name){
-                                            //All containers should run out of the same folder
-                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/libs"){
+                                            //All containers should run out of the same folder unless docker node, then use docker libs dir
+                                            def lib_dir = "libs"
+                                            if(is_docker) {
+                                                lib_dir = "docker_libs"
+                                            }
+                                            dir("${WORKSPACE}/../${JOB_NAME}/${workspace_dir}/${lib_dir}"){
                                                 def args = "-n \"${params.experiment_name}\" "
                                                 args += "-e ${params.environment_manager_address} "
                                                 args += "-a ${IP_ADDRESS} "
