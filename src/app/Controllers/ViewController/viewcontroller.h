@@ -57,7 +57,8 @@ public:
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
-    QList<NodeViewItem*> getNodesInstances(int ID);
+    QList<ViewItem*> getNodesInstances(int ID);
+    QList<ViewItem*> getViewItems(QList<int> IDs);
 
     QStringList _getSearchSuggestions();
     QStringList GetIDs();    
@@ -120,12 +121,16 @@ public:
     QVariant getEntityDataValue(int ID, QString key_name);
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
 
+    void HighlightItems(const QList<int> &ids);
+
 private:
     void SetParentNode(ViewItem* parent, ViewItem* child);
     void notification_Added(QSharedPointer<NotificationObject> obj);
     void notification_Destructed(QSharedPointer<NotificationObject> obj);
 
 signals:
+    void vc_centerOnItems(QList<int> ids);
+    void vc_selectItems(QList<int> ids);
     void vc_showWelcomeScreen(bool);
     void GotJava(bool);
     void GotRe(bool);
@@ -138,11 +143,11 @@ signals:
     void vc_gotSearchSuggestions(QStringList suggestions);
     void vc_editTableCell(int ID, QString keyName);
     void vc_centerItem(int ID);
-    void vc_selectAndCenterConnectedEntities(ViewItem* item);
     void vc_fitToScreen(bool if_active_view = false);
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
     void vc_highlightItem(int ID, bool highlight);
+    void vc_selectAndCenterConnectedEntities(const QVector<ViewItem*>& item);
 
     void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind>& dataKinds);
     void vc_displayChartPopup();
@@ -203,6 +208,7 @@ public slots:
     void alignSelectionVertical();
     void alignSelectionHorizontal();
     void selectAndCenterConnectedEntities();
+    void selectAndCenterInstances();
     void centerOnID(int ID);
 
     void showWiki();
@@ -258,7 +264,6 @@ private:
     void DestructViewItem(ViewItem* item);
     void ResetViewItems();
 
-    QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
 
     AggregationProxy proxy;
@@ -287,6 +292,7 @@ private:
     QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
     QHash<EDGE_KIND, EdgeViewItem*> edgeKindItems;
 
+    //bool _controllerReady = true; // TODO - Ask Dan if this will break anything!
     bool _controllerReady = false;
 
     ViewItem* getViewItem(int ID);

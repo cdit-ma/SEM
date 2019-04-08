@@ -30,6 +30,7 @@ public:
     virtual QString toString(const QString& dateTimeFormat) const = 0;
 
     static const QList<ChartDataKind>& GetChartDataKinds();
+    static const QString& toString(ChartDataKind kind);
     static const QString& GetChartDataKindString(ChartDataKind kind);
     static const QString& GetChartDataKindStringSuffix(ChartDataKind kind);
 

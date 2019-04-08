@@ -34,7 +34,6 @@ public:
     
 
 
-
 signals:
     void itemSelectionChanged(ViewItem*, bool selected);
     void itemActiveSelectionChanged(ViewItem* item, bool active);

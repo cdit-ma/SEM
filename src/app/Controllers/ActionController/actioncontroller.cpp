@@ -89,6 +89,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
         connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::selectAndCenterConnectedEntities);
+        connect(view_viewInstances, &QAction::triggered, viewController, &ViewController::selectAndCenterInstances);
 
         connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
         connect(toolbar_wiki, &QAction::triggered, viewController, &ViewController::showWikiForSelectedItem);
@@ -312,6 +313,8 @@ void ActionController::selectionChanged(int selection_size)
         view_centerOnImpl->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
         view_viewImplInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
         view_viewConnections->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
+        //view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
+        view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_INSTANCES));
 
     
         //Selection based.
@@ -752,9 +755,12 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setToolTip("Popout selected entity's Implementation.");
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-    view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
+    view_viewConnections = createRootAction("View", "Select and Center Selection's Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
     view_viewConnections->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
+
+    view_viewInstances = createRootAction("View", "Highlight and Center Selection's Instances", "", "Icons", "connectFork");
+    view_viewInstances->setToolTip("Center selected entity's instances.");
 
     view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Icons", "popOut");
     view_viewInNewWindow->setToolTip("Popout selected entity.");
@@ -876,6 +882,7 @@ void ActionController::setupActions()
     view_actions.append(view_centerOnImpl);
     view_actions.append(view_viewImplInNewWindow);
     view_actions.append(view_viewConnections);
+    view_actions.append(view_viewInstances);
     view_actions.append(view_viewInNewWindow);
 
     view_actions.append(model_getCodeForComponent);
@@ -953,6 +960,7 @@ void ActionController::setupMainMenu()
     menu_view->addAction(view_viewDefnInNewWindow);
     menu_view->addAction(view_viewImplInNewWindow);
     menu_view->addAction(view_viewConnections);
+    menu_view->addAction(view_viewInstances);
     menu_view->addSeparator();
     menu_view->addAction(view_zoomIn);
     menu_view->addAction(view_zoomOut);
@@ -1039,6 +1047,7 @@ void ActionController::setupContextToolbar()
     
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
+    contextToolbar->addAction(view_viewInstances->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
 
     // add chart action here

@@ -254,11 +254,18 @@ void MainWindow::swapCentralWidget(QWidget* widget){
 }
 
 
-void MainWindow::toggleDocks(bool on){
+/**
+ * @brief MainWindow::toggleDocks
+ * @param on
+ */
+void MainWindow::toggleDocks(bool on)
+{
     menu_bar->setVisible(on);
     setDockWidgetsVisible(on);
     rightWindow->setDockWidgetsVisible(on);
 }
+
+
 /**
  * @brief MedeaMainWindow::toggleWelcomeScreen
  * @param on

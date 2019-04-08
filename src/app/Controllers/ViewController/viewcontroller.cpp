@@ -465,7 +465,7 @@ QSet<NODE_KIND> ViewController::getValidNodeKinds()
         int ID = selectionController->getFirstSelectedItem()->getID();
         return controller->getValidNodeKinds(ID);
     }
-    return {NODE_KIND::NONE};
+    return {};
 }
 
 QList<NodeViewItem *> ViewController::getNodeKindItems()
@@ -1159,14 +1159,13 @@ NodeViewItem *ViewController::getNodesDefinition(int ID)
     return 0;
 }
 
-QList<NodeViewItem *> ViewController::getNodesInstances(int ID)
+QList<ViewItem *> ViewController::getNodesInstances(int ID)
 {
-    QList<NodeViewItem*> instances;
+    QList<ViewItem*> instances;
     if (controller) {
         for (auto instID : controller->getInstances(ID)) {
-            instances.append(getNodeViewItem(instID));
+            instances.append(getViewItem(instID));
         }
-        qDebug() << "instanceS#: " << instances.size();
     }
     return instances;
 }
@@ -1751,14 +1750,57 @@ void ViewController::alignSelectionHorizontal()
     }
 }
 
+
+/**
+ * @brief ViewController::selectAndCenterConnectedEntities
+ * Select and center on the selection's connected entities
+ */
 void ViewController::selectAndCenterConnectedEntities()
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        emit vc_selectAndCenterConnectedEntities(item);
+    if (selectionController) {
+        emit vc_selectAndCenterConnectedEntities(selectionController->getSelection());
     }
 }
 
+
+/**
+ * @brief ViewController::selectAndCenterInstances
+ * Select, highlight and center on the selection's instances
+ */
+void ViewController::selectAndCenterInstances()
+{
+    if (selectionController) {
+        QList<int> instanceIDs;
+        for (const auto& item : selectionController->getSelection()) {
+            if (item) {
+                instanceIDs.append(getNodeInstanceIDs(item->getID()));
+            }
+        }
+        emit vc_selectItems(instanceIDs);
+        emit vc_centerOnItems(instanceIDs);
+        HighlightItems(instanceIDs);
+    }
+}
+
+
+/**
+ * @brief ViewController::HighlightItems
+ * Flash the items with the provided ids
+ * @param ids
+ */
+void ViewController::HighlightItems(const QList<int>& ids)
+{
+    QtConcurrent::run([this, ids]() {
+        // highlight and flash the items
+        int flash_count = 5;
+        while (--flash_count > 0) {
+            for (auto id : ids) {
+                emit vc_highlightItem(id, flash_count % 2 == 0);
+            }
+            QThread::currentThread()->msleep(500);
+        }
+    });
+}
 
 void ViewController::centerOnID(int ID)
 {

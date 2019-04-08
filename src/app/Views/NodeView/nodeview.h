@@ -116,9 +116,12 @@ private slots:
 
 
     void centerItem(int ID);
-    
-    void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
+
+    void selectAndCenterConnections(const QVector<ViewItem*>& items);
+    void centerOnItemIDs(const QList<int>& ids);
+    void selectItemIDs(const QList<int>& ids);
+
 private:
     void fitToScreen();
     void themeItem(EntityItem* item);

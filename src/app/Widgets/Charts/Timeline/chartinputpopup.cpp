@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 
 #define MIN_WIDTH 400
+#define PADDING 45
 #define FILTER "filter"
 #define GROUPBOX_ITEM_SPACING 5
 #define GROUPBOX_MAX_HEIGHT 300
@@ -269,7 +270,7 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
         maxButtonWidth = qMax(button->sizeHint().width(), maxButtonWidth);
     }
 
-    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + 50);
+    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + PADDING);
 }
 
 
@@ -401,6 +402,7 @@ void ChartInputPopup::resetPopup()
 
     resizePopup();
     recenterPopup();
+    setFixedWidth(MIN_WIDTH + PADDING);
 }
 
 
@@ -420,10 +422,6 @@ void ChartInputPopup::setupLayout()
     experimentsCompleter_->setCaseSensitivity(Qt::CaseInsensitive);
     experimentsCompleter_->popup()->setFont(QFont(font().family(), 10));
     experimentsCompleter_->popup()->installEventFilter(this);
-
-    //experimentsCompleter_->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
-    // the line below makes it crash but the line above is fine - why???
-    //experimentsCompleter_->setCompletionMode(QCompleter::InlineCompletion);
 
     connect(experimentsCompleter_, static_cast<void(QCompleter::*)(const QString &)>(&QCompleter::activated),
         [=](const QString &text){ experimentNameActivated(text);
@@ -450,6 +448,7 @@ void ChartInputPopup::setupLayout()
     });
 
     experimentNameGroupBox_ = new QGroupBox("Visualise Events For Experiment:", this);
+    experimentNameGroupBox_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
     topLayout->addWidget(experimentNameLineEdit_);
 

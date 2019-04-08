@@ -139,6 +139,7 @@ public:
     RootAction* view_centerOnImpl;
     RootAction* view_viewImplInNewWindow;
     RootAction* view_viewConnections;
+    RootAction* view_viewInstances;
     RootAction* view_viewInNewWindow;
     RootAction* view_zoomIn;
     RootAction* view_zoomOut;

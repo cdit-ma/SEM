@@ -739,6 +739,7 @@ void ContextMenu::update_add_node_menu(){
                 filtered_node_kinds.append(node_item->getNodeKind());
             }
 
+            //If there is no adoptable node kinds, add None so we get a "No Adoptable Entities" element showing
             if(adoptable_node_kinds.isEmpty()){
                 adoptable_node_kinds.insert(NODE_KIND::NONE);
                 filtered_node_kinds.append(NODE_KIND::NONE);
@@ -1127,6 +1128,7 @@ void ContextMenu::setupMenus()
     main_menu->addMenu(add_edge_menu);
     main_menu->addSeparator();
     main_menu->addAction(action_controller->view_viewConnections->constructSubAction(true));
+    main_menu->addAction(action_controller->view_viewInstances->constructSubAction(true));
     main_menu->addAction(action_controller->model_getCodeForComponent->constructSubAction(true));
     main_menu->addSeparator();
     main_menu->addAction(action_controller->toolbar_replicateCount->constructSubAction(true));

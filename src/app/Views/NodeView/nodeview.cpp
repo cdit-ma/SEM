@@ -118,8 +118,10 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController, &ViewController::vc_centerItem, this, &NodeView::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeView::AllFitToScreen);
 
-        connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeView::centerConnections);
+        connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeView::selectAndCenterConnections);
 
+        connect(viewController, &ViewController::vc_centerOnItems, this, &NodeView::centerOnItemIDs);
+        connect(viewController, &ViewController::vc_selectItems, this, &NodeView::selectItemIDs);
 
         connect(viewController, &ViewController::vc_highlightItem, this, &NodeView::highlightItem);
     }
@@ -427,58 +429,97 @@ void NodeView::item_RemoveData(ViewItem *item, QString keyName)
 }
 
 
-
 void NodeView::centerSelection()
 {
-
     centerOnItems(getSelectedItems());
 }
 
-void NodeView::centerConnections(ViewItem* item)
+
+/**
+ * @brief NodeView::selectAndCenterConnections
+ * Select and center on the provided view items
+ * @param items
+ */
+void NodeView::selectAndCenterConnections(const QVector<ViewItem*>& items)
 {
-    if(item){
-        QSet<EdgeViewItem*> edges;
-        if(item->isNode()){
-            edges = ((NodeViewItem*)item)->getEdges();
-        }else if(item->isEdge()){
-            edges += ((EdgeViewItem*)item);
+    QSet<ViewItem*> to_select;
+    QSet<EntityItem*> to_center;
+
+    for (const auto& item : items) {
+        if (item) {
+            QSet<EdgeViewItem*> edges;
+            if (item->isNode()) {
+                edges = ((NodeViewItem*)item)->getEdges();
+            } else if(item->isEdge()) {
+                edges += ((EdgeViewItem*)item);
+            }
+            for (auto e : edges) {
+                if (!e) {
+                    continue;
+                }
+                auto s = e->getSource();
+                auto d = e->getDestination();
+                auto src = getEntityItem(s);
+                auto dst = getEntityItem(d);
+                auto edge = getEntityItem(e);
+                if (src && s) {
+                    to_select += s;
+                    to_center += src;
+                }
+                if (dst && d) {
+                    to_select += d;
+                    to_center += dst;
+                }
+                if (edge) {
+                    to_select += e;
+                    to_center += edge;
+                }
+            }
         }
+    }
 
-        QSet<ViewItem*> to_select;
-        QSet<EntityItem*> to_center;
-        
-        for(auto e : edges){
-            auto s = e->getSource();
-            auto d = e->getDestination();
-            
-            auto src = getEntityItem(s);
-            auto dst = getEntityItem(d);
-            auto edge = getEntityItem(e);
-
-            if(src && s){
-                to_select += s;
-                to_center += src;
-            }
-
-            if(dst && d){
-                to_select += d;
-                to_center += dst;
-            }
-
-            if(edge && e){
-                to_select += e;
-                to_center += edge;
-            }
+    if (!to_select.isEmpty()) {
+        // select the items
+        if (selectionHandler) {
+            selectionHandler->toggleItemsSelection(to_select.toList());
         }
+        // center on the items
+        centerOnItems(to_center.toList());
+    } else {
+        clearSelection();
+    }
+}
 
-        if(to_select.size()){
-            if(selectionHandler){
-                selectionHandler->toggleItemsSelection(to_select.toList());
-            }
-            centerOnItems(to_center.toList());
-        }else{
-            clearSelection();
+/**
+ * @brief NodeView::centerOnItemIDs
+ * Center on the items with the provided ids
+ * @param ids
+ */
+void NodeView::centerOnItemIDs(const QList<int> &ids)
+{
+    QList<EntityItem*> items;
+    for (const auto& id : ids) {
+        auto e = getEntityItem(id);
+        if (e) {
+            items += e;
         }
+    }
+    // center on the items
+    if (!items.isEmpty()) {
+        centerOnItems(items);
+    }
+}
+
+/**
+ * @brief NodeView::selectItemIDs
+ * Select the items with the provided ids
+ * @param ids
+ */
+void NodeView::selectItemIDs(const QList<int> &ids)
+{
+    if (selectionHandler) {
+        auto view_items = viewController->getViewItems(ids);
+        selectionHandler->toggleItemsSelection(view_items);
     }
 }
 
@@ -651,7 +692,6 @@ void NodeView::showItem(EntityItem* item){
 
 void NodeView::centerOnItems(QList<EntityItem *> items)
 {
-    emit triggerAction("Expanding Selection");
     for(auto item: items){
         if(!item->isVisibleTo(0)){
             showItem(item);

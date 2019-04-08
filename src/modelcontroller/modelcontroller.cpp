@@ -3084,7 +3084,8 @@ Node* ModelController::getDefinition(Node* node){
 
 bool ModelController::gotInstances(Node* node){
     auto definition = node ? node->getDefinition(true) : 0;
-    return definition ? definition->getInstances().count() > 0 : false;
+    auto def = definition ? definition : node;
+    return def ? def->getInstances().count() > 0 : false;
 }
 
 
@@ -3099,39 +3100,12 @@ QList<int> ModelController::getInstances(int ID)
 {
     QList<int> instanceIDs;
     auto node = entity_factory->GetNode(ID);
-    if (node) {
-        for (auto inst : node->getInstances()) {
-            instanceIDs.append(inst->getID());
-        }
-    }
-
-    /*
-    auto definition = node ? node->getDefinition(true) : 0;
+    auto definition = node->isDefinition() ? node : getDefinition(node);
     if (definition) {
-        qDebug() << "definition exists";
-        qDebug() << "instances#: " << definition->getInstances().count();
         for (auto inst : definition->getInstances()) {
             instanceIDs.append(inst->getID());
         }
-    } else {
-        // if there is no definition, get the implementation
-        //if (gotImplementation(node)) { - NOTE: shouldn't this return true if node is an IMPL?
-        if (gotImplementation(node)) {
-            for (auto impl : node->getImplementations()) {
-                for (auto inst : impl->getInstances()) {
-                    instanceIDs.append(inst->getID());
-                }
-            }
-        } else if (node->isImpl()) {
-            for (auto inst : node->getInstances()) {
-                instanceIDs.append(inst->getID());
-            }
-        } else {
-            qDebug() << "there are NO implementations";
-        }
     }
-    */
-
     return instanceIDs;
 }
 
