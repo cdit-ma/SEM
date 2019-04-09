@@ -19,7 +19,7 @@ bool IsValidConversion(const T& value){
     return success;
 }
 
-TEST(re2primitive, integer2short){
+TEST(Re_Core, Primitive_integer2short){
     typedef short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -52,7 +52,7 @@ TEST(re2primitive, integer2short){
     }
 };
 
-TEST(re2primitive, integer2ushort){
+TEST(Re_Core, Primitive_integer2ushort){
     typedef unsigned short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -85,7 +85,7 @@ TEST(re2primitive, integer2ushort){
     }
 };
 
-TEST(re2primitive, integer2integer){
+TEST(Re_Core, Primitive_integer2cinteger){
     typedef int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -118,7 +118,7 @@ TEST(re2primitive, integer2integer){
     }
 };
 
-TEST(re2primitive, integer2uinteger){
+TEST(Re_Core, Primitive_integer2uinteger){
     typedef unsigned int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -151,7 +151,7 @@ TEST(re2primitive, integer2uinteger){
     }
 };
 
-TEST(re2primitive, integer2long){
+TEST(Re_Core, Primitive_integer2long){
     typedef long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -184,7 +184,7 @@ TEST(re2primitive, integer2long){
     }
 };
 
-TEST(re2primitive, integer2ulong){
+TEST(Re_Core, Primitive_integer2ulong){
     typedef unsigned long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -217,7 +217,7 @@ TEST(re2primitive, integer2ulong){
     }
 };
 
-TEST(re2primitive, integer2longlong){
+TEST(Re_Core, Primitive_integer2longlong){
     typedef long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -250,7 +250,7 @@ TEST(re2primitive, integer2longlong){
     }
 };
 
-TEST(re2primitive, integer2ulonglong){
+TEST(Re_Core, Primitive_integer2ulonglong){
     typedef unsigned long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     
@@ -283,7 +283,7 @@ TEST(re2primitive, integer2ulonglong){
     }
 };
 
-TEST(re2primitive, double2double){
+TEST(Re_Core, Primitive_double2double){
     typedef double CORBA_TYPE;
     typedef RE_double RE_TYPE;
     
@@ -316,7 +316,7 @@ TEST(re2primitive, double2double){
     }
 };
 
-TEST(re2primitive, float2float){
+TEST(Re_Core, Primitive_float2float){
     typedef float CORBA_TYPE;
     typedef RE_float RE_TYPE;
     
@@ -349,7 +349,7 @@ TEST(re2primitive, float2float){
     }
 };
 
-TEST(re2primitive, char2char){
+TEST(Re_Core, Primitive_char2cchar){
     typedef char CORBA_TYPE;
     typedef RE_char RE_TYPE;
     
@@ -375,7 +375,7 @@ TEST(re2primitive, char2char){
     }
 };
 
-TEST(re2primitive, char2wchar){
+TEST(Re_Core, Primitive_char2wchar){
     typedef wchar_t CORBA_TYPE;
     typedef RE_char RE_TYPE;
     
@@ -402,7 +402,7 @@ TEST(re2primitive, char2wchar){
 };
 
 
-TEST(corba2re, short2integer){
+TEST(Re_Core, Primitive_short2integer){
     typedef short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -434,7 +434,7 @@ TEST(corba2re, short2integer){
     }
 };
 
-TEST(corba2re, ushort2integer){
+TEST(Re_Core, Primitive_ushort2integer){
     typedef unsigned short CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -459,7 +459,7 @@ TEST(corba2re, ushort2integer){
     }
 };
 
-TEST(corba2re, uinteger2integer){
+TEST(Re_Core, Primitive_uinteger2integer){
     typedef unsigned int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -485,7 +485,7 @@ TEST(corba2re, uinteger2integer){
     }
 };
 
-TEST(corba2re, integer2integer){
+TEST(Re_Core, Primitive_cinteger2integer){
     typedef int CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -517,7 +517,7 @@ TEST(corba2re, integer2integer){
     }
 };
 
-TEST(corba2re, long2integer){
+TEST(Re_Core, Primitive_long2integer){
     typedef long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -551,7 +551,7 @@ TEST(corba2re, long2integer){
     }
 };
 
-TEST(corba2re, ulong2integer){
+TEST(Re_Core, Primitive_ulong2integer){
     typedef unsigned long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -586,7 +586,7 @@ TEST(corba2re, ulong2integer){
 };
 
 
-TEST(corba2re, longlong2integer){
+TEST(Re_Core, Primitive_longlong2integer){
     typedef long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -620,7 +620,7 @@ TEST(corba2re, longlong2integer){
     }
 };
 
-TEST(corba2re, ulonglong2integer){
+TEST(Re_Core, Primitive_ulonglong2integer){
     typedef unsigned long long CORBA_TYPE;
     typedef RE_integer RE_TYPE;
     {
@@ -654,7 +654,7 @@ TEST(corba2re, ulonglong2integer){
     }
 };
 
-TEST(corba2re, char2char){
+TEST(Re_Core, Primitive_cchar2char){
     typedef char CORBA_TYPE;
     typedef RE_char RE_TYPE;
     {
@@ -680,7 +680,7 @@ TEST(corba2re, char2char){
     }
 };
 
-TEST(corba2re, wchar2char){
+TEST(Re_Core, Primitive_wchar2char){
     typedef wchar_t CORBA_TYPE;
     typedef RE_char RE_TYPE;
     {

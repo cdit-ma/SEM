@@ -1,17 +1,18 @@
-build
-build64
-ninjabuild
-.vs
-.vscode
-lib
-bin
-.sql
-.idea
-.DS_Store
-cmake-build-*
+# default build dirs
+/build/
+/lib/
+/bin/
+/cmake-build-*/
 
+# IDE config dirs
+/.vscode/
+/.idea/
+
+# Scripts and other artifacts
+.sql
+.DS_Store
 scripts/configure.bat
 build.bat
 run.bat
 CMakeSettings.json.bak
-src/workers/opencl/binaries/*
+/src/workers/opencl/binaries/*

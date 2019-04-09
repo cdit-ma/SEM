@@ -30,7 +30,7 @@ Base::Basic EmptyCallback(Base::Basic& m){
 };
 
 //Define an Requester Port FSM Tester
-class qpid_RequesterPort_FSMTester : public ActivatableFSMTester{
+class Re_Port_Req_Qpid_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -43,7 +43,7 @@ class qpid_RequesterPort_FSMTester : public ActivatableFSMTester{
 };
 
 //Define an Replier Port FSM Tester
-class qpid_ReplierPort_FSMTester : public ActivatableFSMTester{
+class Re_Port_Rep_Qpid_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -56,15 +56,15 @@ class qpid_ReplierPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-#define TEST_FSM_CLASS qpid_RequesterPort_FSMTester
+#define TEST_FSM_CLASS Re_Port_Req_Qpid_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS qpid_ReplierPort_FSMTester
+#define TEST_FSM_CLASS Re_Port_Rep_Qpid_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(qpid_ReqRep, Basic2Basic_Stable){
+TEST(Re_Port_ReqRep_Qpid, Basic2Basic_Stable){
     using namespace ::ReqRep::Basic2Basic::Stable;
 
     //Define the base types
@@ -93,7 +93,7 @@ TEST(qpid_ReqRep, Basic2Basic_Stable){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Basic2Basic_Busy){
+TEST(Re_Port_ReqRep_Qpid, Basic2Basic_Busy){
     using namespace ::ReqRep::Basic2Basic::Busy;
 
     //Define the base types
@@ -122,7 +122,7 @@ TEST(qpid_ReqRep, Basic2Basic_Busy){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Basic2Basic_Timeout){
+TEST(Re_Port_ReqRep_Qpid, Basic2Basic_Timeout){
     using namespace ::ReqRep::Basic2Basic::Timeout;
     
     //Define the base types
@@ -152,7 +152,7 @@ TEST(qpid_ReqRep, Basic2Basic_Timeout){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Basic2Void_Stable){
+TEST(Re_Port_ReqRep_Qpid, Basic2Void_Stable){
     using namespace ::ReqRep::Basic2Void::Stable;
     
     //Define the base types
@@ -182,7 +182,7 @@ TEST(qpid_ReqRep, Basic2Void_Stable){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Basic2Void_Busy){
+TEST(Re_Port_ReqRep_Qpid, Basic2Void_Busy){
     using namespace ::ReqRep::Basic2Void::Busy;
     
     //Define the base types
@@ -212,7 +212,7 @@ TEST(qpid_ReqRep, Basic2Void_Busy){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Void2Basic_Stable){
+TEST(Re_Port_ReqRep_Qpid, Void2Basic_Stable){
     using namespace ::ReqRep::Void2Basic::Stable;
     
     //Define the base types
@@ -242,7 +242,7 @@ TEST(qpid_ReqRep, Void2Basic_Stable){
     delete replier_port;
 }
 
-TEST(qpid_ReqRep, Void2Basic_Busy){
+TEST(Re_Port_ReqRep_Qpid, Void2Basic_Busy){
     using namespace ::ReqRep::Void2Basic::Busy;
     
     //Define the base types

@@ -10,7 +10,6 @@
 
 #include <iostream>
 
-
 struct AllocTestParam {
     AllocTestParam(size_t total_kb_alloc_, size_t num_allocs_, size_t total_kb_dealloc_, size_t num_deallocs_) :
         total_kb_alloc(total_kb_alloc_),
@@ -87,7 +86,7 @@ TEST_P(MemoryTestFixture, MatchingAllocTest) {
     EXPECT_EQ(amt_allocated, param.total_kb_alloc - param.total_kb_dealloc);
 }
 
-TEST(MemoryWorker, NegativeAllocationSmall) {
+TEST(Re_Workers_MemoryWorker, NegativeAllocationSmall) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -96,7 +95,7 @@ TEST(MemoryWorker, NegativeAllocationSmall) {
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorker, ZeroAllocation) {
+TEST(Re_Workers_MemoryWorker, ZeroAllocation) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -104,14 +103,14 @@ TEST(MemoryWorker, ZeroAllocation) {
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorker, ZeroDeallocation) {
+TEST(Re_Workers_MemoryWorker, ZeroDeallocation) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
     worker.Deallocate(0);
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorker, ZeroDeallocationAfterAllocation) {
+TEST(Re_Workers_MemoryWorker, ZeroDeallocationAfterAllocation) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -123,7 +122,7 @@ TEST(MemoryWorker, ZeroDeallocationAfterAllocation) {
 
 }
 
-TEST(MemoryWorker, NegativeAllocationLarge) {
+TEST(Re_Workers_MemoryWorker, NegativeAllocationLarge) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -131,7 +130,7 @@ TEST(MemoryWorker, NegativeAllocationLarge) {
     EXPECT_EQ(worker.GetAllocatedCount(), 0);
 }
 
-TEST(MemoryWorker, NegativeDeallocationSmall) {
+TEST(Re_Workers_MemoryWorker, NegativeDeallocationSmall) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -150,7 +149,7 @@ TEST(MemoryWorker, NegativeDeallocationSmall) {
     EXPECT_EQ(worker.GetAllocatedCount(), kb_allocated);
 }
 
-TEST(MemoryWorker, NegativeDeallocationLarge) {
+TEST(Re_Workers_MemoryWorker, NegativeDeallocationLarge) {
     Component comp("Component");
     Memory_Worker worker(comp, "Worker");
 
@@ -167,4 +166,4 @@ TEST(MemoryWorker, NegativeDeallocationLarge) {
     EXPECT_EQ(worker.GetAllocatedCount(), kb_allocated);
 }
 
-INSTANTIATE_TEST_CASE_P(AllocDeallocPair, MemoryTestFixture, ::testing::ValuesIn(getMatchingAllocParams()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_MemoryWorker, MemoryTestFixture, ::testing::ValuesIn(getMatchingAllocParams()));

@@ -59,8 +59,10 @@ Base::Basic EmptyCallback(Base::Basic& m){
     return m;
 };
 
+
+
 //Define an Requester Port FSM Tester
-class tao_RQ_FSM : public ActivatableFSMTester{
+class Re_Port_Req_Tao_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -73,7 +75,7 @@ class tao_RQ_FSM : public ActivatableFSMTester{
 };
 
 //Define an Replier Port FSM Tester
-class tao_RP_SM : public ActivatableFSMTester{
+class Re_Port_Rep_Tao_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -87,15 +89,17 @@ class tao_RP_SM : public ActivatableFSMTester{
         }
 };
 
-#define TEST_FSM_CLASS tao_RQ_FSM
+#define TEST_FSM_CLASS Re_Port_Req_Tao_FSM
 //#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS tao_RP_SM
+#define TEST_FSM_CLASS Re_Port_Rep_Tao_FSM
 //#include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(tao_ReqRep, Basic2Basic_Stable){
+
+
+TEST(Re_Port_ReqRep_Tao, Basic2Basic_Stable){
     using namespace ::ReqRep::Basic2Basic::Stable;
 
     //Define the base types
@@ -130,7 +134,7 @@ TEST(tao_ReqRep, Basic2Basic_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, LONG_Basic2Basic_Busy){
+TEST(Re_Port_ReqRep_Tao, Basic2Basic_Busy_LONG){
     using namespace ::ReqRep::Basic2Basic::Busy;
 
     //Define the base types
@@ -163,7 +167,7 @@ TEST(tao_ReqRep, LONG_Basic2Basic_Busy){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, LONG_Basic2Basic_Timeout){
+TEST(Re_Port_ReqRep_Tao, Basic2Basic_Timeout_LONG){
     using namespace ::ReqRep::Basic2Basic::Timeout;
     
     //Define the base types
@@ -196,7 +200,7 @@ TEST(tao_ReqRep, LONG_Basic2Basic_Timeout){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Basic2Void_Stable){
+TEST(Re_Port_ReqRep_Tao, Basic2Void_Stable){
     using namespace ::ReqRep::Basic2Void::Stable;
     
     //Define the base types
@@ -229,7 +233,7 @@ TEST(tao_ReqRep, Basic2Void_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, LONG_Basic2Void_Busy){
+TEST(Re_Port_ReqRep_Tao, Basic2Void_Busy_LONG){
     using namespace ::ReqRep::Basic2Void::Busy;
     
     //Define the base types
@@ -263,7 +267,7 @@ TEST(tao_ReqRep, LONG_Basic2Void_Busy){
 }
 
 
-TEST(tao_ReqRep, LONG_Basic2Void_Timeout){
+TEST(Re_Port_ReqRep_Tao, Basic2Void_Timeout_LONG){
     using namespace ::ReqRep::Basic2Void::Timeout;
     
     //Define the base types
@@ -296,7 +300,7 @@ TEST(tao_ReqRep, LONG_Basic2Void_Timeout){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, Void2Basic_Stable){
+TEST(Re_Port_ReqRep_Tao, Void2Basic_Stable){
     using namespace ::ReqRep::Void2Basic::Stable;
     
     //Define the base types
@@ -329,7 +333,7 @@ TEST(tao_ReqRep, Void2Basic_Stable){
     delete replier_port;
 }
 
-TEST(tao_ReqRep, LONG_Void2Basic_Busy){
+TEST(Re_Port_ReqRep_Tao, Void2Basic_Busy_LONG){
     using namespace ::ReqRep::Void2Basic::Busy;
     
     //Define the base types

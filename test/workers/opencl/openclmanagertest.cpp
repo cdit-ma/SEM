@@ -12,7 +12,7 @@
 
 
 //This is our test case for the frame
-TEST(OpenCLManager, GetDevices)
+TEST(Re_Workers_OpenclWorker, OpenCLManager_GetDevices)
 {
     Component component("dummy_component");
     DummyWorker worker(component);
@@ -158,7 +158,7 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     manager_->ReleaseBuffer(worker_, out_buffer);
 }
 
-TEST(LoadBalancer, Simple3Device)
+TEST(Re_Worker_OpenclWorker, LoadBalancer_Simple3Device)
 {
     OpenCLLoadBalancer load_balancer({1, 2, 3});
 
@@ -189,4 +189,4 @@ TEST(LoadBalancer, Simple3Device)
 }
 
 //Run the OpenCLManagerTest Fixture with all devices available
-INSTANTIATE_TEST_CASE_P(Test, OpenCLManagerFixture, ::testing::ValuesIn(getDevices()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Manager, OpenCLManagerFixture, ::testing::ValuesIn(getDevices()));

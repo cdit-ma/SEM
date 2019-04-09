@@ -30,7 +30,7 @@ void EmptyCallback(Base::Basic& m){
 };
 
 //Define an In/Out Port FSM Tester
-class qpid_SubPort_FSMTester : public ActivatableFSMTester{
+class Re_Port_Sub_Qpid_FSM : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -43,7 +43,7 @@ class qpid_SubPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-class qpid_PubPort_FSMTester : public ActivatableFSMTester{
+class Re_Port_Pub_Qpid_FSM : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
@@ -55,15 +55,15 @@ protected:
     }
 };
 
-#define TEST_FSM_CLASS qpid_SubPort_FSMTester
+#define TEST_FSM_CLASS Re_Port_Sub_Qpid_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS qpid_PubPort_FSMTester
+#define TEST_FSM_CLASS Re_Port_Pub_Qpid_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(qpid_PubSub, Basic_Stable){
+TEST(Re_Port_PubSub_Qpid, Basic_Stable){
     using namespace ::PubSub::Basic::Stable;
 
     //Define the base types
@@ -89,7 +89,7 @@ TEST(qpid_PubSub, Basic_Stable){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-TEST(qpid_PubSub, Basic_Busy){
+TEST(Re_Port_PubSub_Qpid, Basic_Busy){
     using namespace ::PubSub::Basic::Busy;
 
     //Define the base types
@@ -116,7 +116,7 @@ TEST(qpid_PubSub, Basic_Busy){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-TEST(qpid_PubSub, Basic_Terminate){
+TEST(Re_Port_PubSub_Qpid, Basic_Terminate){
     using namespace ::PubSub::Basic::Terminate;
 
     //Define the base types

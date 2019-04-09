@@ -7,7 +7,7 @@
 
 #include <limits>
 
-TEST(TableCreation, Tables){
+TEST(Logan, TableCreation){
     SQLiteDatabase db(":memory");
 
     Table table1(db, "table1");
@@ -22,7 +22,7 @@ TEST(TableCreation, Tables){
     db.ExecuteSqlStatement(table1.get_table_construct_statement(), true);
 }
 
-TEST(TableInsertion, BigInts){
+TEST(Logan, TableInsertion_BigInts){
     SQLiteDatabase db(":memory:");
     Table table(db, "test_table");
     

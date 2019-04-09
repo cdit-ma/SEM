@@ -3,7 +3,7 @@
 #include <core/attribute.h>
 #include <cmath>
 
-TEST(AttributeTests, IntegerTests){
+TEST(Re_Core_Attribute, Type_Integer){
     Attribute a(ATTRIBUTE_TYPE::INTEGER, "int");
     {
         //Test template-setter vs regular-getter and template-getter
@@ -45,7 +45,7 @@ TEST(AttributeTests, IntegerTests){
 }
 
 
-TEST(AttributeTests, DoubleTests){
+TEST(Re_Core_Attribute, Type_Double){
     Attribute a(ATTRIBUTE_TYPE::DOUBLE, "double");
     {
         //Test template-setter vs regular-getter and template-getter
@@ -86,7 +86,7 @@ TEST(AttributeTests, DoubleTests){
     EXPECT_ANY_THROW(a.Value<std::vector<std::string>>());
 }
 
-TEST(AttributeTests, StringTests){
+TEST(Re_Core_Attribute, Type_String){
     Attribute a(ATTRIBUTE_TYPE::STRING, "string");
     {
         //Test template-setter vs regular-getter and template-getter

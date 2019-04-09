@@ -19,7 +19,7 @@ std::vector<float> GetIdentityMatrix(int dimension){
     return mat;
 }
 
-TEST(MatrixMult, Trivial) {
+TEST(Re_Workers_CpuWorker, MatrixMult_Trivial) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
 
@@ -39,7 +39,7 @@ TEST(MatrixMult, Trivial) {
     EXPECT_TRUE(mat_c == expected);
 }
 
-TEST(MatrixMult, IdentityTest) {
+TEST(Re_Workers_CpuWorker, MatrixMult_Identity) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
 
@@ -56,7 +56,7 @@ TEST(MatrixMult, IdentityTest) {
 }
 
 
-TEST(MatrixMult, LONG_Big1024) {
+TEST(Re_Workers_CpuWorker, MatrixMult_Big1024_LONG) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
 
@@ -88,7 +88,7 @@ TEST(MatrixMult, LONG_Big1024) {
     EXPECT_GT(ms.count(), 1000);
 }
 
-TEST(IntOp, Big) {
+TEST(Re_Workers_CpuWorker, IntOp_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
@@ -102,7 +102,7 @@ TEST(IntOp, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(IntOp, BigThreaded) {
+TEST(Re_Workers_CpuWorker, IntOp_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
@@ -116,7 +116,7 @@ TEST(IntOp, BigThreaded) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(FloatOp, Big) {
+TEST(Re_Workers_CpuWorker, FloatOp_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
@@ -130,7 +130,7 @@ TEST(FloatOp, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(FloatOp, BigThreaded) {
+TEST(Re_Workers_CpuWorker, FloatOp_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
@@ -144,7 +144,7 @@ TEST(FloatOp, BigThreaded) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(Whetstone, Big) {
+TEST(Re_Workers_CpuWorker, Whetstone_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 100000;
@@ -158,7 +158,7 @@ TEST(Whetstone, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(Whetstone, BigThreaded) {
+TEST(Re_Workers_CpuWorker, Whetstone_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 100000;
@@ -172,7 +172,7 @@ TEST(Whetstone, BigThreaded) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(Dhrystone, Big) {
+TEST(Re_Workers_CpuWorker, Dhrystone_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 10000000;
@@ -186,7 +186,7 @@ TEST(Dhrystone, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(Dhrystone, BigThreaded) {
+TEST(Re_Workers_CpuWorker, Dhrystone_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 10000000;
@@ -200,7 +200,7 @@ TEST(Dhrystone, BigThreaded) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(MWIP, Big) {
+TEST(Re_Workers_CpuWorker, MWIP_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000;
@@ -214,7 +214,7 @@ TEST(MWIP, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(MWIP, BigThreaded) {
+TEST(Re_Workers_CpuWorker, MWIP_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000;
@@ -228,7 +228,7 @@ TEST(MWIP, BigThreaded) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(DWIP, Big) {
+TEST(Re_Workers_CpuWorker, DWIP_Big) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000;
@@ -242,7 +242,7 @@ TEST(DWIP, Big) {
     EXPECT_GT(ms.count(), 50);
 }
 
-TEST(DWIP, BigThreaded) {
+TEST(Re_Workers_CpuWorker, DWIP_BigThreaded) {
     auto c = std::make_shared<Component>("Test");
     Cpu_Worker worker(*c, "worker");
     double run_count = 1000;

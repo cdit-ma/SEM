@@ -116,6 +116,6 @@ std::vector<BufferParam<T> > getBufferTestsLists(){
 
 
 //Instantiate test cases for the types we require
-INSTANTIATE_TEST_CASE_P(Buffer, FloatFixture, ::testing::ValuesIn(getBufferTestsLists<float>()));
-INSTANTIATE_TEST_CASE_P(Buffer, IntFixture, ::testing::ValuesIn(getBufferTestsLists<int>()));
-INSTANTIATE_TEST_CASE_P(Buffer, DoubleFixture, ::testing::ValuesIn(getBufferTestsLists<double>()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Buffer_Float, FloatFixture, ::testing::ValuesIn(getBufferTestsLists<float>()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Buffer_Int, IntFixture, ::testing::ValuesIn(getBufferTestsLists<int>()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Buffer_Double, DoubleFixture, ::testing::ValuesIn(getBufferTestsLists<double>()));

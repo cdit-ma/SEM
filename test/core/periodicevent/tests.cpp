@@ -8,7 +8,7 @@
 
 void empty_callback(){};
 
-class PeriodicPort_0hz_FSMTester : public ActivatableFSMTester{
+class Re_PeriodicPort_FSM_0hz : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -25,7 +25,7 @@ class PeriodicPort_0hz_FSMTester : public ActivatableFSMTester{
         std::shared_ptr<Component> c;
 };
 
-class PeriodicPort_1hz_FSMTester : public ActivatableFSMTester{
+class Re_PeriodicPort_FSM_1hz : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -80,7 +80,7 @@ std::ostream& operator<<(std::ostream& os, const PeriodTestCase& p) {
 class PeriodicEventTest : public ::testing::TestWithParam<PeriodTestCase>{};
 
 //This is our test case for the frame
-TEST_P(PeriodicEventTest, TickCount)
+TEST_P(PeriodicEventTest, Re_PeriodicPort)
 {
     auto test_name = get_long_test_name();
     //Get our test structure
@@ -142,18 +142,20 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
 };
 
 
-#define TEST_FSM_CLASS PeriodicPort_1hz_FSMTester
+#define TEST_FSM_CLASS Re_PeriodicPort_FSM_0hz
 #include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS PeriodicPort_0hz_FSMTester
+#define TEST_FSM_CLASS Re_PeriodicPort_FSM_1hz
 #include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-INSTANTIATE_TEST_CASE_P(LONG_0Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(0, 5, 1)));
-INSTANTIATE_TEST_CASE_P(LONG_1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
-INSTANTIATE_TEST_CASE_P(LONG_2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
-INSTANTIATE_TEST_CASE_P(LONG_4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
-INSTANTIATE_TEST_CASE_P(LONG_8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
-INSTANTIATE_TEST_CASE_P(LONG_16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
-INSTANTIATE_TEST_CASE_P(LONG_32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
+
+
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_0hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(0, 5, 1)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_1Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_2Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_4Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_8Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_16Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
+INSTANTIATE_TEST_CASE_P(Re_PeriodicPort_32Hz_5s_LONG, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));

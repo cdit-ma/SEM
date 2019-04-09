@@ -176,9 +176,7 @@ std::vector<FFTParam> getUnalignedTests() {
 }
 
 
-
-
-INSTANTIATE_TEST_CASE_P(Constant, FFTFixture, ::testing::ValuesIn(getConstantTests()));
-INSTANTIATE_TEST_CASE_P(SingleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getSingleAlignedTests()));
-INSTANTIATE_TEST_CASE_P(MultipleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getMultipleAlignedTests()));
-INSTANTIATE_TEST_CASE_P(DISABLED_UnalignedFrequencies, FFTFixture, ::testing::ValuesIn(getUnalignedTests()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_Constant, FFTFixture, ::testing::ValuesIn(getConstantTests()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_SingleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getSingleAlignedTests()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_MultipleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getMultipleAlignedTests()));
+//INSTANTIATE_TEST_CASE_P(DISABLED_Re_Workers_OpenclWorker_UnalignedFrequencies, FFTFixture, ::testing::ValuesIn(getUnalignedTests()));

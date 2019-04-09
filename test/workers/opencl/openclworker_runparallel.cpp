@@ -34,7 +34,6 @@ TEST_P(RunParallelFixture, RunParallel)
     auto num_ops = GetParam().num_ops;
 
 	EXPECT_TRUE(worker_.RunParallel(num_threads, num_ops));
-	
 }
 
 std::vector<RunParallelParam> getRunParallelTests(
@@ -76,4 +75,4 @@ std::vector<RunParallelParam> getRunParallelTestList() {
     return getRunParallelTests(devices, param_pairs, true);
 }
 
-INSTANTIATE_TEST_CASE_P(LONG_RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_RunParallel, RunParallelFixture, ::testing::ValuesIn(getRunParallelTestList()));

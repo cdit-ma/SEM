@@ -8,7 +8,7 @@ void Sleep(){
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
-TEST(ZMQ_ProtoReceiver, DynamicConnect) {
+TEST(ReCommon_ZmqProto, DynamicConnect) {
     int rc_count = 0;
     std::string address = "tcp://127.0.0.1:7001";
     std::string address2 = "tcp://127.0.0.1:7002";
@@ -58,7 +58,7 @@ TEST(ZMQ_ProtoReceiver, DynamicConnect) {
     EXPECT_EQ(receiver.GetRxCount(), rc_count);
 }
 
-TEST(ZMQ_ProtoReceiver, DynamicFilters) {
+TEST(ReCommon_ZmqProto, DynamicFilters) {
     int rc_count = 0;
     std::string address = "tcp://127.0.0.1:7001";
     
@@ -101,7 +101,7 @@ TEST(ZMQ_ProtoReceiver, DynamicFilters) {
     EXPECT_EQ(receiver.GetRxCount(), rc_count);
 }
 
-TEST(ZMQ_ProtoReceiver, StaticConnect) {
+TEST(ReCommon_ZmqProto, StaticConnect) {
     int rc_count = 0;
     std::string address = "tcp://127.0.0.1:7001";
     

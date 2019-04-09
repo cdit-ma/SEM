@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <core/statemachine.h>
 
-class StateMachineFSM_Tester : public ::testing::Test {
+class Re_Core_StateMachine_FSM: public ::testing::Test {
     protected:
         std::unique_ptr<StateMachine> a;
         std::default_random_engine random_generator;
@@ -19,6 +19,6 @@ class StateMachineFSM_Tester : public ::testing::Test {
         };
 };
 
-#define TEST_FSM_CLASS StateMachineFSM_Tester
+#define TEST_FSM_CLASS Re_Core_StateMachine_FSM
 #include "../../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS

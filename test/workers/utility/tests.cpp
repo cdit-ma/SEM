@@ -7,7 +7,7 @@
 #include <chrono>
 #include <memory>
 
-TEST(UtilityWorkerEvaluateComplexity, LongFunction) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_LongFunction) {
     auto c = std::make_shared<Component>("Test");
     Utility_Worker worker(*c, "worker");
 
@@ -15,7 +15,7 @@ TEST(UtilityWorkerEvaluateComplexity, LongFunction) {
     EXPECT_DOUBLE_EQ(result, 160);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, SimpleAddition) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_SimpleAddition) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
 
@@ -23,7 +23,7 @@ TEST(UtilityWorkerEvaluateComplexity, SimpleAddition) {
     EXPECT_DOUBLE_EQ(result, 20);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, MultiVariableFunction) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_MultiVariableFunction) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
 
@@ -31,7 +31,7 @@ TEST(UtilityWorkerEvaluateComplexity, MultiVariableFunction) {
     EXPECT_DOUBLE_EQ(result, 15);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, MultiRepeatedVariableFunction) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_MultiRepeatedVariableFunction) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
 
@@ -39,7 +39,7 @@ TEST(UtilityWorkerEvaluateComplexity, MultiRepeatedVariableFunction) {
     EXPECT_DOUBLE_EQ(result, 25);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, LongTokenFunction) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_LongTokenFunction) {
     auto c = std::make_shared<Component>("Test");
     Utility_Worker worker(*c, "worker");
 
@@ -47,7 +47,7 @@ TEST(UtilityWorkerEvaluateComplexity, LongTokenFunction) {
     EXPECT_DOUBLE_EQ(result, 20);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, FunctionWithAllReservedSymbols) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_FunctionWithAllReservedSymbols) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
 
@@ -55,7 +55,7 @@ TEST(UtilityWorkerEvaluateComplexity, FunctionWithAllReservedSymbols) {
     EXPECT_DOUBLE_EQ(result, 6245);
 }
 
-TEST(UtilityWorkerEvaluateComplexity, FunctionsWithReservedConstants) {
+TEST(Re_Workers_UtilityWorker, EvaluateComplexity_FunctionsWithReservedConstants) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
 
@@ -67,7 +67,7 @@ TEST(UtilityWorkerEvaluateComplexity, FunctionsWithReservedConstants) {
     EXPECT_DOUBLE_EQ(eps_result, 0.0000000001);
 }
 
-TEST(UtilityWorker, GetTime) {
+TEST(Re_Workers_UtilityWorker, GetTime) {
     auto component = std::make_shared<Component>("TestComponent");
     Utility_Worker worker(*component, "worker");
     auto time = worker.GetTimeOfDay();

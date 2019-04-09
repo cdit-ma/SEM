@@ -10,7 +10,7 @@
 #include <cmrc/cmrc.hpp>
 CMRC_DECLARE(test_models);
 
-TEST(GraphmlParser, FileNotFound) {
+TEST(ReCommon_GraphmlParser, FileNotFound) {
 
     try {
         auto out = ProtobufModelParser::ParseModel("models/non-existent.graphml", "FileNotFound");
@@ -22,7 +22,7 @@ TEST(GraphmlParser, FileNotFound) {
     }
 }
 
-TEST(GraphmlParser, Deterministic) {
+TEST(ReCommon_GraphmlParser, Deterministic) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
@@ -42,7 +42,7 @@ TEST(GraphmlParser, Deterministic) {
     EXPECT_TRUE(same) << diffs;
 }
 
-TEST(GraphmlParser, ExperimentID) {
+TEST(ReCommon_GraphmlParser, ExperimentID) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
@@ -60,7 +60,7 @@ TEST(GraphmlParser, ExperimentID) {
 
 // Simple replication test. Model contains component assembly (replicated twice) containing sender + receiver components.
 // Should replicate out to 2x sender + 2x receiver. Each sender should be connected to its paired receiver and nothing else.
-TEST(GraphmlParser, SimpleReplication) {
+TEST(ReCommon_GraphmlParser, SimpleReplication) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
@@ -84,7 +84,7 @@ TEST(GraphmlParser, SimpleReplication) {
 
 // Complex replication test. Model contains two component assemblies both replicated twice. One contains sender, the other contains receiver.
 // Should replicate out to 2x sender + 2x receiver. Each sender should be connected to both receivers.
-TEST(GraphmlParser, ComplexReplication) {
+TEST(ReCommon_GraphmlParser, ComplexReplication) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
@@ -107,7 +107,7 @@ TEST(GraphmlParser, ComplexReplication) {
 }
 
 // See RE-414 on cdit-ma jira
-TEST(GraphmlParser, RE414) {
+TEST(ReCommon_GraphmlParser, RE_414) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
@@ -140,7 +140,7 @@ TEST(GraphmlParser, RE414) {
     EXPECT_TRUE(same) << diffs;
 }
 
-TEST(GraphmlParser, RE414_uneven_depth) {
+TEST(ReCommon_GraphmlParser, RE414_uneven_depth) {
     using namespace google::protobuf::util;
 
     // Get model from resource fs (copied by cmrs).
