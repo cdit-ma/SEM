@@ -1,22 +1,22 @@
-#Build Deps
-sudo yum install epel-release git wget java-1.8.0-openjdk ntpdate && \
+# Build Deps
+sudo yum install epel-release git wget java-1.8.0-openjdk chrony && \
     sudo yum install centos-release-scl && \
     sudo yum install devtoolset-7 && \
     sudo yum install ninja-build cmake3 ccache && \
     sudo ln -s /usr/bin/cmake3 /usr/bin/cmake && \
     . /opt/rh/devtoolset-7/enable
 
-#Install Boost
+# Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
     tar xf boost_1_67_0.tar.gz && \
     cd boost_1_67_0 && \
-    ./bootstrap.sh --with-libraries=filesystem,system,iostreams,program_options,thread && \
+    ./bootstrap.sh && \
     ./b2 -j6 -d0 && \
     sudo ./b2 install -d0 && \
     cd ~ && \
     rm -rf boost_1_67_0.tar.gz boost_1_67_0
 
-#Install ZeroMQ
+# Install ZeroMQ
 wget https://github.com/zeromq/libzmq/releases/download/v4.2.0/zeromq-4.2.0.tar.gz -q && \
     tar xf zeromq-4.2.0.tar.gz && \
     mkdir zeromq-4.2.0/build && \
@@ -27,7 +27,7 @@ wget https://github.com/zeromq/libzmq/releases/download/v4.2.0/zeromq-4.2.0.tar.
     rm -rf zeromq-4.2.0.tar.gz zeromq-4.2.0 && \
     sudo wget https://raw.githubusercontent.com/zeromq/cppzmq/master/zmq.hpp -q -P /usr/local/include/
 
-#Install Protobuf
+# Install Protobuf
 wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.6.0.tar.gz -q && \
     tar xf protobuf-cpp-3.6.0.tar.gz && \
     mkdir protobuf-3.6.0/cmake/build && \
@@ -37,8 +37,8 @@ wget https://github.com/google/protobuf/releases/download/v3.6.0/protobuf-cpp-3.
     cd ~ && \
     rm protobuf-cpp-3.6.0.tar.gz protobuf-3.6.0 -rf
 
-#Install pugixml
-#may need to recursively touch files in extracted pugi directory on centos("find  -type f  -exec touch {} +")
+# Install pugixml
+#  may need to recursively touch files in extracted pugi directory on centos("find  -type f  -exec touch {} +")
 wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q && \
     tar xf pugixml-1.8.tar.gz && \
     cd pugixml-1.8 && \
@@ -50,7 +50,7 @@ wget http://github.com/zeux/pugixml/releases/download/v1.8/pugixml-1.8.tar.gz -q
     cd ~ && \
     rm pugixml-1.8.tar.gz pugixml-1.8 -rf
 
-#Install sigar
+# Install sigar
 wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
     tar xf sigar-1.6.4B.tar.gz && \
     mkdir sigar-sigar-1.6.4B/build && \
@@ -60,10 +60,17 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
     cd ~ && \
     rm sigar-1.6.4B.tar.gz sigar-sigar-1.6.4B -rf
 
-#Setup Jenkins Directory
+# Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
     sudo chown cdit-ma /mnt/Jenkins/
 
-#Disable CentOS Firewall
+# Disable CentOS Firewall
 sudo systemctl stop firewalld
 sudo systemctl disable firewalld
+
+# Configure chrony
+sudo vim /etc/chrony.conf
+
+# Start and enable chrony
+sudo systemctl start chronyd
+sudo systemctl enable chronyd
