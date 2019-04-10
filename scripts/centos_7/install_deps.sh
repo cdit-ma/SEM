@@ -1,7 +1,10 @@
 #Build Deps
-sudo yum install epel-release git wget java-1.8.0-openjdk gcc gcc-c++ ntpdate && \
+sudo yum install epel-release git wget java-1.8.0-openjdk ntpdate && \
+    sudo yum install centos-release-scl && \
+    sudo yum install devtoolset-7 && \
     sudo yum install ninja-build cmake3 ccache && \
-    sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
+    sudo ln -s /usr/bin/cmake3 /usr/bin/cmake && \
+    . /opt/rh/devtoolset-7/enable
 
 #Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
