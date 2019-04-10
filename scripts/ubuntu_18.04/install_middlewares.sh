@@ -1,5 +1,5 @@
 # Build Deps
-apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y expect sed python-minimal uuid-dev ruby bison
+sudo apt-get update && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y expect sed python-minimal uuid-dev ruby bison
 
 # RTI
 #When asked for install location, specify /opt/RTI
@@ -12,8 +12,8 @@ wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/5.3/rti_connex
     sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/RTI/rti_license.dat -q
 
 # OpenSplice
-sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q -P /opt/ && \
-    sudo tar xf /opt/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -C /opt/ && \
+wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -q && \
+    sudo tar xf OpenSpliceDDSV6.4.140407OSS-HDE-x86_64.linux-gcc4.6-glibc2.15-installer.tar.gz -C /opt/ && \
     sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS/6.4/Makefile.Build_DCPS_ISO_Cpp_Lib \
     -q -O /opt/HDE/x86_64.linux/custom_lib/Makefile.Build_DCPS_ISO_Cpp_Lib && \
     cd /opt && \
@@ -21,24 +21,22 @@ sudo wget http://192.168.111.1/raid/software_share/Middlewares/DDS/OpenSpliceDDS
     cd /opt/HDE/x86_64.linux/custom_lib && \
     sudo make Build_DCPS_ISO_Cpp_Lib && \
     cd ~ && \
-    sudo rm -rf /opt/OpenSplice*
+    sudo rm -rf OpenSplice*
 
 # QpidPb
 wget http://192.168.111.1/raid/software_share/Middlewares/QpidPb/qpid-cpp-1.38.0.tar.gz -q && \
     wget http://192.168.111.1/raid/software_share/Middlewares/QpidPb/qpid-proton-0.24.0.tar.gz -q && \
-    sudo tar xf qpid-proton-0.24.0.tar.gz -C /opt/ && \
-    sudo tar xf qpid-cpp-1.38.0.tar.gz -C /opt/ && \
-    sudo mkdir /opt/qpid-proton-0.24.0/build && \
-    cd /opt/qpid-proton-0.24.0/build && \
-    sudo cmake -G Ninja .. -DCMAKE_INSTALL_PREFIX=/opt/QpidPb -DSYSINSTALL_BINDINGS=ON -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python2 && \
+    tar xf qpid-proton-0.24.0.tar.gz && \
+    tar xf qpid-cpp-1.38.0.tar.gz && \
+    mkdir qpid-proton-0.24.0/build && \
+    cd qpid-proton-0.24.0/build && \
+    cmake -G Ninja .. -DCMAKE_INSTALL_PREFIX=/opt/QpidPb -DSYSINSTALL_BINDINGS=ON -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python2 && \
     sudo cmake --build . --target install && \
-    cd / && \
-    sudo mkdir /opt/qpid-cpp-1.38.0/build && \
-    cd /opt/qpid-cpp-1.38.0/build && \
-    sudo cmake -G Ninja .. -DCMAKE_INSTALL_PREFIX=/opt/QpidPb -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python -DBUILD_BINDING_PERL=OFF -DBUILD_BINDING_PYTHON=OFF -DBUILD_BINDING_RUBY=OFF && \
+    cd ~ && \
+    mkdir qpid-cpp-1.38.0/build && \
+    cd qpid-cpp-1.38.0/build && \
+    cmake -G Ninja .. -DCMAKE_INSTALL_PREFIX=/opt/QpidPb -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python -DBUILD_BINDING_PERL=OFF -DBUILD_BINDING_PYTHON=OFF -DBUILD_BINDING_RUBY=OFF && \
     sudo cmake --build . --target install && \
-    cd /opt && \
-    sudo rm -rf qpid* && \
     cd ~ && \
     sudo rm -rf qpid*
 
@@ -59,3 +57,16 @@ sudo ln -s /lib/x86_64-linux-gnu/librt.so.1 /usr/lib/librt.so && \
     sudo mv /home/cdit-ma/ACE_wrappers /opt/ACE_6.5.0/ && \
     cd ~ && \
     rm -rf ACE*
+
+# OpenCL
+wget http://192.168.111.1/raid/software_share/Drivers/OpenCL/AMD-APP-SDKInstaller-v3.0.130.136-GA-linux64.tar.bz2 && \
+    tar xf AMD-APP-SDKInstaller-v3.0.130.136-GA-linux64.tar.bz2 && \
+    sudo ./AMD-APP-SDK-v3.0.130.136-GA-linux64.sh && \
+    rm -rf AMD*
+
+# CLFFT
+wget https://github.com/clMathLibraries/clFFT/releases/download/v2.10.2/clFFT-2.10.2-Linux-x64.tar.gz && \
+    sudo mkdir /opt/clfft && \
+    sudo tar xf -C /opt/clfft && \
+    rm -rf clFFT*
+

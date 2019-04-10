@@ -1,6 +1,6 @@
 #Build Deps
 #UBUNTU
-apt-get update && apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     git \
     cmake \
     build-essential \
