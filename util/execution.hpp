@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <functional>
 #include <vector>
-
+#include <iostream>
 
 class Execution{
     private:
@@ -42,6 +42,7 @@ class Execution{
             std::unique_lock<std::mutex> lock(mutex_);
             return terminated;
         }
+        
 };
 
 #endif //RE_COMMON_UTIL_EXECTION

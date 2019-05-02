@@ -1,0 +1,235 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package AggServer;
+
+/// Request/Response messages
+message ExperimentRunRequest {
+    string experiment_name = 1; //Leave blank to be given all experiments
+}
+message ExperimentRunResponse {
+    repeated Experiment experiments = 1;
+}
+
+message ExperimentStateRequest {
+    uint32 experiment_run_id = 1;
+}
+message ExperimentStateResponse {
+    google.protobuf.Timestamp end_time = 1;
+    repeated Node nodes = 2;
+    repeated Component components = 3;
+    repeated Worker workers = 4;
+    google.protobuf.Timestamp last_updated = 5;
+
+}
+
+message PortLifecycleRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string port_paths = 2; // filter results by expected ports
+    repeated string component_instance_paths = 3; // filter results by expected
+    repeated string component_names = 4;
+    uint32 experiment_run_id = 5;
+    repeated string port_ids = 6;
+    repeated string component_instance_ids = 7;
+
+}
+message PortLifecycleResponse {
+    repeated PortLifecycleEvent events = 1;
+}
+
+
+message WorkloadRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string worker_paths = 2; // filter results by expected ports
+    repeated string component_instance_paths = 3; // filter results by expected
+    repeated string component_names = 4;
+    uint32 experiment_run_id = 5;
+    repeated string worker_instance_ids = 6;
+    repeated string component_instance_ids = 7;
+
+}
+message WorkloadResponse {
+    repeated WorkloadEvent events = 1;
+}
+
+
+message CPUUtilisationRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string node_ids = 2;
+    uint32 experiment_run_id = 3;
+    repeated string node_hostnames = 4;
+}
+message CPUUtilisationResponse {
+    //repeated CPUUtilisationEvent events = 1;
+    repeated CPUUtilisationNode nodes = 2;
+}
+
+message MemoryUtilisationRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string node_ids = 2;
+    uint32 experiment_run_id = 3;
+    repeated string node_hostnames = 4;
+}
+message MemoryUtilisationResponse {
+    //repeated CPUUtilisationEvent events = 1;
+    repeated MemoryUtilisationNode nodes = 2;
+}
+
+message MarkerRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    uint32 experiment_run_id = 2;
+    repeated string component_names = 3;
+    repeated string worker_instance_ids = 4;
+    repeated string component_instance_ids = 5;
+    repeated string worker_instance_paths = 6;
+    repeated string component_instance_paths = 7;
+}
+message MarkerResponse {
+    repeated MarkerNameSet marker_name_sets = 1;
+}
+
+///Event messages
+message PortLifecycleEvent {
+    
+    Port port = 1;
+    LifecycleType type = 2;
+    google.protobuf.Timestamp time = 3;
+}
+
+message WorkloadEvent {
+    enum WorkloadEventType {
+        STARTED = 0;
+        FINISHED = 1;
+        MESSAGE = 2;
+        WARNING = 3;
+        ERROR_EVENT = 4;
+        MARKER = 5;
+    }
+
+    WorkerInstance worker_inst = 1;
+    WorkloadEventType type = 2;
+    uint32 workload_id = 3;
+    google.protobuf.Timestamp time = 4;
+
+    string function_name = 5;            //Workers Function Name
+    string args = 6;
+    uint32 log_level = 7;
+}
+
+message CPUUtilisationNode {
+    repeated CPUUtilisationEvent events = 1;
+    Node node_info = 2;
+}
+message CPUUtilisationEvent {
+    //Node node = 1;
+    double cpu_utilisation = 2;
+    google.protobuf.Timestamp time = 3;
+}
+
+message MemoryUtilisationNode {
+    repeated MemoryUtilisationEvent events = 1;
+    Node node_info = 2;
+}
+message MemoryUtilisationEvent {
+    //Node node = 1;
+    double memory_utilisation = 2;
+    google.protobuf.Timestamp time = 3;
+}
+
+message MarkerNameSet {
+    string name = 1;
+    repeated MarkerIDSet marker_id_set = 2;
+}
+message MarkerIDSet {
+    int64 id = 1;
+    repeated MarkerEvent events = 2;
+}
+message MarkerEvent {
+    google.protobuf.Timestamp timestamp = 1;
+    ComponentInstance component_instance = 2;
+}
+
+/// Event enums
+enum LifecycleType {
+    NO_TYPE = 0;
+    CONFIGURE = 1;
+    ACTIVATE = 2;
+    PASSIVATE = 3;
+    TERMINATE = 4;
+}
+
+/// Experiment descriptor messages
+message Experiment {
+    string name = 1;
+    repeated ExperimentRun runs = 2;
+}
+message ExperimentRun {
+    uint32 experiment_run_id = 1;
+    uint32 job_num = 2;
+    google.protobuf.Timestamp start_time = 3;
+    google.protobuf.Timestamp end_time = 4; 
+}
+
+/// Model structure Messages
+message Port {
+    enum Kind {
+        NO_KIND = 0;
+        PERIODIC = 1;
+        PUBLISHER = 2;
+        SUBSCRIBER = 3;
+        REQUESTER = 4;
+        REPLIER = 5;
+    }
+    string path = 1;
+    //ComponentInstance component_instance = 2;
+    string name = 3;
+    Kind kind = 4;
+    string middleware = 5;
+    string graphml_id = 6; 
+}
+
+message WorkerInstance {
+    
+    string name = 1;
+    string path = 2;
+    string graphml_id = 3;
+    string type = 4;
+}
+message Worker {
+    string name = 1;
+}
+
+message ComponentInstance {
+    //Component component = 1;
+    //Container container = 2;
+    string name = 3;
+    string path = 4;
+    string graphml_id = 5;
+    string type = 6;
+    repeated Port ports = 7;
+    repeated WorkerInstance worker_instances = 8;
+}
+message Component {
+    string name = 1;
+    //string graphml_id = 2;
+}
+
+message Container {
+    enum ContainerType {
+        GENERIC = 0;
+        DOCKER = 1;
+    }
+    string name = 1;
+    ContainerType type = 2;
+    //Node node = 3;
+    string graphml_id = 4;
+    repeated ComponentInstance component_instances = 5;
+}
+
+message Node {
+    string hostname = 1;
+    string ip = 2;
+    //string graphml_id = 3;
+    repeated Container containers = 4;
+}
