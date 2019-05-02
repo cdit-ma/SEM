@@ -1,21 +1,11 @@
-# Runtime Environment v3.3.5-1
-* Updated Logger::GetCurrentTime() to utilize microsecond level precision
-* Updated ProtoWriter Monitor Interface to fix issues with Zmq::ProtoWriter's never terminating
+# Runtime Environment v3.3.6
+* Squashed many build warnings
+* Added jenkins script to rebuild docker images from a custom base image: `rebuild_docker_images`
+* deploy_model jenkins script now builds binaries to be deployed to a docker container against the same docker container
+* Fix oversight in memory worker test
+* Many updates to dependency install instructions
+* Moved to more modern CMake usage, allowing for future use of cpp14 and cpp17 features
 
-## Logan
-* Fixed Logan server not correctly storing int64's in the database, which made tx/rx packets overflow
+## Resolved Jira Tickets:
+* RE-449
 
-## Workers
-### Utility_Worker v1.3.1
-* Refactored the utility worker to utilize the Logger::GetCurrentTime()
-
-## Code Generation
-* Improved generation of periodic event port frequency mutation.
-
-## Resolved JIRA Tickets:
-* RE-440
-* RE-445
-* RE-446
-* RE-448
-* RE-450
-* LOG-124
