@@ -7,7 +7,12 @@ project(${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(PQXX REQUIRED)
+find_package(PQXX)
+
+if(NOT PQXX_FOUND)
+	message("Could not find pqxx, not building aggregation broker and server")
+	return()
+endif()
 
 add_subdirectory("aggregationbroker")
 
