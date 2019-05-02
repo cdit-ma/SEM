@@ -449,6 +449,17 @@
 
         <xsl:value-of select="concat('const ', cpp:ref_var_def($type, $value))" />
     </xsl:function>
+    
+        <!--
+        Used to define a type as a const
+        ie const ${type} ${value}
+    -->
+    <xsl:function name="cpp:const_var_def">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+
+        <xsl:value-of select="concat('const ', cpp:var_def($type, $value))" />
+    </xsl:function>
 
     
 

@@ -200,6 +200,30 @@
         
     </xsl:function>
 
+    <xsl:function name="cdit:declare_get_version">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cpp:declare_function(cpp:const_ref_var_def('std::string', ''), 'get_version', (), ' const override;', $tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:define_get_version">
+        <xsl:param name="qualified_class_type" as="xs:string" />
+        <xsl:param name="version_number" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="variable_type" select="o:join_list(('static', 'std::string'), ' ')" />
+        <xsl:variable name="variable_constructor" select="o:wrap_curly(o:wrap_dblquote($version_number))" />
+        <xsl:variable name="variable_name" select="concat('version_number', $variable_constructor)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:const_ref_var_def('std::string', ''), $qualified_class_type, 'get_version', '', concat(' const', cpp:scope_start(0)))" />
+        <xsl:value-of select="concat(o:t($tab + 1), cpp:const_var_def($variable_type, $variable_name), cpp:nl())" />
+        <xsl:value-of select="cpp:return('version_number', $tab + 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+    </xsl:function>
+
+    
+
+    
+
     <!--
         Gets the Component Interface Header
     -->
@@ -815,6 +839,9 @@
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Define the get_version -->
+        <xsl:value-of select="cdit:define_get_version($qualified_class_type, graphml:get_data_value($class, 'version'), 0)" />
+
         <!-- Define Functions -->
         <xsl:for-each select="$functions">
             <xsl:value-of select="cdit:define_custom_function(., $qualified_class_type, 0)" />
@@ -905,15 +932,13 @@
         <!-- Public Declarations -->
         <xsl:value-of select="cpp:public($tab + 1)" />
 
-        <xsl:value-of select="cdit:comment_graphml_node($class, $tab)" />
-
-
-        
-        
         <!-- Constructor Declaration -->
         <xsl:variable name="args" select="cpp:join_args((cpp:const_ref_var_def('::BehaviourContainer', 'container'), cpp:const_ref_var_def('std::string', 'inst_name')))" />
         <xsl:value-of select="cpp:declare_function('', $class_type, $args, ';', $tab + 2)" />
 
+        <!-- Declare the get_version -->
+        <xsl:value-of select="cdit:declare_get_version($tab + 2)" />
+        
         <!-- Function Declarations -->
         <xsl:for-each select="$functions">
             <xsl:value-of select="cdit:declare_function(., $tab + 2)" />
@@ -1972,7 +1997,9 @@
             <xsl:for-each select="graphml:get_child_nodes($input_parameter_group[1])">
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="value" select="graphml:get_data_value(., 'value')" />
-                <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., true(), false())" />
+                <xsl:variable name="allow_mutable" select="$kind != 'VariadicParameter'" />
+
+                <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., $allow_mutable, false())" />
 
                 <xsl:variable name="suffix">
                     <xsl:variable name="data_source" select="graphml:get_sources(., 'Edge_Data')" />
