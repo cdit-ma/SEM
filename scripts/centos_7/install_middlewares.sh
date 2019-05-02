@@ -2,7 +2,7 @@
 sudo yum install libuuid-devel bison sed ruby bzip2 perl-Data-Dumper
 
 # Use gcc/g++ 7
-. /opt/rh/devtools-7/enable
+. /opt/rh/devtoolset-7/enable
 
 # RTI
 #When asked for install location, specify /opt/RTI
@@ -71,5 +71,5 @@ wget http://192.168.111.1/raid/software_share/Drivers/OpenCL/AMD-APP-SDKInstalle
 # CLFFT
 wget https://github.com/clMathLibraries/clFFT/releases/download/v2.10.2/clFFT-2.10.2-Linux-x64.tar.gz && \
     sudo mkdir /opt/clfft && \
-    sudo tar xf -C /opt/clfft && \
+    sudo tar xf clFFT-2.10.2-Linux-x64.tar.gz -C /opt/clfft && \
     rm -rf clFFT*
