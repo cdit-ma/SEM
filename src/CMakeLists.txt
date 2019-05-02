@@ -8,3 +8,7 @@ if(BUILD_SERVER)
 	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/server")
 endif(BUILD_SERVER)
 
+if(BUILD_AGGREGATIONSERVER)
+	message(STATUS "Building aggregation_server")
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver")
+endif(BUILD_AGGREGATIONSERVER)

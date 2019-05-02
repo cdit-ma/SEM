@@ -53,6 +53,7 @@ SET(LOGAN_VERSION "3.2.8")
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)
 option(BUILD_CLIENT "Build logan_client" ON)
+option(BUILD_AGGREGATIONSERVER "Build aggregation_server" ON)
 option(DISABLE_MODEL_LOGGING "Disable model logging tables in logan_server")
 option(DISABLE_HARDWARE_LOGGING "Disable hardware logging tables in logan_server")
 

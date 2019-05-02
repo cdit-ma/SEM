@@ -60,3 +60,6 @@ LogServer
 #VS Code generated files
 .vscode
 build
+
+#CLion generated files
+.idea/*
