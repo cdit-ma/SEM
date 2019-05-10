@@ -30,8 +30,8 @@ def run_command(args):
 
 
 def run_regen_generation(model_path):
-    re_gen_path = os.environ.get('RE_PATH') + '/re_gen/'
-    args = ['java', '-jar', re_gen_path + 'saxon.jar', '-xsl:' + re_gen_path + 'generate_project.xsl', '-s:' + model_path]
+    global RE_GEN_PATH
+    args = ['java', '-jar', RE_GEN_PATH + 'saxon.jar', '-xsl:' + RE_GEN_PATH + 'generate_project.xsl', '-s:' + model_path]
     return run_command(args)
 
 def run_cmake_generation():
@@ -77,6 +77,12 @@ def get_xml_preamble():
     return '<?xml version="1.0" encoding="UTF-8"?>\n'
 
 
+try:
+    RE_GEN_PATH = os.environ.get('RE_PATH') + '/re_gen/'
+except:
+    print("RE_PATH environment variable not set")
+    sys.exit(-1)
+
 all_suite_output = ""
 total_tests = 0
 total_fails = 0
@@ -84,7 +90,6 @@ total_time = 0
 
 for model_path in glob.glob('models/**.graphml'):
     model_name = get_model_name(model_path)
-    print("Running Test: " + model_name)
 
     model_dir = "build/" + model_name
     make_dir(model_dir)
@@ -105,8 +110,10 @@ for model_path in glob.glob('models/**.graphml'):
     fail_count = int(not gen_result[0]) + int(not cmake_result[0]) + int(not build_result[0])
     test_time = gen_result[2] + cmake_result[2] + build_result[2]
 
+    test_count = 3
+
     # Generate the suite output
-    suite_output = get_test_suite_open('regen_' + model_name, 3, fail_count, total_time)
+    suite_output = get_test_suite_open('regen_' + model_name, 3, fail_count, test_time)
     suite_output += get_test_case("xsl_generation", gen_result[0], gen_result[2], gen_result[1])
     suite_output += get_test_case("cmake_generation", cmake_result[0], cmake_result[2], cmake_result[1])
     suite_output += get_test_case("compilation", build_result[0], build_result[2], build_result[1])
@@ -114,9 +121,12 @@ for model_path in glob.glob('models/**.graphml'):
 
     # Update our top level counters
     all_suite_output += suite_output
-    total_tests += 3
+    total_tests += test_count
     total_fails += fail_count
     total_time += test_time
+
+    passed_count = test_count - fail_count
+    print("Test: " + model_name + " [" + str(passed_count) + "/" + str(test_count) + "]" + (" FAILED!" if fail_count > 0 else ""))
 
 # Write the Junit into a string
 junit_output = get_xml_preamble()

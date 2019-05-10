@@ -136,18 +136,16 @@ pipeline{
                                         deleteDir()
                                     }
                                 }
-                                if(RUN_ALL_TESTS){
-                                    dir("test/re_gen"){
-                                        def test_suite_xml = "${node_name}_regen_tests.xml"
+                                dir("test/re_gen"){
+                                    def test_suite_xml = "${node_name}_regen_tests.xml"
 
-                                        if(utils.runScript("python run_tests.py ${test_suite_xml}") != 0){
-                                            error("Running run_tests.py Failed!")
-                                        }
-                                        
-                                        junit test_suite_xml
-                                        dir("build"){
-                                            deleteDir()
-                                        }
+                                    if(utils.runScript("python run_tests.py ${test_suite_xml}") != 0){
+                                        error("Running run_tests.py Failed!")
+                                    }
+
+                                    junit test_suite_xml
+                                    dir("build"){
+                                        deleteDir()
                                     }
                                 }
                             }
