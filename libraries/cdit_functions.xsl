@@ -418,7 +418,7 @@
             <xsl:when test="$kind = 'AggregateInstance' or $kind = 'Aggregate'">
                 <xsl:value-of select="cdit:get_aggregate_qualified_type($node, 'base')" />
             </xsl:when>
-            <xsl:when test="$kind = 'Vector'">
+            <xsl:when test="$kind = 'Vector' or $kind = 'VectorInstance'">
                 <xsl:value-of select="cpp:get_vector_qualified_type($node)" />
             </xsl:when>
             <xsl:when test="$kind = 'ExternalType'">
