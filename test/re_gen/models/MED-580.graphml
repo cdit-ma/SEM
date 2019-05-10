@@ -35,11 +35,18 @@
 	<key attr.name="is_variadic" attr.type="boolean" id="180"/>
 	<key attr.name="is_optional_param" attr.type="boolean" id="236"/>
 	<key attr.name="comment" attr.type="string" id="277"/>
-	<key attr.name="x" attr.type="double" id="281"/>
-	<key attr.name="y" attr.type="double" id="282"/>
-	<key attr.name="isExpanded" attr.type="boolean" id="284"/>
-	<key attr.name="column_count" attr.type="int" id="287"/>
-	<key attr.name="middleware" attr.type="string" id="293"/>
+	<key attr.name="x" attr.type="double" id="278"/>
+	<key attr.name="y" attr.type="double" id="279"/>
+	<key attr.name="isExpanded" attr.type="boolean" id="280"/>
+	<key attr.name="url" attr.type="string" id="291"/>
+	<key attr.name="root_path" attr.type="string" id="292"/>
+	<key attr.name="load_time" attr.type="string" id="293"/>
+	<key attr.name="is_online" attr.type="boolean" id="294"/>
+	<key attr.name="user_name" attr.type="string" id="297"/>
+	<key attr.name="is_available" attr.type="boolean" id="298"/>
+	<key attr.name="vendor" attr.type="string" id="302"/>
+	<key attr.name="memory_size" attr.type="long" id="303"/>
+	<key attr.name="clock_freq" attr.type="long" id="332"/>
 
 	<graph edgedefault="directed" id="g0">
 		<node id="12">
@@ -54,95 +61,16 @@
 					<data key="2">INTERFACES</data>
 					<data key="3">0</data>
 					<graph id="g13">
-						<node id="278">
+						<node id="283">
 							<data key="1">Component</data>
-							<data key="2">test_comp</data>
+							<data key="2">c</data>
 							<data key="3">0</data>
-							<data key="21">test_comp</data>
+							<data key="21">c</data>
 							<data key="32"></data>
 							<data key="277"></data>
-							<data key="281">445</data>
-							<data key="282">223</data>
-							<data key="284">true</data>
-							<graph id="g278">
-								<node id="304">
-									<data key="1">SubscriberPort</data>
-									<data key="2">SubscriberPort</data>
-									<data key="3">0</data>
-									<data key="21">test_agg</data>
-									<data key="37">0</data>
-									<graph id="g304">
-										<node id="306">
-											<data key="1">AggregateInstance</data>
-											<data key="2">test_agg</data>
-											<data key="3">0</data>
-											<data key="21">test_agg</data>
-											<data key="22">test_agg</data>
-											<data key="23"></data>
-											<data key="287">1</data>
-											<graph id="g306">
-												<node id="308">
-													<data key="1">MemberInstance</data>
-													<data key="2">Member</data>
-													<data key="3">0</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-								<node id="318">
-									<data key="1">PublisherPort</data>
-									<data key="2">PublisherPort</data>
-									<data key="3">1</data>
-									<data key="21">test_agg</data>
-									<data key="37">2</data>
-									<graph id="g318">
-										<node id="320">
-											<data key="1">AggregateInstance</data>
-											<data key="2">test_agg</data>
-											<data key="3">0</data>
-											<data key="21">test_agg</data>
-											<data key="22">test_agg</data>
-											<data key="23"></data>
-											<data key="287">1</data>
-											<graph id="g320">
-												<node id="322">
-													<data key="1">MemberInstance</data>
-													<data key="2">Member</data>
-													<data key="3">0</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-							</graph>
-						</node>
-						<node id="288">
-							<data key="1">Aggregate</data>
-							<data key="2">test_agg</data>
-							<data key="3">1</data>
-							<data key="21">test_agg</data>
-							<data key="32"></data>
-							<data key="277"></data>
-							<data key="281">655</data>
-							<data key="282">190</data>
-							<data key="287">1</data>
-							<graph id="g288">
-								<node id="301">
-									<data key="1">Member</data>
-									<data key="2">Member</data>
-									<data key="3">0</data>
-									<data key="21">String</data>
-									<data key="40"></data>
-									<data key="41">false</data>
-								</node>
-							</graph>
+							<data key="278">535</data>
+							<data key="279">225</data>
+							<data key="280">true</data>
 						</node>
 					</graph>
 				</node>
@@ -151,76 +79,17 @@
 					<data key="2">BEHAVIOUR</data>
 					<data key="3">1</data>
 					<graph id="g14">
-						<node id="279">
+						<node id="284">
 							<data key="1">ComponentImpl</data>
-							<data key="2">test_comp</data>
+							<data key="2">c</data>
 							<data key="3">0</data>
-							<data key="21">test_comp</data>
-							<data key="284">true</data>
-							<graph id="g279">
-								<node id="312">
-									<data key="1">SubscriberPortImpl</data>
-									<data key="2">SubscriberPort</data>
-									<data key="3">0</data>
-									<data key="21">test_agg</data>
-									<data key="284">true</data>
-									<graph id="g312">
-										<node id="314">
-											<data key="1">AggregateInstance</data>
-											<data key="2">test_agg</data>
-											<data key="3">0</data>
-											<data key="21">test_agg</data>
-											<data key="22">test_agg</data>
-											<data key="23"></data>
-											<data key="37">0</data>
-											<data key="38">-1</data>
-											<data key="287">1</data>
-											<graph id="g314">
-												<node id="316">
-													<data key="1">MemberInstance</data>
-													<data key="2">Member</data>
-													<data key="3">0</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-												</node>
-											</graph>
-										</node>
-										<node id="326">
-											<data key="1">PublisherPortImpl</data>
-											<data key="2">PublisherPort</data>
-											<data key="3">1</data>
-											<data key="21">test_agg</data>
-											<graph id="g326">
-												<node id="328">
-													<data key="1">AggregateInstance</data>
-													<data key="2">test_agg</data>
-													<data key="3">0</data>
-													<data key="20"></data>
-													<data key="21">test_agg</data>
-													<data key="22">test_agg</data>
-													<data key="23"></data>
-													<data key="287">1</data>
-													<graph id="g328">
-														<node id="330">
-															<data key="1">MemberInstance</data>
-															<data key="2">Member</data>
-															<data key="3">0</data>
-															<data key="20"></data>
-															<data key="21">String</data>
-															<data key="22">String</data>
-															<data key="23"></data>
-														</node>
-													</graph>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
+							<data key="21">c</data>
+							<data key="280">true</data>
+							<graph id="g284">
 								<node id="285">
 									<data key="1">ClassInstance</data>
 									<data key="2">test_class</data>
-									<data key="3">1</data>
+									<data key="3">0</data>
 									<data key="21">test_class</data>
 									<data key="27"></data>
 									<data key="28"></data>
@@ -231,7 +100,7 @@
 								</node>
 							</graph>
 						</node>
-						<node id="283">
+						<node id="286">
 							<data key="1">Class</data>
 							<data key="2">test_class</data>
 							<data key="3">1</data>
@@ -241,8 +110,8 @@
 							<data key="31">0.0.0</data>
 							<data key="32"></data>
 							<data key="33">false</data>
-							<data key="281">303</data>
-							<data key="282">177</data>
+							<data key="278">80</data>
+							<data key="279">5</data>
 						</node>
 					</graph>
 				</node>
@@ -255,29 +124,21 @@
 							<data key="1">AssemblyDefinitions</data>
 							<data key="2">ASSEMBLIES</data>
 							<data key="3">0</data>
-							<data key="284">true</data>
+							<data key="280">true</data>
 							<graph id="g17">
 								<node id="295">
 									<data key="1">ComponentInstance</data>
-									<data key="2">test_intance</data>
+									<data key="2">c_1</data>
 									<data key="3">0</data>
-									<data key="21">test_comp</data>
+									<data key="21">c</data>
 									<data key="277"></data>
-									<data key="281">729</data>
-									<data key="282">142</data>
+									<data key="278">729</data>
+									<data key="279">142</data>
 									<graph id="g295">
-										<node id="310">
-											<data key="1">SubscriberPortInstance</data>
-											<data key="2">SubscriberPort</data>
-											<data key="3">0</data>
-											<data key="21">test_agg</data>
-											<data key="37">0</data>
-											<data key="293">ZMQ</data>
-										</node>
 										<node id="299">
 											<data key="1">ClassInstance</data>
 											<data key="2">test_class</data>
-											<data key="3">1</data>
+											<data key="3">0</data>
 											<data key="21">test_class</data>
 											<data key="27"></data>
 											<data key="28"></data>
@@ -285,14 +146,6 @@
 											<data key="33">false</data>
 											<data key="37">1</data>
 											<data key="38">2</data>
-										</node>
-										<node id="324">
-											<data key="1">PublisherPortInstance</data>
-											<data key="2">PublisherPort</data>
-											<data key="3">2</data>
-											<data key="21">test_agg</data>
-											<data key="37">2</data>
-											<data key="293">ZMQ</data>
 										</node>
 									</graph>
 								</node>
@@ -313,6 +166,110 @@
 									<data key="9">x86_64</data>
 									<data key="10">{421aa90e-079f-a326-b649-4f812ad13e79}</data>
 									<data key="11">true</data>
+									<data key="278">-85</data>
+									<data key="279">-10</data>
+								</node>
+								<node id="334">
+									<data key="1">HardwareCluster</data>
+									<data key="2">cherry01</data>
+									<data key="3">1</data>
+									<data key="10">{5880406b-02d1-dba4-904f-fb8fa1156180}</data>
+									<data key="11">true</data>
+									<data key="278">-15</data>
+									<data key="279">-10</data>
+									<data key="280">true</data>
+									<data key="291">http://192.168.111.247:8080/</data>
+									<data key="293">1557463903</data>
+									<data key="294">true</data>
+									<data key="297">admin</data>
+									<graph id="g334">
+										<node id="335">
+											<data key="1">HardwareNode</data>
+											<data key="2">coconut01</data>
+											<data key="3">0</data>
+											<data key="5">centos7 re deploy_re builder_centos7 builder docker_runtime</data>
+											<data key="6">200.200.1.3</data>
+											<data key="7">Linux</data>
+											<data key="8">3.10.0-957.10.1.el7.x86_64</data>
+											<data key="9">amd64</data>
+											<data key="10">{dbba0269-4a6e-7ed0-017f-7bdd9403fa03}</data>
+											<data key="11">true</data>
+											<data key="280">true</data>
+											<data key="291">http://192.168.111.247:8080/computer/coconut01/</data>
+											<data key="292">/mnt/Jenkins</data>
+											<data key="293">1557463903</data>
+											<data key="294">true</data>
+											<graph id="g335">
+												<node id="336">
+													<data key="1">OpenCLPlatform</data>
+													<data key="2">AMD Accelerated Parallel Processing</data>
+													<data key="3">0</data>
+													<data key="10">{78f93473-1262-32ca-2093-3685ab4b2ca6}</data>
+													<data key="11">true</data>
+													<data key="31">0.0.0</data>
+													<data key="302">Advanced Micro Devices, Inc.</data>
+													<graph id="g336">
+														<node id="337">
+															<data key="1">OpenCLDevice</data>
+															<data key="2">Intel(R) Xeon(R) CPU X5677 @ 3.47GHz</data>
+															<data key="3">0</data>
+															<data key="10">{2e352760-cd57-807f-446e-bdf4cfb76da6}</data>
+															<data key="11">true</data>
+															<data key="21">CL_DEVICE_TYPE_CPU</data>
+															<data key="31">0.0.0</data>
+															<data key="298">true</data>
+															<data key="302">1800.8 (sse2)</data>
+															<data key="303">3973627904</data>
+															<data key="332">3466</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="338">
+											<data key="1">HardwareNode</data>
+											<data key="2">lime01</data>
+											<data key="3">1</data>
+											<data key="5">builder re ubuntu18 deploy_re builder_ubuntu18 docker docker_runtime docker_builder</data>
+											<data key="6">200.200.1.2</data>
+											<data key="7">Linux</data>
+											<data key="8">4.15.0-47-generic</data>
+											<data key="9">amd64</data>
+											<data key="10">{9183f7e0-3aa2-a5d6-4093-5bdc334aff60}</data>
+											<data key="11">true</data>
+											<data key="280">true</data>
+											<data key="291">http://192.168.111.247:8080/computer/lime01/</data>
+											<data key="292">/mnt/Jenkins</data>
+											<data key="293">1557463903</data>
+											<data key="294">true</data>
+											<graph id="g338">
+												<node id="339">
+													<data key="1">OpenCLPlatform</data>
+													<data key="2">AMD Accelerated Parallel Processing</data>
+													<data key="3">0</data>
+													<data key="10">{75d9eb45-ccde-2643-9a28-8d6f8154c56f}</data>
+													<data key="11">true</data>
+													<data key="31">0.0.0</data>
+													<data key="302">Advanced Micro Devices, Inc.</data>
+													<graph id="g339">
+														<node id="340">
+															<data key="1">OpenCLDevice</data>
+															<data key="2">Intel(R) Xeon(R) CPU X5677 @ 3.47GHz</data>
+															<data key="3">0</data>
+															<data key="10">{c4dc4e81-cc77-af3e-e7e2-f038d9037490}</data>
+															<data key="11">true</data>
+															<data key="21">CL_DEVICE_TYPE_CPU</data>
+															<data key="31">0.0.0</data>
+															<data key="298">true</data>
+															<data key="302">1800.8 (sse2)</data>
+															<data key="303">4136640512</data>
+															<data key="332">3466</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
 								</node>
 							</graph>
 						</node>
@@ -3465,61 +3422,19 @@
 				</node>
 			</graph>
 		</node>
-		<edge id="333" source="295" target="19">
+		<edge id="341" source="295" target="335">
 			<data key="1">Edge_Deployment</data>
-		</edge>
-		<edge id="331" source="330" target="322">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="329" source="328" target="320">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="327" source="326" target="318">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="325" source="324" target="318">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="323" source="322" target="301">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="321" source="320" target="288">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="319" source="318" target="288">
-			<data key="1">Edge_Aggregate</data>
-		</edge>
-		<edge id="317" source="316" target="308">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="315" source="314" target="306">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="313" source="312" target="304">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="311" source="310" target="304">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="309" source="308" target="301">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="307" source="306" target="288">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="305" source="304" target="288">
-			<data key="1">Edge_Aggregate</data>
 		</edge>
 		<edge id="300" source="299" target="285">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="296" source="295" target="278">
+		<edge id="296" source="295" target="283">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="286" source="285" target="283">
+		<edge id="290" source="284" target="283">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="280" source="279" target="278">
+		<edge id="289" source="285" target="286">
 			<data key="1">Edge_Definition</data>
 		</edge>
 	</graph>
