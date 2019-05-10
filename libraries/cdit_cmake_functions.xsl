@@ -778,6 +778,13 @@
         <xsl:value-of select="cmake:if_end('NOT IS_SUB_REPO', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Fix for CentOS RPath MED-580 -->
+        <xsl:value-of select="cmake:if_start('UNIX', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_BUILD_WITH_INSTALL_RPATH', 'TRUE', 1)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', '$ORIGIN/', 1)" />
+        <xsl:value-of select="cmake:if_end('UNIX', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
         <!-- Add Top Level Paths -->
         <xsl:value-of select="cmake:comment('Set top level vars', 0)" />
         <xsl:value-of select="cmake:set_variable('RE_SOURCE_DIR', o:join_paths((cmake:wrap_variable('RE_PATH'), 'src')), 0)" />
