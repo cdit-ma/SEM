@@ -26,7 +26,7 @@
 
     <!-- Parameters -->
     <xsl:param name="generate_all" as="xs:boolean" select="false()" />
-    <xsl:param name="debug_mode" as="xs:boolean" select="true()" />
+    <xsl:param name="debug_mode" as="xs:boolean" select="false()" />
     <xsl:param name="library_prefix" as="xs:string" select="''" />
 
     <xsl:template match="/*">
