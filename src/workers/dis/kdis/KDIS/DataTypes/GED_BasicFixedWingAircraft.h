@@ -173,7 +173,7 @@ public:
     //              KDIS::DATA_TYPE::GED_BasicFixedWingAircraft::SetMovementDirectionVertical
     //              KDIS::DATA_TYPE::GED_BasicFixedWingAircraft::GetMovementDirectionHorizontal
     //              KDIS::DATA_TYPE::GED_BasicFixedWingAircraft::GetMovementDirectionVertical
-    // Description: Movement Direction is specified as a horizontal and a vertical deviation from
+    // Description: Movement Mode is specified as a horizontal and a vertical deviation from
     //              the Entity Orientation.
     //              Each deviation is specified in 25 milliradian increments.
     // Parameter:   KINT8 Horizontal, KINT8 H, KINT8 V, void
@@ -188,7 +188,7 @@ public:
     //************************************
     // FullName:    KDIS::DATA_TYPE::GED_BasicFixedWingAircraft::SetSpeed
     //              KDIS::DATA_TYPE::GED_BasicFixedWingAircraft::GetSpeed
-    // Description: Signed magnitude value of the entity’s absolute velocity vector.
+    // Description: Signed magnitude value of the entityï¿½s absolute velocity vector.
     //              A negative value shall indicate that the entity is moving backwards.
     //              Specified in 0.1 meter per second increments for aircraft and meters
     //              per second for ground vehicles.

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "dis_worker.h"
 #include "dis_worker_impl.h"
 
@@ -21,7 +23,7 @@ Dis_Worker::~Dis_Worker(){
 }
 
 void Dis_Worker::SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func){
-    impl_->SetPduCallback(func);
+    impl_->SetPduCallback(std::move(func));
 }
 
 std::string Dis_Worker::PDU2String(const KDIS::PDU::Header& header){

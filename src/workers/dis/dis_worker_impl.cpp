@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "dis_worker_impl.h"
 #include <iostream>
 
@@ -41,7 +43,7 @@ void Dis_Worker_Impl::Disconnect(){
 }
 
 void Dis_Worker_Impl::SetPduCallback(std::function<void (const KDIS::PDU::Header &)> func){
-    callback_function_ = func;
+    callback_function_ = std::move(func);
 }
 
 std::string Dis_Worker_Impl::PDU2String(const KDIS::PDU::Header& header){
@@ -53,7 +55,7 @@ void Dis_Worker_Impl::ProcessEvents(std::unique_ptr<KDIS::NETWORK::Connection> c
     connection->SetBlockingTimeOut(0, 500000);
     connection->GetPDU_Factory()->AddFilter( new KDIS::UTILS::FactoryFilterExerciseID( 1 ) );
 
-    while(terminate_kdis_.load() == false){
+    while(!terminate_kdis_.load()){
         try{
             // Note: GetNextPDU supports PDU Bundling, which Receive does not.
             auto pdu_ptr = connection->GetNextPDU().release();
@@ -90,7 +92,7 @@ void Dis_Worker_Impl::ProcessQueue(){
             }
         }
         
-        while(swap_queue.empty() == false){
+        while(!swap_queue.empty()){
             auto pdu = std::move(swap_queue.front());
             swap_queue.pop();
             if(callback_function_){

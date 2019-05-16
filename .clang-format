@@ -2,7 +2,7 @@
 # Find documentation at https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 Language:        Cpp
 # BasedOnStyle:  LLVM
-AccessModifierOffset: 0
+AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
@@ -25,7 +25,7 @@ BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
 BreakStringLiterals: true
-ColumnLimit: 120
+ColumnLimit: 100
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
@@ -78,4 +78,12 @@ SpacesInSquareBrackets: false
 Standard:        Cpp11
 TabWidth:        8
 UseTab:          Never
+PenaltyBreakAssignment: 50
+PenaltyBreakBeforeFirstCallParameter: 50
+PenaltyBreakComment: 0
+PenaltyBreakFirstLessLess: 10
+PenaltyBreakString: 10
+PenaltyBreakTemplateDeclaration: 0
+PenaltyExcessCharacter: 90
+PenaltyReturnTypeOnItsOwnLine: 0
 ...
