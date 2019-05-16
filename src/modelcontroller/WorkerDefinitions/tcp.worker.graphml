@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
+    <key attr.name="is_optional_param" attr.type="boolean" for="all" id="is_optional_param"/>
+    <key attr.name="is_generic_param_src" attr.type="boolean" for="all" id="is_generic_param_src"/>
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+    <key attr.name="index" attr.type="int" for="all" id="index"/>
+    <key attr.name="cpp_vartype" attr.type="string" for="all" id="cpp_vartype"/>
+
+    <graph id="G">
+        <node id="tcpworker">
+            <data key="kind">Class</data>
+            <data key="version">0.1.0</data>
+            <data key="worker">Tcp_Worker</data>
+            <data key="label">Tcp Worker</data>
+            <data key="icon_prefix">EntityIcons</data>
+            <data key="icon">Vector</data>
+            <data key="description">Provides low a low level tcp interface.</data>
+            <data key="folder">${RE_PATH}/src/workers/tcp</data>
+            <data key="file">tcp_worker</data>
+            <graph id="tcpworker:">
+                <!--TCPWorker::Bind-->
+                <node id="tcpworker::bind">
+                    <data key="kind">Function</data>
+                    <data key="label">Bind</data>
+                    <data key="operation">Bind</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleInfo</data>
+                    <data key="description">Binds a sending tcp worker to an ip address + port.</data>
+                    <graph id="tcpworker::bind:">
+                        <node id="tcpworker::bind::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="tcpworker::bind::out:">
+                                <node id="tcpworker::bind::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">Success</data>
+                                    <data key="inner_type">Boolean</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="tcpworker::connect">
+                    <data key="kind">Function</data>
+                    <data key="label">Connect</data>
+                    <data key="operation">Connect</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleInfo</data>
+                    <data key="description">Connects to a sending tcp endpoint.</data>
+                    <graph id="tcpworker::connect:">
+                        <node id="tcpworker::connect::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="tcpworker::connect::out:">
+                                <node id="tcpworker::connect::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">Success</data>
+                                    <data key="inner_type">Boolean</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="tcpworker::disconnect">
+                    <data key="kind">Function</data>
+                    <data key="label">Disconnect</data>
+                    <data key="operation">Disconnect</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleInfo</data>
+                    <data key="description">Disconnects the tcp worker from its bound or connected endpoint.</data>
+                </node>
+                <node id="tcpworker::bind_callback">
+                    <data key="kind">CallbackFunction</data>
+                    <data key="label">Got Message</data>
+                    <data key="operation">SetTcpCallback</data>
+                    <data key="description">This function is called whenever a specified delimiter is received.</data>
+                    <graph id="tcpworker::got_message:">
+                        <node id="tcpworker::got_message::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="tcpworker::got_message::in:">
+                                <node id="tcpworker::got_message::in::message">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Message</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type">Character</data>
+                                    <data key="cpp_vartype">CONST_REF</data>
+                                    <data key="description">A std::vector of chars up to the delimiting character.
+                                    </data>
+                                    <graph id="tcpworker::got_message::in::message:">
+                                        <node id="tcpworker::got_message::in::message::char">
+                                            <data key="kind">Member</data>
+                                            <data key="label">value</data>
+                                            <data key="type">Character</data>
+                                        </node>
+                                    </graph>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="tcpworker::send">
+                    <data key="kind">Function</data>
+                    <data key="label">Send</data>
+                    <data key="operation">Send</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleInfo</data>
+                    <data key="description">Sends data to a tcp endpoint.</data>
+                    <graph id="tcpworker::send:">
+                        <node id="tcpworker::send::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="tcpworker::send::in:">
+                                <node id="tcpworker::send::in::data">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Data</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">Data to send.</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type">Character</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="tcpworker::send::out:">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="tcpworker::send::out:">
+                                <node id="tcpworker::send::out::sendcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">BytesSent</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">Number of bytes sent.</data>
+                                    <data key="inner_type">Integer</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="tcpworker::receive">
+                    <data key="kind">Function</data>
+                    <data key="label">Receive</data>
+                    <data key="operation">Receive</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleInfo</data>
+                    <data key="description">Receives all data ready to be read from tcp socket.</data>
+                    <graph id="tcpworker::receive:">
+                        <node id="tcpworker::receive::out:">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="tcpworker::receive::out:">
+                                <node id="tcpworker::receive::out::sendcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Data</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">Number of bytes sent.</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type">Character</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="tcpworker::delimiter">
+                    <data key="type">Character</data>
+                    <data key="label">delimiter</data>
+                    <data key="kind">Attribute</data>
+                </node>
+                <node id="tcpworker::ip_address">
+                    <data key="type">String</data>
+                    <data key="label">ip_address</data>
+                    <data key="kind">Attribute</data>
+                </node>
+                <node id="tcpworker::port">
+                    <data key="type">String</data>
+                    <data key="label">port</data>
+                    <data key="kind">Attribute</data>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>
