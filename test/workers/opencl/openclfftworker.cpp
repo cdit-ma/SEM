@@ -11,86 +11,102 @@
  * FFT testing
  ****/
 
-struct FFTParam{
-    FFTParam(DeviceParam device, const std::vector<float>& data_in, const std::vector<float>& data_out, bool expect_success = true) {
+struct FFTParam {
+    FFTParam(DeviceParam device,
+             const std::vector<float>& data_in,
+             const std::vector<float>& data_out,
+             bool expect_success = true)
+    {
         this->device = device;
         this->data_in = data_in;
         this->data_out = data_out;
         this->expect_success = expect_success;
     };
-    
+
     DeviceParam device;
     std::vector<float> data_in;
     std::vector<float> data_out;
     bool expect_success = true;
 };
 
-void addFrequency(std::vector<float>& data, float frequency, float amplitude, float phase_shift) {
-    size_t num_elements = data.size()/2;
-    for (unsigned int i=0; i<num_elements; i++) {
-		data[i*2] += amplitude * (float)(cos((float)frequency*((float)i/num_elements)*2*PI + phase_shift));
-	}
+void addFrequency(std::vector<float>& data, float frequency, float amplitude, float phase_shift)
+{
+    size_t num_elements = data.size() / 2;
+    for(unsigned int i = 0; i < num_elements; i++) {
+        data[i * 2] += amplitude * (float)(cos((float)frequency * ((float)i / num_elements) * 2 * PI + phase_shift));
+    }
 }
 
 /**
- * Constant input data should generate a single spike at the 0 bin equal to the length of the vector multiplied by the amplitude
+ * Constant input data should generate a single spike at the 0 bin equal to the length of the vector multiplied by the
+ * amplitude
  */
-std::vector<float> generateConstantInput(size_t length, float amplitude) {
-    std::vector<float> data(length*2, 0);
-	for (unsigned int i=0; i< data.size()/2; i++) {
-		data[i*2] = amplitude;
-	}
+std::vector<float> generateConstantInput(size_t length, float amplitude)
+{
+    std::vector<float> data(length * 2, 0);
+    for(unsigned int i = 0; i < data.size() / 2; i++) {
+        data[i * 2] = amplitude;
+    }
     return data;
 }
-std::vector<float> generateConstantOutput(size_t length, float amplitude) {
-    std::vector<float> data(length*2, 0);
-	data[0] = length * amplitude;
+std::vector<float> generateConstantOutput(size_t length, float amplitude)
+{
+    std::vector<float> data(length * 2, 0);
+    data[0] = length * amplitude;
     return data;
 }
 
-std::vector<float> generateAlignedFrequencyInput(size_t length, float amplitude, float frequency, size_t phase_shift) {
-    std::vector<float> data(length*2, 0);
+std::vector<float> generateAlignedFrequencyInput(size_t length, float amplitude, float frequency, size_t phase_shift)
+{
+    std::vector<float> data(length * 2, 0);
     addFrequency(data, frequency, amplitude, (float)phase_shift);
     return data;
 }
 
-std::vector<float> generateAlignedFrequencyOutput(size_t length, float amplitude, float frequency, size_t phase_shift) {
-    std::vector<float> data(length*2, (float)0);
-    data[(size_t)abs(frequency)*2] += amplitude * (float)(length/2) * (float)cos(phase_shift);
-    data[(size_t)abs(frequency)*2+1] += amplitude * (float)(length/2) * (float)sin(phase_shift);
-    data[length*2-(size_t)abs(frequency)*2] += amplitude * (float)(length/2) * (float)cos(phase_shift);
-    data[length*2-(size_t)abs(frequency)*2+1] += amplitude * (float)(length/2) * (float)sin(phase_shift);
+std::vector<float> generateAlignedFrequencyOutput(size_t length, float amplitude, float frequency, size_t phase_shift)
+{
+    std::vector<float> data(length * 2, (float)0);
+    data[(size_t)abs(frequency) * 2] += amplitude * (float)(length / 2) * (float)cos(phase_shift);
+    data[(size_t)abs(frequency) * 2 + 1] += amplitude * (float)(length / 2) * (float)sin(phase_shift);
+    data[length * 2 - (size_t)abs(frequency) * 2] += amplitude * (float)(length / 2) * (float)cos(phase_shift);
+    data[length * 2 - (size_t)abs(frequency) * 2 + 1] += amplitude * (float)(length / 2) * (float)sin(phase_shift);
     return data;
 }
 
-std::vector<float> generateMultipleAlignedFrequencyInput(size_t length, float frequency1, float frequency2) {
-    std::vector<float> data(length*2, 0);
+std::vector<float> generateMultipleAlignedFrequencyInput(size_t length, float frequency1, float frequency2)
+{
+    std::vector<float> data(length * 2, 0);
     addFrequency(data, frequency1, 1, 0);
     addFrequency(data, frequency2, 3, 0);
     return data;
 }
 
-std::vector<float> generateMultipleAlignedFrequencyOutput(size_t length, float frequency1, float frequency2) {
-    std::vector<float> data(length*2, (float)0);
-    data[(size_t)abs(frequency1)*2] += 1 * (float)(length/2);
-    data[(size_t)abs(frequency2)*2] += 3 * (float)(length/2);
+std::vector<float> generateMultipleAlignedFrequencyOutput(size_t length, float frequency1, float frequency2)
+{
+    std::vector<float> data(length * 2, (float)0);
+    data[(size_t)abs(frequency1) * 2] += 1 * (float)(length / 2);
+    data[(size_t)abs(frequency2) * 2] += 3 * (float)(length / 2);
 
-    data[length*2-(size_t)abs(frequency1)*2] += 1 * (float)(length/2);
-    data[length*2-(size_t)abs(frequency2)*2] += 3 * (float)(length/2);
+    data[length * 2 - (size_t)abs(frequency1) * 2] += 1 * (float)(length / 2);
+    data[length * 2 - (size_t)abs(frequency2) * 2] += 3 * (float)(length / 2);
     return data;
 }
 
-std::ostream& operator<<(std::ostream& os, const FFTParam& f) {
-    return os << f.device << ", length: " << f.data_in.size()/2 << " - input data: " << ::testing::PrintToString(f.data_in) << " , output data: " << ::testing::PrintToString(f.data_out);
+std::ostream& operator<<(std::ostream& os, const FFTParam& f)
+{
+    return os << f.device << ", length: " << f.data_in.size() / 2
+              << " - input data: " << ::testing::PrintToString(f.data_in)
+              << " , output data: " << ::testing::PrintToString(f.data_out);
 };
 
-class FFTFixture: public ::testing::TestWithParam<FFTParam>, public OpenCL_WorkerConstructor{
+class FFTFixture : public ::testing::TestWithParam<FFTParam>, public OpenCL_WorkerConstructor {
     public:
-        FFTFixture() : OpenCL_WorkerConstructor(GetParam().device){
-            if(!worker_.Configure()){
-                throw std::runtime_error("Failed to configure worker in FFTFixture constructor");
-            }
+    FFTFixture() : OpenCL_WorkerConstructor(GetParam().device)
+    {
+        if(!worker_.Configure()) {
+            throw std::runtime_error("Failed to configure worker in FFTFixture constructor");
         }
+    }
 };
 
 TEST_P(FFTFixture, FFTtest)
@@ -102,8 +118,8 @@ TEST_P(FFTFixture, FFTtest)
     // Make sure that test case params are valid in terms of size
     ASSERT_EQ(data.size(), expected_output.size());
 
-	bool did_succeed = worker_.FFT(data);
-
+    bool did_succeed = false;
+    EXPECT_NO_THROW(did_succeed = worker_.FFT(data));
     ASSERT_EQ(did_succeed, expect_success);
 
     ASSERT_EQ(data.size(), expected_output.size());
@@ -116,17 +132,19 @@ typedef std::tuple<std::vector<float>, std::vector<float>, bool> TestData;
 /**
  * Permutes all test cases across all devices
  */
-std::vector<FFTParam> permuteFFTTests(std::vector<DeviceParam> devices, std::vector<TestData> testcases) {
+std::vector<FFTParam> permuteFFTTests(std::vector<DeviceParam> devices, std::vector<TestData> testcases)
+{
     std::vector<FFTParam> permuted_params;
-    for (auto& device : devices) {
-        for (auto& testcase : testcases) {
+    for(auto& device : devices) {
+        for(auto& testcase : testcases) {
             permuted_params.emplace_back(device, std::get<0>(testcase), std::get<1>(testcase), std::get<2>(testcase));
         }
     }
     return permuted_params;
 }
 
-std::vector<FFTParam> getConstantTests() {
+std::vector<FFTParam> getConstantTests()
+{
     std::vector<FFTParam> params;
     std::vector<TestData> tests;
     tests.emplace_back(generateConstantInput(4, 1.0), generateConstantOutput(4, 1.0), true);
@@ -136,12 +154,13 @@ std::vector<FFTParam> getConstantTests() {
     tests.emplace_back(generateConstantInput(8, -7.0), generateConstantOutput(8, 7.0), true);
     tests.emplace_back(generateConstantInput(4096, 1.0), generateConstantOutput(4096, 1.0), true);
     tests.emplace_back(generateConstantInput(4096, 7.0), generateConstantOutput(4096, 7.0), true);
-    //Test a non-divisible by two length RE-343
+    // Test a non-divisible by two length RE-343
     tests.emplace_back(std::vector<float>(11), std::vector<float>(11), false);
     return permuteFFTTests(getDevices(), tests);
 }
 
-std::vector<FFTParam> getSingleAlignedTests() {
+std::vector<FFTParam> getSingleAlignedTests()
+{
     std::vector<FFTParam> params;
     std::vector<TestData> tests;
     tests.emplace_back(generateAlignedFrequencyInput(4, 1, 1, 0), generateAlignedFrequencyOutput(4, 1, 1, 0), true);
@@ -152,31 +171,44 @@ std::vector<FFTParam> getSingleAlignedTests() {
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, 3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, -2, 3, 0), generateAlignedFrequencyOutput(16, -2, 3, 0), true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 2, -3, 0), generateAlignedFrequencyOutput(16, 2, 3, 0), true);
-    tests.emplace_back(generateAlignedFrequencyInput(4096, 1, 1, 0), generateAlignedFrequencyOutput(4096, 1, 1, 0), true);
-    tests.emplace_back(generateAlignedFrequencyInput(4096, 2, 11, 0), generateAlignedFrequencyOutput(4096, 2, 11, 0), true);
+    tests.emplace_back(generateAlignedFrequencyInput(4096, 1, 1, 0), generateAlignedFrequencyOutput(4096, 1, 1, 0),
+                       true);
+    tests.emplace_back(generateAlignedFrequencyInput(4096, 2, 11, 0), generateAlignedFrequencyOutput(4096, 2, 11, 0),
+                       true);
     return permuteFFTTests(getDevices(), tests);
 }
 
-std::vector<FFTParam> getMultipleAlignedTests() {
+std::vector<FFTParam> getMultipleAlignedTests()
+{
     std::vector<FFTParam> params;
     std::vector<TestData> tests;
-    tests.emplace_back(generateMultipleAlignedFrequencyInput(16, 1, 2), generateMultipleAlignedFrequencyOutput(16, 1, 2), true);
-    tests.emplace_back(generateMultipleAlignedFrequencyInput(32, 1, 3), generateMultipleAlignedFrequencyOutput(32, 1, 3), true);
-    tests.emplace_back(generateMultipleAlignedFrequencyInput(64, 5, -7), generateMultipleAlignedFrequencyOutput(64, 5, -7), true);
-    tests.emplace_back(generateMultipleAlignedFrequencyInput(4096, 13, -29), generateMultipleAlignedFrequencyOutput(4096, 13, -29), true);
+    tests.emplace_back(generateMultipleAlignedFrequencyInput(16, 1, 2),
+                       generateMultipleAlignedFrequencyOutput(16, 1, 2), true);
+    tests.emplace_back(generateMultipleAlignedFrequencyInput(32, 1, 3),
+                       generateMultipleAlignedFrequencyOutput(32, 1, 3), true);
+    tests.emplace_back(generateMultipleAlignedFrequencyInput(64, 5, -7),
+                       generateMultipleAlignedFrequencyOutput(64, 5, -7), true);
+    tests.emplace_back(generateMultipleAlignedFrequencyInput(4096, 13, -29),
+                       generateMultipleAlignedFrequencyOutput(4096, 13, -29), true);
     return permuteFFTTests(getDevices(), tests);
 }
 
-std::vector<FFTParam> getUnalignedTests() {
+std::vector<FFTParam> getUnalignedTests()
+{
     std::vector<FFTParam> params;
     std::vector<TestData> tests;
-    tests.emplace_back(generateAlignedFrequencyInput(16, 1, 2.5, 0), generateAlignedFrequencyOutput(16, 1, 2.5, 0), true);
+    tests.emplace_back(generateAlignedFrequencyInput(16, 1, 2.5, 0), generateAlignedFrequencyOutput(16, 1, 2.5, 0),
+                       true);
     tests.emplace_back(generateAlignedFrequencyInput(16, 1, 1, 0), generateAlignedFrequencyOutput(16, 1, 1, 0), true);
     return permuteFFTTests(getDevices(), tests);
 }
 
-
 INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_Constant, FFTFixture, ::testing::ValuesIn(getConstantTests()));
-INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_SingleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getSingleAlignedTests()));
-INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_MultipleAlignedFrequency, FFTFixture, ::testing::ValuesIn(getMultipleAlignedTests()));
-//INSTANTIATE_TEST_CASE_P(DISABLED_Re_Workers_OpenclWorker_UnalignedFrequencies, FFTFixture, ::testing::ValuesIn(getUnalignedTests()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_SingleAlignedFrequency,
+                        FFTFixture,
+                        ::testing::ValuesIn(getSingleAlignedTests()));
+INSTANTIATE_TEST_CASE_P(Re_Workers_OpenclWorker_MultipleAlignedFrequency,
+                        FFTFixture,
+                        ::testing::ValuesIn(getMultipleAlignedTests()));
+// INSTANTIATE_TEST_CASE_P(DISABLED_Re_Workers_OpenclWorker_UnalignedFrequencies, FFTFixture,
+// ::testing::ValuesIn(getUnalignedTests()));

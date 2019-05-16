@@ -1,11 +1,14 @@
 #include "openclexception.h"
-#include "openclutilities.h"
+#include "utilities.h"
+
+using namespace Re::OpenCL;
 
 OpenCLException::OpenCLException(std::string message, int opencl_error_code) :
     std::runtime_error(message),
-    error_code(opencl_error_code) {};
+    error_code(opencl_error_code){};
 
-const char* OpenCLException::what() const noexcept {
+const char* OpenCLException::what() const noexcept
+{
     std::string message = "[";
     message += ErrorCode();
     message += ": ";
@@ -15,6 +18,4 @@ const char* OpenCLException::what() const noexcept {
     return message.c_str();
 }
 
-int OpenCLException::ErrorCode() const {
-    return error_code;
-}
+int OpenCLException::ErrorCode() const { return error_code; }

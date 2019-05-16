@@ -30,7 +30,7 @@
 #include <string>
 
 //#include "CL/opencl.h"
-#include "../openclutilities.h"
+#include "../utilities.h"
 
 // This is assumed to be externally provided by the application.
 extern bool CleanupFFT();

@@ -1,44 +1,56 @@
-#ifndef GENERICBUFFER_H
-#define GENERICBUFFER_H
+#ifndef RE_OPENCL_GENERICBUFFER_H
+#define RE_OPENCL_GENERICBUFFER_H
+
+#include "openclexception.h"
 
 #include <memory>
 
 #include <core/worker.h>
 
 namespace cl {
-    class Buffer;
+class Buffer;
 }
 
-class OpenCLManager;
-class OpenCLDevice;
+namespace Re {
 
-class 
-GenericBuffer {
-public:
-    GenericBuffer(const Worker& worker, OpenCLManager& manager, size_t size);
+namespace OpenCL {
+
+class Manager;
+class Device;
+
+class GenericBuffer {
+    public:
+    GenericBuffer(const Manager& manager,
+                  size_t size,
+                  const std::optional<unsigned long>& flags = (std::nullopt_t)std::nullopt);
 
     void Release();
 
-    bool ReadData(const Worker& worker, void* dest, size_t length, const OpenCLDevice& device, bool blocking=true) const;
-    bool WriteData(const Worker& worker, const void* source, size_t size, const OpenCLDevice& device, bool blocking=true);
-   
+    void ReadData(void* dest, size_t length, const Device& device, bool blocking = true) const;
+    void WriteData(const void* source, size_t size, const Device& device, bool blocking = true);
+
     bool is_valid() const;
     size_t GetSize() const;
-    const Worker& GetInitialWorker() const;
-    
+
     cl::Buffer& GetBackingRef() const;
 
-protected:
- 
+    protected:
     void LogError(const Worker& worker, std::string function_name, std::string error_message, int cl_error_code) const;
     void LogError(const Worker& worker, std::string function_name, std::string error_message) const;
 
     bool valid_ = false;
-    OpenCLManager& manager_;
+    const Manager& manager_;
     std::unique_ptr<cl::Buffer> buffer_;
     size_t size_;
-
-    const Worker& worker_reference_;
 };
 
-#endif
+class BufferException : public OpenCLException {
+    public:
+    BufferException(const std::string& message, int cl_error_code) : OpenCLException(message, cl_error_code) {}
+};
+
+} // namespace OpenCL
+
+} // namespace Re
+
+#endif // RE_OPENCL_GENERICBUFFER_H

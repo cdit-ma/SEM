@@ -14,7 +14,7 @@ if(NOT OPENCL_LIB)
 endif()
 
 add_executable(${PROJ_NAME} "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 # Suppress ignored cl_int alignment attribute warning in opencl library
 target_compile_options(${PROJ_NAME} PRIVATE -Wno-ignored-attributes)

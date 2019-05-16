@@ -1,16 +1,20 @@
-#include "openclloadbalancer.h"
-#include "openclutilities.h"
+#include "loadbalancer.h"
+#include "utilities.h"
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
-OpenCLLoadBalancer::OpenCLLoadBalancer(const std::vector<unsigned int>& device_ids) {
-    for (const auto& device_id : device_ids) {
+using namespace Re::OpenCL;
+
+LoadBalancer::LoadBalancer(const std::vector<unsigned int>& device_ids)
+{
+    for(const auto& device_id : device_ids) {
         device_ids_.emplace(device_id);
     }
 }
 
-unsigned int OpenCLLoadBalancer::RequestDevice() {
+unsigned int LoadBalancer::RequestDevice()
+{
     std::lock_guard<std::mutex> guard(mutex_);
 
     DeviceJobList djl = *device_ids_.begin();
@@ -20,11 +24,12 @@ unsigned int OpenCLLoadBalancer::RequestDevice() {
     return djl.device_id_;
 }
 
-void OpenCLLoadBalancer::ReleaseDevice(unsigned int dev_id) {
+void LoadBalancer::ReleaseDevice(unsigned int dev_id)
+{
     std::lock_guard<std::mutex> guard(mutex_);
 
-    for (auto& djl : device_ids_) {
-        if (djl.device_id_ == dev_id) {
+    for(auto& djl : device_ids_) {
+        if(djl.device_id_ == dev_id) {
             DeviceJobList updated_entry(djl);
             updated_entry.num_jobs_--;
             device_ids_.erase(djl);

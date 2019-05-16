@@ -27,38 +27,43 @@ if (NOT OPENCL_INCLUDE_PATH)
 endif()
 
 add_library(${PROJ_NAME} SHARED "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 # Suppress ignored cl_int alignment attribute warning in opencl library
 target_compile_options(${PROJ_NAME} PRIVATE -Wno-ignored-attributes)
 
 target_sources(${PROJ_NAME} PRIVATE
     # Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclbufferbase.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bufferbase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernelbase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/loadbalancer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/device.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclqueue.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/queue.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/fpgafftprovider.cpp
+
 
     # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/cl2.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/manager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclbuffer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclbufferbase.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/buffer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bufferbase.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernelbase.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernel.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/loadbalancer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/device.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/queue.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/fftprovider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/clfftprovider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/fpgafftprovider.h
 )
 
 # Search for OpenCL FFT libraries
@@ -71,14 +76,18 @@ find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "Building OpenCL worker with FPGA FFT library")
     target_sources(${PROJ_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fpgafftprovider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
     )
+    target_compile_definitions(${PROJ_NAME} PUBLIC FPGA_PRESENT)
 elseif (CLFFT_LIB)
     message(STATUS "Building OpenCL worker with GPU FFT library (clFFT)")
     target_sources(${PROJ_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/clfftprovider.cpp
     )
+    target_compile_definitions(${PROJ_NAME} PUBLIC CLFFT_PRESENT)
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
     target_sources(${PROJ_NAME} PRIVATE
