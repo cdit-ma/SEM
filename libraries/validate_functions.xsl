@@ -413,7 +413,7 @@
             </xsl:when>
             <!-- VectorInstances used in InputParameterGroupInstance are requiring a data-link -->
             <xsl:when test="$kind = 'VectorInstance' and $parent_kind = 'InputParameterGroupInstance'">
-                <xsl:value-of select="true()" />
+                <xsl:value-of select="false()" />
             </xsl:when>
             <!-- Entities contained within AggregateInstance/VectorInstance/Vector are checked by checking the parent -->
             <xsl:when test="$parent_kind = ('AggregateInstance', 'VectorInstance', 'Vector')">
