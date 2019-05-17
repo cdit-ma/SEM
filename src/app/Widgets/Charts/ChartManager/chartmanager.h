@@ -17,7 +17,7 @@ class ChartManager : public QObject
 public:
     static ChartManager* manager();
 
-    ChartDialog* getChartDialog();
+    ChartDialog& getChartDialog();
 
 signals:
     void showChartsPanel();
@@ -32,8 +32,7 @@ protected:
     static void constructSingleton(ViewController* vc);
 
 private:
-    ChartManager(ViewController* vc);
-    ~ChartManager();
+    ChartManager(const ViewController &vc);
 
     void experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState);
     void requestEventsForExperimentRun(const AggServerResponse::ExperimentRun &experimentRun);
@@ -52,14 +51,14 @@ private:
 
     QString getItemLabel(const ViewItem* item);
 
-    ChartDialog* chartDialog_ = 0;
-    ChartInputPopup* chartPopup_ = 0;
-    TimelineChartView* chartView_ = 0;
-    ViewController* viewController_ = 0;
+    ChartDialog chartDialog_;
+    ChartInputPopup chartPopup_;
+    TimelineChartView& chartView_;
 
     QVector<ViewItem*> selectedViewItems_;
     QList<MEDEA::ChartDataKind> selectedDataKinds_;
 
+    const ViewController& viewController_;
     static ChartManager* manager_;
 };
 

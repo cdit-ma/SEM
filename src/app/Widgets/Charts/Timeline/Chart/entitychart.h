@@ -19,16 +19,16 @@ class EntityChart : public QWidget
 public:
     explicit EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = 0);
 
-    quint32 getExperimentRunID();
+    quint32 getExperimentRunID() const;
 
     void addSeries(MEDEA::EventSeries *series);
     void removeSeries(MEDEA::ChartDataKind kind);
 
     bool isHovered();
 
-    const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& getSeries();
-    const QList<MEDEA::ChartDataKind> getHovereSeriesKinds();
-    const QPair<qint64, qint64> getHoveredTimeRange(MEDEA::ChartDataKind kind);
+    const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& getSeries() const;
+    const QList<MEDEA::ChartDataKind> getHovereSeriesKinds() const;
+    const QPair<qint64, qint64> getHoveredTimeRange(MEDEA::ChartDataKind kind) const;
 
     void updateBinnedData(MEDEA::ChartDataKind kind);
     void updateBinnedData(QSet<MEDEA::ChartDataKind> kinds = QSet<MEDEA::ChartDataKind>());

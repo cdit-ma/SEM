@@ -20,20 +20,19 @@ public:
     explicit EntitySet(QString label = "", QWidget* parent = 0);
     ~EntitySet();
 
-    int getAllDepthChildrenCount();
+    int getAllDepthChildrenCount() const;
 
     bool isExpanded();
 
     void setDepth(int depth);
-    int getDepth();
+    int getDepth() const;
 
     void setLabel(QString label);
-    QString getLabel();
+    QString getLabel() const;
 
     void addChildEntitySet(EntitySet* child);
     void setParentEntitySet(EntitySet* parent);
-
-    QList<EntitySet*>& getChildrenEntitySets();
+    const QList<EntitySet*>& getChildrenEntitySets() const;
 
     void setHovered(bool hovered);
 
@@ -67,37 +66,37 @@ protected:
     void setTickVisible(bool visible);
 
 private:
-    int _ID;
-    int _depth;
-    QString _label;
+    int ID_;
+    int depth_;
+    QString label_;
 
-    int allDepthChildrenCount = 0;
-    bool _isExpanded = false;
-    bool _isVisible = true;
-    bool _isChildrenVisible = true;
-    bool _axisLineVisible = true;
-    bool _tickVisible = true;
+    int allDepthChildrenCount_ = 0;
+    bool isExpanded_ = false;
+    bool isVisible_ = true;
+    bool isChildrenVisible_ = true;
+    bool axisLineVisible_ = true;
+    bool tickVisible_ = true;
 
-    QPen _tickPen;
-    int _tickLength;
+    QPen tickPen_;
+    int tickLength_;
 
-    QToolBar* toolbar;
-    QAction* closeAction;
-    QIcon closeIcon;
+    QToolBar* toolbar_;
+    QAction* closeAction_;
+    QIcon closeIcon_;
 
-    QLabel* textLabel;
-    QLabel* iconLabel;
+    QLabel* textLabel_;
+    QLabel* iconLabel_;
 
-    QPixmap unExpandablePixmap;
-    QPixmap expandedPixmap;
-    QPixmap contractedPixmap;
+    QPixmap unExpandablePixmap_;
+    QPixmap expandedPixmap_;
+    QPixmap contractedPixmap_;
 
-    QString textColorStr;
-    QString highlighColorStr;
+    QString textColorStr_;
+    QString highlighColorStr_;
 
-    EntitySet* parentEntitySet = 0;
-    QList<EntitySet*> childrenSets;
-    QList<QtCharts::QAbstractSeries*> seriesList;
+    EntitySet* parentEntitySet_ = 0;
+    QList<EntitySet*> childrenSets_;
+    QList<QtCharts::QAbstractSeries*> seriesList_;
 
 };
 

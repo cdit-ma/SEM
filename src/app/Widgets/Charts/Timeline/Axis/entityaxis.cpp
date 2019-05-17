@@ -11,11 +11,11 @@
 EntityAxis::EntityAxis(QWidget *parent)
     : QWidget(parent)
 {
-    mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(0);
-    mainLayout->setMargin(0);
-    mainLayout->setContentsMargins(5, 0, 0, 0);
-    mainLayout->setAlignment(Qt::AlignCenter);
+    mainLayout_ = new QVBoxLayout(this);
+    mainLayout_->setSpacing(0);
+    mainLayout_->setMargin(0);
+    mainLayout_->setContentsMargins(5, 0, 0, 0);
+    mainLayout_->setAlignment(Qt::AlignCenter);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &EntityAxis::themeChanged);
     themeChanged();
@@ -33,10 +33,10 @@ int EntityAxis::appendEntity(EntitySet* entitySet)
 {
     int index = -1;
     if (entitySet) {
-        entitySet->setAxisLineVisible(axisLineVisible);
-        entitySet->setTickVisible(tickVisible);
-        mainLayout->addWidget(entitySet);
-        index = mainLayout->indexOf(entitySet);
+        entitySet->setAxisLineVisible(axisLineVisible_);
+        entitySet->setTickVisible(tickVisible_);
+        mainLayout_->addWidget(entitySet);
+        index = mainLayout_->indexOf(entitySet);
     }
     return index;
 }
@@ -52,12 +52,12 @@ int EntityAxis::insertEntity(EntitySet* prevEntitySet, EntitySet* entitySet)
 {
     int index = -1;
     if (prevEntitySet && entitySet) {
-        entitySet->setAxisLineVisible(axisLineVisible);
-        entitySet->setTickVisible(tickVisible);
-        int prevIndex = mainLayout->indexOf(prevEntitySet);
+        entitySet->setAxisLineVisible(axisLineVisible_);
+        entitySet->setTickVisible(tickVisible_);
+        int prevIndex = mainLayout_->indexOf(prevEntitySet);
         if (prevIndex != -1) {
             index = prevIndex + prevEntitySet->getAllDepthChildrenCount();
-            mainLayout->insertWidget(index, entitySet);
+            mainLayout_->insertWidget(index, entitySet);
         }
     }
     return index;
@@ -73,8 +73,8 @@ int EntityAxis::removeEntity(EntitySet* entitySet)
 {
     int index = -1;
     if (entitySet) {
-        index = mainLayout->indexOf(entitySet);
-        mainLayout->removeWidget(entitySet);
+        index = mainLayout_->indexOf(entitySet);
+        mainLayout_->removeWidget(entitySet);
     }
     return index;
 }
@@ -85,9 +85,9 @@ int EntityAxis::removeEntity(EntitySet* entitySet)
  * @param entitySet
  * @return
  */
-int EntityAxis::getEntityAxisIndex(EntitySet* entitySet)
+int EntityAxis::getEntityAxisIndex(EntitySet* entitySet) const
 {
-    return mainLayout->indexOf(entitySet);
+    return mainLayout_->indexOf(entitySet);
 }
 
 
@@ -101,7 +101,7 @@ void EntityAxis::setAxisLineVisible(bool visible)
     for (EntitySet* set : childrenSets) {
         set->setAxisLineVisible(visible);
     }
-    axisLineVisible = visible;
+    axisLineVisible_ = visible;
 }
 
 
@@ -115,7 +115,7 @@ void EntityAxis::setTickVisible(bool visible)
     for (EntitySet* set : childrenSets) {
         set->setTickVisible(visible);
     }
-    tickVisible = visible;
+    tickVisible_ = visible;
 }
 
 

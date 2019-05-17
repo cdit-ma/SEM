@@ -14,7 +14,7 @@ class AxisWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent = 0, VALUE_TYPE type = VALUE_TYPE::DOUBLE);
+    explicit AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = 0);
 
     void setZoomFactor(double factor);
     void setAxisMargin(int margin);
@@ -52,16 +52,16 @@ private:
     void updateMinSliderRatio(double min);
     void updateMaxSliderRatio(double max);
 
-    AxisSlider* _slider = 0;
-    AxisDisplay* _display = 0;
+    AxisSlider slider_;
+    AxisDisplay display_;
 
-    Qt::Orientation _orientation;
-    Qt::Alignment _alignment;
+    Qt::Orientation orientation_;
+    Qt::Alignment alignment_;
 
-    double _min;
-    double _max;
-    double _range;
-    double zoomFactor = 1.1;
+    double min_;
+    double max_;
+    double range_;
+    double zoomFactor_ = 1.1;
 
 };
 

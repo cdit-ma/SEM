@@ -53,11 +53,11 @@ public:
 
     SelectionController* getSelectionController();
     ActionController* getActionController();
-    AggregationProxy& getAggregationProxy();
+    const AggregationProxy &getAggregationProxy() const;
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
-    QList<ViewItem*> getNodesInstances(int ID);
+    QList<ViewItem*> getNodesInstances(int ID) const;
     QList<ViewItem*> getViewItems(QList<int> IDs);
 
     QStringList _getSearchSuggestions();
@@ -82,8 +82,8 @@ public:
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
-    int getNodeDefinitionID(int ID);
-    QList<int> getNodeInstanceIDs(int ID);
+    int getNodeDefinitionID(int ID) const;
+    QList<int> getNodeInstanceIDs(int ID) const;
 
     void QueryRunningExperiments();
     
@@ -268,10 +268,10 @@ private:
 
     AggregationProxy proxy;
 
-    NodeViewItem* getNodeViewItem(int ID);
+    NodeViewItem* getNodeViewItem(int ID) const;
 
-    NodeViewItem* getNodesImpl(int ID);
-    NodeViewItem* getNodesDefinition(int ID);
+    NodeViewItem* getNodesImpl(int ID) const;
+    NodeViewItem* getNodesDefinition(int ID) const;
     //QList<NodeViewItem*> getNodesInstances(int ID);
 
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
@@ -295,7 +295,7 @@ private:
     //bool _controllerReady = true; // TODO - Ask Dan if this will break anything!
     bool _controllerReady = false;
 
-    ViewItem* getViewItem(int ID);
+    ViewItem* getViewItem(int ID) const;
 
     ViewItem* root_item = 0;
     QHash<int, ViewItem*> view_items_;

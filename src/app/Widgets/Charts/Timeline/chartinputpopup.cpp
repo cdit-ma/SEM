@@ -227,13 +227,9 @@ void ChartInputPopup::experimentNameActivated(const QString &experimentName)
  */
 void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
-    // we only need to request the experiment state if the filter widgets are enabled
-    /*if (filtersEnabled_) {
-        emit requestExperimentState(ID);
-    }*/
-
-    if (filterAction_)
+    if (filterAction_) {
         filterAction_->setEnabled(false);
+    }
 
     selectedExperimentRun_ = experimentRun;
     selectedExperimentRunID_ = experimentRun.experiment_run_id;
@@ -246,8 +242,8 @@ void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentR
  */
 void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs)
 {
-    auto firstButton = true;
-    auto maxButtonWidth = 0;
+    bool firstButton = true;
+    int maxButtonWidth = 0;
 
     for (auto run : runs) {
         auto ID = run.experiment_run_id;
@@ -503,9 +499,6 @@ void ChartInputPopup::setupLayout()
  */
 void ChartInputPopup::setupFilterWidgets()
 {
-    if (!toolbar_)
-        return;
-
     filterMenu_ = new QMenu(this);
     connect(filterMenu_, &QMenu::triggered, this, &ChartInputPopup::filterMenuTriggered);
 

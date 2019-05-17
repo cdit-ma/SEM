@@ -45,27 +45,27 @@ class AggregationProxy : public QObject
 public:
     AggregationProxy();
     
-    QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name);
-    QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id);
+    QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name) const;
+    QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id) const;
 
-    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request);
-    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request);
-    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request);
-    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
-    QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request);
+    QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request) const;
+    QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request) const;
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
+    QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
 
 private:
     void SetServerEndpoint(const QString& endpoint);
-    void CheckRequester();
+    void CheckRequester() const;
 
-    QVector<AggServerResponse::ExperimentRun> GetExperimentRuns(const QString& experiment_name);
-    AggServerResponse::ExperimentState GetExperimentState(const quint32 experiment_run_id);
+    QVector<AggServerResponse::ExperimentRun> GetExperimentRuns(const QString& experiment_name) const;
+    AggServerResponse::ExperimentState GetExperimentState(const quint32 experiment_run_id) const;
 
-    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest &request);
-    QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request);
-    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request);
-    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request);
-    QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request);
+    QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest &request) const;
+    QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request) const;
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
+    QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);

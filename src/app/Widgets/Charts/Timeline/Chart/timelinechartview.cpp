@@ -954,7 +954,7 @@ void TimelineChartView::setupLayout()
     _entityAxis->setAxisLineVisible(false);
     connect(_entityAxis, &EntityAxis::sizeChanged, this, &TimelineChartView::entityAxisSizeChanged);
 
-    _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, this, VALUE_TYPE::DATE_TIME);
+    _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, VALUE_TYPE::DATE_TIME, this);
     _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
 
     connect(_dateTimeAxis, &AxisWidget::minRatioChanged, this, &TimelineChartView::minSliderMoved);

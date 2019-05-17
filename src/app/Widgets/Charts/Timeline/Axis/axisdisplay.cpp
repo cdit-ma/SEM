@@ -11,56 +11,54 @@
  * @param parent
  * @param type
  */
-AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
-    : QWidget(parent)
+AxisDisplay::AxisDisplay(const AxisSlider& slider, VALUE_TYPE type, QWidget* parent)
+    : QWidget(parent),
+      slider_(slider)
 {
-    if (!slider) {
-        qWarning("AxisDisplay::AxisDisplay - Axis is null");
-        return;
-    }
+    orientation_ = slider.getOrientation();
+    penWidth_ = slider.getAxisPenWidth();
+    textHeight_ = fontMetrics().height();
+    tickLength_ = textHeight_ / 4;
 
-    _slider = slider;
-    _orientation = slider->getOrientation();
-    _penWidth = slider->getAxisPenWidth();
-    _textHeight = fontMetrics().height();
-    _tickLength = _textHeight / 4;
+    valueType_ = type;
+    axisFormat_ = TIME_DISPLAY_FORMAT::VALUE;
 
-    _valueType = type;
-    _axisFormat = TIME_DISPLAY_FORMAT::VALUE;
-
-    if (_orientation == Qt::Horizontal) {
-        _spacing = SPACING;
-        setMinimumHeight(_textHeight + _tickLength + _spacing * 2);
-        if (_valueType == VALUE_TYPE::DATE_TIME) {
-            setMinimumHeight((_textHeight + _tickLength) * 2 + _spacing * 2);
+    if (orientation_ == Qt::Horizontal) {
+        spacing_ = SPACING;
+        setMinimumHeight(textHeight_ + tickLength_ + spacing_ * 2);
+        if (valueType_ == VALUE_TYPE::DATE_TIME) {
+            setMinimumHeight((textHeight_ + tickLength_) * 2 + spacing_ * 2);
             setMinimumWidth(fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT)));
-            _axisFormat = TIME_DISPLAY_FORMAT::DATE_TIME;
+            axisFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
         }
     } else {
-        _spacing = SPACING * 2;
-        setMinimumWidth(slider->width());
+        spacing_ = SPACING * 2;
+        setMinimumWidth(slider.width());
     }
 
-    switch (_slider->getAlignment()) {
+    switch (slider.getAlignment()) {
     case Qt::AlignTop:
-        _textAlignment = Qt::AlignBottom | Qt::AlignHCenter;
+        textAlignment_ = Qt::AlignBottom | Qt::AlignHCenter;
         break;
     case Qt::AlignBottom:
-        _textAlignment = Qt::AlignTop | Qt::AlignHCenter;
+        textAlignment_ = Qt::AlignTop | Qt::AlignHCenter;
         break;
     case Qt::AlignLeft:
-        _textAlignment = Qt::AlignRight | Qt::AlignVCenter;
+        textAlignment_ = Qt::AlignRight | Qt::AlignVCenter;
         break;
     case Qt::AlignRight:
-        _textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+        textAlignment_ = Qt::AlignLeft | Qt::AlignVCenter;
         break;
     default:
-        _textAlignment = Qt::AlignTop | Qt::AlignHCenter;
+        textAlignment_ = Qt::AlignTop | Qt::AlignHCenter;
         break;
     }
 
-    connect(slider, &AxisSlider::minRatioChanged, this, &AxisDisplay::updateDisplayedMin);
-    connect(slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
+    // when the slider is destroyed, delete this object as well
+    connect(&slider , &AxisSlider::destroyed, this, &AxisDisplay::deleteLater);
+
+    connect(&slider, &AxisSlider::minRatioChanged, this, &AxisDisplay::updateDisplayedMin);
+    connect(&slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisDisplay::themeChanged);
     themeChanged();
 }
@@ -72,9 +70,9 @@ AxisDisplay::AxisDisplay(AxisSlider* slider, QWidget* parent, VALUE_TYPE type)
  */
 void AxisDisplay::setAxisMargin(int margin)
 {
-    _spacing = margin;
-    if (_orientation == Qt::Horizontal) {
-        setMinimumHeight(_textHeight + _tickLength + _spacing * 2);
+    spacing_ = margin;
+    if (orientation_ == Qt::Horizontal) {
+        setMinimumHeight(textHeight_ + tickLength_ + spacing_ * 2);
     }
     update();
 }
@@ -86,7 +84,7 @@ void AxisDisplay::setAxisMargin(int margin)
  */
 void AxisDisplay::setAxisLineVisible(bool visible)
 {
-    _axisLineVisible = visible;
+    axisLineVisible_ = visible;
     update();
 }
 
@@ -97,7 +95,7 @@ void AxisDisplay::setAxisLineVisible(bool visible)
  */
 void AxisDisplay::setTickVisible(bool visible)
 {
-    _tickVisible = visible;
+    tickVisible_ = visible;
     update();
 }
 
@@ -107,7 +105,7 @@ void AxisDisplay::setTickVisible(bool visible)
  */
 void AxisDisplay::setTickCount(int ticks)
 {
-    _tickCount = qMax(1, ticks);
+    tickCount_ = qMax(1, ticks);
     update();
 }
 
@@ -118,8 +116,8 @@ void AxisDisplay::setTickCount(int ticks)
  */
 void AxisDisplay::setMax(double max)
 {
-    _max = max;
-    _range = max - _min;
+    max_ = max;
+    range_ = max - min_;
     update();
 }
 
@@ -130,8 +128,8 @@ void AxisDisplay::setMax(double max)
  */
 void AxisDisplay::setMin(double min)
 {
-    _min = min;
-    _range = _max - min;
+    min_ = min;
+    range_ = max_ - min;
     update();
 }
 
@@ -143,9 +141,9 @@ void AxisDisplay::setMin(double min)
  */
 void AxisDisplay::setRange(double min, double max)
 {
-    _min = min;
-    _max = max;
-    _range = max - min;
+    min_ = min;
+    max_ = max;
+    range_ = max - min;
     update();
 }
 
@@ -156,7 +154,7 @@ void AxisDisplay::setRange(double min, double max)
  */
 QPair<double, double> AxisDisplay::getRange()
 {
-    return {_min, _max};
+    return {min_, max_};
 }
 
 
@@ -166,7 +164,7 @@ QPair<double, double> AxisDisplay::getRange()
  */
 QPair<double, double> AxisDisplay::getDisplayedRange()
 {
-    return {_displayedMin, _displayedMax};
+    return {displayedMin_, displayedMax_};
 }
 
 
@@ -186,7 +184,7 @@ void AxisDisplay::setDisplayFormat(TIME_DISPLAY_FORMAT format)
     default:
         return;
     }
-    _axisFormat = format;
+    axisFormat_ = format;
     update();
 }
 
@@ -198,15 +196,15 @@ void AxisDisplay::setDisplayFormat(TIME_DISPLAY_FORMAT format)
  */
 void AxisDisplay::hoverLineUpdated(bool visible, QPointF globalPos)
 {
-    _displayHoverValue = visible;
+    displayHoverValue_ = visible;
     if (visible) {
         QPointF pos = mapFromGlobal(globalPos.toPoint());
-        if (_orientation == Qt::Horizontal) {
-            _hoveredPos = pos.x();
-            _hoveredValue = (_hoveredPos / width()) * _displayedRange + _displayedMin;
+        if (orientation_ == Qt::Horizontal) {
+            hoveredPos_ = pos.x();
+            hoveredValue_ = (hoveredPos_ / width()) * displayedRange_ + displayedMin_;
         } else {
-            _hoveredPos = pos.y();
-            _hoveredValue = (1.0 - (_hoveredPos / height())) * _displayedRange + _displayedMin;
+            hoveredPos_ = pos.y();
+            hoveredValue_ = (1.0 - (hoveredPos_ / height())) * displayedRange_ + displayedMin_;
         }
     }
     update();
@@ -219,11 +217,11 @@ void AxisDisplay::hoverLineUpdated(bool visible, QPointF globalPos)
 void AxisDisplay::themeChanged()
 {
     Theme* theme = Theme::theme();
-    _labelColor = theme->getTextColor();
-    _axisColor = theme->getAltTextColor();
+    labelColor_ = theme->getTextColor();
+    axisColor_ = theme->getAltTextColor();
 
-    _hoveredRectColor = theme->getActiveWidgetBorderColor();
-    _hoverTextColor = theme->getTextColor();
+    hoveredRectColor_ = theme->getActiveWidgetBorderColor();
+    hoverTextColor_ = theme->getTextColor();
 
     update();
 }
@@ -236,7 +234,7 @@ void AxisDisplay::themeChanged()
  */
 void AxisDisplay::updateDisplayedMin(double minRatio)
 {
-    displayedMinChanged(minRatio * _range + _min);
+    displayedMinChanged(minRatio * range_ + min_);
 }
 
 
@@ -247,7 +245,7 @@ void AxisDisplay::updateDisplayedMin(double minRatio)
  */
 void AxisDisplay::updateDisplayedMax(double maxRatio)
 {
-    displayedMaxChanged(maxRatio * _range + _min);
+    displayedMaxChanged(maxRatio * range_ + min_);
 }
 
 
@@ -257,8 +255,8 @@ void AxisDisplay::updateDisplayedMax(double maxRatio)
  */
 void AxisDisplay::resizeEvent(QResizeEvent* event)
 {
-    if ((_orientation == Qt::Horizontal) && (minimumWidth() > 0)) {
-        if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
+    if ((orientation_ == Qt::Horizontal) && (minimumWidth() > 0)) {
+        if (axisFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
             setTickCount(width() / minimumWidth() / 2.0);
         } else {
             setTickCount(width() / minimumWidth() / 3.0);
@@ -276,64 +274,63 @@ void AxisDisplay::resizeEvent(QResizeEvent* event)
  */
 void AxisDisplay::paintEvent(QPaintEvent* event)
 {
-    if (!_slider)
-        return;
-
     QPainter painter(this);
     painter.fillRect(rect(), Qt::transparent);
-    painter.setPen(_labelColor);
+    painter.setPen(labelColor_);
 
     QVector<QLineF> tickLines;
     auto paintRect = QRectF(rect()); //getAdjustedRect();
 
-    if (_orientation == Qt::Horizontal) {
+    if (orientation_ == Qt::Horizontal) {
         paintHorizontal(painter, tickLines, paintRect);
     } else {
         paintVertical(painter, tickLines, paintRect);
     }
 
     // display the hovered value
-    if (_displayHoverValue) {
-        QString hoveredStr = getCovertedString(_hoveredValue);
-        double offset = _tickLength + _spacing;
+    if (displayHoverValue_) {
+        QString hoveredStr = getCovertedString(hoveredValue_);
+        double offset = tickLength_ + spacing_;
         double x = 0, y = 0, w = 0;
 
-        if (_orientation == Qt::Horizontal) {
-            w = qMin(paintRect.width() - 1, fontMetrics().width(hoveredStr) + _spacing * 2.0);
-            y = _slider->getAlignment() == Qt::AlignTop ? paintRect.top() : paintRect.top() + offset;
-            x = _hoveredPos - w / 2.0;
+        if (orientation_ == Qt::Horizontal) {
+            w = qMin(paintRect.width() - 1, fontMetrics().width(hoveredStr) + spacing_ * 2.0);
+            y = slider_.getAlignment() == Qt::AlignTop ? paintRect.top() : paintRect.top() + offset;
+            x = hoveredPos_ - w / 2.0;
             if (x < 0) {
                 x = 0;
             } else if ((x + w) >= width()) {
                 x = width() - w - 1;
             }
         } else {
-            hoveredStr.truncate(qMin(hoveredStr.length(), _widestTextLength - 1));
+            hoveredStr.truncate(qMin(hoveredStr.length(), widestTextLength_ - 1));
             if (hoveredStr.at(hoveredStr.length() - 1) == ".") {
                 hoveredStr.truncate(hoveredStr.length() - 1);
             }
-            w = fontMetrics().width(hoveredStr) + _spacing * 2.0;
-            x = _slider->getAlignment() == Qt::AlignLeft ? width()- w - offset : offset;
-            y = _hoveredPos - _textHeight / 2.0;
+            w = fontMetrics().width(hoveredStr) + spacing_ * 2.0;
+            x = slider_.getAlignment() == Qt::AlignLeft ? width()- w - offset : offset;
+            y = hoveredPos_ - textHeight_ / 2.0;
             if (y < 0) {
                 y = 0;
-            } else if ((y + _textHeight) >= height()) {
-                y = height() - _textHeight - 1;
+            } else if ((y + textHeight_) >= height()) {
+                y = height() - textHeight_ - 1;
             }
         }
 
-        QRectF hoveredRect(x, y, w, _textHeight);
-        painter.setBrush(_hoveredRectColor);
-        painter.setPen(_hoverTextColor);
+        QRectF hoveredRect(x, y, w, textHeight_);
+        painter.setBrush(hoveredRectColor_);
+        painter.setPen(hoverTextColor_);
         painter.drawRect(hoveredRect);
         painter.drawText(hoveredRect, hoveredStr, QTextOption(Qt::AlignCenter));
     }
 
-    painter.setPen(QPen(_axisColor, _penWidth));
-    if (_axisLineVisible)
-        painter.drawLine(_axisLine);
-    if (_tickVisible)
+    painter.setPen(QPen(axisColor_, penWidth_));
+    if (axisLineVisible_){
+        painter.drawLine(axisLine_);
+    }
+    if (tickVisible_) {
         painter.drawLines(tickLines);
+    }
 }
 
 
@@ -345,89 +342,89 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
  */
 void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect)
 {
-    double rectWidth = rect.width() / _tickCount;
-    double lineLength = _tickLength;
-    double tickY = rect.top() + _penWidth / 2.0;
-    double offset = _tickLength + _spacing;
+    double rectWidth = rect.width() / tickCount_;
+    double lineLength = tickLength_;
+    double tickY = rect.top() + penWidth_ / 2.0;
+    double offset = tickLength_ + spacing_;
     QSizeF rectSize(rectWidth, rect.height() - offset);
     QPointF startPoint(-rectWidth / 2.0 + rect.left(), rect.top() + offset);
     QPointF dateRectCenter(rect.center().x(), rect.center().y() + rectSize.height() / 2.0);
 
-    if (_slider->getAlignment() == Qt::AlignTop) {
-        tickY = rect.bottom() - _penWidth / 2.0;
-        lineLength = -_tickLength;
+    if (slider_.getAlignment() == Qt::AlignTop) {
+        tickY = rect.bottom() - penWidth_ / 2.0;
+        lineLength = -tickLength_;
         startPoint.setY(rect.top());
         dateRectCenter.setY(rect.center().y() - rectSize.height() / 2.0);
     }
-    _axisLine.setLine(rect.left(), tickY, rect.right(), tickY);
+    axisLine_.setLine(rect.left(), tickY, rect.right(), tickY);
 
-    if (_tickCount == 1) {
+    if (tickCount_ == 1) {
         startPoint.setX(0);
         dateRectCenter.setX(rect.center().x());
     }
 
-    bool dateTimeFormat = (_valueType == VALUE_TYPE::DATE_TIME) && (_axisFormat == TIME_DISPLAY_FORMAT::DATE_TIME);
+    bool dateTimeFormat = (valueType_ == VALUE_TYPE::DATE_TIME) && (axisFormat_ == TIME_DISPLAY_FORMAT::DATE_TIME);
     QRectF textRect;
     QDate prevDate;
-
-    /*
-     * TODO - Clean up hovered date/time display and paint methods; move slot outside of this class
-     */
 
     double minTextWidth = 0.0;
     double maxTextWidth = 0.0;
 
-    for (int i = 0; i <= _tickCount; i++) {
+    for (int i = 0; i <= tickCount_; i++) {
 
         textRect = QRectF(startPoint, rectSize);
 
         // tickX has to be an int so that the hovered value matches the displayed value
         int tickX = textRect.center().x();
-        double value = (double)tickX / width() * _displayedRange + _displayedMin;
+        double value = (double)tickX / width() * displayedRange_ + displayedMin_;
 
-        if (_tickCount == 1) {
+        if (tickCount_ == 1) {
             tickX = dateRectCenter.x();
-            value = _displayedMin + _displayedRange / 2.0;
+            value = displayedMin_ + displayedRange_ / 2.0;
         } else if (i == 0) {
-            tickX = _penWidth / 2.0;
-            value = _displayedMin;
+            tickX = penWidth_ / 2.0;
+            value = displayedMin_;
             minTextWidth = fontMetrics().width(getCovertedString(value));
-            textRect = textRect.adjusted(minTextWidth + _penWidth, 0, 0, 0);
-            if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
+            textRect = textRect.adjusted(minTextWidth + penWidth_, 0, 0, 0);
+            if (axisFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
                 startPoint += QPointF(rectWidth, 0);
                 continue;
             }
-        } else if (i == _tickCount) {
-            if (_axisFormat == TIME_DISPLAY_FORMAT::ELAPSED_TIME)
+        } else if (i == tickCount_) {
+            if (axisFormat_ == TIME_DISPLAY_FORMAT::ELAPSED_TIME) {
                 return;
-            tickX -= _penWidth / 2.0;
-            value = _displayedMax;
+            }
+            tickX -= penWidth_ / 2.0;
+            value = displayedMax_;
             maxTextWidth = fontMetrics().width(getCovertedString(value));
-            textRect = textRect.adjusted(0, 0, -maxTextWidth - _penWidth, 0);
+            textRect = textRect.adjusted(0, 0, -maxTextWidth - penWidth_, 0);
         }
 
         tickLines.append(QLineF(tickX, tickY, tickX, tickY + lineLength));
-        painter.drawText(textRect, getCovertedString(value), QTextOption(_textAlignment));
+        painter.drawText(textRect, getCovertedString(value), QTextOption(textAlignment_));
         startPoint += QPointF(rectWidth, 0);
 
+        // paint the date-time
         if (dateTimeFormat) {
             QDate date = QDateTime::fromMSecsSinceEpoch(value).date();
             if (date == prevDate)
                 continue;
             auto dateStr = date.toString(DATE_FORMAT);
             textRect.moveCenter(QPointF(textRect.center().x(), dateRectCenter.y()));
-            if (_tickCount != 1) {
+            if (tickCount_ != 1) {
                 if (i == 0) {
                     auto strLengthDiff = fontMetrics().width(dateStr) - minTextWidth;
-                    if (strLengthDiff > 0)
+                    if (strLengthDiff > 0) {
                         textRect.moveRight(textRect.right() + strLengthDiff - 5);
-                } else if (i == _tickCount) {
+                    }
+                } else if (i == tickCount_) {
                     auto strLengthDiff = fontMetrics().width(dateStr) - maxTextWidth;
-                    if (strLengthDiff > 0)
+                    if (strLengthDiff > 0) {
                         textRect.moveLeft(textRect.left() - strLengthDiff + 5);
+                    }
                 }
             }
-            painter.drawText(textRect, dateStr, QTextOption(_textAlignment));
+            painter.drawText(textRect, dateStr, QTextOption(textAlignment_));
             prevDate = date;
         }
     }
@@ -442,39 +439,39 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
  */
 void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect)
 {
-    double rectHeight = rect.height() / _tickCount;
-    double lineLength = _tickLength;
+    double rectHeight = rect.height() / tickCount_;
+    double lineLength = tickLength_;
     double tickX = rect.left();
-    double offset = _tickLength + _spacing;
-    QPointF startPoint(rect.left() + offset, rect.top() + (_penWidth - rectHeight) / 2.0);
+    double offset = tickLength_ + spacing_;
+    QPointF startPoint(rect.left() + offset, rect.top() + (penWidth_ - rectHeight) / 2.0);
 
-    if (_slider->getAlignment() == Qt::AlignLeft) {
+    if (slider_.getAlignment() == Qt::AlignLeft) {
         tickX = rect.right();
-        lineLength = -_tickLength;
+        lineLength = -tickLength_;
         startPoint.setX(rect.left());
     }
-    _axisLine.setLine(tickX, rect.top(), tickX, rect.bottom());
+    axisLine_.setLine(tickX, rect.top(), tickX, rect.bottom());
 
     QRectF textRect;
 
-    for (int i = 0; i <= _tickCount; i++) {
+    for (int i = 0; i <= tickCount_; i++) {
 
         textRect = QRectF(startPoint, QSize(rect.width() - offset, rectHeight));
 
         int tickY = textRect.center().y();
-        double value = (1.0 - (double)tickY / height()) * _displayedRange + _displayedMin;
+        double value = (1.0 - (double)tickY / height()) * displayedRange_ + displayedMin_;
         if (i == 0) {
-            tickY = _penWidth / 2.0;
-            value = _displayedMax;
-            textRect = textRect.adjusted(0, _textHeight, 0, 0);
-        } else if (i == _tickCount){
-            tickY -= _penWidth / 2.0;
-            value = _displayedMin;
-            textRect = textRect.adjusted(0, 0, 0, -_textHeight);
+            tickY = penWidth_ / 2.0;
+            value = displayedMax_;
+            textRect = textRect.adjusted(0, textHeight_, 0, 0);
+        } else if (i == tickCount_){
+            tickY -= penWidth_ / 2.0;
+            value = displayedMin_;
+            textRect = textRect.adjusted(0, 0, 0, -textHeight_);
         }
 
         tickLines.append(QLineF(tickX, tickY, tickX + lineLength, tickY));
-        painter.drawText(textRect, getCovertedString(value), QTextOption(_textAlignment));
+        painter.drawText(textRect, getCovertedString(value), QTextOption(textAlignment_));
         startPoint += QPointF(0, rectHeight);
     }
 }
@@ -486,8 +483,8 @@ void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, Q
  */
 void AxisDisplay::displayedMinChanged(double min)
 {
-    _displayedMin = min;
-    _displayedRange = _displayedMax - min;
+    displayedMin_ = min;
+    displayedRange_ = displayedMax_ - min;
     rangeChanged();
 }
 
@@ -498,8 +495,8 @@ void AxisDisplay::displayedMinChanged(double min)
  */
 void AxisDisplay::displayedMaxChanged(double max)
 {
-    _displayedMax = max;
-    _displayedRange = max - _displayedMin;
+    displayedMax_ = max;
+    displayedRange_ = max - displayedMin_;
     rangeChanged();
 }
 
@@ -510,24 +507,24 @@ void AxisDisplay::displayedMaxChanged(double max)
 void AxisDisplay::rangeChanged()
 {
     // update the vertical axes' width based on the new displayed range
-    if (_orientation == Qt::Vertical) {
-        double rectHeight = getAdjustedRect().height() / _tickCount;
+    if (orientation_ == Qt::Vertical) {
+        double rectHeight = getAdjustedRect().height() / tickCount_;
         int tickY = getAdjustedRect().top();
         int maxLength = 0;
-        for (int i = 0; i <= _tickCount; i++) {
-            double value = (1.0 - (double)tickY / height()) * _displayedRange + _displayedMin;
+        for (int i = 0; i <= tickCount_; i++) {
+            double value = (1.0 - (double)tickY / height()) * displayedRange_ + displayedMin_;
             if (i == 0) {
-                value = _displayedMax;
-            } else if (i == _tickCount){
-                value = _displayedMin;
+                value = displayedMax_;
+            } else if (i == tickCount_){
+                value = displayedMin_;
             }
             maxLength = qMax(maxLength, getCovertedString(value).length());
             tickY += rectHeight;
         }
 
-        if (maxLength != _widestTextLength) {
-            setFixedWidth(maxLength * fontMetrics().width("0") + _tickLength + _spacing * 2);
-            _widestTextLength = maxLength;
+        if (maxLength != widestTextLength_) {
+            setFixedWidth(maxLength * fontMetrics().width("0") + tickLength_ + spacing_ * 2);
+            widestTextLength_ = maxLength;
         }
     } 
     update();
@@ -542,7 +539,7 @@ void AxisDisplay::rangeChanged()
 QString AxisDisplay::getDateTimeString(double value)
 {
     auto displayFormat = TIME_FORMAT;
-    auto maxElapedMS = _displayedMax - _displayedMin;
+    auto maxElapedMS = displayedMax_ - displayedMin_;
     auto maxElapsedDays = maxElapedMS / 8.64e7;
     auto maxElapsedHours = maxElapedMS / 3.6e6;
     auto maxElapsedMins = maxElapedMS / 6e4;
@@ -569,14 +566,14 @@ QString AxisDisplay::getDateTimeString(double value)
  */
 QString AxisDisplay::getElapsedTimeString(double value)
 {
-    auto msecs = value - _min;
+    auto msecs = value - min_;
     if (msecs <= 0) {
         return "0ms";
     } else if (msecs < 1000) {
         return QString::number((int)msecs) + "ms";
     }
 
-    auto maxElapedMS = _displayedMax - _min;
+    auto maxElapedMS = displayedMax_ - min_;
     auto maxElapsedDays = maxElapedMS / 8.64e7;
     auto maxElapsedHours = maxElapedMS / 3.6e6;
     auto maxElapsedMins = maxElapedMS / 6e4;
@@ -631,7 +628,7 @@ QString AxisDisplay::getElapsedTimeString(double value)
  */
 QString AxisDisplay::getCovertedString(double value)
 {
-    switch (_axisFormat) {
+    switch (axisFormat_) {
     case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
         return getElapsedTimeString(value);
     case TIME_DISPLAY_FORMAT::DATE_TIME:
@@ -648,6 +645,6 @@ QString AxisDisplay::getCovertedString(double value)
  */
 QRectF AxisDisplay::getAdjustedRect()
 {
-    double halfPenWidth = _penWidth / 2.0;
+    double halfPenWidth = penWidth_ / 2.0;
     return rect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
 }

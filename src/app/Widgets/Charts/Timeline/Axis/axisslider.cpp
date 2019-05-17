@@ -14,41 +14,34 @@
 
 /**
  * @brief AxisSlider::AxisSlider
+ * @param orientation
+ * @param alignment
  * @param parent
  */
 AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent)
     : QWidget(parent)
 {
-    _orientation = orientation;
-    _alignment = alignment;
+    orientation_ = orientation;
+    alignment_ = alignment;
 
     if (orientation == Qt::Horizontal) {
-        _minSlider = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
-        _maxSlider = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
+        minSlider_ = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
+        maxSlider_ = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
         setFixedHeight(AXIS_THICKNESS);
     } else {
         setFixedWidth(AXIS_THICKNESS);
-        _minSlider = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
-        _maxSlider = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
+        minSlider_ = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
+        maxSlider_ = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
     }
 
-    _minRatio = 0;
-    _maxRatio = 1;
+    minRatio_ = 0;
+    maxRatio_ = 1;
 
     setMouseTracking(true);
     updateSlidersOnSizeChange();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &AxisSlider::themeChanged);
     themeChanged();
-
-    /*
-    qDebug() << "----------------------------------------------";
-    qDebug() << "slider min: " << _sliderMin;
-    qDebug() << "slider max: " << _sliderMax;
-    qDebug() << "_actualMin: " << _actualMin;
-    qDebug() << "_actualMax: " << _actualMax;
-    qDebug() << "----------------------------------------------";
-    */
 }
 
 
@@ -56,9 +49,9 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
  * @brief AxisSlider::getOrientation
  * @return
  */
-Qt::Orientation AxisSlider::getOrientation()
+Qt::Orientation AxisSlider::getOrientation() const
 {
-    return _orientation;
+    return orientation_;
 }
 
 
@@ -66,9 +59,9 @@ Qt::Orientation AxisSlider::getOrientation()
  * @brief AxisSlider::getAlignment
  * @return
  */
-Qt::Alignment AxisSlider::getAlignment()
+Qt::Alignment AxisSlider::getAlignment() const
 {
-    return _alignment;
+    return alignment_;
 }
 
 
@@ -76,7 +69,7 @@ Qt::Alignment AxisSlider::getAlignment()
  * @brief AxisSlider::getAxisPenWidth
  * @return
  */
-double AxisSlider::getAxisPenWidth()
+double AxisSlider::getAxisPenWidth() const
 {
     return AXIS_PEN_WIDTH;
 }
@@ -86,9 +79,9 @@ double AxisSlider::getAxisPenWidth()
  * @brief AxisSlider::getMinRatio
  * @return
  */
-double AxisSlider::getMinRatio()
+double AxisSlider::getMinRatio() const
 {
-    return _minRatio;
+    return minRatio_;
 }
 
 
@@ -96,9 +89,9 @@ double AxisSlider::getMinRatio()
  * @brief AxisSlider::getMaxRatio
  * @return
  */
-double AxisSlider::getMaxRatio()
+double AxisSlider::getMaxRatio() const
 {
-    return _maxRatio;
+    return maxRatio_;
 }
 
 
@@ -108,7 +101,7 @@ double AxisSlider::getMaxRatio()
  */
 void AxisSlider::setZoomFactor(double factor)
 {
-    zoomFactor = factor;
+    zoomFactor_ = factor;
 }
 
 
@@ -118,7 +111,7 @@ void AxisSlider::setZoomFactor(double factor)
  */
 void AxisSlider::setPanning(bool panning)
 {
-    isPanning = panning;
+    isPanning_ = panning;
     update();
 }
 
@@ -131,11 +124,11 @@ void AxisSlider::setPanning(bool panning)
  */
 void AxisSlider::updateMinRatio(double ratio)
 {
-    if (ratio <= _maxRatio) {
-        double min = _sliderRange * ratio;
-        moveSliderRects(min, _sliderMax);
-        _actualMin = min;
-        _minRatio = ratio;
+    if (ratio <= maxRatio_) {
+        double min = sliderRange_ * ratio;
+        moveSliderRects(min, sliderMax_);
+        actualMin_ = min;
+        minRatio_ = ratio;
     }
 }
 
@@ -148,11 +141,11 @@ void AxisSlider::updateMinRatio(double ratio)
  */
 void AxisSlider::updateMaxRatio(double ratio)
 {
-    if (ratio >= _minRatio) {
-        double max = _sliderRange * ratio;
-        moveSliderRects(_sliderMin, max);
-        _actualMax = max;
-        _maxRatio = ratio;
+    if (ratio >= minRatio_) {
+        double max = sliderRange_ * ratio;
+        moveSliderRects(sliderMin_, max);
+        actualMax_ = max;
+        maxRatio_ = ratio;
     }
 }
 
@@ -171,9 +164,9 @@ void AxisSlider::zoom(double factor)
             return;
     }*/
 
-    double delta = (_actualMax - _actualMin) * (1 - factor);
-    double scaledMin = qMax(0.0, _actualMin + delta);
-    double scaledMax = qMin(_sliderRange, _actualMax - delta);
+    double delta = (actualMax_ - actualMin_) * (1 - factor);
+    double scaledMin = qMax(0.0, actualMin_ + delta);
+    double scaledMax = qMin(sliderRange_, actualMax_ - delta);
     moveSliders(scaledMin, scaledMax);
 }
 
@@ -185,13 +178,13 @@ void AxisSlider::zoom(double factor)
  */
 void AxisSlider::pan(double dx, double dy)
 {
-    double delta = _orientation == Qt::Horizontal ? dx : dy;
+    double delta = orientation_ == Qt::Horizontal ? dx : dy;
     if (delta < 0) {
-        delta = qMax(delta, -_actualMin);
+        delta = qMax(delta, -actualMin_);
     } else {
-        delta = qMin(delta, _sliderRange - _actualMax);
+        delta = qMin(delta, sliderRange_ - actualMax_);
     }
-    moveSliders(_actualMin + delta, _actualMax + delta);
+    moveSliders(actualMin_ + delta, actualMax_ + delta);
 }
 
 
@@ -202,17 +195,17 @@ void AxisSlider::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    _axisPen = QPen(theme->getDisabledBackgroundColor(), AXIS_PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    axisPen_ = QPen(theme->getDisabledBackgroundColor(), AXIS_PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
-    _axisColor = theme->getAltBackgroundColor();
-    _axisColor.setAlphaF(0.2);
-    _sliderColor = theme->getTextColor();
+    axisColor_ = theme->getAltBackgroundColor();
+    axisColor_.setAlphaF(0.2);
+    sliderColor_ = theme->getTextColor();
 
     QColor midBarColor = theme->getAltBackgroundColor();
     midBarColor.setAlphaF(0.8);
 
-    _middleBrush = QBrush(midBarColor);
-    _highlightBrush = QBrush(theme->getHighlightColor());
+    middleBrush_ = QBrush(midBarColor);
+    highlightBrush_ = QBrush(theme->getHighlightColor());
 
     update();
 }
@@ -225,9 +218,9 @@ void AxisSlider::themeChanged()
 void AxisSlider::mousePressEvent(QMouseEvent* event)
 {
     if (event->buttons() & Qt::LeftButton) {
-        sliderOrigin = event->pos();
-        sliderHitRect = getCursorHitRect(sliderOrigin);
-        dragMode = PAN_READY_MODE;
+        sliderOrigin_ = event->pos();
+        sliderHitRect_ = getCursorHitRect(sliderOrigin_);
+        dragMode_ = PAN_READY_MODE;
     }
     QWidget::mousePressEvent(event);
 }
@@ -239,20 +232,20 @@ void AxisSlider::mousePressEvent(QMouseEvent* event)
  */
 void AxisSlider::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (dragMode != PAN_MODE) {
-        sliderHitRect = getCursorHitRect(event->pos());
-        switch (sliderHitRect) {
+    if (dragMode_ != PAN_MODE) {
+        sliderHitRect_ = getCursorHitRect(event->pos());
+        switch (sliderHitRect_) {
         case HIT_RECT::NO_SLIDER: {
             // NOTE - The cursor pos can't be outside of the slider's rect in this function
             QPointF cursorPos = event->pos();
-            QPointF deltaMin = _minSlider.topLeft() - cursorPos;
-            QPointF deltaMax = cursorPos - _maxSlider.bottomRight();
-            double min = _sliderMin;
-            double max = _sliderMax;
+            QPointF deltaMin = minSlider_.topLeft() - cursorPos;
+            QPointF deltaMax = cursorPos - maxSlider_.bottomRight();
+            double min = sliderMin_;
+            double max = sliderMax_;
             if (qMax(deltaMin.x(), deltaMin.y()) > 0) {
-                min = _orientation == Qt::Horizontal ? cursorPos.x() : cursorPos.y();
+                min = orientation_ == Qt::Horizontal ? cursorPos.x() : cursorPos.y();
             } else if (qMax(deltaMax.x(), deltaMax.y()) > 0) {
-                max = _orientation == Qt::Horizontal ? cursorPos.x() : cursorPos.y();
+                max = orientation_ == Qt::Horizontal ? cursorPos.x() : cursorPos.y();
             }
             moveSliders(min, max);
             break;
@@ -260,11 +253,11 @@ void AxisSlider::mouseReleaseEvent(QMouseEvent* event)
         default:
             break;
         }
-        prevClickedRect = sliderHitRect;
+        prevClickedRect_ = sliderHitRect_;
     }
 
-    dragMode = NO_DRAG_MODE;
-    sliderHitRect = HIT_RECT::NO_SLIDER;
+    dragMode_ = NO_DRAG_MODE;
+    sliderHitRect_ = HIT_RECT::NO_SLIDER;
     QWidget::mouseReleaseEvent(event);
 }
 
@@ -277,15 +270,16 @@ void AxisSlider::mouseReleaseEvent(QMouseEvent* event)
 void AxisSlider::mouseDoubleClickEvent(QMouseEvent* event)
 {
     if (event->buttons() & Qt::LeftButton) {        
-        sliderHitRect = getCursorHitRect(event->pos());
-        if (sliderHitRect != prevClickedRect)
+        sliderHitRect_ = getCursorHitRect(event->pos());
+        if (sliderHitRect_ != prevClickedRect_) {
             return;
-        switch (sliderHitRect) {
+        }
+        switch (sliderHitRect_) {
         case HIT_RECT::MIN_SLIDER:
-            moveSliders(0.0, _sliderMax);
+            moveSliders(0.0, sliderMax_);
             break;
         case HIT_RECT::MAX_SLIDER:
-            moveSliders(_sliderMin, _sliderRange);
+            moveSliders(sliderMin_, sliderRange_);
             break;
         default:
             break;
@@ -300,20 +294,20 @@ void AxisSlider::mouseDoubleClickEvent(QMouseEvent* event)
  */
 void AxisSlider::mouseMoveEvent(QMouseEvent* event)
 {
-    cursorPoint = event->pos();
+    cursorPoint_ = event->pos();
 
-    QPointF deltaPoint = cursorPoint - sliderOrigin;
-    double delta = _orientation == Qt::Horizontal ? deltaPoint.x() : deltaPoint.y();
+    QPointF deltaPoint = cursorPoint_ - sliderOrigin_;
+    double delta = orientation_ == Qt::Horizontal ? deltaPoint.x() : deltaPoint.y();
 
-    switch (sliderHitRect) {
+    switch (sliderHitRect_) {
     case HIT_RECT::MIN_SLIDER: {
-        double min = qMin(_sliderMin + delta, _sliderMax - SLIDER_THICKNESS);
-        moveSliders(min, _sliderMax);
+        double min = qMin(sliderMin_ + delta, sliderMax_ - SLIDER_THICKNESS);
+        moveSliders(min, sliderMax_);
         break;
     }
     case HIT_RECT::MAX_SLIDER: {
-        double max = qMax(_sliderMin + SLIDER_THICKNESS, _sliderMax + delta);
-        moveSliders(_sliderMin, max);
+        double max = qMax(sliderMin_ + SLIDER_THICKNESS, sliderMax_ + delta);
+        moveSliders(sliderMin_, max);
         break;
     }
     case HIT_RECT::MID_SLIDER:
@@ -324,10 +318,10 @@ void AxisSlider::mouseMoveEvent(QMouseEvent* event)
         break;
     }
 
-    sliderOrigin = cursorPoint;
+    sliderOrigin_ = cursorPoint_;
 
-    if (dragMode == PAN_READY_MODE) {
-        dragMode = PAN_MODE;
+    if (dragMode_ == PAN_READY_MODE) {
+        dragMode_ = PAN_MODE;
     }
 }
 
@@ -340,9 +334,9 @@ void AxisSlider::mouseMoveEvent(QMouseEvent* event)
 void AxisSlider::wheelEvent(QWheelEvent* event)
 {
     if (event->delta() > 0) {
-        zoom(1 / zoomFactor);
+        zoom(1 / zoomFactor_);
     } else {
-        zoom(zoomFactor);
+        zoom(zoomFactor_);
     }
 }
 
@@ -354,7 +348,7 @@ void AxisSlider::wheelEvent(QWheelEvent* event)
 void AxisSlider::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
-    cursorPoint = QPointF(-1, -1);
+    cursorPoint_ = QPointF(-1, -1);
     update();
 }
 
@@ -382,34 +376,34 @@ void AxisSlider::paintEvent(QPaintEvent* event)
 
     double roundness = SLIDER_ROUNDNESS;
     double offset = AXIS_PEN_WIDTH;
-    double midSliderThickness = _midSlider.width();
-    QRectF minRect = _minSlider.adjusted(offset, offset, -offset, -offset);
-    QRectF maxRect = _maxSlider.adjusted(offset, offset, -offset, -offset);
-    QRectF midRect = QRectF(0, 0, SLIDER_THICKNESS, _midSlider.height());
+    double midSliderThickness = midSlider_.width();
+    QRectF minRect = minSlider_.adjusted(offset, offset, -offset, -offset);
+    QRectF maxRect = maxSlider_.adjusted(offset, offset, -offset, -offset);
+    QRectF midRect = QRectF(0, 0, SLIDER_THICKNESS, midSlider_.height());
 
-    if (_orientation == Qt::Vertical) {
-        midSliderThickness = _midSlider.height();
-        midRect = QRectF(0, 0, _midSlider.width(), SLIDER_THICKNESS);
+    if (orientation_ == Qt::Vertical) {
+        midSliderThickness = midSlider_.height();
+        midRect = QRectF(0, 0, midSlider_.width(), SLIDER_THICKNESS);
     }
 
     painter.setPen(Qt::NoPen);
-    painter.setBrush(_sliderColor);
+    painter.setBrush(sliderColor_);
 
     if (midSliderThickness >= -SLIDER_THICKNESS + offset) {
-        painter.fillRect(_midSlider.adjusted(-offset, -offset, offset, offset), _middleBrush);
+        painter.fillRect(midSlider_.adjusted(-offset, -offset, offset, offset), middleBrush_);
         painter.drawRoundedRect(minRect, roundness, roundness);
         painter.drawRoundedRect(maxRect, roundness, roundness);
     } else {
         roundness = AXIS_ROUNDNESS;
-        midRect.moveCenter(_midSlider.center());
+        midRect.moveCenter(midSlider_.center());
         midRect.adjust(offset, offset, -offset, -offset);
         painter.drawRoundedRect(midRect, roundness, roundness);
     }
 
     // this keeps the selected slider highlighted when it's being moved even if the cursor is elsewhere
-    HIT_RECT hitRect = sliderHitRect == HIT_RECT::NO_SLIDER ? getCursorHitRect(cursorPoint) : sliderHitRect;
+    HIT_RECT hitRect = sliderHitRect_ == HIT_RECT::NO_SLIDER ? getCursorHitRect(cursorPoint_) : sliderHitRect_;
     QRectF highlightRect;
-    bool highlightMidRect = isPanning;
+    bool highlightMidRect = isPanning_;
 
     switch (hitRect) {
     case HIT_RECT::MIN_SLIDER:
@@ -426,7 +420,7 @@ void AxisSlider::paintEvent(QPaintEvent* event)
     }
 
     if (highlightMidRect) {
-        if (_minSlider == _maxSlider) {
+        if (minSlider_ == maxSlider_) {
             highlightRect = midRect;
         } else {
             highlightRect = QRectF(minRect.topLeft(), maxRect.bottomRight());
@@ -434,14 +428,14 @@ void AxisSlider::paintEvent(QPaintEvent* event)
     }
 
     if (!highlightRect.isNull()) {
-        painter.setBrush(_highlightBrush);
+        painter.setBrush(highlightBrush_);
         painter.drawRoundedRect(highlightRect, roundness, roundness);
     }
 
     double axisOffset = AXIS_PEN_WIDTH / 2.0;
     QRectF mainRect = rect().adjusted(axisOffset, axisOffset, -axisOffset, -axisOffset);
-    painter.setPen(_axisPen);
-    painter.setBrush(_axisColor);
+    painter.setPen(axisPen_);
+    painter.setBrush(axisColor_);
     painter.drawRoundedRect(mainRect, AXIS_ROUNDNESS, AXIS_ROUNDNESS);
 }
 
@@ -453,15 +447,15 @@ void AxisSlider::paintEvent(QPaintEvent* event)
  */
 HIT_RECT AxisSlider::getCursorHitRect(QPointF cursorPos)
 {
-    if (_minSlider.contains(cursorPos)) {
+    if (minSlider_.contains(cursorPos)) {
         // this is the case where the 2 sliders are over each other
-        if (_minSlider == _maxSlider) {
+        if (minSlider_ == maxSlider_) {
             return HIT_RECT::MID_SLIDER;
         }
         return HIT_RECT::MIN_SLIDER;
-    } else if (_maxSlider.contains(cursorPos)) {
+    } else if (maxSlider_.contains(cursorPos)) {
         return HIT_RECT::MAX_SLIDER;
-    } else if (_midSlider.contains(cursorPos)) {
+    } else if (midSlider_.contains(cursorPos)) {
         return HIT_RECT::MID_SLIDER;
     } else {
         return HIT_RECT::NO_SLIDER;
@@ -493,16 +487,17 @@ void AxisSlider::moveSliders(double min, double max)
  */
 void AxisSlider::minSliderMoved(double min)
 {
-    if (min == _actualMin)
+    if (min == actualMin_) {
         return;
+    }
 
-    _actualMin = min;
-    _minRatio = min / _sliderRange;
+    actualMin_ = min;
+    minRatio_ = min / sliderRange_;
 
-    if (_orientation == Qt::Horizontal) {
-        emit minRatioChanged(_minRatio);
+    if (orientation_ == Qt::Horizontal) {
+        emit minRatioChanged(minRatio_);
     } else {
-        double invertedRatio = 1 - _minRatio;
+        double invertedRatio = 1 - minRatio_;
         emit maxRatioChanged(invertedRatio);
     }
 }
@@ -516,16 +511,17 @@ void AxisSlider::minSliderMoved(double min)
  */
 void AxisSlider::maxSliderMoved(double max)
 {
-    if (max == _actualMax)
+    if (max == actualMax_) {
         return;
+    }
 
-    _actualMax = max;
-    _maxRatio = max / _sliderRange;
+    actualMax_ = max;
+    maxRatio_ = max / sliderRange_;
 
-    if (_orientation == Qt::Horizontal) {
-        emit maxRatioChanged(_maxRatio);
+    if (orientation_ == Qt::Horizontal) {
+        emit maxRatioChanged(maxRatio_);
     } else {
-        double invertedRatio = 1 - _maxRatio;
+        double invertedRatio = 1 - maxRatio_;
         emit minRatioChanged(invertedRatio);
     }
 }
@@ -541,7 +537,7 @@ void AxisSlider::moveSliderRects(double min, double max)
 {
     // cap min/max so that they stay within the bounds
     min = qMax(0.0, min);
-    max = qMin(_sliderRange, max);
+    max = qMin(sliderRange_, max);
 
     // adjust the min/max so that the sliders don't surpass each other
     auto delta = max - min;
@@ -549,26 +545,26 @@ void AxisSlider::moveSliderRects(double min, double max)
         max = max + (SLIDER_THICKNESS - delta) / 2.0;
         if (max < SLIDER_THICKNESS) {
             max = SLIDER_THICKNESS;
-        } else if (max > _sliderRange) {
-            max = _sliderRange;
+        } else if (max > sliderRange_) {
+            max = sliderRange_;
         }
         min = max - SLIDER_THICKNESS;
     }
 
-    if (_orientation == Qt::Horizontal) {
-        _minSlider.moveLeft(min);
-        _maxSlider.moveRight(max);
+    if (orientation_ == Qt::Horizontal) {
+        minSlider_.moveLeft(min);
+        maxSlider_.moveRight(max);
         // need to cap the mid slider's width when the min and max sliders are on top of each other
         auto cappedWidth = qMax(max - min - 2 * SLIDER_THICKNESS, -SLIDER_THICKNESS);
-        _midSlider = QRectF(min + SLIDER_THICKNESS, 0, cappedWidth, AXIS_THICKNESS);
+        midSlider_ = QRectF(min + SLIDER_THICKNESS, 0, cappedWidth, AXIS_THICKNESS);
     } else {
-        _minSlider.moveTop(min);
-        _maxSlider.moveBottom(max);
-        _midSlider = QRectF(_minSlider.bottomLeft(), _maxSlider.topRight());
+        minSlider_.moveTop(min);
+        maxSlider_.moveBottom(max);
+        midSlider_ = QRectF(minSlider_.bottomLeft(), maxSlider_.topRight());
     }
 
-    _sliderMin = min;
-    _sliderMax = max;
+    sliderMin_ = min;
+    sliderMax_ = max;
     update();
 }
 
@@ -580,13 +576,13 @@ void AxisSlider::moveSliderRects(double min, double max)
  */
 void AxisSlider::updateSlidersOnSizeChange()
 {
-    auto displayRangeRatio = (_actualMax - _actualMin) / (_sliderMax - _sliderMin);
-    _sliderRange = _orientation == Qt::Horizontal ? width() : height();
-    moveSliderRects(_minRatio * _sliderRange, _maxRatio * _sliderRange);
+    auto displayRangeRatio = (actualMax_ - actualMin_) / (sliderMax_ - sliderMin_);
+    sliderRange_ = orientation_ == Qt::Horizontal ? width() : height();
+    moveSliderRects(minRatio_ * sliderRange_, maxRatio_ * sliderRange_);
 
     // adjust the actual min/max based on the new sliders' positions
-    auto range = _sliderMax - _sliderMin;
+    auto range = sliderMax_ - sliderMin_;
     auto displayRange = range * displayRangeRatio;
-    _actualMin = _sliderMin + (range - displayRange) / 2.0;
-    _actualMax = _sliderMax - (range - displayRange) / 2.0;
+    actualMin_ = sliderMin_ + (range - displayRange) / 2.0;
+    actualMax_ = sliderMax_ - (range - displayRange) / 2.0;
 }

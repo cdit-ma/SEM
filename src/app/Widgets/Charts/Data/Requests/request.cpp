@@ -32,7 +32,7 @@ void Request::setTimeInterval(const QVector<qint64> &time_interval)
  * @brief Request::experiment_run_id
  * @return
  */
-const quint32 Request::experiment_run_id() const
+quint32 Request::experiment_run_id() const
 {
     return experimentRunID_;
 }
@@ -52,7 +52,7 @@ const QVector<qint64> &Request::time_interval() const
  * @brief Request::getKind
  * @return
  */
-const MEDEA::ChartDataKind Request::getKind() const
+MEDEA::ChartDataKind Request::getKind() const
 {
     return kind_;
 }

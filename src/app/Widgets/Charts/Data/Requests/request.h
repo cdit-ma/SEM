@@ -13,10 +13,10 @@ public:
     void setExperimentID(const quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
 
-    const quint32 experiment_run_id() const;
-    const QVector<qint64>& time_interval() const;
+    quint32 experiment_run_id() const;
+    MEDEA::ChartDataKind getKind() const;
 
-    const MEDEA::ChartDataKind getKind() const;
+    const QVector<qint64>& time_interval() const;
 
 private:
     quint32 experimentRunID_;

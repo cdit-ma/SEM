@@ -18,31 +18,37 @@ ChartDialog::ChartDialog(QWidget *parent)
 {
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
+
     setMinimumWidth(900);
+    setupChartView();
 
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 }
 
 
 /**
- * @brief ChartDialog::setChartView
- * @param view
+ * @brief ChartDialog::getChartView
+ * @return
  */
-void ChartDialog::setChartView(TimelineChartView *view)
+TimelineChartView& ChartDialog::getChartView()
 {
-    if (!view)
-        return;
+    return chartView_;
+}
 
+
+/**
+ * @brief ChartDialog::setupChartView
+ */
+void ChartDialog::setupChartView()
+{
     if (layout()) {
-        layout()->addWidget(view);
+        layout()->addWidget(&chartView_);
     } else {
         QVBoxLayout* layout = new QVBoxLayout(this);
         layout->setMargin(0);
         layout->setSpacing(0);
-        layout->addWidget(view);
+        layout->addWidget(&chartView_);
     }
-
-    chartView_ = view;
 }
 
 
@@ -61,9 +67,6 @@ void ChartDialog::themeChanged()
  */
 void ChartDialog::toggleTimelineAxisFormat()
 {
-    if (!chartView_)
-        return;
-
     switch (displayFormat_) {
     case TIME_DISPLAY_FORMAT::DATE_TIME:
         displayFormat_ = TIME_DISPLAY_FORMAT::ELAPSED_TIME;
@@ -74,7 +77,7 @@ void ChartDialog::toggleTimelineAxisFormat()
     default:
         break;
     }
-    chartView_->setTimeDisplayFormat(displayFormat_);
+    chartView_.setTimeDisplayFormat(displayFormat_);
 }
 
 
@@ -83,14 +86,12 @@ void ChartDialog::toggleTimelineAxisFormat()
  */
 void ChartDialog::snapShot()
 {
-    if (!chartView_)
-        return;
-
-    QPixmap widgetPixmap = chartView_->grab();
+    QPixmap widgetPixmap = chartView_.grab();
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     const QString format = "png";
-    if (initialPath.isEmpty())
+    if (initialPath.isEmpty()) {
         initialPath = QDir::currentPath();
+    }
     initialPath += tr("/untitled.") + format;
 
     QFileDialog fileDialog(this, tr("Save As"), initialPath);
@@ -99,20 +100,22 @@ void ChartDialog::snapShot()
     fileDialog.setDirectory(initialPath);
 
     QStringList mimeTypes;
-    foreach (const QByteArray &bf, QImageWriter::supportedMimeTypes())
+    foreach (const QByteArray &bf, QImageWriter::supportedMimeTypes()) {
         mimeTypes.append(QLatin1String(bf));
+    }
 
     fileDialog.setMimeTypeFilters(mimeTypes);
     fileDialog.selectMimeTypeFilter("image/" + format);
     fileDialog.setDefaultSuffix(format);
-
-    if (fileDialog.exec() != QDialog::Accepted)
+    if (fileDialog.exec() != QDialog::Accepted) {
         return;
+    }
 
     const QString& fileName = fileDialog.selectedFiles().first();
-    if (!widgetPixmap.save(fileName))
+    if (!widgetPixmap.save(fileName)) {
         QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
                              .arg(QDir::toNativeSeparators(fileName)));
+    }
 }
 
 
@@ -121,7 +124,6 @@ void ChartDialog::snapShot()
  */
 void ChartDialog::clear()
 {
-    if (chartView_)
-        chartView_->clearTimelineChart();
+    chartView_.clearTimelineChart();
 }
 

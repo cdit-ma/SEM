@@ -75,7 +75,6 @@ private:
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
     QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
 
-
     QLineEdit* experimentNameLineEdit_ = 0;
     QWidget* experimentRunsScrollWidget_ = 0;
 

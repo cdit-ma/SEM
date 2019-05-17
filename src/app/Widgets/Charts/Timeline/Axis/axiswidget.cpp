@@ -13,40 +13,39 @@
  * @param parent
  * @param type
  */
-AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent, VALUE_TYPE type)
+AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VALUE_TYPE type, QWidget* parent)
     : QWidget(parent),
-      _orientation(orientation),
-      _alignment(alignment)
+      orientation_(orientation),
+      alignment_(alignment),
+      slider_(orientation, alignment),
+      display_(slider_, type)
 {
     /*
      * TODO: Instead of resizing the filler widgets and the slider widget, resize the chart view instead
      * This should stop the jumping around of sliders and displayed values
      */
 
-    _slider = new AxisSlider(_orientation, _alignment, this);
-    _display = new AxisDisplay(_slider, this, type);
-
     QBoxLayout* mainLayout;
-    if (_orientation == Qt::Horizontal) {
+    if (orientation_ == Qt::Horizontal) {
         mainLayout = new QVBoxLayout(this);
-        if (_alignment == Qt::AlignTop) {
+        if (alignment_ == Qt::AlignTop) {
             setContentsMargins(0, MARGIN, 0, 0);
-            mainLayout->addWidget(_slider);
-            mainLayout->addWidget(_display);
+            mainLayout->addWidget(&slider_);
+            mainLayout->addWidget(&display_);
         } else {
             setContentsMargins(0, 0, 0, MARGIN);
-            mainLayout->addWidget(_display);
-            mainLayout->addWidget(_slider);        }
+            mainLayout->addWidget(&display_);
+            mainLayout->addWidget(&slider_);        }
     } else {
         mainLayout = new QHBoxLayout(this);
-        if (_alignment == Qt::AlignLeft) {
+        if (alignment_ == Qt::AlignLeft) {
             setContentsMargins(MARGIN, 0, 0, 0);
-            mainLayout->addWidget(_slider);
-            mainLayout->addWidget(_display);
+            mainLayout->addWidget(&slider_);
+            mainLayout->addWidget(&display_);
         } else {
             setContentsMargins(0, 0, MARGIN, 0);
-            mainLayout->addWidget(_display);
-            mainLayout->addWidget(_slider);
+            mainLayout->addWidget(&display_);
+            mainLayout->addWidget(&slider_);
         }
     }
 
@@ -54,11 +53,11 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, QWi
     mainLayout->setSpacing(INNER_MARGIN);
     mainLayout->setContentsMargins(0,0,0,0);
 
-    connect(_slider, &AxisSlider::minRatioChanged, this, &AxisWidget::minRatioChanged);
-    connect(_slider, &AxisSlider::maxRatioChanged, this, &AxisWidget::maxRatioChanged);
+    connect(&slider_, &AxisSlider::minRatioChanged, this, &AxisWidget::minRatioChanged);
+    connect(&slider_, &AxisSlider::maxRatioChanged, this, &AxisWidget::maxRatioChanged);
 
     // this filter stops the slider's own wheel event from being used
-    _slider->installEventFilter(this);
+    slider_.installEventFilter(this);
 
     // initialise range and tick count
     setRange(0, 100);
@@ -73,8 +72,8 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, QWi
  */
 void AxisWidget::setZoomFactor(double factor)
 {
-    zoomFactor = factor;
-    _slider->setZoomFactor(factor);
+    zoomFactor_ = factor;
+    slider_.setZoomFactor(factor);
 }
 
 
@@ -84,7 +83,7 @@ void AxisWidget::setZoomFactor(double factor)
  */
 void AxisWidget::setAxisMargin(int margin)
 {
-    _display->setAxisMargin(margin);
+    display_.setAxisMargin(margin);
 }
 
 
@@ -94,7 +93,7 @@ void AxisWidget::setAxisMargin(int margin)
  */
 void AxisWidget::setTickCount(int ticks)
 {
-    _display->setTickCount(ticks);
+    display_.setTickCount(ticks);
 }
 
 
@@ -104,7 +103,7 @@ void AxisWidget::setTickCount(int ticks)
  */
 void AxisWidget::setAxisLineVisible(bool visible)
 {
-    _display->setAxisLineVisible(visible);
+    display_.setAxisLineVisible(visible);
 }
 
 
@@ -114,7 +113,7 @@ void AxisWidget::setAxisLineVisible(bool visible)
  */
 void AxisWidget::setTickVisible(bool visible)
 {
-    _display->setTickVisible(visible);
+    display_.setTickVisible(visible);
 }
 
 
@@ -124,7 +123,7 @@ void AxisWidget::setTickVisible(bool visible)
  */
 void AxisWidget::setPanning(bool panning)
 {
-    _slider->setPanning(panning);
+    slider_.setPanning(panning);
 }
 
 
@@ -152,13 +151,13 @@ void AxisWidget::setRange(double min, double max, bool updateDisplay)
     min = min - (range * 0.01);
     max = max + (range * 0.01);
 
-    _min = min;
-    _max = max;
-    _range = max - min;
+    min_ = min;
+    max_ = max;
+    range_ = max - min;
 
     // set the range
-    _display->setMin(min);
-    _display->setMax(max);
+    display_.setMin(min);
+    display_.setMax(max);
 
     if (updateDisplay) {
         setDisplayRange(min, max);
@@ -178,8 +177,8 @@ void AxisWidget::setRange(double min, double max, bool updateDisplay)
 void AxisWidget::setDisplayRange(double min, double max)
 {
     // set the display range
-    _display->displayedMinChanged(min);
-    _display->displayedMaxChanged(max);
+    display_.displayedMinChanged(min);
+    display_.displayedMaxChanged(max);
 
     // update the slider rects' positions
     updateMinSliderRatio(min);
@@ -193,7 +192,7 @@ void AxisWidget::setDisplayRange(double min, double max)
  */
 QPair<double, double> AxisWidget::getRange()
 {
-    return _display->getRange();
+    return display_.getRange();
 }
 
 
@@ -203,7 +202,7 @@ QPair<double, double> AxisWidget::getRange()
  */
 QPair<double, double> AxisWidget::getDisplayedRange()
 {
-    return _display->getDisplayedRange();
+    return display_.getDisplayedRange();
 }
 
 
@@ -213,7 +212,7 @@ QPair<double, double> AxisWidget::getDisplayedRange()
  */
 void AxisWidget::zoom(double factor)
 {
-    _slider->zoom(factor);
+    slider_.zoom(factor);
 }
 
 
@@ -224,7 +223,7 @@ void AxisWidget::zoom(double factor)
  */
 void AxisWidget::pan(double dx, double dy)
 {
-    _slider->pan(dx, dy);
+    slider_.pan(dx, dy);
 }
 
 
@@ -234,7 +233,7 @@ void AxisWidget::pan(double dx, double dy)
  */
 void AxisWidget::setDisplayFormat(TIME_DISPLAY_FORMAT format)
 {
-    _display->setDisplayFormat(format);
+    display_.setDisplayFormat(format);
 }
 
 
@@ -260,7 +259,7 @@ bool AxisWidget::eventFilter(QObject* watched, QEvent* event)
  */
 void AxisWidget::hoverLineUpdated(bool visible, QPointF pos)
 {
-    _display->hoverLineUpdated(visible, pos);
+    display_.hoverLineUpdated(visible, pos);
 }
 
 
@@ -270,9 +269,9 @@ void AxisWidget::hoverLineUpdated(bool visible, QPointF pos)
  */
 void AxisWidget::wheelEvent(QWheelEvent* event)
 {
-    double factor = zoomFactor;
+    double factor = zoomFactor_;
     if (event->delta() > 0) {
-        factor = 1 / zoomFactor;
+        factor = 1 / zoomFactor_;
     }
     zoom(factor);
     QWidget::wheelEvent(event);
@@ -286,8 +285,8 @@ void AxisWidget::wheelEvent(QWheelEvent* event)
  */
 void AxisWidget::updateMinSliderRatio(double min)
 {
-    double ratio = _range > 0 ? (min - _min) / _range : 0.0;
-    _slider->updateMinRatio(ratio);
+    double ratio = range_ > 0 ? (min - min_) / range_ : 0.0;
+    slider_.updateMinRatio(ratio);
 }
 
 
@@ -298,6 +297,6 @@ void AxisWidget::updateMinSliderRatio(double min)
  */
 void AxisWidget::updateMaxSliderRatio(double max)
 {
-    double ratio = _range > 0 ? (max - _min) / _range : 0.0;
-    _slider->updateMaxRatio(ratio);
+    double ratio = range_ > 0 ? (max - min_) / range_ : 0.0;
+    slider_.updateMaxRatio(ratio);
 }

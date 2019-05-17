@@ -21,11 +21,11 @@ TimelineChart::TimelineChart(QWidget* parent)
     setMouseTracking(true);
     setFocusPolicy(Qt::WheelFocus);
 
-    _layout = new QVBoxLayout(this);
-    _layout->setMargin(0);
-    _layout->setSpacing(0);
+    layout_ = new QVBoxLayout(this);
+    layout_->setMargin(0);
+    layout_->setSpacing(0);
 
-    hoverRect = QRectF(0, 0, HOVER_LINE_WIDTH, height());
+    hoverRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChart::themeChanged);
     themeChanged();
@@ -38,7 +38,7 @@ TimelineChart::TimelineChart(QWidget* parent)
  */
 void TimelineChart::setAxisXVisible(bool visible)
 {
-    axisXVisible = visible;
+    axisXVisible_ = visible;
 }
 
 
@@ -48,7 +48,7 @@ void TimelineChart::setAxisXVisible(bool visible)
  */
 void TimelineChart::setAxisYVisible(bool visible)
 {
-    axisYVisible = visible;
+    axisYVisible_ = visible;
 }
 
 
@@ -58,8 +58,8 @@ void TimelineChart::setAxisYVisible(bool visible)
  */
 void TimelineChart::setAxisWidth(double width)
 {
-    axisWidth = width;
-    axisLinePen.setWidthF(width);
+    axisWidth_ = width;
+    axisLinePen_.setWidthF(width);
     setContentsMargins(width, 0, 0, 0);
 }
 
@@ -82,8 +82,8 @@ void TimelineChart::addEntityChart(EntityChart* chart)
 void TimelineChart::insertEntityChart(int index, EntityChart* chart)
 {
     if (chart) {
-        _entityCharts.append(chart);
-        _layout->insertWidget(index, chart);
+        entityCharts_.append(chart);
+        layout_->insertWidget(index, chart);
         chart->installEventFilter(this);
     }
 }
@@ -96,8 +96,8 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
 void TimelineChart::removeEntityChart(EntityChart* chart)
 {
     if (chart) {
-        _layout->removeWidget(chart);
-        _entityCharts.removeAll(chart);
+        layout_->removeWidget(chart);
+        entityCharts_.removeAll(chart);
     }
 }
 
@@ -106,9 +106,9 @@ void TimelineChart::removeEntityChart(EntityChart* chart)
  * @brief TimelineChart::getEntityCharts
  * @return
  */
-const QList<EntityChart*>& TimelineChart::getEntityCharts()
+const QList<EntityChart*>& TimelineChart::getEntityCharts() const
 {
-    return _entityCharts;
+    return entityCharts_;
 }
 
 
@@ -116,9 +116,9 @@ const QList<EntityChart*>& TimelineChart::getEntityCharts()
  * @brief TimelineChart::getHoverRect
  * @return
  */
-const QRectF& TimelineChart::getHoverRect()
+const QRectF& TimelineChart::getHoverRect() const
 {
-    return hoverRect;
+    return hoverRect_;
 }
 
 
@@ -126,9 +126,9 @@ const QRectF& TimelineChart::getHoverRect()
  * @brief TimelineChart::isPanning
  * @return
  */
-bool TimelineChart::isPanning()
+bool TimelineChart::isPanning() const
 {
-    return dragMode == DRAG_MODE::PAN || dragMode == DRAG_MODE::RUBBERBAND;
+    return dragMode_ == DRAG_MODE::PAN || dragMode_ == DRAG_MODE::RUBBERBAND;
 }
 
 
@@ -138,18 +138,18 @@ bool TimelineChart::isPanning()
 void TimelineChart::themeChanged()
 {
     Theme* theme = Theme::theme();
-    highlightColor = theme->getHighlightColor();
-    hoveredRectColor = theme->getBackgroundColor();
+    highlightColor_ = theme->getHighlightColor();
+    hoveredRectColor_ = theme->getBackgroundColor();
 
-    backgroundColor = theme->getAltBackgroundColor();
-    backgroundColor.setAlphaF(BACKGROUND_OPACITY);
-    backgroundHighlightColor = theme->getActiveWidgetBorderColor();
-    backgroundHighlightColor.setAlphaF(BACKGROUND_OPACITY * 2.0);
+    backgroundColor_ = theme->getAltBackgroundColor();
+    backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
+    backgroundHighlightColor_ = theme->getActiveWidgetBorderColor();
+    backgroundHighlightColor_.setAlphaF(BACKGROUND_OPACITY * 2.0);
 
-    cursorPen = QPen(theme->getTextColor(), 8);
-    axisLinePen = QPen(theme->getAltTextColor(), axisWidth);
-    topLinePen = QPen(theme->getAltTextColor(), 1.5);
-    hoverLinePen = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
+    cursorPen_ = QPen(theme->getTextColor(), 8);
+    axisLinePen_ = QPen(theme->getAltTextColor(), axisWidth_);
+    topLinePen_ = QPen(theme->getAltTextColor(), 1.5);
+    hoverLinePen_ = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
 }
 
 
@@ -162,11 +162,11 @@ void TimelineChart::themeChanged()
 void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
 {
     if (chart) {
-        hoveredChartRect = hovered ? chart->rect() : QRectF();
-        hoveredChartRect.moveTo(chart->pos());
+        hoveredChartRect_ = hovered ? chart->rect() : QRectF();
+        hoveredChartRect_.moveTo(chart->pos());
         chart->setHovered(hovered);
     } else {
-        hoveredChartRect = QRectF();
+        hoveredChartRect_ = QRectF();
     }
     update();
 }
@@ -202,12 +202,12 @@ bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
 void TimelineChart::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton) {
-        dragMode = PAN;
-        panOrigin = event->pos();
+        dragMode_ = PAN;
+        panOrigin_ = event->pos();
         setCursor(Qt::ClosedHandCursor);
         // if the CTRL key is down, go into rubberband mode
         if (event->modifiers() & Qt::ControlModifier) {
-            dragMode = RUBBERBAND;
+            dragMode_ = RUBBERBAND;
             setCursor(Qt::CrossCursor);
         }
     }
@@ -221,9 +221,9 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
  */
 void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (dragMode == RUBBERBAND && !rubberBandRect.isNull()) {
+    if (dragMode_ == RUBBERBAND && !rubberBandRect_.isNull()) {
         // send a signal to update the axis' displayed range
-        emit rubberbandUsed(rubberBandRect.left(), rubberBandRect.right());
+        emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
     }
 
     // this is only here to demo that the hover axis dislay's position can be set manually
@@ -242,20 +242,20 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 void TimelineChart::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
-    cursorPoint = mapFromGlobal(cursor().pos());
-    hoverRect.moveCenter(cursorPoint);
+    cursorPoint_ = mapFromGlobal(cursor().pos());
+    hoverRect_.moveCenter(cursorPoint_);
     hoverRectUpdated(true);
 
-    switch (dragMode) {
+    switch (dragMode_) {
     case PAN: {
-        QPointF delta = cursorPoint - panOrigin;
-        panOrigin = cursorPoint;
+        QPointF delta = cursorPoint_ - panOrigin_;
+        panOrigin_ = cursorPoint_;
         emit panning(true);
         emit panned(-delta.x(), 0);
         break;
     }
     case RUBBERBAND:
-        rubberBandRect = QRectF(panOrigin.x(), 0, event->pos().x() - panOrigin.x(), height());
+        rubberBandRect_ = QRectF(panOrigin_.x(), 0, event->pos().x() - panOrigin_.x(), height());
         break;
     default:
         break;
@@ -281,7 +281,7 @@ void TimelineChart::wheelEvent(QWheelEvent *event)
  */
 void TimelineChart::keyReleaseEvent(QKeyEvent *event)
 {
-    if (dragMode == RUBBERBAND) {
+    if (dragMode_ == RUBBERBAND) {
         if (event->key() == Qt::Key_Control) {
             clearDragMode();
         }
@@ -298,10 +298,10 @@ void TimelineChart::enterEvent(QEvent *event)
 {
     QWidget::enterEvent(event);
     setCursor(Qt::BlankCursor);
-    hovered = true;
+    hovered_ = true;
 
-    hoverRect = visibleRegion().boundingRect();
-    hoverRect.setWidth(HOVER_LINE_WIDTH);
+    hoverRect_ = visibleRegion().boundingRect();
+    hoverRect_.setWidth(HOVER_LINE_WIDTH);
     hoverRectUpdated();
 }
 
@@ -313,8 +313,8 @@ void TimelineChart::enterEvent(QEvent *event)
 void TimelineChart::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
-    hovered = false;
-    hoverRect = QRectF();
+    hovered_ = false;
+    hoverRect_ = QRectF();
     hoverRectUpdated();
 }
 
@@ -327,49 +327,41 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     QRect visibleRect = visibleRegion().boundingRect();
-    painter.fillRect(visibleRect, backgroundColor);
+    painter.fillRect(visibleRect, backgroundColor_);
 
-    visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, 0);
+    visibleRect = visibleRect.adjusted(axisWidth_ / 2.0, 0, 0, 0);
 
-    /*visibleRect = visibleRect.adjusted(axisWidth / 2.0, 0, 0, topLinePen.widthF() / 2.0);
-    QLineF topLine(visibleRect.topLeft(), visibleRect.topRight());
-    painter.setPen(topLinePen);
-    painter.drawLine(topLine);*/
-
-    painter.setPen(axisLinePen);
-    if (axisXVisible) {
+    painter.setPen(axisLinePen_);
+    if (axisXVisible_) {
         QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
         painter.drawLine(axisX);
     }
-    if (axisYVisible) {
+    if (axisYVisible_) {
         QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
         painter.drawLine(axisY);
     }
 
-    switch (dragMode) {
+    switch (dragMode_) {
     case RUBBERBAND: {
         painter.setOpacity(0.25);
-        painter.setPen(QPen(highlightColor.darker(), 2));
-        painter.setBrush(highlightColor);
-        painter.drawRect(rubberBandRect);
+        painter.setPen(QPen(highlightColor_.darker(), 2));
+        painter.setBrush(highlightColor_);
+        painter.drawRect(rubberBandRect_);
         break;
     }
-    default: {
-        //painter.fillRect(hoveredChartRect, backgroundHighlightColor);
-        if (!hoveredChartRect.isNull()) {
-            //painter.setPen(Qt::NoPen);
-            painter.setPen(axisLinePen);
-            painter.setBrush(backgroundHighlightColor);
-            painter.drawRect(hoveredChartRect.adjusted(-axisLinePen.widthF(), 0, axisLinePen.widthF(), 0));
-        }
-        if (hovered) {
-            painter.setPen(hoverLinePen);
-            painter.drawLine(cursorPoint.x(), rect().top(), cursorPoint.x(), rect().bottom());
-            //painter.setPen(cursorPen);
-            //painter.drawPoint(cursorPoint);
+    default:
+        if (hovered_) {
+            if (!hoveredChartRect_.isNull()) {
+                // highlight the hovered child rect's background
+                painter.setPen(axisLinePen_);
+                painter.setBrush(backgroundHighlightColor_);
+                painter.drawRect(hoveredChartRect_.adjusted(-axisLinePen_.widthF(), 0, axisLinePen_.widthF(), 0));
+            }
+            // paint the hover line
+            painter.setPen(hoverLinePen_);
+            painter.drawLine(cursorPoint_.x(), rect().top(), cursorPoint_.x(), rect().bottom());
         }
         break;
-    }
     }
 }
 
@@ -380,17 +372,18 @@ void TimelineChart::paintEvent(QPaintEvent *event)
  */
 void TimelineChart::hoverRectUpdated(bool repaintRequired)
 {
-    if (hoverRect.isNull()) {
-        for (EntityChart* chart : _entityCharts) {
-            chart->setHoveredRect(hoverRect);
+    if (hoverRect_.isNull()) {
+        for (EntityChart* chart : entityCharts_) {
+            chart->setHoveredRect(hoverRect_);
         }
     } else {
-        for (EntityChart* chart : _entityCharts) {
-            if (!chart->isVisible())
+        for (EntityChart* chart : entityCharts_) {
+            if (!chart->isVisible()) {
                 continue;
+            }
             QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
             if (visibleRegion().contains(childRect)) {
-                chart->setHoveredRect(hoverRect);
+                chart->setHoveredRect(hoverRect_);
             }
         }
     }
@@ -404,7 +397,7 @@ void TimelineChart::hoverRectUpdated(bool repaintRequired)
         update();
     }
 
-    emit hoverLineUpdated(hoverRect.isValid(), mapToGlobal(hoverRect.center().toPoint()));
+    emit hoverLineUpdated(hoverRect_.isValid(), mapToGlobal(hoverRect_.center().toPoint()));
 }
 
 
@@ -413,20 +406,8 @@ void TimelineChart::hoverRectUpdated(bool repaintRequired)
  */
 void TimelineChart::clearDragMode()
 {
-    dragMode = NONE;
-    rubberBandRect = QRectF();
+    dragMode_ = NONE;
+    rubberBandRect_ = QRectF();
     setCursor(Qt::BlankCursor);
     update();
-}
-
-
-/**
- * @brief TimelineChart::mapLocalPixelToTime
- * @param pixel
- * @return
- */
-double TimelineChart::mapLocalPixelToTime(double pixel)
-{
-    double ratio = pixel / width();
-    return ratio; // * (_displayMax - _displayMin) + _displayMin;
 }

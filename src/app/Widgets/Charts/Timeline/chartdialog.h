@@ -13,7 +13,7 @@ class ChartDialog : public QFrame
 public:
     explicit ChartDialog(QWidget* parent = 0);
 
-    void setChartView(TimelineChartView* view);
+    TimelineChartView& getChartView();
 
 signals:
     void showChartsDockWidget();
@@ -26,7 +26,9 @@ public slots:
     void clear();
 
 private:
-    TimelineChartView* chartView_ = 0;
+    void setupChartView();
+
+    TimelineChartView chartView_;
     TIME_DISPLAY_FORMAT displayFormat_;
 };
 

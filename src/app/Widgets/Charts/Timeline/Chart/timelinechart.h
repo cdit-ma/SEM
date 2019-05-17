@@ -11,9 +11,9 @@
 
 enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
-static QString const DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
-static QString const TIME_FORMAT = "hh:mm:ss.zzz";
-static QString const DATE_FORMAT = "MMM d";
+static const QString DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
+static const QString TIME_FORMAT = "hh:mm:ss.zzz";
+static const QString DATE_FORMAT = "MMM d";
 
 class EntityChart;
 class TimelineChart : public QWidget
@@ -33,10 +33,10 @@ public:
     void insertEntityChart(int index, EntityChart* chart);
     void removeEntityChart(EntityChart* chart);
 
-    const QList<EntityChart*>& getEntityCharts();
-    const QRectF& getHoverRect();
+    const QList<EntityChart*>& getEntityCharts() const;
+    const QRectF& getHoverRect() const;
 
-    bool isPanning();
+    bool isPanning() const;
 
 signals:
     void panning(bool _panning);
@@ -45,13 +45,13 @@ signals:
     void panned(double dx, double dy);
     void rubberbandUsed(double left, double right);
 
-    void entityChartHovered(EntityChart* chart, bool hovered);
+    void entityChartHovered(EntityChart* chart, bool hovered_);
     void hoverLineUpdated(bool visible, QPointF pos);
 
 public slots:
     void themeChanged();
 
-    void setEntityChartHovered(EntityChart* chart, bool hovered);
+    void setEntityChartHovered(EntityChart* chart, bool hovered_);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -70,39 +70,37 @@ protected:
 
 private:
     void hoverRectUpdated(bool repaintRequired = false);
-
     void clearDragMode();
-    double mapLocalPixelToTime(double pixel);
 
-    double axisWidth;
+    double axisWidth_;
 
-    bool axisXVisible = false;
-    bool axisYVisible = false;
+    bool axisXVisible_ = false;
+    bool axisYVisible_ = false;
 
-    DRAG_MODE dragMode = NONE;
-    bool hovered = false;
-    bool rangeSet = false;
+    DRAG_MODE dragMode_ = NONE;
+    bool hovered_ = false;
+    bool rangeSet_ = false;
 
-    QColor backgroundColor;
-    QColor backgroundHighlightColor;
-    QColor highlightColor;
-    QColor hoveredRectColor;
+    QColor backgroundColor_;
+    QColor backgroundHighlightColor_;
+    QColor highlightColor_;
+    QColor hoveredRectColor_;
 
-    QPen axisLinePen;
-    QPen topLinePen;
-    QPen hoverLinePen;
-    QPen cursorPen;
+    QPen axisLinePen_;
+    QPen topLinePen_;
+    QPen hoverLinePen_;
+    QPen cursorPen_;
 
-    QPointF cursorPoint;
-    QPointF panOrigin;
-    QRectF rubberBandRect;
-    QRectF hoveredChartRect;
-    QRectF hoverRect;
+    QPointF cursorPoint_;
+    QPointF panOrigin_;
+    QRectF rubberBandRect_;
+    QRectF hoveredChartRect_;
+    QRectF hoverRect_;
 
-    QVBoxLayout* _layout;
-    QList<EntityChart*> _entityCharts;
+    QVBoxLayout* layout_;
+    QList<EntityChart*> entityCharts_;
 
-    QPointF hover_cursor;
+    QPointF hoverCursor_;
 
 };
 

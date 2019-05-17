@@ -50,7 +50,7 @@ EntityChart::EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QW
  * @brief EntityChart::getExperimentRunID
  * @return
  */
-quint32 EntityChart::getExperimentRunID()
+quint32 EntityChart::getExperimentRunID() const
 {
     return experimentRunID_;
 }
@@ -88,7 +88,7 @@ void EntityChart::removeSeries(MEDEA::ChartDataKind kind)
  * @brief EntityChart::getSeries
  * @return
  */
-const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& EntityChart::getSeries()
+const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& EntityChart::getSeries() const
 {
     return seriesList_;
 }
@@ -98,7 +98,7 @@ const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& EntityChart::getSeries()
  * @brief EntityChart::getHovereSeriesKinds
  * @return
  */
-const QList<MEDEA::ChartDataKind> EntityChart::getHovereSeriesKinds()
+const QList<MEDEA::ChartDataKind> EntityChart::getHovereSeriesKinds() const
 {
     return hoveredSeriesTimeRange_.keys();
 }
@@ -109,7 +109,7 @@ const QList<MEDEA::ChartDataKind> EntityChart::getHovereSeriesKinds()
  * @param kind
  * @return
  */
-const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(MEDEA::ChartDataKind kind)
+const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(MEDEA::ChartDataKind kind) const
 {
     return hoveredSeriesTimeRange_.value(kind, {-1, -1});
 }
@@ -132,8 +132,6 @@ void EntityChart::setRange(double min, double max)
 
     displayMin_ = (dataMaxX_ - dataMinX_) * minRatio_ + dataMinX_;
     displayMax_ = (dataMaxX_ - dataMinX_) * maxRatio_ + dataMinX_;
-
-    //qDebug() << "Set RANGES to: " << QDateTime::fromMSecsSinceEpoch(min).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(max).toString(TIME_FORMAT);
 
     update();
 }

@@ -16,12 +16,12 @@ public:
 
     explicit AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent = 0);
 
-    Qt::Orientation getOrientation();
-    Qt::Alignment getAlignment();
-    double getAxisPenWidth();
+    Qt::Orientation getOrientation() const;
+    Qt::Alignment getAlignment() const;
+    double getAxisPenWidth() const;
 
-    double getMinRatio();
-    double getMaxRatio();
+    double getMinRatio() const;
+    double getMaxRatio() const;
 
     void setZoomFactor(double factor);
     void setPanning(bool panning);
@@ -61,37 +61,37 @@ private:
 
     void updateSlidersOnSizeChange();
 
-    Qt::Orientation _orientation;
-    Qt::Alignment _alignment;
+    Qt::Orientation orientation_;
+    Qt::Alignment alignment_;
 
-    QColor _axisColor;
-    QColor _sliderColor;
+    QColor axisColor_;
+    QColor sliderColor_;
 
-    QPen _axisPen;
-    QBrush _middleBrush;
-    QBrush _highlightBrush;
+    QPen axisPen_;
+    QBrush middleBrush_;
+    QBrush highlightBrush_;
 
-    QRectF _minSlider;
-    QRectF _maxSlider;
-    QRectF _midSlider;
+    QRectF minSlider_;
+    QRectF maxSlider_;
+    QRectF midSlider_;
 
-    DRAG_MODE dragMode = NO_DRAG_MODE;
-    HIT_RECT sliderHitRect = HIT_RECT::NO_SLIDER;
-    QPointF sliderOrigin = QPointF(-1, -1);
-    QPointF cursorPoint = QPointF(-1, -1);
+    DRAG_MODE dragMode_ = NO_DRAG_MODE;
+    HIT_RECT sliderHitRect_ = HIT_RECT::NO_SLIDER;
+    QPointF sliderOrigin_ = QPointF(-1, -1);
+    QPointF cursorPoint_ = QPointF(-1, -1);
 
-    HIT_RECT prevClickedRect = HIT_RECT::NO_SLIDER;
-    double zoomFactor = 1.1;
+    HIT_RECT prevClickedRect_ = HIT_RECT::NO_SLIDER;
+    double zoomFactor_ = 1.1;
 
-    double _minRatio;
-    double _maxRatio;
-    double _sliderMin;
-    double _sliderMax;
-    double _sliderRange;
-    double _actualMin;
-    double _actualMax;
+    double minRatio_;
+    double maxRatio_;
+    double sliderMin_;
+    double sliderMax_;
+    double sliderRange_;
+    double actualMin_;
+    double actualMax_;
 
-    bool isPanning = false;
+    bool isPanning_ = false;
 
 };
 

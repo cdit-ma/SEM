@@ -624,7 +624,7 @@ void MainWindow::setupDockablePanels()
 
     // Charts Panel
     //dockwidget_Charts = window_manager->constructChartDockWidget("Charts", new ChartDialog(view_controller, dockwidget_Charts), this);
-    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", ChartManager::manager()->getChartDialog(), this);
+    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", &ChartManager::manager()->getChartDialog(), this);
     dockwidget_Charts->setIconVisible(true);
     dockwidget_Charts->setProtected(true);
 

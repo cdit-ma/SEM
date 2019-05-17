@@ -11,32 +11,32 @@
  */
 EntitySet::EntitySet(QString label, QWidget* parent)
     : QWidget(parent),
-      _depth(1),
-      _ID(-1)
+      depth_(1),
+      ID_(-1)
 {
-    iconLabel = new QLabel(this);
-    iconLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    iconLabel_ = new QLabel(this);
+    iconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    textLabel = new QLabel(label, this);
-    textLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    textLabel_ = new QLabel(label, this);
+    textLabel_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    toolbar = new QToolBar(this);
-    toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    closeAction = toolbar->addAction("");
-    closeAction->setToolTip("Close " + label + "'s chart");
+    toolbar_ = new QToolBar(this);
+    toolbar_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    closeAction_ = toolbar_->addAction("");
+    closeAction_->setToolTip("Close " + label + "'s chart");
 
-    connect(closeAction, &QAction::triggered, this, &EntitySet::closeEntity);
+    connect(closeAction_, &QAction::triggered, this, &EntitySet::closeEntity);
 
-    _tickLength = fontMetrics().height() / 4;
-    _axisLineVisible = false;
+    tickLength_ = fontMetrics().height() / 4;
+    axisLineVisible_ = false;
 
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(3); //CHILD_TAB_WIDTH / 3);
     mainLayout->setMargin(0);
     mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
-    mainLayout->addWidget(iconLabel);
-    mainLayout->addWidget(textLabel, 1);
-    mainLayout->addWidget(toolbar);
+    mainLayout->addWidget(iconLabel_);
+    mainLayout->addWidget(textLabel_, 1);
+    mainLayout->addWidget(toolbar_);
 
     setLabel(label);
     setContentsMargins(0, 0, 0, 0);
@@ -60,9 +60,9 @@ EntitySet::~EntitySet()
  * This returns this set's total number of children all the way down to the lowest depth.
  * @return
  */
-int EntitySet::getAllDepthChildrenCount()
+int EntitySet::getAllDepthChildrenCount() const
 {
-    return allDepthChildrenCount;
+    return allDepthChildrenCount_;
 }
 
 
@@ -72,7 +72,7 @@ int EntitySet::getAllDepthChildrenCount()
  */
 bool EntitySet::isExpanded()
 {
-    return _isExpanded;
+    return isExpanded_;
 }
 
 
@@ -82,7 +82,7 @@ bool EntitySet::isExpanded()
  */
 void EntitySet::setDepth(int depth)
 {
-    _depth = depth;
+    depth_ = depth;
 }
 
 
@@ -90,9 +90,9 @@ void EntitySet::setDepth(int depth)
  * @brief EntitySet::getDepth
  * @return
  */
-int EntitySet::getDepth()
+int EntitySet::getDepth() const
 {
-    return _depth;
+    return depth_;
 }
 
 
@@ -100,9 +100,9 @@ int EntitySet::getDepth()
  * @brief EntitySet::getLabel
  * @return
  */
-QString EntitySet::getLabel()
+QString EntitySet::getLabel() const
 {
-    return _label;
+    return label_;
 }
 
 
@@ -112,8 +112,8 @@ QString EntitySet::getLabel()
  */
 void EntitySet::setLabel(QString label)
 {
-    _label = label;
-    textLabel->setText(label);
+    label_ = label;
+    textLabel_->setText(label);
     //setToolTip(label);
 }
 
@@ -129,10 +129,10 @@ void EntitySet::addChildEntitySet(EntitySet* child)
     if (child) {
 
         child->setParentEntitySet(this);
-        child->setDepth(_depth + 1);
+        child->setDepth(depth_ + 1);
         child->setContentsMargins(CHILD_TAB_WIDTH * child->getDepth(), 0, 0, 0);
-        child->setVisible(_isExpanded);
-        childrenSets.append(child);
+        child->setVisible(isExpanded_);
+        childrenSets_.append(child);
 
         connect(child, &EntitySet::childAdded, this, &EntitySet::childEntityAdded);
         connect(child, &EntitySet::childRemoved, this, &EntitySet::childEntityRemoved);
@@ -151,7 +151,7 @@ void EntitySet::addChildEntitySet(EntitySet* child)
 void EntitySet::setParentEntitySet(EntitySet* parent)
 {
     if (parent)
-        parentEntitySet = parent;
+        parentEntitySet_ = parent;
 }
 
 
@@ -159,9 +159,9 @@ void EntitySet::setParentEntitySet(EntitySet* parent)
  * @brief EntitySet::getChildrenEntitySets
  * @return
  */
-QList<EntitySet*> &EntitySet::getChildrenEntitySets()
+const QList<EntitySet *> &EntitySet::getChildrenEntitySets() const
 {
-    return childrenSets;
+    return childrenSets_;
 }
 
 
@@ -172,15 +172,15 @@ QList<EntitySet*> &EntitySet::getChildrenEntitySets()
 void EntitySet::setHovered(bool hovered)
 {
     if (hovered) {
-        textLabel->setStyleSheet("color: " + highlighColorStr + ";");
-        closeAction->setIcon(closeIcon);
+        textLabel_->setStyleSheet("color: " + highlighColorStr_ + ";");
+        closeAction_->setIcon(closeIcon_);
         /*auto mappedCursor = mapFromGlobal(cursor().pos());
         if (geometry().contains(mappedCursor)) {
             closeAction->setVisible(true);
         }*/
     } else {
-        textLabel->setStyleSheet("color: " + textColorStr + ";");
-        closeAction->setIcon(QIcon());
+        textLabel_->setStyleSheet("color: " + textColorStr_ + ";");
+        closeAction_->setIcon(QIcon());
     }
 }
 
@@ -199,28 +199,28 @@ void EntitySet::themeChanged(Theme* theme)
                   "border-right: 0px;"
                   "}");
 
-    unExpandablePixmap = theme->getImage("Icons", "circleDark", theme->getIconSize(), theme->getMenuIconColor());
-    expandedPixmap = theme->getImage("Icons", "triangleDown", theme->getIconSize(), theme->getMenuIconColor());
-    contractedPixmap = theme->getImage("Icons", "triangleRight", theme->getIconSize(), theme->getMenuIconColor());
+    unExpandablePixmap_ = theme->getImage("Icons", "circleDark", theme->getIconSize(), theme->getMenuIconColor());
+    expandedPixmap_ = theme->getImage("Icons", "triangleDown", theme->getIconSize(), theme->getMenuIconColor());
+    contractedPixmap_ = theme->getImage("Icons", "triangleRight", theme->getIconSize(), theme->getMenuIconColor());
 
-    textLabel->setFont(theme->getFont());
-    _tickPen = QPen(theme->getAltTextColor(), 2.0);
+    textLabel_->setFont(theme->getFont());
+    tickPen_ = QPen(theme->getAltTextColor(), 2.0);
 
-    textColorStr = theme->getTextColorHex();
-    highlighColorStr = theme->getHighlightColorHex();
+    textColorStr_ = theme->getTextColorHex();
+    highlighColorStr_ = theme->getHighlightColorHex();
 
-    toolbar->setIconSize(theme->getIconSize());
-    toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ margin: 0px; padding: 0px; }"
+    toolbar_->setIconSize(theme->getIconSize());
+    toolbar_->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ margin: 0px; padding: 0px; }"
                            "QToolButton:!hover{ border: none; background: rgba(0,0,0,0); }");
 
-    closeIcon = theme->getIcon("Icons", "cross");
-    closeAction->setIcon(closeIcon);
+    closeIcon_ = theme->getIcon("Icons", "cross");
+    closeAction_->setIcon(closeIcon_);
 
-    if (allDepthChildrenCount <= 0) {
-        iconLabel->setPixmap(unExpandablePixmap);
+    if (allDepthChildrenCount_ <= 0) {
+        iconLabel_->setPixmap(unExpandablePixmap_);
     } else {
-        QPixmap pixmap = _isExpanded ? expandedPixmap : contractedPixmap;
-        iconLabel->setPixmap(pixmap);
+        QPixmap pixmap = isExpanded_ ? expandedPixmap_ : contractedPixmap_;
+        iconLabel_->setPixmap(pixmap);
     }
 
     setHovered(false);
@@ -232,12 +232,12 @@ void EntitySet::themeChanged(Theme* theme)
  */
 void EntitySet::toggleExpanded()
 {
-    _isExpanded = !_isExpanded;
-    _isChildrenVisible = _isExpanded;
-    emit setChildVisible(_isExpanded);
+    isExpanded_ = !isExpanded_;
+    isChildrenVisible_ = isExpanded_;
+    emit setChildVisible(isExpanded_);
 
-    QPixmap pixmap = _isExpanded ? expandedPixmap : contractedPixmap;
-    iconLabel->setPixmap(pixmap);
+    QPixmap pixmap = isExpanded_ ? expandedPixmap_ : contractedPixmap_;
+    iconLabel_->setPixmap(pixmap);
 }
 
 
@@ -248,13 +248,13 @@ void EntitySet::toggleExpanded()
 void EntitySet::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
-    if (visible != _isVisible) {
-        _isVisible = visible;
-        emit visibilityChanged(_isVisible);
-        bool showChildren = _isExpanded && visible;
-        if (showChildren != _isChildrenVisible) {
-            _isChildrenVisible = showChildren;
-            emit setChildVisible(_isChildrenVisible);
+    if (visible != isVisible_) {
+        isVisible_ = visible;
+        emit visibilityChanged(isVisible_);
+        bool showChildren = isExpanded_ && visible;
+        if (showChildren != isChildrenVisible_) {
+            isChildrenVisible_ = showChildren;
+            emit setChildVisible(isChildrenVisible_);
         }
     }
 }
@@ -268,12 +268,12 @@ void EntitySet::setVisible(bool visible)
 void EntitySet::childEntityAdded()
 {
     // if this is the first child, update the icon to show that it can be expanded
-    if (allDepthChildrenCount == 0) {
-        iconLabel->setPixmap(contractedPixmap);
+    if (allDepthChildrenCount_ == 0) {
+        iconLabel_->setPixmap(contractedPixmap_);
         installEventFilter(this);
     }
 
-    allDepthChildrenCount++;
+    allDepthChildrenCount_++;
     emit childAdded();
 }
 
@@ -289,13 +289,13 @@ void EntitySet::childEntityRemoved(EntitySet* child)
         return;
 
     int totalChildrenToRemove = 1 + child->getAllDepthChildrenCount();
-    allDepthChildrenCount -= totalChildrenToRemove;
-    childrenSets.removeAll(child);
+    allDepthChildrenCount_ -= totalChildrenToRemove;
+    childrenSets_.removeAll(child);
 
     // update the icon to show that it can't be expanded
-    if (allDepthChildrenCount == 0) {
-        iconLabel->setPixmap(unExpandablePixmap);
-        _isExpanded = false;
+    if (allDepthChildrenCount_ == 0) {
+        iconLabel_->setPixmap(unExpandablePixmap_);
+        isExpanded_ = false;
         removeEventFilter(this);
     }
 
@@ -349,14 +349,14 @@ void EntitySet::leaveEvent(QEvent* event)
 void EntitySet::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
-    painter.setPen(_tickPen);
+    painter.setPen(tickPen_);
 
-    if (_axisLineVisible)
+    if (axisLineVisible_)
         painter.drawLine(rect().topRight(), rect().bottomRight());
 
-    if (_tickVisible) {
-        double centerY = rect().center().y() + _tickPen.widthF() / 2.0;
-        painter.drawLine(rect().right() - _tickLength, centerY, rect().right(), centerY);
+    if (tickVisible_) {
+        double centerY = rect().center().y() + tickPen_.widthF() / 2.0;
+        painter.drawLine(rect().right() - tickLength_, centerY, rect().right(), centerY);
     }
 }
 
@@ -367,7 +367,7 @@ void EntitySet::paintEvent(QPaintEvent* event)
  */
 void EntitySet::setAxisLineVisible(bool visible)
 {
-    _axisLineVisible = visible;
+    axisLineVisible_ = visible;
     update();
 }
 
@@ -378,6 +378,6 @@ void EntitySet::setAxisLineVisible(bool visible)
  */
 void EntitySet::setTickVisible(bool visible)
 {
-    _tickVisible = visible;
+    tickVisible_ = visible;
     update();
 }

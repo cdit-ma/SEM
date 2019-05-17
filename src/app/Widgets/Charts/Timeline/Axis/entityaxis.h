@@ -16,7 +16,7 @@ public:
     int insertEntity(EntitySet* prevEntitySet, EntitySet* entitySet);
     int removeEntity(EntitySet* entitySet);
 
-    int getEntityAxisIndex(EntitySet* entitySet);
+    int getEntityAxisIndex(EntitySet* entitySet) const;
 
     void setAxisLineVisible(bool visible);
     void setTickVisible(bool visible);
@@ -29,13 +29,13 @@ public slots:
     void resizeEvent(QResizeEvent* event);
 
 private:
-    QVBoxLayout* mainLayout;
+    QVBoxLayout* mainLayout_;
 
-    int minimumEntityHeight = 0;
-    int maximumEntityWidth = 0;
+    int minimumEntityHeight_ = 0;
+    int maximumEntityWidth_ = 0;
 
-    bool axisLineVisible = true;
-    bool tickVisible = true;
+    bool axisLineVisible_ = true;
+    bool tickVisible_ = true;
 
 };
 

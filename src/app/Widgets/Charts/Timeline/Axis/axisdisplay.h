@@ -12,7 +12,7 @@ class AxisDisplay : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisDisplay(AxisSlider* slider, QWidget* parent = 0, VALUE_TYPE type = VALUE_TYPE::DOUBLE);
+    explicit AxisDisplay(const AxisSlider &slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = 0);
 
     void setAxisMargin(int margin);
     void setAxisLineVisible(bool visible);
@@ -55,43 +55,44 @@ private:
     QString getCovertedString(double value);
     QRectF getAdjustedRect();
 
-    AxisSlider* _slider = 0;
-    Qt::Orientation _orientation;
-    Qt::Alignment _textAlignment;
+    const AxisSlider& slider_;
 
-    VALUE_TYPE _valueType;
-    TIME_DISPLAY_FORMAT _axisFormat;
+    Qt::Orientation orientation_;
+    Qt::Alignment textAlignment_;
 
-    QString currentDisplayFormat = TIME_FORMAT;
-    bool displayFormatChanged = false;
+    VALUE_TYPE valueType_;
+    TIME_DISPLAY_FORMAT axisFormat_;
 
-    bool _displayHoverValue = false;
-    double _hoveredValue;
-    double _hoveredPos;
+    QString currentDisplayFormat_ = TIME_FORMAT;
+    bool displayFormatChanged_ = false;
 
-    bool _axisLineVisible = true;
-    bool _tickVisible = true;
-    double _tickLength = 4;
-    int _tickCount = 2;
-    int _penWidth = 4;
+    bool displayHoverValue_ = false;
+    double hoveredValue_;
+    double hoveredPos_;
 
-    double _min = 0;
-    double _max = 100;
-    double _range = 100;
+    bool axisLineVisible_ = true;
+    bool tickVisible_ = true;
+    double tickLength_ = 4;
+    int tickCount_ = 2;
+    int penWidth_ = 4;
 
-    double _displayedMin = _min;
-    double _displayedMax = _max;
-    double _displayedRange = _range;
+    double min_ = 0;
+    double max_ = 100;
+    double range_ = 100;
 
-    int _spacing;
-    int _textHeight;
-    int _widestTextLength;
+    double displayedMin_ = min_;
+    double displayedMax_ = max_;
+    double displayedRange_ = range_;
 
-    QLineF _axisLine;
-    QColor _labelColor;
-    QColor _axisColor;
-    QColor _hoveredRectColor;
-    QColor _hoverTextColor;
+    int spacing_;
+    int textHeight_;
+    int widestTextLength_;
+
+    QLineF axisLine_;
+    QColor labelColor_;
+    QColor axisColor_;
+    QColor hoveredRectColor_;
+    QColor hoverTextColor_;
 };
 
 #endif // AXISDISPLAY_H

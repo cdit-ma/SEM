@@ -25,6 +25,7 @@ int launchMEDEA(int argc, char *argv[]){
 
     QScopedPointer<ViewController> view_controller;
 
+
     int result = 0;
     try{
         //Construct a QApplication

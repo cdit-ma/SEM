@@ -10,38 +10,16 @@ ChartManager* ChartManager::manager_ = 0;
  * @brief ChartManager::ChartManager
  * @param vc
  */
-ChartManager::ChartManager(ViewController *vc)
+ChartManager::ChartManager(const ViewController &vc)
+    : viewController_(vc),
+      chartView_(chartDialog_.getChartView())
 {
-    viewController_ = vc;
+    connect(&vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
+    connect(&vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
+    connect(&vc, &ViewController::modelClosed, &chartDialog_, &ChartDialog::clear);
 
-    chartDialog_ = new ChartDialog();
-    chartPopup_ = new ChartInputPopup(chartDialog_);
-    chartView_ = new TimelineChartView(chartDialog_);
-
-    chartDialog_->setChartView(chartView_);
-
-    if (vc) {
-        connect(vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
-        connect(vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
-        connect(vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
-    }
-
-    connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);
-    connect(chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartManager::experimentRunSelected);
-}
-
-
-/**
- * @brief ChartManager::~ChartManager
- */
-ChartManager::~ChartManager()
-{
-    if (chartDialog_)
-        chartDialog_->deleteLater();
-    if (chartPopup_)
-        chartPopup_->deleteLater();
-    if (chartView_)
-        chartView_->deleteLater();
+    connect(this, &ChartManager::showChartsPanel, &chartDialog_, &ChartDialog::showChartsDockWidget);
+    connect(&chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartManager::experimentRunSelected);
 }
 
 
@@ -50,13 +28,12 @@ ChartManager::~ChartManager()
  */
 void ChartManager::requestExperimentRuns(const QString& experimentName)
 {
-    auto future = viewController_->getAggregationProxy().RequestExperimentRuns(experimentName);
+    auto future = viewController_.getAggregationProxy().RequestExperimentRuns(experimentName);
     auto futureWatcher = new QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>(this);
 
     connect(futureWatcher, &QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>::finished, [=]() {
         try {
-            if (chartPopup_)
-                chartPopup_->setExperimentRuns(futureWatcher->result().toList());
+            chartPopup_.setExperimentRuns(futureWatcher->result().toList());
         } catch(const std::exception& ex) {
             toastNotification("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
         }
@@ -72,15 +49,13 @@ void ChartManager::requestExperimentRuns(const QString& experimentName)
  */
 void ChartManager::requestExperimentState(const quint32 experimentRunID)
 {
-    auto future = viewController_->getAggregationProxy().RequestExperimentState(experimentRunID);
+    auto future = viewController_.getAggregationProxy().RequestExperimentState(experimentRunID);
     auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [=]() {
         try {
             auto state = futureWatcher->result();
-            if (chartView_) {
-                chartView_->updateExperimentRunLastUpdatedTime(experimentRunID, state.last_updated_time);
-            }
+            chartView_.updateExperimentRunLastUpdatedTime(experimentRunID, state.last_updated_time);
             /*
             qDebug() << "[Experiment State Request]";
             qDebug() << "last-updated-time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("MMM d, hh:mm:ss.zzz");
@@ -102,31 +77,27 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
  * @param experimentRun
  */
 void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerResponse::ExperimentRun& experimentRun)
-{  
+{
     try {
         requestPortLifecycleEvents(builder.getPortLifecycleRequest(), experimentRun);
     } catch (const std::exception&) {
         qInfo("No PortLifecycleRequest");
     }
-
     try {
         requestWorkloadEvents(builder.getWorkloadRequest(), experimentRun);
     } catch (const std::exception&) {
         qInfo("No WorkloadRequest");
     }
-
     try {
         requestCPUUtilisationEvents(builder.getCPUUtilisationRequest(), experimentRun);
     } catch (const std::exception&) {
         qInfo("No CPUUtilisationRequest");
     }
-
     try {
         requestMemoryUtilisationEvents(builder.getMemoryUtilisationRequest(), experimentRun);
     } catch (const std::exception&) {
         qInfo("No MemoryUtilisationRequest");
     }
-
     try {
         requestMarkerEvents(builder.getMarkerRequest(), experimentRun);
     } catch (const std::exception&) {
@@ -142,7 +113,7 @@ void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerR
  */
 void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &request, const AggServerResponse::ExperimentRun& experimentRun)
 {
-    auto future = viewController_->getAggregationProxy().RequestPortLifecycleEvents(request);
+    auto future = viewController_.getAggregationProxy().RequestPortLifecycleEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [=]() {
         try {
@@ -151,8 +122,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
                 toastNotification("No port lifecycle events received for selection", "plug");
             } else {
                 emit showChartsPanel();
-                if (chartView_ )
-                    chartView_->addPortLifecycleEvents(experimentRun, events);
+                chartView_.addPortLifecycleEvents(experimentRun, events);
             }
             //qDebug() << "[PortLifecycle Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
@@ -170,7 +140,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
  */
 void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
-    auto future = viewController_->getAggregationProxy().RequestWorkloadEvents(request);
+    auto future = viewController_.getAggregationProxy().RequestWorkloadEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
     connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [=]() {
         try {
@@ -179,8 +149,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
                 toastNotification("No workload events received for selection", "plug");
             } else {
                 emit showChartsPanel();
-                if (chartView_ )
-                    chartView_->addWorkloadEvents(experimentRun, events);
+                chartView_.addWorkloadEvents(experimentRun, events);
             }
             //qDebug() << "[Workload Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
@@ -198,7 +167,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
  */
 void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
-    auto future = viewController_->getAggregationProxy().RequestCPUUtilisationEvents(request);
+    auto future = viewController_.getAggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
 
     connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [=]() {
@@ -208,8 +177,7 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
                 toastNotification("No cpu utilisation events received for selection", "cpu");
             } else {
                 emit showChartsPanel();
-                if (chartView_ )
-                    chartView_->addCPUUtilisationEvents(experimentRun, events);
+                chartView_.addCPUUtilisationEvents(experimentRun, events);
             }
             //qDebug() << "[CPUUtilisation Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
@@ -228,7 +196,7 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
  */
 void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
-    auto future = viewController_->getAggregationProxy().RequestMemoryUtilisationEvents(request);
+    auto future = viewController_.getAggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
 
     connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [=]() {
@@ -238,8 +206,7 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
                 toastNotification("No memory utilisation events received for selection", "memoryCard");
             } else {
                 emit showChartsPanel();
-                if (chartView_ )
-                    chartView_->addMemoryUtilisationEvents(experimentRun, events);
+                chartView_.addMemoryUtilisationEvents(experimentRun, events);
             }
             //qDebug() << "[MemoryUtilisation Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
@@ -258,7 +225,7 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
  */
 void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
 {
-    auto future = viewController_->getAggregationProxy().RequestMarkerEvents(request);
+    auto future = viewController_.getAggregationProxy().RequestMarkerEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MarkerEvent*>>(this);
 
     connect(futureWatcher, &QFutureWatcher<QVector<MarkerEvent*>>::finished, [=]() {
@@ -268,8 +235,7 @@ void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggSe
                 toastNotification("No marker events received for selection", "bookmark");
             } else {
                 emit showChartsPanel();
-                if (chartView_ )
-                    chartView_->addMarkerEvents(experimentRun, events);
+                chartView_.addMarkerEvents(experimentRun, events);
             }
             //qDebug() << "[Marker Request] Result size#: " << events.size();
             //qDebug() << "-----------------------------------------------------------------";
@@ -322,7 +288,7 @@ ChartManager* ChartManager::manager()
  * @brief ChartManager::getChartDialog
  * @return
  */
-ChartDialog* ChartManager::getChartDialog()
+ChartDialog &ChartManager::getChartDialog()
 {
     return chartDialog_;
 }
@@ -334,9 +300,7 @@ ChartDialog* ChartManager::getChartDialog()
 void ChartManager::displayChartPopup()
 {
     requestExperimentRuns("");
-    if (chartPopup_) {
-        chartPopup_->setPopupVisible(true);
-    }
+    chartPopup_.setPopupVisible(true);
 }
 
 
@@ -361,7 +325,7 @@ void ChartManager::experimentRunSelected(const AggServerResponse::ExperimentRun&
 {
     // request the experiment state to get the experiment run's last updated time
     auto experimentRunID = experimentRun.experiment_run_id;
-    auto future = viewController_->getAggregationProxy().RequestExperimentState(experimentRunID);
+    auto future = viewController_.getAggregationProxy().RequestExperimentState(experimentRunID);
     auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [=]() {
@@ -442,7 +406,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
             case NODE_KIND::PORT_REQUESTER_IMPL:
             case NODE_KIND::PORT_PUBLISHER_IMPL:
             case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-                nodeItemID = viewController_->getNodeDefinitionID(nodeItemID);
+                nodeItemID = viewController_.getNodeDefinitionID(nodeItemID);
             case NODE_KIND::PORT_REPLIER:
             case NODE_KIND::PORT_REQUESTER:
             case NODE_KIND::PORT_PUBLISHER:
@@ -450,10 +414,10 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
             case NODE_KIND::PORT_PERIODIC:
                 // can send port requests
                 if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
-                    /*for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
+                    /*for (auto instID : viewController_.getNodeInstanceIDs(nodeItemID)) {
                         portIDs_.append(QString::number(instID) + "_0");
                     }*/
-                    for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                    for (auto instItem : viewController_.getNodesInstances(item->getID())) {
                         if (instItem && instItem->getParentItem()) {
                             auto compInstItem = instItem->getParentItem();
                             portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
@@ -479,7 +443,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
                     // a ClassInstance can be a child of either a CompImpl or CompInst
                     /*auto parentNodeKind = nodeItem->getParentNodeKind();
                     if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                        for (auto instID : viewController_->getNodeInstanceIDs(nodeItemID)) {
+                        for (auto instID : viewController_.getNodeInstanceIDs(nodeItemID)) {
                             workerInstIDs_.append(QString::number(instID) + "_0");
                         }
                     } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
@@ -487,7 +451,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
                     }*/
                     auto parentNodeKind = nodeItem->getParentNodeKind();
                     if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                        for (auto instItem : viewController_->getNodesInstances(item->getID())) {
+                        for (auto instItem : viewController_.getNodesInstances(item->getID())) {
                             if (instItem && instItem->getParentItem()) {
                                 auto compInstItem = instItem->getParentItem();
                                 workerInstPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
@@ -532,6 +496,6 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
 void ChartManager::constructSingleton(ViewController *vc)
 {
     if (!manager_) {
-        manager_ = new ChartManager(vc);
+        manager_ = new ChartManager(*vc);
     }
 }

@@ -26,7 +26,7 @@ AggregationProxy::AggregationProxy()
  * @param experiment_name
  * @return
  */
-QFuture<QVector<AggServerResponse::ExperimentRun>> AggregationProxy::RequestExperimentRuns(const QString& experiment_name)
+QFuture<QVector<AggServerResponse::ExperimentRun>> AggregationProxy::RequestExperimentRuns(const QString& experiment_name) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetExperimentRuns, experiment_name);
 }
@@ -37,7 +37,7 @@ QFuture<QVector<AggServerResponse::ExperimentRun>> AggregationProxy::RequestExpe
  * @param experiment_run_id
  * @return
  */
-QFuture<AggServerResponse::ExperimentState> AggregationProxy::RequestExperimentState(const quint32 experiment_run_id)
+QFuture<AggServerResponse::ExperimentState> AggregationProxy::RequestExperimentState(const quint32 experiment_run_id) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetExperimentState, experiment_run_id);
 }
@@ -48,7 +48,7 @@ QFuture<AggServerResponse::ExperimentState> AggregationProxy::RequestExperimentS
  * @param request
  * @return
  */
-QFuture< QVector<PortLifecycleEvent*> > AggregationProxy::RequestPortLifecycleEvents(const PortLifecycleRequest& request)
+QFuture< QVector<PortLifecycleEvent*> > AggregationProxy::RequestPortLifecycleEvents(const PortLifecycleRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetPortLifecycleEvents, request);
 }
@@ -59,7 +59,7 @@ QFuture< QVector<PortLifecycleEvent*> > AggregationProxy::RequestPortLifecycleEv
  * @param request
  * @return
  */
-QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const WorkloadRequest& request)
+QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const WorkloadRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents, request);
 }
@@ -70,7 +70,7 @@ QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const
  * @param request
  * @return
  */
-QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const CPUUtilisationRequest& request)
+QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, request);
 }
@@ -81,7 +81,7 @@ QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisation
  * @param request
  * @return
  */
-QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request)
+QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, request);
 }
@@ -92,7 +92,7 @@ QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtili
  * @param request
  * @return
  */
-QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const MarkerRequest& request)
+QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const MarkerRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetMarkerEvents, request);
 }
@@ -111,7 +111,7 @@ void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 /**
  * @brief AggregationProxy::CheckRequester
  */
-void AggregationProxy::CheckRequester()
+void AggregationProxy::CheckRequester() const
 {
     if (!requester_) {
         throw NoRequesterException();
@@ -124,7 +124,7 @@ void AggregationProxy::CheckRequester()
  * @param experiment_name
  * @return
  */
-QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name)
+QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name) const
 {
     CheckRequester();
     
@@ -160,7 +160,7 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
  * @param experiment_run_id
  * @return
  */
-AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id)
+AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id) const
 {
     CheckRequester();
     
@@ -198,7 +198,7 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
  * @param request
  * @return
  */
-QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const PortLifecycleRequest& request)
+QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const PortLifecycleRequest& request) const
 {
     CheckRequester();
 
@@ -245,7 +245,7 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const Port
  * @param request
  * @return
  */
-QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadRequest &request)
+QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadRequest &request) const
 {
     CheckRequester();
 
@@ -295,7 +295,7 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
  * @param request
  * @return
  */
-QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request)
+QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request) const
 {
     CheckRequester();
 
@@ -334,7 +334,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CP
  * @param request
  * @return
  */
-QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request)
+QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request) const
 {
     CheckRequester();
 
@@ -373,7 +373,7 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(co
  * @param request
  * @return
  */
-QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &request)
+QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &request) const
 {
     CheckRequester();
 

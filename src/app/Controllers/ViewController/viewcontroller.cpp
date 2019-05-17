@@ -261,7 +261,7 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-AggregationProxy& ViewController::getAggregationProxy()
+const AggregationProxy& ViewController::getAggregationProxy() const
 {
     return proxy;
 }
@@ -297,7 +297,7 @@ QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)
     return parent_list;
 }
 
-int ViewController::getNodeDefinitionID(int ID)
+int ViewController::getNodeDefinitionID(int ID) const
 {
     auto definition = getNodesDefinition(ID);
     if (definition) {
@@ -306,7 +306,7 @@ int ViewController::getNodeDefinitionID(int ID)
     return -1;
 }
 
-QList<int> ViewController::getNodeInstanceIDs(int ID)
+QList<int> ViewController::getNodeInstanceIDs(int ID) const
 {
     QList<int> instIDs;
     auto instances = getNodesInstances(ID);
@@ -1132,7 +1132,7 @@ ViewItem *ViewController::getActiveSelectedItem() const
 }
 
 
-NodeViewItem *ViewController::getNodeViewItem(int ID)
+NodeViewItem *ViewController::getNodeViewItem(int ID) const
 {
     ViewItem* item = getViewItem(ID);
     if(item && item->isNode()){
@@ -1141,7 +1141,7 @@ NodeViewItem *ViewController::getNodeViewItem(int ID)
     return 0;
 }
 
-NodeViewItem *ViewController::getNodesImpl(int ID)
+NodeViewItem *ViewController::getNodesImpl(int ID) const
 {
     if(controller){
         int implID = controller->getImplementation(ID);
@@ -1150,7 +1150,7 @@ NodeViewItem *ViewController::getNodesImpl(int ID)
     return 0;
 }
 
-NodeViewItem *ViewController::getNodesDefinition(int ID)
+NodeViewItem *ViewController::getNodesDefinition(int ID) const
 {
     if(controller){
         int defID = controller->getDefinition(ID);
@@ -1159,7 +1159,7 @@ NodeViewItem *ViewController::getNodesDefinition(int ID)
     return 0;
 }
 
-QList<ViewItem *> ViewController::getNodesInstances(int ID)
+QList<ViewItem *> ViewController::getNodesInstances(int ID) const
 {
     QList<ViewItem*> instances;
     if (controller) {
@@ -1959,7 +1959,7 @@ void ViewController::initializeController()
 }
 
 
-ViewItem *ViewController::getViewItem(int ID)
+ViewItem *ViewController::getViewItem(int ID) const
 {
     if(view_items_.contains(ID)){
         return view_items_[ID];
