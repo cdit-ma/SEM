@@ -6,6 +6,7 @@ COPY . /logan/
 
 #Install re
 RUN     cd logan && \
+        rm -rf build && \
         mkdir build && \
         cd build && \
         cmake  -G Ninja ..  && \
